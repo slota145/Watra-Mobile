@@ -84,8 +84,8 @@ Testy zapisują do `user://test_savegame.json`, nigdy do zapisu gracza.
 Zasady w `docs/ART_SPEC.md` (przeczytaj przed tworzeniem grafik). W skrócie: najpierw sprawdź grafiki Watry, potem
 SpriteKiln (darmowy, postacie i potwory), a PixelLab tylko po pokazaniu autorowi kosztu - autor ma ograniczony limit
 miesięczny (ceny i obejście blokady pobierania w chmurze: `CLAUDE.md` Watry, „PixelLab w chmurze”).
-**Efekty ataków** (cięcia, trafienia, pociski, czary) robimy w kreatorze efektów PixelLab (`vfx_workbench`, darmowy)
-- decyzja autora z 12.11.2026.
+**Efekty ataków** (cięcia, trafienia, pociski, czary) robimy w kreatorze efektów PixelLab (`vfx_workbench`, darmowy) -
+decyzja autora z 12.11.2026.
 Ściągawki: `docs/sciagawka_spritekiln.md` (postacie, potwory, bronie) i `docs/sciagawka_vfx.md` (efekty, droga
 do gry przez `pixellab_src/vfx/` i `python tools/vfx_art.py`). Czytaj odpowiednią przed pracą nad grafiką.
 Instrukcje SpriteKiln są w bloku na końcu tego pliku (generuje go `spritekiln update` - nie edytuj go ręcznie).
