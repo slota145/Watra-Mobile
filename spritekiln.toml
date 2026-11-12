@@ -1,0 +1,19 @@
+# SpriteKiln project settings (https://github.com/LucasJRamos/spritekiln).
+# Commands run anywhere inside this folder find this file.
+
+[project]
+specs = "art/specs"        # where `spritekiln new` creates specs
+engine = "godot"       # godot | unity | monogame | generic
+ai = ["claude"]       # assistants whose files `spritekiln update` refreshes
+
+[export]
+# `spritekiln export <spec>` (or `render --export`) copies the atlas, JSON and maps here;
+# for Godot it also writes SpriteFrames, a CanvasTexture and a ready scene.
+dir = "assets/spritekiln"
+godot_project = "."   # folder with project.godot
+
+[defaults]                # given to specs created by `spritekiln new`
+view = "topdown"
+size = 64
+palette = "gothic"
+camera = { pitch = 38, scale = 0.04 }

@@ -1,0 +1,20 @@
+# Godot 4+
+.godot/
+/android/
+
+# Python (narzędzia w tools/)
+__pycache__/
+*.pyc
+
+# Tłumaczenia - Godot tworzy je z translations/teksty.csv przy imporcie
+translations/*.translation
+
+# Gotowe wersje gry (Project - Export)
+build/
+*.apk
+*.aab
+
+# SpriteKiln: renders and caches are regenerated; exported files live in the engine folder
+art/specs/**/out/
+art/specs/**/.kilncache/
+art/specs/**/*_ref/
