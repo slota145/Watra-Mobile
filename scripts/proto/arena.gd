@@ -11,7 +11,8 @@ extends Node2D
 ## paskiem zdrowia. Po jego śmierci spada skrzynia z żarem (ProtoChest), a po jej otwarciu cały żar z wyprawy trafia do
 ## Watry (`Game.bank_embers`), poziom lochu zostaje przebity (`Game.beat_level`) i pokazuje się okno zwycięstwa.
 ## Ucieczka (okno pauzy) i śmierć gaszą żar z wyprawy. W bazie Watra pokazuje zgromadzony żar, a jej dotknięcie
-## otwiera wybór poziomu lochu (LevelPicker).
+## otwiera wybór poziomu lochu (LevelPicker). Obok stoi skrzynia (ProtoStash) - przechowalnia przedmiotów z zakładkami
+## kupowanymi za złoto (okno StashWindow).
 ## Rozwój postaci (HeroLevels, stan w Game): gobliny i Wódz dają doświadczenie (śmierć go nie zabiera), cienki pasek
 ## doświadczenia (złoty) z poziomem postaci u góry (w lochu pod paskami zdrowia i many, liczby na paskach, w bazie obok „Menu”), awans leczy i pokazuje
 ## efekt na postaci, odblokowuje miejsca na umiejętności. Okno wyniku podsumowuje zdobyte doświadczenie.
@@ -22,6 +23,7 @@ extends Node2D
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 0), Vector2(100, 10), Vector2(0, 170)]
 const WATRA_POS := Vector2(0, -115)
+const STASH_POS := Vector2(-125, -135)
 const BASE_SCENE := "res://scenes/prototype.tscn"
 const HORDE_SCENE := "res://scenes/horde.tscn"
 ## Po śmierci postaci okno wyniku pojawia się po tylu sekundach (widać, jak pada).
@@ -84,6 +86,9 @@ var boss_box: VBoxContainer
 var boss_bar: ProgressBar
 var result: RunResult
 var picker: LevelPicker
+## Skrzynia w bazie i jej okno.
+var stash: ProtoStash
+var stash_window: StashWindow
 ## Poziom lochu tej wyprawy (Game.dungeon_level).
 var level := 1
 var chief: ProtoChief
@@ -167,6 +172,13 @@ func _ready() -> void:
 		watra.entered.connect(open_picker)
 		world.add_child(watra)
 		hero.obstacles.append(Vector3(WATRA_POS.x, WATRA_POS.y, ProtoWatra.RADIUS))
+		stash = ProtoStash.new()
+		stash.name = "Stash"
+		stash.position = STASH_POS
+		stash.hero = hero
+		stash.opened.connect(open_stash)
+		world.add_child(stash)
+		hero.obstacles.append(Vector3(STASH_POS.x, STASH_POS.y, ProtoStash.RADIUS))
 	world.add_child(weapon)
 	if not horde:
 		hero.set_level(Game.hero_level, gear)
@@ -272,6 +284,9 @@ func _make_hud() -> void:
 		picker.visible = false
 		picker.enter.connect(enter_dungeon)
 		safe.add_child(picker)
+		stash_window = StashWindow.new()
+		stash_window.visible = false
+		safe.add_child(stash_window)
 	pause_menu.closed.connect(_apply_settings)
 	pause_menu.dev_embers.connect(_on_dev_embers)
 	layer.add_child(pause_menu)
@@ -686,6 +701,14 @@ func _on_retry() -> void:
 
 
 ## Baza: wybór poziomu lochu po dotknięciu Watry.
+## Baza: okno skrzyni (stuknięcie albo podejście).
+func open_stash() -> void:
+	joystick.release()
+	actions.attack.release()
+	weapon.attack_held = false
+	stash_window.open()
+
+
 func open_picker() -> void:
 	joystick.release()
 	actions.attack.release()
@@ -743,6 +766,10 @@ func _notification(what: int) -> void:
 	if picker and picker.visible:
 		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 			picker.close()
+		return
+	if stash_window and stash_window.visible:
+		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+			stash_window.back()
 		return
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and pause_menu.visible:
 		pause_menu.back()

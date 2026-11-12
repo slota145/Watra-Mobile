@@ -2,6 +2,20 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - skrzynia w bazie z zakładkami za złoto
+
+- Prośba autora; ustalone: 1 zakładka 20 miejsc na start, kolejne za 100, 300, 800, 2000 złota (razem 5),
+  przenoszenie stuknięciem z przyciskiem albo przeciąganiem.
+- `Game`: `stash` (lista zakładek), `STASH_TAB_SIZE`, `STASH_TAB_PRICES`, `next_tab_price`, `buy_stash_tab`,
+  `to_stash`, `from_stash`, `stash_all`; w zapisie; „Od nowa” czyści skrzynię.
+- `scripts/proto/proto_stash.gd` (`ProtoStash`): skrzynia z Watry obok Watry (`Arena.STASH_POS`), otwiera okno
+  stuknięciem albo podejściem (ponownie dopiero po odejściu), przeszkoda dla postaci.
+- `scripts/ui/stash_window.gd` (`StashWindow`): zakładki 1..N (44 px) i „+ zakładka N” (drugie stuknięcie „Kupić za N?”),
+  siatka zakładki 5x4 i torba 5x4 (pola 48 px), opis przedmiotu z „Do skrzyni” / „Do torby”, „Wszystko do skrzyni”,
+  „Wróć”; zatrzymuje grę, „wstecz” zamyka najpierw opis. `scripts/ui/item_slot.gd` (`ItemSlot`): pole z przeciąganiem
+  (drag and drop Godota, palec przez emulację myszy) na drugą siatkę.
+- Test `tests/test_stash.gd`, zrzuty `tools/stash_shots.gd`.
+
 ## 12.11.2026 - usprawnienia: pasek żaru, powiadomienia o łupie, sprzedaż hurtem, „Na pewno?” przy wyjściu
 
 - Prośby autora. Pasek żaru pogrubiony do 11 px z liczbami „zebrane / 100” (`Arena.ember_text`).

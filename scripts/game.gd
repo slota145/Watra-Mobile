@@ -3,7 +3,8 @@ extends Node
 ## Ustawienia (np. przyciski po lewej) leżą osobno od zapisu gry, w user://settings.cfg.
 ## Zapis gry (JSON w `save_path`): żar zgromadzony w Watrze (`embers`), najwyższy przebity poziom lochu (`best_level`)
 ## i postać - poziom i doświadczenie (`hero_level`, `hero_xp`; dane poziomów w HeroLevels), przedmioty w torbie
-## (`bag`, najwyżej BAG_SIZE), założone (`equipped`: miejsce -> przedmiot) i złoto ze sprzedaży (`gold`; dane w Items).
+## (`bag`, najwyżej BAG_SIZE), założone (`equipped`: miejsce -> przedmiot) i złoto ze sprzedaży (`gold`; dane w Items),
+## skrzynia w bazie (`stash`: zakładki po STASH_TAB_SIZE miejsc; kolejne zakładki za złoto - STASH_TAB_PRICES).
 
 ## Zmiana doświadczenia: `xp` na obecnym poziomie, `need` - ile trzeba do awansu (0 na najwyższym poziomie).
 signal xp_changed(level: int, xp: int, need: int)
@@ -14,6 +15,9 @@ signal inventory_changed
 
 ## Miejsca w torbie (siatka 5x4 w oknie „Postać”).
 const BAG_SIZE := 20
+## Skrzynia w bazie: miejsca w zakładce i ceny kolejnych zakładek (pierwsza za darmo; razem najwyżej 5).
+const STASH_TAB_SIZE := 20
+const STASH_TAB_PRICES := [100, 300, 800, 2000]
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
 ## Zapis gracza. Testy podmieniają go na osobny plik, żeby nie ruszać prawdziwego zapisu.
@@ -44,6 +48,8 @@ var hero_xp := 0
 var bag: Array = []
 var equipped := {}
 var gold := 0
+## Skrzynia w bazie: lista zakładek, każda to lista przedmiotów (najwyżej STASH_TAB_SIZE).
+var stash: Array = [[]]
 ## Doświadczenie dopisane od ostatniego zapisu (zapis przy końcu wyprawy, pauzie i przełączeniu aplikacji).
 var _dirty := false
 ## Atak i umiejętności w lewym dolnym rogu (dla osób, które wolą trzymać je lewym kciukiem).
@@ -108,6 +114,7 @@ func load_game() -> void:
 	bag = []
 	equipped = {}
 	gold = 0
+	stash = [[]]
 	_dirty = false
 	if not FileAccess.file_exists(save_path):
 		return
@@ -125,6 +132,17 @@ func load_game() -> void:
 				var item := Items.normalize(raw)
 				if not item.is_empty() and bag.size() < BAG_SIZE:
 					bag.append(item)
+		var raw_stash = data.get("stash", [])
+		if raw_stash is Array and not raw_stash.is_empty():
+			stash = []
+			for raw_tab in raw_stash.slice(0, STASH_TAB_PRICES.size() + 1):
+				var tab: Array = []
+				if raw_tab is Array:
+					for raw in raw_tab:
+						var item := Items.normalize(raw)
+						if not item.is_empty() and tab.size() < STASH_TAB_SIZE:
+							tab.append(item)
+				stash.append(tab)
 		var raw_eq = data.get("equipped", {})
 		if raw_eq is Dictionary:
 			for slot in raw_eq:
@@ -138,7 +156,8 @@ func save_game() -> void:
 	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
-				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped}))
+				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
+				"stash": stash}))
 
 
 ## Zapis tylko wtedy, gdy od ostatniego coś się zmieniło (np. doświadczenie z goblinów).
@@ -191,6 +210,7 @@ func reset_hero() -> void:
 	bag = []
 	equipped = {}
 	gold = 0
+	stash = [[]]
 	save_game()
 	xp_changed.emit(hero_level, hero_xp, xp_needed())
 	inventory_changed.emit()
@@ -276,6 +296,61 @@ func sell_loot(item: Dictionary) -> int:
 	save_game()
 	inventory_changed.emit()
 	return price
+
+
+## Cena następnej zakładki skrzyni (0 - kupiono już wszystkie).
+func next_tab_price() -> int:
+	var i := stash.size() - 1
+	return STASH_TAB_PRICES[i] if i < STASH_TAB_PRICES.size() else 0
+
+
+## Kupuje kolejną zakładkę skrzyni za złoto. Zwraca false, gdy brakuje złota albo kupiono wszystkie.
+func buy_stash_tab() -> bool:
+	var price := next_tab_price()
+	if price == 0 or gold < price:
+		return false
+	gold -= price
+	stash.append([])
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Przenosi przedmiot z torby do zakładki skrzyni. Zwraca false, gdy zakładka jest pełna.
+func to_stash(bag_index: int, tab: int) -> bool:
+	if bag_index < 0 or bag_index >= bag.size() or tab < 0 or tab >= stash.size() \
+			or stash[tab].size() >= STASH_TAB_SIZE:
+		return false
+	stash[tab].append(bag[bag_index])
+	bag.remove_at(bag_index)
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Przenosi przedmiot ze skrzyni do torby. Zwraca false, gdy torba jest pełna.
+func from_stash(tab: int, index: int) -> bool:
+	if tab < 0 or tab >= stash.size() or index < 0 or index >= stash[tab].size() or bag.size() >= BAG_SIZE:
+		return false
+	bag.append(stash[tab][index])
+	stash[tab].remove_at(index)
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Cała torba do zakładki skrzyni (ile się zmieści). Zwraca, ile przeniesiono.
+func stash_all(tab: int) -> int:
+	if tab < 0 or tab >= stash.size():
+		return 0
+	var moved := 0
+	while not bag.is_empty() and stash[tab].size() < STASH_TAB_SIZE:
+		stash[tab].append(bag.pop_front())
+		moved += 1
+	if moved > 0:
+		save_game()
+		inventory_changed.emit()
+	return moved
 
 
 ## Tryb deweloperski: losowe przedmioty z obecnego poziomu lochu (ile się zmieści). Zwraca, ile dodano.
