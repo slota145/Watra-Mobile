@@ -119,5 +119,62 @@
       23,
       17
     ]
+  },
+  "whirl": {
+    "effect": "b3dbda83-0c49-4675-bec7-bc1e2af0413d",
+    "name": "Młynek (z Watry)",
+    "frame": [
+      96,
+      80
+    ],
+    "frames": 8,
+    "fps": 20,
+    "loop": true,
+    "anchor": [
+      48,
+      40
+    ]
+  },
+  "ground_slam": {
+    "effect": "f1d97b16-e1a7-441f-aec6-500201744f66",
+    "name": "Rozlupanie Ziemi - erupcja (z Watry)",
+    "frame": [
+      47,
+      51
+    ],
+    "frames": 10,
+    "fps": 15,
+    "anchor": [
+      26,
+      35
+    ]
+  },
+  "flicker_trail": {
+    "effect": "f655299b-2754-4093-881d-a5b827bdee3b",
+    "name": "Mgnienie - smuga (wersja B) (z Watry)",
+    "frame": [
+      74,
+      19
+    ],
+    "frames": 7,
+    "fps": 16,
+    "anchor": [
+      8,
+      10
+    ]
+  },
+  "flicker_hit": {
+    "effect": "f5d629cb-a186-413b-9df2-089ed571d4b9",
+    "name": "Mgnienie - cięcie trafienia (z Watry)",
+    "frame": [
+      82,
+      30
+    ],
+    "frames": 8,
+    "fps": 16,
+    "anchor": [
+      43,
+      16
+    ]
   }
 }

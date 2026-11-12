@@ -1,8 +1,10 @@
 class_name PauseMenu
 extends Control
 ## Okno pauzy w trakcie gry (przycisk „Menu”): zatrzymuje grę i daje ustawienia sterowania -
-## atak i umiejętności po lewej stronie, gest postaci przy ataku, auto atak (tylko podstawowy cios), tryb deweloperski
-## (nieśmiertelność i skróty: +1 poziom postaci, +100 żaru, +5 losowych przedmiotów z obecnego poziomu lochu, postać od nowa) - oraz powrót do gry i wyjście do menu głównego.
+## atak i umiejętności po lewej stronie, gest postaci przy ataku, auto atak (umiejętność pod dużym przyciskiem), tryb deweloperski
+## (nieśmiertelność i skróty: +1 poziom postaci, +100 żaru, +5 losowych przedmiotów z obecnego poziomu lochu, wszystkie
+## umiejętności, postać od nowa) - oraz powrót do gry i wyjście do menu głównego. „Umiejętności” otwiera okno
+## umiejętności (SkillsWindow) do przestawiania; kupować można tylko w bazie.
 ## Skróty poziomu zmieniają postać w Game (arena słucha jego sygnałów), żar - sygnał `dev_embers` (arena dodaje go
 ## do paska wyprawy w lochu albo do Watry w bazie). Przycisk „Postać i ekwipunek” otwiera okno postaci z ekwipunkiem
 ## i torbą (HeroStats) nad pauzą. Okno przewija się, gdy nie mieści się na niskim ekranie.
@@ -28,6 +30,7 @@ var immortal_toggle: CheckButton
 var level_button: Button
 var embers_button: Button
 var items_button: Button
+var skills_dev_button: Button
 var reset_button: Button
 ## Reset postaci wymaga drugiego stuknięcia (żeby nie wyzerować jej przypadkiem).
 var _reset_armed := false
@@ -39,6 +42,9 @@ var resume_button: Button
 var stats_button: Button
 ## Okno „Postać” ze statystykami.
 var stats: HeroStats
+var skills_button: Button
+## Okno umiejętności (przestawianie miejsc; w bazie także kupno).
+var skills_window: SkillsWindow
 var quit_button: Button
 ## Scena bazy - gdy ustawiona (w lochu), okno ma też przycisk „Powrót do bazy”.
 var base_scene := ""
@@ -94,7 +100,7 @@ func _ready() -> void:
 	gesture_toggle.toggled.connect(func(on: bool) -> void:
 		_game.gesture = on
 		_game.save_settings())
-	auto_toggle = _toggle(column, tr("Auto atak (podstawowy cios)"), _game.auto_attack)
+	auto_toggle = _toggle(column, tr("Auto atak (duży przycisk)"), _game.auto_attack)
 	auto_toggle.toggled.connect(func(on: bool) -> void:
 		_game.auto_attack = on
 		_game.save_settings())
@@ -112,11 +118,19 @@ func _ready() -> void:
 	embers_button.pressed.connect(func() -> void: dev_embers.emit(DEV_EMBERS))
 	items_button = _dev_button(dev_row, tr("+%d łupu") % DEV_ITEMS)
 	items_button.pressed.connect(func() -> void: _game.dev_items(DEV_ITEMS))
-	reset_button = _dev_button(dev_row, tr("Od nowa"))
+	var dev_row2 := HBoxContainer.new()  # drugi rząd - w jednym pięć przycisków się nie mieści
+	dev_row2.add_theme_constant_override("separation", 4)
+	column.add_child(dev_row2)
+	skills_dev_button = _dev_button(dev_row2, tr("+umiejętności"))
+	skills_dev_button.pressed.connect(func() -> void: _game.dev_skills())
+	reset_button = _dev_button(dev_row2, tr("Od nowa"))
 	reset_button.pressed.connect(_on_reset)
 	stats_button = _button(column, tr("Postać i ekwipunek"))
 	stats_button.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
 	stats_button.pressed.connect(func() -> void: stats.open())
+	skills_button = _button(column, tr("Umiejętności"))
+	skills_button.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
+	skills_button.pressed.connect(func() -> void: skills_window.open(base_scene == ""))
 	resume_button = _button(column, tr("Wróć do gry"))
 	resume_button.pressed.connect(close)
 	if base_scene != "":
@@ -135,6 +149,9 @@ func _ready() -> void:
 	stats = HeroStats.new()
 	stats.visible = false
 	add_child(stats)
+	skills_window = SkillsWindow.new()
+	skills_window.visible = false
+	add_child(skills_window)
 
 
 ## Pokazuje okno i zatrzymuje grę. `at_stake` - żar, który zgaśnie przy ucieczce z lochu.
@@ -156,12 +173,15 @@ func open(at_stake := 0) -> void:
 func back() -> void:
 	if stats.visible:
 		stats.back()
+	elif skills_window.visible:
+		skills_window.back()
 	else:
 		close()
 
 
 func close() -> void:
 	stats.visible = false
+	skills_window.visible = false
 	visible = false
 	get_tree().paused = false
 	closed.emit()

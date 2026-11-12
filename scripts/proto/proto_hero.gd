@@ -10,6 +10,8 @@ extends Node2D
 ## Poziom postaci (`set_level`, HeroLevels) ustala największe zdrowie; awans (`level_up`) leczy do pełna
 ## ze złotym błyskiem, napisem „Poziom N!” i dźwiękiem. Przedmioty (`gear` - Items.totals) dokładają zdrowie, manę,
 ## szybkość ruchu, regenerację zdrowia i ochronę (mniej obrażeń od potworów).
+## Mana odnawia się sama (HeroLevels.MANA_REGEN), a wydają ją umiejętności miecza (`spend_mana`). Skok Mgnienia
+## (`teleport`) przenosi postać od razu, zostawia gasnący cień w miejscu startu i daje chwilę nietykalności.
 
 signal health_changed(hp: int, max_hp: int)
 signal mana_changed(mana: int, max_mana: int)
@@ -38,7 +40,7 @@ var gesture := true
 var facing := Vector2.DOWN
 var velocity := Vector2.ZERO
 var max_hp := MAX_HP
-## Mana (na razie nic jej nie zużywa - czeka na umiejętności).
+## Mana (zużywają ją umiejętności miecza).
 var max_mana := HeroLevels.MANA_BASE
 var mana := HeroLevels.MANA_BASE
 var hp := MAX_HP
@@ -54,6 +56,7 @@ var move_mult := 1.0
 var regen := 0.0
 var protection := 0.0
 var _regen_acc := 0.0
+var _mana_acc := 0.0
 ## Ostatnio podane cechy z przedmiotów (awans liczy z nimi nowe zdrowie).
 var gear := {}
 
@@ -87,6 +90,15 @@ func _process(delta: float) -> void:
 			_regen_acc -= heal
 			hp = mini(hp + heal, max_hp)
 			health_changed.emit(hp, max_hp)
+	if mana < max_mana:
+		_mana_acc += HeroLevels.MANA_REGEN * delta
+		if _mana_acc >= 1.0:
+			var add := int(_mana_acc)
+			_mana_acc -= add
+			mana = mini(mana + add, max_mana)
+			mana_changed.emit(mana, max_mana)
+	else:
+		_mana_acc = 0.0
 	var input := joystick.vector if joystick else Vector2.ZERO
 	velocity = input * SPEED * move_mult
 	position = _push_out((position + velocity * delta).clamp(bounds.position, bounds.end))
@@ -131,6 +143,44 @@ func take_damage(amount: int) -> void:
 		fall.parallel().tween_property(_sprite, "position:y", 8.0, 0.35)
 		fall.tween_property(_sprite, "modulate", Color(0.45, 0.4, 0.4), 0.4)
 		died.emit()
+
+
+## Wydaje manę na umiejętność. Zwraca false (i nic nie zabiera), gdy jej brakuje.
+func spend_mana(amount: int) -> bool:
+	if amount > mana:
+		return false
+	mana -= amount
+	mana_changed.emit(mana, max_mana)
+	return true
+
+
+## Skok Mgnienia do punktu `to` (świat; w granicach areny, poza przeszkodami): gasnący niebieskawy cień w miejscu
+## startu, postać patrzy w stronę skoku, 0,15 s nietykalności. Zwraca punkt, w którym wylądowała (świat).
+func teleport(to: Vector2) -> Vector2:
+	var parent := get_parent() as Node2D
+	var local := parent.to_local(to) if parent else to
+	local = _push_out(local.clamp(bounds.position, bounds.end))
+	if parent:
+		var ghost := Sprite2D.new()
+		ghost.texture = _sprite.texture
+		ghost.hframes = _sprite.hframes
+		ghost.vframes = _sprite.vframes
+		ghost.frame = _sprite.frame
+		ghost.flip_h = _sprite.flip_h
+		ghost.offset = _sprite.offset
+		ghost.position = position
+		ghost.modulate = Color(0.6, 0.75, 1.0, 0.6)
+		parent.add_child(ghost)
+		var fade := ghost.create_tween()
+		fade.tween_property(ghost, "modulate:a", 0.0, 0.25)
+		fade.tween_callback(ghost.queue_free)
+	var dir := local - position
+	if dir.length() > 0.5:
+		facing = dir.normalized()
+	position = local
+	_invulnerable = maxf(_invulnerable, 0.15)
+	_update_frame()
+	return parent.to_global(local) if parent else local
 
 
 ## Ustawia zdrowie i manę według poziomu postaci i przedmiotów (`gear` - Items.totals; pełne).

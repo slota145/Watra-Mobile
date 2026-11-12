@@ -2,7 +2,8 @@ class_name ActionCluster
 extends Control
 ## Przyciski pod kciuk: duży przycisk ataku w dolnym rogu ekranu i 4 miejsca na umiejętności na łuku wokół niego
 ## (od boku ekranu do góry, jak w grach mobilnych). Domyślnie w prawym rogu; `left_handed` przenosi całość
-## do lewego (lustrzane odbicie). Umiejętności jeszcze nie ma - miejsca są puste. Miejsca odblokowują się
+## do lewego (lustrzane odbicie). `show_skills` wstawia ikony umiejętności z miejsc (Game.skill_slots: 0 - duży
+## przycisk, pusty duży przycisk to zwykły cios), puste miejsce ma plus. Miejsca odblokowują się
 ## z poziomem postaci (`set_hero_level`, HeroLevels.SKILL_SLOT_LEVELS; zablokowane - kłódka i poziom).
 
 ## Bok kwadratu, w którym leżą przyciski (piksele gry).
@@ -44,6 +45,34 @@ func set_hero_level(level: int, flash := false) -> void:
 		skills[i].locked_level = need if level < need else 0
 		if flash and was > 0 and skills[i].locked_level == 0:
 			skills[i].unlock_flash()
+
+
+## Ikony umiejętności z miejsc (`slots` - Game.skill_slots). `slot_skills[i]` - co stoi w przycisku i (0 - atak).
+var slot_skills: Array = ["", "", "", "", ""]
+
+
+func show_skills(slots: Array) -> void:
+	slot_skills = slots.duplicate()
+	var main: String = slots[0] if slots[0] != "" else Skills.STRIKE
+	attack.icon = Skills.icon_of(main)
+	attack.queue_redraw()
+	for i in SKILL_SLOTS:
+		var id: String = slots[i + 1] if i + 1 < slots.size() else ""
+		skills[i].empty = id == ""
+		skills[i].icon = Skills.icon_of(id) if id != "" else null
+		skills[i].queue_redraw()
+
+
+## Puszcza wszystkie przyciski (pauza, okna, śmierć) - np. trzymane Mgnienie przestaje skakać.
+func release_all() -> void:
+	attack.release()
+	for b in skills:
+		b.release()
+
+
+## Przycisk miejsca `slot` (0 - atak, 1-4 - małe).
+func button(slot: int) -> ActionButton:
+	return attack if slot == 0 else skills[slot - 1]
 
 
 ## Ustawia przyciski w prawym albo lewym rogu (w rodzicu-kontenerze: do prawej albo do lewej krawędzi).
