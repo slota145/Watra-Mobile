@@ -1,8 +1,10 @@
 class_name PauseMenu
 extends Control
 ## Okno pauzy w trakcie gry (przycisk „Menu”): zatrzymuje grę i daje ustawienia sterowania -
-## atak i umiejętności po lewej stronie, gest postaci przy ataku, tryb deweloperski (nieśmiertelność) - oraz powrót
-## do gry i wyjście do menu głównego.
+## atak i umiejętności po lewej stronie, gest postaci przy ataku, auto atak (tylko podstawowy cios), tryb deweloperski
+## (nieśmiertelność i skróty: +1 poziom postaci, +100 żaru, postać od nowa) - oraz powrót do gry i wyjście do menu głównego.
+## Skróty poziomu zmieniają postać w Game (arena słucha jego sygnałów), żar - sygnał `dev_embers` (arena dodaje go
+## do paska wyprawy w lochu albo do Watry w bazie). Okno przewija się, gdy nie mieści się na niskim ekranie.
 ## Ustawienia zapisuje Game (user://settings.cfg). Działa także przy zatrzymanej grze (PROCESS_MODE_ALWAYS).
 ## Autoload Game bierzemy z drzewa (_game), bo w skrypcie z class_name nazwa autoloadu nie zawsze jest znana
 ## (np. w testach uruchamianych przez -s).
@@ -10,10 +12,22 @@ extends Control
 signal closed
 ## Gracz wychodzi z gry przyciskiem okna („Powrót do bazy” albo „Menu główne”) - tuż przed zmianą sceny.
 signal leaving
+## Tryb deweloperski: dodaj tyle żaru.
+signal dev_embers(amount: int)
+
+const DEV_EMBERS := 100
 
 var left_toggle: CheckButton
 var gesture_toggle: CheckButton
+var auto_toggle: CheckButton
 var immortal_toggle: CheckButton
+var level_button: Button
+var embers_button: Button
+var reset_button: Button
+## Reset postaci wymaga drugiego stuknięcia (żeby nie wyzerować jej przypadkiem).
+var _reset_armed := false
+var _scroll: ScrollContainer
+var _column: VBoxContainer
 var resume_button: Button
 var quit_button: Button
 ## Scena bazy - gdy ustawiona (w lochu), okno ma też przycisk „Powrót do bazy”.
@@ -47,10 +61,15 @@ func _ready() -> void:
 	style.set_content_margin_all(14)
 	panel.add_theme_stylebox_override("panel", style)
 	center.add_child(panel)
+	_scroll = ScrollContainer.new()
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel.add_child(_scroll)
 	var column := VBoxContainer.new()
+	_column = column
 	column.custom_minimum_size = Vector2(260, 0)
-	column.add_theme_constant_override("separation", 10)
-	panel.add_child(column)
+	column.add_theme_constant_override("separation", 8)
+	_scroll.add_child(column)
+	column.resized.connect(_fit)  # zawijane napisy znają swoją wysokość dopiero po ułożeniu
 	var title := Label.new()
 	title.text = tr("Pauza")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -65,11 +84,24 @@ func _ready() -> void:
 	gesture_toggle.toggled.connect(func(on: bool) -> void:
 		_game.gesture = on
 		_game.save_settings())
+	auto_toggle = _toggle(column, tr("Auto atak (podstawowy cios)"), _game.auto_attack)
+	auto_toggle.toggled.connect(func(on: bool) -> void:
+		_game.auto_attack = on
+		_game.save_settings())
 	immortal_toggle = _toggle(column, tr("Tryb deweloperski: nieśmiertelność"), _game.dev_immortal)
 	immortal_toggle.add_theme_color_override("font_color", Color(1, 0.7, 0.5))
 	immortal_toggle.toggled.connect(func(on: bool) -> void:
 		_game.dev_immortal = on
 		_game.save_settings())
+	var dev_row := HBoxContainer.new()
+	dev_row.add_theme_constant_override("separation", 4)
+	column.add_child(dev_row)
+	level_button = _dev_button(dev_row, tr("+1 poz."))
+	level_button.pressed.connect(func() -> void: _game.dev_level_up())
+	embers_button = _dev_button(dev_row, tr("+%d żaru") % DEV_EMBERS)
+	embers_button.pressed.connect(func() -> void: dev_embers.emit(DEV_EMBERS))
+	reset_button = _dev_button(dev_row, tr("Od nowa"))
+	reset_button.pressed.connect(_on_reset)
 	resume_button = _button(column, tr("Wróć do gry"))
 	resume_button.pressed.connect(close)
 	if base_scene != "":
@@ -97,8 +129,11 @@ func open(at_stake := 0) -> void:
 		leave_note.visible = at_stake > 0
 	left_toggle.set_pressed_no_signal(_game.left_handed)
 	gesture_toggle.set_pressed_no_signal(_game.gesture)
+	auto_toggle.set_pressed_no_signal(_game.auto_attack)
 	immortal_toggle.set_pressed_no_signal(_game.dev_immortal)
+	_disarm_reset()
 	visible = true
+	_fit.call_deferred()
 	get_tree().paused = true
 
 
@@ -106,6 +141,38 @@ func close() -> void:
 	visible = false
 	get_tree().paused = false
 	closed.emit()
+
+
+## Okno nie wyższe niż ekran (minus margines) - reszta przewija się palcem.
+func _fit() -> void:
+	var limit := get_viewport_rect().size.y - 40.0
+	_scroll.custom_minimum_size = Vector2(260, minf(maxf(_column.size.y, _column.get_combined_minimum_size().y), limit))
+
+
+func _on_reset() -> void:
+	if not _reset_armed:
+		_reset_armed = true
+		reset_button.text = tr("Na pewno?")
+		return
+	_disarm_reset()
+	_game.reset_hero()
+
+
+func _disarm_reset() -> void:
+	_reset_armed = false
+	reset_button.text = tr("Od nowa")
+
+
+func _dev_button(parent: Control, text: String) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(0, 44)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.add_theme_font_size_override("font_size", 12)
+	b.add_theme_color_override("font_color", Color(1, 0.7, 0.5))
+	b.clip_text = true
+	parent.add_child(b)
+	return b
 
 
 func _toggle(parent: Control, text: String, on: bool) -> CheckButton:

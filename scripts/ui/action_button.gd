@@ -2,7 +2,8 @@ class_name ActionButton
 extends Control
 ## Okrągły przycisk akcji pod kciukiem (atak, umiejętność). Działa na dotyku z numerem palca, więc można go
 ## trzymać, idąc jednocześnie gałką. `held` jest prawdą, dopóki palec go trzyma. Pusty przycisk (bez ikony)
-## to wolne miejsce na umiejętność: ciemne kółko z przerywanym brzegiem i plusem.
+## to wolne miejsce na umiejętność: ciemne kółko z przerywanym brzegiem i plusem. Zablokowane miejsce (`locked_level`)
+## ma kłódkę i poziom postaci, na którym się odblokuje; `unlock_flash` - złoty błysk przy odblokowaniu.
 
 signal pressed
 signal released
@@ -12,6 +13,11 @@ signal released
 @export var icon: Texture2D
 ## Wolne miejsce (na razie nic nie robi poza mignięciem).
 @export var empty := false
+## Miejsce zablokowane do tego poziomu postaci (0 - odblokowane).
+var locked_level := 0:
+	set(value):
+		locked_level = value
+		queue_redraw()
 
 var held := false
 var _finger := -1
@@ -53,6 +59,13 @@ func release() -> void:
 		queue_redraw()
 
 
+## Złoty błysk i podskok przy odblokowaniu miejsca.
+func unlock_flash() -> void:
+	_flash = 1.0
+	scale = Vector2.ONE * 1.25
+	create_tween().tween_property(self, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
 func _process(delta: float) -> void:
 	if _flash > 0.0:
 		_flash = maxf(0.0, _flash - delta * 5.0)
@@ -63,6 +76,18 @@ func _draw() -> void:
 	var c := size / 2.0
 	var fill := Color(0.08, 0.06, 0.06, 0.55 if empty else 0.7).lerp(Color(1.0, 0.8, 0.45, 0.8), _flash * 0.5)
 	draw_circle(c, radius, fill)
+	if locked_level > 0:
+		var line := Color(0.75, 0.68, 0.58, 0.55)
+		draw_arc(c, radius - 1.0, 0.0, TAU, 32, line, 1.0)
+		# kłódka: kabłąk i korpus, pod nią poziom odblokowania
+		var body := Rect2(c + Vector2(-5, -7), Vector2(10, 8))
+		draw_arc(c + Vector2(0, -7), 3.5, PI, TAU, 10, line, 1.5)
+		draw_rect(body, line)
+		var font := ThemeDB.fallback_font
+		var text := tr("Poz. %d") % locked_level
+		draw_string_outline(font, c + Vector2(-radius, 11), text, HORIZONTAL_ALIGNMENT_CENTER, radius * 2.0, 9, 3, Color(0, 0, 0, 0.8))
+		draw_string(font, c + Vector2(-radius, 11), text, HORIZONTAL_ALIGNMENT_CENTER, radius * 2.0, 9, Color(1, 0.88, 0.65, 0.8))
+		return
 	if empty:
 		for i in 12:  # przerywany brzeg
 			var a := TAU * i / 12.0

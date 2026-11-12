@@ -2,6 +2,34 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - rozwój postaci: poziomy doświadczenia, auto atak, skróty deweloperskie
+
+- Ustalenia z autorem: zaczynamy od poziomów (przedmioty w kolejnej sesji); doświadczenie za każdego goblina i dużo
+  za Wodza, śmierć go nie zabiera; awans daje statystyki (zdrowie, obrażenia, pełne leczenie) i odblokowuje miejsca
+  na umiejętności; cienki pasek u góry, efekt awansu, podsumowanie w oknie wyniku; skróty deweloperskie w pauzie;
+  auto atak w menu (prośba autora - tylko podstawowy cios).
+- `scripts/hero_levels.gd` (`HeroLevels`): `xp_to_next(n)` = 50 * n^1,4 (50, 132, 233, 350, 476 … 1256 na 10.),
+  `max_hp` = 100 + 10 na poziom, `damage_mult` = 1 + 0,06 na poziom, miejsca na umiejętności na poziomach 3, 6, 10, 15
+  (`SKILL_SLOT_LEVELS`), `goblin_xp` = 2 x siła lochu, `chief_xp` = 60 x siła lochu (`DungeonLevels.power`), sufit 50.
+- `Game`: `hero_level`, `hero_xp` w zapisie, `add_xp` (kilka awansów naraz, zwraca liczbę awansów), sygnały
+  `xp_changed` i `leveled_up`; awans zapisuje od razu, zwykłe doświadczenie przy `save_if_dirty` (pauza, koniec wyprawy,
+  zmiana sceny, przełączenie aplikacji - `Game._notification`). Ustawienie `auto_attack` (`settings.cfg`).
+  Tryb deweloperski: `dev_level_up`, `reset_hero`.
+- `ProtoHero`: `max_hp` z poziomu (`set_level`), `level_up` - pełne zdrowie, złoty błysk, słup światła z kręgiem
+  (`_LevelGlow`, rysowany w kodzie), napis „Poziom N!”, dźwięk `assets/watra/level_up.ogg` (Kenney `jingles_PIZZI16`
+  z Watry, CC0), wibracja 60 ms.
+- `ProtoWeapon`: `damage_mult` (obrażenia x poziom), `auto_attack` - cios rusza sam, gdy cel jest w zasięgu `REACH`
+  (`_nearest`); bez celu miecz czeka.
+- Arena: wiersz „Poz. N” + złoty pasek doświadczenia 5 px (prośba autora, wcześniej niebieski) (`_make_xp_row`) - w lochu pod paskiem zdrowia, w bazie
+  obok „Menu”; w lochu między zdrowiem a doświadczeniem pusty pasek 6 px na później (`spare_bar`, prośba autora); poziom lochu w pasku to teraz „Loch N”. Doświadczenie z goblinów (`kills_changed`) i Wodza
+  (`_on_chief_died`), `run_xp` do podsumowania. `RunResult.add_xp_lines`: „Doświadczenie: +N”, „Awans na poziom N!”.
+- `ActionButton.locked_level`: kłódka i „Poz. N” na zablokowanym miejscu, `unlock_flash` przy odblokowaniu
+  (`ActionCluster.set_hero_level`).
+- Okno pauzy: przełącznik „Auto atak (podstawowy cios)”, rząd skrótów deweloperskich „+1 poz.”, „+100 żaru” (w lochu
+  do paska wyprawy - szybkie przyzwanie Wodza, w bazie do Watry - sygnał `dev_embers`), „Od nowa” (drugie stuknięcie
+  „Na pewno?”). Okno przewija się, gdy nie mieści się na ekranie (`_fit`).
+- Test `tests/test_hero_levels.gd`, zrzuty `tools/level_shots.gd`.
+
 ## 12.11.2026 - tryb deweloperski: nieśmiertelność
 
 - Prośba autora (Wódz jest „trudnawy”, do testów balansu): w oknie pauzy przełącznik „Tryb deweloperski:
