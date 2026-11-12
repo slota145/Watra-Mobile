@@ -17,9 +17,11 @@ przed pierwszą postacią (wywiad SpriteKiln - `spritekiln style`).
 
 1. **Watra** (`../Watra/assets/`, repozytorium `slota145/Watra`): ikony, obiekty, kafelki, efekty - najpierw sprawdź,
    czy coś pasuje. Uwaga: Watra ma obraz 640x360, więc grafiki mogą wymagać innej skali.
-2. **SpriteKiln** (darmowy, lokalny): animowane postacie i potwory w 8 kierunkach z opisu w YAML. Instrukcje:
-   `.spritekiln/agent/workflow.md`, styl projektu: `spritekiln style`. Wynik trafia do `assets/spritekiln/`.
-3. **PixelLab** (limit generacji autora): obiekty, kafelki, ikony, efekty. Zasady i ceny jak w `CLAUDE.md` Watry
+2. **SpriteKiln** (darmowy, lokalny): animowane postacie i potwory w 8 kierunkach z opisu w YAML. Ściągawka:
+   `docs/sciagawka_spritekiln.md`, pełne instrukcje: `.spritekiln/agent/workflow.md`, styl projektu: `spritekiln style`. Wynik trafia do `assets/spritekiln/`.
+3. **Kreator efektów PixelLab** (`vfx_workbench`, darmowy): **wszystkie efekty ataków** - ustalone z autorem 12.11.2026.
+   Ściągawka: `docs/sciagawka_vfx.md`.
+4. **PixelLab** (limit generacji autora): obiekty, kafelki, ikony, efekty. Zasady i ceny jak w `CLAUDE.md` Watry
    („PixelLab w chmurze”) - zanim wydasz generacje, policz koszt i pokaż go autorowi.
 
 ## Do ustalenia z autorem

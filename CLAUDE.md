@@ -46,11 +46,12 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
 - `scenes/`: sceny (`main_menu.tscn` startowa).
 - `assets/`: grafiki, muzyka, dźwięki; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
 - `art/specs/`: specyfikacje postaci SpriteKiln (YAML; Godot je pomija). Wyniki renderów w `out/` są generowane i nie idą do gita.
-- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia).
+- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia,
+  `vfx_art.py` - efekty z kreatora PixelLab do `assets/effects/`).
 - `tests/`: testy (`run_tests.ps1` u autora).
 - `translations/`: `teksty.csv` (pl/en), `pomijane.txt` (napisy bez tłumaczenia), `slowniczek.md`.
 - `docs/`: wizja gry (`GDD.md`), zasady grafiki (`ART_SPEC.md`), lista zadań (`ROADMAP.md`), historia zmian
-  (`historia.md`), telefon z Androidem (`ANDROID.md`), obrazy referencyjne od autora (`docs/referencje/`). Godot je pomija.
+  (`historia.md`), ściągawki narzędzi (`sciagawka_*.md`), telefon z Androidem (`ANDROID.md`), obrazy referencyjne od autora (`docs/referencje/`). Godot je pomija.
 - `export_presets.cfg`: eksport „Android - testy” (pakiet `pl.watra.mobile`, plik `build/WatraMobile.apk`).
 
 ## Uruchamianie i testy w chmurze (Linux, bez monitora)
@@ -83,6 +84,10 @@ Testy zapisują do `user://test_savegame.json`, nigdy do zapisu gracza.
 Zasady w `docs/ART_SPEC.md` (przeczytaj przed tworzeniem grafik). W skrócie: najpierw sprawdź grafiki Watry, potem
 SpriteKiln (darmowy, postacie i potwory), a PixelLab tylko po pokazaniu autorowi kosztu - autor ma ograniczony limit
 miesięczny (ceny i obejście blokady pobierania w chmurze: `CLAUDE.md` Watry, „PixelLab w chmurze”).
+**Efekty ataków** (cięcia, trafienia, pociski, czary) robimy w kreatorze efektów PixelLab (`vfx_workbench`, darmowy)
+- decyzja autora z 12.11.2026.
+Ściągawki: `docs/sciagawka_spritekiln.md` (postacie, potwory, bronie) i `docs/sciagawka_vfx.md` (efekty, droga
+do gry przez `pixellab_src/vfx/` i `python tools/vfx_art.py`). Czytaj odpowiednią przed pracą nad grafiką.
 Instrukcje SpriteKiln są w bloku na końcu tego pliku (generuje go `spritekiln update` - nie edytuj go ręcznie).
 
 ## Konwencje
