@@ -1,0 +1,279 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: goblin
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.68, 0]}
+palette: "watra"
+size: 48
+extends: humanoid   # its skeleton, body, kits and animations: write here only what differs
+# `spritekiln spec outline` lists what comes from the base; `spritekiln spec show <path>` prints its lines,
+# `--resolved` the result. Keys given here merge into the base's (parts.belt.prims replaces its prims);
+# `remove: [parts.cape, use.sword]` drops a part or a kit of the base.
+
+# Goblin Hordy: zwykły wróg wręcz, chodzi w tłumach (jak Vampire Survivors) - sylwetka musi czytać się
+# na telefonie. Niski (ok. 27 px wobec 36 px człowieka, ta sama camera.scale), przygarbiony, wielka łysa
+# głowa z długimi spiczastymi uszami na boki, chude zielone ręce i nogi, krótka podarta tunika z paskiem,
+# bose stopy, zardzewiały tasak w prawej dłoni (kość knife / knife_edge na wrist_R).
+brief:
+  summary: >
+    goblin of the Horde (Watra's forest goblin, assets/forest/goblin.png in Watra): short (about 27 px against
+    the 36 px human, same density), hunched forward, a big bald head (about 1.5x a human's relative to the
+    body) with long pointed ears sticking out sideways, olive / lime green skin, thin arms and legs, a short
+    torn brown leather tunic with a belt, bare feet, a small rusty cleaver in the right hand
+  head: >
+    bald, no hair (the hair kit removed); the head kit with a slightly narrow pointed chin; long thin pointed
+    ears as their own cones sweeping out, a little up and back (they break the circle of the head in every
+    direction); face minimal (style): two small glowing amber eyes, no nose, no mouth
+  must_keep:
+    - the ears: the widest shape of the silhouette, readable in s, n and diagonals
+    - green skin (the Horde is a touch cooler and darker than Ostoja, but the goblin stays clearly green)
+    - the hunch (permanent, baked into torso_rot, not a channel animations override)
+    - the cleaver in the right hand
+  simplify:
+    - no nose, no mouth, no teeth (minimal face)
+    - the tunic's tears are notches cut into the hem, not separate rags
+    - toes are not modelled: the foot is one long blob
+  decisions:
+    - the reference shows dark eyes; glowing amber eyes chosen as the Horde's accent, readable in a crowd
+    - the back (n) shows the bald skull, ears and tunic; the belt goes all the way round
+    - the template's walk and attack are inherited with human values (only idle is refitted), so the animator
+      should redo them for the shorter limbs (hand_L/hand_R, foot_L/foot_R reach)
+
+ramps:
+  # olive / lime skin, the deep tones cooled toward blue-green (the Horde)
+  goblin_skin: ["#0d120b", "#2e3d1d", "#526628", "#7c8e34", "#a3b04a", "#c4cb76"]
+  # worn brown leather, a little colder and darker than Ostoja's leather
+  tunic:  ["#0e0a09", "#36231b", "#573827", "#785234", "#93704a", "#ab8d66"]
+  strap:  ["#0b0808", "#261a16", "#3f2c24", "#5b4234", "#715644"]
+  # dull, dirty iron of the cleaver and rust spots on it
+  iron:   ["#0d0c0d", "#3d3838", "#625b58", "#8a8380", "#aca7a2", "#d0ccc6"]
+  rust:   ["#140805", "#4a210f", "#7a3a16", "#9c5622", "#b4743a"]
+
+materials:
+  skin:    {ramp: goblin_skin, gamma: 0.8, finish: soft}
+  tunic:   {ramp: tunic, finish: soft}
+  strap:   {ramp: strap}
+  iron:    {ramp: iron, finish: metal}
+  rust:    {ramp: rust, finish: matte}
+  eye:     {ramp: eye, emissive: true, band: 2, outline: false, glow: {color: "#ff9a2a", mix: 0.2, radius: 1}}
+
+remove: [use.hair, use.sword]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 0.95, jaw: 0.2, chin: 0.8, nose: 0, ears: 0}}
+  # a small cleaver: the sword kit's bones and grip, its blade replaced below
+  - {kit: sword, as: knife, at: wrist_R, with: {length: 0.26, width: 0.07, thick: 0.045, guard: 0, tilt: -0.25},
+     materials: {steel: iron, leather: strap}}
+
+shadow: {rx: 8, ry: 3, alpha: 120}
+
+channels:
+  hand_L: [0.23, 0.04, 0.06]
+  hand_R: [0.27, 0.07, 0.16]
+  foot_L: [0.10, 0, 0.02]
+  knife_pitch: 0    # cleaver lean at the wrist (+: tip forward/down)
+  knife_splay: 0    # cleaver turned outwards (+) or across the body (-)
+  # the attack's smear is a vertical arc (overhead chop): centred on fxspace (below), so no offset
+  smear_y: 0
+  smear_z: 0.05
+  smear_r: 0.62
+
+bones:
+  # hip height 0.55 (human 0.84); the +0.15 is the goblin's permanent hunch
+  torso_rot: {parent: root, pos: "[0, 0.55 + bob, 0]", rot: "[lean + 0.15, twist, roll]"}
+  headbase:  {parent: pelvis, pos: [0, 0.46, 0.06], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5 - 0.08, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.4}
+  shoulder_L: {parent: pelvis, pos: [0.18, 0.36, 0.0]}
+  # the cleaver: forward and a little up from the fist, splayed outwards (rot z) so it shows in s and n too;
+  # its flat turned half to the camera (knife_edge roll); `knife_pitch` / `knife_splay` are for the animator
+  knife:      {parent: wrist_R, pos: [0, 0, 0.035], rot: "[-0.3 + knife_pitch, 0, 0.7 + knife_splay]"}
+  knife_edge: {parent: knife, rot: [0, 0.9, 0]}
+  coatbase:   {parent: pelvis, rot: "[-coat*0.25 - 0.12, 0, 0]"}   # the skirt hangs straight despite the hunch
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  # smear frame of the overhead chop: at the right shoulder's height, rolled 90 degrees so that the arc
+  # runs in the vertical front-back plane (t = 0 forward, pi/2 up); it follows the lunge (root)
+  fxspace:    {parent: root, pos: [-0.15, 0.55, 0], rot: "[0, twist*0.3, 1.5708]"}
+
+ik:
+  arm_L: {lengths: [0.19, 0.18]}
+  leg_L: {lengths: [0.27, 0.26]}
+
+parts:
+  torso:
+    material: tunic
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.03, 0.01], r: [0.14, 0.10, 0.12]}
+      - ellipsoid: {c: [0, 0.17, 0.01], r: [0.13, 0.11, 0.09]}
+      - ellipsoid: {c: [0, 0.31, 0.0], r: [0.17, 0.10, 0.10]}
+  coat:            # short tunic skirt with a torn hem (notches cut in)
+    material: tunic
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.0, 0.0], b: [0, -0.06, -0.01], r: [0.15, 0.17]}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.15}                                    # straight hem
+      - box: {c: [0.07, -0.16, 0.17], half: [0.03, 0.07, 0.08], rot: [0, 0, 0.3]}     # tears
+      - box: {c: [-0.10, -0.16, 0.14], half: [0.03, 0.07, 0.08], rot: [0, 0, -0.3]}
+      - box: {c: [0.17, -0.17, -0.05], half: [0.08, 0.06, 0.03], rot: [0.3, 0, 0]}
+      - box: {c: [-0.03, -0.16, -0.19], half: [0.03, 0.06, 0.08], rot: [0, 0, 0.3]}
+      - box: {c: [-0.17, -0.17, -0.08], half: [0.08, 0.05, 0.03], rot: [-0.3, 0, 0]}
+  belt:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.065, 0.005], b: [0, 0.125, 0.005], r: 0.172}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.36, 0], b: [0, 0.46, 0.05], r: [0.06, 0.05]}
+  eye_L:           # a small glowing eye on the face plane's side slope
+    material: eye
+    space: head
+    prims:
+      - extrude: {c: [0.075, 0.13, 0.112], rot: [0, 0.65, 0], depth: 0.04, profile: {rect: [0.018, 0.02], round: 0.006}}
+  ear_L:           # long pointed ear sweeping out, a little up and back
+    material: skin
+    space: head
+    blend: 0.02
+    prims:
+      # profile cheat: the ear nearer the camera (yaw*sx about 90) sweeps back past the skull, the far one
+      # tucks in and down so it does not stand up like an antenna
+      - cone: {a: [0.11, 0.13, -0.03], r: [0.048, 0.012],
+               b: "[0.34 - 0.13*pulse(yaw*sx, 90, 60) - 0.10*pulse(yaw*sx, -90, 60),
+                    0.18 + 0.02*pulse(yaw*sx, 90, 60) - 0.06*pulse(yaw*sx, -90, 60),
+                    -0.05 - 0.20*pulse(yaw*sx, 90, 60) - 0.05*pulse(yaw*sx, -90, 60)]"}
+  arm_L:
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.05}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.045, 0.038]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.038, 0.035]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.03], r: 0.05}
+  leg_L:
+    material: skin
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.06, 0.042]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.042, 0.036]}
+  boot_L:          # a bare foot: heel and a long flat sole
+    material: skin
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.07, 0], b: [0, -0.02, 0.0], r: [0.04, 0.045]}
+      - ellipsoid: {c: [0, -0.04, 0.06], r: [0.055, 0.035, 0.10]}
+  knife_blade:     # a short cleaver: straight back, belly widening to a square-ish tip
+    material: iron
+    space: knife_edge
+    priority: 2
+    prims:
+      - extrude: {c: [0, 0, 0], depth: 0.05, round: 0.006,
+                  profile: {polygon: [[-0.03, 0.07], [0.03, 0.07], [0.075, 0.27], [0.05, 0.32], [-0.03, 0.31]]}}
+    paint:
+      - material: rust
+        spots: {scale: 0.05, density: 0.35, seed: 3}
+  knife_pommel: {when: "0"}
+
+animations:
+  idle:
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.23, 0.04 + 0.015*sin(p - 0.6), 0.06]"
+      hand_R: "[0.27, 0.07 + 0.015*sin(p - 0.6), 0.16]"
+      coat: "0.15*sin(p - 1.0)"
+  # quick, short-legged trot matched to the game's goblin speed (42 px/s; QA reports the ground speed):
+  # each foot is planted for 3 of the 8 frames and slides back at a constant speed (no skating), then swings
+  # forward with an eased lift; body lowest at the contacts, arms against the legs
+  walk:
+    frames: 8
+    ms: 90
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.12
+      bob: "-0.028*cos(2*p) + 0.005"
+      squash: "1 - 0.02*cos(2*p)"
+      twist: "0.09*cos(p)"
+      head_yaw: "-0.06*cos(p)"
+      head_pitch: "0.04*cos(2*p - 0.6)"
+      foot_L: "[0.11, 0.08*sin(pi*clamp((p/tau - 0.375)/0.625, 0, 1)), 0.03 + 0.277 - 0.554*clamp(p/tau/0.375, 0, 1) + 0.554*clamp((p/tau - 0.375)/0.625, 0, 1)**2*(3 - 2*clamp((p/tau - 0.375)/0.625, 0, 1))]"
+      foot_R: "[0.11, 0.08*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1)), 0.03 + 0.277 - 0.554*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.375, 0, 1) + 0.554*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1))]"
+      pitch_foot_L: "0.35*sin(pi*clamp((p/tau - 0.375)/0.625, 0, 1))"
+      pitch_foot_R: "0.35*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1))"
+      hand_L: "[0.25, 0.06 + 0.03*pos(cos(p)), 0.06 - 0.12*cos(p)]"
+      hand_R: "[0.28, 0.09 + 0.03*pos(-cos(p)), 0.15 + 0.10*cos(p)]"
+      knife_pitch: "-0.15*cos(p - 0.5)"
+      coat: "0.4*sin(2*p - 0.6)"
+  # overhead chop forward and down: wind-up raising the cleaver high above the head (it shows over the head
+  # in n, nw, w too), the held extreme, one short strike with a vertical smear, follow-through, recovery
+  attack:
+    loop: false
+    keys:
+      - {ms: 70, event: windup, set: {twist: -0.15, lean: -0.05, bob: -0.02, squash: 0.97, coat: -0.2,
+          hand_R: [0.26, 0.38, 0.04], knife_pitch: 0.8, knife_splay: -0.2, hand_L: [0.22, 0.12, 0.14], head_pitch: -0.05}}
+      - {ms: 100, set: {twist: -0.3, lean: -0.2, bob: -0.01, squash: 1.02, coat: -0.3,
+          hand_R: "[0.30, 0.56, -0.12*pulse(yaw, 90, 70)]", knife_pitch: 1.8, knife_splay: -0.4, hand_L: [0.24, 0.2, 0.2], head_pitch: -0.12,
+          foot_L: [0.11, 0, 0.10], foot_R: [0.11, 0, -0.06]}}
+      - {ms: 130, set: {twist: -0.35, lean: -0.28, bob: 0, squash: 1.05, coat: -0.35,
+          hand_R: "[0.30, 0.62, -0.04 - 0.16*pulse(yaw, 90, 70)]", knife_pitch: "2.5 + 0.3*pulse(yaw, 90, 70)", knife_splay: -0.6, hand_L: [0.25, 0.22, 0.22], head_pitch: -0.15,
+          foot_L: [0.11, 0, 0.10], foot_R: [0.11, 0, -0.06]}}
+      - {ms: 50, event: hit, set: {root: [0, 0, 0.12], twist: 0.15, lean: 0.35, bob: -0.06, squash: 0.95, coat: 0.5,
+          hand_R: [0.08, 0.05, 0.36], knife_pitch: 1.0, hand_L: [0.24, 0.0, -0.05], head_pitch: 0.1,
+          foot_L: [0.11, 0, 0.20], foot_R: [0.11, 0, -0.08],
+          smear_w: 0.09, smear_a0: 1.9, smear_a1: -0.5}}
+      - {ms: 60, set: {root: [0, 0, 0.14], twist: 0.2, lean: 0.42, bob: -0.08, squash: 0.93, coat: 0.6,
+          hand_R: [0.06, -0.02, 0.32], knife_pitch: 1.4, hand_L: [0.24, 0.0, -0.06], head_pitch: 0.12,
+          foot_L: [0.11, 0, 0.20], foot_R: [0.11, 0, -0.08],
+          smear_w: 0.07, smear_a0: 0.9, smear_a1: -0.6, smear_fade: 0.6}}
+      - {ms: 70, set: {root: [0, 0, 0.08], twist: 0.1, lean: 0.2, bob: -0.03, coat: 0.2,
+          hand_R: [0.18, 0.04, 0.24], knife_pitch: 0.6, hand_L: [0.24, 0.03, 0.02],
+          foot_L: [0.11, 0, 0.14], foot_R: [0.11, 0, -0.05]}}
+      - {ms: 80, set: {root: [0, 0, 0.02], lean: 0.07, coat: -0.05, hand_R: [0.26, 0.07, 0.17], knife_pitch: 0.1,
+          foot_L: [0.10, 0, 0.05]}}
+  # hit reaction: body and head snap back, then return
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.3, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5,
+          hand_L: [0.30, 0.16, -0.04], hand_R: [0.33, 0.18, 0.04], knife_pitch: -0.3}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.15, bob: -0.01, squash: 0.98, head_pitch: -0.12, coat: -0.2,
+          hand_L: [0.27, 0.09, 0.02], hand_R: [0.30, 0.12, 0.10], knife_pitch: -0.15}}
+      - {ms: 70, set: {root: [0, 0, -0.01], lean: 0.0, head_pitch: 0.02, coat: 0.1,
+          hand_L: [0.24, 0.05, 0.05], hand_R: [0.28, 0.08, 0.15]}}
+  # death: struck back, staggers a step, knees buckle, falls on its back (the cleaver flung out beside it)
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: -0.35, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5,
+          hand_L: [0.30, 0.18, -0.02], hand_R: [0.33, 0.20, 0.04], knife_pitch: -0.3}}
+      - {ms: 110, set: {root: [0, 0, -0.08], twist: 0.2, roll: 0.08, lean: -0.3, bob: -0.04, head_pitch: -0.2,
+          coat: -0.3, hand_L: [0.32, 0.12, 0.0], hand_R: [0.34, 0.14, 0.0], knife_pitch: -0.2,
+          foot_L: [0.11, 0, 0.06], foot_R: [0.12, 0.05, -0.14]}}
+      - {ms: 120, set: {root: [0, 0, -0.08], twist: 0.15, roll: 0.1, lean: -0.15, bob: -0.14, squash: 0.94,
+          head_pitch: 0.15, coat: 0.2, hand_L: [0.26, -0.02, 0.10], hand_R: [0.28, 0.0, 0.12], knife_pitch: 0.3,
+          foot_L: [0.11, 0, 0.08], foot_R: [0.12, 0, -0.10]}}
+      - {ms: 110, set: {root: [0, 0, -0.08], twist: 0.1, roll: 0.06, lean: -0.75, bob: -0.24, head_pitch: -0.2,
+          coat: -0.4, hand_L: [0.34, 0.15, 0.10], hand_R: [0.36, 0.18, 0.12], knife_pitch: -0.4,
+          foot_L: [0.11, 0.04, 0.20], foot_R: [0.12, 0.02, 0.12]}}
+      - {ms: 100, set: {root: [0, 0, 0.0], twist: "0.3*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.3, bob: -0.36, head_pitch: -0.45,
+          coat: -0.5, hand_L: [0.36, 0.12, 0.12], hand_R: [0.38, 0.14, 0.12], knife_pitch: -0.6, knife_splay: 0.4,
+          foot_L: [0.11, 0.10, 0.36], foot_R: [0.12, 0.06, 0.30]}}
+      - {ms: 110, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.75, bob: -0.43, squash: 0.92, head_pitch: -0.75,
+          coat: -0.6, hand_L: [0.36, 0.06, -0.08], hand_R: [0.40, 0.06, -0.08], knife_pitch: -0.9, knife_splay: 0.8,
+          foot_L: [0.12, 0.06, 0.44], foot_R: [0.13, 0.03, 0.40]}}
+      - {ms: 120, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.68, bob: -0.41, squash: 0.97, head_pitch: -0.65,
+          coat: -0.5, hand_L: [0.37, 0.06, -0.05], hand_R: [0.40, 0.06, -0.06], knife_pitch: -0.9, knife_splay: 0.8,
+          foot_L: [0.12, 0.02, 0.45], foot_R: [0.13, 0, 0.42]}}
+      - {ms: 500, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.72, bob: -0.43, head_pitch: -0.7,
+          coat: -0.6, hand_L: [0.37, 0.06, -0.08], hand_R: [0.40, 0.06, -0.08], knife_pitch: -0.9, knife_splay: 0.8,
+          foot_L: [0.12, 0, 0.46], foot_R: [0.13, 0, 0.44]}}
