@@ -1,6 +1,17 @@
 # Watra Mobile na telefonie z Androidem
 
-Jak zrobić plik `.apk` i wgrać grę na własny telefon. Robi się to raz; potem wystarczy „Export” w Godocie.
+Jak zrobić plik `.apk` i wgrać grę na własny telefon.
+
+## Najprościej: Claude buduje plik w chmurze
+
+Poproś Claude o „zbudowanie apk”. Claude uruchamia `tools/build_android.sh` (sam doinstalowuje szablony Godota
+i narzędzia Androida) i wysyła plik `WatraMobile.apk`. Otwórz go na telefonie (np. pobrany z aplikacji Claude),
+zgódź się na instalację z nieznanego źródła - i gotowe. Każda nowa wersja instaluje się na poprzedniej
+(ten sam klucz testowy z `tools/android/debug.keystore`), a zapis i ustawienia zostają.
+
+## Samodzielnie na komputerze
+
+Robi się to raz; potem wystarczy „Export” w Godocie.
 
 ## Raz, na początek (Windows)
 
@@ -14,7 +25,8 @@ Jak zrobić plik `.apk` i wgrać grę na własny telefon. Robi się to raz; pote
 4. W Godocie *Editor → Editor Settings → Export → Android* wskaż:
    - *Java SDK Path*: folder JDK (np. `C:\Program Files\Eclipse Adoptium\jdk-17...`),
    - *Android SDK Path*: zwykle `C:\Users\slota\AppData\Local\Android\Sdk`.
-   Godot sam utworzy klucz do podpisywania wersji testowych (debug keystore).
+   - *Debug Keystore*: plik `tools/android/debug.keystore` z repozytorium (użytkownik `androiddebugkey`,
+     hasło `android`) - wtedy wersje z komputera i z chmury instalują się jedna na drugiej.
 
 ## Za każdym razem
 

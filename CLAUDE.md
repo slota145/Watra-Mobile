@@ -81,6 +81,9 @@ SCRIPT=tests/test_cos.gd tools/screenshot.sh <argumenty>
 Sprawdzaj zmiany interfejsu w dwóch proporcjach: 720x1280 (16:9) i 1080x2400 (20:9). Obejrzyj zrzut narzędziem Read.
 Komunikaty ALSA, o wyciekach tekstur i `ERR_CANT_OPEN` przy zamykaniu są niegroźne.
 
+Wersja na telefon (Android): `tools/build_android.sh` -> `build/WatraMobile.apk` (za pierwszym razem doinstalowuje
+szablony Godota i Android SDK, około minuty); plik wyślij autorowi narzędziem SendUserFile. Opis: `docs/ANDROID.md`.
+
 U autora na Windowsie wszystkie testy uruchamia `tests/run_tests.ps1`. Nowy test dopisz też do listy `$tests` w tym pliku.
 Testy zapisują do `user://test_savegame.json`, nigdy do zapisu gracza.
 
