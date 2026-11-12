@@ -18,6 +18,14 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
 - Silnik: Godot 4.7, GDScript - jak w Watrze, żeby przenosić pomysły, dane i grafiki.
 - Świat, nazwy i klimat z Watry (słowiańskie wierzenia, Ostoja, Watra, Horda, Nawia).
 - Grafika: pixel-art; postacie i potwory można robić w SpriteKiln (z opisu, bez limitu generacji) albo w PixelLab.
+- **Rdzeń gry: czyszczenie lochów z hubem** (12.11.2026). Gracz wraca między lochami do huba (najpewniej Ostoja),
+  a w lochach walczy i zdobywa łup.
+
+## Kierunek wstępny (autor jeszcze nie zdecydował)
+
+- Lochy w stylu **Vampire Survivors** (fale potworów, gracz głównie się porusza, a ataki idą same?), ale **bez mechanik
+  roguelike** - postęp zostaje między wyprawami (postać, łup, hub), a nie przepada po śmierci.
+- Autor przygotowuje pierwsze pomysły - czekamy na nie przed projektowaniem systemów.
 
 ## Filary (kandydaci z Watry - do potwierdzenia)
 
@@ -29,9 +37,9 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
 
 ## Do ustalenia z autorem
 
-- **Rodzaj rozgrywki:** czy to ARPG jak Watra (wirtualna gałka i przyciski umiejętności), czy coś lżejszego pod pion:
-  auto-walka z wyborem umiejętności, obrona Ostoi przed falami Hordy (Watra na dole ekranu, potwory z góry),
-  wyprawy i zarządzanie osadą, a może mieszanka?
+- **Walka w lochu:** w stylu Vampire Survivors (auto-ataki, ruch palcem) czy ARPG jak Watra (gałka i przyciski
+  umiejętności)? Co daje „bez roguelike”: czy w lochu w ogóle wybiera się ulepszenia, czy wszystko daje hub i ekwipunek?
+- **Hub:** co w nim robimy (kowal, Watra, sklep, drzewko)? Ekran z budynkami do stukania czy chodzenie postacią?
 - **Sterowanie:** gałka w miejscu dotyku, stuknięcie w cel, przeciąganie, auto-atak?
 - **Co przenosimy z Watry:** łup i przedmioty, drzewko umiejętności, zaklinanie, lochy Watry, świat jak w MMO?
 - **Sesje i postęp:** postęp offline (Ostoja zbiera surowce, gdy gracz nie gra)? Długość jednej wyprawy?

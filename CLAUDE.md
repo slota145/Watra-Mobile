@@ -2,8 +2,8 @@
 
 Gra mobilna na telefon trzymany **pionowo** (Godot 4.7, GDScript, pixel-art), oparta na świecie gry **Watra**
 (repozytorium `slota145/Watra`): słowiański świat zalany przez Hordę, ostatnia osada Ostoja i jej ogień.
-Hasło gry: „Dopóki płonie ogień, Ostoja trwa”. Projekt jest na starcie - rodzaj rozgrywki ustalamy z autorem
-(`docs/GDD.md`, „Do ustalenia”).
+Hasło gry: „Dopóki płonie ogień, Ostoja trwa”. Rdzeń gry: **czyszczenie lochów z hubem** (wstępnie lochy w stylu Vampire Survivors, ale bez mechanik roguelike).
+Projekt jest na starcie - szczegóły ustalamy z autorem (`docs/GDD.md`).
 
 Osoba tworząca grę pracuje na Windowsie i rozmawia po polsku. Nie programuje na co dzień, więc wyjaśniaj prosto,
 bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj form neutralnych płciowo

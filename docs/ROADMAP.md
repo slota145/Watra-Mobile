@@ -9,7 +9,8 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 
 ## Najbliższe kroki
 
-1. **Wizja gry:** odpowiedzi autora na pytania z `docs/GDD.md` („Do ustalenia”) - od nich zależy cała reszta.
+1. **Wizja gry:** rdzeń ustalony (lochy + hub, może jak Vampire Survivors bez roguelike) - czekamy na pierwsze pomysły
+   autora i odpowiedzi na pytania z `docs/GDD.md` („Do ustalenia”) - od nich zależy cała reszta.
 2. **Styl grafiki:** wywiad SpriteKiln (`spritekiln style`) - wysokość postaci na ekranie, kontur, cieniowanie, paleta;
    zapisać ustalenia w `docs/ART_SPEC.md`.
 3. **Pierwsza wersja na telefon:** eksport na Androida (`docs/ANDROID.md`) i sprawdzenie, czy menu dobrze wygląda
