@@ -28,6 +28,14 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
    sterowanie dotykiem).
 5. **Interfejs dotykowy:** wspólny styl przycisków (duże pola do stukania, min. 44 px gry), wibracje przy trafieniu.
 
+## Pomysły autora (do zrobienia)
+
+- **Boss w lochu (12.11.2026):** iskry zapełniają pasek żaru w lochu; pełny pasek pozwala przyzwać bossa (np. Wódz
+  Goblinów na bazie modelu goblina). Przyzwanie zjada żar z paska, do bazy idzie tylko nadwyżka. Po przyzwaniu zwykłe
+  gobliny znikają (pomysł Claude: uciekają z piskiem). Pokonanie bossa to jedyne wyjście z żarem (ucieczka i śmierć -
+  bez żaru); wyprawy krótkie (pasek po 2-3 min) - telefon przerywa grę. Do dopytania: koszt, sposób przyzwania
+  (ołtarz?), wygląd i ataki bossa (z ostrzeżeniem), nagroda.
+
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
 - Watra jako „serce” ekranu startowego: animowany ogień, który przygasa, gdy długo nie grasz, i rozpala się po powrocie.
