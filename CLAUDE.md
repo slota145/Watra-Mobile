@@ -82,7 +82,7 @@ Sprawdzaj zmiany interfejsu w dwóch proporcjach: 720x1280 (16:9) i 1080x2400 (2
 Komunikaty ALSA, o wyciekach tekstur i `ERR_CANT_OPEN` przy zamykaniu są niegroźne.
 
 Wersja na telefon (Android): `tools/build_android.sh` -> `build/WatraMobile.apk` (za pierwszym razem doinstalowuje
-szablony Godota i Android SDK, około minuty); plik wyślij autorowi przez gałąź `apk` (osobna, tylko plik i README, nadpisywana nowym commitem; autor pobiera
+szablony Godota i Android SDK, około minuty); plik wysyła autorowi `tools/publish_apk.sh` przez gałąź `apk` (osobna, jeden commit z plikiem i README, nadpisywana; autor pobiera
 na telefonie z https://github.com/slota145/Watra-Mobile/raw/apk/WatraMobile.apk - kafelek SendUserFile nie zapisał
 się autorowi w „Pobranych”). Opis: `docs/ANDROID.md`.
 
@@ -113,6 +113,8 @@ Instrukcje SpriteKiln są w bloku na końcu tego pliku (generuje go `spritekiln 
 ## Git
 
 - Zmiany idą na gałąź roboczą, potem pull request do `main`. Autor zwykle prosi o założenie PR i od razu scalenie.
+- **Po każdym scaleniu do `main`** uruchom `tools/publish_apk.sh` (buduje apk i nadpisuje gałąź `apk`) i podaj autorowi
+  link do pobrania na telefonie: https://github.com/slota145/Watra-Mobile/raw/apk/WatraMobile.apk (prośba autora).
 - Gdy autor ma u siebie lokalne commity, `git pull` otwiera vima. Podpowiadaj wtedy `git pull --no-edit origin main`.
 - Po pobraniu zmian polecaj `powershell -ExecutionPolicy Bypass -File aktualizuj.ps1` (pull + import zasobów;
   Godot autora: `C:\Godot_v4.7.2-stable_win64.exe\` - to folder z plikami `.exe` w środku).
