@@ -107,7 +107,7 @@ func _process(delta: float) -> void:
 				if to_hero.length() <= ATTACK_RANGE and _cooldown <= 0.0:
 					_start_attack(to_hero)
 				elif to_hero.length() > ATTACK_RANGE * 0.8:
-					move += to_hero.normalized() * SPEED
+					move += to_hero.normalized() * SPEED * speed_factor()
 					_face(to_hero)
 			move += _separation() * SPEED
 			if _state == "walk":  # zamach mógł się właśnie zacząć - wtedy gra animacja ataku
@@ -145,6 +145,16 @@ func take_damage(amount: int, from: Vector2) -> void:
 	_timer = 0.0
 	_cooldown = maxf(_cooldown, 0.4)
 	_play(&"hit", true)
+
+
+## Podpalenie (kamień Żar): obrażenia bez odrzutu i przerwania zamachu, pomarańczowa liczba.
+func burn_tick(amount: int) -> void:
+	if not alive():
+		return
+	hp -= amount
+	spawn_number(amount, Color(1.0, 0.6, 0.25))
+	if hp <= 0:
+		_die()
 
 
 ## Ogłuszenie: przerywa zamach, goblin stoi i chwieje się (szarzeje) przez `time` sekund.

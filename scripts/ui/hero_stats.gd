@@ -7,6 +7,10 @@ extends Control
 ## statystyk po założeniu i przyciski „Załóż” / „Zdejmij” i „Sprzedaj” (magiczny i rzadki - drugie stuknięcie „Na pewno?”).
 ## Pod torbą: „Sprzedaj zwykłe” i „Sprzedaj magiczne i rzadkie” (drugie stuknięcie potwierdza i pokazuje cenę)
 ## oraz przełącznik auto sprzedaży zwykłych przedmiotów podniesionych w lochu (`Game.auto_sell_common`).
+## Kamienie szlachetne (Gems): w opisie przedmiotu rząd jego gniazd i sakwa z kamieniami szlachetnymi - stuknij kamień,
+## potem gniazdo, albo przeciągnij kamień na gniazdo; stuknięcie zajętego gniazda (bez wybranego kamienia) albo
+## przeciągnięcie go do sakwy wyjmuje kamień za darmo; „Dłuto” dorabia drugie gniazdo (drugie stuknięcie potwierdza).
+## Pod torbą sakwa ze wszystkimi kamieniami, kluczami i dłutami (stuknięcie - opis).
 ## Liczby bierze z HeroLevels, Items, ProtoHero i ProtoWeapon, stan z Game. Okno przewija się na niskich ekranach.
 ## Działa przy zatrzymanej grze (PROCESS_MODE_ALWAYS).
 
@@ -58,6 +62,17 @@ var _scroll: ScrollContainer
 var _column: VBoxContainer
 var _detail_icon: TextureRect
 var _detail_kind: Label
+## Kamienie: sakwa pod torbą, w opisie przedmiotu gniazda, sakwa kamieni szlachetnych, podpowiedź i dłuto.
+var pouch_label: Label
+var pouch_grid: GridContainer
+var socket_row: HBoxContainer
+var jewel_row: HBoxContainer
+var gem_hint: Label
+var chisel_button: Button
+var _jewel_scroll: ScrollContainer
+## Wybrany kamień szlachetny w opisie przedmiotu ("" - żaden) i czy dłuto czeka na potwierdzenie.
+var _sel_gem := ""
+var _chisel_armed := false
 var _game: Node
 
 
@@ -103,6 +118,13 @@ func _ready() -> void:
 		var b := _slot_button(bag)
 		b.pressed.connect(_select_bag.bind(i))
 		bag_buttons.append(b)
+	pouch_label = _label(_column, "", 13, GOLD)
+	pouch_grid = GridContainer.new()
+	pouch_grid.columns = BAG_COLUMNS
+	pouch_grid.add_theme_constant_override("h_separation", 6)
+	pouch_grid.add_theme_constant_override("v_separation", 6)
+	pouch_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_column.add_child(pouch_grid)
 	var sell_row := HBoxContainer.new()
 	sell_row.add_theme_constant_override("separation", 6)
 	_column.add_child(sell_row)
@@ -190,6 +212,7 @@ func refresh() -> void:
 	for i in bag_buttons.size():
 		_show_item(bag_buttons[i], _game.bag[i] if i < _game.bag.size() else {}, "")
 	bag_label.text = tr("Torba: %d / %d") % [_game.bag.size(), _game.BAG_SIZE]
+	_refresh_pouch()
 	auto_sell_toggle.set_pressed_no_signal(_game.auto_sell_common)
 	_bulk_armed = ""
 	_bulk_texts()
@@ -385,6 +408,18 @@ func _make_detail() -> void:
 	detail_lines = VBoxContainer.new()
 	detail_lines.add_theme_constant_override("separation", 1)
 	col.add_child(detail_lines)
+	socket_row = HBoxContainer.new()
+	socket_row.add_theme_constant_override("separation", 6)
+	col.add_child(socket_row)
+	_jewel_scroll = ScrollContainer.new()
+	_jewel_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_jewel_scroll.custom_minimum_size = Vector2(0, 48)
+	col.add_child(_jewel_scroll)
+	jewel_row = HBoxContainer.new()
+	jewel_row.add_theme_constant_override("separation", 4)
+	_jewel_scroll.add_child(jewel_row)
+	gem_hint = _label(col, "", 11, DIM)
+	gem_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", 6)
 	col.add_child(buttons)
@@ -432,6 +467,7 @@ func _select_equipped(slot: String) -> void:
 
 func _show_detail(item: Dictionary, in_bag: bool) -> void:
 	_sell_armed = false
+	equip_button.visible = true
 	_detail_icon.texture = Items.icon_of(item)
 	detail_name.text = Items.name_of(item)
 	detail_name.add_theme_color_override("font_color", Items.color_of(item))
@@ -442,6 +478,11 @@ func _show_detail(item: Dictionary, in_bag: bool) -> void:
 		_label(detail_lines, line, 13, TEXT)
 	for line in Items.affix_lines(item):
 		_label(detail_lines, line, 13, Items.RARITY_COLORS.magic)
+	var sockets: Array = item.get("sockets", [])
+	var socket_texts := Items.socket_lines(item)
+	for i in sockets.size():
+		if sockets[i] != "":
+			_label(detail_lines, socket_texts[i], 13, Gems.color_of(sockets[i]))
 	# porównanie: jak zmienią się statystyki po założeniu (z torby) albo zdjęciu
 	var after: Dictionary = _game.equipped.duplicate()
 	if in_bag:
@@ -457,6 +498,7 @@ func _show_detail(item: Dictionary, in_bag: bool) -> void:
 	equip_button.disabled = not in_bag and _game.bag.size() >= _game.BAG_SIZE
 	sell_button.visible = in_bag
 	sell_button.text = tr("Sprzedaj %d") % Items.sell_price(item)
+	_show_sockets(item)
 	detail.visible = true
 
 
@@ -512,6 +554,189 @@ func _hide_detail() -> void:
 	_sel_index = -1
 	_sel_slot = ""
 	_sell_armed = false
+	_sel_gem = ""
+	_chisel_armed = false
+
+
+# --- kamienie ---
+
+## Wybrany przedmiot (z torby albo założony; pusty słownik - żaden).
+func _sel_item() -> Dictionary:
+	if _sel_index >= 0 and _sel_index < _game.bag.size():
+		return _game.bag[_sel_index]
+	return _game.equipped.get(_sel_slot, {}) if _sel_slot != "" else {}
+
+
+## Pokazuje ponownie opis wybranego przedmiotu (po włożeniu lub wyjęciu kamienia).
+func _redetail() -> void:
+	var item := _sel_item()
+	if not item.is_empty():
+		_show_detail(item, _sel_index >= 0)
+
+
+## Sakwa pod torbą: wszystkie kamienie, klucze i dłuta (stuknięcie - opis).
+func _refresh_pouch() -> void:
+	for c in pouch_grid.get_children():
+		pouch_grid.remove_child(c)
+		c.queue_free()
+	var list: Array = _game.gem_list()
+	var total := 0
+	for id in list:
+		total += _game.gem_count(id)
+	pouch_label.text = tr("Sakwa: %d") % total if total > 0 \
+			else tr("Sakwa pusta - kamienie wypadają w lochach od poziomu %d.") % Gems.MIN_LEVEL
+	pouch_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	for id in list:
+		var slot := GemSlot.new(SLOT_SIZE)
+		slot.area = "pouch"
+		slot.show_gem(id, _game.gem_count(id))
+		slot.pressed.connect(_show_gem_detail.bind(id))
+		pouch_grid.add_child(slot)
+
+
+## Opis kamienia z sakwy (bez przycisków przedmiotu).
+func _show_gem_detail(id: String) -> void:
+	_hide_detail()
+	_detail_icon.texture = Gems.icon_of(id)
+	detail_name.text = Gems.name_of(id)
+	detail_name.add_theme_color_override("font_color", Gems.color_of(id))
+	_detail_kind.text = Gems.kind_line(id) + "  ·  " + tr("Sztuk: %d") % _game.gem_count(id)
+	for c in detail_lines.get_children():
+		c.queue_free()
+	for line in Gems.description(id):
+		var l := _label(detail_lines, line, 13, TEXT)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var where := tr("Wkłada się w oknie umiejętności, zakładka „Kamienie”.") if Gems.is_support(id) \
+			else tr("Wkłada się w opisie przedmiotu: stuknij przedmiot w torbie albo założony.") if Gems.is_jewel(id) else ""
+	if where != "":
+		var l := _label(detail_lines, where, 11, DIM)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	equip_button.visible = false
+	sell_button.visible = false
+	socket_row.visible = false
+	_jewel_scroll.visible = false
+	gem_hint.visible = false
+	detail.visible = true
+
+
+## Gniazda przedmiotu w opisie, sakwa kamieni szlachetnych i dłuto.
+func _show_sockets(item: Dictionary) -> void:
+	for c in socket_row.get_children():
+		socket_row.remove_child(c)
+		c.queue_free()
+	for c in jewel_row.get_children():
+		jewel_row.remove_child(c)
+		c.queue_free()
+	socket_row.visible = true
+	gem_hint.visible = true
+	var cap := _label(socket_row, tr("Gniazda:"), 12, DIM)
+	cap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var sockets: Array = item.get("sockets", [])
+	for i in sockets.size():
+		var slot := GemSlot.new(44.0)
+		slot.area = "socket"
+		slot.index = i
+		slot.show_gem(sockets[i])
+		slot.pressed.connect(_on_item_socket.bind(i))
+		slot.dropped.connect(_on_drop_item_socket.bind(i))
+		socket_row.add_child(slot)
+	chisel_button = null
+	if sockets.size() < Items.MAX_SOCKETS and _game.gem_count(Gems.CHISEL) > 0:
+		chisel_button = Button.new()
+		chisel_button.text = tr("Na pewno?") if _chisel_armed else tr("Dłuto (%d)") % _game.gem_count(Gems.CHISEL)
+		chisel_button.icon = load(Gems.SPECIAL[Gems.CHISEL].icon)
+		chisel_button.expand_icon = true
+		chisel_button.add_theme_constant_override("icon_max_width", 22)
+		chisel_button.add_theme_font_size_override("font_size", 12)
+		chisel_button.custom_minimum_size = Vector2(0, 44)
+		chisel_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		chisel_button.pressed.connect(_on_chisel)
+		socket_row.add_child(chisel_button)
+	var jewels: Array = _game.gem_list("jewel")
+	if not jewels.has(_sel_gem):
+		_sel_gem = ""
+	for k in jewels.size():
+		var id: String = jewels[k]
+		var slot := GemSlot.new(44.0)
+		slot.area = "pouch"
+		slot.index = k
+		slot.show_gem(id, _game.gem_count(id), _sel_gem == id)
+		slot.pressed.connect(_on_jewel_pressed.bind(id))
+		slot.dropped.connect(_on_drop_to_jewels)
+		jewel_row.add_child(slot)
+	_jewel_scroll.visible = not jewels.is_empty()
+	if _sel_gem != "":
+		gem_hint.text = tr("%s tutaj: %s. Stuknij gniazdo.") % [Gems.name_of(_sel_gem), Gems.jewel_text(_sel_gem, item.slot)]
+	elif jewels.is_empty():
+		gem_hint.text = tr("Kamienie szlachetne wypadają w lochach od poziomu %d.") % Gems.MIN_LEVEL
+	else:
+		gem_hint.text = tr("Stuknij kamień, potem gniazdo - albo przeciągnij. Stuknięcie zajętego gniazda wyjmuje kamień.")
+
+
+func _on_jewel_pressed(id: String) -> void:
+	_chisel_armed = false
+	_sel_gem = "" if _sel_gem == id else id
+	_redetail()
+
+
+func _on_item_socket(i: int) -> void:
+	_chisel_armed = false
+	var item := _sel_item()
+	if item.is_empty():
+		return
+	if _sel_gem != "":
+		if _game.socket_item(item, i, _sel_gem):
+			_play_gem()
+		_sel_gem = ""
+	elif item.sockets[i] != "":
+		_game.unsocket_item(item, i)
+	_redetail()
+
+
+func _on_drop_item_socket(gem: String, from_area: String, from_index: int, i: int) -> void:
+	var item := _sel_item()
+	if item.is_empty():
+		return
+	_sel_gem = ""
+	if from_area == "pouch":
+		if _game.socket_item(item, i, gem):
+			_play_gem()
+	elif from_area == "socket" and from_index != i:
+		var other: String = item.sockets[i]
+		_game.unsocket_item(item, from_index)
+		if other != "":
+			_game.unsocket_item(item, i)
+			_game.socket_item(item, from_index, other)
+		_game.socket_item(item, i, gem)
+	_redetail()
+
+
+func _on_drop_to_jewels(_gem: String, from_area: String, from_index: int) -> void:
+	var item := _sel_item()
+	if from_area == "socket" and not item.is_empty():
+		_game.unsocket_item(item, from_index)
+		_redetail()
+
+
+## Dłuto: pierwsze stuknięcie pyta, drugie dorabia gniazdo.
+func _on_chisel() -> void:
+	if not _chisel_armed:
+		_chisel_armed = true
+		_redetail()
+		return
+	_chisel_armed = false
+	if _game.add_socket(_sel_item()):
+		_play_gem()
+	_redetail()
+
+
+func _play_gem() -> void:
+	var audio := AudioStreamPlayer.new()
+	audio.stream = preload("res://assets/watra/glass_002.ogg")
+	audio.volume_db = -8.0
+	add_child(audio)
+	audio.play()
+	audio.finished.connect(audio.queue_free)
 
 
 func _play_coins() -> void:

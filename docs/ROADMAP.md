@@ -43,7 +43,10 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   Umiejętności miecza zrobione (12.11.2026, szczegóły w `docs/historia.md`). Do oceny na telefonie: koszty many
   i odnowienia, siła Młynka/Rzutu/Rozłupania, czy auto atak z Młynkiem nie jest za mocny, ceny (100-1500 zł).
   Mgnienie działa jak w Watrze; „wirujące Mgnienie” (skoki w trakcie Młynka) - autor jeszcze nie wie, czy w tę stronę.
-  Dalej: kamienie w umiejętnościach i ekwipunku, ulepszanie umiejętności (poziomy?).
+  Kamienie w umiejętnościach i ekwipunku zrobione (12.11.2026, szczegóły w `docs/historia.md`). Do oceny na telefonie:
+  szanse łupu (goblin 1,2%, skrzynia 80% + 30%, klucz 4-15%, dłuto 6-20%), siła kamieni (Żar, Piorun, Mnożenie),
+  czytelność gniazd w oknach, czy Szron i Żar dobrze widać na goblinach (znaczki rysowane w kodzie - może efekty z kreatora).
+  Dalej: ulepszanie umiejętności (poziomy?), na co wydawać złoto (kowal, sklep?).
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

@@ -137,6 +137,9 @@ func _on_died(g: ProtoGoblin) -> void:
 	var item := Items.roll_goblin(level)
 	if not item.is_empty():
 		drop_item(item, g.position)
+	var gem := Gems.roll_goblin(level)
+	if gem != "":
+		drop_item({"gem": gem}, g.position)
 
 
 ## Przedmiot na ziemi w danym miejscu.
