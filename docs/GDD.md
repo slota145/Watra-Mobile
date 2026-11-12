@@ -25,6 +25,10 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
 
 - Lochy w stylu **Vampire Survivors** (fale potworów, gracz głównie się porusza, a ataki idą same?), ale **bez mechanik
   roguelike** - postęp zostaje między wyprawami (postać, łup, hub), a nie przepada po śmierci.
+- **Siła postaci** (ustalone 12.11.2026): ekwipunek, umiejętności, kamienie wkładane w umiejętności i w ekwipunek,
+  poziomy doświadczenia. W lochu nie wybiera się losowych ulepszeń (bez roguelike).
+- **Lewitująca broń** (pomysł autora, rozważany): broń nie jest w dłoni, tylko unosi się obok postaci i sama porusza się
+  płynnie przy atakach. Prostsze animacje postaci niż w Watrze; podobnie robi np. Brotato.
 - Autor przygotowuje pierwsze pomysły - czekamy na nie przed projektowaniem systemów.
 
 ## Filary (kandydaci z Watry - do potwierdzenia)
