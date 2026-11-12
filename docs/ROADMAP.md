@@ -35,6 +35,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   paska (100 żaru), trudność Wodza, czytelność ostrzeżeń. Model, animacje i efekty
   Wodza gotowe; skrzynia da łup, gdy dojdą przedmioty.
 
+- **Tryb deweloperski - skróty (12.11.2026, na później):** gdy dojdzie rozwój postaci, przyciski w oknie pauzy (obok
+  nieśmiertelności) dające żar, poziomy i przedmioty na skróty - jak F1-F6 w Watrze, ale dotykiem.
+
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
 - Watra jako „serce” ekranu startowego: animowany ogień, który przygasa, gdy długo nie grasz, i rozpala się po powrocie.
