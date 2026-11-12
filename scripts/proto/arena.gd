@@ -36,20 +36,9 @@ func _ready() -> void:
 	camera.limit_bottom = int(ARENA.end.y)
 	hero.add_child(camera)
 
-	var trail := Line2D.new()
-	trail.width = 3.0
-	trail.z_index = 10
-	trail.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	trail.end_cap_mode = Line2D.LINE_CAP_ROUND
-	trail.gradient = Gradient.new()
-	trail.gradient.set_color(0, Color(1.0, 0.75, 0.4, 0.0))
-	trail.gradient.set_color(1, Color(1.0, 0.95, 0.8, 0.9))
-	add_child(trail)
-
 	weapon = ProtoWeapon.new()
 	weapon.name = "Weapon"
 	weapon.hero = hero
-	weapon.trail = trail
 	for p in DUMMIES:
 		var dummy := ProtoDummy.new()
 		dummy.position = p

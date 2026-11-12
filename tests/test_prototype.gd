@@ -63,7 +63,7 @@ func _run() -> void:
 	await process_frame
 	_check(arena.joystick.vector == Vector2.ZERO, "puszczenie palca zatrzymuje postać")
 	# podejście aż kukła będzie w zasięgu miecza
-	hero.position = dummy.position + Vector2(-20, 30)
+	hero.position = dummy.position + Vector2(-14, 22)
 	if _shots != "":
 		await _wait(0.8)  # kamera i miecz dojeżdżają po przestawieniu postaci
 		await _capture_swing(arena)
@@ -82,7 +82,7 @@ func _run() -> void:
 func _capture_swing(arena: Node) -> void:
 	while arena.weapon._state != "windup":
 		await process_frame
-	for i in 14:
+	for i in 12:
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("%s/swing_%02d.png" % [_shots, i])
 		await _wait(1.0 / 30.0)

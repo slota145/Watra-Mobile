@@ -12,10 +12,13 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   podąża za palcem; zdarzenia myszy (telefon zamienia dotyk na mysz), leży pod przyciskami.
 - `ProtoHero`: chód 70 px/s, animacje idle/walk/slash z arkusza, 8 kierunków (zachód odbity). Gest = animacja `slash`
   z pustą dłonią, tylko w miejscu (w marszu postać tylko idzie).
-- `ProtoWeapon`: miecz unosi się 22 px nad ziemią za ramieniem postaci (doganianie z opóźnieniem, kołysanie);
-  cel w zasięgu 64 px od postaci -> zamach: oś zamachu 18 px przed kukłą od strony postaci, ostrze zatacza łuk 2,4 rad
-  przez kukłę (rozbieg 0,16 s, cięcie 0,13 s, trafienie w 45% cięcia, 14-20 obrażeń, wibracja 15 ms), odpoczynek 0,75 s.
-  Smuga za czubkiem to tymczasowa `Line2D` (docelowo efekt z kreatora efektów PixelLab).
+- `ProtoWeapon`: miecz unosi się 22 px nad ziemią za ramieniem postaci (doganianie z opóźnieniem, kołysanie).
+  Kukła w zasięgu 36 px (stopy-stopy) -> cios jak zwykły atak w Watrze: miecz wskakuje na orbitę wokół postaci
+  (środek 12 px nad stopami, rękojeść 8 px od środka, ostrze 26 px na zewnątrz) i tnie łukiem 160° w stronę celu,
+  kolejne cięcia na przemian z góry i z dołu (rozbieg 0,12 s, cięcie 0,18 s z `ease(progress, 0.5)`, trafienie
+  w połowie - wszystkie kukły w łuku, 14-20 obrażeń, wibracja 15 ms, odpoczynek 0,55 s). Nad łukiem efekt cięcia
+  ze zwykłego ataku Watry: `assets/effects/sword_slash.png` (kreator efektów PixelLab, `pixellab_src/vfx/ids.json`,
+  5 klatek 64 px, skala = zasięg czubka / 29 px, `flip_v` przy cięciu od dołu).
 - `ProtoDummy`: błysk, przechył, liczby obrażeń, licznik obrażeń/s z 5 s, suma i trafienia, zerowanie po 4 s.
 - Test `tests/test_prototype.gd` (palec prowadzi postać, miecz bije kukłę; z oknem zapisuje klatki zamachu).
 
