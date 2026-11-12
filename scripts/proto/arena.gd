@@ -15,6 +15,8 @@ extends Node2D
 ## Rozwój postaci (HeroLevels, stan w Game): gobliny i Wódz dają doświadczenie (śmierć go nie zabiera), cienki pasek
 ## doświadczenia (złoty) z poziomem postaci u góry (w lochu pod paskami zdrowia i many, liczby na paskach, w bazie obok „Menu”), awans leczy i pokazuje
 ## efekt na postaci, odblokowuje miejsca na umiejętności. Okno wyniku podsumowuje zdobyte doświadczenie.
+## Przedmioty (Items, stan w Game): rzadko z goblinów, kilka ze skrzyni Wodza; cechy założonych (`gear`) idą do postaci
+## i miecza od razu, także po zmianie ekwipunku w pauzie (sygnał Game.inventory_changed).
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 0), Vector2(100, 10), Vector2(0, 170)]
@@ -62,6 +64,11 @@ var xp_text: Label
 ## Doświadczenie zdobyte w tej wyprawie i poziom postaci na jej starcie (do podsumowania).
 var run_xp := 0
 var _start_hero_level := 1
+## Przedmioty podniesione w tej wyprawie i złoto za sprzedane od razu (pełna torba przy skrzyni).
+var run_items := 0
+var run_sold_gold := 0
+## Suma cech założonych przedmiotów (Items.totals).
+var gear := {}
 ## Licznik zgonów w trybie deweloperskim (widoczny, gdy nieśmiertelność jest włączona).
 var deaths_label: Label
 var ember_bar: ProgressBar
@@ -112,7 +119,7 @@ func _ready() -> void:
 	weapon.name = "Weapon"
 	weapon.hero = hero
 	weapon.auto_attack = Game.auto_attack
-	weapon.damage_mult = HeroLevels.damage_mult(Game.hero_level)
+	gear = Game.gear()
 	if horde:
 		horde_spawner = ProtoHorde.new()
 		horde_spawner.name = "Horde"
@@ -120,6 +127,8 @@ func _ready() -> void:
 		horde_spawner.world = world
 		horde_spawner.bounds = ARENA.grow(-8)
 		horde_spawner.power = DungeonLevels.power(level)
+		horde_spawner.level = level
+		horde_spawner.loot_spawned.connect(_track_loot)
 		horde_spawner.kills_changed.connect(func(k: int) -> void:
 			kills_label.text = tr("Pokonane: %d") % k
 			_gain_xp(HeroLevels.goblin_xp(level)))
@@ -133,7 +142,7 @@ func _ready() -> void:
 			mana_bar.max_value = max_mana
 			mana_bar.value = mana
 			mana_text.text = "%d / %d" % [mana, max_mana])
-		hero.set_level(Game.hero_level)
+		hero.set_level(Game.hero_level, gear)
 		hero.died.connect(_on_hero_died)
 		hero.death_avoided.connect(func(n: int) -> void: deaths_label.text = tr("Zgony: %d") % n)
 	else:
@@ -153,11 +162,13 @@ func _ready() -> void:
 		hero.obstacles.append(Vector3(WATRA_POS.x, WATRA_POS.y, ProtoWatra.RADIUS))
 	world.add_child(weapon)
 	if not horde:
-		hero.set_level(Game.hero_level)
+		hero.set_level(Game.hero_level, gear)
+	_apply_weapon()
 	actions.set_hero_level(Game.hero_level)
 	_on_xp(Game.hero_level, Game.hero_xp, Game.xp_needed())
 	Game.xp_changed.connect(_on_xp)
 	Game.leveled_up.connect(_on_level_up)
+	Game.inventory_changed.connect(_on_inventory)
 	actions.attack.pressed.connect(func() -> void: weapon.attack_held = true)
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
 
@@ -394,6 +405,7 @@ func _bar_text(bar: ProgressBar, font_size: int) -> Label:
 func _gain_xp(amount: int) -> void:
 	if hero.dead:
 		return
+	amount = roundi(amount * (1.0 + gear.get("xp_pct", 0.0) / 100.0))
 	run_xp += amount
 	Game.add_xp(amount)
 
@@ -405,9 +417,30 @@ func _on_xp(lvl: int, xp: int, need: int) -> void:
 	xp_bar.value = xp if need > 0 else xp_bar.max_value
 	xp_text.text = "%d / %d" % [xp, need] if need > 0 else tr("Najwyższy poziom")
 	actions.set_hero_level(lvl, true)
-	weapon.damage_mult = HeroLevels.damage_mult(lvl)
-	if hero.max_hp != HeroLevels.max_hp(lvl) and not hero.dead:
-		hero.set_level(lvl)  # np. reset postaci w trybie deweloperskim
+	_apply_weapon()
+	if hero.max_hp != HeroLevels.max_hp(lvl) + roundi(gear.get("hp", 0.0)) and not hero.dead:
+		hero.set_level(lvl, gear)  # np. reset postaci w trybie deweloperskim
+
+
+## Zmiana ekwipunku (okno „Postać”, łup): nowe cechy postaci i miecza bez leczenia.
+func _on_inventory() -> void:
+	gear = Game.gear()
+	if not hero.dead:
+		hero.apply_gear(Game.hero_level, gear)
+	_apply_weapon()
+
+
+## Miecz: obrażenia z założonej broni, mnożnik z poziomu i premii, szybkość ataku.
+func _apply_weapon() -> void:
+	weapon.damage = HeroStats.weapon_damage(gear)
+	weapon.damage_mult = HeroStats.damage_mult(Game.hero_level, gear)
+	weapon.speed_mult = HeroStats.attack_speed_mult(gear)
+
+
+## Przedmiot na ziemi (z goblina albo skrzyni) - podniesione liczą się do podsumowania wyprawy.
+func _track_loot(loot: ProtoLoot) -> void:
+	loot.picked.connect(func(_i: Dictionary) -> void: run_items += 1)
+	loot.sold.connect(func(_i: Dictionary, price: int) -> void: run_sold_gold += price)
 
 
 ## Awans: efekt na postaci (pełne zdrowie, napis, dźwięk), miga numer poziomu.
@@ -552,6 +585,8 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	chest.name = "Chest"
 	chest.hero = hero
 	chest.embers = DungeonLevels.chest_embers(level)
+	chest.items = Items.roll_chest(level)
+	chest.loot_spawned.connect(_track_loot)
 	chest.position = at
 	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner._on_ember))
 	chest.opened.connect(_on_chest_opened)
@@ -578,6 +613,7 @@ func victory() -> void:
 	Game.save_if_dirty()
 	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time, hero.deaths)
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
+	result.add_loot_lines(run_items, run_sold_gold)
 	get_tree().paused = true
 
 
@@ -612,6 +648,7 @@ func _on_hero_died() -> void:
 	Game.save_if_dirty()
 	result.show_result(horde_spawner.kills, horde_spawner.time, horde_spawner.embers)
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
+	result.add_loot_lines(run_items, run_sold_gold)
 	get_tree().paused = true
 
 

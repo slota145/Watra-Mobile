@@ -8,7 +8,8 @@ extends Node2D
 ## Tryb deweloperski (`immortal`): zdrowie schodzi normalnie, ale zamiast śmierci wraca do pełna, a `deaths` liczy,
 ## ile razy postać by zginęła (sygnał `death_avoided`).
 ## Poziom postaci (`set_level`, HeroLevels) ustala największe zdrowie; awans (`level_up`) leczy do pełna
-## ze złotym błyskiem, napisem „Poziom N!” i dźwiękiem.
+## ze złotym błyskiem, napisem „Poziom N!” i dźwiękiem. Przedmioty (`gear` - Items.totals) dokładają zdrowie, manę,
+## szybkość ruchu, regenerację zdrowia i ochronę (mniej obrażeń od potworów).
 
 signal health_changed(hp: int, max_hp: int)
 signal mana_changed(mana: int, max_mana: int)
@@ -48,6 +49,13 @@ var immortal := false
 var deaths := 0
 ## Przeszkody: Vector3(x, y, promień); w pionie spłaszczone o połowę (widok z góry 3/4).
 var obstacles: Array[Vector3] = []
+## Z przedmiotów: mnożnik szybkości ruchu, zdrowie na sekundę, część obrażeń, której postać nie dostaje (0-0,5).
+var move_mult := 1.0
+var regen := 0.0
+var protection := 0.0
+var _regen_acc := 0.0
+## Ostatnio podane cechy z przedmiotów (awans liczy z nimi nowe zdrowie).
+var gear := {}
 
 var _anim := "idle"
 var _time := 0.0
@@ -72,8 +80,15 @@ func _process(delta: float) -> void:
 	if dead:
 		velocity = Vector2.ZERO
 		return
+	if regen > 0.0 and hp < max_hp:
+		_regen_acc += regen * delta
+		if _regen_acc >= 1.0:
+			var heal := int(_regen_acc)
+			_regen_acc -= heal
+			hp = mini(hp + heal, max_hp)
+			health_changed.emit(hp, max_hp)
 	var input := joystick.vector if joystick else Vector2.ZERO
-	velocity = input * SPEED
+	velocity = input * SPEED * move_mult
 	position = _push_out((position + velocity * delta).clamp(bounds.position, bounds.end))
 	if input.length() > 0.05:
 		facing = input.normalized()
@@ -92,6 +107,7 @@ func take_damage(amount: int) -> void:
 	if dead or _invulnerable > 0.0:
 		return
 	_invulnerable = INVULNERABLE
+	amount = maxi(1, roundi(amount * (1.0 - protection)))
 	hp = maxi(hp - amount, 0)
 	health_changed.emit(hp, max_hp)
 	_spawn_number(amount)
@@ -117,13 +133,29 @@ func take_damage(amount: int) -> void:
 		died.emit()
 
 
-## Ustawia zdrowie i manę według poziomu postaci (pełne).
-func set_level(level: int) -> void:
-	max_hp = HeroLevels.max_hp(level)
+## Ustawia zdrowie i manę według poziomu postaci i przedmiotów (`gear` - Items.totals; pełne).
+func set_level(level: int, items_gear := {}) -> void:
+	apply_gear(level, items_gear)
 	hp = max_hp
 	health_changed.emit(hp, max_hp)
-	max_mana = HeroLevels.max_mana(level)
 	mana = max_mana
+	mana_changed.emit(mana, max_mana)
+
+
+## Przelicza cechy z poziomu i przedmiotów bez leczenia (zmiana ekwipunku w trakcie wyprawy): przyrost
+## największego zdrowia i many dolicza się do obecnych, spadek tylko je przycina.
+func apply_gear(level: int, items_gear: Dictionary) -> void:
+	gear = items_gear
+	var new_hp := HeroLevels.max_hp(level) + roundi(gear.get("hp", 0.0))
+	var new_mana := HeroLevels.max_mana(level) + roundi(gear.get("mana", 0.0))
+	hp = clampi(hp + maxi(new_hp - max_hp, 0), 0 if dead else 1, new_hp)
+	mana = clampi(mana + maxi(new_mana - max_mana, 0), 0, new_mana)
+	max_hp = new_hp
+	max_mana = new_mana
+	move_mult = 1.0 + gear.get("move_pct", 0.0) / 100.0
+	regen = gear.get("regen", 0.0)
+	protection = gear.get("protection_pct", 0.0) / 100.0
+	health_changed.emit(hp, max_hp)
 	mana_changed.emit(mana, max_mana)
 
 
@@ -131,7 +163,7 @@ func set_level(level: int) -> void:
 func level_up(level: int) -> void:
 	if dead:
 		return
-	set_level(level)
+	set_level(level, gear)
 	_sprite.modulate = Color(2.4, 2.0, 0.9)
 	var tween := _sprite.create_tween()
 	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.6)

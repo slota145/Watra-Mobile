@@ -2,11 +2,14 @@ class_name ProtoChest
 extends Node2D
 ## Skrzynia Wodza: pojawia się po pokonaniu bossa (wyskakuje z błyskiem). Otwiera się, gdy postać podejdzie
 ## (albo po stuknięciu palcem) - wtedy sypie iskry żaru, które same lecą do postaci (`embers` żaru, duże po 5).
-## Na razie tylko żar; gdy dojdą przedmioty, skrzynia da też łup. Grafika: skrzynia z Watry (assets/watra/chest.png).
+## Razem z żarem wysypują się przedmioty (`items`, Items.roll_chest) - też same lecą do postaci.
+## Grafika: skrzynia z Watry (assets/watra/chest.png).
 
 signal opened
 ## Z każdej iskry ze skrzyni (wartość) - podpina ją arena do licznika żaru.
 signal ember_spawned(ember: ProtoEmber)
+## Z każdego przedmiotu ze skrzyni.
+signal loot_spawned(loot: ProtoLoot)
 
 const TEXTURE := preload("res://assets/watra/chest.png")
 const SCALE := 1.6
@@ -18,6 +21,8 @@ const TAP_RECT := Rect2(-26, -42, 52, 50)
 
 var hero: ProtoHero
 var embers := 20
+## Przedmioty do wysypania (słowniki z Items).
+var items: Array = []
 var is_open := false
 
 var _sprite: Sprite2D
@@ -98,4 +103,15 @@ func open() -> void:
 		i += 1
 		ember_spawned.emit(ember)
 		get_parent().add_child.call_deferred(ember)
+	for j in items.size():
+		var loot := ProtoLoot.new()
+		loot.hero = hero
+		loot.item = items[j]
+		loot.spread = 30.0
+		loot.magnet = 1000.0
+		loot.sell_if_full = true
+		loot.delay = 0.7 + 0.25 * j
+		loot.position = position + Vector2(0, -4)
+		loot_spawned.emit(loot)
+		get_parent().add_child.call_deferred(loot)
 	opened.emit()

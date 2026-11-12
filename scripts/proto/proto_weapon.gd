@@ -5,7 +5,8 @@ extends Node2D
 ## ostrzem na zewnątrz - i tnie po łuku w stronę najbliższej kukły w zasięgu (bez kukły - przed siebie), a nad łukiem gra efekt cięcia ze zwykłego ataku Watry
 ## (assets/effects/sword_slash.png z kreatora efektów PixelLab). Kolejne cięcia na przemian z góry i z dołu.
 ## Auto atak (`auto_attack`, ustawienie w pauzie): cios sam rusza, gdy cel jest w zasięgu - tylko podstawowy atak.
-## Obrażenia rosną z poziomem postaci (`damage_mult`, HeroLevels.damage_mult).
+## Obrażenia rosną z poziomem postaci i premiami przedmiotów (`damage_mult`), założona broń zmienia obrażenia cięcia
+## (`damage`), a premia szybkości ataku przyspiesza cały cios (`speed_mult`).
 ## Węzeł stoi na ziemi (sortowanie po Y z postacią i kukłą), a obrazek miecza wisi wyżej (ujemne _sprite.position.y).
 
 const TEXTURE := preload("res://assets/watra/iron_sword.png")
@@ -49,6 +50,10 @@ var attack_held := false
 var auto_attack := false
 ## Mnożnik obrażeń z poziomu postaci.
 var damage_mult := 1.0
+## Obrażenia jednego cięcia (od-do) przed mnożnikiem - zwykły miecz albo założona broń.
+var damage := DAMAGE
+## Mnożnik szybkości ataku (rozbieg, cięcie, powrót i odpoczynek trwają tyle razy krócej).
+var speed_mult := 1.0
 ## Cele do bicia (kukły, potwory). Arena dopisuje je przy starcie, potwory dopisują się same w grupie TARGETS.
 var targets: Array[ProtoTarget] = []
 
@@ -91,8 +96,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_clock += delta
-	_cooldown -= delta
-	_t += delta
+	_cooldown -= delta * speed_mult
+	_t += delta * speed_mult
 	match _state:
 		"follow":
 			_follow(delta)
@@ -194,7 +199,7 @@ func _hit_in_arc() -> void:
 	for t in _live_targets():
 		var to := t.center() - _orbit_center()
 		if to.length() <= HILT_RADIUS + BLADE + 6.0 and absf(angle_difference(_aim, to.angle())) <= ARC / 2.0:
-			t.take_damage(roundi(randi_range(DAMAGE.x, DAMAGE.y) * damage_mult), hero.global_position)
+			t.take_damage(roundi(randi_range(damage.x, damage.y) * damage_mult), hero.global_position)
 			# błysk tam, gdzie ostrze przecina kukłę (na linii od postaci, nie dalej niż czubek)
 			var at := _orbit_center() + to.limit_length(HILT_RADIUS + BLADE * 0.8)
 			Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, at.round(), HIT_FX_ANCHOR)

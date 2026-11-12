@@ -95,6 +95,15 @@ func add_xp_lines(xp: int, new_level := 0) -> void:
 		_summary.text += "\n" + tr("Awans na poziom %d!") % new_level
 
 
+
+## Dopisuje do podsumowania podniesione przedmioty i złoto za łup sprzedany przy pełnej torbie.
+func add_loot_lines(items: int, sold_gold := 0) -> void:
+	if items > 0:
+		_summary.text += "\n" + tr("Przedmioty: %d") % items
+	if sold_gold > 0:
+		_summary.text += "\n" + tr("Torba pełna - łup sprzedany: +%d złota") % sold_gold
+
+
 func _button(parent: Control, text: String) -> Button:
 	var b := Button.new()
 	b.text = text

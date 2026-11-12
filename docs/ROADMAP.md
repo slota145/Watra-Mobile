@@ -33,16 +33,20 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 
 - **Boss w lochu (12.11.2026):** zrobione (szczegóły w `docs/historia.md`); do oceny na telefonie: czas zapełniania
   paska (100 żaru), trudność Wodza, czytelność ostrzeżeń. Model, animacje i efekty
-  Wodza gotowe; skrzynia da łup, gdy dojdą przedmioty.
+  Wodza gotowe; skrzynia daje żar i 3 przedmioty.
 
 - **Rozwój postaci (12.11.2026):** poziomy doświadczenia, auto atak i skróty deweloperskie (+1 poziom, +100 żaru,
   postać od nowa) zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: tempo awansów (krzywa w
-  `HeroLevels`), czy Wódz robi się łatwiejszy. Dalej: przedmioty (łup ze skrzyni Wodza, skrót „przedmioty” w pauzie),
-  umiejętności w odblokowanych miejscach, kamienie.
-  Pasek many i okno „Postać” ze statystykami zrobione - manę zużyją umiejętności.
+  `HeroLevels`), czy Wódz robi się łatwiejszy. Pasek many i okno „Postać” ze statystykami zrobione - manę zużyją umiejętności.
+  Przedmioty zrobione (12.11.2026, szczegóły w `docs/historia.md`). Do oceny na telefonie: szansa łupu z goblinów (2,5%),
+  siła premii, ceny, czytelność okna na 16:9 (przewija się). Na co wydawać złoto - do ustalenia (kowal, sklep?).
+  Dalej: umiejętności w odblokowanych miejscach, kamienie w umiejętnościach i ekwipunku.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
 - Watra jako „serce” ekranu startowego: animowany ogień, który przygasa, gdy długo nie grasz, i rozpala się po powrocie.
 - Postęp offline: robotnicy Ostoi zbierają drewno i kamień, gdy telefon leży w kieszeni (jak obozy w BDO).
 - Wspólne dane z Watrą (nazwy przedmiotów, potworów, słowniczek tłumaczeń), żeby obie gry trzymały ten sam świat.
+- Przedmioty: lewitujący miecz wygląda jak założona broń (stalowy, runiczny…); legendy z bossów; nazwy rzadkich
+  przedmiotów składane z dwóch słów (jak w Watrze); kropka „nowe” na przycisku „Menu”, gdy w torbie jest nowy łup;
+  porównanie z założonym przedmiotem także na ziemi (strzałka w górę nad lepszym).
