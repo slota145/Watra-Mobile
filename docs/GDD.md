@@ -29,6 +29,8 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
   poziomy doświadczenia. W lochu nie wybiera się losowych ulepszeń (bez roguelike).
 - **Lewitująca broń** (pomysł autora, rozważany): broń nie jest w dłoni, tylko unosi się obok postaci i sama porusza się
   płynnie przy atakach. Prostsze animacje postaci niż w Watrze; podobnie robi np. Brotato.
+  Postać i tak gra animację ataku: gest kierowania bronią (pusta, świecąca dłoń), zgrany w czasie z ruchem broni,
+  także w marszu (nogi idą, ręka wykonuje gest) - pomysł z 12.11.2026, do sprawdzenia na prototypie.
 - Autor przygotowuje pierwsze pomysły - czekamy na nie przed projektowaniem systemów.
 
 ## Filary (kandydaci z Watry - do potwierdzenia)
