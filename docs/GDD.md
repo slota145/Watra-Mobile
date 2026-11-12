@@ -3,7 +3,7 @@
 Krótki opis tego, czym Watra Mobile ma być. Służy do sprawdzania, czy nowy pomysł pasuje do gry. Zmieniamy go tylko
 po decyzji autora. Szczegóły zrobionych systemów będą w `docs/historia.md`, a plany w `docs/ROADMAP.md`.
 
-> **Szkic z 12.11.2026.** Ustalone są tylko punkty oznaczone „ustalone”. Reszta to pytania do autora (sekcja
+> **Szkic z 12.11.2026** (uzupełniony tego samego dnia o lochy, żar i rozwój). Ustalone są tylko punkty oznaczone „ustalone”. Reszta to pytania do autora (sekcja
 > „Do ustalenia”) - nie projektujemy systemów, dopóki autor ich nie potwierdzi.
 
 ## Jednym zdaniem
@@ -20,6 +20,19 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
 - Grafika: pixel-art; postacie i potwory można robić w SpriteKiln (z opisu, bez limitu generacji) albo w PixelLab.
 - **Rdzeń gry: czyszczenie lochów z hubem** (12.11.2026). Gracz wraca między lochami do huba (najpewniej Ostoja),
   a w lochach walczy i zdobywa łup.
+- **Poziomy lochów jak głębokie szczeliny w Diablo 3** (12.11.2026): lochy mają rosnące poziomy, każdy następny
+  trudniejszy. **Kolejne systemy gry odblokowują się na kolejnych poziomach lochów** (gracz poznaje je po kolei, a nie
+  wszystkie naraz). Wyższe poziomy mają przynosić coś nowego (potwory, bossowie, miejsca), a nie tylko silniejszych
+  przeciwników.
+- **Wyprawa do lochu** (12.11.2026): wejście przez Watrę w hubie. Zebrane iskry żaru zapełniają pasek w lochu
+  (jak pasek postępu szczeliny); pełny pasek pozwala przyzwać bossa - przyzwanie zjada żar z paska, do bazy idzie tylko
+  nadwyżka, zwykli przeciwnicy znikają. **Pokonanie bossa to jedyne wyjście z żarem** (ucieczka i śmierć - bez żaru).
+  Wyprawy krótkie (kilka minut).
+- **Dwa rodzaje rozwoju** (12.11.2026):
+  - **postać:** poziomy doświadczenia, przedmioty, ulepszanie umiejętności (patrz „Siła postaci” niżej);
+  - **lochy:** **żar to waluta ulepszania lochów**, ulepszenia **wspólne dla wszystkich lochów** - np. więcej
+    przeciwników, więcej doświadczenia, więcej łupu. Zmiany małe, żeby grind miał sens, ale każda odczuwalna
+    (rosnące ceny kolejnych stopni zamiast niewidocznych +1%).
 
 ## Kierunek wstępny (autor jeszcze nie zdecydował)
 
@@ -42,6 +55,9 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
 5. **Jedna ręka.** Pionowy ekran zachęca do grania kciukiem jednej ręki - ważne przyciski w dolnej połowie ekranu.
 
 ## Do ustalenia z autorem
+
+- **Poziomy lochów:** wybór dowolnego poziomu do najwyższego przebitego? Limit czasu jak w D3 czy bez? Które systemy
+  odblokowują się na których poziomach? Lista ulepszeń lochów za żar i ich ceny.
 
 - **Walka w lochu:** w stylu Vampire Survivors (auto-ataki, ruch palcem) czy ARPG jak Watra (gałka i przyciski
   umiejętności)? Co daje „bez roguelike”: czy w lochu w ogóle wybiera się ulepszenia, czy wszystko daje hub i ekwipunek?
