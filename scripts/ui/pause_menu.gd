@@ -2,9 +2,10 @@ class_name PauseMenu
 extends Control
 ## Okno pauzy w trakcie gry (przycisk „Menu”): zatrzymuje grę i daje ustawienia sterowania -
 ## atak i umiejętności po lewej stronie, gest postaci przy ataku, auto atak (tylko podstawowy cios), tryb deweloperski
-## (nieśmiertelność i skróty: +1 poziom postaci, +100 żaru, postać od nowa) - oraz powrót do gry i wyjście do menu głównego.
+## (nieśmiertelność i skróty: +1 poziom postaci, +100 żaru, +5 losowych przedmiotów z obecnego poziomu lochu, postać od nowa) - oraz powrót do gry i wyjście do menu głównego.
 ## Skróty poziomu zmieniają postać w Game (arena słucha jego sygnałów), żar - sygnał `dev_embers` (arena dodaje go
-## do paska wyprawy w lochu albo do Watry w bazie). Przycisk „Postać” otwiera okno statystyk (HeroStats) nad pauzą. Okno przewija się, gdy nie mieści się na niskim ekranie.
+## do paska wyprawy w lochu albo do Watry w bazie). Przycisk „Postać i ekwipunek” otwiera okno postaci z ekwipunkiem
+## i torbą (HeroStats) nad pauzą. Okno przewija się, gdy nie mieści się na niskim ekranie.
 ## Ustawienia zapisuje Game (user://settings.cfg). Działa także przy zatrzymanej grze (PROCESS_MODE_ALWAYS).
 ## Autoload Game bierzemy z drzewa (_game), bo w skrypcie z class_name nazwa autoloadu nie zawsze jest znana
 ## (np. w testach uruchamianych przez -s).
@@ -16,6 +17,7 @@ signal leaving
 signal dev_embers(amount: int)
 
 const DEV_EMBERS := 100
+const DEV_ITEMS := 5
 
 var left_toggle: CheckButton
 var gesture_toggle: CheckButton
@@ -23,6 +25,7 @@ var auto_toggle: CheckButton
 var immortal_toggle: CheckButton
 var level_button: Button
 var embers_button: Button
+var items_button: Button
 var reset_button: Button
 ## Reset postaci wymaga drugiego stuknięcia (żeby nie wyzerować jej przypadkiem).
 var _reset_armed := false
@@ -103,9 +106,11 @@ func _ready() -> void:
 	level_button.pressed.connect(func() -> void: _game.dev_level_up())
 	embers_button = _dev_button(dev_row, tr("+%d żaru") % DEV_EMBERS)
 	embers_button.pressed.connect(func() -> void: dev_embers.emit(DEV_EMBERS))
+	items_button = _dev_button(dev_row, tr("+%d przedm.") % DEV_ITEMS)
+	items_button.pressed.connect(func() -> void: _game.dev_items(DEV_ITEMS))
 	reset_button = _dev_button(dev_row, tr("Od nowa"))
 	reset_button.pressed.connect(_on_reset)
-	stats_button = _button(column, tr("Postać"))
+	stats_button = _button(column, tr("Postać i ekwipunek"))
 	stats_button.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
 	stats_button.pressed.connect(func() -> void: stats.open())
 	resume_button = _button(column, tr("Wróć do gry"))
@@ -146,10 +151,10 @@ func open(at_stake := 0) -> void:
 	get_tree().paused = true
 
 
-## Przycisk „wstecz”: zamyka okno „Postać”, a gdy go nie ma - pauzę.
+## Przycisk „wstecz”: zamyka opis przedmiotu albo okno „Postać”, a gdy go nie ma - pauzę.
 func back() -> void:
 	if stats.visible:
-		stats.close()
+		stats.back()
 	else:
 		close()
 

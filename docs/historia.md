@@ -2,6 +2,44 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - przedmioty: procenty rosną płynnie z lochem
+
+- Decyzja autora (wariant A): premie procentowe i stała cecha butów i pierścienia rosły skokami co stopień
+  (co 4 lochy) i stawały od lochu 17. Teraz rosną z każdym poziomem lochu (`Items.AFFIXES[...].per_level`):
+  obrażenia +0,6, szybkość ataku +0,4, ruch +0,2, ochrona +0,2, doświadczenie +0,4 na poziom; buty i pierścień
+  +0,2 (`BASE_PCT_PER_LEVEL`). Liczby stałe bez zmian (x `DungeonLevels.power`), sufity sumy (`CAPS`) zostają.
+
+## 12.11.2026 - przedmioty (rozwój postaci, część 2)
+
+- Ustalenia z autorem: 6 miejsc (broń, hełm, zbroja, buty, pierścień, amulet), łup ze skrzyni Wodza i rzadko
+  z goblinów, 3 rzadkości z 1-4 premiami, okno ekwipunku razem z oknem „Postać”, torba 20 miejsc, siła przedmiotu
+  z poziomu lochu, niepotrzebne sprzedaje się za złoto (nowa waluta), skrót deweloperski „+5 przedm.”.
+- `scripts/items.gd` (`Items`): dane i losowanie. Stopień (wygląd i nazwa z Watry: żelazny, stalowy, mithrilowy,
+  runiczny, smoczy) co 4 poziomy lochu (`tier_for`). Stała cecha miejsca (`BASE`): broń - obrażenia cięcia 15-21
+  (+12% na poziom lochu, ±8%; zastępują zwykły miecz 14-20), hełm +8 i zbroja +18 zdrowia (x `DungeonLevels.power`),
+  buty +4% ruchu, pierścień +4% obrażeń (+1 na stopień), amulet +10 many. Premie (`AFFIXES`, bez powtórzeń): zdrowie,
+  mana, % obrażeń, % szybkości ataku, % szybkości ruchu, regeneracja zdrowia, % ochrony, % doświadczenia; sufity sumy
+  (`CAPS`): ochrona 50%, ruch 50%, szybkość ataku 75%. Rzadkości: zwykły 0, magiczny 1-2, rzadki 3-4 premie; wagi
+  goblina 65/28/7, skrzyni 35/45/20. Goblin upuszcza przedmiot z szansą 2,5% (`GOBLIN_DROP`), skrzynia Wodza 3
+  (`roll_chest`, pierwszy co najmniej magiczny). Cena: 5 złota x siła lochu x rzadkość (1/2/4). Zapis trzyma tylko
+  identyfikatory i liczby (`normalize` przy wczytaniu). `totals` - suma cech założonych.
+- `Game`: `bag` (najwyżej `BAG_SIZE` 20), `equipped`, `gold` w zapisie; `add_item`, `equip` (zamiana - stary wraca
+  na jego miejsce w torbie), `unequip`, `sell`, `dev_items`, `gear()`, sygnał `inventory_changed`; „Od nowa” czyści też
+  przedmioty i złoto. Przedmioty zostają po śmierci i ucieczce (jak doświadczenie).
+- `scripts/proto/proto_loot.gd` (`ProtoLoot`): przedmiot na ziemi - ikona, poświata w kolorze rzadkości, rzadki ze
+  słupem światła; leci do postaci z 36 px, przy pełnej torbie odskakuje z napisem „Torba pełna!” i czeka, aż postać
+  odejdzie. Łup ze skrzyni przy pełnej torbie sprzedaje się od razu (`sell_if_full`). Dźwięki z Watry (Kenney, CC0):
+  `dropLeather`, `handleSmallLeather`, `glass_002` (rzadki), `handleCoins` (sprzedaż).
+- Działanie cech: `ProtoHero.apply_gear` (zdrowie, mana, `move_mult`, `regen`, `protection`; zmiana ekwipunku nie
+  leczy), `ProtoWeapon.damage` i `speed_mult` (cały cios szybszy), doświadczenie x premia w `Arena._gain_xp`; arena
+  słucha `Game.inventory_changed`. Okno wyniku: „Przedmioty: N” (`RunResult.add_loot_lines`).
+- `HeroStats` (okno „Postać i ekwipunek” w pauzie): poziom, 6 miejsc wokół Wojciecha (po lewej hełm, zbroja, buty,
+  po prawej broń, amulet, pierścień), złoto, statystyki z przedmiotami (ochrona, regeneracja, doświadczenie tylko gdy
+  niezerowe), torba 5x4 (pola 52 px). Opis przedmiotu przy dolnej krawędzi: cechy, „Po założeniu:” zmiany statystyk
+  (zielone/czerwone), „Załóż”/„Zdejmij”, „Sprzedaj N” (magiczny i rzadki - „Na pewno?”), „Zamknij”; „wstecz” zamyka
+  najpierw opis. Okno przewija się na 16:9. Ikony: `assets/watra/items/` (z Watry, z wersjami `_magic`, `_rare`).
+- Test `tests/test_items.gd`, zrzuty `tools/item_shots.gd`.
+
 ## 12.11.2026 - liczby na paskach, mana i okno „Postać”
 
 - Prośba autora: liczby na paskach zdrowia, many i doświadczenia oraz ekran statystyk („ciężko stwierdzić, co daje poziom”).

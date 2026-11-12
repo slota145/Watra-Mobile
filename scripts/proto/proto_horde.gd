@@ -5,10 +5,12 @@ extends Node
 ## Liczy pokonane potwory i czas przetrwania (`kills`, `time`). Z każdego potwora wypada iskra żaru (co `BIG_EVERY`
 ## potwór - duża), zebrany żar liczy `embers` - do bazy trafia tylko po pokonaniu bossa, ucieczka i śmierć go gaszą.
 ## Przyzwanie bossa (`call_boss`) zatrzymuje strumień, a gobliny uciekają z piskiem. Siła goblinów rośnie z poziomem
-## lochu (`power`).
+## lochu (`power`). Rzadko goblin upuszcza przedmiot z poziomu lochu (`level`, Items.roll_goblin).
 
 signal kills_changed(kills: int)
 signal embers_changed(embers: int)
+## Goblin upuścił przedmiot (arena liczy podniesione do podsumowania).
+signal loot_spawned(loot: ProtoLoot)
 
 ## Odstęp między potworami na starcie i po pełnym rozkręceniu (s).
 const INTERVAL_START := 1.3
@@ -39,6 +41,8 @@ var running := true
 var clock := true
 ## Mnożnik zdrowia i obrażeń goblinów (DungeonLevels.power poziomu lochu).
 var power := 1.0
+## Poziom lochu (siła przedmiotów z goblinów).
+var level := 1
 
 var _next := FIRST_DELAY
 var _alive := 0
@@ -130,6 +134,20 @@ func _on_died(g: ProtoGoblin) -> void:
 	ember.position = g.position
 	ember.collected.connect(_on_ember)
 	world.add_child.call_deferred(ember)
+	var item := Items.roll_goblin(level)
+	if not item.is_empty():
+		drop_item(item, g.position)
+
+
+## Przedmiot na ziemi w danym miejscu.
+func drop_item(item: Dictionary, at: Vector2) -> ProtoLoot:
+	var loot := ProtoLoot.new()
+	loot.hero = hero
+	loot.item = item
+	loot.position = at
+	loot_spawned.emit(loot)
+	world.add_child.call_deferred(loot)
+	return loot
 
 
 func _on_ember(value: int) -> void:

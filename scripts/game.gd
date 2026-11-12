@@ -2,12 +2,18 @@ extends Node
 ## Globalny stan gry (autoload "Game"): przełączanie scen, ścieżka zapisu i ustawienia gracza.
 ## Ustawienia (np. przyciski po lewej) leżą osobno od zapisu gry, w user://settings.cfg.
 ## Zapis gry (JSON w `save_path`): żar zgromadzony w Watrze (`embers`), najwyższy przebity poziom lochu (`best_level`)
-## i postać - poziom i doświadczenie (`hero_level`, `hero_xp`; dane poziomów w HeroLevels).
+## i postać - poziom i doświadczenie (`hero_level`, `hero_xp`; dane poziomów w HeroLevels), przedmioty w torbie
+## (`bag`, najwyżej BAG_SIZE), założone (`equipped`: miejsce -> przedmiot) i złoto ze sprzedaży (`gold`; dane w Items).
 
 ## Zmiana doświadczenia: `xp` na obecnym poziomie, `need` - ile trzeba do awansu (0 na najwyższym poziomie).
 signal xp_changed(level: int, xp: int, need: int)
 ## Awans postaci na poziom `level` (przy kilku awansach naraz - raz, z ostatnim poziomem).
 signal leveled_up(level: int)
+## Zmiana torby, założonych przedmiotów albo złota.
+signal inventory_changed
+
+## Miejsca w torbie (siatka 5x4 w oknie „Postać”).
+const BAG_SIZE := 20
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
 ## Zapis gracza. Testy podmieniają go na osobny plik, żeby nie ruszać prawdziwego zapisu.
@@ -34,6 +40,10 @@ var dungeon_level := 1
 ## Poziom postaci i doświadczenie zebrane na tym poziomie.
 var hero_level := 1
 var hero_xp := 0
+## Przedmioty w torbie (kolejność jak w siatce) i założone (miejsce -> przedmiot) - słowniki z Items.roll.
+var bag: Array = []
+var equipped := {}
+var gold := 0
 ## Doświadczenie dopisane od ostatniego zapisu (zapis przy końcu wyprawy, pauzie i przełączeniu aplikacji).
 var _dirty := false
 ## Atak i umiejętności w lewym dolnym rogu (dla osób, które wolą trzymać je lewym kciukiem).
@@ -91,6 +101,9 @@ func load_game() -> void:
 	dungeon_level = 1
 	hero_level = 1
 	hero_xp = 0
+	bag = []
+	equipped = {}
+	gold = 0
 	_dirty = false
 	if not FileAccess.file_exists(save_path):
 		return
@@ -101,6 +114,19 @@ func load_game() -> void:
 		dungeon_level = clampi(int(data.get("dungeon_level", 1)), 1, unlocked_level())
 		hero_level = clampi(int(data.get("hero_level", 1)), 1, HeroLevels.MAX_LEVEL)
 		hero_xp = maxi(int(data.get("hero_xp", 0)), 0)
+		gold = maxi(int(data.get("gold", 0)), 0)
+		var raw_bag = data.get("bag", [])
+		if raw_bag is Array:
+			for raw in raw_bag:
+				var item := Items.normalize(raw)
+				if not item.is_empty() and bag.size() < BAG_SIZE:
+					bag.append(item)
+		var raw_eq = data.get("equipped", {})
+		if raw_eq is Dictionary:
+			for slot in raw_eq:
+				var item := Items.normalize(raw_eq[slot])
+				if not item.is_empty() and item.slot == slot:
+					equipped[slot] = item
 
 
 func save_game() -> void:
@@ -108,7 +134,7 @@ func save_game() -> void:
 	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
-				"hero_level": hero_level, "hero_xp": hero_xp}))
+				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped}))
 
 
 ## Zapis tylko wtedy, gdy od ostatniego coś się zmieniło (np. doświadczenie z goblinów).
@@ -154,12 +180,81 @@ func dev_level_up() -> void:
 	add_xp(xp_needed() - hero_xp)
 
 
-## Tryb deweloperski: postać od nowa (1. poziom, bez doświadczenia).
+## Tryb deweloperski: postać od nowa (1. poziom, bez doświadczenia, przedmiotów i złota).
 func reset_hero() -> void:
 	hero_level = 1
 	hero_xp = 0
+	bag = []
+	equipped = {}
+	gold = 0
 	save_game()
 	xp_changed.emit(hero_level, hero_xp, xp_needed())
+	inventory_changed.emit()
+
+
+## Suma cech założonych przedmiotów (Items.totals).
+func gear() -> Dictionary:
+	return Items.totals(equipped)
+
+
+## Przedmiot do torby (łup) - od razu zapisany. Zwraca false, gdy torba jest pełna.
+func add_item(item: Dictionary) -> bool:
+	if bag.size() >= BAG_SIZE:
+		return false
+	bag.append(item)
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Zakłada przedmiot z torby; to, co było w tym miejscu, wraca do torby na jego miejsce.
+func equip(index: int) -> void:
+	if index < 0 or index >= bag.size():
+		return
+	var item: Dictionary = bag[index]
+	if equipped.has(item.slot):
+		bag[index] = equipped[item.slot]
+	else:
+		bag.remove_at(index)
+	equipped[item.slot] = item
+	save_game()
+	inventory_changed.emit()
+
+
+## Zdejmuje przedmiot do torby. Zwraca false, gdy torba jest pełna.
+func unequip(slot: String) -> bool:
+	if not equipped.has(slot) or bag.size() >= BAG_SIZE:
+		return false
+	bag.append(equipped[slot])
+	equipped.erase(slot)
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Sprzedaje przedmiot z torby za złoto. Zwraca, ile złota dał.
+func sell(index: int) -> int:
+	if index < 0 or index >= bag.size():
+		return 0
+	var price := Items.sell_price(bag[index])
+	bag.remove_at(index)
+	gold += price
+	save_game()
+	inventory_changed.emit()
+	return price
+
+
+## Tryb deweloperski: losowe przedmioty z obecnego poziomu lochu (ile się zmieści). Zwraca, ile dodano.
+func dev_items(count := 5) -> int:
+	var added := 0
+	for i in count:
+		if bag.size() >= BAG_SIZE:
+			break
+		bag.append(Items.roll(dungeon_level, "", "", Items.CHEST_WEIGHTS))
+		added += 1
+	save_game()
+	inventory_changed.emit()
+	return added
 
 
 ## Żar doniesiony z lochu do Watry (powrót do bazy, nie śmierć) - od razu zapisany.
