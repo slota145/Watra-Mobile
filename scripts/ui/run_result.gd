@@ -56,10 +56,12 @@ func _ready() -> void:
 	base_button.pressed.connect(func() -> void: back_to_base.emit())
 
 
-## Pokazuje wynik biegu.
-func show_result(kills: int, seconds: float) -> void:
+## Pokazuje wynik biegu; `lost_embers` - żar zebrany w lochu, który zgasł razem z postacią.
+func show_result(kills: int, seconds: float, lost_embers := 0) -> void:
 	var s := int(seconds)
 	_summary.text = tr("Pokonane gobliny: %d") % kills + "\n" + tr("Przetrwany czas: %d:%02d") % [s / 60, s % 60]
+	if lost_embers > 0:
+		_summary.text += "\n" + tr("Zgasło żaru: %d") % lost_embers
 	visible = true
 
 
