@@ -82,7 +82,9 @@ Sprawdzaj zmiany interfejsu w dwóch proporcjach: 720x1280 (16:9) i 1080x2400 (2
 Komunikaty ALSA, o wyciekach tekstur i `ERR_CANT_OPEN` przy zamykaniu są niegroźne.
 
 Wersja na telefon (Android): `tools/build_android.sh` -> `build/WatraMobile.apk` (za pierwszym razem doinstalowuje
-szablony Godota i Android SDK, około minuty); plik wyślij autorowi narzędziem SendUserFile. Opis: `docs/ANDROID.md`.
+szablony Godota i Android SDK, około minuty); plik wyślij autorowi przez gałąź `apk` (osobna, tylko plik i README, nadpisywana nowym commitem; autor pobiera
+na telefonie z https://github.com/slota145/Watra-Mobile/raw/apk/WatraMobile.apk - kafelek SendUserFile nie zapisał
+się autorowi w „Pobranych”). Opis: `docs/ANDROID.md`.
 
 U autora na Windowsie wszystkie testy uruchamia `tests/run_tests.ps1`. Nowy test dopisz też do listy `$tests` w tym pliku.
 Testy zapisują do `user://test_savegame.json`, nigdy do zapisu gracza.

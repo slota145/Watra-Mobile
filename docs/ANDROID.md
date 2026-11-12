@@ -5,8 +5,9 @@ Jak zrobić plik `.apk` i wgrać grę na własny telefon.
 ## Najprościej: Claude buduje plik w chmurze
 
 Poproś Claude o „zbudowanie apk”. Claude uruchamia `tools/build_android.sh` (sam doinstalowuje szablony Godota
-i narzędzia Androida) i wysyła plik `WatraMobile.apk`. Otwórz go na telefonie (np. pobrany z aplikacji Claude),
-zgódź się na instalację z nieznanego źródła - i gotowe. Każda nowa wersja instaluje się na poprzedniej
+i narzędzia Androida) i wrzuca plik na gałąź `apk`. Na telefonie otwórz w przeglądarce
+https://github.com/slota145/Watra-Mobile/raw/apk/WatraMobile.apk, otwórz pobrany plik, zgódź się na instalację
+z nieznanego źródła - i gotowe. Każda nowa wersja instaluje się na poprzedniej
 (ten sam klucz testowy z `tools/android/debug.keystore`), a zapis i ustawienia zostają.
 
 ## Samodzielnie na komputerze
