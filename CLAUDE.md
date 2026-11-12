@@ -53,11 +53,13 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/skills.gd` - umiejętności miecza (dane; kupione i miejsca w `Game`, działanie w `proto_weapon.gd`, okno
   `scripts/ui/skills_window.gd` z polami `skill_slot.gd`, kamień run w bazie);
   `scripts/items.gd` - przedmioty (miejsca, rzadkości, premie, łup, ceny; torba, założone i złoto w `Game`),
+  `scripts/gems.gd` - kamienie w umiejętnościach i przedmiotach (dane, łup; sakwa i gniazda w `Game`, działanie w `proto_weapon.gd`
+  i `Items.totals`, pole `scripts/ui/gem_slot.gd`, zakładka „Kamienie” w oknie umiejętności, gniazda w opisie przedmiotu w „Postać”),
   `proto_loot.gd` - przedmiot na ziemi, `proto_stash.gd` - skrzynia w bazie (okno `scripts/ui/stash_window.gd`, pola z przeciąganiem `item_slot.gd`);
   `scripts/ui/run_result.gd` - wynik po śmierci i okno zwycięstwa, `scripts/ui/level_picker.gd` - wybór poziomu przy Watrze); `scripts/ui/joystick.gd` - pływająca gałka (dotyk wieloma palcami),
   `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
   `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania i auto atakiem (zapis w `Game`, `user://settings.cfg`)
-  oraz trybem deweloperskim (nieśmiertelność, skróty: +1 poziom, +100 żaru, +5 przedmiotów, postać od nowa), `scripts/ui/hero_stats.gd` -
+  oraz trybem deweloperskim (nieśmiertelność, skróty: +1 poziom, +100 żaru, +5 przedmiotów, +umiejętności, +kamienie, postać od nowa), `scripts/ui/hero_stats.gd` -
   okno „Postać” ze statystykami, ekwipunkiem i torbą (przycisk w pauzie).
 - `scripts/updater.gd`: autoload `Updater` (pierwszy na liście) - aktualizacja wersji testowej z menu bez całego apk
   (paczka `game.pck` z gałęzi `apk`); przy zmianach project.godot, export_presets.cfg, updater.gd albo wersji Godota
@@ -66,7 +68,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `horde.tscn` - loch z ciągłym strumieniem goblinów; obie na `arena.gd`).
 - `assets/`: grafiki, muzyka, dźwięki; `assets/watra/` - pliki skopiowane z Watry; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
 - `art/specs/`: specyfikacje postaci SpriteKiln (YAML; Godot je pomija). Wyniki renderów w `out/` są generowane i nie idą do gita.
-- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia, `ember_art.py` - iskra żaru, `goblin_squeak.py` - pisk goblinów, `boss_shots.gd` - zrzuty walki z bossem, `level_shots.gd` - zrzuty rozwoju postaci, `item_shots.gd` - zrzuty przedmiotów, `stash_shots.gd` - zrzuty skrzyni, `skill_shots.gd` - zrzuty umiejętności,
+- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia, `ember_art.py` - iskra żaru, `goblin_squeak.py` - pisk goblinów, `boss_shots.gd` - zrzuty walki z bossem, `level_shots.gd` - zrzuty rozwoju postaci, `item_shots.gd` - zrzuty przedmiotów, `stash_shots.gd` - zrzuty skrzyni, `skill_shots.gd` - zrzuty umiejętności, `gem_shots.gd` - zrzuty kamieni,
   `vfx_art.py` - efekty z kreatora PixelLab do `assets/effects/`).
 - `tests/`: testy (`run_tests.ps1` u autora).
 - `translations/`: `teksty.csv` (pl/en), `pomijane.txt` (napisy bez tłumaczenia), `slowniczek.md`.

@@ -3,7 +3,7 @@ extends Control
 ## Okno pauzy w trakcie gry (przycisk „Menu”): zatrzymuje grę i daje ustawienia sterowania -
 ## atak i umiejętności po lewej stronie, gest postaci przy ataku, auto atak (umiejętność pod dużym przyciskiem), tryb deweloperski
 ## (nieśmiertelność i skróty: +1 poziom postaci, +100 żaru, +5 losowych przedmiotów z obecnego poziomu lochu, wszystkie
-## umiejętności, postać od nowa) - oraz powrót do gry i wyjście do menu głównego. „Umiejętności” otwiera okno
+## umiejętności, kamienie, postać od nowa) - oraz powrót do gry i wyjście do menu głównego. „Umiejętności” otwiera okno
 ## umiejętności (SkillsWindow) do przestawiania; kupować można tylko w bazie.
 ## Skróty poziomu zmieniają postać w Game (arena słucha jego sygnałów), żar - sygnał `dev_embers` (arena dodaje go
 ## do paska wyprawy w lochu albo do Watry w bazie). Przycisk „Postać i ekwipunek” otwiera okno postaci z ekwipunkiem
@@ -31,6 +31,8 @@ var level_button: Button
 var embers_button: Button
 var items_button: Button
 var skills_dev_button: Button
+## Tryb deweloperski: po kamieniu każdego rodzaju, 2 klucze i 2 dłuta (Game.dev_gems).
+var gems_dev_button: Button
 var reset_button: Button
 ## Reset postaci wymaga drugiego stuknięcia (żeby nie wyzerować jej przypadkiem).
 var _reset_armed := false
@@ -123,6 +125,8 @@ func _ready() -> void:
 	column.add_child(dev_row2)
 	skills_dev_button = _dev_button(dev_row2, tr("+umiejętności"))
 	skills_dev_button.pressed.connect(func() -> void: _game.dev_skills())
+	gems_dev_button = _dev_button(dev_row2, tr("+kamienie"))
+	gems_dev_button.pressed.connect(func() -> void: _game.dev_gems())
 	reset_button = _dev_button(dev_row2, tr("Od nowa"))
 	reset_button.pressed.connect(_on_reset)
 	stats_button = _button(column, tr("Postać i ekwipunek"))

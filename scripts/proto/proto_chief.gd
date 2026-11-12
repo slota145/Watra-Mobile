@@ -151,7 +151,7 @@ func _process(delta: float) -> void:
 				_choose_attack(to_hero.length())
 			if state == "walk":
 				if to_hero.length() > SLAM_RANGE * 0.6:
-					position += to_hero.normalized() * SPEED * delta
+					position += to_hero.normalized() * SPEED * speed_factor() * delta
 					_play(&"walk")
 				else:
 					_play(&"idle")

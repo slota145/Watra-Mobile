@@ -495,6 +495,7 @@ func _apply_weapon() -> void:
 func _apply_skills() -> void:
 	actions.show_skills(Game.skill_slots)
 	weapon.main_skill = Game.main_skill()
+	weapon.skill_gems = Game.skill_gems
 
 
 ## Stuknięcie małego przycisku: umiejętność z tego miejsca; gdy się odnawia albo brakuje many - drgnięcie przycisku.
@@ -517,14 +518,15 @@ func _update_skill_buttons() -> void:
 		if id == "" or b.locked_level > 0:
 			b.set_state(0.0, 0.0, false)
 			continue
-		b.set_state(weapon.cooldown_left(id), Skills.cooldown_of(id), hero.mana < Skills.mana_of(id))
+		b.set_state(weapon.cooldown_left(id), weapon.cooldown_full(id), hero.mana < weapon.mana_cost(id))
 
 
 ## Przedmiot na ziemi (z goblina albo skrzyni) - podniesione liczą się do podsumowania wyprawy.
 func _track_loot(loot: ProtoLoot) -> void:
 	loot.picked.connect(func(item: Dictionary) -> void:
-		run_items += 1
-		notify_loot(item, tr("Podniesiono: %s") % Items.name_of(item)))
+		if not item.has("gem"):
+			run_items += 1
+		notify_loot(item, tr("Podniesiono: %s") % ProtoLoot.name_of(item)))
 	loot.sold.connect(func(item: Dictionary, price: int, bag_full: bool) -> void:
 		run_sold_gold += price
 		var text := tr("Torba pełna - sprzedano: %s (+%d złota)") if bag_full else tr("Sprzedano: %s (+%d złota)")
@@ -544,7 +546,7 @@ func notify_loot(item: Dictionary, text: String) -> void:
 	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.08, 0.05, 0.04, 0.8)
-	style.border_color = Items.color_of(item).darkened(0.3)
+	style.border_color = ProtoLoot.color_of(item).darkened(0.3)
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(4)
 	style.set_content_margin_all(3)
@@ -555,7 +557,7 @@ func notify_loot(item: Dictionary, text: String) -> void:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(row)
 	var icon := TextureRect.new()
-	icon.texture = Items.icon_of(item)
+	icon.texture = ProtoLoot.icon_of(item)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.custom_minimum_size = Vector2(20, 20)
@@ -563,7 +565,7 @@ func notify_loot(item: Dictionary, text: String) -> void:
 	row.add_child(icon)
 	var label := _hud_label(text)
 	label.add_theme_font_size_override("font_size", 12)
-	label.add_theme_color_override("font_color", Items.color_of(item))
+	label.add_theme_color_override("font_color", ProtoLoot.color_of(item))
 	row.add_child(label)
 	loot_feed.add_child(panel)
 	var tween := panel.create_tween()
@@ -717,6 +719,8 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	chest.hero = hero
 	chest.embers = DungeonLevels.chest_embers(level)
 	chest.items = Items.roll_chest(level)
+	for id in Gems.roll_chest(level):
+		chest.items.append({"gem": id})
 	chest.loot_spawned.connect(_track_loot)
 	chest.position = at
 	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner._on_ember))

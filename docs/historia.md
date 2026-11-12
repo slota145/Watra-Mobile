@@ -2,6 +2,39 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - kamienie w umiejętnościach i ekwipunku (rozwój postaci, część 4)
+
+- Ustalenia z autorem: kamienie to łup z lochu (od 3. poziomu lochu - decyzja autora; rzadko gobliny, częściej skrzynia
+  Wodza), 5 stopni jak przedmioty (Okruch, Odłamek, Kamień, Szlifowany, Królewski; stopień = `Items.tier_for` poziomu).
+  W umiejętności zmieniają działanie (8 rodzajów), w przedmiocie premia zależy od miejsca (4 rodzaje z Watry).
+  Umiejętność: 5 gniazd, 2 otwarte, kolejne otwiera rzadki Klucz Runiczny (po jednym na gniazdo; pomysł autora - duża
+  nagroda). Przedmiot: 1 gniazdo, bardzo rzadko 2 od razu (magiczny 1%, rzadki 3%), drugie dorabia rzadkie Dłuto Jubilera.
+  Osobna sakwa (stosy, bez limitu). Wkładanie stuknięciem (kamień, potem gniazdo) albo przeciąganiem; wyjmowanie za darmo.
+- `scripts/gems.gd` (`Gems`): identyfikator „rodzaj:stopień” (klucz `skill_key`, dłuto `chisel`), `SUPPORT` (Mnożenie,
+  Szerokość, Żar, Szron, Piorun, Pośpiech, Oszczędność, Krwiopijca - siła na stopniach w `values`, opis według umiejętności
+  w `skills`), `JEWELS` (rubin, szafir, szmaragd, onyks; cecha według grupy miejsc broń / strój / biżuteria) i `JEWEL_VALUES`,
+  łup `roll_goblin` (1,2% kamień, 0,15% klucz lub dłuto), `roll_chest` (80% + 30% kamień, klucz 4% i dłuto 6%, +0,5 pkt
+  za każdy poziom ponad 3., sufit 15% i 20%), `skill_power`. Ikony z Watry: `assets/watra/gems/` (kamienie, gniazdo,
+  `rune_ascend` - klucz, `rune_polish` - dłuto) i `assets/watra/supports/`.
+- `Game`: `gems` (sakwa), `skill_gems`, `skill_open` (w zapisie), `add_gem`, `gem_list`, `skill_socket_problem`
+  (jeden rodzaj raz w umiejętności), `socket_skill` / `unsocket_skill`, `open_skill_socket`, `socket_item` /
+  `unsocket_item` / `add_socket` (przedmiot zmieniany w miejscu), sprzedaż oddaje kamienie do sakwy, `dev_gems`
+  (skrót „+kamienie” w pauzie), „Od nowa” zeruje.
+- `Items`: `sockets` w przedmiocie (stare zapisy dostają jedno gniazdo), premie kamieni w `totals`, `socket_lines`.
+- Walka (`ProtoWeapon`): `skill_gems`, każde trafienie przez `_deal` - Żar podpala (% trafienia przez 3 s), Szron spowalnia
+  (2 s), Krwiopijca leczy, Piorun przeskakuje na 2 wrogów do 70 px (raz na klatkę), Oszczędność w zwykłym ciosie oddaje manę;
+  `mana_cost`, `cooldown_full` (przyciski walki pokazują odnowienie z Pośpiechem), `_area` (Szerokość); Mnożenie: drugie
+  cięcie zwykłego ciosu, widmowy miecz w Młynku, 3 miecze wachlarzem w Rzucie (`_ghosts`), druga fala Rozłupania,
+  dodatkowe cięcie przy skoku Mgnienia. `ProtoTarget`: `burn`, `slow`, `speed_factor`, `burn_tick` (gobliny bez odrzutu),
+  węzeł `_Status` rysuje płomyki i szronowy krąg. `ProtoHero.heal`, `add_mana`.
+- Łup na ziemi: `ProtoLoot` z `{"gem": id}` (zawsze do sakwy, `name_of` / `color_of` / `icon_of`), gobliny (`ProtoHorde`)
+  i skrzynia Wodza (arena dokłada `Gems.roll_chest`).
+- Interfejs: `scripts/ui/gem_slot.gd` (`GemSlot` - okrągłe pole 44+ px, liczba sztuk, kłódka z kluczem, przeciąganie);
+  okno umiejętności - zakładki „Miejsca” / „Kamienie” (gniazda wybranej umiejętności, sakwa, „Wyjmij”, klucz - drugie
+  stuknięcie potwierdza, małe ikony kamieni w wierszach); okno „Postać” - sakwa pod torbą (stuknięcie - opis), w opisie
+  przedmiotu gniazda, kamienie szlachetne i „Dłuto” (drugie stuknięcie potwierdza).
+- Test `tests/test_gems.gd`, zrzuty `tools/gem_shots.gd`.
+
 ## 12.11.2026 - umiejętności miecza w odblokowanych miejscach
 
 - Ustalenia z autorem: 4 umiejętności - Młynek, Rzut mieczem, Rozłupanie Ziemi, Mgnienie; kupowane za złoto w bazie

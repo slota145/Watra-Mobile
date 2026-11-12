@@ -7,6 +7,8 @@ extends Node2D
 ## (`sell_if_full`) przy pełnej torbie sprzedaje się od razu za złoto, żeby nie przepadł po oknie zwycięstwa.
 ## Z włączoną auto sprzedażą (`Game.auto_sell_common`) zwykły przedmiot od razu zamienia się w złoto.
 ## Arena pokazuje powiadomienie o każdym podniesionym i sprzedanym przedmiocie (sygnały `picked`, `sold`).
+## Kamień, klucz albo dłuto (Gems) to łup w postaci {"gem": identyfikator}: zawsze trafia do sakwy (`Game.add_gem`,
+## bez limitu), świeci kolorem kamienia; nazwę, kolor i ikonę każdego łupu dają `name_of`, `color_of`, `icon_of`.
 
 signal picked(item: Dictionary)
 ## Przedmiot sprzedany od razu: auto sprzedaż zwykłych albo pełna torba (`bag_full`, łup ze skrzyni).
@@ -40,22 +42,42 @@ var _blocked := false
 var _game: Node
 
 
+## Nazwa łupu (przedmiot albo kamień).
+static func name_of(loot: Dictionary) -> String:
+	return Gems.name_of(loot.gem) if loot.has("gem") else Items.name_of(loot)
+
+
+static func color_of(loot: Dictionary) -> Color:
+	return Gems.color_of(loot.gem) if loot.has("gem") else Items.color_of(loot)
+
+
+static func icon_of(loot: Dictionary) -> Texture2D:
+	return Gems.icon_of(loot.gem) if loot.has("gem") else Items.icon_of(loot)
+
+
+## Rzadkość do poświaty: kamienie świecą jak magiczne, klucz i dłuto - jak rzadkie (ze słupem światła).
+func _rarity() -> String:
+	if item.has("gem"):
+		return "rare" if Gems.is_special(item.gem) else "magic"
+	return item.rarity
+
+
 func _ready() -> void:
 	_game = get_node("/root/Game")
-	var color := Items.color_of(item)
+	var color := color_of(item)
 	_glow = Sprite2D.new()
 	_glow.texture = ProtoWatra._glow_texture()
-	_glow.scale = Vector2.ONE * (0.3 if item.rarity == "common" else 0.45)
-	_glow.modulate = Color(color, 0.35 if item.rarity == "common" else 0.6)
+	_glow.scale = Vector2.ONE * (0.3 if _rarity() == "common" else 0.45)
+	_glow.modulate = Color(color, 0.35 if _rarity() == "common" else 0.6)
 	var add := CanvasItemMaterial.new()
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	_glow.material = add
 	add_child(_glow)
-	if item.rarity == "rare":
+	if _rarity() == "rare":
 		add_child(_Beam.new())
 	_sprite = Sprite2D.new()
-	_sprite.texture = Items.icon_of(item)
-	_sprite.scale = Vector2.ONE * ICON_SCALE
+	_sprite.texture = icon_of(item)
+	_sprite.scale = Vector2.ONE * ICON_SCALE * (0.75 if item.has("gem") else 1.0)
 	add_child(_sprite)
 	var land := position + Vector2(randf_range(-spread, spread), randf_range(-spread * 0.3, spread * 0.5))
 	_sprite.position.y = -14.0
@@ -68,7 +90,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_time += delta
 	delay -= delta
-	_glow.modulate.a = (0.3 if item.rarity == "common" else 0.5) + 0.12 * sin(_time * 5.0)
+	_glow.modulate.a = (0.3 if _rarity() == "common" else 0.5) + 0.12 * sin(_time * 5.0)
 	if _taken or hero == null or hero.dead:
 		return
 	var target := hero.global_position + Vector2(0, -6)
@@ -92,7 +114,9 @@ func _process(delta: float) -> void:
 func _take() -> void:
 	var price := 0
 	var bag_full := false
-	if item.rarity == "common" and _game.auto_sell_common:
+	if item.has("gem"):
+		_game.add_gem(item.gem)
+	elif item.rarity == "common" and _game.auto_sell_common:
 		price = _game.sell_loot(item)
 	elif not _game.add_item(item):
 		if not sell_if_full:
@@ -107,7 +131,7 @@ func _take() -> void:
 		sold.emit(item, price, bag_full)
 	else:
 		picked.emit(item)
-	_play(SOUND_RARE if item.rarity == "rare" else SOUND, -6.0)
+	_play(SOUND_RARE if _rarity() == "rare" or item.has("gem") else SOUND, -6.0)
 	for c in get_children():
 		if c is CanvasItem:
 			c.visible = false

@@ -6,7 +6,9 @@ class_name Items
 ## z Watry: żelazny, stalowy, mithrilowy, runiczny, smoczy). Łup: skrzynia Wodza (`roll_chest`) i rzadko gobliny
 ## (`roll_goblin`). Niepotrzebne przedmioty sprzedaje się za złoto (`sell_price`).
 ## Przedmiot to słownik z samymi identyfikatorami i liczbami (nazwy składane przy pokazywaniu - zasady w lang.gd):
-## {"slot", "tier", "level", "rarity", "base": {cecha: wartość}, "affixes": [{"stat", "value"}]}.
+## {"slot", "tier", "level", "rarity", "base": {cecha: wartość}, "affixes": [{"stat", "value"}], "sockets": [kamień]}.
+## Gniazda na kamienie szlachetne (Gems): "sockets" - lista identyfikatorów kamieni ("" - puste gniazdo); każdy przedmiot
+## ma 1 gniazdo, bardzo rzadko 2 (SECOND_SOCKET), drugie dorabia Dłuto Jubilera (Game.add_socket).
 ## Stan (torba, założone, złoto) trzyma i zapisuje `Game`; sumę cech założonych przedmiotów liczy `totals`.
 ## Ikony: assets/watra/items/ (skopiowane z Watry, wersje _magic i _rare).
 
@@ -92,6 +94,9 @@ const BASE := {
 }
 ## Stała cecha butów i pierścienia (procenty) rośnie o tyle z każdym poziomem lochu.
 const BASE_PCT_PER_LEVEL := 0.2
+## Gniazda: najwięcej w przedmiocie i szansa na drugie od razu (według rzadkości - bardzo rzadko).
+const MAX_SOCKETS := 2
+const SECOND_SOCKET := {"common": 0.0, "magic": 0.01, "rare": 0.03}
 ## Cena sprzedaży: tyle złota za zwykły przedmiot z 1. poziomu lochu, mnożnik rzadkości.
 const SELL_BASE := 5.0
 const SELL_RARITY := {"common": 1.0, "magic": 2.0, "rare": 4.0}
@@ -127,7 +132,11 @@ static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS
 	for i in count:
 		var stat: String = pool[i]
 		affixes.append({"stat": stat, "value": roll_affix(stat, level)})
-	return {"slot": slot, "tier": tier, "level": maxi(level, 1), "rarity": rarity, "base": base, "affixes": affixes}
+	var sockets: Array = [""]
+	if randf() < SECOND_SOCKET[rarity]:
+		sockets.append("")
+	return {"slot": slot, "tier": tier, "level": maxi(level, 1), "rarity": rarity, "base": base, "affixes": affixes,
+			"sockets": sockets}
 
 
 ## Wartość losowej premii na danym poziomie lochu.
@@ -240,12 +249,28 @@ static func totals(equipped: Dictionary) -> Dictionary:
 				t[stat] += float(item.base[stat])
 		for a in item.affixes:
 			t[a.stat] += float(a.value)
+		for id in item.get("sockets", []):
+			var gem := Gems.jewel_stat(id, item.slot)
+			if gem[0] != "":
+				t[gem[0]] += gem[1]
 	for stat in CAPS:
 		t[stat] = minf(t[stat], CAPS[stat])
 	return t
 
 
+## Linie kamieni w gniazdach („Rubin - Odłamek: +20 do zdrowia”); puste gniazdo - „Puste gniazdo”.
+static func socket_lines(item: Dictionary) -> Array[String]:
+	var lines: Array[String] = []
+	for id in item.get("sockets", []):
+		if id == "":
+			lines.append(Lang.t("Puste gniazdo"))
+		else:
+			lines.append(Lang.t("%s: %s") % [Gems.name_of(id), Gems.jewel_text(id, item.slot)])
+	return lines
+
+
 ## Przedmiot wczytany z JSON-a (liczby przychodzą jako float) - typy jak przy losowaniu. Zły wpis - pusty słownik.
+## Stare zapisy (sprzed gniazd) dostają jedno puste gniazdo.
 static func normalize(data) -> Dictionary:
 	if not (data is Dictionary) or not SLOTS.has(data.get("slot", "")) or not RARITIES.has(data.get("rarity", "")):
 		return {}
@@ -264,5 +289,12 @@ static func normalize(data) -> Dictionary:
 			if a is Dictionary and STAT_FORMATS.has(a.get("stat", "")):
 				var v := float(a.get("value", 0))
 				affixes.append({"stat": a.stat, "value": snappedf(v, 0.1) if a.stat == "regen" else v})
+	var sockets: Array = []
+	var raw_sockets = data.get("sockets", [""])
+	if raw_sockets is Array:
+		for id in raw_sockets.slice(0, MAX_SOCKETS):
+			sockets.append(Gems.make(Gems.kind_of(id), Gems.grade_of(id)) if id is String and Gems.is_jewel(id) else "")
+	if sockets.is_empty():
+		sockets.append("")
 	return {"slot": data.slot, "tier": clampi(int(data.get("tier", 0)), 0, 4), "level": maxi(int(data.get("level", 1)), 1),
-			"rarity": data.rarity, "base": base, "affixes": affixes}
+			"rarity": data.rarity, "base": base, "affixes": affixes, "sockets": sockets}

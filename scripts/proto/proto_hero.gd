@@ -145,6 +145,22 @@ func take_damage(amount: int) -> void:
 		died.emit()
 
 
+## Leczenie (kamień Krwiopijca) - bez liczby nad głową, żeby nie zasłaniać walki.
+func heal(amount: int) -> void:
+	if dead or amount <= 0 or hp >= max_hp:
+		return
+	hp = mini(hp + amount, max_hp)
+	health_changed.emit(hp, max_hp)
+
+
+## Mana za trafienie (kamień Oszczędność w zwykłym ciosie).
+func add_mana(amount: int) -> void:
+	if dead or amount <= 0 or mana >= max_mana:
+		return
+	mana = mini(mana + amount, max_mana)
+	mana_changed.emit(mana, max_mana)
+
+
 ## Wydaje manę na umiejętność. Zwraca false (i nic nie zabiera), gdy jej brakuje.
 func spend_mana(amount: int) -> bool:
 	if amount > mana:

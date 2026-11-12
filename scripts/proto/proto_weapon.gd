@@ -14,6 +14,11 @@ extends Node2D
 ## wroga, tnąc wszystkich po drodze i wokół celu, potem przez kolejnego, za manę za każdy skok). Każda kosztuje manę (ProtoHero.spend_mana) i ma odnowienie (`cooldown_left`).
 ## Umiejętność pod dużym przyciskiem rusza przy trzymaniu albo z auto atakiem; bez many lub w czasie odnowienia
 ## miecz tnie zwykłym ciosem. Umiejętność stuknięta w trakcie innego ruchu miecza czeka w kolejce (`_queued`).
+## Kamienie umiejętności (Gems, `skill_gems` z Game): każde trafienie idzie przez `_deal` - Żar podpala, Szron spowalnia,
+## Krwiopijca leczy, Piorun przeskakuje na 2 wrogów (raz na klatkę, `_chained`), Oszczędność w zwykłym ciosie oddaje manę;
+## Szerokość powiększa zasięg (`_area`), Pośpiech skraca odnowienie (`cooldown_full`, zwykły cios - szybszy),
+## Oszczędność zmniejsza koszt (`mana_cost`), Mnożenie dodaje ostrza: drugie cięcie, widmowy miecz w Młynku
+## i Rzucie (`_ghosts`), druga fala Rozłupania, dodatkowe cięcie przy skoku Mgnienia.
 
 const TEXTURE := preload("res://assets/watra/iron_sword.png")
 ## Punkt chwytu na obrazku miecza (rękojeść) - wokół niego miecz się obraca.
@@ -95,6 +100,17 @@ signal cast_failed(id: String, reason: String)
 ## Użyto umiejętności (zapłacono manę, ruszyło odnowienie).
 signal skill_used(id: String)
 
+## Kamienie umiejętności: czas podpalenia i spowolnienia, zasięg pioruna i jego wyładowania, rozrzut widmowych
+## mieczy Rzutu, opóźnienie drugiej fali Rozłupania, zasięg dodatkowego cięcia Mgnienia.
+const BURN_TIME := 3.0
+const SLOW_TIME := 2.0
+const CHAIN_RANGE := 70.0
+const CHAIN_TARGETS := 2
+const THROW_SPREAD := 0.35
+const SLAM_ECHO := 0.22
+const SLAM_ECHO_RADIUS := 1.4
+const FLICKER_EXTRA_RANGE := 60.0
+
 ## Grupa węzłów, które miecz sam znajduje jako cele (potwory Hordy).
 const TARGETS := &"proto_targets"
 
@@ -113,6 +129,8 @@ var speed_mult := 1.0
 var flicker_held := false
 ## Umiejętność pod dużym przyciskiem (Skills; zwykły cios - Skills.STRIKE).
 var main_skill := Skills.STRIKE
+## Kamienie w gniazdach umiejętności (Game.skill_gems: umiejętność -> lista identyfikatorów Gems).
+var skill_gems := {}
 ## Cele do bicia (kukły, potwory). Arena dopisuje je przy starcie, potwory dopisują się same w grupie TARGETS.
 var targets: Array[ProtoTarget] = []
 
@@ -144,6 +162,15 @@ var _hit_set: Array = []
 var _flicker_timer := 0.0
 var _flicker_once := false
 var _last_target: ProtoTarget
+## Kamienie: siła bieżącego cięcia (drugie cięcie Mnożenia - słabsze), czy to już drugie cięcie, czy piorun przeskoczył
+## w tej klatce, ułamek leczenia, widmowe miecze (Młynek, Rzut) i ich trafienia, początek lotu Rzutu.
+var _swing_power := 1.0
+var _second := false
+var _chained := false
+var _leech_acc := 0.0
+var _ghosts: Array[Sprite2D] = []
+var _ghost_hits: Array = [[], []]
+var _throw_origin := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -173,14 +200,28 @@ func _ready() -> void:
 	_whirl_fx.z_index = 4
 	_whirl_fx.visible = false
 	add_child(_whirl_fx)
+	for i in 2:
+		var ghost := Sprite2D.new()
+		ghost.texture = TEXTURE
+		ghost.centered = false
+		ghost.offset = -GRIP
+		ghost.scale = Vector2.ONE * SCALE
+		ghost.modulate = Color(0.7, 0.9, 1.0, 0.55)
+		ghost.top_level = true
+		ghost.z_index = 4
+		ghost.visible = false
+		add_child(ghost)
+		_ghosts.append(ghost)
 	if hero:
 		position = _follow_spot()
 
 
 func _process(delta: float) -> void:
 	_clock += delta
-	_cooldown -= delta * speed_mult
-	_t += delta * speed_mult
+	_chained = false
+	var sp := _strike_speed() if _state in ["follow", "windup", "swing", "recover"] else speed_mult
+	_cooldown -= delta * sp
+	_t += delta * sp
 	for id in _cd:
 		_cd[id] = maxf(_cd[id] - delta, 0.0)
 	if hero.dead and _state != "follow":
@@ -232,8 +273,13 @@ func _process(delta: float) -> void:
 		"recover":
 			_place(_angle_at(1.0))
 			if _t >= RECOVER:
-				_set_state("follow")
-				_cooldown = COOLDOWN
+				if not _second and gem_power(Skills.STRIKE, "multi") > 0.0 and not hero.dead:
+					_attack(true)  # Mnożenie: drugie cięcie w drugą stronę
+				else:
+					_second = false
+					_swing_power = 1.0
+					_set_state("follow")
+					_cooldown = COOLDOWN
 
 
 ## Miejsce obok postaci, za jej ramieniem (od strony przeciwnej do kierunku patrzenia).
@@ -264,7 +310,11 @@ func _nearest(reach := REACH) -> ProtoTarget:
 	return best
 
 
-func _attack() -> void:
+## Zwykły cios; `second` - drugie cięcie z kamienia Mnożenie (słabsze, bez odpoczynku przed nim).
+func _attack(second := false) -> void:
+	_second = second
+	_swing_power = gem_power(Skills.STRIKE, "multi") / 100.0 if second else 1.0
+	_slash.scale = Vector2.ONE * (HILT_RADIUS + BLADE) * _area(Skills.STRIKE) / SLASH_FX_RADIUS
 	var best := _nearest()
 	_aim = (best.center() - _orbit_center()).angle() if best else hero.facing.angle()
 	_sign = -_sign  # kolejne cięcia na przemian
@@ -303,8 +353,9 @@ func _hit_in_arc() -> void:
 	var hit := false
 	for t in _live_targets():
 		var to := t.center() - _orbit_center()
-		if to.length() <= HILT_RADIUS + BLADE + 6.0 and absf(angle_difference(_aim, to.angle())) <= ARC / 2.0:
-			t.take_damage(_roll(), hero.global_position)
+		if to.length() <= (HILT_RADIUS + BLADE + 6.0) * _area(Skills.STRIKE) \
+				and absf(angle_difference(_aim, to.angle())) <= ARC / 2.0:
+			_deal(t, _roll(_swing_power), hero.global_position, Skills.STRIKE)
 			# błysk tam, gdzie ostrze przecina kukłę (na linii od postaci, nie dalej niż czubek)
 			var at := _orbit_center() + to.limit_length(HILT_RADIUS + BLADE * 0.8)
 			Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, at.round(), HIT_FX_ANCHOR)
@@ -334,6 +385,94 @@ func _roll(power := 1.0) -> int:
 	return maxi(1, roundi(randi_range(damage.x, damage.y) * damage_mult * power))
 
 
+## Siła kamienia rodzaju `kind` w umiejętności `skill` (Gems.SUPPORT `values`; 0 - brak kamienia).
+func gem_power(skill: String, kind: String) -> float:
+	return Gems.skill_power(skill_gems.get(skill, []), kind)
+
+
+## Mnożnik zasięgu umiejętności (kamień Szerokość).
+func _area(skill: String) -> float:
+	return 1.0 + gem_power(skill, "area") / 100.0
+
+
+## Szybkość zwykłego ciosu: premia szybkości ataku i kamień Pośpiech w zwykłym ciosie.
+func _strike_speed() -> float:
+	return speed_mult * (1.0 + gem_power(Skills.STRIKE, "haste") / 100.0)
+
+
+## Koszt many umiejętności z kamieniem Oszczędność.
+func mana_cost(id: String) -> int:
+	return roundi(Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0))
+
+
+## Pełne odnowienie umiejętności z kamieniem Pośpiech.
+func cooldown_full(id: String) -> float:
+	return Skills.cooldown_of(id) * (1.0 - gem_power(id, "haste") / 100.0)
+
+
+## Trafienie umiejętnością `skill` - obrażenia i działanie jej kamieni (podpalenie, spowolnienie, leczenie, mana,
+## piorun).
+func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
+	t.take_damage(amount, from)
+	var sockets: Array = skill_gems.get(skill, [])
+	if sockets.is_empty():
+		return
+	var p := Gems.skill_power(sockets, "ember")
+	if p > 0.0:
+		t.burn(amount * p / 100.0, BURN_TIME)
+	p = Gems.skill_power(sockets, "rime")
+	if p > 0.0:
+		t.slow(p / 100.0, SLOW_TIME)
+	p = Gems.skill_power(sockets, "leech")
+	if p > 0.0:
+		_leech_acc += amount * p / 100.0
+		var heal := int(_leech_acc)
+		if heal > 0:
+			_leech_acc -= heal
+			hero.heal(heal)
+	if skill == Skills.STRIKE:
+		var grade := Gems.skill_grade(sockets, "thrift")
+		if grade >= 0:
+			hero.add_mana(Gems.THRIFT_STRIKE[grade])
+	p = Gems.skill_power(sockets, "discharge")
+	if p > 0.0 and not _chained:
+		_chained = true
+		_chain_from(t, maxi(1, roundi(amount * p / 100.0)))
+
+
+## Piorun (kamień): z celu `src` przeskakuje na CHAIN_TARGETS najbliższych wrogów w zasięgu - zygzak światła.
+func _chain_from(src: ProtoTarget, amount: int) -> void:
+	var near: Array = []
+	for t in _live_targets():
+		var d := t.global_position.distance_to(src.global_position)
+		if t != src and d <= CHAIN_RANGE:
+			near.append([d, t])
+	near.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+	var from := src.center()
+	for pair in near.slice(0, CHAIN_TARGETS):
+		var t: ProtoTarget = pair[1]
+		_bolt(from, t.center())
+		t.take_damage(amount, src.global_position)
+
+
+## Zygzak pioruna między dwoma punktami (świat), gaśnie w 0,2 s.
+func _bolt(a: Vector2, b: Vector2) -> void:
+	var line := Line2D.new()
+	line.width = 1.5
+	line.default_color = Color(1.0, 0.97, 0.6)
+	line.z_index = 21
+	var steps := 5
+	var side := (b - a).orthogonal().normalized()
+	for i in steps + 1:
+		var k := float(i) / steps
+		var jitter := 0.0 if i == 0 or i == steps else randf_range(-4.0, 4.0)
+		line.add_point(a.lerp(b, k) + side * jitter)
+	get_parent().add_child(line)
+	var tween := line.create_tween()
+	tween.tween_property(line, "modulate:a", 0.0, 0.2)
+	tween.tween_callback(line.queue_free)
+
+
 ## Ile sekund odnowienia zostało umiejętności `id` (0 - gotowa).
 func cooldown_left(id: String) -> float:
 	return _cd.get(id, 0.0)
@@ -341,7 +480,7 @@ func cooldown_left(id: String) -> float:
 
 ## Czy umiejętność da się teraz użyć (odnowiona i starcza many).
 func can_use(id: String) -> bool:
-	return Skills.has(id) and cooldown_left(id) <= 0.0 and hero.mana >= Skills.mana_of(id) and not hero.dead
+	return Skills.has(id) and cooldown_left(id) <= 0.0 and hero.mana >= mana_cost(id) and not hero.dead
 
 
 ## Użycie umiejętności z małego przycisku. W trakcie innego ruchu miecza czeka w kolejce. Zwraca false (i wysyła
@@ -352,7 +491,7 @@ func cast(id: String) -> bool:
 	if cooldown_left(id) > 0.0:
 		cast_failed.emit(id, "cooldown")
 		return false
-	if hero.mana < Skills.mana_of(id):
+	if hero.mana < mana_cost(id):
 		cast_failed.emit(id, "mana")
 		return false
 	if id == "blink":
@@ -376,9 +515,9 @@ func _start(id: String) -> void:
 	if id == Skills.STRIKE:
 		_attack()
 		return
-	if not hero.spend_mana(Skills.mana_of(id)):
+	if not hero.spend_mana(mana_cost(id)):
 		return
-	_cd[id] = Skills.cooldown_of(id)
+	_cd[id] = cooldown_full(id)
 	_hit_done = false
 	_slash.visible = false
 	match id:
@@ -386,6 +525,8 @@ func _start(id: String) -> void:
 			_spin = (_sprite.global_position - _orbit_center()).angle()
 			_tick = 0.0
 			_whirl_fx.visible = true
+			_whirl_fx.scale = Vector2.ONE * WHIRL_RADIUS * _area("whirl") / WHIRL_FX_RADIUS
+			_ghosts[0].visible = gem_power("whirl", "multi") > 0.0
 			_set_state("whirl")
 		"throw":
 			var best := _nearest(Skills.DATA.throw.range)
@@ -396,6 +537,10 @@ func _start(id: String) -> void:
 			position = hero.position
 			_sprite.position = Vector2(0, -ORBIT_HEIGHT)
 			_hit_set = []
+			_ghost_hits = [[], []]
+			_throw_origin = hero.global_position + Vector2(0, -ORBIT_HEIGHT)
+			for g in _ghosts:
+				g.visible = gem_power("throw", "multi") > 0.0
 			hero.play_gesture(hero.global_position + _dir * 20.0)
 			_set_state("throw")
 		"slam":
@@ -413,15 +558,21 @@ func _start(id: String) -> void:
 func _process_whirl(delta: float) -> void:
 	_spin += TAU * WHIRL_SPIN * delta
 	_place(_spin)
+	if _ghosts[0].visible:
+		_ghosts[0].global_position = _orbit_center() + Vector2.from_angle(_spin + PI) * HILT_RADIUS
+		_ghosts[0].rotation = _spin + PI
 	_whirl_fx.position = _orbit_center() - global_position
 	_whirl_fx.frame = int(_clock * WHIRL_FX_FPS) % WHIRL_FX_FRAMES
 	_tick -= delta
 	if _tick <= 0.0:
 		_tick = WHIRL_TICK
 		var hit := false
+		var extra := gem_power("whirl", "multi") / 100.0
 		for t in _live_targets():
-			if t.center().distance_to(_orbit_center()) <= WHIRL_RADIUS:
-				t.take_damage(_roll(Skills.DATA.whirl.power), hero.global_position)
+			if t.center().distance_to(_orbit_center()) <= WHIRL_RADIUS * _area("whirl"):
+				_deal(t, _roll(Skills.DATA.whirl.power), hero.global_position, "whirl")
+				if extra > 0.0 and t.alive():
+					_deal(t, _roll(Skills.DATA.whirl.power * extra), hero.global_position, "whirl")
 				hit = true
 		if hit:
 			Input.vibrate_handheld(8)
@@ -436,15 +587,29 @@ func _process_throw(delta: float) -> void:
 	var speed := THROW_SPEED if _state == "throw" else THROW_RETURN
 	position = position.move_toward(target, speed * delta)
 	var tip := _sprite.global_position
+	var reach := THROW_HIT * _area("throw")
 	for t in _live_targets():
-		if not _hit_set.has(t) and t.center().distance_to(tip) <= THROW_HIT + t.center_height * 0.5:
+		if not _hit_set.has(t) and t.center().distance_to(tip) <= reach + t.center_height * 0.5:
 			_hit_set.append(t)
-			t.take_damage(_roll(Skills.DATA.throw.power), global_position - _dir * 10.0)
+			_deal(t, _roll(Skills.DATA.throw.power), global_position - _dir * 10.0, "throw")
 			Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, tip.round(), HIT_FX_ANCHOR)
 			Input.vibrate_handheld(12)
+	if _ghosts[0].visible:
+		# Mnożenie: dwa widmowe miecze lecą wachlarzem obok głównego (słabsze)
+		var anchor := _throw_origin if _state == "throw" else hero.global_position + Vector2(0, -ORBIT_HEIGHT)
+		var power: float = Skills.DATA.throw.power * gem_power("throw", "multi") / 100.0
+		for i in 2:
+			var g := _ghosts[i]
+			g.global_position = anchor + (tip - anchor).rotated(THROW_SPREAD * (1.0 if i == 0 else -1.0))
+			g.rotation = _sprite.rotation
+			for t in _live_targets():
+				if not _ghost_hits[i].has(t) and t.center().distance_to(g.global_position) <= reach + t.center_height * 0.5:
+					_ghost_hits[i].append(t)
+					_deal(t, _roll(power), g.global_position, "throw")
 	if position.distance_to(target) < 2.0:
 		if _state == "throw":
 			_hit_set = []
+			_ghost_hits = [[], []]
 			_dir = -_dir
 			_set_state("throw_back")
 		else:
@@ -472,14 +637,21 @@ func _process_slam() -> void:
 				_end_skill()
 
 
-func _slam_hit() -> void:
+## Fala Rozłupania w punkcie `at`; `echo` - druga fala z kamienia Mnożenie (szersza, słabsza, bez ogłuszenia).
+func _slam_hit(at := global_position, echo := false) -> void:
+	var radius := SLAM_RADIUS * _area("slam") * (SLAM_ECHO_RADIUS if echo else 1.0)
+	var power: float = Skills.DATA.slam.power * (gem_power("slam", "multi") / 100.0 if echo else 1.0)
 	for t in _live_targets():
-		var d := t.global_position - global_position
-		if Vector2(d.x, d.y * 1.6).length() <= SLAM_RADIUS:
-			t.take_damage(_roll(Skills.DATA.slam.power), global_position)
-			t.stun(SLAM_STUN)
-	Fx.once(get_parent(), SLAM_FX, SLAM_FX_FRAMES, SLAM_FX_FPS, global_position, SLAM_FX_ANCHOR, 6, 1.3)
-	Input.vibrate_handheld(40)
+		var d := t.global_position - at
+		if Vector2(d.x, d.y * 1.6).length() <= radius:
+			_deal(t, _roll(power), at, "slam")
+			if not echo:
+				t.stun(SLAM_STUN)
+	Fx.once(get_parent(), SLAM_FX, SLAM_FX_FRAMES, SLAM_FX_FPS, at, SLAM_FX_ANCHOR, 6,
+			1.3 * radius / SLAM_RADIUS)
+	if not echo and gem_power("slam", "multi") > 0.0:
+		get_tree().create_timer(SLAM_ECHO, false).timeout.connect(_slam_hit.bind(at, true))
+	Input.vibrate_handheld(25 if echo else 40)
 	var cam := hero.get_viewport().get_camera_2d()
 	if cam:
 		var shake := cam.create_tween()
@@ -497,7 +669,7 @@ func _process_flicker(delta: float) -> void:
 	if not _state in ["follow", "windup", "swing", "recover"]:
 		return
 	_flicker_once = false
-	if hero.mana < Skills.mana_of("blink"):
+	if hero.mana < mana_cost("blink"):
 		cast_failed.emit("blink", "mana")
 		_flicker_timer = 0.3
 		return
@@ -506,9 +678,9 @@ func _process_flicker(delta: float) -> void:
 		cast_failed.emit("blink", "target")
 		_flicker_timer = 0.3
 		return
-	hero.spend_mana(Skills.mana_of("blink"))
+	hero.spend_mana(mana_cost("blink"))
 	_flicker_jump(best)
-	_flicker_timer = FLICKER_INTERVAL / speed_mult
+	_flicker_timer = FLICKER_INTERVAL / (speed_mult * (1.0 + gem_power("blink", "haste") / 100.0))
 	skill_used.emit("blink")
 
 
@@ -544,18 +716,37 @@ func _flicker_jump(best: ProtoTarget) -> void:
 	trail.scale = Vector2.ONE * maxf(0.5, (travel.length() - 8.0) / FLICKER_TRAIL_LENGTH)
 	var cut := Fx.once(get_parent(), FLICKER_SLASH, 8, FLICKER_FX_FPS, best.center(), FLICKER_SLASH_ANCHOR)
 	cut.rotation = travel.angle() + FLICKER_SLASH_TILT * (1.0 if randf() < 0.5 else -1.0)
+	var area := _area("blink")
+	var hit: Array = []
 	for t in _live_targets():
 		var c := t.center()
 		var on_path := Geometry2D.get_closest_point_to_segment(c, from + body, spot + body).distance_to(c) \
-				<= FLICKER_PATH_WIDTH + t.center_height * 0.5
-		if on_path or c.distance_to(best.center()) <= FLICKER_HIT_RADIUS:
-			t.take_damage(_roll(Skills.DATA.blink.power), spot)
+				<= FLICKER_PATH_WIDTH * area + t.center_height * 0.5
+		if on_path or c.distance_to(best.center()) <= FLICKER_HIT_RADIUS * area:
+			hit.append(t)
+			_deal(t, _roll(Skills.DATA.blink.power), spot, "blink")
+	var extra := gem_power("blink", "multi") / 100.0
+	if extra > 0.0:
+		# Mnożenie: dodatkowe cięcie najbliższego wroga, którego skok nie trafił
+		var near: ProtoTarget = null
+		var near_d := FLICKER_EXTRA_RANGE
+		for t in _live_targets():
+			var d := t.global_position.distance_to(spot)
+			if not hit.has(t) and d <= near_d:
+				near = t
+				near_d = d
+		if near:
+			var cut2 := Fx.once(get_parent(), FLICKER_SLASH, 8, FLICKER_FX_FPS, near.center(), FLICKER_SLASH_ANCHOR)
+			cut2.rotation = randf() * TAU
+			_deal(near, _roll(Skills.DATA.blink.power * extra), spot, "blink")
 	Input.vibrate_handheld(20)
 	if _state != "follow":
 		_slash.visible = false
 	_aim = travel.angle()
 	_sign = -_sign
 	_hit_done = true  # cięcie już zadane wzdłuż drogi
+	_second = true  # bez drugiego cięcia zwykłego ciosu po skoku
+	_slash.scale = Vector2.ONE * (HILT_RADIUS + BLADE) / SLASH_FX_RADIUS
 	_set_state("swing")
 	_slash.visible = true
 
@@ -563,6 +754,8 @@ func _flicker_jump(best: ProtoTarget) -> void:
 ## Koniec umiejętności: miecz wraca za ramię (zwykły ruch śledzenia), krótka przerwa przed kolejnym ciosem.
 func _end_skill() -> void:
 	_whirl_fx.visible = false
+	for g in _ghosts:
+		g.visible = false
 	_slash.visible = false
 	_set_state("follow")
 	_cooldown = maxf(_cooldown, COOLDOWN * 0.5)

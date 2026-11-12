@@ -5,7 +5,10 @@ extends Node
 ## i postać - poziom i doświadczenie (`hero_level`, `hero_xp`; dane poziomów w HeroLevels), przedmioty w torbie
 ## (`bag`, najwyżej BAG_SIZE), założone (`equipped`: miejsce -> przedmiot) i złoto ze sprzedaży (`gold`; dane w Items),
 ## skrzynia w bazie (`stash`: zakładki po STASH_TAB_SIZE miejsc; kolejne zakładki za złoto - STASH_TAB_PRICES),
-## umiejętności (`skills_owned` - kupione, `skill_slots` - co stoi w miejscach; dane w Skills).
+## umiejętności (`skills_owned` - kupione, `skill_slots` - co stoi w miejscach; dane w Skills), kamienie (Gems):
+## sakwa (`gems`: identyfikator -> ile sztuk), kamienie w umiejętnościach (`skill_gems`: umiejętność -> lista
+## Gems.SKILL_SOCKETS identyfikatorów, "" - puste) i otwarte gniazda (`skill_open`); kamienie w przedmiotach
+## leżą w samych przedmiotach ("sockets").
 
 ## Zmiana doświadczenia: `xp` na obecnym poziomie, `need` - ile trzeba do awansu (0 na najwyższym poziomie).
 signal xp_changed(level: int, xp: int, need: int)
@@ -57,6 +60,11 @@ var stash: Array = [[]]
 ## (Skills.SLOTS; 0 - duży przycisk, "" - puste miejsce).
 var skills_owned: Array = [Skills.STRIKE]
 var skill_slots: Array = _default_slots()
+## Sakwa z kamieniami, kluczami i dłutami (identyfikator Gems -> liczba sztuk).
+var gems := {}
+## Kamienie w gniazdach umiejętności i liczba otwartych gniazd (brak wpisu - Gems.SKILL_OPEN).
+var skill_gems := {}
+var skill_open := {}
 ## Doświadczenie dopisane od ostatniego zapisu (zapis przy końcu wyprawy, pauzie i przełączeniu aplikacji).
 var _dirty := false
 ## Atak i umiejętności w lewym dolnym rogu (dla osób, które wolą trzymać je lewym kciukiem).
@@ -124,6 +132,9 @@ func load_game() -> void:
 	stash = [[]]
 	skills_owned = [Skills.STRIKE]
 	skill_slots = _default_slots()
+	gems = {}
+	skill_gems = {}
+	skill_open = {}
 	_dirty = false
 	if not FileAccess.file_exists(save_path):
 		return
@@ -165,6 +176,29 @@ func load_game() -> void:
 				var ok: bool = id is String and skills_owned.has(id) and not skill_slots.has(id) \
 						and (i != Skills.MAIN or Skills.can_be_main(id))
 				skill_slots.append(id if ok else "")
+		var raw_gems = data.get("gems", {})
+		if raw_gems is Dictionary:
+			for id in raw_gems:
+				if Gems.valid(id) and int(raw_gems[id]) > 0:
+					gems[id] = int(raw_gems[id])
+		var raw_open = data.get("skill_open", {})
+		if raw_open is Dictionary:
+			for id in raw_open:
+				if Skills.has(id):
+					skill_open[id] = clampi(int(raw_open[id]), Gems.SKILL_OPEN, Gems.SKILL_SOCKETS)
+		var raw_sg = data.get("skill_gems", {})
+		if raw_sg is Dictionary:
+			for id in raw_sg:
+				if not Skills.has(id) or not raw_sg[id] is Array:
+					continue
+				var list: Array = []
+				for i in Gems.SKILL_SOCKETS:
+					var g = raw_sg[id][i] if i < raw_sg[id].size() else ""
+					var dup := false
+					for other in list:
+						dup = dup or (other != "" and g is String and Gems.kind_of(other) == Gems.kind_of(g))
+					list.append(g if g is String and Gems.is_support(g) and i < skill_open_count(id) and not dup else "")
+				skill_gems[id] = list
 		var raw_eq = data.get("equipped", {})
 		if raw_eq is Dictionary:
 			for slot in raw_eq:
@@ -179,7 +213,8 @@ func save_game() -> void:
 	if f:
 		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
-				"stash": stash, "skills_owned": skills_owned, "skill_slots": skill_slots}))
+				"stash": stash, "skills_owned": skills_owned, "skill_slots": skill_slots, "gems": gems,
+				"skill_gems": skill_gems, "skill_open": skill_open}))
 
 
 ## Zapis tylko wtedy, gdy od ostatniego coś się zmieniło (np. doświadczenie z goblinów).
@@ -235,6 +270,9 @@ func reset_hero() -> void:
 	stash = [[]]
 	skills_owned = [Skills.STRIKE]
 	skill_slots = _default_slots()
+	gems = {}
+	skill_gems = {}
+	skill_open = {}
 	save_game()
 	xp_changed.emit(hero_level, hero_xp, xp_needed())
 	inventory_changed.emit()
@@ -286,6 +324,7 @@ func sell(index: int) -> int:
 	if index < 0 or index >= bag.size():
 		return 0
 	var price := Items.sell_price(bag[index])
+	_return_item_gems(bag[index])
 	bag.remove_at(index)
 	gold += price
 	save_game()
@@ -307,6 +346,9 @@ func sell_all(rarities: Array) -> int:
 	var total := sell_all_price(rarities)
 	if total == 0:
 		return 0
+	for item in bag:
+		if item.rarity in rarities:
+			_return_item_gems(item)
 	bag = bag.filter(func(item: Dictionary) -> bool: return not item.rarity in rarities)
 	gold += total
 	save_game()
@@ -493,3 +535,181 @@ func dev_skills() -> void:
 					break
 	save_game()
 	skills_changed.emit()
+
+
+# --- Kamienie (Gems) ---
+
+## Ile sztuk kamienia (klucza, dłuta) jest w sakwie.
+func gem_count(id: String) -> int:
+	return gems.get(id, 0)
+
+
+## Kamień (klucz, dłuto) do sakwy - łup, wyjęty z gniazda. Sakwa nie ma limitu.
+func add_gem(id: String, count := 1, save := true) -> void:
+	if not Gems.valid(id) or count <= 0:
+		return
+	gems[id] = gem_count(id) + count
+	if save:
+		save_game()
+		inventory_changed.emit()
+
+
+## Zabiera sztukę z sakwy (bez zapisu). Zwraca false, gdy jej nie ma.
+func _take_gem(id: String) -> bool:
+	if gem_count(id) <= 0:
+		return false
+	gems[id] -= 1
+	if gems[id] <= 0:
+		gems.erase(id)
+	return true
+
+
+## Kamienie w sakwie posortowane: najpierw klucze i dłuta, potem kamienie umiejętności, potem szlachetne;
+## w rodzaju od najlepszego stopnia. `filter`: "support", "jewel" albo "" - wszystkie.
+func gem_list(filter := "") -> Array:
+	var out: Array = []
+	for id in gems:
+		if filter == "support" and not Gems.is_support(id) or filter == "jewel" and not Gems.is_jewel(id):
+			continue
+		out.append(id)
+	out.sort_custom(func(a: String, b: String) -> bool: return _gem_order(a) < _gem_order(b))
+	return out
+
+
+static func _gem_order(id: String) -> int:
+	if Gems.is_special(id):
+		return 0 if id == Gems.KEY else 1
+	var kind := Gems.kind_of(id)
+	var base := 100 + Gems.SUPPORT_ORDER.find(kind) * 10 if Gems.is_support(id) else 200 + Gems.JEWEL_ORDER.find(kind) * 10
+	return base + (4 - Gems.grade_of(id))
+
+
+## Liczba otwartych gniazd umiejętności.
+func skill_open_count(skill: String) -> int:
+	return skill_open.get(skill, Gems.SKILL_OPEN)
+
+
+## Kamienie w gniazdach umiejętności (zawsze Gems.SKILL_SOCKETS pozycji, "" - puste).
+func skill_sockets(skill: String) -> Array:
+	if not skill_gems.has(skill):
+		var empty: Array = []
+		empty.resize(Gems.SKILL_SOCKETS)
+		empty.fill("")
+		return empty
+	return skill_gems[skill]
+
+
+## Czemu kamienia nie da się włożyć w gniazdo umiejętności ("" - da się): "owned", "locked", "kind" (nie kamień
+## umiejętności), "none" (brak w sakwie), "same" (ten rodzaj już jest w innym gnieździe tej umiejętności).
+func skill_socket_problem(skill: String, index: int, id: String) -> String:
+	if not skills_owned.has(skill):
+		return "owned"
+	if index < 0 or index >= skill_open_count(skill):
+		return "locked"
+	if not Gems.is_support(id):
+		return "kind"
+	if gem_count(id) <= 0:
+		return "none"
+	var sockets := skill_sockets(skill)
+	for i in sockets.size():
+		if i != index and sockets[i] != "" and Gems.kind_of(sockets[i]) == Gems.kind_of(id):
+			return "same"
+	return ""
+
+
+## Wkłada kamień z sakwy w gniazdo umiejętności; to, co tam było, wraca do sakwy. Zwraca false, gdy się nie da.
+func socket_skill(skill: String, index: int, id: String) -> bool:
+	if skill_socket_problem(skill, index, id) != "":
+		return false
+	var sockets := skill_sockets(skill).duplicate()
+	if sockets[index] != "":
+		add_gem(sockets[index], 1, false)
+	_take_gem(id)
+	sockets[index] = id
+	skill_gems[skill] = sockets
+	save_game()
+	inventory_changed.emit()
+	skills_changed.emit()
+	return true
+
+
+## Wyjmuje kamień z gniazda umiejętności do sakwy (za darmo).
+func unsocket_skill(skill: String, index: int) -> bool:
+	var sockets := skill_sockets(skill).duplicate()
+	if index < 0 or index >= sockets.size() or sockets[index] == "":
+		return false
+	add_gem(sockets[index], 1, false)
+	sockets[index] = ""
+	skill_gems[skill] = sockets
+	save_game()
+	inventory_changed.emit()
+	skills_changed.emit()
+	return true
+
+
+## Otwiera kolejne gniazdo umiejętności Kluczem Runicznym z sakwy. Zwraca false, gdy brak klucza albo wszystkie otwarte.
+func open_skill_socket(skill: String) -> bool:
+	if not skills_owned.has(skill) or skill_open_count(skill) >= Gems.SKILL_SOCKETS or not _take_gem(Gems.KEY):
+		return false
+	skill_open[skill] = skill_open_count(skill) + 1
+	save_game()
+	inventory_changed.emit()
+	skills_changed.emit()
+	return true
+
+
+## Wkłada kamień szlachetny z sakwy w gniazdo przedmiotu (przedmiot z torby, założony albo ze skrzyni - słownik
+## zmienia się w miejscu); to, co było w gnieździe, wraca do sakwy. Zwraca false, gdy się nie da.
+func socket_item(item: Dictionary, index: int, id: String) -> bool:
+	var sockets: Array = item.get("sockets", [])
+	if index < 0 or index >= sockets.size() or not Gems.is_jewel(id) or gem_count(id) <= 0:
+		return false
+	if sockets[index] != "":
+		add_gem(sockets[index], 1, false)
+	_take_gem(id)
+	sockets[index] = id
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Wyjmuje kamień z gniazda przedmiotu do sakwy (za darmo).
+func unsocket_item(item: Dictionary, index: int) -> bool:
+	var sockets: Array = item.get("sockets", [])
+	if index < 0 or index >= sockets.size() or sockets[index] == "":
+		return false
+	add_gem(sockets[index], 1, false)
+	sockets[index] = ""
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Dorabia drugie gniazdo w przedmiocie Dłutem Jubilera z sakwy. Zwraca false, gdy brak dłuta albo gniazd jest już dość.
+func add_socket(item: Dictionary) -> bool:
+	if item.is_empty() or item.get("sockets", []).size() >= Items.MAX_SOCKETS or not _take_gem(Gems.CHISEL):
+		return false
+	item.sockets.append("")
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Kamienie z przedmiotu (sprzedaż) wracają do sakwy - nie przepadają.
+func _return_item_gems(item: Dictionary) -> void:
+	for id in item.get("sockets", []):
+		if id != "":
+			add_gem(id, 1, false)
+
+
+## Tryb deweloperski: po kamieniu każdego rodzaju (stopień z obecnego poziomu lochu), 2 klucze i 2 dłuta.
+func dev_gems() -> void:
+	var grade := Items.tier_for(dungeon_level)
+	for kind in Gems.SUPPORT_ORDER:
+		add_gem(Gems.make(kind, grade), 1, false)
+	for kind in Gems.JEWEL_ORDER:
+		add_gem(Gems.make(kind, grade), 1, false)
+	add_gem(Gems.KEY, 2, false)
+	add_gem(Gems.CHISEL, 2, false)
+	save_game()
+	inventory_changed.emit()
