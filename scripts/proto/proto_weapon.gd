@@ -4,6 +4,8 @@ extends Node2D
 ## z opóźnieniem). Dopóki gracz trzyma przycisk ataku (`attack_held`), miecz co chwilę wskakuje na orbitę wokół postaci - rękojeścią do niej,
 ## ostrzem na zewnątrz - i tnie po łuku w stronę najbliższej kukły w zasięgu (bez kukły - przed siebie), a nad łukiem gra efekt cięcia ze zwykłego ataku Watry
 ## (assets/effects/sword_slash.png z kreatora efektów PixelLab). Kolejne cięcia na przemian z góry i z dołu.
+## Auto atak (`auto_attack`, ustawienie w pauzie): cios sam rusza, gdy cel jest w zasięgu - tylko podstawowy atak.
+## Obrażenia rosną z poziomem postaci (`damage_mult`, HeroLevels.damage_mult).
 ## Węzeł stoi na ziemi (sortowanie po Y z postacią i kukłą), a obrazek miecza wisi wyżej (ujemne _sprite.position.y).
 
 const TEXTURE := preload("res://assets/watra/iron_sword.png")
@@ -43,6 +45,10 @@ const TARGETS := &"proto_targets"
 var hero: ProtoHero
 ## Czy gracz trzyma przycisk ataku.
 var attack_held := false
+## Auto atak: tnie sam, gdy jakiś cel jest bliżej niż REACH.
+var auto_attack := false
+## Mnożnik obrażeń z poziomu postaci.
+var damage_mult := 1.0
 ## Cele do bicia (kukły, potwory). Arena dopisuje je przy starcie, potwory dopisują się same w grupie TARGETS.
 var targets: Array[ProtoTarget] = []
 
@@ -90,7 +96,7 @@ func _process(delta: float) -> void:
 	match _state:
 		"follow":
 			_follow(delta)
-			if _cooldown <= 0.0 and attack_held and not hero.dead:
+			if _cooldown <= 0.0 and not hero.dead and (attack_held or (auto_attack and _nearest() != null)):
 				_attack()
 		"windup":
 			# miecz wskakuje na orbitę, na początek łuku (odrobinę dalej - zamach)
@@ -136,7 +142,8 @@ func _follow(delta: float) -> void:
 	_sprite.rotation = lerp_angle(_sprite.rotation, rest, k)
 
 
-func _attack() -> void:
+## Najbliższy cel w zasięgu ciosu (null - żadnego).
+func _nearest() -> ProtoTarget:
 	var best: ProtoTarget = null
 	var best_d := REACH
 	for t in _live_targets():
@@ -144,6 +151,11 @@ func _attack() -> void:
 		if d <= best_d:
 			best = t
 			best_d = d
+	return best
+
+
+func _attack() -> void:
+	var best := _nearest()
 	_aim = (best.center() - _orbit_center()).angle() if best else hero.facing.angle()
 	_sign = -_sign  # kolejne cięcia na przemian
 	_from_pos = position
@@ -182,7 +194,7 @@ func _hit_in_arc() -> void:
 	for t in _live_targets():
 		var to := t.center() - _orbit_center()
 		if to.length() <= HILT_RADIUS + BLADE + 6.0 and absf(angle_difference(_aim, to.angle())) <= ARC / 2.0:
-			t.take_damage(randi_range(DAMAGE.x, DAMAGE.y), hero.global_position)
+			t.take_damage(roundi(randi_range(DAMAGE.x, DAMAGE.y) * damage_mult), hero.global_position)
 			# błysk tam, gdzie ostrze przecina kukłę (na linii od postaci, nie dalej niż czubek)
 			var at := _orbit_center() + to.limit_length(HILT_RADIUS + BLADE * 0.8)
 			Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, at.round(), HIT_FX_ANCHOR)

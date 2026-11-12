@@ -2,7 +2,8 @@ class_name ActionCluster
 extends Control
 ## Przyciski pod kciuk: duży przycisk ataku w dolnym rogu ekranu i 4 miejsca na umiejętności na łuku wokół niego
 ## (od boku ekranu do góry, jak w grach mobilnych). Domyślnie w prawym rogu; `left_handed` przenosi całość
-## do lewego (lustrzane odbicie). Umiejętności jeszcze nie ma - miejsca są puste.
+## do lewego (lustrzane odbicie). Umiejętności jeszcze nie ma - miejsca są puste. Miejsca odblokowują się
+## z poziomem postaci (`set_hero_level`, HeroLevels.SKILL_SLOT_LEVELS; zablokowane - kłódka i poziom).
 
 ## Bok kwadratu, w którym leżą przyciski (piksele gry).
 const SIZE := 156.0
@@ -33,6 +34,16 @@ func _ready() -> void:
 		b.empty = true
 		skills.append(b)
 	_layout()
+
+
+## Blokuje miejsca na umiejętności powyżej poziomu postaci; `flash` - błysk na świeżo odblokowanych (awans).
+func set_hero_level(level: int, flash := false) -> void:
+	for i in SKILL_SLOTS:
+		var need: int = HeroLevels.SKILL_SLOT_LEVELS[i]
+		var was := skills[i].locked_level
+		skills[i].locked_level = need if level < need else 0
+		if flash and was > 0 and skills[i].locked_level == 0:
+			skills[i].unlock_flash()
 
 
 ## Ustawia przyciski w prawym albo lewym rogu (w rodzicu-kontenerze: do prawej albo do lewej krawędzi).

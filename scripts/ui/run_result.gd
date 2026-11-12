@@ -87,6 +87,14 @@ func show_victory(level: int, banked: int, unlocked: int, kills: int, seconds: f
 	visible = true
 
 
+## Dopisuje do podsumowania zdobyte doświadczenie i awans (`new_level` - nowy poziom postaci, 0 - bez awansu).
+func add_xp_lines(xp: int, new_level := 0) -> void:
+	if xp > 0:
+		_summary.text += "\n" + tr("Doświadczenie: +%d") % xp
+	if new_level > 0:
+		_summary.text += "\n" + tr("Awans na poziom %d!") % new_level
+
+
 func _button(parent: Control, text: String) -> Button:
 	var b := Button.new()
 	b.text = text

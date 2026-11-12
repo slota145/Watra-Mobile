@@ -49,9 +49,11 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `proto_horde.gd` - strumień potworów, `proto_watra.gd` - Watra = wejście do lochu i licznik żaru, `proto_ember.gd` - iskra żaru z potworów,
   `proto_chief.gd` - boss Wódz Goblinów (ataki z ostrzeżeniem `proto_telegraph.gd`, tasak `proto_cleaver.gd`),
   `proto_chest.gd` - skrzynia po bossie; `scripts/dungeon_levels.gd` - poziomy lochu (siła, koszt przyzwania, nagroda);
+  `scripts/hero_levels.gd` - poziomy postaci (doświadczenie, zdrowie, obrażenia, miejsca na umiejętności; stan w `Game`);
   `scripts/ui/run_result.gd` - wynik po śmierci i okno zwycięstwa, `scripts/ui/level_picker.gd` - wybór poziomu przy Watrze); `scripts/ui/joystick.gd` - pływająca gałka (dotyk wieloma palcami),
   `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
-  `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania (zapis w `Game`, `user://settings.cfg`).
+  `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania i auto atakiem (zapis w `Game`, `user://settings.cfg`)
+  oraz trybem deweloperskim (nieśmiertelność, skróty: +1 poziom, +100 żaru, postać od nowa).
 - `scripts/updater.gd`: autoload `Updater` (pierwszy na liście) - aktualizacja wersji testowej z menu bez całego apk
   (paczka `game.pck` z gałęzi `apk`); przy zmianach project.godot, export_presets.cfg, updater.gd albo wersji Godota
   podbij w nim `APK_LEVEL` (gra poprosi wtedy o pełny apk). Test: `tests/test_updater.gd -- --with-updates`.
@@ -59,7 +61,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `horde.tscn` - loch z ciągłym strumieniem goblinów; obie na `arena.gd`).
 - `assets/`: grafiki, muzyka, dźwięki; `assets/watra/` - pliki skopiowane z Watry; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
 - `art/specs/`: specyfikacje postaci SpriteKiln (YAML; Godot je pomija). Wyniki renderów w `out/` są generowane i nie idą do gita.
-- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia, `ember_art.py` - iskra żaru, `goblin_squeak.py` - pisk goblinów, `boss_shots.gd` - zrzuty walki z bossem,
+- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia, `ember_art.py` - iskra żaru, `goblin_squeak.py` - pisk goblinów, `boss_shots.gd` - zrzuty walki z bossem, `level_shots.gd` - zrzuty rozwoju postaci,
   `vfx_art.py` - efekty z kreatora PixelLab do `assets/effects/`).
 - `tests/`: testy (`run_tests.ps1` u autora).
 - `translations/`: `teksty.csv` (pl/en), `pomijane.txt` (napisy bez tłumaczenia), `slowniczek.md`.

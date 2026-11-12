@@ -12,6 +12,9 @@ extends Node2D
 ## Watry (`Game.bank_embers`), poziom lochu zostaje przebity (`Game.beat_level`) i pokazuje się okno zwycięstwa.
 ## Ucieczka (okno pauzy) i śmierć gaszą żar z wyprawy. W bazie Watra pokazuje zgromadzony żar, a jej dotknięcie
 ## otwiera wybór poziomu lochu (LevelPicker).
+## Rozwój postaci (HeroLevels, stan w Game): gobliny i Wódz dają doświadczenie (śmierć go nie zabiera), cienki pasek
+## doświadczenia z poziomem postaci u góry (w lochu pod paskiem zdrowia, w bazie obok „Menu”), awans leczy i pokazuje
+## efekt na postaci, odblokowuje miejsca na umiejętności. Okno wyniku podsumowuje zdobyte doświadczenie.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 0), Vector2(100, 10), Vector2(0, 170)]
@@ -47,6 +50,12 @@ var kills_label: Label
 var time_label: Label
 var embers_label: Label
 var level_label: Label
+## Poziom postaci i pasek doświadczenia.
+var hero_level_label: Label
+var xp_bar: ProgressBar
+## Doświadczenie zdobyte w tej wyprawie i poziom postaci na jej starcie (do podsumowania).
+var run_xp := 0
+var _start_hero_level := 1
 ## Licznik zgonów w trybie deweloperskim (widoczny, gdy nieśmiertelność jest włączona).
 var deaths_label: Label
 var ember_bar: ProgressBar
@@ -83,6 +92,7 @@ func _ready() -> void:
 	hero.gesture = Game.gesture
 	hero.immortal = Game.dev_immortal
 	world.add_child(hero)
+	_start_hero_level = Game.hero_level
 	var camera := Camera2D.new()
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 8.0
@@ -95,6 +105,8 @@ func _ready() -> void:
 	weapon = ProtoWeapon.new()
 	weapon.name = "Weapon"
 	weapon.hero = hero
+	weapon.auto_attack = Game.auto_attack
+	weapon.damage_mult = HeroLevels.damage_mult(Game.hero_level)
 	if horde:
 		horde_spawner = ProtoHorde.new()
 		horde_spawner.name = "Horde"
@@ -102,12 +114,15 @@ func _ready() -> void:
 		horde_spawner.world = world
 		horde_spawner.bounds = ARENA.grow(-8)
 		horde_spawner.power = DungeonLevels.power(level)
-		horde_spawner.kills_changed.connect(func(k: int) -> void: kills_label.text = tr("Pokonane: %d") % k)
+		horde_spawner.kills_changed.connect(func(k: int) -> void:
+			kills_label.text = tr("Pokonane: %d") % k
+			_gain_xp(HeroLevels.goblin_xp(level)))
 		horde_spawner.embers_changed.connect(_on_embers)
 		add_child(horde_spawner)
 		hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
 			health_bar.max_value = max_hp
 			health_bar.value = hp)
+		hero.set_level(Game.hero_level)
 		hero.died.connect(_on_hero_died)
 		hero.death_avoided.connect(func(n: int) -> void: deaths_label.text = tr("Zgony: %d") % n)
 	else:
@@ -126,6 +141,12 @@ func _ready() -> void:
 		world.add_child(watra)
 		hero.obstacles.append(Vector3(WATRA_POS.x, WATRA_POS.y, ProtoWatra.RADIUS))
 	world.add_child(weapon)
+	if not horde:
+		hero.set_level(Game.hero_level)
+	actions.set_hero_level(Game.hero_level)
+	_on_xp(Game.hero_level, Game.hero_xp, Game.xp_needed())
+	Game.xp_changed.connect(_on_xp)
+	Game.leveled_up.connect(_on_level_up)
 	actions.attack.pressed.connect(func() -> void: weapon.attack_held = true)
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
 
@@ -171,6 +192,13 @@ func _make_hud() -> void:
 	menu_button.custom_minimum_size = Vector2(72, 44)
 	menu_button.pressed.connect(_open_menu)
 	top.add_child(menu_button)
+	if not horde:  # baza: poziom postaci i doświadczenie obok „Menu”
+		var xp_box := VBoxContainer.new()
+		xp_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		xp_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		xp_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		top.add_child(xp_box)
+		_make_xp_row(xp_box)
 	if horde:
 		_make_horde_bar(top)
 		_make_boss_bar(column)
@@ -212,6 +240,7 @@ func _make_hud() -> void:
 		picker.enter.connect(enter_dungeon)
 		safe.add_child(picker)
 	pause_menu.closed.connect(_apply_settings)
+	pause_menu.dev_embers.connect(_on_dev_embers)
 	layer.add_child(pause_menu)
 
 
@@ -240,6 +269,7 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	health_bar.add_theme_stylebox_override("background", bg)
 	health_bar.add_theme_stylebox_override("fill", fill)
 	box.add_child(health_bar)
+	_make_xp_row(box)
 	ember_bar = ProgressBar.new()
 	ember_bar.max_value = DungeonLevels.SUMMON_COST
 	ember_bar.value = 0
@@ -260,7 +290,7 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(row)
-	level_label = _hud_label(tr("Poz. %d") % level)
+	level_label = _hud_label(tr("Loch %d") % level)
 	level_label.custom_minimum_size = Vector2(46, 0)
 	row.add_child(level_label)
 	kills_label = _hud_label(tr("Pokonane: %d") % 0)
@@ -282,6 +312,72 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	deaths_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35))
 	deaths_label.visible = Game.dev_immortal
 	box.add_child(deaths_label)
+
+
+## Wiersz postaci: „Poz. N” i cienki pasek doświadczenia.
+func _make_xp_row(parent: Container) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(row)
+	hero_level_label = _hud_label(tr("Poz. %d") % Game.hero_level)
+	hero_level_label.add_theme_font_size_override("font_size", 11)
+	hero_level_label.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
+	row.add_child(hero_level_label)
+	xp_bar = ProgressBar.new()
+	xp_bar.show_percentage = false
+	xp_bar.custom_minimum_size = Vector2(0, 5)
+	xp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	xp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	xp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.03, 0.05, 0.1, 0.85)
+	bg.border_color = Color(0.3, 0.45, 0.6)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(2)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.45, 0.75, 1.0)
+	fill.set_corner_radius_all(2)
+	xp_bar.add_theme_stylebox_override("background", bg)
+	xp_bar.add_theme_stylebox_override("fill", fill)
+	row.add_child(xp_bar)
+
+
+## Doświadczenie dla postaci (pokonany potwór) - liczone też do podsumowania wyprawy.
+func _gain_xp(amount: int) -> void:
+	if hero.dead:
+		return
+	run_xp += amount
+	Game.add_xp(amount)
+
+
+## Zmiana doświadczenia w Game: pasek i numer poziomu (na najwyższym poziomie pasek pełny).
+func _on_xp(lvl: int, xp: int, need: int) -> void:
+	hero_level_label.text = tr("Poz. %d") % lvl
+	xp_bar.max_value = maxi(need, 1)
+	xp_bar.value = xp if need > 0 else xp_bar.max_value
+	actions.set_hero_level(lvl, true)
+	weapon.damage_mult = HeroLevels.damage_mult(lvl)
+	if hero.max_hp != HeroLevels.max_hp(lvl) and not hero.dead:
+		hero.set_level(lvl)  # np. reset postaci w trybie deweloperskim
+
+
+## Awans: efekt na postaci (pełne zdrowie, napis, dźwięk), miga numer poziomu.
+func _on_level_up(lvl: int) -> void:
+	hero.level_up(lvl)
+	hero_level_label.modulate = Color(2.0, 1.7, 0.8)
+	hero_level_label.create_tween().tween_property(hero_level_label, "modulate", Color.WHITE, 0.8)
+
+
+## Tryb deweloperski: żar na skróty - w lochu do paska wyprawy (szybkie przyzwanie Wodza), w bazie do Watry.
+func _on_dev_embers(amount: int) -> void:
+	if horde_spawner:
+		horde_spawner._on_ember(amount)
+	else:
+		Game.embers += amount
+		Game.save_game()
+		watra.embers = Game.embers
+		watra.embers_label.text = tr("Żar Watry: %d") % Game.embers
 
 
 ## Pasek zdrowia Wodza pod górnym rzędem (ukryty do przyzwania).
@@ -397,6 +493,7 @@ func summon_chief() -> void:
 ## Wódz padł: pozostałe gobliny uciekają, po chwili spada skrzynia.
 func _on_chief_died(_c: ProtoChief) -> void:
 	phase = "loot"
+	_gain_xp(HeroLevels.chief_xp(level))
 	horde_spawner.scatter()
 	boss_box.visible = false
 	var at := chief.position
@@ -430,7 +527,9 @@ func victory() -> void:
 	var banked := horde_spawner.embers
 	_bank()
 	var unlocked := level + 1 if Game.beat_level(level) else 0
+	Game.save_if_dirty()
 	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time, hero.deaths)
+	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
 	get_tree().paused = true
 
 
@@ -462,7 +561,9 @@ func _on_hero_died() -> void:
 	weapon.attack_held = false
 	await get_tree().create_timer(RESULT_DELAY).timeout
 	summon_button.visible = false
+	Game.save_if_dirty()
 	result.show_result(horde_spawner.kills, horde_spawner.time, horde_spawner.embers)
+	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
 	get_tree().paused = true
 
 
@@ -476,6 +577,7 @@ func _bank() -> void:
 func _open_menu() -> void:
 	joystick.release()
 	actions.attack.release()
+	Game.save_if_dirty()
 	pause_menu.open(horde_spawner.embers if horde_spawner and phase != "won" else 0)
 
 
@@ -484,6 +586,7 @@ func _apply_settings() -> void:
 	actions.left_handed = Game.left_handed
 	hero.gesture = Game.gesture
 	hero.immortal = Game.dev_immortal
+	weapon.auto_attack = Game.auto_attack
 	if deaths_label:
 		deaths_label.visible = Game.dev_immortal
 

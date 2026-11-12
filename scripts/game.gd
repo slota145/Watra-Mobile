@@ -1,7 +1,13 @@
 extends Node
 ## Globalny stan gry (autoload "Game"): przełączanie scen, ścieżka zapisu i ustawienia gracza.
 ## Ustawienia (np. przyciski po lewej) leżą osobno od zapisu gry, w user://settings.cfg.
-## Zapis gry (JSON w `save_path`): żar zgromadzony w Watrze (`embers`) i najwyższy przebity poziom lochu (`best_level`).
+## Zapis gry (JSON w `save_path`): żar zgromadzony w Watrze (`embers`), najwyższy przebity poziom lochu (`best_level`)
+## i postać - poziom i doświadczenie (`hero_level`, `hero_xp`; dane poziomów w HeroLevels).
+
+## Zmiana doświadczenia: `xp` na obecnym poziomie, `need` - ile trzeba do awansu (0 na najwyższym poziomie).
+signal xp_changed(level: int, xp: int, need: int)
+## Awans postaci na poziom `level` (przy kilku awansach naraz - raz, z ostatnim poziomem).
+signal leveled_up(level: int)
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
 ## Zapis gracza. Testy podmieniają go na osobny plik, żeby nie ruszać prawdziwego zapisu.
@@ -25,10 +31,17 @@ var embers_brought := 0
 var best_level := 0
 ## Poziom lochu wybrany przy Watrze (na niego wchodzi scena lochu).
 var dungeon_level := 1
+## Poziom postaci i doświadczenie zebrane na tym poziomie.
+var hero_level := 1
+var hero_xp := 0
+## Doświadczenie dopisane od ostatniego zapisu (zapis przy końcu wyprawy, pauzie i przełączeniu aplikacji).
+var _dirty := false
 ## Atak i umiejętności w lewym dolnym rogu (dla osób, które wolą trzymać je lewym kciukiem).
 var left_handed := false
 ## Gest ręką postaci przy ataku (prototyp - porównanie wersji z gestem i bez).
 var gesture := true
+## Auto atak: podstawowy cios sam tnie, gdy potwór jest w zasięgu (umiejętności - nie).
+var auto_attack := false
 ## Tryb deweloperski (okno pauzy): nieśmiertelność - zdrowie schodzi, ale zamiast śmierci wraca do pełna.
 var dev_immortal := false
 
@@ -47,6 +60,7 @@ func version() -> String:
 
 ## Przejście do innej sceny (np. z menu do gry).
 func change_scene(path: String) -> void:
+	save_if_dirty()  # doświadczenie z lochu (także przy ucieczce)
 	get_tree().paused = false
 	get_tree().change_scene_to_file(path)
 
@@ -57,6 +71,7 @@ func load_settings() -> void:
 		cfg = ConfigFile.new()
 	left_handed = cfg.get_value("controls", "left_handed", false)
 	gesture = cfg.get_value("controls", "gesture", true)
+	auto_attack = cfg.get_value("controls", "auto_attack", false)
 	dev_immortal = cfg.get_value("dev", "immortal", false)
 
 
@@ -64,6 +79,7 @@ func save_settings() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("controls", "left_handed", left_handed)
 	cfg.set_value("controls", "gesture", gesture)
+	cfg.set_value("controls", "auto_attack", auto_attack)
 	cfg.set_value("dev", "immortal", dev_immortal)
 	cfg.save(settings_path)
 
@@ -73,6 +89,9 @@ func load_game() -> void:
 	embers_brought = 0
 	best_level = 0
 	dungeon_level = 1
+	hero_level = 1
+	hero_xp = 0
+	_dirty = false
 	if not FileAccess.file_exists(save_path):
 		return
 	var data = JSON.parse_string(FileAccess.get_file_as_string(save_path))
@@ -80,12 +99,67 @@ func load_game() -> void:
 		embers = int(data.get("embers", 0))
 		best_level = int(data.get("best_level", 0))
 		dungeon_level = clampi(int(data.get("dungeon_level", 1)), 1, unlocked_level())
+		hero_level = clampi(int(data.get("hero_level", 1)), 1, HeroLevels.MAX_LEVEL)
+		hero_xp = maxi(int(data.get("hero_xp", 0)), 0)
 
 
 func save_game() -> void:
+	_dirty = false
 	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level}))
+		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
+				"hero_level": hero_level, "hero_xp": hero_xp}))
+
+
+## Zapis tylko wtedy, gdy od ostatniego coś się zmieniło (np. doświadczenie z goblinów).
+func save_if_dirty() -> void:
+	if _dirty:
+		save_game()
+
+
+## Telefon przełącza aplikację albo gra się zamyka - zapisz doświadczenie zebrane w lochu.
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_WM_GO_BACK_REQUEST]:
+		save_if_dirty()
+
+
+## Ile doświadczenia brakuje do awansu (0 na najwyższym poziomie).
+func xp_needed() -> int:
+	return 0 if hero_level >= HeroLevels.MAX_LEVEL else HeroLevels.xp_to_next(hero_level)
+
+
+## Doświadczenie dla postaci (pokonany potwór). Zwraca liczbę awansów. Awans od razu zapisuje grę,
+## zwykłe doświadczenie - przy najbliższym zapisie (`save_if_dirty`).
+func add_xp(amount: int) -> int:
+	if amount <= 0 or hero_level >= HeroLevels.MAX_LEVEL:
+		return 0
+	hero_xp += amount
+	var ups := 0
+	while hero_level < HeroLevels.MAX_LEVEL and hero_xp >= HeroLevels.xp_to_next(hero_level):
+		hero_xp -= HeroLevels.xp_to_next(hero_level)
+		hero_level += 1
+		ups += 1
+	if hero_level >= HeroLevels.MAX_LEVEL:
+		hero_xp = 0
+	_dirty = true
+	xp_changed.emit(hero_level, hero_xp, xp_needed())
+	if ups > 0:
+		save_game()
+		leveled_up.emit(hero_level)
+	return ups
+
+
+## Tryb deweloperski: awans o jeden poziom od razu.
+func dev_level_up() -> void:
+	add_xp(xp_needed() - hero_xp)
+
+
+## Tryb deweloperski: postać od nowa (1. poziom, bez doświadczenia).
+func reset_hero() -> void:
+	hero_level = 1
+	hero_xp = 0
+	save_game()
+	xp_changed.emit(hero_level, hero_xp, xp_needed())
 
 
 ## Żar doniesiony z lochu do Watry (powrót do bazy, nie śmierć) - od razu zapisany.
