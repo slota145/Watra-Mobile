@@ -37,11 +37,14 @@ const HIT_FX_FRAMES := 12
 const HIT_FX_FPS := 20.0
 const HIT_FX_ANCHOR := Vector2(23, 17)
 
+## Grupa węzłów, które miecz sam znajduje jako cele (potwory Hordy).
+const TARGETS := &"proto_targets"
+
 var hero: ProtoHero
 ## Czy gracz trzyma przycisk ataku.
 var attack_held := false
-## Cele do bicia (kukły). Arena dopisuje je przy starcie.
-var targets: Array[ProtoDummy] = []
+## Cele do bicia (kukły, potwory). Arena dopisuje je przy starcie, potwory dopisują się same w grupie TARGETS.
+var targets: Array[ProtoTarget] = []
 
 var _state := "follow"
 var _t := 0.0
@@ -87,7 +90,7 @@ func _process(delta: float) -> void:
 	match _state:
 		"follow":
 			_follow(delta)
-			if _cooldown <= 0.0 and attack_held:
+			if _cooldown <= 0.0 and attack_held and not hero.dead:
 				_attack()
 		"windup":
 			# miecz wskakuje na orbitę, na początek łuku (odrobinę dalej - zamach)
@@ -134,9 +137,9 @@ func _follow(delta: float) -> void:
 
 
 func _attack() -> void:
-	var best: ProtoDummy = null
+	var best: ProtoTarget = null
 	var best_d := REACH
-	for t in targets:
+	for t in _live_targets():
 		var d := hero.global_position.distance_to(t.global_position)
 		if d <= best_d:
 			best = t
@@ -176,7 +179,7 @@ func _place(a: float) -> void:
 ## Trafienie: wszystkie kukły w zasięgu ostrza i w łuku cięcia; na każdej błysk z iskrami.
 func _hit_in_arc() -> void:
 	var hit := false
-	for t in targets:
+	for t in _live_targets():
 		var to := t.center() - _orbit_center()
 		if to.length() <= HILT_RADIUS + BLADE + 6.0 and absf(angle_difference(_aim, to.angle())) <= ARC / 2.0:
 			t.take_damage(randi_range(DAMAGE.x, DAMAGE.y), hero.global_position)
@@ -186,6 +189,17 @@ func _hit_in_arc() -> void:
 			hit = true
 	if hit:
 		Input.vibrate_handheld(15)
+
+
+## Cele, które da się jeszcze trafić: lista `targets` i potwory z grupy TARGETS.
+func _live_targets() -> Array[ProtoTarget]:
+	var all: Array = targets.duplicate()
+	all.append_array(get_tree().get_nodes_in_group(TARGETS))
+	var out: Array[ProtoTarget] = []
+	for t in all:
+		if is_instance_valid(t) and t is ProtoTarget and t.alive() and not out.has(t):
+			out.append(t)
+	return out
 
 
 func _set_state(state: String) -> void:

@@ -12,6 +12,9 @@ var left_toggle: CheckButton
 var gesture_toggle: CheckButton
 var resume_button: Button
 var quit_button: Button
+## Scena bazy - gdy ustawiona (w lochu), okno ma też przycisk „Powrót do bazy”.
+var base_scene := ""
+var base_button: Button
 var _game: Node
 
 
@@ -58,6 +61,9 @@ func _ready() -> void:
 		_game.save_settings())
 	resume_button = _button(column, tr("Wróć do gry"))
 	resume_button.pressed.connect(close)
+	if base_scene != "":
+		base_button = _button(column, tr("Powrót do bazy"))
+		base_button.pressed.connect(func() -> void: _game.change_scene(base_scene))
 	quit_button = _button(column, tr("Menu główne"))
 	quit_button.pressed.connect(func() -> void: _game.change_scene(_game.MENU_SCENE))
 

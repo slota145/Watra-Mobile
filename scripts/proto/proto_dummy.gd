@@ -1,12 +1,10 @@
 class_name ProtoDummy
-extends Node2D
+extends ProtoTarget
 ## Kukła treningowa z Watry: nieśmiertelna, chwieje się i błyska przy trafieniu, pokazuje liczby obrażeń,
 ## a nad nią licznik - obrażenia na sekundę (z ostatnich 5 s), suma i liczba trafień. Po 4 s spokoju zeruje się.
 
 const DPS_WINDOW := 5.0
 const RESET_AFTER := 4.0
-## Wysokość środka kukły nad ziemią (tam celuje broń i wyskakują liczby).
-const CENTER_HEIGHT := 18.0
 const HIT_SOUNDS := [preload("res://assets/watra/dummy_hit_1.ogg"), preload("res://assets/watra/dummy_hit_2.ogg"),
 	preload("res://assets/watra/dummy_hit_3.ogg"), preload("res://assets/watra/dummy_hit_4.ogg")]
 
@@ -41,16 +39,11 @@ func _ready() -> void:
 	_update_label()
 
 
-## Punkt, w który celuje broń.
-func center() -> Vector2:
-	return global_position + Vector2(0, -CENTER_HEIGHT)
-
-
 func take_damage(amount: int, from: Vector2) -> void:
 	_audio.stream = HIT_SOUNDS.pick_random()
 	_audio.pitch_scale = randf_range(0.92, 1.08)
 	_audio.play()
-	_spawn_number(amount)
+	spawn_number(amount)
 	var away := signf(global_position.x - from.x) if absf(global_position.x - from.x) > 1.0 else 1.0
 	var tween := _sprite.create_tween()
 	_sprite.modulate = Color(3, 3, 3)
@@ -86,24 +79,6 @@ func _update_label() -> void:
 		recent += h[1]
 	var span := clampf(_clock - (_hits[0][0] if _hits else _clock), 1.0, DPS_WINDOW)
 	_label.text = tr("%d obrażeń/s") % roundi(recent / span) + "\n" + tr("Suma %d, trafień: %d") % [_total, _count]
-
-
-func _spawn_number(amount: int) -> void:
-	var num := Label.new()
-	num.text = str(amount)
-	num.add_theme_font_size_override("font_size", 12)
-	num.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8))
-	num.add_theme_color_override("font_outline_color", Color(0.15, 0.08, 0.05))
-	num.add_theme_constant_override("outline_size", 4)
-	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	num.size = Vector2(40, 16)
-	num.position = Vector2(-20 + randf_range(-8, 8), -CENTER_HEIGHT - 26)
-	num.z_index = 20
-	add_child(num)
-	var tween := num.create_tween()
-	tween.tween_property(num, "position:y", num.position.y - 18, 0.6).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	tween.parallel().tween_property(num, "modulate:a", 0.0, 0.3).set_delay(0.35)
-	tween.tween_callback(num.queue_free)
 
 
 func _make_shadow() -> Sprite2D:

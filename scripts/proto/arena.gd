@@ -4,9 +4,19 @@ extends Node2D
 ## w dolnym rogu (wokół niego 4 puste miejsca na umiejętności). „Menu” otwiera okno pauzy: przyciski po lewej
 ## stronie, gest ręką postaci przy ataku, wyjście do menu głównego.
 ## Wszystko budowane w kodzie, żeby prototyp łatwo było zmieniać i wyrzucić.
+## Dwa tryby: baza (prototype.tscn - kukły i Watra; dotknięcie Watry przenosi do lochu) i loch z Hordą
+## (horde.tscn, `horde = true` - ciągły strumień goblinów, pasek zdrowia, licznik pokonanych, po śmierci okno wyniku).
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(0, -70), Vector2(-80, 40), Vector2(90, 60)]
+const WATRA_POS := Vector2(0, -190)
+const BASE_SCENE := "res://scenes/prototype.tscn"
+const HORDE_SCENE := "res://scenes/horde.tscn"
+## Po śmierci postaci okno wyniku pojawia się po tylu sekundach (widać, jak pada).
+const RESULT_DELAY := 1.2
+
+## Loch z Hordą zamiast bazy.
+@export var horde := false
 
 var hero: ProtoHero
 var weapon: ProtoWeapon
@@ -14,6 +24,12 @@ var joystick: Joystick
 var menu_button: Button
 var actions: ActionCluster
 var pause_menu: PauseMenu
+var watra: ProtoWatra
+var horde_spawner: ProtoHorde
+var health_bar: ProgressBar
+var kills_label: Label
+var time_label: Label
+var result: RunResult
 
 
 func _ready() -> void:
@@ -43,11 +59,30 @@ func _ready() -> void:
 	weapon = ProtoWeapon.new()
 	weapon.name = "Weapon"
 	weapon.hero = hero
-	for p in DUMMIES:
-		var dummy := ProtoDummy.new()
-		dummy.position = p
-		world.add_child(dummy)
-		weapon.targets.append(dummy)
+	if horde:
+		horde_spawner = ProtoHorde.new()
+		horde_spawner.name = "Horde"
+		horde_spawner.hero = hero
+		horde_spawner.world = world
+		horde_spawner.bounds = ARENA.grow(-8)
+		horde_spawner.kills_changed.connect(func(k: int) -> void: kills_label.text = tr("Pokonane: %d") % k)
+		add_child(horde_spawner)
+		hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
+			health_bar.max_value = max_hp
+			health_bar.value = hp)
+		hero.died.connect(_on_hero_died)
+	else:
+		for p in DUMMIES:
+			var dummy := ProtoDummy.new()
+			dummy.position = p
+			world.add_child(dummy)
+			weapon.targets.append(dummy)
+		watra = ProtoWatra.new()
+		watra.name = "Watra"
+		watra.position = WATRA_POS
+		watra.entered.connect(func() -> void: Game.change_scene(HORDE_SCENE))
+		world.add_child(watra)
+		hero.obstacles.append(Vector3(WATRA_POS.x, WATRA_POS.y, ProtoWatra.RADIUS))
 	world.add_child(weapon)
 	actions.attack.pressed.connect(func() -> void: weapon.attack_held = true)
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
@@ -68,6 +103,8 @@ func _make_ground() -> void:
 	grass.region_rect = Rect2(Vector2.ZERO, ARENA.size)
 	grass.centered = false
 	grass.position = ARENA.position
+	if horde:
+		grass.modulate = Color(0.72, 0.68, 0.8)  # loch: ta sama trawa, chłodniej i ciemniej (Horda)
 	add_child(grass)
 
 
@@ -90,16 +127,19 @@ func _make_hud() -> void:
 	menu_button.custom_minimum_size = Vector2(72, 44)
 	menu_button.pressed.connect(_open_menu)
 	top.add_child(menu_button)
-	var hint := Label.new()
-	hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.")
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.add_theme_font_size_override("font_size", 11)
-	hint.add_theme_color_override("font_color", Color(1, 0.95, 0.85, 0.8))
-	hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	hint.add_theme_constant_override("outline_size", 3)
-	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(hint)
+	if horde:
+		_make_horde_bar(top)
+	else:
+		var hint := Label.new()
+		hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.")
+		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hint.add_theme_font_size_override("font_size", 11)
+		hint.add_theme_color_override("font_color", Color(1, 0.95, 0.85, 0.8))
+		hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+		hint.add_theme_constant_override("outline_size", 3)
+		hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_child(hint)
 	var fill := Control.new()
 	fill.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -109,10 +149,79 @@ func _make_hud() -> void:
 	actions.left_handed = Game.left_handed
 	column.add_child(actions)
 	joystick.blocked = [top, actions]
+	if horde:
+		result = RunResult.new()
+		result.visible = false
+		result.retry.connect(func() -> void: Game.change_scene(HORDE_SCENE))
+		result.back_to_base.connect(func() -> void: Game.change_scene(BASE_SCENE))
+		safe.add_child(result)
 	pause_menu = PauseMenu.new()  # ostatnie dziecko: nad całym interfejsem
 	pause_menu.visible = false
+	if horde:
+		pause_menu.base_scene = BASE_SCENE
 	pause_menu.closed.connect(_apply_settings)
 	layer.add_child(pause_menu)
+
+
+## Pasek u góry w lochu: zdrowie Wojciecha, a pod nim liczba pokonanych potworów i czas.
+func _make_horde_bar(top: HBoxContainer) -> void:
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 2)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(box)
+	health_bar = ProgressBar.new()
+	health_bar.max_value = ProtoHero.MAX_HP
+	health_bar.value = ProtoHero.MAX_HP
+	health_bar.show_percentage = false
+	health_bar.custom_minimum_size = Vector2(0, 14)
+	health_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.12, 0.05, 0.05, 0.85)
+	bg.border_color = Color(0.85, 0.62, 0.3)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(3)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.78, 0.16, 0.12)
+	fill.set_corner_radius_all(3)
+	health_bar.add_theme_stylebox_override("background", bg)
+	health_bar.add_theme_stylebox_override("fill", fill)
+	box.add_child(health_bar)
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(row)
+	kills_label = _hud_label(tr("Pokonane: %d") % 0)
+	kills_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(kills_label)
+	time_label = _hud_label("0:00")
+	row.add_child(time_label)
+
+
+func _hud_label(text: String) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", 13)
+	l.add_theme_color_override("font_color", Color(1, 0.92, 0.75))
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	l.add_theme_constant_override("outline_size", 4)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return l
+
+
+func _process(_delta: float) -> void:
+	if horde_spawner and time_label:
+		var s := int(horde_spawner.time)
+		time_label.text = "%d:%02d" % [s / 60, s % 60]
+
+
+## Śmierć Wojciecha w lochu: chwila na upadek, potem okno wyniku i pauza.
+func _on_hero_died() -> void:
+	joystick.release()
+	actions.attack.release()
+	weapon.attack_held = false
+	await get_tree().create_timer(RESULT_DELAY).timeout
+	result.show_result(horde_spawner.kills, horde_spawner.time)
+	get_tree().paused = true
 
 
 func _open_menu() -> void:
@@ -133,5 +242,6 @@ func _notification(what: int) -> void:
 		return
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and pause_menu.visible:
 		pause_menu.close()
-	elif what in [NOTIFICATION_WM_GO_BACK_REQUEST, NOTIFICATION_APPLICATION_PAUSED] and not pause_menu.visible:
+	elif what in [NOTIFICATION_WM_GO_BACK_REQUEST, NOTIFICATION_APPLICATION_PAUSED] and not pause_menu.visible \
+			and not (result and result.visible):
 		_open_menu()
