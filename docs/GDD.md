@@ -40,6 +40,8 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
   roguelike** - postęp zostaje między wyprawami (postać, łup, hub), a nie przepada po śmierci.
 - **Siła postaci** (ustalone 12.11.2026): ekwipunek, umiejętności, kamienie wkładane w umiejętności i w ekwipunek,
   poziomy doświadczenia. W lochu nie wybiera się losowych ulepszeń (bez roguelike).
+  Umiejętności kupuje się za złoto w bazie (cena i wymagany poziom); zwykły cios też jest umiejętnością, a pod dużym
+  przyciskiem może stać dowolna (poza doskokiem) - działa na nią auto atak, bez many tnie zwykły cios.
   Poziomy (ustalone 12.11.2026): doświadczenie za każdego potwora i dużo za bossa, śmierć go nie zabiera; awans daje
   statystyki (zdrowie, obrażenia, pełne leczenie) i na wybranych poziomach odblokowuje miejsca na umiejętności.
 - **Lewitująca broń** (pomysł autora, rozważany): broń nie jest w dłoni, tylko unosi się obok postaci i sama porusza się

@@ -119,5 +119,48 @@
       23,
       17
     ]
+  },
+  "whirl": {
+    "effect": "b3dbda83-0c49-4675-bec7-bc1e2af0413d",
+    "name": "Młynek (z Watry)",
+    "frame": [
+      96,
+      80
+    ],
+    "frames": 8,
+    "fps": 20,
+    "loop": true,
+    "anchor": [
+      48,
+      40
+    ]
+  },
+  "ground_slam": {
+    "effect": "f1d97b16-e1a7-441f-aec6-500201744f66",
+    "name": "Rozlupanie Ziemi - erupcja (z Watry)",
+    "frame": [
+      47,
+      51
+    ],
+    "frames": 10,
+    "fps": 15,
+    "anchor": [
+      26,
+      35
+    ]
+  },
+  "blink": {
+    "effect": "8b3b1ac8-7e58-46d3-b35c-14d53c33cd50",
+    "name": "Krok przez Mgle (z Watry)",
+    "frame": [
+      44,
+      39
+    ],
+    "frames": 8,
+    "fps": 14,
+    "anchor": [
+      23,
+      21
+    ]
   }
 }

@@ -4,7 +4,7 @@ extends ProtoTarget
 ## i w chwili ciosu (zdarzenie `hit` animacji) zadaje obrażenia, jeśli postać wciąż stoi blisko. Po trafieniu
 ## mieczem błyska, odskakuje i gra animację trafienia; po śmierci gra animację śmierci, gaśnie i znika.
 ## Siła rośnie z poziomem lochu (`power` - mnoży zdrowie i obrażenia). Gdy gracz przyzwie bossa, gobliny uciekają
-## z piskiem poza ekran (`flee`) i znikają.
+## z piskiem poza ekran (`flee`) i znikają. Ogłuszony (`stun`, Rozłupanie Ziemi) stoi w miejscu i nie atakuje.
 ## Grafika: scena SpriteKiln assets/spritekiln/goblin/goblin.tscn (KilnSprite2D - animacje idle, walk, attack, hit, death).
 
 signal died(goblin: ProtoGoblin)
@@ -45,6 +45,8 @@ var _cooldown := 0.0
 var _push := Vector2.ZERO  # odrzut po trafieniu (wygasa)
 var _struck := false  # cios bieżącego zamachu już zadany
 var _timer := 0.0
+## Ile jeszcze sekund goblin jest ogłuszony.
+var _stunned := 0.0
 var _sprite  # KilnSprite2D (scena SpriteKiln) albo zastępczy Polygon2D
 var _audio: AudioStreamPlayer2D
 
@@ -93,6 +95,10 @@ func _process(delta: float) -> void:
 		_face(away)
 		position += away * FLEE_SPEED * delta  # bez granic areny - ucieka poza nią
 		return
+	if _stunned > 0.0:
+		_stunned -= delta
+		position = (position + _push * delta).clamp(bounds.position, bounds.end)
+		return
 	var to_hero := hero.global_position - global_position if hero else Vector2.ZERO
 	var move := _push
 	match _state:
@@ -139,6 +145,20 @@ func take_damage(amount: int, from: Vector2) -> void:
 	_timer = 0.0
 	_cooldown = maxf(_cooldown, 0.4)
 	_play(&"hit", true)
+
+
+## Ogłuszenie: przerywa zamach, goblin stoi i chwieje się (szarzeje) przez `time` sekund.
+func stun(time: float) -> void:
+	if not alive():
+		return
+	_stunned = maxf(_stunned, time)
+	_state = "walk"
+	_cooldown = maxf(_cooldown, 0.3)
+	_play(&"idle")
+	_sprite.modulate = Color(0.75, 0.75, 0.95)
+	var tween := create_tween()
+	tween.tween_interval(time)
+	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.15)
 
 
 func _start_attack(to_hero: Vector2) -> void:

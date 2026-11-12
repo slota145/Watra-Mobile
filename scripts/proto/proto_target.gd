@@ -22,6 +22,11 @@ func take_damage(_amount: int, _from: Vector2) -> void:
 	pass
 
 
+## Ogłuszenie na `time` sekund (Rozłupanie Ziemi). Domyślnie nic - bossy i kukły się nie zatrzymują.
+func stun(_time: float) -> void:
+	pass
+
+
 ## Liczba obrażeń wyskakująca nad celem.
 func spawn_number(amount: int, color := Color(1.0, 0.95, 0.8)) -> void:
 	var num := Label.new()

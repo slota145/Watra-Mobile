@@ -4,6 +4,8 @@ extends Control
 ## trzymać, idąc jednocześnie gałką. `held` jest prawdą, dopóki palec go trzyma. Pusty przycisk (bez ikony)
 ## to wolne miejsce na umiejętność: ciemne kółko z przerywanym brzegiem i plusem. Zablokowane miejsce (`locked_level`)
 ## ma kłódkę i poziom postaci, na którym się odblokuje; `unlock_flash` - złoty błysk przy odblokowaniu.
+## Umiejętność w odnowieniu (`set_state`) przykrywa ciemny wycinek z liczbą sekund, a przy braku many ikona jest
+## przyciemniona na niebiesko; `deny` - krótkie drgnięcie, gdy umiejętności nie dało się użyć.
 
 signal pressed
 signal released
@@ -20,6 +22,10 @@ var locked_level := 0:
 		queue_redraw()
 
 var held := false
+## Odnowienie umiejętności: ile zostało i ile trwa całe (s); brak many na umiejętność.
+var cooldown_left := 0.0
+var cooldown_total := 0.0
+var no_mana := false
 var _finger := -1
 var _flash := 0.0
 
@@ -57,6 +63,24 @@ func release() -> void:
 		scale = Vector2.ONE
 		released.emit()
 		queue_redraw()
+
+
+## Stan umiejętności w miejscu: odnowienie (zostało, całe) i czy brakuje many. Przerysowuje tylko przy zmianie.
+func set_state(left: float, total: float, lacks_mana: bool) -> void:
+	if ceilf(left * 10.0) == ceilf(cooldown_left * 10.0) and lacks_mana == no_mana and total == cooldown_total:
+		return
+	cooldown_left = left
+	cooldown_total = total
+	no_mana = lacks_mana
+	queue_redraw()
+
+
+## Krótkie drgnięcie w bok - umiejętności nie dało się użyć (odnowienie albo brak many).
+func deny() -> void:
+	var x := position.x
+	var tween := create_tween()
+	for dx in [3.0, -3.0, 2.0, 0.0]:
+		tween.tween_property(self, "position:x", x + dx, 0.04)
 
 
 ## Złoty błysk i podskok przy odblokowaniu miejsca.
@@ -99,4 +123,17 @@ func _draw() -> void:
 	draw_arc(c, radius - 1.0, 0.0, TAU, 40, Color(1.0, 0.8, 0.45, 0.9 if held else 0.7), 2.0)
 	if icon:
 		var side := radius * 1.3
-		draw_texture_rect(icon, Rect2(c - Vector2.ONE * side / 2.0, Vector2.ONE * side), false)
+		var tint := Color(0.45, 0.55, 1.0) if no_mana else Color.WHITE
+		draw_texture_rect(icon, Rect2(c - Vector2.ONE * side / 2.0, Vector2.ONE * side), false, tint)
+	if cooldown_left > 0.0 and cooldown_total > 0.0:
+		# ciemny wycinek: tyle koła, ile odnowienia zostało (od góry, zgodnie z ruchem wskazówek)
+		var k := clampf(cooldown_left / cooldown_total, 0.0, 1.0)
+		var r := (radius - 1.5) / 2.0  # gruby łuk o szerokości promienia = wycinek koła
+		var from := -PI / 2.0 + TAU * (1.0 - k)
+		draw_arc(c, r, from, -PI / 2.0 + TAU, maxi(3, int(40 * k)), Color(0, 0, 0, 0.6), r * 2.0)
+		var font := ThemeDB.fallback_font
+		var text := str(ceili(cooldown_left))
+		var fs := 14 if radius > 26.0 else 12
+		var at := c + Vector2(-radius, fs * 0.35)
+		draw_string_outline(font, at, text, HORIZONTAL_ALIGNMENT_CENTER, radius * 2.0, fs, 4, Color(0, 0, 0, 0.9))
+		draw_string(font, at, text, HORIZONTAL_ALIGNMENT_CENTER, radius * 2.0, fs, Color(1, 0.95, 0.85))

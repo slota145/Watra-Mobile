@@ -4,7 +4,8 @@ extends Node
 ## Zapis gry (JSON w `save_path`): żar zgromadzony w Watrze (`embers`), najwyższy przebity poziom lochu (`best_level`)
 ## i postać - poziom i doświadczenie (`hero_level`, `hero_xp`; dane poziomów w HeroLevels), przedmioty w torbie
 ## (`bag`, najwyżej BAG_SIZE), założone (`equipped`: miejsce -> przedmiot) i złoto ze sprzedaży (`gold`; dane w Items),
-## skrzynia w bazie (`stash`: zakładki po STASH_TAB_SIZE miejsc; kolejne zakładki za złoto - STASH_TAB_PRICES).
+## skrzynia w bazie (`stash`: zakładki po STASH_TAB_SIZE miejsc; kolejne zakładki za złoto - STASH_TAB_PRICES),
+## umiejętności (`skills_owned` - kupione, `skill_slots` - co stoi w miejscach; dane w Skills).
 
 ## Zmiana doświadczenia: `xp` na obecnym poziomie, `need` - ile trzeba do awansu (0 na najwyższym poziomie).
 signal xp_changed(level: int, xp: int, need: int)
@@ -12,6 +13,8 @@ signal xp_changed(level: int, xp: int, need: int)
 signal leveled_up(level: int)
 ## Zmiana torby, założonych przedmiotów albo złota.
 signal inventory_changed
+## Kupno umiejętności albo zmiana miejsc umiejętności.
+signal skills_changed
 
 ## Miejsca w torbie (siatka 5x4 w oknie „Postać”).
 const BAG_SIZE := 20
@@ -50,13 +53,17 @@ var equipped := {}
 var gold := 0
 ## Skrzynia w bazie: lista zakładek, każda to lista przedmiotów (najwyżej STASH_TAB_SIZE).
 var stash: Array = [[]]
+## Kupione umiejętności (identyfikatory ze Skills; zwykły cios zawsze) i co stoi w miejscach
+## (Skills.SLOTS; 0 - duży przycisk, "" - puste miejsce).
+var skills_owned: Array = [Skills.STRIKE]
+var skill_slots: Array = _default_slots()
 ## Doświadczenie dopisane od ostatniego zapisu (zapis przy końcu wyprawy, pauzie i przełączeniu aplikacji).
 var _dirty := false
 ## Atak i umiejętności w lewym dolnym rogu (dla osób, które wolą trzymać je lewym kciukiem).
 var left_handed := false
 ## Gest ręką postaci przy ataku (prototyp - porównanie wersji z gestem i bez).
 var gesture := true
-## Auto atak: podstawowy cios sam tnie, gdy potwór jest w zasięgu (umiejętności - nie).
+## Auto atak: umiejętność spod dużego przycisku (zwykle zwykły cios) rusza sama, gdy potwór jest w zasięgu.
 var auto_attack := false
 ## Zwykłe przedmioty podniesione w lochu od razu zamieniają się w złoto (przełącznik w oknie „Postać”).
 var auto_sell_common := false
@@ -115,6 +122,8 @@ func load_game() -> void:
 	equipped = {}
 	gold = 0
 	stash = [[]]
+	skills_owned = [Skills.STRIKE]
+	skill_slots = _default_slots()
 	_dirty = false
 	if not FileAccess.file_exists(save_path):
 		return
@@ -143,6 +152,19 @@ func load_game() -> void:
 						if not item.is_empty() and tab.size() < STASH_TAB_SIZE:
 							tab.append(item)
 				stash.append(tab)
+		var raw_owned = data.get("skills_owned", [])
+		if raw_owned is Array:
+			for id in raw_owned:
+				if id is String and Skills.has(id) and not skills_owned.has(id):
+					skills_owned.append(id)
+		var raw_slots = data.get("skill_slots", [])
+		if raw_slots is Array and not raw_slots.is_empty():
+			skill_slots = []
+			for i in Skills.SLOTS:
+				var id = raw_slots[i] if i < raw_slots.size() else ""
+				var ok: bool = id is String and skills_owned.has(id) and not skill_slots.has(id) \
+						and (i != Skills.MAIN or Skills.can_be_main(id))
+				skill_slots.append(id if ok else "")
 		var raw_eq = data.get("equipped", {})
 		if raw_eq is Dictionary:
 			for slot in raw_eq:
@@ -157,7 +179,7 @@ func save_game() -> void:
 	if f:
 		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
-				"stash": stash}))
+				"stash": stash, "skills_owned": skills_owned, "skill_slots": skill_slots}))
 
 
 ## Zapis tylko wtedy, gdy od ostatniego coś się zmieniło (np. doświadczenie z goblinów).
@@ -211,9 +233,12 @@ func reset_hero() -> void:
 	equipped = {}
 	gold = 0
 	stash = [[]]
+	skills_owned = [Skills.STRIKE]
+	skill_slots = _default_slots()
 	save_game()
 	xp_changed.emit(hero_level, hero_xp, xp_needed())
 	inventory_changed.emit()
+	skills_changed.emit()
 
 
 ## Suma cech założonych przedmiotów (Items.totals).
@@ -387,3 +412,84 @@ func beat_level(level: int) -> bool:
 	best_level = level
 	save_game()
 	return true
+
+
+## Miejsca na start: zwykły cios pod dużym przyciskiem, reszta pusta.
+static func _default_slots() -> Array:
+	var slots: Array = [Skills.STRIKE]
+	for i in Skills.SLOTS - 1:
+		slots.append("")
+	return slots
+
+
+## Czy można kupić umiejętność: jeszcze niekupiona, wymagany poziom postaci i dość złota.
+func can_buy_skill(id: String) -> bool:
+	return Skills.has(id) and not skills_owned.has(id) and hero_level >= Skills.level_of(id) \
+			and gold >= Skills.price_of(id)
+
+
+## Kupuje umiejętność za złoto i od razu wstawia ją w pierwsze wolne odblokowane małe miejsce (jeśli jest).
+## Zwraca false, gdy nie da się kupić.
+func buy_skill(id: String) -> bool:
+	if not can_buy_skill(id):
+		return false
+	gold -= Skills.price_of(id)
+	skills_owned.append(id)
+	for i in range(1, Skills.open_slots(hero_level)):
+		if skill_slots[i] == "":
+			skill_slots[i] = id
+			break
+	save_game()
+	inventory_changed.emit()
+	skills_changed.emit()
+	return true
+
+
+## Czy miejsce jest odblokowane (duży przycisk zawsze, małe - z poziomem postaci).
+func slot_open(slot: int) -> bool:
+	return slot >= 0 and slot < Skills.open_slots(hero_level)
+
+
+## Wstawia kupioną umiejętność w miejsce. Jeśli stała już w innym miejscu, zamienia się z tym, co było w docelowym
+## (o ile to, co wraca, może tam stać - inaczej tamto miejsce zostaje puste). Zwraca false, gdy się nie da.
+func assign_skill(id: String, slot: int) -> bool:
+	if not skills_owned.has(id) or not slot_open(slot) or (slot == Skills.MAIN and not Skills.can_be_main(id)):
+		return false
+	var from := skill_slots.find(id)
+	if from == slot:
+		return true
+	var old: String = skill_slots[slot]
+	skill_slots[slot] = id
+	if from >= 0:
+		skill_slots[from] = old if (from != Skills.MAIN or Skills.can_be_main(old)) else ""
+	save_game()
+	skills_changed.emit()
+	return true
+
+
+## Zdejmuje umiejętność z miejsca (puste miejsce; pusty duży przycisk to zwykły cios).
+func clear_skill_slot(slot: int) -> void:
+	if slot < 0 or slot >= Skills.SLOTS or skill_slots[slot] == "":
+		return
+	skill_slots[slot] = ""
+	save_game()
+	skills_changed.emit()
+
+
+## Umiejętność pod dużym przyciskiem (pusty - zwykły cios).
+func main_skill() -> String:
+	var id: String = skill_slots[Skills.MAIN]
+	return id if id != "" else Skills.STRIKE
+
+
+## Tryb deweloperski: wszystkie umiejętności bez złota i wymaganego poziomu.
+func dev_skills() -> void:
+	for id in Skills.ORDER:
+		if not skills_owned.has(id):
+			skills_owned.append(id)
+			for i in range(1, Skills.open_slots(hero_level)):
+				if skill_slots[i] == "":
+					skill_slots[i] = id
+					break
+	save_game()
+	skills_changed.emit()

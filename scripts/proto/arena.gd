@@ -19,11 +19,16 @@ extends Node2D
 ## Przedmioty (Items, stan w Game): rzadko z goblinów, kilka ze skrzyni Wodza; cechy założonych (`gear`) idą do postaci
 ## i miecza od razu, także po zmianie ekwipunku w pauzie (sygnał Game.inventory_changed). Każdy podniesiony
 ## (albo od razu sprzedany) przedmiot pokazuje krótkie powiadomienie pod paskami u góry (`loot_feed`).
+## Umiejętności (Skills, stan w Game): po drugiej stronie Watry stoi kamień run (ProtoStash z grafiką kamienia) -
+## otwiera okno umiejętności z kupowaniem (SkillsWindow). Przyciski walki pokazują umiejętności z miejsc
+## (Game.skill_slots): duży przycisk - `weapon.main_skill`, małe - stuknięcie używa umiejętności (`weapon.cast`),
+## a na przyciskach widać odnowienie i brak many (`_update_skill_buttons`).
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 0), Vector2(100, 10), Vector2(0, 170)]
 const WATRA_POS := Vector2(0, -115)
 const STASH_POS := Vector2(-125, -135)
+const RUNE_POS := Vector2(125, -135)
 const BASE_SCENE := "res://scenes/prototype.tscn"
 const HORDE_SCENE := "res://scenes/horde.tscn"
 ## Po śmierci postaci okno wyniku pojawia się po tylu sekundach (widać, jak pada).
@@ -89,6 +94,9 @@ var picker: LevelPicker
 ## Skrzynia w bazie i jej okno.
 var stash: ProtoStash
 var stash_window: StashWindow
+## Baza: kamień run i okno umiejętności z kupowaniem.
+var rune_stone: ProtoStash
+var skills_window: SkillsWindow
 ## Poziom lochu tej wyprawy (Game.dungeon_level).
 var level := 1
 var chief: ProtoChief
@@ -179,6 +187,16 @@ func _ready() -> void:
 		stash.opened.connect(open_stash)
 		world.add_child(stash)
 		hero.obstacles.append(Vector3(STASH_POS.x, STASH_POS.y, ProtoStash.RADIUS))
+		rune_stone = ProtoStash.new()
+		rune_stone.name = "RuneStone"
+		rune_stone.texture = preload("res://assets/watra/rune_stone.png")
+		rune_stone.title = "Umiejętności"
+		rune_stone.sprite_scale = 0.9
+		rune_stone.position = RUNE_POS
+		rune_stone.hero = hero
+		rune_stone.opened.connect(open_skills)
+		world.add_child(rune_stone)
+		hero.obstacles.append(Vector3(RUNE_POS.x, RUNE_POS.y, ProtoStash.RADIUS))
 	world.add_child(weapon)
 	if not horde:
 		hero.set_level(Game.hero_level, gear)
@@ -190,6 +208,10 @@ func _ready() -> void:
 	Game.inventory_changed.connect(_on_inventory)
 	actions.attack.pressed.connect(func() -> void: weapon.attack_held = true)
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
+	for i in actions.skills.size():
+		actions.skills[i].pressed.connect(_on_skill_pressed.bind(i + 1))
+	_apply_skills()
+	Game.skills_changed.connect(_apply_skills)
 
 
 ## Trawa z Watry powtarzana na całej polanie, z ciemniejszym brzegiem.
@@ -287,6 +309,9 @@ func _make_hud() -> void:
 		stash_window = StashWindow.new()
 		stash_window.visible = false
 		safe.add_child(stash_window)
+		skills_window = SkillsWindow.new()
+		skills_window.visible = false
+		safe.add_child(skills_window)
 	pause_menu.closed.connect(_apply_settings)
 	pause_menu.dev_embers.connect(_on_dev_embers)
 	layer.add_child(pause_menu)
@@ -465,6 +490,32 @@ func _apply_weapon() -> void:
 	weapon.speed_mult = HeroStats.attack_speed_mult(gear)
 
 
+## Umiejętności z miejsc na przyciski walki i do miecza (duży przycisk - umiejętność z auto atakiem).
+func _apply_skills() -> void:
+	actions.show_skills(Game.skill_slots)
+	weapon.main_skill = Game.main_skill()
+
+
+## Stuknięcie małego przycisku: umiejętność z tego miejsca; gdy się odnawia albo brakuje many - drgnięcie przycisku.
+func _on_skill_pressed(slot: int) -> void:
+	var id: String = Game.skill_slots[slot]
+	if id == "" or not Game.slot_open(slot) or hero.dead:
+		return
+	if not weapon.cast(id):
+		actions.button(slot).deny()
+
+
+## Odnowienie i brak many na przyciskach walki (co klatkę; przycisk przerysowuje się tylko przy zmianie).
+func _update_skill_buttons() -> void:
+	for slot in Skills.SLOTS:
+		var id: String = actions.slot_skills[slot] if slot > 0 else weapon.main_skill
+		var b := actions.button(slot)
+		if id == "" or b.locked_level > 0:
+			b.set_state(0.0, 0.0, false)
+			continue
+		b.set_state(weapon.cooldown_left(id), Skills.cooldown_of(id), hero.mana < Skills.mana_of(id))
+
+
 ## Przedmiot na ziemi (z goblina albo skrzyni) - podniesione liczą się do podsumowania wyprawy.
 func _track_loot(loot: ProtoLoot) -> void:
 	loot.picked.connect(func(item: Dictionary) -> void:
@@ -592,6 +643,7 @@ func _hud_label(text: String) -> Label:
 
 func _process(delta: float) -> void:
 	_time += delta
+	_update_skill_buttons()
 	if horde_spawner and time_label:
 		var s := int(horde_spawner.time)
 		time_label.text = "%d:%02d" % [s / 60, s % 60]
@@ -709,6 +761,14 @@ func open_stash() -> void:
 	stash_window.open()
 
 
+## Baza: okno umiejętności z kupowaniem (stuknięcie albo podejście do kamienia run).
+func open_skills() -> void:
+	joystick.release()
+	actions.attack.release()
+	weapon.attack_held = false
+	skills_window.open(true)
+
+
 func open_picker() -> void:
 	joystick.release()
 	actions.attack.release()
@@ -770,6 +830,10 @@ func _notification(what: int) -> void:
 	if stash_window and stash_window.visible:
 		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 			stash_window.back()
+		return
+	if skills_window and skills_window.visible:
+		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+			skills_window.back()
 		return
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and pause_menu.visible:
 		pause_menu.back()

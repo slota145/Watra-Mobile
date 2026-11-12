@@ -15,6 +15,8 @@ const HP_STEP := 10
 ## Mana na 1. poziomie i przyrost na każdy kolejny (prośba autora: pasek many; zużyją ją umiejętności).
 const MANA_BASE := 50
 const MANA_STEP := 5
+## Mana odnawia się o tyle na sekundę (umiejętności miecza: 15-25 many co kilka sekund).
+const MANA_REGEN := 3.0
 ## Mnożnik obrażeń broni rośnie o tyle na poziom (+6%).
 const DAMAGE_STEP := 0.06
 ## Na tych poziomach odblokowują się kolejne miejsca na umiejętności (w kolejności od boku ekranu do góry).

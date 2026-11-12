@@ -10,6 +10,8 @@ extends Node2D
 ## Poziom postaci (`set_level`, HeroLevels) ustala największe zdrowie; awans (`level_up`) leczy do pełna
 ## ze złotym błyskiem, napisem „Poziom N!” i dźwiękiem. Przedmioty (`gear` - Items.totals) dokładają zdrowie, manę,
 ## szybkość ruchu, regenerację zdrowia i ochronę (mniej obrażeń od potworów).
+## Mana odnawia się sama (HeroLevels.MANA_REGEN), a wydają ją umiejętności miecza (`spend_mana`). Doskok (`dash`,
+## Mgnienie) przenosi postać po prostej - w trakcie nie dostaje obrażeń i nie słucha gałki.
 
 signal health_changed(hp: int, max_hp: int)
 signal mana_changed(mana: int, max_mana: int)
@@ -38,7 +40,7 @@ var gesture := true
 var facing := Vector2.DOWN
 var velocity := Vector2.ZERO
 var max_hp := MAX_HP
-## Mana (na razie nic jej nie zużywa - czeka na umiejętności).
+## Mana (zużywają ją umiejętności miecza).
 var max_mana := HeroLevels.MANA_BASE
 var mana := HeroLevels.MANA_BASE
 var hp := MAX_HP
@@ -54,6 +56,12 @@ var move_mult := 1.0
 var regen := 0.0
 var protection := 0.0
 var _regen_acc := 0.0
+var _mana_acc := 0.0
+## Doskok: skąd, dokąd, ile już trwa i ile ma trwać (s; 0 - brak doskoku).
+var _dash_from := Vector2.ZERO
+var _dash_to := Vector2.ZERO
+var _dash_t := 0.0
+var _dash_time := 0.0
 ## Ostatnio podane cechy z przedmiotów (awans liczy z nimi nowe zdrowie).
 var gear := {}
 
@@ -87,6 +95,27 @@ func _process(delta: float) -> void:
 			_regen_acc -= heal
 			hp = mini(hp + heal, max_hp)
 			health_changed.emit(hp, max_hp)
+	if mana < max_mana:
+		_mana_acc += HeroLevels.MANA_REGEN * delta
+		if _mana_acc >= 1.0:
+			var add := int(_mana_acc)
+			_mana_acc -= add
+			mana = mini(mana + add, max_mana)
+			mana_changed.emit(mana, max_mana)
+	else:
+		_mana_acc = 0.0
+	if _dash_time > 0.0:
+		_dash_t += delta
+		var k := clampf(_dash_t / _dash_time, 0.0, 1.0)
+		position = _dash_from.lerp(_dash_to, ease(k, 0.4))
+		velocity = (_dash_to - _dash_from) / _dash_time
+		if k >= 1.0:
+			_dash_time = 0.0
+			position = _push_out(position)
+		_play("walk")
+		_time += delta
+		_update_frame()
+		return
 	var input := joystick.vector if joystick else Vector2.ZERO
 	velocity = input * SPEED * move_mult
 	position = _push_out((position + velocity * delta).clamp(bounds.position, bounds.end))
@@ -104,7 +133,7 @@ func _process(delta: float) -> void:
 
 ## Trafienie przez potwora: czerwony błysk, liczba nad głową, krótka nietykalność; przy zerze - śmierć.
 func take_damage(amount: int) -> void:
-	if dead or _invulnerable > 0.0:
+	if dead or _invulnerable > 0.0 or _dash_time > 0.0:
 		return
 	_invulnerable = INVULNERABLE
 	amount = maxi(1, roundi(amount * (1.0 - protection)))
@@ -131,6 +160,30 @@ func take_damage(amount: int) -> void:
 		fall.parallel().tween_property(_sprite, "position:y", 8.0, 0.35)
 		fall.tween_property(_sprite, "modulate", Color(0.45, 0.4, 0.4), 0.4)
 		died.emit()
+
+
+## Wydaje manę na umiejętność. Zwraca false (i nic nie zabiera), gdy jej brakuje.
+func spend_mana(amount: int) -> bool:
+	if amount > mana:
+		return false
+	mana -= amount
+	mana_changed.emit(mana, max_mana)
+	return true
+
+
+## Doskok o `distance` pikseli w kierunku `dir` w czasie `duration` (w granicach areny). Zwraca punkt docelowy.
+func dash(dir: Vector2, distance: float, duration: float) -> Vector2:
+	_dash_from = position
+	_dash_to = (position + dir.normalized() * distance).clamp(bounds.position, bounds.end)
+	_dash_t = 0.0
+	_dash_time = duration
+	facing = dir.normalized()
+	return _dash_to
+
+
+## Czy postać jest w trakcie doskoku.
+func dashing() -> bool:
+	return _dash_time > 0.0
 
 
 ## Ustawia zdrowie i manę według poziomu postaci i przedmiotów (`gear` - Items.totals; pełne).
