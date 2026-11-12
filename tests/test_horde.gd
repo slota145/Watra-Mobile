@@ -87,7 +87,7 @@ func _test_embers(arena: Node, hero: ProtoHero, horde: ProtoHorde) -> void:
 	var r: Rect2 = arena.summon_button.get_global_rect()
 	var view := root.get_visible_rect().size
 	_check(arena.summon_button.visible and arena.ember_bar.value == DungeonLevels.SUMMON_COST, "pełny pasek - przycisk przyzwania")
-	_check(r.size.y >= 44.0 and r.get_center().y > view.y * 0.5 and arena.joystick._is_blocked(r.get_center()), "przycisk przyzwania w dolnej połowie, 44 px, nie rusza gałki")
+	_check(r.size.y >= 44.0 and r.get_center().y < view.y * 0.25 and arena.joystick._is_blocked(r.get_center()), "przycisk przyzwania u góry ekranu, 44 px, nie rusza gałki")
 	# ucieczka z okna pauzy nie zanosi żaru
 	arena._open_menu()
 	_check(arena.pause_menu.leave_note.visible, "pauza ostrzega, że ucieczka gasi żar")
