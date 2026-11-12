@@ -94,8 +94,35 @@ func _run() -> void:
 	_check(dummy._total >= 28, "kukła liczy obrażenia (suma %d)" % dummy._total)
 	var far: ProtoDummy = arena.weapon.targets[2]
 	_check(far._count == 0, "daleka kukła nietknięta")
-	arena.gesture_button.button_pressed = false
-	_check(not hero.gesture and arena.gesture_button.text.contains("wył"), "przycisk wyłącza gest")
+	# okno pauzy: przyciski po lewej i gest
+	var game: Node = root.get_node("Game")
+	game.left_handed = false
+	game.gesture = true
+	arena.menu_button.pressed.emit()
+	await process_frame
+	var menu: PauseMenu = arena.pause_menu
+	_check(menu.visible and paused, "Menu otwiera pauzę i zatrzymuje grę")
+	menu.left_toggle.button_pressed = true
+	menu.gesture_toggle.button_pressed = false
+	menu.resume_button.pressed.emit()
+	await process_frame
+	await process_frame
+	_check(not menu.visible and not paused, "„Wróć do gry” zamyka pauzę")
+	var left_at: Vector2 = attack.get_global_rect().get_center()
+	_check(left_at.x < view.x * 0.4 and left_at.y > view.y * 0.7, "atak w lewym dolnym rogu")
+	var ok_left := true
+	for sk in skills:
+		var r: Rect2 = sk.get_global_rect()
+		ok_left = ok_left and Rect2(Vector2.ZERO, view).encloses(r) and r.get_center().x > left_at.x - 1.0
+	_check(ok_left, "umiejętności po prawej stronie ataku, na ekranie")
+	_check(not hero.gesture, "gest wyłączony w menu")
+	_touch(left_at, true, 1)
+	await process_frame
+	_check(arena.weapon.attack_held and arena.joystick._finger == -1, "atak po lewej działa, gałka nie startuje")
+	_touch(left_at, false, 1)
+	game.load_settings()
+	_check(game.left_handed and not game.gesture, "ustawienia zapisane")
+	DirAccess.remove_absolute(game.settings_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
 	quit(1 if _failed else 0)
 

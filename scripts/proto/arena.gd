@@ -1,7 +1,8 @@
 extends Node2D
 ## Prototyp walki: polana z trawy, Wojciech z lewitującym mieczem i kukły treningowe z Watry.
 ## Chodzenie: przeciągnij palcem w dowolnym miejscu ekranu (pływająca gałka). Atak: trzymaj przycisk miecza
-## w prawym dolnym rogu (wokół niego 4 puste miejsca na umiejętności). Przycisk „Gest” włącza i wyłącza gest ręką postaci przy ataku (porównanie obu wersji).
+## w dolnym rogu (wokół niego 4 puste miejsca na umiejętności). „Menu” otwiera okno pauzy: przyciski po lewej
+## stronie, gest ręką postaci przy ataku, wyjście do menu głównego.
 ## Wszystko budowane w kodzie, żeby prototyp łatwo było zmieniać i wyrzucić.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
@@ -10,8 +11,9 @@ const DUMMIES := [Vector2(0, -70), Vector2(-80, 40), Vector2(90, 60)]
 var hero: ProtoHero
 var weapon: ProtoWeapon
 var joystick: Joystick
-var gesture_button: Button
+var menu_button: Button
 var actions: ActionCluster
+var pause_menu: PauseMenu
 
 
 func _ready() -> void:
@@ -27,6 +29,7 @@ func _ready() -> void:
 	hero.position = Vector2(0, 40)
 	hero.joystick = joystick
 	hero.bounds = ARENA.grow(-16)
+	hero.gesture = Game.gesture
 	world.add_child(hero)
 	var camera := Camera2D.new()
 	camera.position_smoothing_enabled = true
@@ -82,22 +85,11 @@ func _make_hud() -> void:
 	var top := HBoxContainer.new()
 	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(top)
-	var back := Button.new()
-	back.text = tr("Menu")
-	back.custom_minimum_size = Vector2(72, 44)
-	back.pressed.connect(func() -> void: Game.change_scene(Game.MENU_SCENE))
-	top.add_child(back)
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	top.add_child(spacer)
-	gesture_button = Button.new()
-	gesture_button.toggle_mode = true
-	gesture_button.button_pressed = true
-	gesture_button.custom_minimum_size = Vector2(110, 44)
-	gesture_button.toggled.connect(_on_gesture_toggled)
-	top.add_child(gesture_button)
-	_on_gesture_toggled(true)
+	menu_button = Button.new()
+	menu_button.text = tr("Menu")
+	menu_button.custom_minimum_size = Vector2(72, 44)
+	menu_button.pressed.connect(_open_menu)
+	top.add_child(menu_button)
 	var hint := Label.new()
 	hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -112,14 +104,34 @@ func _make_hud() -> void:
 	fill.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(fill)
-	# prawy dolny róg: atak i miejsca na umiejętności
+	# dolny róg (prawy albo lewy - ustawienie): atak i miejsca na umiejętności
 	actions = ActionCluster.new()
-	actions.size_flags_horizontal = Control.SIZE_SHRINK_END
+	actions.left_handed = Game.left_handed
 	column.add_child(actions)
 	joystick.blocked = [top, actions]
+	pause_menu = PauseMenu.new()  # ostatnie dziecko: nad całym interfejsem
+	pause_menu.visible = false
+	pause_menu.closed.connect(_apply_settings)
+	layer.add_child(pause_menu)
 
 
-func _on_gesture_toggled(on: bool) -> void:
-	gesture_button.text = tr("Gest: wł.") if on else tr("Gest: wył.")
-	if hero:
-		hero.gesture = on
+func _open_menu() -> void:
+	joystick.release()
+	actions.attack.release()
+	pause_menu.open()
+
+
+## Po zamknięciu okna pauzy: ustawienia z Game na przyciski i postać.
+func _apply_settings() -> void:
+	actions.left_handed = Game.left_handed
+	hero.gesture = Game.gesture
+
+
+## Przycisk „wstecz” na Androidzie otwiera i zamyka pauzę; przełączenie telefonu na inną aplikację ją otwiera.
+func _notification(what: int) -> void:
+	if not pause_menu:
+		return
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and pause_menu.visible:
+		pause_menu.close()
+	elif what in [NOTIFICATION_WM_GO_BACK_REQUEST, NOTIFICATION_APPLICATION_PAUSED] and not pause_menu.visible:
+		_open_menu()

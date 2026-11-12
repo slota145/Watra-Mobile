@@ -46,7 +46,8 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `lang.gd` (tłumaczenia), `scripts/ui/` (interfejs, `safe_area.gd`).
 - `scripts/proto/`: prototyp walki (`arena.gd` - polana i interfejs, `proto_hero.gd` - postać, `proto_weapon.gd` -
   lewitujący miecz, `proto_dummy.gd` - kukła); `scripts/ui/joystick.gd` - pływająca gałka (dotyk wieloma palcami),
-  `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w prawym dolnym rogu.
+  `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
+  `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania (zapis w `Game`, `user://settings.cfg`).
 - `scenes/`: sceny (`main_menu.tscn` startowa, `prototype.tscn` - prototyp walki pod „Graj”).
 - `assets/`: grafiki, muzyka, dźwięki; `assets/watra/` - pliki skopiowane z Watry; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
 - `art/specs/`: specyfikacje postaci SpriteKiln (YAML; Godot je pomija). Wyniki renderów w `out/` są generowane i nie idą do gita.

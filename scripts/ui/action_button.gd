@@ -43,6 +43,16 @@ func _input(event: InputEvent) -> void:
 			queue_redraw()
 
 
+## Puszcza przycisk bez dotyku (np. przy otwarciu pauzy).
+func release() -> void:
+	if held:
+		_finger = -1
+		held = false
+		scale = Vector2.ONE
+		released.emit()
+		queue_redraw()
+
+
 func _process(delta: float) -> void:
 	if _flash > 0.0:
 		_flash = maxf(0.0, _flash - delta * 5.0)

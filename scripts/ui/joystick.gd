@@ -47,6 +47,13 @@ func _input(event: InputEvent) -> void:
 		queue_redraw()
 
 
+## Puszcza gałkę (np. przy otwarciu pauzy - palec zdjęty w zatrzymanej grze nie dałby znać).
+func release() -> void:
+	_finger = -1
+	vector = Vector2.ZERO
+	queue_redraw()
+
+
 func _is_blocked(pos: Vector2) -> bool:
 	for c in blocked:
 		if c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
