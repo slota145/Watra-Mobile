@@ -2,6 +2,34 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - pierwszy potwór (goblin) i loch z Hordą
+
+- Ustalenia z autorem: goblin, ciągły strumień, średnie obrażenia; polana z kukłami to baza, wejście do lochu przez
+  dotknięcie Watry; po śmierci wynik i przyciski „Jeszcze raz” / „Powrót do bazy”.
+- Goblin w SpriteKiln: `art/specs/characters/goblin/goblin.yaml` (dziedziczy po humanoidzie; ok. 27 px, głowa x1.4,
+  długie uszy `ear_L/R`, skóra oliwkowa z chłodnymi cieniami, świecące bursztynowe oczy, tunika, tasak `knife` na
+  `wrist_R`, sockety `knife_hit`/`knife_tip`). Animacje: idle 6x150 ms, walk 8x90 ms (ziemia 42 px/s = `ProtoGoblin.SPEED`
+  - zmiana prędkości w grze wymaga zmiany chodu, inaczej stopy się ślizgają), attack 560 ms (`windup` 0 ms, `hit` po
+  300 ms, pionowa smuga przez kość `fxspace`), hit 3x70 ms, death 1280 ms (pada na plecy). QA bez błędów.
+  Eksport: `assets/spritekiln/goblin/` (scena `goblin.tscn` z `KilnSprite2D`), dodatek `addons/spritekiln` (bez
+  włączania wtyczki w project.godot - skrypt działa sam).
+- `scripts/proto/proto_target.gd` (`ProtoTarget`): wspólna baza celów miecza (`center`, `alive`, `take_damage`,
+  `spawn_number`); `ProtoDummy` i `ProtoGoblin` po niej dziedziczą. Miecz (`ProtoWeapon._live_targets`) bije listę
+  `targets` i grupę `ProtoWeapon.TARGETS` (potwory dopisują się same), pomija martwe.
+- `proto_goblin.gd`: 40 zdrowia (2-3 cięcia), prędkość 42 (Wojciech 70), zamach z 15 px, cios trafia do 22 px
+  (zdarzenie `hit` animacji - da się odskoczyć), 10 obrażeń co 1 s, rozpychanie w tłumie (`_separation`), odrzut,
+  trafienie przerywa zamach; śmierć: animacja, 1,2 s ciała, zanikanie.
+- `proto_horde.gd` (`ProtoHorde`): ciągły strumień - odstęp 1,3 -> 0,3 s i 8 -> 45 goblinów naraz w ciągu 180 s;
+  pojawiają się tuż poza kadrem (`spawn_point`), liczy `kills` i `time`.
+- `proto_hero.gd`: 100 zdrowia, `take_damage` (czerwony błysk, liczba, wibracja, 0,35 s nietykalności), `died`,
+  przewrócenie się (Wojciech z Watry nie ma animacji śmierci), `obstacles` (okręgi spłaszczone w pionie).
+- `proto_watra.gd` (`ProtoWatra`): Watra z Watry (`assets/watra/watra.png`, 6 klatek, 7 kl/s), poświata, iskry, napis
+  pod ogniem; dotknięcie (`TAP_RECT`) -> `entered`. Krąg kamieni zatrzymuje postać.
+- `arena.gd`: `@export var horde` - baza (`prototype.tscn`: kukły (-100,0), (100,10), (0,170), Watra (0,-115)) albo loch
+  (`scenes/horde.tscn`: chłodniejsza trawa, pasek zdrowia, „Pokonane: N”, czas). `scripts/ui/run_result.gd`
+  (`RunResult`): okno wyniku po 1,2 s od śmierci (pauza). Okno pauzy w lochu ma „Powrót do bazy” (`PauseMenu.base_scene`).
+- Test `tests/test_horde.gd`; wydajność: 45 goblinów nie zmienia czasu klatki w chmurze.
+
 ## 12.11.2026 - styl grafiki (wywiad SpriteKiln)
 
 - Odpowiedzi autora zapisane `spritekiln style set` w `spritekiln.toml`: topdown, 36 px (klatka 48, scale 0.04889),

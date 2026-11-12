@@ -61,7 +61,7 @@ func _ready() -> void:
 	label.add_theme_color_override("font_outline_color", Color(0.12, 0.06, 0.03))
 	label.add_theme_constant_override("outline_size", 4)
 	label.size = Vector2(200, 14)
-	label.position = Vector2(-100, -112)
+	label.position = Vector2(-100, 4)  # pod kręgiem kamieni (nad ogniem zasłaniałby go pasek u góry)
 	label.z_index = 31
 	add_child(label)
 

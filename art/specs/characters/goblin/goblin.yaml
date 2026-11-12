@@ -72,6 +72,10 @@ channels:
   foot_L: [0.10, 0, 0.02]
   knife_pitch: 0    # cleaver lean at the wrist (+: tip forward/down)
   knife_splay: 0    # cleaver turned outwards (+) or across the body (-)
+  # the attack's smear is a vertical arc (overhead chop): centred on fxspace (below), so no offset
+  smear_y: 0
+  smear_z: 0.05
+  smear_r: 0.62
 
 bones:
   # hip height 0.55 (human 0.84); the +0.15 is the goblin's permanent hunch
@@ -86,6 +90,9 @@ bones:
   knife_edge: {parent: knife, rot: [0, 0.9, 0]}
   coatbase:   {parent: pelvis, rot: "[-coat*0.25 - 0.12, 0, 0]"}   # the skirt hangs straight despite the hunch
   hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  # smear frame of the overhead chop: at the right shoulder's height, rolled 90 degrees so that the arc
+  # runs in the vertical front-back plane (t = 0 forward, pi/2 up); it follows the lunge (root)
+  fxspace:    {parent: root, pos: [-0.15, 0.55, 0], rot: "[0, twist*0.3, 1.5708]"}
 
 ik:
   arm_L: {lengths: [0.19, 0.18]}
@@ -185,3 +192,88 @@ animations:
       hand_L: "[0.23, 0.04 + 0.015*sin(p - 0.6), 0.06]"
       hand_R: "[0.27, 0.07 + 0.015*sin(p - 0.6), 0.16]"
       coat: "0.15*sin(p - 1.0)"
+  # quick, short-legged trot matched to the game's goblin speed (42 px/s; QA reports the ground speed):
+  # each foot is planted for 3 of the 8 frames and slides back at a constant speed (no skating), then swings
+  # forward with an eased lift; body lowest at the contacts, arms against the legs
+  walk:
+    frames: 8
+    ms: 90
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.12
+      bob: "-0.028*cos(2*p) + 0.005"
+      squash: "1 - 0.02*cos(2*p)"
+      twist: "0.09*cos(p)"
+      head_yaw: "-0.06*cos(p)"
+      head_pitch: "0.04*cos(2*p - 0.6)"
+      foot_L: "[0.11, 0.08*sin(pi*clamp((p/tau - 0.375)/0.625, 0, 1)), 0.03 + 0.277 - 0.554*clamp(p/tau/0.375, 0, 1) + 0.554*clamp((p/tau - 0.375)/0.625, 0, 1)**2*(3 - 2*clamp((p/tau - 0.375)/0.625, 0, 1))]"
+      foot_R: "[0.11, 0.08*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1)), 0.03 + 0.277 - 0.554*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.375, 0, 1) + 0.554*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1))]"
+      pitch_foot_L: "0.35*sin(pi*clamp((p/tau - 0.375)/0.625, 0, 1))"
+      pitch_foot_R: "0.35*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1))"
+      hand_L: "[0.25, 0.06 + 0.03*pos(cos(p)), 0.06 - 0.12*cos(p)]"
+      hand_R: "[0.28, 0.09 + 0.03*pos(-cos(p)), 0.15 + 0.10*cos(p)]"
+      knife_pitch: "-0.15*cos(p - 0.5)"
+      coat: "0.4*sin(2*p - 0.6)"
+  # overhead chop forward and down: wind-up raising the cleaver high above the head (it shows over the head
+  # in n, nw, w too), the held extreme, one short strike with a vertical smear, follow-through, recovery
+  attack:
+    loop: false
+    keys:
+      - {ms: 70, event: windup, set: {twist: -0.15, lean: -0.05, bob: -0.02, squash: 0.97, coat: -0.2,
+          hand_R: [0.26, 0.38, 0.04], knife_pitch: 0.8, knife_splay: -0.2, hand_L: [0.22, 0.12, 0.14], head_pitch: -0.05}}
+      - {ms: 100, set: {twist: -0.3, lean: -0.2, bob: -0.01, squash: 1.02, coat: -0.3,
+          hand_R: "[0.30, 0.56, -0.12*pulse(yaw, 90, 70)]", knife_pitch: 1.8, knife_splay: -0.4, hand_L: [0.24, 0.2, 0.2], head_pitch: -0.12,
+          foot_L: [0.11, 0, 0.10], foot_R: [0.11, 0, -0.06]}}
+      - {ms: 130, set: {twist: -0.35, lean: -0.28, bob: 0, squash: 1.05, coat: -0.35,
+          hand_R: "[0.30, 0.62, -0.04 - 0.16*pulse(yaw, 90, 70)]", knife_pitch: "2.5 + 0.3*pulse(yaw, 90, 70)", knife_splay: -0.6, hand_L: [0.25, 0.22, 0.22], head_pitch: -0.15,
+          foot_L: [0.11, 0, 0.10], foot_R: [0.11, 0, -0.06]}}
+      - {ms: 50, event: hit, set: {root: [0, 0, 0.12], twist: 0.15, lean: 0.35, bob: -0.06, squash: 0.95, coat: 0.5,
+          hand_R: [0.08, 0.05, 0.36], knife_pitch: 1.0, hand_L: [0.24, 0.0, -0.05], head_pitch: 0.1,
+          foot_L: [0.11, 0, 0.20], foot_R: [0.11, 0, -0.08],
+          smear_w: 0.09, smear_a0: 1.9, smear_a1: -0.5}}
+      - {ms: 60, set: {root: [0, 0, 0.14], twist: 0.2, lean: 0.42, bob: -0.08, squash: 0.93, coat: 0.6,
+          hand_R: [0.06, -0.02, 0.32], knife_pitch: 1.4, hand_L: [0.24, 0.0, -0.06], head_pitch: 0.12,
+          foot_L: [0.11, 0, 0.20], foot_R: [0.11, 0, -0.08],
+          smear_w: 0.07, smear_a0: 0.9, smear_a1: -0.6, smear_fade: 0.6}}
+      - {ms: 70, set: {root: [0, 0, 0.08], twist: 0.1, lean: 0.2, bob: -0.03, coat: 0.2,
+          hand_R: [0.18, 0.04, 0.24], knife_pitch: 0.6, hand_L: [0.24, 0.03, 0.02],
+          foot_L: [0.11, 0, 0.14], foot_R: [0.11, 0, -0.05]}}
+      - {ms: 80, set: {root: [0, 0, 0.02], lean: 0.07, coat: -0.05, hand_R: [0.26, 0.07, 0.17], knife_pitch: 0.1,
+          foot_L: [0.10, 0, 0.05]}}
+  # hit reaction: body and head snap back, then return
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.3, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5,
+          hand_L: [0.30, 0.16, -0.04], hand_R: [0.33, 0.18, 0.04], knife_pitch: -0.3}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.15, bob: -0.01, squash: 0.98, head_pitch: -0.12, coat: -0.2,
+          hand_L: [0.27, 0.09, 0.02], hand_R: [0.30, 0.12, 0.10], knife_pitch: -0.15}}
+      - {ms: 70, set: {root: [0, 0, -0.01], lean: 0.0, head_pitch: 0.02, coat: 0.1,
+          hand_L: [0.24, 0.05, 0.05], hand_R: [0.28, 0.08, 0.15]}}
+  # death: struck back, staggers a step, knees buckle, falls on its back (the cleaver flung out beside it)
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: -0.35, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5,
+          hand_L: [0.30, 0.18, -0.02], hand_R: [0.33, 0.20, 0.04], knife_pitch: -0.3}}
+      - {ms: 110, set: {root: [0, 0, -0.08], twist: 0.2, roll: 0.08, lean: -0.3, bob: -0.04, head_pitch: -0.2,
+          coat: -0.3, hand_L: [0.32, 0.12, 0.0], hand_R: [0.34, 0.14, 0.0], knife_pitch: -0.2,
+          foot_L: [0.11, 0, 0.06], foot_R: [0.12, 0.05, -0.14]}}
+      - {ms: 120, set: {root: [0, 0, -0.08], twist: 0.15, roll: 0.1, lean: -0.15, bob: -0.14, squash: 0.94,
+          head_pitch: 0.15, coat: 0.2, hand_L: [0.26, -0.02, 0.10], hand_R: [0.28, 0.0, 0.12], knife_pitch: 0.3,
+          foot_L: [0.11, 0, 0.08], foot_R: [0.12, 0, -0.10]}}
+      - {ms: 110, set: {root: [0, 0, -0.08], twist: 0.1, roll: 0.06, lean: -0.75, bob: -0.24, head_pitch: -0.2,
+          coat: -0.4, hand_L: [0.34, 0.15, 0.10], hand_R: [0.36, 0.18, 0.12], knife_pitch: -0.4,
+          foot_L: [0.11, 0.04, 0.20], foot_R: [0.12, 0.02, 0.12]}}
+      - {ms: 100, set: {root: [0, 0, 0.0], twist: "0.3*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.3, bob: -0.36, head_pitch: -0.45,
+          coat: -0.5, hand_L: [0.36, 0.12, 0.12], hand_R: [0.38, 0.14, 0.12], knife_pitch: -0.6, knife_splay: 0.4,
+          foot_L: [0.11, 0.10, 0.36], foot_R: [0.12, 0.06, 0.30]}}
+      - {ms: 110, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.75, bob: -0.43, squash: 0.92, head_pitch: -0.75,
+          coat: -0.6, hand_L: [0.36, 0.06, -0.08], hand_R: [0.40, 0.06, -0.08], knife_pitch: -0.9, knife_splay: 0.8,
+          foot_L: [0.12, 0.06, 0.44], foot_R: [0.13, 0.03, 0.40]}}
+      - {ms: 120, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.68, bob: -0.41, squash: 0.97, head_pitch: -0.65,
+          coat: -0.5, hand_L: [0.37, 0.06, -0.05], hand_R: [0.40, 0.06, -0.06], knife_pitch: -0.9, knife_splay: 0.8,
+          foot_L: [0.12, 0.02, 0.45], foot_R: [0.13, 0, 0.42]}}
+      - {ms: 500, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.72, bob: -0.43, head_pitch: -0.7,
+          coat: -0.6, hand_L: [0.37, 0.06, -0.08], hand_R: [0.40, 0.06, -0.08], knife_pitch: -0.9, knife_splay: 0.8,
+          foot_L: [0.12, 0, 0.46], foot_R: [0.13, 0, 0.44]}}

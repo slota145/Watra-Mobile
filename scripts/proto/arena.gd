@@ -8,8 +8,8 @@ extends Node2D
 ## (horde.tscn, `horde = true` - ciągły strumień goblinów, pasek zdrowia, licznik pokonanych, po śmierci okno wyniku).
 
 const ARENA := Rect2(-360, -560, 720, 1120)
-const DUMMIES := [Vector2(0, -70), Vector2(-80, 40), Vector2(90, 60)]
-const WATRA_POS := Vector2(0, -190)
+const DUMMIES := [Vector2(-100, 0), Vector2(100, 10), Vector2(0, 170)]
+const WATRA_POS := Vector2(0, -115)
 const BASE_SCENE := "res://scenes/prototype.tscn"
 const HORDE_SCENE := "res://scenes/horde.tscn"
 ## Po śmierci postaci okno wyniku pojawia się po tylu sekundach (widać, jak pada).

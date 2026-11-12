@@ -86,7 +86,8 @@ func _process(delta: float) -> void:
 					move += to_hero.normalized() * SPEED
 					_face(to_hero)
 			move += _separation() * SPEED
-			_play(&"walk" if move.length() > 4.0 else &"idle")
+			if _state == "walk":  # zamach mógł się właśnie zacząć - wtedy gra animacja ataku
+				_play(&"walk" if move.length() > 4.0 else &"idle")
 		"attack":
 			move += _separation() * SPEED * 0.5
 			if not _scene:  # bez grafiki: cios po 0.3 s
