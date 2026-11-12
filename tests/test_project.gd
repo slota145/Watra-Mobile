@@ -29,7 +29,6 @@ func _run() -> void:
 	await process_frame
 	_check(menu.get_node("%Play") is Button, "ekran startowy z przyciskiem Graj")
 	_check(menu.get_node("%Version").text.contains(root.get_node("Game").version()), "wersja w rogu menu")
-	menu.get_node("%Play").pressed.emit()
-	_check(menu.get_node("%Note").text != "", "przycisk Graj odpowiada")
+	_check(ResourceLoader.exists(menu.PROTOTYPE_SCENE), "Graj prowadzi do istniejącej sceny")
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
 	quit(1 if _failed else 0)

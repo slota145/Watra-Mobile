@@ -19,7 +19,7 @@ New-Item -ItemType Directory -Force $out | Out-Null
 
 # [plik, czy potrzebuje okna]
 $tests = @(
-    @("test_project.gd", $false)
+    @("test_project.gd", $false), @("test_prototype.gd", $false)
 )
 
 Write-Host "Import zasobów..."

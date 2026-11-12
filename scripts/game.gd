@@ -9,6 +9,11 @@ const SAVE_PATH := "user://savegame.json"
 var save_path := SAVE_PATH
 
 
+func _ready() -> void:
+	# jak w Watrze: gra startuje po polsku, niezależnie od języka telefonu (wybór języka dojdzie w ustawieniach)
+	Lang.set_language(Lang.DEFAULT)
+
+
 ## Numer wersji gry z project.godot (pokazywany w rogu menu).
 func version() -> String:
 	return str(ProjectSettings.get_setting("application/config/version", "0.0.0"))

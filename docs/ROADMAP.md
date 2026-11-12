@@ -9,6 +9,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 
 ## Najbliższe kroki
 
+0. **Ocena prototypu walki** (`scenes/prototype.tscn`): czy lewitujący miecz i gest się podobają, tempo ataku, zasięg,
+   wielkość postaci na ekranie telefonu; potem efekt cięcia i trafienia z kreatora efektów PixelLab zamiast smugi z kodu.
+
 1. **Wizja gry:** rdzeń ustalony (lochy + hub, może jak Vampire Survivors bez roguelike) - czekamy na pierwsze pomysły
    autora i odpowiedzi na pytania z `docs/GDD.md` („Do ustalenia”) - od nich zależy cała reszta.
 2. **Styl grafiki:** wywiad SpriteKiln (`spritekiln style`) - wysokość postaci na ekranie, kontur, cieniowanie, paleta;

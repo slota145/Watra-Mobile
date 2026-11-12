@@ -9,7 +9,7 @@ extends MarginContainer
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	get_viewport().size_changed.connect(_update)
 	_update()
 

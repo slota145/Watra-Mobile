@@ -43,8 +43,10 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
 
 - `scripts/`: logika. `game.gd` (autoload `Game`: wersja, zmiana sceny, ścieżka zapisu), `main_menu.gd` (ekran startowy),
   `lang.gd` (tłumaczenia), `scripts/ui/` (interfejs, `safe_area.gd`).
-- `scenes/`: sceny (`main_menu.tscn` startowa).
-- `assets/`: grafiki, muzyka, dźwięki; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
+- `scripts/proto/`: prototyp walki (`arena.gd` - polana i interfejs, `proto_hero.gd` - postać, `proto_weapon.gd` -
+  lewitujący miecz, `proto_dummy.gd` - kukła); `scripts/ui/joystick.gd` - pływająca gałka.
+- `scenes/`: sceny (`main_menu.tscn` startowa, `prototype.tscn` - prototyp walki pod „Graj”).
+- `assets/`: grafiki, muzyka, dźwięki; `assets/watra/` - pliki skopiowane z Watry; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
 - `art/specs/`: specyfikacje postaci SpriteKiln (YAML; Godot je pomija). Wyniki renderów w `out/` są generowane i nie idą do gita.
 - `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia,
   `vfx_art.py` - efekty z kreatora PixelLab do `assets/effects/`).
