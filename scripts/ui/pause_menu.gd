@@ -6,6 +6,8 @@ extends Control
 ## Skróty poziomu zmieniają postać w Game (arena słucha jego sygnałów), żar - sygnał `dev_embers` (arena dodaje go
 ## do paska wyprawy w lochu albo do Watry w bazie). Przycisk „Postać i ekwipunek” otwiera okno postaci z ekwipunkiem
 ## i torbą (HeroStats) nad pauzą. Okno przewija się, gdy nie mieści się na niskim ekranie.
+## W lochu „Uciekaj do bazy” i „Menu główne” pytają „Na pewno?” (drugie stuknięcie wychodzi), żeby nie stracić
+## wyprawy przypadkiem.
 ## Ustawienia zapisuje Game (user://settings.cfg). Działa także przy zatrzymanej grze (PROCESS_MODE_ALWAYS).
 ## Autoload Game bierzemy z drzewa (_game), bo w skrypcie z class_name nazwa autoloadu nie zawsze jest znana
 ## (np. w testach uruchamianych przez -s).
@@ -29,6 +31,8 @@ var items_button: Button
 var reset_button: Button
 ## Reset postaci wymaga drugiego stuknięcia (żeby nie wyzerować jej przypadkiem).
 var _reset_armed := false
+## Wyjście z lochu czekające na potwierdzenie (przycisk albo null).
+var _leave_armed: Button = null
 var _scroll: ScrollContainer
 var _column: VBoxContainer
 var resume_button: Button
@@ -106,7 +110,7 @@ func _ready() -> void:
 	level_button.pressed.connect(func() -> void: _game.dev_level_up())
 	embers_button = _dev_button(dev_row, tr("+%d żaru") % DEV_EMBERS)
 	embers_button.pressed.connect(func() -> void: dev_embers.emit(DEV_EMBERS))
-	items_button = _dev_button(dev_row, tr("+%d przedm.") % DEV_ITEMS)
+	items_button = _dev_button(dev_row, tr("+%d łupu") % DEV_ITEMS)
 	items_button.pressed.connect(func() -> void: _game.dev_items(DEV_ITEMS))
 	reset_button = _dev_button(dev_row, tr("Od nowa"))
 	reset_button.pressed.connect(_on_reset)
@@ -117,9 +121,7 @@ func _ready() -> void:
 	resume_button.pressed.connect(close)
 	if base_scene != "":
 		base_button = _button(column, tr("Uciekaj do bazy"))
-		base_button.pressed.connect(func() -> void:
-			leaving.emit()
-			_game.change_scene(base_scene))
+		base_button.pressed.connect(func() -> void: _leave(base_button, base_scene))
 		leave_note = Label.new()
 		leave_note.text = tr("Żar z wyprawy zgaśnie - do Watry trafia tylko po pokonaniu bossa.")
 		leave_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -129,9 +131,7 @@ func _ready() -> void:
 		leave_note.visible = false
 		column.add_child(leave_note)
 	quit_button = _button(column, tr("Menu główne"))
-	quit_button.pressed.connect(func() -> void:
-		leaving.emit()
-		_game.change_scene(_game.MENU_SCENE))
+	quit_button.pressed.connect(func() -> void: _leave(quit_button, _game.MENU_SCENE))
 	stats = HeroStats.new()
 	stats.visible = false
 	add_child(stats)
@@ -146,6 +146,7 @@ func open(at_stake := 0) -> void:
 	auto_toggle.set_pressed_no_signal(_game.auto_attack)
 	immortal_toggle.set_pressed_no_signal(_game.dev_immortal)
 	_disarm_reset()
+	_disarm_leave()
 	visible = true
 	_fit.call_deferred()
 	get_tree().paused = true
@@ -170,6 +171,27 @@ func close() -> void:
 func _fit() -> void:
 	var limit := get_viewport_rect().size.y - 40.0
 	_scroll.custom_minimum_size = Vector2(260, minf(maxf(_column.size.y, _column.get_combined_minimum_size().y), limit))
+
+
+## Wyjście ze sceny. W lochu pierwsze stuknięcie zmienia napis na „Na pewno?”, dopiero drugie wychodzi.
+func _leave(button: Button, scene: String) -> void:
+	if base_scene != "" and _leave_armed != button:
+		_disarm_leave()
+		_leave_armed = button
+		button.text = tr("Na pewno?")
+		button.add_theme_color_override("font_color", Color(1, 0.55, 0.4))
+		return
+	leaving.emit()
+	_game.change_scene(scene)
+
+
+func _disarm_leave() -> void:
+	_leave_armed = null
+	if base_button:
+		base_button.text = tr("Uciekaj do bazy")
+		base_button.remove_theme_color_override("font_color")
+	quit_button.text = tr("Menu główne")
+	quit_button.remove_theme_color_override("font_color")
 
 
 func _on_reset() -> void:

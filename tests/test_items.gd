@@ -116,6 +116,9 @@ func _test_dungeon(game: Node) -> void:
 	_check(hero.max_hp == HeroLevels.max_hp(1) + helmet.base.hp and hero.hp == hero.max_hp, "hełm dodaje zdrowia (%d)" % hero.max_hp)
 	_check(arena.health_text.text == "%d / %d" % [hero.max_hp, hero.max_hp], "pasek zdrowia z hełmem")
 	_check(arena.weapon.damage == ProtoWeapon.DAMAGE, "bez broni - zwykły miecz")
+	_check(arena.ember_text.text == "0 / %d" % DungeonLevels.SUMMON_COST, "liczby na pasku żaru: " + arena.ember_text.text)
+	horde._on_ember(37)
+	_check(arena.ember_text.text == "37 / %d" % DungeonLevels.SUMMON_COST, "pasek żaru liczy zebrany żar")
 	# broń, ochrona, szybkość - założone w trakcie wyprawy (pauza)
 	var sword := Items.roll(1, "weapon", "common")
 	sword.affixes = [{"stat": "attack_speed_pct", "value": 20.0}, {"stat": "damage_pct", "value": 10.0}]
@@ -143,12 +146,37 @@ func _test_dungeon(game: Node) -> void:
 	var full := horde.drop_item(Items.roll(1), hero.position + Vector2(20, 0))
 	await _wait(0.9)
 	_check(is_instance_valid(full) and not full._taken and full._blocked, "pełna torba - przedmiot zostaje na ziemi")
+	var feed_text := ""
+	for p in arena.loot_feed.get_children():
+		feed_text += p.get_child(0).get_child(1).text
+	_check(feed_text.contains(tr("Podniesiono: %s") % ""), "powiadomienie o podniesionym przedmiocie: " + feed_text)
+	# auto sprzedaż zwykłych: złoto zamiast torby, także przy pełnej torbie
+	game.auto_sell_common = true
+	var gold_before: int = game.gold
+	var common := Items.roll(1, "boots", "common")
+	horde.drop_item(common, hero.position + Vector2(20, 0))
+	await _wait(0.9)
+	_check(game.gold == gold_before + Items.sell_price(common) and arena.run_sold_gold == Items.sell_price(common), "auto sprzedaż zwykłego (+%d złota)" % (game.gold - gold_before))
+	var last: Label = arena.loot_feed.get_child(arena.loot_feed.get_child_count() - 1).get_child(0).get_child(1)
+	_check(last.text.begins_with(tr("Sprzedano: %s (+%d złota)").split(":")[0]), "powiadomienie o sprzedaży: " + last.text)
+	game.auto_sell_common = false
 	var g := horde.spawn_at(hero.position + Vector2(200, 0))
 	await process_frame
 	var xp_before: int = game.hero_xp
 	g.take_damage(10000, hero.global_position)
 	await process_frame
 	_check(game.hero_xp - xp_before == HeroLevels.goblin_xp(1), "bez premii doświadczenia - zwykłe doświadczenie")
+	# wyjście z lochu pyta „Na pewno?”
+	arena._open_menu()
+	var menu: PauseMenu = arena.pause_menu
+	menu.base_button.pressed.emit()
+	_check(menu.base_button.text == tr("Na pewno?") and arena.is_inside_tree(), "„Uciekaj do bazy” pyta „Na pewno?”")
+	menu.quit_button.pressed.emit()
+	_check(menu.quit_button.text == tr("Na pewno?") and menu.base_button.text == tr("Uciekaj do bazy"), "„Menu główne” też pyta, poprzednie pytanie znika")
+	menu.close()
+	arena._open_menu()
+	_check(menu.quit_button.text == tr("Menu główne"), "ponowne otwarcie pauzy kasuje pytanie")
+	menu.close()
 	arena.queue_free()
 	await process_frame
 	game.reset_hero()
@@ -161,7 +189,7 @@ func _test_window(game: Node) -> void:
 	var menu: PauseMenu = arena.pause_menu
 	arena._open_menu()
 	menu.items_button.pressed.emit()
-	_check(game.bag.size() == PauseMenu.DEV_ITEMS, "„+5 przedm.” w pauzie")
+	_check(game.bag.size() == PauseMenu.DEV_ITEMS, "„+5 łupu” w pauzie")
 	menu.stats_button.pressed.emit()
 	await process_frame
 	await process_frame
@@ -209,6 +237,24 @@ func _test_window(game: Node) -> void:
 	_check(not game.equipped.has("weapon"), "zdjęty")
 	menu.back()
 	_check(not stats.visible and menu.visible, "„wstecz” zamyka okno „Postać”")
+	# sprzedaż hurtem: zwykłe osobno, magiczne i rzadkie osobno, z potwierdzeniem
+	game.bag.clear()
+	for rar in ["common", "common", "magic", "rare"]:
+		game.add_item(Items.roll(2, "", rar))
+	stats.open()
+	var common_price: int = game.sell_all_price(["common"])
+	var gold_start: int = game.gold
+	stats.sell_common_button.pressed.emit()
+	_check(game.bag.size() == 4 and stats.sell_common_button.text == tr("Na pewno? +%d złota") % common_price, "„Sprzedaj zwykłe” pyta i podaje cenę")
+	stats.sell_common_button.pressed.emit()
+	_check(game.bag.size() == 2 and game.gold == gold_start + common_price and stats.sell_common_button.disabled, "zwykłe sprzedane, przycisk nieaktywny")
+	stats.sell_better_button.pressed.emit()
+	stats.sell_better_button.pressed.emit()
+	_check(game.bag.is_empty(), "magiczne i rzadkie sprzedane")
+	stats.auto_sell_toggle.button_pressed = true
+	_check(game.auto_sell_common, "przełącznik auto sprzedaży")
+	stats.auto_sell_toggle.button_pressed = false
+	stats.close()
 	menu.close()
 	arena.queue_free()
 	await process_frame

@@ -11,16 +11,19 @@ extends Node2D
 ## paskiem zdrowia. Po jego śmierci spada skrzynia z żarem (ProtoChest), a po jej otwarciu cały żar z wyprawy trafia do
 ## Watry (`Game.bank_embers`), poziom lochu zostaje przebity (`Game.beat_level`) i pokazuje się okno zwycięstwa.
 ## Ucieczka (okno pauzy) i śmierć gaszą żar z wyprawy. W bazie Watra pokazuje zgromadzony żar, a jej dotknięcie
-## otwiera wybór poziomu lochu (LevelPicker).
+## otwiera wybór poziomu lochu (LevelPicker). Obok stoi skrzynia (ProtoStash) - przechowalnia przedmiotów z zakładkami
+## kupowanymi za złoto (okno StashWindow).
 ## Rozwój postaci (HeroLevels, stan w Game): gobliny i Wódz dają doświadczenie (śmierć go nie zabiera), cienki pasek
 ## doświadczenia (złoty) z poziomem postaci u góry (w lochu pod paskami zdrowia i many, liczby na paskach, w bazie obok „Menu”), awans leczy i pokazuje
 ## efekt na postaci, odblokowuje miejsca na umiejętności. Okno wyniku podsumowuje zdobyte doświadczenie.
 ## Przedmioty (Items, stan w Game): rzadko z goblinów, kilka ze skrzyni Wodza; cechy założonych (`gear`) idą do postaci
-## i miecza od razu, także po zmianie ekwipunku w pauzie (sygnał Game.inventory_changed).
+## i miecza od razu, także po zmianie ekwipunku w pauzie (sygnał Game.inventory_changed). Każdy podniesiony
+## (albo od razu sprzedany) przedmiot pokazuje krótkie powiadomienie pod paskami u góry (`loot_feed`).
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 0), Vector2(100, 10), Vector2(0, 170)]
 const WATRA_POS := Vector2(0, -115)
+const STASH_POS := Vector2(-125, -135)
 const BASE_SCENE := "res://scenes/prototype.tscn"
 const HORDE_SCENE := "res://scenes/horde.tscn"
 ## Po śmierci postaci okno wyniku pojawia się po tylu sekundach (widać, jak pada).
@@ -67,6 +70,12 @@ var _start_hero_level := 1
 ## Przedmioty podniesione w tej wyprawie i złoto za sprzedane od razu (pełna torba przy skrzyni).
 var run_items := 0
 var run_sold_gold := 0
+## Powiadomienia o łupie (pod paskami u góry, znikają same) i ich największa liczba naraz.
+var loot_feed: VBoxContainer
+const FEED_MAX := 4
+const FEED_TIME := 2.5
+## Liczby na pasku żaru („zebrane / potrzebne do przyzwania”).
+var ember_text: Label
 ## Suma cech założonych przedmiotów (Items.totals).
 var gear := {}
 ## Licznik zgonów w trybie deweloperskim (widoczny, gdy nieśmiertelność jest włączona).
@@ -77,6 +86,9 @@ var boss_box: VBoxContainer
 var boss_bar: ProgressBar
 var result: RunResult
 var picker: LevelPicker
+## Skrzynia w bazie i jej okno.
+var stash: ProtoStash
+var stash_window: StashWindow
 ## Poziom lochu tej wyprawy (Game.dungeon_level).
 var level := 1
 var chief: ProtoChief
@@ -160,6 +172,13 @@ func _ready() -> void:
 		watra.entered.connect(open_picker)
 		world.add_child(watra)
 		hero.obstacles.append(Vector3(WATRA_POS.x, WATRA_POS.y, ProtoWatra.RADIUS))
+		stash = ProtoStash.new()
+		stash.name = "Stash"
+		stash.position = STASH_POS
+		stash.hero = hero
+		stash.opened.connect(open_stash)
+		world.add_child(stash)
+		hero.obstacles.append(Vector3(STASH_POS.x, STASH_POS.y, ProtoStash.RADIUS))
 	world.add_child(weapon)
 	if not horde:
 		hero.set_level(Game.hero_level, gear)
@@ -225,6 +244,10 @@ func _make_hud() -> void:
 		_make_horde_bar(top)
 		_make_boss_bar(column)
 		_make_summon_button(column)
+		loot_feed = VBoxContainer.new()
+		loot_feed.add_theme_constant_override("separation", 2)
+		loot_feed.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_child(loot_feed)
 	else:
 		var hint := Label.new()
 		hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.")
@@ -261,6 +284,9 @@ func _make_hud() -> void:
 		picker.visible = false
 		picker.enter.connect(enter_dungeon)
 		safe.add_child(picker)
+		stash_window = StashWindow.new()
+		stash_window.visible = false
+		safe.add_child(stash_window)
 	pause_menu.closed.connect(_apply_settings)
 	pause_menu.dev_embers.connect(_on_dev_embers)
 	layer.add_child(pause_menu)
@@ -315,7 +341,7 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	ember_bar.max_value = DungeonLevels.SUMMON_COST
 	ember_bar.value = 0
 	ember_bar.show_percentage = false
-	ember_bar.custom_minimum_size = Vector2(0, 8)
+	ember_bar.custom_minimum_size = Vector2(0, 11)
 	ember_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var ember_bg := StyleBoxFlat.new()
 	ember_bg.bg_color = Color(0.1, 0.05, 0.02, 0.85)
@@ -328,6 +354,8 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	ember_bar.add_theme_stylebox_override("background", ember_bg)
 	ember_bar.add_theme_stylebox_override("fill", _fill_style)
 	box.add_child(ember_bar)
+	ember_text = _bar_text(ember_bar, 9)
+	ember_text.text = "0 / %d" % DungeonLevels.SUMMON_COST
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(row)
@@ -439,8 +467,54 @@ func _apply_weapon() -> void:
 
 ## Przedmiot na ziemi (z goblina albo skrzyni) - podniesione liczą się do podsumowania wyprawy.
 func _track_loot(loot: ProtoLoot) -> void:
-	loot.picked.connect(func(_i: Dictionary) -> void: run_items += 1)
-	loot.sold.connect(func(_i: Dictionary, price: int) -> void: run_sold_gold += price)
+	loot.picked.connect(func(item: Dictionary) -> void:
+		run_items += 1
+		notify_loot(item, tr("Podniesiono: %s") % Items.name_of(item)))
+	loot.sold.connect(func(item: Dictionary, price: int, bag_full: bool) -> void:
+		run_sold_gold += price
+		var text := tr("Torba pełna - sprzedano: %s (+%d złota)") if bag_full else tr("Sprzedano: %s (+%d złota)")
+		notify_loot(item, text % [Items.name_of(item), price]))
+
+
+## Powiadomienie o łupie pod paskami u góry: ikona i napis w kolorze rzadkości, po chwili gaśnie.
+func notify_loot(item: Dictionary, text: String) -> void:
+	if loot_feed == null:
+		return
+	while loot_feed.get_child_count() >= FEED_MAX:
+		var old := loot_feed.get_child(0)
+		loot_feed.remove_child(old)
+		old.queue_free()
+	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.05, 0.04, 0.8)
+	style.border_color = Items.color_of(item).darkened(0.3)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	style.set_content_margin_all(3)
+	style.content_margin_right = 8
+	panel.add_theme_stylebox_override("panel", style)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(row)
+	var icon := TextureRect.new()
+	icon.texture = Items.icon_of(item)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.custom_minimum_size = Vector2(20, 20)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon)
+	var label := _hud_label(text)
+	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_color_override("font_color", Items.color_of(item))
+	row.add_child(label)
+	loot_feed.add_child(panel)
+	var tween := panel.create_tween()
+	tween.tween_interval(FEED_TIME)
+	tween.tween_property(panel, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(panel.queue_free)
 
 
 ## Awans: efekt na postaci (pełne zdrowie, napis, dźwięk), miga numer poziomu.
@@ -533,6 +607,7 @@ func _on_embers(e: int) -> void:
 	if phase != "horde":
 		return
 	ember_bar.value = mini(e, DungeonLevels.SUMMON_COST)
+	ember_text.text = "%d / %d" % [e, DungeonLevels.SUMMON_COST]
 	var full := e >= DungeonLevels.SUMMON_COST
 	summon_button.visible = full and not hero.dead
 	if not full:
@@ -626,6 +701,14 @@ func _on_retry() -> void:
 
 
 ## Baza: wybór poziomu lochu po dotknięciu Watry.
+## Baza: okno skrzyni (stuknięcie albo podejście).
+func open_stash() -> void:
+	joystick.release()
+	actions.attack.release()
+	weapon.attack_held = false
+	stash_window.open()
+
+
 func open_picker() -> void:
 	joystick.release()
 	actions.attack.release()
@@ -683,6 +766,10 @@ func _notification(what: int) -> void:
 	if picker and picker.visible:
 		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 			picker.close()
+		return
+	if stash_window and stash_window.visible:
+		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+			stash_window.back()
 		return
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and pause_menu.visible:
 		pause_menu.back()

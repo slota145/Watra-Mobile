@@ -96,12 +96,12 @@ func add_xp_lines(xp: int, new_level := 0) -> void:
 
 
 
-## Dopisuje do podsumowania podniesione przedmioty i złoto za łup sprzedany przy pełnej torbie.
+## Dopisuje do podsumowania podniesione przedmioty i złoto za łup sprzedany od razu (auto sprzedaż, pełna torba).
 func add_loot_lines(items: int, sold_gold := 0) -> void:
 	if items > 0:
 		_summary.text += "\n" + tr("Przedmioty: %d") % items
 	if sold_gold > 0:
-		_summary.text += "\n" + tr("Torba pełna - łup sprzedany: +%d złota") % sold_gold
+		_summary.text += "\n" + tr("Łup sprzedany od razu: +%d złota") % sold_gold
 
 
 func _button(parent: Control, text: String) -> Button:
