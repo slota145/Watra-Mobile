@@ -24,9 +24,22 @@ przed pierwszą postacią (wywiad SpriteKiln - `spritekiln style`).
 4. **PixelLab** (limit generacji autora): obiekty, kafelki, ikony, efekty. Zasady i ceny jak w `CLAUDE.md` Watry
    („PixelLab w chmurze”) - zanim wydasz generacje, policz koszt i pokaż go autorowi.
 
+## Styl postaci (wywiad SpriteKiln z autorem, 12.11.2026)
+
+Zapisany w `spritekiln.toml` (`spritekiln style` pokazuje go w każdej sesji); każda nowa postać, potwór i broń go trzyma.
+
+| Co | Ustalenie |
+|---|---|
+| Widok | z góry 3/4 (`topdown`, kamera 38°) - jak w Watrze |
+| Wielkość | postać wzrostu człowieka **36 px** (Wojciech z Watry ma 35 px i jest „w sam raz”), klatka 48 px, `camera.scale` 0.04889 - wspólna dla wszystkich |
+| Kierunki | 8, bez odbicia lustrzanego |
+| Kolory | jak w Watrze: ciepłe, przytulne fantasy (drewno, ogień, złoto Ostoi), Horda i Nawia chłodne i mroczne; paleta `art/specs/palettes/watra.yaml` (rampy z kolorów grafik Watry, `nawia` - chłodny fiolet) |
+| Kontur i cieniowanie | kontur barwny (`selective`: każda część obrysowana najciemniejszym odcieniem swojego koloru), cieniowanie miękkie |
+| Wykończenie | linie wewnętrzne `depth` (między częściami ciała), odblaski na metalu i klejnotach, bez ditheringu, światło `classic` (z góry z lewej) |
+| Proporcje i twarze | stylizowane (głowa 1,2-1,4x), twarz: tylko oczy |
+| Animacja | płynna (chód 8 klatek, klatki pośrednie) |
+| Zasady | pasuje do grafik Watry stojących obok; czytelne na małym ekranie (wyraźne sylwetki, potwory rozpoznawalne w tłumie); broń gracza lewituje - postać bez broni w dłoni |
+
 ## Do ustalenia z autorem
 
-- Wysokość postaci w pikselach gry (np. 32 albo 48 px przy szerokości ekranu 360).
-- Kontur, cieniowanie, paleta (czy trzymamy ciepłe barwy Ostoi i chłodną Nawię jak w Watrze).
-- Perspektywa: z góry jak w Watrze („low top-down”) czy inna - zależy od rodzaju rozgrywki (`docs/GDD.md`).
-- Rozmiar kafelka świata (Watra: 16x16 px).
+- Rozmiar kafelka świata (Watra: 16x16 px) - przy pierwszym lochu.

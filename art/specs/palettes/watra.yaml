@@ -1,0 +1,23 @@
+# Paleta Watry dla SpriteKiln (spritekiln palette ramp z kolorów grafik Watry: Wojciech, wioska, ogień).
+# Ciepłe drewno, skóra, zieleń sukna i złoto Ostoi; "nawia" - chłodny fiolet Hordy i zaświatów jako kontrast.
+# Indeks 0 = kontur/najciemniejszy. Nazwy jak w wbudowanej palecie gothic (szablony SpriteKiln ich używają).
+ramps:
+  wood:    ["#120907", "#512a16", "#895421", "#b98731", "#ccb25b", "#d7cb8c"]
+  leather: ["#120807", "#472114", "#734220", "#986a30", "#b79444", "#c6aa68"]
+  cloth:   ["#09100c", "#1e4228", "#306d37", "#489345", "#6fae62", "#95bf88"]
+  skin:    ["#110909", "#5c2b26", "#a1543b", "#ca8d67", "#dec3a6", "#f3ede2"]
+  hair:    ["#120807", "#4c2315", "#7e4720", "#a87330", "#c39f4e", "#ceb979"]
+  steel:   ["#0d0c0d", "#38373b", "#5d5c63", "#818088", "#a6a5aa", "#c9c8cb"]
+  stone:   ["#0e0c0c", "#3c3633", "#645c54", "#898274", "#a8a499", "#c5c4bc"]
+  straw:   ["#110b08", "#5e3c22", "#a47633", "#ceb05d", "#ded49d", "#f1edda"]
+  nawia:   ["#0b0a0f", "#2c2645", "#433d74", "#64559e", "#917eb5", "#b7a8ca"]
+  gold:    ["#1c1006", "#4d2f0e", "#8a5a16", "#c48c22", "#e8c04e", "#fff0a0"]
+  bone:    ["#1f1410", "#4a3326", "#7a5a40", "#a8875e", "#d2b98a", "#f1e6c2"]
+  blood:   ["#12040a", "#3a0712", "#6b0d1c", "#a3182a", "#d63a3a"]
+  flame:   ["#3a0a04", "#c2300e", "#ff7a1a", "#ffc23d", "#fff4b0"]
+  eye:     ["#3d0707", "#ff5a1f", "#ffb13b", "#fff3a6"]
+  mouth:   ["#16070f", "#2a0812", "#4a0e1c"]
+  wing:    ["#0b0a0f", "#2c2645", "#433d74", "#64559e", "#917eb5"]
+  fx_core: ["#ffffff"]
+  fx_mid:  ["#fff0b8"]
+  fx_tail: ["#ffa64d"]

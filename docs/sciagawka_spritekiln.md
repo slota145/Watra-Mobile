@@ -13,10 +13,9 @@ to, co opiszemy bryłami. Najlepiej sprawdza się przy postaciach, potworach i b
 ## W tym projekcie
 
 - `spritekiln.toml`: specyfikacje w `art/specs/` (Godot je pomija), eksport do `assets/spritekiln/<nazwa>/`.
-- **Styl jeszcze nie jest zapisany.** Przed pierwszą postacią sprawdź `spritekiln style`. Jeśli styl nie jest zapisany,
-  przeprowadź z autorem wywiad (10 pytań z `.spritekiln/agent/style.md`, po polsku, najwyżej 4 naraz przez AskUserQuestion,
-  pierwsza opcja z dopiskiem „(polecane)”). Pokaż podsumowanie, zapisz `spritekiln style set ...` i przepisz ustalenia do
-  `docs/ART_SPEC.md`. Podpowiedzi pod nasz ekran 360x640: wysokość postaci 32-48 px, 8 kierunków, widok `topdown`.
+- **Styl zapisany 12.11.2026** (`spritekiln style`; tabela w `docs/ART_SPEC.md`): z góry 3/4, postać 36 px (klatka 48),
+  8 kierunków, paleta `watra` (`art/specs/palettes/watra.yaml`), kontur barwny, miękkie cieniowanie, tylko oczy, płynna
+  animacja. Zmieniaj go tylko na wyraźną prośbę autora (`spritekiln style set --<pole> ...`).
 - Wyniki renderów (`out/`, `.kilncache/`) nie idą do gita (`.gitignore`), a eksport w `assets/spritekiln/` idzie.
 - Agenci SpriteKiln w `.claude/agents/`: `character-modeler`, `animator`, `pixel-art-director` (tylko ocenia).
   Umiejętności: `spritekiln`, `spritekiln-animation`, `spritekiln-splash-to-model`. Wywiad o styl zawsze robi

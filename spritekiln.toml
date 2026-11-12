@@ -14,6 +14,30 @@ godot_project = "."   # folder with project.godot
 
 [defaults]                # given to specs created by `spritekiln new`
 view = "topdown"
-size = 64
-palette = "gothic"
-camera = { pitch = 38, scale = 0.04 }
+size = 48
+palette = "watra"
+camera = { pitch = 38, scale = 0.04889 }
+
+[style]                   # the art style every asset follows (`spritekiln style`); change it only when asked
+recorded = 2026-11-12
+view = "topdown"
+height = 36               # px on screen of a human-sized character
+scale = 0.04889           # camera.scale of every asset (from height)
+size = 48                 # frame px for that character
+directions = 8
+mirror = false
+palette = "watra"
+colors = "jak w Watrze: ciepłe, przytulne fantasy (drewno, ogień, złoto Ostoi), Horda i Nawia chłodne i mroczne"
+outline = "selective"
+outline_color = ""        # with outline "dark"; empty: the darkest tone of the ramps
+shading = "soft"
+lines = "depth"
+highlights = true
+dither = "none"
+light = "classic"
+proportions = "stylized"
+face = "minimal"          # minimal: eyes only, no nose; simple: + a hint of brow or nose on big heads; detailed
+animation = "fluid"
+snap = false              # root and torso move in whole pixels
+references = ["Watra (grafiki w assets/watra/ i repozytorium slota145/Watra)"]
+notes = "pasuje do grafik Watry stojących obok (Wojciech 35 px, kukły, wioska); czytelne na małym ekranie telefonu: wyraźne sylwetki, potwory rozpoznawalne w tłumie (hordy jak w Vampire Survivors); broń gracza lewituje obok postaci - postać bez broni w dłoni"
