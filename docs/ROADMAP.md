@@ -42,6 +42,7 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   siła premii, ceny, czytelność okna na 16:9 (przewija się). Na co wydawać złoto - do ustalenia (kowal, sklep?).
   Umiejętności miecza zrobione (12.11.2026, szczegóły w `docs/historia.md`). Do oceny na telefonie: koszty many
   i odnowienia, siła Młynka/Rzutu/Rozłupania, czy auto atak z Młynkiem nie jest za mocny, ceny (100-1500 zł).
+  Mgnienie działa jak w Watrze; „wirujące Mgnienie” (skoki w trakcie Młynka) - autor jeszcze nie wie, czy w tę stronę.
   Dalej: kamienie w umiejętnościach i ekwipunku, ulepszanie umiejętności (poziomy?).
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
