@@ -48,6 +48,9 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   lewitujący miecz, `proto_dummy.gd` - kukła); `scripts/ui/joystick.gd` - pływająca gałka (dotyk wieloma palcami),
   `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
   `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania (zapis w `Game`, `user://settings.cfg`).
+- `scripts/updater.gd`: autoload `Updater` (pierwszy na liście) - aktualizacja wersji testowej z menu bez całego apk
+  (paczka `game.pck` z gałęzi `apk`); przy zmianach project.godot, export_presets.cfg, updater.gd albo wersji Godota
+  podbij w nim `APK_LEVEL` (gra poprosi wtedy o pełny apk). Test: `tests/test_updater.gd -- --with-updates`.
 - `scenes/`: sceny (`main_menu.tscn` startowa, `prototype.tscn` - prototyp walki pod „Graj”).
 - `assets/`: grafiki, muzyka, dźwięki; `assets/watra/` - pliki skopiowane z Watry; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
 - `art/specs/`: specyfikacje postaci SpriteKiln (YAML; Godot je pomija). Wyniki renderów w `out/` są generowane i nie idą do gita.
@@ -113,8 +116,9 @@ Instrukcje SpriteKiln są w bloku na końcu tego pliku (generuje go `spritekiln 
 ## Git
 
 - Zmiany idą na gałąź roboczą, potem pull request do `main`. Autor zwykle prosi o założenie PR i od razu scalenie.
-- **Po każdym scaleniu do `main`** uruchom `tools/publish_apk.sh` (buduje apk i nadpisuje gałąź `apk`) i podaj autorowi
-  link do pobrania na telefonie: https://github.com/slota145/Watra-Mobile/raw/apk/WatraMobile.apk (prośba autora).
+- **Po każdym scaleniu do `main`** uruchom `tools/publish_apk.sh` (buduje apk i paczkę `game.pck`, nadpisuje gałąź `apk`)
+  i daj znać autorowi: zwykle wystarczy przycisk „Aktualizuj” w menu gry; gdy podbito `APK_LEVEL`, podaj link do
+  pełnej gry: https://github.com/slota145/Watra-Mobile/raw/apk/WatraMobile.apk (prośba autora).
 - Gdy autor ma u siebie lokalne commity, `git pull` otwiera vima. Podpowiadaj wtedy `git pull --no-edit origin main`.
 - Po pobraniu zmian polecaj `powershell -ExecutionPolicy Bypass -File aktualizuj.ps1` (pull + import zasobów;
   Godot autora: `C:\Godot_v4.7.2-stable_win64.exe\` - to folder z plikami `.exe` w środku).

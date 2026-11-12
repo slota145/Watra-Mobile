@@ -19,7 +19,7 @@ New-Item -ItemType Directory -Force $out | Out-Null
 
 # [plik, czy potrzebuje okna]
 $tests = @(
-    @("test_project.gd", $false), @("test_prototype.gd", $false)
+    @("test_project.gd", $false), @("test_prototype.gd", $false), @("test_updater.gd", $false, "--with-updates")
 )
 
 Write-Host "Import zasobów..."
@@ -33,6 +33,7 @@ foreach ($t in $tests) {
     $args = @("--path", $project)
     if ($t[1]) { $args += @("--resolution", "450x800") } else { $args += "--headless" }
     $args += @("-s", (Join-Path $PSScriptRoot $name))
+    if ($t.Count -gt 2) { $args += @("--", $t[2]) }  # dodatkowy argument testu (np. --with-updates)
     $log = $name -replace "[^A-Za-z0-9_.]", "_"
     $p = Start-Process $Godot -ArgumentList $args -PassThru -NoNewWindow `
         -RedirectStandardOutput "$out\$log.out.txt" -RedirectStandardError "$out\$log.err.txt"

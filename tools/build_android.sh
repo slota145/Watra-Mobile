@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Buduje wersję testową na Androida (build/WatraMobile.apk) w chmurze (Linux, bez monitora).
+# Buduje wersję testową na Androida (build/WatraMobile.apk) i samą grę do aktualizacji w grze (build/game.pck)
+# w chmurze (Linux, bez monitora). Numer kompilacji (liczba commitów) trafia do build_info.json w grze.
 # Za pierwszym razem doinstalowuje, czego brakuje (około minuty):
 #   - z szablonów eksportu Godota tylko pliki Androida (bez pobierania całego archiwum 1,3 GB),
 #   - Android SDK: build-tools (apksigner, zipalign) w /opt/android-sdk,
@@ -55,7 +56,13 @@ export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
 export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
 
 mkdir -p "$project/build"
+# numer kompilacji w grze (Updater porównuje go z version.json na gałęzi apk)
+printf '{"build": %d, "commit": "%s"}\n' "$(git -C "$project" rev-list --count HEAD)" \
+    "$(git -C "$project" rev-parse --short HEAD)" > "$project/build_info.json"
 godot --headless --path "$project" --import >/dev/null 2>&1 || true
 godot --headless --path "$project" --export-debug "Android - testy" "$project/build/WatraMobile.apk" 2>&1 \
     | grep -E "ERROR|DONE" || true
-[[ -f "$project/build/WatraMobile.apk" ]] && ls -lh "$project/build/WatraMobile.apk"
+# sama gra bez silnika - do aktualizacji w grze (przycisk „Aktualizuj”)
+godot --headless --path "$project" --export-pack "Android - testy" "$project/build/game.pck" 2>&1 \
+    | grep -E "ERROR|DONE" || true
+ls -lh "$project/build/WatraMobile.apk" "$project/build/game.pck"

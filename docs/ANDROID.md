@@ -10,6 +10,12 @@ https://github.com/slota145/Watra-Mobile/raw/apk/WatraMobile.apk, otwórz pobran
 z nieznanego źródła - i gotowe. Każda nowa wersja instaluje się na poprzedniej
 (ten sam klucz testowy z `tools/android/debug.keystore`), a zapis i ustawienia zostają.
 
+## Aktualizacje bez pobierania całej gry
+
+Od kompilacji z przyciskiem „Aktualizuj” menu gry samo sprawdza, czy na gałęzi `apk` jest nowsza wersja.
+„Aktualizuj” pobiera tylko samą grę (`game.pck`, kilka MB), a nowa wersja działa po zamknięciu i ponownym otwarciu
+gry. Gdy zmiana wymaga nowego silnika albo ustawień aplikacji, gra poprosi o pobranie całości („Pobierz całą grę”).
+
 ## Samodzielnie na komputerze
 
 Robi się to raz; potem wystarczy „Export” w Godocie.

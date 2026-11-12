@@ -19,6 +19,7 @@ config/quit_on_go_back=false
 
 [autoload]
 
+Updater="*res://scripts/updater.gd"
 Game="*res://scripts/game.gd"
 
 [display]
