@@ -70,7 +70,8 @@ func show_result(kills: int, seconds: float, lost_embers := 0) -> void:
 
 ## Wynik po pokonaniu bossa: `banked` - żar doniesiony do Watry, `unlocked` - nowo odblokowany poziom (0 - żaden).
 ## Przycisk „Następny poziom: N” (sygnał `retry`) prowadzi na następny poziom lochu.
-func show_victory(level: int, banked: int, unlocked: int, kills: int, seconds: float) -> void:
+## `deaths` - ile razy postać zginęłaby bez nieśmiertelności (tryb deweloperski; 0 - linia nie pokazuje się).
+func show_victory(level: int, banked: int, unlocked: int, kills: int, seconds: float, deaths := 0) -> void:
 	var s := int(seconds)
 	_title.text = tr("Wódz pokonany!")
 	_title.add_theme_color_override("font_color", Color(1, 0.82, 0.35))
@@ -79,6 +80,8 @@ func show_victory(level: int, banked: int, unlocked: int, kills: int, seconds: f
 		lines.append(tr("Odblokowano poziom %d") % unlocked)
 	lines.append(tr("Pokonane gobliny: %d") % kills)
 	lines.append(tr("Czas wyprawy: %d:%02d") % [s / 60, s % 60])
+	if deaths > 0:
+		lines.append(tr("Zgony (nieśmiertelność): %d") % deaths)
 	_summary.text = "\n".join(lines)
 	retry_button.text = tr("Następny poziom: %d") % (level + 1)
 	visible = true

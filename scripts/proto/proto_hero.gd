@@ -5,9 +5,13 @@ extends Node2D
 ## Bez broni w dłoni - broń lewituje obok (ProtoWeapon). Animacja "slash" z pustą dłonią służy za gest ataku.
 ## Zdrowie: potwory Hordy zadają obrażenia (`take_damage`), przy zerze postać pada (`died`). `obstacles` - okręgi
 ## (x, y, promień), przez które postać nie przechodzi (np. krąg kamieni Watry).
+## Tryb deweloperski (`immortal`): zdrowie schodzi normalnie, ale zamiast śmierci wraca do pełna, a `deaths` liczy,
+## ile razy postać by zginęła (sygnał `death_avoided`).
 
 signal health_changed(hp: int, max_hp: int)
 signal died
+## Nieśmiertelność uratowała postać od śmierci (`count` - ile razy w tym lochu).
+signal death_avoided(count: int)
 
 const ANIMS := ["idle", "walk", "slash"]
 const FPS := {"idle": 6.0, "walk": 14.0, "slash": 18.0}
@@ -29,6 +33,10 @@ var facing := Vector2.DOWN
 var velocity := Vector2.ZERO
 var hp := MAX_HP
 var dead := false
+## Tryb deweloperski: zamiast śmierci zdrowie wraca do pełna.
+var immortal := false
+## Ile razy postać zginęłaby bez nieśmiertelności.
+var deaths := 0
 ## Przeszkody: Vector3(x, y, promień); w pionie spłaszczone o połowę (widok z góry 3/4).
 var obstacles: Array[Vector3] = []
 
@@ -82,6 +90,13 @@ func take_damage(amount: int) -> void:
 	var tween := _sprite.create_tween()
 	_sprite.modulate = Color(2.2, 0.5, 0.45)
 	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.25)
+	if hp == 0 and immortal:
+		deaths += 1
+		hp = MAX_HP
+		health_changed.emit(hp, MAX_HP)
+		_sprite.modulate = Color(2.4, 2.0, 0.9)  # złoty błysk zamiast śmierci
+		death_avoided.emit(deaths)
+		return
 	if hp == 0:
 		dead = true
 		# padnięcie: postać przechyla się i ciemnieje (Wojciech z Watry nie ma animacji śmierci)

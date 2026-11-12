@@ -1,7 +1,8 @@
 class_name PauseMenu
 extends Control
 ## Okno pauzy w trakcie gry (przycisk „Menu”): zatrzymuje grę i daje ustawienia sterowania -
-## atak i umiejętności po lewej stronie, gest postaci przy ataku - oraz powrót do gry i wyjście do menu głównego.
+## atak i umiejętności po lewej stronie, gest postaci przy ataku, tryb deweloperski (nieśmiertelność) - oraz powrót
+## do gry i wyjście do menu głównego.
 ## Ustawienia zapisuje Game (user://settings.cfg). Działa także przy zatrzymanej grze (PROCESS_MODE_ALWAYS).
 ## Autoload Game bierzemy z drzewa (_game), bo w skrypcie z class_name nazwa autoloadu nie zawsze jest znana
 ## (np. w testach uruchamianych przez -s).
@@ -12,6 +13,7 @@ signal leaving
 
 var left_toggle: CheckButton
 var gesture_toggle: CheckButton
+var immortal_toggle: CheckButton
 var resume_button: Button
 var quit_button: Button
 ## Scena bazy - gdy ustawiona (w lochu), okno ma też przycisk „Powrót do bazy”.
@@ -63,6 +65,11 @@ func _ready() -> void:
 	gesture_toggle.toggled.connect(func(on: bool) -> void:
 		_game.gesture = on
 		_game.save_settings())
+	immortal_toggle = _toggle(column, tr("Tryb deweloperski: nieśmiertelność"), _game.dev_immortal)
+	immortal_toggle.add_theme_color_override("font_color", Color(1, 0.7, 0.5))
+	immortal_toggle.toggled.connect(func(on: bool) -> void:
+		_game.dev_immortal = on
+		_game.save_settings())
 	resume_button = _button(column, tr("Wróć do gry"))
 	resume_button.pressed.connect(close)
 	if base_scene != "":
@@ -90,6 +97,7 @@ func open(at_stake := 0) -> void:
 		leave_note.visible = at_stake > 0
 	left_toggle.set_pressed_no_signal(_game.left_handed)
 	gesture_toggle.set_pressed_no_signal(_game.gesture)
+	immortal_toggle.set_pressed_no_signal(_game.dev_immortal)
 	visible = true
 	get_tree().paused = true
 

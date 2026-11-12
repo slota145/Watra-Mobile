@@ -2,6 +2,15 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - tryb deweloperski: nieśmiertelność
+
+- Prośba autora (Wódz jest „trudnawy”, do testów balansu): w oknie pauzy przełącznik „Tryb deweloperski:
+  nieśmiertelność” (`PauseMenu.immortal_toggle`, `Game.dev_immortal`, zapis w `user://settings.cfg`, sekcja `dev`).
+- `ProtoHero.immortal`: zdrowie schodzi normalnie, a zamiast śmierci wraca do pełna ze złotym błyskiem; `deaths` liczy
+  uniknięte zgony (`death_avoided`). W lochu czerwony licznik „Zgony: N” pod paskiem (widoczny tylko w trybie
+  deweloperskim), okno zwycięstwa pokazuje „Zgony (nieśmiertelność): N”.
+- Test w `tests/test_horde.gd`.
+
 ## 12.11.2026 - Wódz Goblinów, koniec wyprawy i poziomy lochu
 
 - Ustalenia z autorem: pasek żaru 100 (`DungeonLevels.SUMMON_COST`), przyzwanie przyciskiem przy pełnym pasku, gobliny
