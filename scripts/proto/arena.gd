@@ -170,6 +170,7 @@ func _make_hud() -> void:
 	if horde:
 		_make_horde_bar(top)
 		_make_boss_bar(column)
+		_make_summon_button(column)
 	else:
 		var hint := Label.new()
 		hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.")
@@ -185,8 +186,6 @@ func _make_hud() -> void:
 	fill.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(fill)
-	if horde:
-		_make_summon_button(column)
 	# dolny róg (prawy albo lewy - ustawienie): atak i miejsca na umiejętności
 	actions = ActionCluster.new()
 	actions.left_handed = Game.left_handed
@@ -305,7 +304,8 @@ func _make_boss_bar(column: VBoxContainer) -> void:
 	boss_box.add_child(boss_bar)
 
 
-## Przycisk „Przyzwij Wodza” nad przyciskami ataku (pod kciukiem), widoczny przy pełnym pasku żaru.
+## Przycisk „Przyzwij Wodza” u góry pod paskiem żaru (prośba autora: daleko od kciuka, żeby nie przyzwać
+## Wodza przypadkiem w ferworze walki), widoczny przy pełnym pasku żaru.
 func _make_summon_button(column: VBoxContainer) -> void:
 	summon_button = Button.new()
 	summon_button.text = tr("Przyzwij Wodza")
