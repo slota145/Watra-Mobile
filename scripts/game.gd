@@ -8,7 +8,9 @@ extends Node
 ## umiejętności (`skills_owned` - kupione, `skill_slots` - co stoi w miejscach; dane w Skills), kamienie (Gems):
 ## sakwa (`gems`: identyfikator -> ile sztuk), kamienie w umiejętnościach (`skill_gems`: umiejętność -> lista
 ## Gems.SKILL_SOCKETS identyfikatorów, "" - puste) i otwarte gniazda (`skill_open`); kamienie w przedmiotach
-## leżą w samych przedmiotach ("sockets").
+## leżą w samych przedmiotach ("sockets"). Baza (ustalone 12.11.2026): ulepszenia lochów za żar (`upgrades`:
+## identyfikator DungeonUpgrades -> kupione stopnie), półka kupca (`shop`: oferty Shop, `shop_ready` - był już towar;
+## odnawia się po każdym pokonanym bossie) i kowal (`reroll` - przeróbka jednej premii przedmiotu za złoto).
 
 ## Zmiana doświadczenia: `xp` na obecnym poziomie, `need` - ile trzeba do awansu (0 na najwyższym poziomie).
 signal xp_changed(level: int, xp: int, need: int)
@@ -18,6 +20,8 @@ signal leveled_up(level: int)
 signal inventory_changed
 ## Kupno umiejętności albo zmiana miejsc umiejętności.
 signal skills_changed
+## Kupno ulepszenia lochów albo zmiana żaru w Watrze.
+signal embers_changed
 
 ## Miejsca w torbie (siatka 5x4 w oknie „Postać”).
 const BAG_SIZE := 20
@@ -65,6 +69,11 @@ var gems := {}
 ## Kamienie w gniazdach umiejętności i liczba otwartych gniazd (brak wpisu - Gems.SKILL_OPEN).
 var skill_gems := {}
 var skill_open := {}
+## Ulepszenia lochów za żar (identyfikator DungeonUpgrades -> stopień).
+var upgrades := {}
+## Półka kupca (oferty Shop) i czy był już na niej towar (pierwszy przy pierwszym otwarciu).
+var shop: Array = []
+var shop_ready := false
 ## Doświadczenie dopisane od ostatniego zapisu (zapis przy końcu wyprawy, pauzie i przełączeniu aplikacji).
 var _dirty := false
 ## Atak i umiejętności w lewym dolnym rogu (dla osób, które wolą trzymać je lewym kciukiem).
@@ -135,6 +144,9 @@ func load_game() -> void:
 	gems = {}
 	skill_gems = {}
 	skill_open = {}
+	upgrades = {}
+	shop = []
+	shop_ready = false
 	_dirty = false
 	if not FileAccess.file_exists(save_path):
 		return
@@ -205,6 +217,18 @@ func load_game() -> void:
 				var item := Items.normalize(raw_eq[slot])
 				if not item.is_empty() and item.slot == slot:
 					equipped[slot] = item
+		var raw_up = data.get("upgrades", {})
+		if raw_up is Dictionary:
+			for id in raw_up:
+				if DungeonUpgrades.has(id) and int(raw_up[id]) > 0:
+					upgrades[id] = clampi(int(raw_up[id]), 0, DungeonUpgrades.MAX_STEPS)
+		shop_ready = bool(data.get("shop_ready", false))
+		var raw_shop = data.get("shop", [])
+		if raw_shop is Array:
+			for raw in raw_shop:
+				var offer := Shop.normalize(raw)
+				if not offer.is_empty():
+					shop.append(offer)
 
 
 func save_game() -> void:
@@ -214,7 +238,8 @@ func save_game() -> void:
 		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
 				"stash": stash, "skills_owned": skills_owned, "skill_slots": skill_slots, "gems": gems,
-				"skill_gems": skill_gems, "skill_open": skill_open}))
+				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "shop": shop,
+				"shop_ready": shop_ready}))
 
 
 ## Zapis tylko wtedy, gdy od ostatniego coś się zmieniło (np. doświadczenie z goblinów).
@@ -713,3 +738,89 @@ func dev_gems() -> void:
 	add_gem(Gems.CHISEL, 2, false)
 	save_game()
 	inventory_changed.emit()
+
+
+# --- Baza: ulepszenia lochów (żar), kupiec i kowal (złoto) ---
+
+## Kupione stopnie ulepszenia lochów.
+func upgrade_steps(id: String) -> int:
+	return upgrades.get(id, 0)
+
+
+## Premia ulepszenia lochów (procenty albo piksele - DungeonUpgrades.bonus).
+func upgrade_bonus(id: String) -> float:
+	return DungeonUpgrades.bonus(id, upgrade_steps(id))
+
+
+## Cena następnego stopnia ulepszenia (0 - wszystkie kupione).
+func upgrade_price(id: String) -> int:
+	return DungeonUpgrades.price(upgrade_steps(id))
+
+
+## Kupuje następny stopień ulepszenia za żar z Watry. Zwraca false, gdy brakuje żaru albo kupiono wszystkie.
+func buy_upgrade(id: String) -> bool:
+	var price := upgrade_price(id)
+	if not DungeonUpgrades.has(id) or price == 0 or embers < price:
+		return false
+	embers -= price
+	upgrades[id] = upgrade_steps(id) + 1
+	save_game()
+	embers_changed.emit()
+	return true
+
+
+## Półka kupca; przy pierwszym otwarciu dostaje pierwszy towar.
+func shop_offers() -> Array:
+	if not shop_ready:
+		restock_shop()
+	return shop
+
+
+## Nowa dostawa u kupca (po pokonaniu bossa): przedmioty z najwyższego przebitego lochu (najmniej z `level`).
+func restock_shop(level := 1) -> void:
+	shop = Shop.stock(maxi(maxi(best_level, level), 1))
+	shop_ready = true
+	save_game()
+	inventory_changed.emit()
+
+
+## Czemu oferty nie da się kupić ("" - da się): "gold" (za mało złota), "bag" (pełna torba), "none" (nie ma jej).
+func shop_problem(index: int) -> String:
+	if index < 0 or index >= shop.size():
+		return "none"
+	if gold < shop[index].price:
+		return "gold"
+	if shop[index].has("item") and bag.size() >= BAG_SIZE:
+		return "bag"
+	return ""
+
+
+## Kupuje ofertę z półki: kamień (klucz, dłuto) do sakwy, przedmiot do torby. Zwraca false, gdy się nie da.
+func buy_offer(index: int) -> bool:
+	if shop_problem(index) != "":
+		return false
+	var offer: Dictionary = shop[index]
+	gold -= offer.price
+	if offer.has("gem"):
+		add_gem(offer.gem, 1, false)
+	else:
+		bag.append(offer.item)
+	shop.remove_at(index)
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Kowal: przerabia premię `index` przedmiotu (z torby albo założonego - zmienia się w miejscu) za złoto.
+## Zwraca false, gdy brakuje złota albo nie ma takiej premii.
+func reroll(item: Dictionary, index: int) -> bool:
+	if item.is_empty() or index < 0 or index >= item.affixes.size():
+		return false
+	var price := Items.reroll_price(item)
+	if gold < price:
+		return false
+	gold -= price
+	Items.reroll_affix(item, index)
+	save_game()
+	inventory_changed.emit()
+	return true

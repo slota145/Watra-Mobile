@@ -4,7 +4,9 @@ extends Node2D
 ## podejście postaci otwiera okno skrzyni (sygnał `opened`, okno StashWindow w arenie). Po zamknięciu okna skrzynia
 ## otwiera się z podejścia dopiero, gdy postać odejdzie i wróci. Postać nie przechodzi przez skrzynię (`RADIUS`).
 ## Ten sam skrypt służy innym miejscom w bazie (`texture`, `title`, `sprite_scale`), np. kamieniowi run
-## z umiejętnościami (grafika rune_stone z Watry, okno SkillsWindow).
+## z umiejętnościami (grafika rune_stone z Watry, okno SkillsWindow), kowalowi i kupcowi: postać z Watry z arkusza
+## klatek (`frames` - liczba klatek w rzędzie, `rows`; animuje się pierwszy rząd - postać przodem) i rekwizyt obok
+## (`prop` - kowadło, stragan; `prop_offset`).
 
 signal opened
 
@@ -22,6 +24,15 @@ var hero: ProtoHero
 var texture: Texture2D = TEXTURE
 var title := "Skrzynia"
 var sprite_scale := SCALE
+## Arkusz klatek postaci (1 - zwykły obrazek) i tempo animacji.
+var frames := 1
+var rows := 1
+var fps := 4.0
+## Rekwizyt obok postaci (np. kowadło) i jego położenie względem węzła (stopy rekwizytu).
+var prop: Texture2D
+var prop_offset := Vector2.ZERO
+var _sprite: Sprite2D
+var _time := randf() * 3.0
 ## Postać musi odejść, zanim podejście znów otworzy okno.
 var _armed := true
 
@@ -31,11 +42,20 @@ func _ready() -> void:
 	shadow.texture = ProtoHero._shadow_texture()
 	shadow.scale = Vector2(1.6, 1.4)
 	add_child(shadow)
+	if prop:
+		var p := Sprite2D.new()
+		p.texture = prop
+		p.position = prop_offset
+		p.offset = Vector2(0, -prop.get_height() / 2.0 + 1.0)
+		add_child(p)
 	var sprite := Sprite2D.new()
 	sprite.texture = texture
+	sprite.hframes = frames
+	sprite.vframes = rows
 	sprite.scale = Vector2.ONE * sprite_scale
-	sprite.offset = Vector2(0, -texture.get_height() / 2.0 + 2.0)
+	sprite.offset = Vector2(0, -texture.get_height() / rows / 2.0 + 2.0)
 	add_child(sprite)
+	_sprite = sprite
 	var label := Label.new()
 	label.text = tr(title)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -49,7 +69,10 @@ func _ready() -> void:
 	add_child(label)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if frames > 1:
+		_time += delta
+		_sprite.frame = int(_time * fps) % frames
 	if hero == null or get_tree().paused:
 		return
 	var d := hero.global_position.distance_to(global_position)
@@ -63,7 +86,7 @@ func _process(_delta: float) -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch and event.pressed and not get_tree().paused:
 		var local: Vector2 = get_global_transform_with_canvas().affine_inverse() * event.position
-		var h := texture.get_height() * sprite_scale  # wyższa grafika (kamień run) - wyższy obszar
+		var h := texture.get_height() / rows * sprite_scale  # wyższa grafika (kamień run) - wyższy obszar
 		var rect := TAP_RECT.merge(Rect2(-28, -h - 4.0, 56, h + 14.0))
 		if rect.has_point(local):
 			_armed = false

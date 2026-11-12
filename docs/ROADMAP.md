@@ -48,10 +48,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   czytelność gniazd w oknach, czy Szron i Żar dobrze widać na goblinach (znaczki rysowane w kodzie - może efekty z kreatora).
   Dalej: ulepszanie umiejętności (poziomy?).
 
-- **Baza: żar i złoto (ustalone 12.11.2026, do zrobienia; zasady w `docs/GDD.md`, „Baza i waluty”):**
-  ulepszenia lochów za żar przy Watrze (potwory, doświadczenie, łup, zasięg zbierania), kowal (przeróbka jednej
-  premii, rosnąca cena), kupiec (klucze, dłuta, kamienie 1. stopnia, przedmioty; towar odnawia się po bossie),
-  pasek ikon w bazie. Ceny i stopnie do zatwierdzenia przez autora przed zrobieniem.
+- **Baza: żar i złoto (12.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: ceny ulepszeń
+  i ich odczuwalność (czy +10% potworów widać), ceny kowala i kupca (przedmioty u kupca tanie wobec klucza),
+  czy pasek skrótów nie zasłania widoku na 16:9.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

@@ -140,8 +140,8 @@ func _test_base() -> void:
 	_check(chosen[0] == 2 and not paused and not picker.visible, "„Wejdź” wchodzi na wybrany poziom")
 	game.best_level = 0
 	entered[0] = false
-	_touch(Vector2(30, 600), true)
-	_touch(Vector2(30, 600), false)
+	_touch(Vector2(180, 470), true)
+	_touch(Vector2(180, 470), false)
 	await process_frame
 	_check(not entered[0], "dotknięcie obok Watry nic nie robi")
 	# krąg kamieni: postać pchana w Watrę zatrzymuje się na nim

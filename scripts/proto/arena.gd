@@ -23,12 +23,21 @@ extends Node2D
 ## otwiera okno umiejętności z kupowaniem (SkillsWindow). Przyciski walki pokazują umiejętności z miejsc
 ## (Game.skill_slots): duży przycisk - `weapon.main_skill`, małe - stuknięcie używa umiejętności (`weapon.cast`),
 ## a na przyciskach widać odnowienie i brak many (`_update_skill_buttons`).
+## Baza i waluty (ustalone 12.11.2026): kowal (postać z Watry przy kowadle, okno SmithWindow - przeróbka premii za złoto)
+## i kupiec (wędrowny kupiec przy straganie, okno ShopWindow - towar odnawia się po każdym zwycięstwie nad Wodzem),
+## ulepszenia lochów za żar (UpgradesWindow z wyboru poziomu przy Watrze; działanie w lochu - `_apply_upgrades`)
+## i pasek skrótów (BaseBar) otwierający okna budynków bez podchodzenia.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
-const DUMMIES := [Vector2(-100, 0), Vector2(100, 10), Vector2(0, 170)]
+const DUMMIES := [Vector2(-100, 170), Vector2(100, 180), Vector2(0, 290)]
 const WATRA_POS := Vector2(0, -115)
 const STASH_POS := Vector2(-125, -135)
 const RUNE_POS := Vector2(125, -135)
+## Kowal (z kowadłem po prawej) i kupiec (ze straganem po lewej) po bokach, niżej niż Watra.
+const SMITH_POS := Vector2(-120, 40)
+const SHOP_POS := Vector2(130, 40)
+const ANVIL_OFFSET := Vector2(24, 4)
+const STALL_OFFSET := Vector2(-32, -2)
 const BASE_SCENE := "res://scenes/prototype.tscn"
 const HORDE_SCENE := "res://scenes/horde.tscn"
 ## Po śmierci postaci okno wyniku pojawia się po tylu sekundach (widać, jak pada).
@@ -97,6 +106,13 @@ var stash_window: StashWindow
 ## Baza: kamień run i okno umiejętności z kupowaniem.
 var rune_stone: ProtoStash
 var skills_window: SkillsWindow
+## Baza: kowal, kupiec, ich okna, okno ulepszeń lochów i pasek skrótów.
+var smith: ProtoStash
+var merchant: ProtoStash
+var smith_window: SmithWindow
+var shop_window: ShopWindow
+var upgrades_window: UpgradesWindow
+var base_bar: BaseBar
 ## Poziom lochu tej wyprawy (Game.dungeon_level).
 var level := 1
 var chief: ProtoChief
@@ -148,6 +164,7 @@ func _ready() -> void:
 		horde_spawner.bounds = ARENA.grow(-8)
 		horde_spawner.power = DungeonLevels.power(level)
 		horde_spawner.level = level
+		_apply_upgrades()
 		horde_spawner.loot_spawned.connect(_track_loot)
 		horde_spawner.kills_changed.connect(func(k: int) -> void:
 			kills_label.text = tr("Pokonane: %d") % k
@@ -197,6 +214,13 @@ func _ready() -> void:
 		rune_stone.opened.connect(open_skills)
 		world.add_child(rune_stone)
 		hero.obstacles.append(Vector3(RUNE_POS.x, RUNE_POS.y, ProtoStash.RADIUS))
+		smith = _npc(world, "Smith", "Kowal", preload("res://assets/watra/base/smith.png"), SMITH_POS,
+				preload("res://assets/watra/base/anvil.png"), ANVIL_OFFSET)
+		smith.opened.connect(open_smith)
+		merchant = _npc(world, "Merchant", "Kupiec", preload("res://assets/watra/base/traveling_merchant.png"),
+				SHOP_POS, preload("res://assets/watra/base/stall_goods.png"), STALL_OFFSET)
+		merchant.opened.connect(open_shop)
+		Game.embers_changed.connect(func() -> void: watra.set_embers(Game.embers))
 	world.add_child(weapon)
 	if not horde:
 		hero.set_level(Game.hero_level, gear)
@@ -213,6 +237,34 @@ func _ready() -> void:
 		actions.skills[i].released.connect(func() -> void: weapon.flicker_held = false)
 	_apply_skills()
 	Game.skills_changed.connect(_apply_skills)
+
+
+## Postać z Watry w bazie (arkusz 4x4 klatek, animowany pierwszy rząd) z rekwizytem obok; otwiera okno jak skrzynia.
+func _npc(world: Node2D, node_name: String, title: String, sheet: Texture2D, at: Vector2, prop: Texture2D,
+		prop_offset: Vector2) -> ProtoStash:
+	var npc := ProtoStash.new()
+	npc.name = node_name
+	npc.texture = sheet
+	npc.frames = 4
+	npc.rows = 4
+	npc.sprite_scale = 1.0
+	npc.title = title
+	npc.prop = prop
+	npc.prop_offset = prop_offset
+	npc.position = at
+	npc.hero = hero
+	world.add_child(npc)
+	hero.obstacles.append(Vector3(at.x, at.y, ProtoStash.RADIUS))
+	hero.obstacles.append(Vector3(at.x + prop_offset.x, at.y + prop_offset.y, ProtoStash.RADIUS))
+	return npc
+
+
+## Ulepszenia lochów za żar (Game.upgrades) do strumienia Hordy: gęstość, szansa łupu, zasięg zbierania.
+## Doświadczenie dolicza `_gain_xp`, szansę na kamienie ze skrzyni Wodza - `_on_chief_died`.
+func _apply_upgrades() -> void:
+	horde_spawner.density = 1.0 + Game.upgrade_bonus("monsters") / 100.0
+	horde_spawner.loot_mult = 1.0 + Game.upgrade_bonus("loot") / 100.0
+	horde_spawner.reach = Game.upgrade_bonus("reach")
 
 
 ## Trawa z Watry powtarzana na całej polanie, z ciemniejszym brzegiem.
@@ -291,6 +343,12 @@ func _make_hud() -> void:
 	actions.left_handed = Game.left_handed
 	column.add_child(actions)
 	joystick.blocked = [top, actions]
+	if not horde:
+		base_bar = BaseBar.new()
+		base_bar.left_handed = Game.left_handed
+		base_bar.chosen.connect(_on_bar)
+		safe.add_child(base_bar)
+		joystick.blocked.append(base_bar.column)
 	if horde:
 		joystick.blocked.append(summon_button)
 		result = RunResult.new()
@@ -306,7 +364,18 @@ func _make_hud() -> void:
 		picker = LevelPicker.new()
 		picker.visible = false
 		picker.enter.connect(enter_dungeon)
+		picker.upgrades.connect(open_upgrades)
 		safe.add_child(picker)
+		upgrades_window = UpgradesWindow.new()
+		upgrades_window.visible = false
+		upgrades_window.closed.connect(open_picker)
+		safe.add_child(upgrades_window)
+		smith_window = SmithWindow.new()
+		smith_window.visible = false
+		safe.add_child(smith_window)
+		shop_window = ShopWindow.new()
+		shop_window.visible = false
+		safe.add_child(shop_window)
 		stash_window = StashWindow.new()
 		stash_window.visible = false
 		safe.add_child(stash_window)
@@ -459,7 +528,7 @@ func _bar_text(bar: ProgressBar, font_size: int) -> Label:
 func _gain_xp(amount: int) -> void:
 	if hero.dead:
 		return
-	amount = roundi(amount * (1.0 + gear.get("xp_pct", 0.0) / 100.0))
+	amount = roundi(amount * (1.0 + (gear.get("xp_pct", 0.0) + Game.upgrade_bonus("xp")) / 100.0))
 	run_xp += amount
 	Game.add_xp(amount)
 
@@ -588,8 +657,7 @@ func _on_dev_embers(amount: int) -> void:
 	else:
 		Game.embers += amount
 		Game.save_game()
-		watra.embers = Game.embers
-		watra.embers_label.text = tr("Żar Watry: %d") % Game.embers
+		Game.embers_changed.emit()
 
 
 ## Pasek zdrowia Wodza pod górnym rzędem (ukryty do przyzwania).
@@ -719,7 +787,7 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	chest.hero = hero
 	chest.embers = DungeonLevels.chest_embers(level)
 	chest.items = Items.roll_chest(level)
-	for id in Gems.roll_chest(level):
+	for id in Gems.roll_chest(level, horde_spawner.loot_mult):
 		chest.items.append({"gem": id})
 	chest.loot_spawned.connect(_track_loot)
 	chest.position = at
@@ -745,6 +813,7 @@ func victory() -> void:
 	var banked := horde_spawner.embers
 	_bank()
 	var unlocked := level + 1 if Game.beat_level(level) else 0
+	Game.restock_shop(level)  # kupiec ma nowy towar po każdym pokonanym Wodzu
 	Game.save_if_dirty()
 	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time, hero.deaths)
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
@@ -760,7 +829,6 @@ func _on_retry() -> void:
 	Game.change_scene(HORDE_SCENE)
 
 
-## Baza: wybór poziomu lochu po dotknięciu Watry.
 ## Baza: okno skrzyni (stuknięcie albo podejście).
 func open_stash() -> void:
 	joystick.release()
@@ -777,6 +845,47 @@ func open_skills() -> void:
 	skills_window.open(true)
 
 
+## Baza: kowal - przeróbka premii przedmiotów.
+func open_smith() -> void:
+	_release()
+	smith_window.open()
+
+
+## Baza: kupiec - klucze, dłuta, kamienie i przedmioty.
+func open_shop() -> void:
+	_release()
+	shop_window.open()
+
+
+## Baza: ulepszenia lochów za żar (z wyboru poziomu przy Watrze; po zamknięciu wybór wraca).
+func open_upgrades() -> void:
+	_release()
+	upgrades_window.open()
+
+
+## Pasek skrótów w bazie: okno budynku od razu.
+func _on_bar(id: String) -> void:
+	match id:
+		"watra":
+			open_picker()
+		"stash":
+			open_stash()
+		"skills":
+			open_skills()
+		"smith":
+			open_smith()
+		"shop":
+			open_shop()
+
+
+## Puszcza gałkę i przyciski walki przed otwarciem okna.
+func _release() -> void:
+	joystick.release()
+	actions.release_all()
+	weapon.attack_held = false
+
+
+## Baza: wybór poziomu lochu po dotknięciu Watry.
 func open_picker() -> void:
 	joystick.release()
 	actions.release_all()
@@ -823,6 +932,8 @@ func _apply_settings() -> void:
 	hero.gesture = Game.gesture
 	hero.immortal = Game.dev_immortal
 	weapon.auto_attack = Game.auto_attack
+	if base_bar:
+		base_bar.left_handed = Game.left_handed
 	if deaths_label:
 		deaths_label.visible = Game.dev_immortal
 
@@ -843,6 +954,11 @@ func _notification(what: int) -> void:
 		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 			skills_window.back()
 		return
+	for w in [smith_window, shop_window, upgrades_window]:
+		if w and w.visible:
+			if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+				w.back()
+			return
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and pause_menu.visible:
 		pause_menu.back()
 	elif what in [NOTIFICATION_WM_GO_BACK_REQUEST, NOTIFICATION_APPLICATION_PAUSED] and not pause_menu.visible \

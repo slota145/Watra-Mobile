@@ -243,27 +243,29 @@ static func roll(level: int) -> String:
 
 
 ## Łup z goblina: kamień, klucz albo dłuto (rzadko; poniżej MIN_LEVEL nic) - "" gdy nic.
-static func roll_goblin(level: int) -> String:
+## `chance_mult` - mnożnik szans (ulepszenie łupu).
+static func roll_goblin(level: int, chance_mult := 1.0) -> String:
 	if level < MIN_LEVEL:
 		return ""
 	var r := randf()
-	if r < GOBLIN_RARE:
+	if r < GOBLIN_RARE * chance_mult:
 		return KEY if randf() < 0.5 else CHISEL
-	return roll(level) if r < GOBLIN_RARE + GOBLIN_GEM else ""
+	return roll(level) if r < (GOBLIN_RARE + GOBLIN_GEM) * chance_mult else ""
 
 
 ## Łup ze skrzyni Wodza: lista identyfikatorów (kamienie, klucz, dłuto; poniżej MIN_LEVEL - pusta).
-static func roll_chest(level: int) -> Array:
+## `chance_mult` - mnożnik szans (ulepszenie łupu).
+static func roll_chest(level: int, chance_mult := 1.0) -> Array:
 	var out: Array = []
 	if level < MIN_LEVEL:
 		return out
 	for chance in CHEST_GEM:
-		if randf() < chance:
+		if randf() < chance * chance_mult:
 			out.append(roll(level))
 	var step := CHEST_RARE_STEP * (level - MIN_LEVEL)
-	if randf() < minf(CHEST_KEY.x + step, CHEST_KEY.y):
+	if randf() < minf(CHEST_KEY.x + step, CHEST_KEY.y) * chance_mult:
 		out.append(KEY)
-	if randf() < minf(CHEST_CHISEL.x + step, CHEST_CHISEL.y):
+	if randf() < minf(CHEST_CHISEL.x + step, CHEST_CHISEL.y) * chance_mult:
 		out.append(CHISEL)
 	return out
 
