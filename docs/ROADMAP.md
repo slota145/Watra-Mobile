@@ -17,7 +17,7 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 0b. Pierwszy potwór i Horda (12.11.2026, szczegóły w `docs/historia.md`): goblin ze SpriteKiln, baza z Watrą,
    loch z ciągłym strumieniem goblinów, pasek zdrowia, licznik, okno wyniku. Do oceny na telefonie: tempo strumienia,
    obrażenia, czytelność goblinów w tłumie. Oceniony na telefonie: działa i bardzo się podoba.
-   Iskry żaru z goblinów dla Watry (12.11.2026) - na co wydawać żar, do ustalenia z autorem.
+   Iskry żaru z goblinów dla Watry (12.11.2026) - na co wydawać żar: ustalone (punkt „Baza: żar i złoto” niżej).
    Boss i poziomy lochu (12.11.2026): Wódz Goblinów za pełny pasek żaru, skrzynia, odblokowanie następnego poziomu.
 
 1. **Wizja gry:** rdzeń ustalony (lochy + hub, może jak Vampire Survivors bez roguelike) - czekamy na pierwsze pomysły
@@ -46,7 +46,12 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   Kamienie w umiejętnościach i ekwipunku zrobione (12.11.2026, szczegóły w `docs/historia.md`). Do oceny na telefonie:
   szanse łupu (goblin 1,2%, skrzynia 80% + 30%, klucz 4-15%, dłuto 6-20%), siła kamieni (Żar, Piorun, Mnożenie),
   czytelność gniazd w oknach, czy Szron i Żar dobrze widać na goblinach (znaczki rysowane w kodzie - może efekty z kreatora).
-  Dalej: ulepszanie umiejętności (poziomy?), na co wydawać złoto (kowal, sklep?).
+  Dalej: ulepszanie umiejętności (poziomy?).
+
+- **Baza: żar i złoto (ustalone 12.11.2026, do zrobienia; zasady w `docs/GDD.md`, „Baza i waluty”):**
+  ulepszenia lochów za żar przy Watrze (potwory, doświadczenie, łup, zasięg zbierania), kowal (przeróbka jednej
+  premii, rosnąca cena), kupiec (klucze, dłuta, kamienie 1. stopnia, przedmioty; towar odnawia się po bossie),
+  pasek ikon w bazie. Ceny i stopnie do zatwierdzenia przez autora przed zrobieniem.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

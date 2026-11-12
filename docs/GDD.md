@@ -34,6 +34,15 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
     przeciwników, więcej doświadczenia, więcej łupu. Zmiany małe, żeby grind miał sens, ale każda odczuwalna
     (rosnące ceny kolejnych stopni zamiast niewidocznych +1%).
 
+- **Baza i waluty** (ustalone 12.11.2026):
+  - **żar** idzie tylko na **ulepszenia lochów** przy Watrze (wspólne dla wszystkich lochów, kilka stopni z rosnącą
+    ceną): więcej potworów, więcej doświadczenia, więcej łupu, większy zasięg zbierania (iskry i przedmioty);
+  - **złoto:** zakładki skrzyni, umiejętności, **kowal** - przerabia **jedną wybraną premię** przedmiotu (losuje w jej
+    miejsce inną: rodzaj i siłę), każda kolejna przeróbka tego przedmiotu droższa; **kupiec** - klucze, dłuta,
+    kamienie najniższego stopnia i kilka przedmiotów, **towar w ograniczonej liczbie, odnawia się po każdym pokonanym bossie**;
+  - **na telefonie:** postać chodzi po bazie do budynków (Watra, skrzynia, kamień run, kowal, kupiec), a pasek ikon
+    na dole ekranu otwiera ich okna od razu, bez podchodzenia.
+
 ## Kierunek wstępny (autor jeszcze nie zdecydował)
 
 - Lochy w stylu **Vampire Survivors** (fale potworów, gracz głównie się porusza, a ataki idą same?), ale **bez mechanik
@@ -69,7 +78,7 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
 
 - **Walka w lochu:** w stylu Vampire Survivors (auto-ataki, ruch palcem) czy ARPG jak Watra (gałka i przyciski
   umiejętności)? Co daje „bez roguelike”: czy w lochu w ogóle wybiera się ulepszenia, czy wszystko daje hub i ekwipunek?
-- **Hub:** co w nim robimy (kowal, Watra, sklep, drzewko)? Ekran z budynkami do stukania czy chodzenie postacią?
+- ~~**Hub:**~~ ustalone 12.11.2026 - patrz „Baza i waluty” wyżej.
 - **Sterowanie:** gałka w miejscu dotyku, stuknięcie w cel, przeciąganie, auto-atak?
 - **Co przenosimy z Watry:** łup i przedmioty, drzewko umiejętności, zaklinanie, lochy Watry, świat jak w MMO?
 - **Sesje i postęp:** postęp offline (Ostoja zbiera surowce, gdy gracz nie gra)? Długość jednej wyprawy?
