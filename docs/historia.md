@@ -27,6 +27,7 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   w eksporcie przez `include_filter`) i eksportuje też `build/game.pck`; `tools/publish_apk.sh` wrzuca na gałąź `apk`
   apk, `game.pck` i `version.json` (build, commit, apk, size, sha256). Uprawnienie internetu w eksporcie włączone.
 - Test `tests/test_updater.gd` (z `-- --with-updates`): mini-serwer HTTP na TCPServer, paczka z PCKPacker.
+- Sprawdzone na telefonie autora: kompilacja 15 (pełny apk) -> „Aktualizuj” -> kompilacja 16.
 
 ## 12.11.2026 - efekt trafienia, miecz dalej od postaci
 
