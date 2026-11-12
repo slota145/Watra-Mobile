@@ -2,6 +2,37 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - Wódz Goblinów, koniec wyprawy i poziomy lochu
+
+- Ustalenia z autorem: pasek żaru 100 (`DungeonLevels.SUMMON_COST`), przyzwanie przyciskiem przy pełnym pasku, gobliny
+  uciekają z piskiem, Wódz Goblinów (duży, w trofeach) z trzema atakami z ostrzeżeniem: cios w ziemię, okrzyk wojenny,
+  rzut tasakiem; nagroda - skrzynia (na razie żar, potem łup); okno zwycięstwa; pokonanie bossa odblokowuje następny
+  poziom, wybór poziomu przy Watrze (do najwyższego odblokowanego). Ucieczka i śmierć gaszą żar (zgodnie z GDD) - przycisk
+  „Do bazy” w lochu usunięty, w pauzie „Uciekaj do bazy” z ostrzeżeniem (`PauseMenu.leave_note`).
+- `scripts/dungeon_levels.gd` (`DungeonLevels`): `power(level)` = 1 + 0,15 na poziom (zdrowie i obrażenia goblinów i Wodza),
+  `chest_embers(level)` = 20 + 10 na poziom. `Game`: `best_level` (najwyższy przebity), `dungeon_level` (wybrany),
+  `unlocked_level()`, `beat_level()`; oba w zapisie.
+- Arena w lochu: pasek żaru pod paskiem zdrowia (pulsuje, gdy pełny), „Poz. N” w pasku, przycisk „Przyzwij Wodza” nad
+  przyciskami ataku (`summon_chief`): zjada 100 żaru (nadwyżka zostaje w liczniku), `ProtoHorde.call_boss` (strumień staje,
+  `scatter` - gobliny `flee`: biegną od postaci 120 px/s, gasną po 1,4 s, piszczy najwyżej 6 - `tools/goblin_squeak.py`
+  -> `assets/sounds/goblin_squeak_*.ogg`), Wódz 110 px nad postacią, pasek zdrowia Wodza pod górnym rzędem.
+  Etapy `phase`: horde, boss, loot, won. Ziemia ma `z_index` -10 (ciała i ostrzeżenia na -1 były pod trawą).
+- `proto_chief.gd` (`ProtoChief`): 700 zdrowia x siła (ok. 25 s cięcia), prędkość 30, wejście z rykiem i wstrząsem kamery
+  (1,4 s nietykalności). Ataki co 1,1 s: cios w ziemię z bliska (koło 46 px, 1,1 s ostrzeżenia, 25 obrażeń), rzut tasakiem
+  z daleka (koło 20 px pod postacią, 1 s, 20 obrażeń, powrót jak bumerang - 10), okrzyk co 9 s (fale, po 0,9 s 5 goblinów
+  wokół przez `ProtoHorde.spawn_at` - dają iskry). Animacje modelu: `slam`, `throw`, `roar` (cios w `ANIM_HIT_AT`), do czasu
+  modelu zastępczy goblin x1,6, czerwonawy (`ANIM_FALLBACK`). Dźwięki z Watry: `chief_roar` (horde_roar), `chief_slam`,
+  `cleaver_land` (Kenney CC0).
+- `proto_telegraph.gd` (`ProtoTelegraph`): czerwone koło z Watry (`telegraph.gd`), spłaszczone 0,6. `proto_cleaver.gd` -
+  tasak rysowany w kodzie, `proto_ring.gd` - fale okrzyku i kurz.
+- `proto_chest.gd` (`ProtoChest`): skrzynia z Watry (`assets/watra/chest.png`) spada 1,4 s po śmierci Wodza, otwiera się
+  z bliska (22 px) albo stuknięciem, sypie iskry (duże po 5), które po 0,5 s same lecą do postaci (`ProtoEmber.magnet`,
+  `spread`, `delay`). Po 2,2 s `victory()`: `_bank` (cały żar z wyprawy), `Game.beat_level`, `RunResult.show_victory`
+  („Następny poziom: N” / „Powrót do bazy”).
+- `scripts/ui/level_picker.gd` (`LevelPicker`): dotknięcie Watry - ◀ Poziom N ▶, siła potworów, skrzynia Wodza, „Wejdź” /
+  „Anuluj” w dolnej części, pauza; „wstecz” zamyka.
+- Test `tests/test_horde.gd` (`_test_chief` i wybór poziomu), zrzuty `SCRIPT=tools/boss_shots.gd tools/screenshot.sh <prefiks>`.
+
 ## 12.11.2026 - iskry żaru dla Watry
 
 - Ustalenia z autorem: iskry przyciągane z bliska, po śmierci przepadają (do Watry tylko przy powrocie), żar na razie

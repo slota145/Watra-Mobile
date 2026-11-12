@@ -17,6 +17,8 @@ var quit_button: Button
 ## Scena bazy - gdy ustawiona (w lochu), okno ma też przycisk „Powrót do bazy”.
 var base_scene := ""
 var base_button: Button
+## Ostrzeżenie pod przyciskiem powrotu w lochu (ucieczka gasi żar z wyprawy) - pokazywane, gdy jest co stracić.
+var leave_note: Label
 var _game: Node
 
 
@@ -64,18 +66,28 @@ func _ready() -> void:
 	resume_button = _button(column, tr("Wróć do gry"))
 	resume_button.pressed.connect(close)
 	if base_scene != "":
-		base_button = _button(column, tr("Powrót do bazy"))
+		base_button = _button(column, tr("Uciekaj do bazy"))
 		base_button.pressed.connect(func() -> void:
 			leaving.emit()
 			_game.change_scene(base_scene))
+		leave_note = Label.new()
+		leave_note.text = tr("Żar z wyprawy zgaśnie - do Watry trafia tylko po pokonaniu bossa.")
+		leave_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		leave_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		leave_note.add_theme_font_size_override("font_size", 11)
+		leave_note.add_theme_color_override("font_color", Color(1, 0.6, 0.4))
+		leave_note.visible = false
+		column.add_child(leave_note)
 	quit_button = _button(column, tr("Menu główne"))
 	quit_button.pressed.connect(func() -> void:
 		leaving.emit()
 		_game.change_scene(_game.MENU_SCENE))
 
 
-## Pokazuje okno i zatrzymuje grę.
-func open() -> void:
+## Pokazuje okno i zatrzymuje grę. `at_stake` - żar, który zgaśnie przy ucieczce z lochu.
+func open(at_stake := 0) -> void:
+	if leave_note:
+		leave_note.visible = at_stake > 0
 	left_toggle.set_pressed_no_signal(_game.left_handed)
 	gesture_toggle.set_pressed_no_signal(_game.gesture)
 	visible = true

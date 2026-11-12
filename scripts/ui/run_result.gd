@@ -1,7 +1,8 @@
 class_name RunResult
 extends Control
-## Okno wyniku po śmierci postaci w lochu: liczba pokonanych potworów i czas przetrwania, a pod spodem
-## duże przyciski „Jeszcze raz” i „Powrót do bazy” (w dolnej połowie ekranu, pod kciukiem).
+## Okno wyniku w lochu: po śmierci postaci (`show_result` - pokonane potwory, czas, zgasły żar; „Jeszcze raz”)
+## albo po pokonaniu bossa (`show_victory` - żar do Watry, odblokowany poziom; „Następny poziom”).
+## Pod spodem duże przyciski (w dolnej połowie ekranu, pod kciukiem), drugi to „Powrót do bazy”.
 ## Działa przy zatrzymanej grze (PROCESS_MODE_ALWAYS).
 
 signal retry
@@ -10,6 +11,7 @@ signal back_to_base
 var retry_button: Button
 var base_button: Button
 var _summary: Label
+var _title: Label
 
 
 func _ready() -> void:
@@ -32,6 +34,7 @@ func _ready() -> void:
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(spacer)
 	var title := Label.new()
+	_title = title
 	title.text = tr("Ogień przygasł…")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 24)
@@ -62,6 +65,22 @@ func show_result(kills: int, seconds: float, lost_embers := 0) -> void:
 	_summary.text = tr("Pokonane gobliny: %d") % kills + "\n" + tr("Przetrwany czas: %d:%02d") % [s / 60, s % 60]
 	if lost_embers > 0:
 		_summary.text += "\n" + tr("Zgasło żaru: %d") % lost_embers
+	visible = true
+
+
+## Wynik po pokonaniu bossa: `banked` - żar doniesiony do Watry, `unlocked` - nowo odblokowany poziom (0 - żaden).
+## Przycisk „Następny poziom: N” (sygnał `retry`) prowadzi na następny poziom lochu.
+func show_victory(level: int, banked: int, unlocked: int, kills: int, seconds: float) -> void:
+	var s := int(seconds)
+	_title.text = tr("Wódz pokonany!")
+	_title.add_theme_color_override("font_color", Color(1, 0.82, 0.35))
+	var lines: Array[String] = [tr("Poziom lochu: %d") % level, tr("Żar do Watry: %d") % banked]
+	if unlocked > 0:
+		lines.append(tr("Odblokowano poziom %d") % unlocked)
+	lines.append(tr("Pokonane gobliny: %d") % kills)
+	lines.append(tr("Czas wyprawy: %d:%02d") % [s / 60, s % 60])
+	_summary.text = "\n".join(lines)
+	retry_button.text = tr("Następny poziom: %d") % (level + 1)
 	visible = true
 
 

@@ -2,7 +2,10 @@ extends SceneTree
 ## Test bazy i lochu z Hordą: dotknięcie Watry w bazie otwiera wejście do lochu, krąg kamieni zatrzymuje postać;
 ## w lochu gobliny pojawiają się poza ekranem i idą do Wojciecha, zadają obrażenia (pasek zdrowia), miecz je zabija
 ## (licznik pokonanych), strumień przyspiesza z czasem, a po śmierci postaci jest okno wyniku z dwoma przyciskami.
-## Żar: z goblina wypada iskra, sama leci do postaci z bliska, „Do bazy” zanosi żar do Watry (zapis), śmierć go gasi.
+## Żar: z goblina wypada iskra, sama leci do postaci z bliska i zapełnia pasek; pełny pasek - przycisk przyzwania Wodza.
+## Wódz: przyzwanie zjada żar z paska, gobliny uciekają, ataki z ostrzeżeniem (cios w ziemię, rzut tasakiem, okrzyk),
+## po śmierci skrzynia, zwycięstwo zanosi żar do Watry i odblokowuje poziom; śmierć i ucieczka gaszą żar.
+## Baza: dotknięcie Watry otwiera wybór poziomu lochu.
 
 var _failed := 0
 
@@ -33,6 +36,7 @@ func _wait(seconds: float) -> void:
 func _run() -> void:
 	await _test_base()
 	await _test_horde()
+	await _test_chief()
 	DirAccess.remove_absolute(root.get_node("Game").settings_path)
 	DirAccess.remove_absolute(root.get_node("Game").save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
@@ -72,15 +76,24 @@ func _test_embers(arena: Node, hero: ProtoHero, horde: ProtoHorde) -> void:
 	for n in arena.get_node("World").get_children():
 		big = big or (n is ProtoEmber and n.value == ProtoEmber.BIG)
 	_check(big, "co %d. goblin - duża iskra" % ProtoHorde.BIG_EVERY)
-	# „Do bazy”: żar trafia do Watry i do zapisu (bez zmiany sceny w teście)
-	var top: Rect2 = arena.base_button.get_global_rect()
-	_check(top.size.y >= 44.0 and arena.joystick._is_blocked(top.get_center()), "przycisk „Do bazy” w lochu, 44 px, nie rusza gałki")
-	horde.embers = 7
-	arena._bank()
-	_check(game.embers == 7 and game.embers_brought == 7 and horde.embers == 0, "powrót zanosi żar do Watry")
-	game.embers = 0
-	game.load_game()
-	_check(game.embers == 7, "żar zapisany")
+	# pasek żaru: do kosztu przyzwania; pełny - przycisk „Przyzwij Wodza” pod kciukiem
+	horde._on_ember(0)
+	horde.embers = 40
+	horde._on_ember(0)
+	_check(is_equal_approx(arena.ember_bar.value, 40.0) and not arena.summon_button.visible, "pasek żaru rośnie, bez przycisku przyzwania")
+	horde.embers = DungeonLevels.SUMMON_COST + 5
+	horde._on_ember(0)
+	await process_frame
+	var r: Rect2 = arena.summon_button.get_global_rect()
+	var view := root.get_visible_rect().size
+	_check(arena.summon_button.visible and arena.ember_bar.value == DungeonLevels.SUMMON_COST, "pełny pasek - przycisk przyzwania")
+	_check(r.size.y >= 44.0 and r.get_center().y > view.y * 0.5 and arena.joystick._is_blocked(r.get_center()), "przycisk przyzwania w dolnej połowie, 44 px, nie rusza gałki")
+	# ucieczka z okna pauzy nie zanosi żaru
+	arena._open_menu()
+	_check(arena.pause_menu.leave_note.visible, "pauza ostrzega, że ucieczka gasi żar")
+	arena.pause_menu.leaving.emit()
+	arena.pause_menu.close()
+	_check(game.embers == 0, "ucieczka nie zanosi żaru do Watry")
 	horde.embers = 3  # tyle zgaśnie przy śmierci (sprawdzane niżej)
 
 
@@ -105,6 +118,27 @@ func _test_base() -> void:
 	_touch(screen, false)
 	await process_frame
 	_check(entered[0], "dotknięcie Watry otwiera wejście do lochu")
+	# wybór poziomu: od 1 do najwyższego odblokowanego
+	var game: Node = root.get_node("Game")
+	game.best_level = 2
+	arena.open_picker()
+	var picker: LevelPicker = arena.picker
+	_check(picker.visible and paused and picker.max_level == 3, "wybór poziomu (odblokowane do 3), gra stoi")
+	picker.set_level(9)
+	_check(picker.level == 3 and picker.plus_button.disabled and not picker.minus_button.disabled, "poziom nie wyżej niż odblokowany")
+	picker.set_level(0)
+	_check(picker.level == 1 and picker.minus_button.disabled, "poziom nie niżej niż 1")
+	await process_frame
+	_check(picker.enter_button.get_global_rect().get_center().y > root.get_visible_rect().size.y * 0.5 \
+		and picker.enter_button.get_global_rect().size.y >= 44.0, "„Wejdź” w dolnej połowie, min. 44 px")
+	for c in picker.enter.get_connections():
+		picker.enter.disconnect(c.callable)
+	var chosen := [0]
+	picker.enter.connect(func(l: int) -> void: chosen[0] = l)
+	picker.set_level(2)
+	picker.enter_button.pressed.emit()
+	_check(chosen[0] == 2 and not paused and not picker.visible, "„Wejdź” wchodzi na wybrany poziom")
+	game.best_level = 0
 	entered[0] = false
 	_touch(Vector2(30, 600), true)
 	_touch(Vector2(30, 600), false)
@@ -170,7 +204,104 @@ func _test_horde() -> void:
 	_check(result._summary.text.contains(tr("Zgasło żaru: %d") % 3), "po śmierci żar z lochu gaśnie")
 	var game: Node = root.get_node("Game")
 	arena._bank()
-	_check(game.embers == 7, "martwy Wojciech nie donosi żaru do Watry (%d)" % game.embers)
+	_check(game.embers == 0, "martwy Wojciech nie donosi żaru do Watry (%d)" % game.embers)
+	_check(not arena.summon_button.visible, "po śmierci bez przycisku przyzwania")
+	paused = false
+	arena.queue_free()
+	await process_frame
+
+
+func _test_chief() -> void:
+	var game: Node = root.get_node("Game")
+	game.embers = 0
+	game.best_level = 1
+	game.dungeon_level = 2
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	var horde: ProtoHorde = arena.horde_spawner
+	_check(arena.level == 2 and is_equal_approx(horde.power, DungeonLevels.power(2)), "poziom 2: silniejsze gobliny (x%.2f)" % horde.power)
+	var g := horde.spawn_at(hero.position + Vector2(60, 0))
+	await process_frame
+	_check(g.hp == roundi(ProtoGoblin.MAX_HP * horde.power), "goblin ma więcej zdrowia (%d)" % g.hp)
+	horde.embers = DungeonLevels.SUMMON_COST + 12
+	horde._on_ember(0)
+	arena.summon_button.pressed.emit()
+	await process_frame
+	var chief: ProtoChief = arena.chief
+	_check(chief != null and arena.phase == "boss", "przycisk przyzywa Wodza")
+	_check(horde.embers == 12 and arena.embers_label.text == "12", "przyzwanie zjada żar z paska, nadwyżka zostaje")
+	_check(not horde.running and not g.alive() and not g.is_in_group(ProtoWeapon.TARGETS), "gobliny uciekają, strumień staje")
+	_check(arena.boss_box.visible and arena.boss_bar.max_value == chief.max_hp and chief.max_hp > ProtoChief.MAX_HP, "pasek zdrowia Wodza (%d)" % chief.max_hp)
+	var screen := chief.get_global_transform_with_canvas().origin
+	_check(Rect2(Vector2.ZERO, root.get_visible_rect().size).has_point(screen), "Wódz widoczny na ekranie")
+	await _wait(0.5)
+	chief.take_damage(50, hero.global_position)
+	_check(chief.hp == chief.max_hp, "przy wejściu Wódz nietykalny")
+	await _wait(ProtoChief.ENTER_TIME)
+	_check(not is_instance_valid(g), "uciekający goblin znika")
+	_check(chief.state == "walk", "po ryku Wódz rusza")
+	# cios w ziemię: czerwone koło, trafia, gdy postać stoi w środku
+	hero.position = chief.position + Vector2(20, 5)
+	hero.hp = ProtoHero.MAX_HP
+	hero._invulnerable = 0.0
+	chief._start_slam()
+	_check(chief._telegraph != null and chief._telegraph.radius == ProtoChief.SLAM_RADIUS, "cios w ziemię - ostrzeżenie na ziemi")
+	await _wait(ProtoChief.SLAM_WARN + 0.1)
+	_check(hero.hp == ProtoHero.MAX_HP - roundi(ProtoChief.SLAM_DAMAGE * chief.power), "cios trafia w kole (zdrowie %d)" % hero.hp)
+	# ucieczka z koła - bez obrażeń
+	await _wait(1.0)
+	hero.hp = ProtoHero.MAX_HP
+	hero.position = chief.position + Vector2(20, 5)
+	chief._start_slam()
+	await _wait(0.3)
+	hero.position = chief.position + Vector2(90, 0)
+	await _wait(ProtoChief.SLAM_WARN)
+	_check(hero.hp == ProtoHero.MAX_HP, "wyjście z koła ratuje przed ciosem")
+	# rzut tasakiem: koło pod postacią, tasak spada i wraca
+	await _wait(1.0)
+	hero.position = chief.position + Vector2(100, 0)
+	hero.hp = ProtoHero.MAX_HP
+	hero._invulnerable = 0.0
+	chief._start_throw()
+	_check(chief._telegraph.contains(hero.global_position), "rzut - koło pod postacią")
+	await _wait(ProtoChief.THROW_WARN + 0.1)
+	_check(hero.hp < ProtoHero.MAX_HP, "tasak trafia stojącą postać (zdrowie %d)" % hero.hp)
+	await _wait(1.0)
+	_check(chief._cleaver == null, "tasak wraca do Wodza")
+	# okrzyk: gobliny wokół Wodza
+	var before: int = get_nodes_in_group(ProtoWeapon.TARGETS).size()
+	chief._start_roar()
+	await _wait(ProtoChief.ROAR_TIME + 0.1)
+	_check(get_nodes_in_group(ProtoWeapon.TARGETS).size() == before + ProtoChief.ROAR_MINIONS, "okrzyk przywołuje gobliny")
+	# śmierć: skrzynia, iskry, zwycięstwo
+	hero.hp = ProtoHero.MAX_HP
+	hero.position = chief.position + Vector2(0, 120)
+	var at := chief.position
+	chief.take_damage(100000, hero.global_position)
+	_check(not chief.alive() and arena.phase == "loot", "Wódz pada")
+	await _wait(0.3)
+	var fled := true
+	for n in arena.get_node("World").get_children():
+		if n is ProtoGoblin and n.alive():
+			fled = false
+	_check(fled, "po śmierci Wodza gobliny uciekają")
+	await _wait(arena.CHEST_DELAY)
+	var chest: ProtoChest = arena.chest
+	_check(chest != null and chest.position.distance_to(at) < 1.0 and not chest.is_open, "skrzynia w miejscu Wodza")
+	var embers_before: int = horde.embers
+	hero.position = chest.position + Vector2(0, 10)
+	await _wait(0.4)
+	_check(chest.is_open, "podejście otwiera skrzynię")
+	await _wait(arena.VICTORY_DELAY + 0.2)
+	_check(horde.embers == 0 and game.embers == embers_before + DungeonLevels.chest_embers(2), "żar ze skrzyni i z wyprawy w Watrze (%d)" % game.embers)
+	_check(game.best_level == 2 and game.unlocked_level() == 3, "zwycięstwo odblokowuje poziom 3")
+	var result: RunResult = arena.result
+	_check(result.visible and paused and result._summary.text.contains(tr("Odblokowano poziom %d") % 3), "okno zwycięstwa: " + result._summary.text.replace("\n", ", "))
+	_check(result.retry_button.text == tr("Następny poziom: %d") % 3, "przycisk następnego poziomu")
+	game.load_game()
+	_check(game.best_level == 2, "przebity poziom zapisany")
 	paused = false
 	arena.queue_free()
 	await process_frame

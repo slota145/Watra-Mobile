@@ -3,6 +3,8 @@ extends ProtoTarget
 ## Goblin Hordy w prototypie: idzie do Wojciecha (rozpychając się z innymi goblinami), w zasięgu robi zamach
 ## i w chwili ciosu (zdarzenie `hit` animacji) zadaje obrażenia, jeśli postać wciąż stoi blisko. Po trafieniu
 ## mieczem błyska, odskakuje i gra animację trafienia; po śmierci gra animację śmierci, gaśnie i znika.
+## Siła rośnie z poziomem lochu (`power` - mnoży zdrowie i obrażenia). Gdy gracz przyzwie bossa, gobliny uciekają
+## z piskiem poza ekran (`flee`) i znikają.
 ## Grafika: scena SpriteKiln assets/spritekiln/goblin/goblin.tscn (KilnSprite2D - animacje idle, walk, attack, hit, death).
 
 signal died(goblin: ProtoGoblin)
@@ -24,13 +26,21 @@ const CORPSE_TIME := 1.2
 const HIT_SOUNDS := [preload("res://assets/watra/dummy_hit_1.ogg"), preload("res://assets/watra/dummy_hit_2.ogg"),
 	preload("res://assets/watra/dummy_hit_3.ogg"), preload("res://assets/watra/dummy_hit_4.ogg")]
 
+const SQUEAKS := [preload("res://assets/sounds/goblin_squeak_0.ogg"), preload("res://assets/sounds/goblin_squeak_1.ogg"),
+	preload("res://assets/sounds/goblin_squeak_2.ogg")]
+## Ucieczka przed bossem: prędkość i po ilu sekundach goblin gaśnie.
+const FLEE_SPEED := 120.0
+const FLEE_TIME := 1.4
+
 static var _scene: PackedScene
 
 var hero: ProtoHero
 var bounds := Rect2(-300, -300, 600, 600)
 var hp := MAX_HP
+## Mnożnik zdrowia i obrażeń (DungeonLevels.power poziomu lochu) - ustawiany przed dodaniem do sceny.
+var power := 1.0
 
-var _state := "walk"  # walk, attack, hurt, dead
+var _state := "walk"  # walk, attack, hurt, flee, dead
 var _cooldown := 0.0
 var _push := Vector2.ZERO  # odrzut po trafieniu (wygasa)
 var _struck := false  # cios bieżącego zamachu już zadany
@@ -41,6 +51,7 @@ var _audio: AudioStreamPlayer2D
 
 func _ready() -> void:
 	center_height = 12.0
+	hp = roundi(MAX_HP * power)
 	add_to_group(ProtoWeapon.TARGETS)
 	var shadow := Sprite2D.new()
 	shadow.texture = ProtoHero._shadow_texture()
@@ -66,7 +77,7 @@ func _ready() -> void:
 
 
 func alive() -> bool:
-	return _state != "dead"
+	return _state != "dead" and _state != "flee"
 
 
 func _process(delta: float) -> void:
@@ -74,6 +85,13 @@ func _process(delta: float) -> void:
 	_timer += delta
 	_push = _push.move_toward(Vector2.ZERO, KNOCKBACK * 6.0 * delta)
 	if _state == "dead":
+		return
+	if _state == "flee":
+		var away := (global_position - hero.global_position).normalized() if hero else Vector2.DOWN
+		if away == Vector2.ZERO:
+			away = Vector2.from_angle(randf() * TAU)
+		_face(away)
+		position += away * FLEE_SPEED * delta  # bez granic areny - ucieka poza nią
 		return
 	var to_hero := hero.global_position - global_position if hero else Vector2.ZERO
 	var move := _push
@@ -102,7 +120,7 @@ func _process(delta: float) -> void:
 
 
 func take_damage(amount: int, from: Vector2) -> void:
-	if _state == "dead":
+	if not alive():
 		return
 	hp -= amount
 	spawn_number(amount)
@@ -136,7 +154,7 @@ func _start_attack(to_hero: Vector2) -> void:
 func _strike() -> void:
 	_struck = true
 	if hero and not hero.dead and global_position.distance_to(hero.global_position) <= HIT_RANGE:
-		hero.take_damage(DAMAGE)
+		hero.take_damage(roundi(DAMAGE * power))
 
 
 func _die() -> void:
@@ -148,6 +166,26 @@ func _die() -> void:
 		_play(&"death", true)
 	else:
 		_vanish()
+
+
+## Ucieczka przed bossem: goblin piszczy (`squeak`), odwraca się od postaci, biegnie i gaśnie. Nie daje iskry.
+func flee(squeak := true) -> void:
+	if not alive():
+		return
+	_state = "flee"
+	remove_from_group(ProtoWeapon.TARGETS)
+	_play(&"walk", true)
+	if _scene:
+		_sprite.speed_scale = FLEE_SPEED / SPEED
+	if squeak:
+		_audio.stream = SQUEAKS.pick_random()
+		_audio.pitch_scale = randf_range(0.9, 1.2)
+		_audio.volume_db = -10.0
+		_audio.play()
+	var tween := create_tween()
+	tween.tween_interval(FLEE_TIME * 0.6)
+	tween.tween_property(self, "modulate:a", 0.0, FLEE_TIME * 0.4)
+	tween.tween_callback(queue_free)
 
 
 func _vanish() -> void:

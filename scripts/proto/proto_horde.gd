@@ -3,7 +3,9 @@ extends Node
 ## Ciągły strumień Hordy w lochu prototypu: gobliny pojawiają się tuż poza ekranem i idą do Wojciecha.
 ## Z czasem przychodzą coraz częściej i coraz więcej naraz (`interval`, `max_alive`), aż do sufitu po ~3 minutach.
 ## Liczy pokonane potwory i czas przetrwania (`kills`, `time`). Z każdego potwora wypada iskra żaru (co `BIG_EVERY`
-## potwór - duża), zebrany żar liczy `embers` - do bazy trafia tylko przy powrocie, po śmierci przepada.
+## potwór - duża), zebrany żar liczy `embers` - do bazy trafia tylko po pokonaniu bossa, ucieczka i śmierć go gaszą.
+## Przyzwanie bossa (`call_boss`) zatrzymuje strumień, a gobliny uciekają z piskiem. Siła goblinów rośnie z poziomem
+## lochu (`power`).
 
 signal kills_changed(kills: int)
 signal embers_changed(embers: int)
@@ -20,6 +22,8 @@ const RAMP_TIME := 180.0
 const FIRST_DELAY := 1.5
 ## Co tyle pokonanych potworów wypada duża iskra (ProtoEmber.BIG żaru) zamiast małej.
 const BIG_EVERY := 20
+## Przy ucieczce przed bossem piszczy najwyżej tylu goblinów (żeby tłum nie zagłuszył ryku).
+const SQUEAKERS := 6
 
 var hero: ProtoHero
 ## Gdzie dodawać potwory (świat z sortowaniem po Y).
@@ -29,16 +33,24 @@ var kills := 0
 ## Żar zebrany w tym lochu.
 var embers := 0
 var time := 0.0
+## Strumień goblinów działa (przyzwanie bossa go wyłącza).
 var running := true
+## Czas biegnie (zatrzymuje się po zwycięstwie).
+var clock := true
+## Mnożnik zdrowia i obrażeń goblinów (DungeonLevels.power poziomu lochu).
+var power := 1.0
 
 var _next := FIRST_DELAY
 var _alive := 0
 
 
 func _process(delta: float) -> void:
-	if not running or hero == null or hero.dead:
+	if hero == null or hero.dead:
 		return
-	time += delta
+	if clock:
+		time += delta
+	if not running:
+		return
 	_next -= delta
 	if _next <= 0.0:
 		_next = interval()
@@ -60,10 +72,16 @@ func _ramp() -> float:
 
 
 func spawn() -> ProtoGoblin:
+	return spawn_at(spawn_point())
+
+
+## Goblin w danym miejscu (strumień albo okrzyk Wodza). Liczy się do pokonanych i daje iskrę.
+func spawn_at(pos: Vector2) -> ProtoGoblin:
 	var g := ProtoGoblin.new()
 	g.hero = hero
 	g.bounds = bounds
-	g.position = spawn_point()
+	g.power = power
+	g.position = pos.clamp(bounds.position, bounds.end)
 	g.died.connect(_on_died)
 	_alive += 1
 	world.add_child(g)
@@ -84,6 +102,22 @@ func spawn_point() -> Vector2:
 		if bounds.has_point(p):
 			return p
 	return p.clamp(bounds.position, bounds.end)
+
+
+## Przyzwanie bossa: strumień staje, żywe gobliny uciekają z piskiem (bez iskier).
+func call_boss() -> void:
+	running = false
+	scatter()
+
+
+## Wszystkie żywe gobliny uciekają (przy przyzwaniu bossa i po jego śmierci).
+func scatter() -> void:
+	var squeaks := 0
+	for n in world.get_children():
+		if n is ProtoGoblin and n.alive():
+			n.flee(squeaks < SQUEAKERS)
+			squeaks += 1
+			_alive -= 1
 
 
 func _on_died(g: ProtoGoblin) -> void:

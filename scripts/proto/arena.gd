@@ -6,8 +6,12 @@ extends Node2D
 ## Wszystko budowane w kodzie, żeby prototyp łatwo było zmieniać i wyrzucić.
 ## Dwa tryby: baza (prototype.tscn - kukły i Watra; dotknięcie Watry przenosi do lochu) i loch z Hordą
 ## (horde.tscn, `horde = true` - ciągły strumień goblinów, pasek zdrowia, licznik pokonanych, po śmierci okno wyniku).
-## Żar: iskry z goblinów liczy ProtoHorde; „Do bazy” (albo wyjście z okna pauzy) zanosi je do Watry (`Game.bank_embers`),
-## śmierć je gasi. W bazie Watra pokazuje zgromadzony żar.
+## Żar: iskry z goblinów liczy ProtoHorde i zapełniają pasek żaru (DungeonLevels.SUMMON_COST). Pełny pasek pokazuje
+## przycisk „Przyzwij Wodza”: przyzwanie zjada żar z paska, gobliny uciekają, wchodzi Wódz Goblinów (ProtoChief) z własnym
+## paskiem zdrowia. Po jego śmierci spada skrzynia z żarem (ProtoChest), a po jej otwarciu cały żar z wyprawy trafia do
+## Watry (`Game.bank_embers`), poziom lochu zostaje przebity (`Game.beat_level`) i pokazuje się okno zwycięstwa.
+## Ucieczka (okno pauzy) i śmierć gaszą żar z wyprawy. W bazie Watra pokazuje zgromadzony żar, a jej dotknięcie
+## otwiera wybór poziomu lochu (LevelPicker).
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 0), Vector2(100, 10), Vector2(0, 170)]
@@ -16,6 +20,16 @@ const BASE_SCENE := "res://scenes/prototype.tscn"
 const HORDE_SCENE := "res://scenes/horde.tscn"
 ## Po śmierci postaci okno wyniku pojawia się po tylu sekundach (widać, jak pada).
 const RESULT_DELAY := 1.2
+## Wódz pojawia się w takiej odległości od postaci (nad nią - widać go od razu).
+const CHIEF_OFFSET := Vector2(0, -110)
+## Skrzynia spada po tylu sekundach od śmierci Wodza.
+const CHEST_DELAY := 1.4
+## Okno zwycięstwa po tylu sekundach od otwarcia skrzyni (iskry zdążą dolecieć).
+const VICTORY_DELAY := 2.2
+## Ziemia pod wszystkim - także pod ciałami i czerwonymi kołami ostrzeżeń (z_index -1).
+const GROUND_Z := -10
+const EMBER_FILL := Color(1.0, 0.55, 0.12)
+const EMBER_FULL := Color(1.0, 0.8, 0.3)
 
 ## Loch z Hordą zamiast bazy.
 @export var horde := false
@@ -32,11 +46,26 @@ var health_bar: ProgressBar
 var kills_label: Label
 var time_label: Label
 var embers_label: Label
-var base_button: Button
+var level_label: Label
+var ember_bar: ProgressBar
+var summon_button: Button
+var boss_box: VBoxContainer
+var boss_bar: ProgressBar
 var result: RunResult
+var picker: LevelPicker
+## Poziom lochu tej wyprawy (Game.dungeon_level).
+var level := 1
+var chief: ProtoChief
+var chest: ProtoChest
+## Etap wyprawy: horde (zbieranie żaru), boss (walka z Wodzem), loot (skrzynia), won (po zwycięstwie).
+var phase := "horde"
+var _fill_style: StyleBoxFlat
+var _time := 0.0
 
 
 func _ready() -> void:
+	if horde:
+		level = Game.dungeon_level
 	_make_ground()
 	var world := Node2D.new()
 	world.name = "World"
@@ -69,8 +98,9 @@ func _ready() -> void:
 		horde_spawner.hero = hero
 		horde_spawner.world = world
 		horde_spawner.bounds = ARENA.grow(-8)
+		horde_spawner.power = DungeonLevels.power(level)
 		horde_spawner.kills_changed.connect(func(k: int) -> void: kills_label.text = tr("Pokonane: %d") % k)
-		horde_spawner.embers_changed.connect(func(e: int) -> void: embers_label.text = str(e))
+		horde_spawner.embers_changed.connect(_on_embers)
 		add_child(horde_spawner)
 		hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
 			health_bar.max_value = max_hp
@@ -88,7 +118,7 @@ func _ready() -> void:
 		watra.embers = Game.embers
 		watra.brought = Game.embers_brought
 		Game.embers_brought = 0
-		watra.entered.connect(func() -> void: Game.change_scene(HORDE_SCENE))
+		watra.entered.connect(open_picker)
 		world.add_child(watra)
 		hero.obstacles.append(Vector3(WATRA_POS.x, WATRA_POS.y, ProtoWatra.RADIUS))
 	world.add_child(weapon)
@@ -103,6 +133,7 @@ func _make_ground() -> void:
 	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	edge.position = ARENA.position - Vector2(400, 400)
 	edge.size = ARENA.size + Vector2(800, 800)
+	edge.z_index = GROUND_Z
 	add_child(edge)
 	var grass := Sprite2D.new()
 	grass.texture = preload("res://assets/watra/grass.png")
@@ -111,6 +142,7 @@ func _make_ground() -> void:
 	grass.region_rect = Rect2(Vector2.ZERO, ARENA.size)
 	grass.centered = false
 	grass.position = ARENA.position
+	grass.z_index = GROUND_Z
 	if horde:
 		grass.modulate = Color(0.72, 0.68, 0.8)  # loch: ta sama trawa, chłodniej i ciemniej (Horda)
 	add_child(grass)
@@ -137,11 +169,7 @@ func _make_hud() -> void:
 	top.add_child(menu_button)
 	if horde:
 		_make_horde_bar(top)
-		base_button = Button.new()
-		base_button.text = tr("Do bazy")
-		base_button.custom_minimum_size = Vector2(72, 44)
-		base_button.pressed.connect(return_to_base)
-		top.add_child(base_button)
+		_make_boss_bar(column)
 	else:
 		var hint := Label.new()
 		hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.")
@@ -157,27 +185,35 @@ func _make_hud() -> void:
 	fill.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(fill)
+	if horde:
+		_make_summon_button(column)
 	# dolny róg (prawy albo lewy - ustawienie): atak i miejsca na umiejętności
 	actions = ActionCluster.new()
 	actions.left_handed = Game.left_handed
 	column.add_child(actions)
 	joystick.blocked = [top, actions]
 	if horde:
+		joystick.blocked.append(summon_button)
 		result = RunResult.new()
 		result.visible = false
-		result.retry.connect(func() -> void: Game.change_scene(HORDE_SCENE))
+		result.retry.connect(_on_retry)
 		result.back_to_base.connect(func() -> void: Game.change_scene(BASE_SCENE))
 		safe.add_child(result)
 	pause_menu = PauseMenu.new()  # ostatnie dziecko: nad całym interfejsem
 	pause_menu.visible = false
 	if horde:
 		pause_menu.base_scene = BASE_SCENE
-		pause_menu.leaving.connect(_bank)
+	else:
+		picker = LevelPicker.new()
+		picker.visible = false
+		picker.enter.connect(enter_dungeon)
+		safe.add_child(picker)
 	pause_menu.closed.connect(_apply_settings)
 	layer.add_child(pause_menu)
 
 
-## Pasek u góry w lochu: zdrowie Wojciecha, a pod nim liczba pokonanych potworów i czas.
+## Pasek u góry w lochu: zdrowie Wojciecha, pod nim pasek żaru (do przyzwania Wodza), a niżej poziom lochu,
+## liczba pokonanych potworów, żar z wyprawy i czas.
 func _make_horde_bar(top: HBoxContainer) -> void:
 	var box := VBoxContainer.new()
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -201,9 +237,29 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	health_bar.add_theme_stylebox_override("background", bg)
 	health_bar.add_theme_stylebox_override("fill", fill)
 	box.add_child(health_bar)
+	ember_bar = ProgressBar.new()
+	ember_bar.max_value = DungeonLevels.SUMMON_COST
+	ember_bar.value = 0
+	ember_bar.show_percentage = false
+	ember_bar.custom_minimum_size = Vector2(0, 8)
+	ember_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ember_bg := StyleBoxFlat.new()
+	ember_bg.bg_color = Color(0.1, 0.05, 0.02, 0.85)
+	ember_bg.border_color = Color(0.6, 0.35, 0.12)
+	ember_bg.set_border_width_all(1)
+	ember_bg.set_corner_radius_all(3)
+	_fill_style = StyleBoxFlat.new()
+	_fill_style.bg_color = EMBER_FILL
+	_fill_style.set_corner_radius_all(3)
+	ember_bar.add_theme_stylebox_override("background", ember_bg)
+	ember_bar.add_theme_stylebox_override("fill", _fill_style)
+	box.add_child(ember_bar)
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(row)
+	level_label = _hud_label(tr("Poz. %d") % level)
+	level_label.custom_minimum_size = Vector2(46, 0)
+	row.add_child(level_label)
 	kills_label = _hud_label(tr("Pokonane: %d") % 0)
 	kills_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(kills_label)
@@ -221,6 +277,49 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	row.add_child(time_label)
 
 
+## Pasek zdrowia Wodza pod górnym rzędem (ukryty do przyzwania).
+func _make_boss_bar(column: VBoxContainer) -> void:
+	boss_box = VBoxContainer.new()
+	boss_box.add_theme_constant_override("separation", 0)
+	boss_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	boss_box.visible = false
+	column.add_child(boss_box)
+	var name_label := _hud_label(tr("Wódz Goblinów"))
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.add_theme_color_override("font_color", Color(1, 0.6, 0.45))
+	boss_box.add_child(name_label)
+	boss_bar = ProgressBar.new()
+	boss_bar.show_percentage = false
+	boss_bar.custom_minimum_size = Vector2(0, 10)
+	boss_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.08, 0.03, 0.03, 0.9)
+	bg.border_color = Color(0.55, 0.15, 0.1)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(3)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.62, 0.1, 0.08)
+	fill.set_corner_radius_all(3)
+	boss_bar.add_theme_stylebox_override("background", bg)
+	boss_bar.add_theme_stylebox_override("fill", fill)
+	boss_box.add_child(boss_bar)
+
+
+## Przycisk „Przyzwij Wodza” nad przyciskami ataku (pod kciukiem), widoczny przy pełnym pasku żaru.
+func _make_summon_button(column: VBoxContainer) -> void:
+	summon_button = Button.new()
+	summon_button.text = tr("Przyzwij Wodza")
+	summon_button.icon = preload("res://assets/watra/ember_icon.png")
+	summon_button.add_theme_constant_override("icon_max_width", 22)
+	summon_button.custom_minimum_size = Vector2(200, 52)
+	summon_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	summon_button.add_theme_font_size_override("font_size", 17)
+	summon_button.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
+	summon_button.visible = false
+	summon_button.pressed.connect(summon_chief)
+	column.add_child(summon_button)
+
+
 func _hud_label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
@@ -232,10 +331,120 @@ func _hud_label(text: String) -> Label:
 	return l
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_time += delta
 	if horde_spawner and time_label:
 		var s := int(horde_spawner.time)
 		time_label.text = "%d:%02d" % [s / 60, s % 60]
+	if summon_button and summon_button.visible:  # pełny pasek pulsuje
+		var k := 0.5 + 0.5 * sin(_time * 6.0)
+		_fill_style.bg_color = EMBER_FILL.lerp(EMBER_FULL, k)
+		summon_button.modulate = Color(1, 1, 1).lerp(Color(1.25, 1.1, 0.85), k)
+
+
+## Zmiana żaru z wyprawy: licznik, pasek (do kosztu przyzwania) i przycisk przyzwania przy pełnym pasku.
+func _on_embers(e: int) -> void:
+	embers_label.text = str(e)
+	if phase != "horde":
+		return
+	ember_bar.value = mini(e, DungeonLevels.SUMMON_COST)
+	var full := e >= DungeonLevels.SUMMON_COST
+	summon_button.visible = full and not hero.dead
+	if not full:
+		_fill_style.bg_color = EMBER_FILL
+
+
+## Przyzwanie Wodza: zjada żar z paska (nadwyżka zostaje), gobliny uciekają, Wódz wchodzi nad postacią.
+func summon_chief() -> void:
+	if phase != "horde" or hero.dead or horde_spawner.embers < DungeonLevels.SUMMON_COST:
+		return
+	phase = "boss"
+	horde_spawner.embers -= DungeonLevels.SUMMON_COST
+	embers_label.text = str(horde_spawner.embers)
+	summon_button.visible = false
+	ember_bar.visible = false
+	horde_spawner.call_boss()
+	chief = ProtoChief.new()
+	chief.name = "Chief"
+	chief.hero = hero
+	chief.bounds = ARENA.grow(-24)
+	chief.power = DungeonLevels.power(level)
+	var spot := hero.position + CHIEF_OFFSET
+	if not ARENA.grow(-40).has_point(spot):
+		spot = hero.position - CHIEF_OFFSET
+	chief.position = spot.clamp(ARENA.position + Vector2(40, 40), ARENA.end - Vector2(40, 40))
+	chief.health_changed.connect(func(hp: int, max_hp: int) -> void:
+		boss_bar.max_value = max_hp
+		boss_bar.value = hp)
+	chief.summon_minions.connect(func(points: Array) -> void:
+		for p in points:
+			horde_spawner.spawn_at(p))
+	chief.died.connect(_on_chief_died)
+	$World.add_child(chief)
+	boss_bar.max_value = chief.max_hp
+	boss_bar.value = chief.hp
+	boss_box.visible = true
+
+
+## Wódz padł: pozostałe gobliny uciekają, po chwili spada skrzynia.
+func _on_chief_died(_c: ProtoChief) -> void:
+	phase = "loot"
+	horde_spawner.scatter()
+	boss_box.visible = false
+	var at := chief.position
+	await get_tree().create_timer(CHEST_DELAY).timeout
+	if hero.dead:
+		return
+	chest = ProtoChest.new()
+	chest.name = "Chest"
+	chest.hero = hero
+	chest.embers = DungeonLevels.chest_embers(level)
+	chest.position = at
+	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner._on_ember))
+	chest.opened.connect(_on_chest_opened)
+	$World.add_child(chest)
+
+
+func _on_chest_opened() -> void:
+	await get_tree().create_timer(VICTORY_DELAY).timeout
+	victory()
+
+
+## Zwycięstwo: cały żar z wyprawy do Watry, poziom przebity, okno zwycięstwa i pauza.
+func victory() -> void:
+	if phase == "won" or hero.dead:
+		return
+	phase = "won"
+	horde_spawner.clock = false
+	joystick.release()
+	actions.attack.release()
+	weapon.attack_held = false
+	var banked := horde_spawner.embers
+	_bank()
+	var unlocked := level + 1 if Game.beat_level(level) else 0
+	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time)
+	get_tree().paused = true
+
+
+## „Jeszcze raz” po śmierci albo „Następny poziom” po zwycięstwie.
+func _on_retry() -> void:
+	if phase == "won":
+		Game.dungeon_level = mini(level + 1, Game.unlocked_level())
+		Game.save_game()
+	Game.change_scene(HORDE_SCENE)
+
+
+## Baza: wybór poziomu lochu po dotknięciu Watry.
+func open_picker() -> void:
+	joystick.release()
+	actions.attack.release()
+	picker.open(Game.dungeon_level, Game.unlocked_level())
+
+
+func enter_dungeon(chosen: int) -> void:
+	Game.dungeon_level = chosen
+	Game.save_game()
+	Game.change_scene(HORDE_SCENE)
 
 
 ## Śmierć Wojciecha w lochu: chwila na upadek, potem okno wyniku i pauza.
@@ -244,17 +453,12 @@ func _on_hero_died() -> void:
 	actions.attack.release()
 	weapon.attack_held = false
 	await get_tree().create_timer(RESULT_DELAY).timeout
+	summon_button.visible = false
 	result.show_result(horde_spawner.kills, horde_spawner.time, horde_spawner.embers)
 	get_tree().paused = true
 
 
-## Powrót z lochu do bazy z zebranym żarem.
-func return_to_base() -> void:
-	_bank()
-	Game.change_scene(BASE_SCENE)
-
-
-## Zebrany żar trafia do Watry (raz - licznik lochu się zeruje).
+## Zebrany żar trafia do Watry (raz - licznik lochu się zeruje). Tylko po zwycięstwie nad Wodzem.
 func _bank() -> void:
 	if horde_spawner and not hero.dead:
 		Game.bank_embers(horde_spawner.embers)
@@ -264,7 +468,7 @@ func _bank() -> void:
 func _open_menu() -> void:
 	joystick.release()
 	actions.attack.release()
-	pause_menu.open()
+	pause_menu.open(horde_spawner.embers if horde_spawner and phase != "won" else 0)
 
 
 ## Po zamknięciu okna pauzy: ustawienia z Game na przyciski i postać.
@@ -276,6 +480,10 @@ func _apply_settings() -> void:
 ## Przycisk „wstecz” na Androidzie otwiera i zamyka pauzę; przełączenie telefonu na inną aplikację ją otwiera.
 func _notification(what: int) -> void:
 	if not pause_menu:
+		return
+	if picker and picker.visible:
+		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+			picker.close()
 		return
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and pause_menu.visible:
 		pause_menu.close()
