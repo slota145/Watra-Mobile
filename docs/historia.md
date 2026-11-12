@@ -2,6 +2,18 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - usprawnienia: pasek żaru, powiadomienia o łupie, sprzedaż hurtem, „Na pewno?” przy wyjściu
+
+- Prośby autora. Pasek żaru pogrubiony do 11 px z liczbami „zebrane / 100” (`Arena.ember_text`).
+- Powiadomienia o łupie pod paskami u góry (`Arena.notify_loot`, `loot_feed`): ikona i napis w kolorze rzadkości
+  („Podniesiono: …”, „Sprzedano: … (+N złota)”, „Torba pełna - sprzedano: …”), najwyżej 4 naraz, gasną po 2,5 s.
+- Okno „Postać”: pod torbą „Sprzedaj zwykłe” i „Sprzedaj magiczne i rzadkie” - pierwsze stuknięcie pokazuje
+  „Na pewno? +N złota”, drugie sprzedaje (`Game.sell_all`, `sell_all_price`); przełącznik „Sprzedawaj zwykłe od razu
+  po podniesieniu” (`Game.auto_sell_common`, `settings.cfg` sekcja `items`; `ProtoLoot` -> `Game.sell_loot`).
+  Sygnał `ProtoLoot.sold` ma teraz `bag_full`; okno wyniku: „Łup sprzedany od razu: +N złota”.
+- Pauza w lochu: „Uciekaj do bazy” i „Menu główne” pytają „Na pewno?” (`PauseMenu._leave`, ponowne otwarcie
+  pauzy kasuje pytanie). Skrót deweloperski przemianowany na „+5 łupu” (nie mieścił się).
+
 ## 12.11.2026 - przedmioty: procenty rosną płynnie z lochem
 
 - Decyzja autora (wariant A): premie procentowe i stała cecha butów i pierścienia rosły skokami co stopień

@@ -5,6 +5,8 @@ extends Control
 ## broń, amulet, pierścień) i złoto, niżej statystyki z poziomu i przedmiotów (zielona kolumna - co da następny awans),
 ## na dole torba 5x4. Stuknięcie w przedmiot otwiera opis przy dolnej krawędzi ekranu (pod kciukiem): cechy, zmiana
 ## statystyk po założeniu i przyciski „Załóż” / „Zdejmij” i „Sprzedaj” (magiczny i rzadki - drugie stuknięcie „Na pewno?”).
+## Pod torbą: „Sprzedaj zwykłe” i „Sprzedaj magiczne i rzadkie” (drugie stuknięcie potwierdza i pokazuje cenę)
+## oraz przełącznik auto sprzedaży zwykłych przedmiotów podniesionych w lochu (`Game.auto_sell_common`).
 ## Liczby bierze z HeroLevels, Items, ProtoHero i ProtoWeapon, stan z Game. Okno przewija się na niskich ekranach.
 ## Działa przy zatrzymanej grze (PROCESS_MODE_ALWAYS).
 
@@ -39,6 +41,12 @@ var detail_lines: VBoxContainer
 var equip_button: Button
 var sell_button: Button
 var detail_close: Button
+## Sprzedaż hurtem i auto sprzedaż zwykłych.
+var sell_common_button: Button
+var sell_better_button: Button
+var auto_sell_toggle: CheckButton
+## Która sprzedaż hurtem czeka na potwierdzenie ("common", "better" albo "").
+var _bulk_armed := ""
 ## Wybrany przedmiot: z torby (`_sel_index` >= 0) albo założony (`_sel_slot`).
 var _sel_index := -1
 var _sel_slot := ""
@@ -95,6 +103,26 @@ func _ready() -> void:
 		var b := _slot_button(bag)
 		b.pressed.connect(_select_bag.bind(i))
 		bag_buttons.append(b)
+	var sell_row := HBoxContainer.new()
+	sell_row.add_theme_constant_override("separation", 6)
+	_column.add_child(sell_row)
+	sell_common_button = _detail_button(sell_row, "")
+	sell_common_button.pressed.connect(_on_sell_all.bind("common"))
+	sell_better_button = _detail_button(sell_row, "")
+	sell_better_button.pressed.connect(_on_sell_all.bind("better"))
+	for bb in [sell_common_button, sell_better_button]:
+		bb.clip_text = false
+		bb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		bb.add_theme_font_size_override("font_size", 13)
+	auto_sell_toggle = CheckButton.new()
+	auto_sell_toggle.text = tr("Sprzedawaj zwykłe od razu po podniesieniu")
+	auto_sell_toggle.custom_minimum_size = Vector2(0, 44)
+	auto_sell_toggle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	auto_sell_toggle.add_theme_font_size_override("font_size", 13)
+	auto_sell_toggle.toggled.connect(func(on: bool) -> void:
+		_game.auto_sell_common = on
+		_game.save_settings())
+	_column.add_child(auto_sell_toggle)
 	back_button = Button.new()
 	back_button.text = tr("Wróć")
 	back_button.custom_minimum_size = Vector2(0, 48)
@@ -162,6 +190,38 @@ func refresh() -> void:
 	for i in bag_buttons.size():
 		_show_item(bag_buttons[i], _game.bag[i] if i < _game.bag.size() else {}, "")
 	bag_label.text = tr("Torba: %d / %d") % [_game.bag.size(), _game.BAG_SIZE]
+	auto_sell_toggle.set_pressed_no_signal(_game.auto_sell_common)
+	_bulk_armed = ""
+	_bulk_texts()
+
+
+## Rzadkości sprzedawane jednym przyciskiem.
+static func bulk_rarities(which: String) -> Array:
+	return ["common"] if which == "common" else ["magic", "rare"]
+
+
+## Napisy przycisków sprzedaży hurtem; nieaktywne, gdy nie ma czego sprzedać.
+func _bulk_texts() -> void:
+	for which in ["common", "better"]:
+		var b := sell_common_button if which == "common" else sell_better_button
+		var price: int = _game.sell_all_price(bulk_rarities(which))
+		if _bulk_armed == which:
+			b.text = tr("Na pewno? +%d złota") % price
+		else:
+			b.text = tr("Sprzedaj zwykłe") if which == "common" else tr("Sprzedaj magiczne i rzadkie")
+		b.disabled = price == 0
+
+
+## Sprzedaż hurtem: pierwsze stuknięcie pyta (z ceną), drugie sprzedaje.
+func _on_sell_all(which: String) -> void:
+	if _bulk_armed != which:
+		_bulk_armed = which
+		_bulk_texts()
+		return
+	if _game.sell_all(bulk_rarities(which)) > 0:
+		_play_coins()
+	_bulk_armed = ""
+	_bulk_texts()
 
 
 ## Statystyki postaci jako napisy do okna (poziom i cechy przedmiotów): hp, mana, damage, speed, move, protection,

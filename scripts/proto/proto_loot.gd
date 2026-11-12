@@ -5,10 +5,12 @@ extends Node2D
 ## i trafia do torby (`Game.add_item`, sygnał `picked`). Przy pełnej torbie odskakuje, pokazuje „Torba pełna!”
 ## i czeka, aż postać odejdzie i wróci (można zrobić miejsce w oknie „Postać” w pauzie). Łup ze skrzyni Wodza
 ## (`sell_if_full`) przy pełnej torbie sprzedaje się od razu za złoto, żeby nie przepadł po oknie zwycięstwa.
+## Z włączoną auto sprzedażą (`Game.auto_sell_common`) zwykły przedmiot od razu zamienia się w złoto.
+## Arena pokazuje powiadomienie o każdym podniesionym i sprzedanym przedmiocie (sygnały `picked`, `sold`).
 
 signal picked(item: Dictionary)
-## Pełna torba, przedmiot sprzedany od razu (`sell_if_full`).
-signal sold(item: Dictionary, price: int)
+## Przedmiot sprzedany od razu: auto sprzedaż zwykłych albo pełna torba (`bag_full`, łup ze skrzyni).
+signal sold(item: Dictionary, price: int, bag_full: bool)
 
 const MAGNET := 36.0
 const PICKUP := 6.0
@@ -89,18 +91,20 @@ func _process(delta: float) -> void:
 
 func _take() -> void:
 	var price := 0
-	if not _game.add_item(item):
+	var bag_full := false
+	if item.rarity == "common" and _game.auto_sell_common:
+		price = _game.sell_loot(item)
+	elif not _game.add_item(item):
 		if not sell_if_full:
 			_full()
 			return
-		price = Items.sell_price(item)
-		_game.gold += price
-		_game.save_game()
-		_game.inventory_changed.emit()
-		_float_text(tr("Torba pełna: +%d złota") % price, Color(1, 0.85, 0.4))
+		bag_full = true
+		price = _game.sell_loot(item)
+	if price > 0:
+		_float_text(tr("+%d złota") % price, Color(1, 0.85, 0.4))
 	_taken = true
 	if price > 0:
-		sold.emit(item, price)
+		sold.emit(item, price, bag_full)
 	else:
 		picked.emit(item)
 	_play(SOUND_RARE if item.rarity == "rare" else SOUND, -6.0)

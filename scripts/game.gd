@@ -52,6 +52,8 @@ var left_handed := false
 var gesture := true
 ## Auto atak: podstawowy cios sam tnie, gdy potwór jest w zasięgu (umiejętności - nie).
 var auto_attack := false
+## Zwykłe przedmioty podniesione w lochu od razu zamieniają się w złoto (przełącznik w oknie „Postać”).
+var auto_sell_common := false
 ## Tryb deweloperski (okno pauzy): nieśmiertelność - zdrowie schodzi, ale zamiast śmierci wraca do pełna.
 var dev_immortal := false
 
@@ -83,6 +85,7 @@ func load_settings() -> void:
 	gesture = cfg.get_value("controls", "gesture", true)
 	auto_attack = cfg.get_value("controls", "auto_attack", false)
 	dev_immortal = cfg.get_value("dev", "immortal", false)
+	auto_sell_common = cfg.get_value("items", "auto_sell_common", false)
 
 
 func save_settings() -> void:
@@ -91,6 +94,7 @@ func save_settings() -> void:
 	cfg.set_value("controls", "gesture", gesture)
 	cfg.set_value("controls", "auto_attack", auto_attack)
 	cfg.set_value("dev", "immortal", dev_immortal)
+	cfg.set_value("items", "auto_sell_common", auto_sell_common)
 	cfg.save(settings_path)
 
 
@@ -238,6 +242,36 @@ func sell(index: int) -> int:
 		return 0
 	var price := Items.sell_price(bag[index])
 	bag.remove_at(index)
+	gold += price
+	save_game()
+	inventory_changed.emit()
+	return price
+
+
+## Ile złota dałaby sprzedaż wszystkich przedmiotów z torby o podanych rzadkościach (np. ["common"]).
+func sell_all_price(rarities: Array) -> int:
+	var total := 0
+	for item in bag:
+		if item.rarity in rarities:
+			total += Items.sell_price(item)
+	return total
+
+
+## Sprzedaje wszystkie przedmioty z torby o podanych rzadkościach. Zwraca, ile złota dały.
+func sell_all(rarities: Array) -> int:
+	var total := sell_all_price(rarities)
+	if total == 0:
+		return 0
+	bag = bag.filter(func(item: Dictionary) -> bool: return not item.rarity in rarities)
+	gold += total
+	save_game()
+	inventory_changed.emit()
+	return total
+
+
+## Złoto za przedmiot bez wkładania go do torby (auto sprzedaż, pełna torba przy skrzyni).
+func sell_loot(item: Dictionary) -> int:
+	var price := Items.sell_price(item)
 	gold += price
 	save_game()
 	inventory_changed.emit()
