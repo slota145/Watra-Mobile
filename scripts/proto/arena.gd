@@ -47,6 +47,8 @@ var kills_label: Label
 var time_label: Label
 var embers_label: Label
 var level_label: Label
+## Licznik zgonów w trybie deweloperskim (widoczny, gdy nieśmiertelność jest włączona).
+var deaths_label: Label
 var ember_bar: ProgressBar
 var summon_button: Button
 var boss_box: VBoxContainer
@@ -79,6 +81,7 @@ func _ready() -> void:
 	hero.joystick = joystick
 	hero.bounds = ARENA.grow(-16)
 	hero.gesture = Game.gesture
+	hero.immortal = Game.dev_immortal
 	world.add_child(hero)
 	var camera := Camera2D.new()
 	camera.position_smoothing_enabled = true
@@ -106,6 +109,7 @@ func _ready() -> void:
 			health_bar.max_value = max_hp
 			health_bar.value = hp)
 		hero.died.connect(_on_hero_died)
+		hero.death_avoided.connect(func(n: int) -> void: deaths_label.text = tr("Zgony: %d") % n)
 	else:
 		for p in DUMMIES:
 			var dummy := ProtoDummy.new()
@@ -274,6 +278,10 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	row.add_child(embers_label)
 	time_label = _hud_label("0:00")
 	row.add_child(time_label)
+	deaths_label = _hud_label(tr("Zgony: %d") % 0)
+	deaths_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35))
+	deaths_label.visible = Game.dev_immortal
+	box.add_child(deaths_label)
 
 
 ## Pasek zdrowia Wodza pod górnym rzędem (ukryty do przyzwania).
@@ -422,7 +430,7 @@ func victory() -> void:
 	var banked := horde_spawner.embers
 	_bank()
 	var unlocked := level + 1 if Game.beat_level(level) else 0
-	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time)
+	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time, hero.deaths)
 	get_tree().paused = true
 
 
@@ -471,10 +479,13 @@ func _open_menu() -> void:
 	pause_menu.open(horde_spawner.embers if horde_spawner and phase != "won" else 0)
 
 
-## Po zamknięciu okna pauzy: ustawienia z Game na przyciski i postać.
+## Po zamknięciu okna pauzy: ustawienia z Game na przyciski i postać (także tryb deweloperski).
 func _apply_settings() -> void:
 	actions.left_handed = Game.left_handed
 	hero.gesture = Game.gesture
+	hero.immortal = Game.dev_immortal
+	if deaths_label:
+		deaths_label.visible = Game.dev_immortal
 
 
 ## Przycisk „wstecz” na Androidzie otwiera i zamyka pauzę; przełączenie telefonu na inną aplikację ją otwiera.

@@ -190,6 +190,22 @@ func _test_horde() -> void:
 	# strumień rozkręca się z czasem
 	horde.time = ProtoHorde.RAMP_TIME
 	_check(is_equal_approx(horde.interval(), ProtoHorde.INTERVAL_END) and horde.max_alive() == ProtoHorde.ALIVE_END, "po 3 minutach pełne tempo")
+	# tryb deweloperski: nieśmiertelność - zdrowie wraca do pełna, licznik zgonów
+	var game0: Node = root.get_node("Game")
+	arena._open_menu()
+	arena.pause_menu.immortal_toggle.button_pressed = true
+	arena.pause_menu.close()
+	_check(game0.dev_immortal and hero.immortal and arena.deaths_label.visible, "pauza włącza nieśmiertelność, widać licznik zgonów")
+	hero._invulnerable = 0.0
+	hero.take_damage(1000)
+	_check(not hero.dead and hero.hp == ProtoHero.MAX_HP and hero.deaths == 1, "nieśmiertelny: zamiast śmierci pełne zdrowie")
+	_check(arena.deaths_label.text == tr("Zgony: %d") % 1, "licznik zgonów: " + arena.deaths_label.text)
+	game0.load_settings()
+	_check(game0.dev_immortal, "nieśmiertelność zapamiętana w ustawieniach")
+	arena._open_menu()
+	arena.pause_menu.immortal_toggle.button_pressed = false
+	arena.pause_menu.close()
+	_check(not hero.immortal and not arena.deaths_label.visible, "wyłączenie nieśmiertelności")
 	# śmierć: okno wyniku z przyciskami pod kciukiem
 	hero._invulnerable = 0.0
 	hero.take_damage(1000)

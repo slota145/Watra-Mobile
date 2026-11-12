@@ -29,6 +29,8 @@ var dungeon_level := 1
 var left_handed := false
 ## Gest ręką postaci przy ataku (prototyp - porównanie wersji z gestem i bez).
 var gesture := true
+## Tryb deweloperski (okno pauzy): nieśmiertelność - zdrowie schodzi, ale zamiast śmierci wraca do pełna.
+var dev_immortal := false
 
 
 func _ready() -> void:
@@ -55,12 +57,14 @@ func load_settings() -> void:
 		cfg = ConfigFile.new()
 	left_handed = cfg.get_value("controls", "left_handed", false)
 	gesture = cfg.get_value("controls", "gesture", true)
+	dev_immortal = cfg.get_value("dev", "immortal", false)
 
 
 func save_settings() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("controls", "left_handed", left_handed)
 	cfg.set_value("controls", "gesture", gesture)
+	cfg.set_value("dev", "immortal", dev_immortal)
 	cfg.save(settings_path)
 
 
