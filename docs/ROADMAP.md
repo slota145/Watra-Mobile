@@ -16,7 +16,8 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 
 0b. Pierwszy potwór i Horda (12.11.2026, szczegóły w `docs/historia.md`): goblin ze SpriteKiln, baza z Watrą,
    loch z ciągłym strumieniem goblinów, pasek zdrowia, licznik, okno wyniku. Do oceny na telefonie: tempo strumienia,
-   obrażenia, czytelność goblinów w tłumie.
+   obrażenia, czytelność goblinów w tłumie. Oceniony na telefonie: działa i bardzo się podoba.
+   Iskry żaru z goblinów dla Watry (12.11.2026) - na co wydawać żar, do ustalenia z autorem.
 
 1. **Wizja gry:** rdzeń ustalony (lochy + hub, może jak Vampire Survivors bez roguelike) - czekamy na pierwsze pomysły
    autora i odpowiedzi na pytania z `docs/GDD.md` („Do ustalenia”) - od nich zależy cała reszta.

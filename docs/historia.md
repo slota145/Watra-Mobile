@@ -2,6 +2,21 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - iskry żaru dla Watry
+
+- Ustalenia z autorem: iskry przyciągane z bliska, po śmierci przepadają (do Watry tylko przy powrocie), żar na razie
+  tylko liczony (na co go wydawać - później), 1 iskra z goblina, co 20. goblin duża (5).
+- `scripts/proto/proto_ember.gd` (`ProtoEmber`): wyskok z ciała, migotanie, poświata; od 40 px leci do postaci
+  (przyspiesza 400 px/s²), `collected(value)`, brzęk (Kenney `glass_002`/`glass_005` z Watry -> `assets/watra/ember_pickup*.ogg`).
+  Grafika z `tools/ember_art.py` -> `assets/effects/ember.png` (rząd 0 mała 1 żaru, rząd 1 duża 5, po 4 klatki 13x13).
+- `ProtoHorde`: `embers`, `embers_changed`, `BIG_EVERY = 20`. Arena w lochu: ikona żaru (`assets/watra/ember_icon.png`
+  z Watry) i licznik w pasku, przycisk „Do bazy” w górnym rzędzie (`return_to_base`); wyjście z okna pauzy też zanosi
+  żar (`PauseMenu.leaving`). Śmierć: okno wyniku pokazuje „Zgasło żaru: N”.
+- `Game`: zapis gry `save_path` (JSON `{"embers": N}`), `load_game`, `save_game`, `bank_embers` (zapis od razu),
+  `embers_brought` - baza pokazuje „+N” nad Watrą z rozbłyskiem. `ProtoWatra`: „Żar Watry: N” pod ogniem, poświata
+  rośnie logarytmicznie do 1,6x przy 1000 żaru (`glow_size`).
+- Test `tests/test_horde.gd` (żar: wypadanie, przyciąganie, duża iskra, powrót, zapis, gaśnięcie po śmierci).
+
 ## 12.11.2026 - pierwszy potwór (goblin) i loch z Hordą
 
 - Ustalenia z autorem: goblin, ciągły strumień, średnie obrażenia; polana z kukłami to baza, wejście do lochu przez

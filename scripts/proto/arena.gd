@@ -6,6 +6,8 @@ extends Node2D
 ## Wszystko budowane w kodzie, żeby prototyp łatwo było zmieniać i wyrzucić.
 ## Dwa tryby: baza (prototype.tscn - kukły i Watra; dotknięcie Watry przenosi do lochu) i loch z Hordą
 ## (horde.tscn, `horde = true` - ciągły strumień goblinów, pasek zdrowia, licznik pokonanych, po śmierci okno wyniku).
+## Żar: iskry z goblinów liczy ProtoHorde; „Do bazy” (albo wyjście z okna pauzy) zanosi je do Watry (`Game.bank_embers`),
+## śmierć je gasi. W bazie Watra pokazuje zgromadzony żar.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 0), Vector2(100, 10), Vector2(0, 170)]
@@ -29,6 +31,8 @@ var horde_spawner: ProtoHorde
 var health_bar: ProgressBar
 var kills_label: Label
 var time_label: Label
+var embers_label: Label
+var base_button: Button
 var result: RunResult
 
 
@@ -66,6 +70,7 @@ func _ready() -> void:
 		horde_spawner.world = world
 		horde_spawner.bounds = ARENA.grow(-8)
 		horde_spawner.kills_changed.connect(func(k: int) -> void: kills_label.text = tr("Pokonane: %d") % k)
+		horde_spawner.embers_changed.connect(func(e: int) -> void: embers_label.text = str(e))
 		add_child(horde_spawner)
 		hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
 			health_bar.max_value = max_hp
@@ -80,6 +85,9 @@ func _ready() -> void:
 		watra = ProtoWatra.new()
 		watra.name = "Watra"
 		watra.position = WATRA_POS
+		watra.embers = Game.embers
+		watra.brought = Game.embers_brought
+		Game.embers_brought = 0
 		watra.entered.connect(func() -> void: Game.change_scene(HORDE_SCENE))
 		world.add_child(watra)
 		hero.obstacles.append(Vector3(WATRA_POS.x, WATRA_POS.y, ProtoWatra.RADIUS))
@@ -129,6 +137,11 @@ func _make_hud() -> void:
 	top.add_child(menu_button)
 	if horde:
 		_make_horde_bar(top)
+		base_button = Button.new()
+		base_button.text = tr("Do bazy")
+		base_button.custom_minimum_size = Vector2(72, 44)
+		base_button.pressed.connect(return_to_base)
+		top.add_child(base_button)
 	else:
 		var hint := Label.new()
 		hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.")
@@ -159,6 +172,7 @@ func _make_hud() -> void:
 	pause_menu.visible = false
 	if horde:
 		pause_menu.base_scene = BASE_SCENE
+		pause_menu.leaving.connect(_bank)
 	pause_menu.closed.connect(_apply_settings)
 	layer.add_child(pause_menu)
 
@@ -193,6 +207,16 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	kills_label = _hud_label(tr("Pokonane: %d") % 0)
 	kills_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(kills_label)
+	var icon := TextureRect.new()
+	icon.texture = preload("res://assets/watra/ember_icon.png")
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.custom_minimum_size = Vector2(16, 16)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon)
+	embers_label = _hud_label("0")
+	embers_label.custom_minimum_size = Vector2(34, 0)
+	row.add_child(embers_label)
 	time_label = _hud_label("0:00")
 	row.add_child(time_label)
 
@@ -220,8 +244,21 @@ func _on_hero_died() -> void:
 	actions.attack.release()
 	weapon.attack_held = false
 	await get_tree().create_timer(RESULT_DELAY).timeout
-	result.show_result(horde_spawner.kills, horde_spawner.time)
+	result.show_result(horde_spawner.kills, horde_spawner.time, horde_spawner.embers)
 	get_tree().paused = true
+
+
+## Powrót z lochu do bazy z zebranym żarem.
+func return_to_base() -> void:
+	_bank()
+	Game.change_scene(BASE_SCENE)
+
+
+## Zebrany żar trafia do Watry (raz - licznik lochu się zeruje).
+func _bank() -> void:
+	if horde_spawner and not hero.dead:
+		Game.bank_embers(horde_spawner.embers)
+		horde_spawner.embers = 0
 
 
 func _open_menu() -> void:

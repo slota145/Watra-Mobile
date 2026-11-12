@@ -2,6 +2,7 @@ extends SceneTree
 ## Test bazy i lochu z Hordą: dotknięcie Watry w bazie otwiera wejście do lochu, krąg kamieni zatrzymuje postać;
 ## w lochu gobliny pojawiają się poza ekranem i idą do Wojciecha, zadają obrażenia (pasek zdrowia), miecz je zabija
 ## (licznik pokonanych), strumień przyspiesza z czasem, a po śmierci postaci jest okno wyniku z dwoma przyciskami.
+## Żar: z goblina wypada iskra, sama leci do postaci z bliska, „Do bazy” zanosi żar do Watry (zapis), śmierć go gasi.
 
 var _failed := 0
 
@@ -33,8 +34,54 @@ func _run() -> void:
 	await _test_base()
 	await _test_horde()
 	DirAccess.remove_absolute(root.get_node("Game").settings_path)
+	DirAccess.remove_absolute(root.get_node("Game").save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
 	quit(1 if _failed else 0)
+
+
+func _test_embers(arena: Node, hero: ProtoHero, horde: ProtoHorde) -> void:
+	var game: Node = root.get_node("Game")
+	game.embers = 0
+	game.save_game()
+	var embers: Array = []
+	for n in arena.get_node("World").get_children():
+		if n is ProtoEmber:
+			embers.append(n)
+	_check(embers.size() + horde.embers == horde.kills, "z każdego goblina wypada iskra żaru (%d + zebrane %d)" % [embers.size(), horde.embers])
+	await _wait(0.6)
+	_check(horde.embers >= 1 and arena.embers_label.text == str(horde.embers), "iskry obok postaci same do niej lecą (żar %d)" % horde.embers)
+	# iskra daleko leży; z bliska leci do postaci
+	var far := ProtoEmber.new()
+	far.hero = hero
+	far.position = hero.position + Vector2(120, 0)
+	arena.get_node("World").add_child(far)
+	var before := horde.embers
+	far.collected.connect(func(v: int) -> void: horde._on_ember(v))
+	await _wait(0.8)
+	_check(horde.embers == before and is_instance_valid(far) and not far._taken, "daleka iskra czeka na ziemi")
+	hero.position = far.position + Vector2(-30, 0)
+	await _wait(0.6)
+	_check(horde.embers == before + 1, "podejście przyciąga iskrę")
+	# duża iskra co BIG_EVERY goblinów
+	horde.kills = ProtoHorde.BIG_EVERY - 1
+	var g := horde.spawn()
+	g.take_damage(1000, hero.global_position)
+	await process_frame
+	await process_frame
+	var big := false
+	for n in arena.get_node("World").get_children():
+		big = big or (n is ProtoEmber and n.value == ProtoEmber.BIG)
+	_check(big, "co %d. goblin - duża iskra" % ProtoHorde.BIG_EVERY)
+	# „Do bazy”: żar trafia do Watry i do zapisu (bez zmiany sceny w teście)
+	var top: Rect2 = arena.base_button.get_global_rect()
+	_check(top.size.y >= 44.0 and arena.joystick._is_blocked(top.get_center()), "przycisk „Do bazy” w lochu, 44 px, nie rusza gałki")
+	horde.embers = 7
+	arena._bank()
+	_check(game.embers == 7 and game.embers_brought == 7 and horde.embers == 0, "powrót zanosi żar do Watry")
+	game.embers = 0
+	game.load_game()
+	_check(game.embers == 7, "żar zapisany")
+	horde.embers = 3  # tyle zgaśnie przy śmierci (sprawdzane niżej)
 
 
 func _test_base() -> void:
@@ -43,6 +90,9 @@ func _test_base() -> void:
 	await process_frame
 	var watra: ProtoWatra = arena.watra
 	_check(watra != null and arena.horde_spawner == null, "baza: Watra stoi, Hordy brak")
+	_check(watra.glow_size() == 1.0 or watra.embers > 0, "bez żaru zwykła poświata")
+	watra.embers = 500
+	_check(watra.glow_size() > 1.4 and watra.glow_size() <= 1.6, "dużo żaru - większy ogień (%.2f)" % watra.glow_size())
 	# zamiast zmiany sceny - tylko zapamiętujemy, że wejście zadziałało
 	for c in watra.entered.get_connections():
 		watra.entered.disconnect(c.callable)
@@ -102,6 +152,7 @@ func _test_horde() -> void:
 	arena.weapon.attack_held = false
 	_check(horde.kills >= 1, "miecz zabija gobliny (pokonane: %d)" % horde.kills)
 	_check(arena.kills_label.text.ends_with(str(horde.kills)), "licznik pokonanych: %s" % arena.kills_label.text)
+	await _test_embers(arena, hero, horde)
 	# strumień rozkręca się z czasem
 	horde.time = ProtoHorde.RAMP_TIME
 	_check(is_equal_approx(horde.interval(), ProtoHorde.INTERVAL_END) and horde.max_alive() == ProtoHorde.ALIVE_END, "po 3 minutach pełne tempo")
@@ -116,6 +167,10 @@ func _test_horde() -> void:
 	_check(result.retry_button.get_global_rect().get_center().y > view.y * 0.5 \
 		and result.base_button.get_global_rect().size.y >= 44.0, "przyciski w dolnej połowie, min. 44 px")
 	_check(result._summary.text.contains(str(horde.kills)), "wynik pokazuje pokonane: " + result._summary.text.replace("\n", ", "))
+	_check(result._summary.text.contains(tr("Zgasło żaru: %d") % 3), "po śmierci żar z lochu gaśnie")
+	var game: Node = root.get_node("Game")
+	arena._bank()
+	_check(game.embers == 7, "martwy Wojciech nie donosi żaru do Watry (%d)" % game.embers)
 	paused = false
 	arena.queue_free()
 	await process_frame

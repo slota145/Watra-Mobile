@@ -7,6 +7,8 @@ extends Control
 ## (np. w testach uruchamianych przez -s).
 
 signal closed
+## Gracz wychodzi z gry przyciskiem okna („Powrót do bazy” albo „Menu główne”) - tuż przed zmianą sceny.
+signal leaving
 
 var left_toggle: CheckButton
 var gesture_toggle: CheckButton
@@ -63,9 +65,13 @@ func _ready() -> void:
 	resume_button.pressed.connect(close)
 	if base_scene != "":
 		base_button = _button(column, tr("Powrót do bazy"))
-		base_button.pressed.connect(func() -> void: _game.change_scene(base_scene))
+		base_button.pressed.connect(func() -> void:
+			leaving.emit()
+			_game.change_scene(base_scene))
 	quit_button = _button(column, tr("Menu główne"))
-	quit_button.pressed.connect(func() -> void: _game.change_scene(_game.MENU_SCENE))
+	quit_button.pressed.connect(func() -> void:
+		leaving.emit()
+		_game.change_scene(_game.MENU_SCENE))
 
 
 ## Pokazuje okno i zatrzymuje grę.

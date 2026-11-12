@@ -2,9 +2,11 @@ class_name ProtoHorde
 extends Node
 ## Ciągły strumień Hordy w lochu prototypu: gobliny pojawiają się tuż poza ekranem i idą do Wojciecha.
 ## Z czasem przychodzą coraz częściej i coraz więcej naraz (`interval`, `max_alive`), aż do sufitu po ~3 minutach.
-## Liczy pokonane potwory i czas przetrwania (`kills`, `time`).
+## Liczy pokonane potwory i czas przetrwania (`kills`, `time`). Z każdego potwora wypada iskra żaru (co `BIG_EVERY`
+## potwór - duża), zebrany żar liczy `embers` - do bazy trafia tylko przy powrocie, po śmierci przepada.
 
 signal kills_changed(kills: int)
+signal embers_changed(embers: int)
 
 ## Odstęp między potworami na starcie i po pełnym rozkręceniu (s).
 const INTERVAL_START := 1.3
@@ -16,12 +18,16 @@ const ALIVE_END := 45
 const RAMP_TIME := 180.0
 ## Pierwszy potwór po tylu sekundach (chwila na rozejrzenie się).
 const FIRST_DELAY := 1.5
+## Co tyle pokonanych potworów wypada duża iskra (ProtoEmber.BIG żaru) zamiast małej.
+const BIG_EVERY := 20
 
 var hero: ProtoHero
 ## Gdzie dodawać potwory (świat z sortowaniem po Y).
 var world: Node2D
 var bounds := Rect2(-300, -300, 600, 600)
 var kills := 0
+## Żar zebrany w tym lochu.
+var embers := 0
 var time := 0.0
 var running := true
 
@@ -80,7 +86,18 @@ func spawn_point() -> Vector2:
 	return p.clamp(bounds.position, bounds.end)
 
 
-func _on_died(_g: ProtoGoblin) -> void:
+func _on_died(g: ProtoGoblin) -> void:
 	_alive -= 1
 	kills += 1
 	kills_changed.emit(kills)
+	var ember := ProtoEmber.new()
+	ember.hero = hero
+	ember.value = ProtoEmber.BIG if kills % BIG_EVERY == 0 else 1
+	ember.position = g.position
+	ember.collected.connect(_on_ember)
+	world.add_child.call_deferred(ember)
+
+
+func _on_ember(value: int) -> void:
+	embers += value
+	embers_changed.emit(embers)

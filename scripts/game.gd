@@ -1,6 +1,7 @@
 extends Node
 ## Globalny stan gry (autoload "Game"): przełączanie scen, ścieżka zapisu i ustawienia gracza.
 ## Ustawienia (np. przyciski po lewej) leżą osobno od zapisu gry, w user://settings.cfg.
+## Zapis gry (JSON w `save_path`): na razie żar zgromadzony w Watrze (`embers`).
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
 ## Zapis gracza. Testy podmieniają go na osobny plik, żeby nie ruszać prawdziwego zapisu.
@@ -14,7 +15,12 @@ var save_path := SAVE_PATH:
 		save_path = value
 		settings_path = SETTINGS_PATH if value == SAVE_PATH else TEST_SETTINGS_PATH
 		load_settings()
+		load_game()
 var settings_path := SETTINGS_PATH
+## Żar zgromadzony w Watrze (z iskier zebranych w lochach i doniesionych do bazy).
+var embers := 0
+## Żar doniesiony z ostatniego lochu - baza pokazuje go nad Watrą i zeruje.
+var embers_brought := 0
 ## Atak i umiejętności w lewym dolnym rogu (dla osób, które wolą trzymać je lewym kciukiem).
 var left_handed := false
 ## Gest ręką postaci przy ataku (prototyp - porównanie wersji z gestem i bez).
@@ -25,6 +31,7 @@ func _ready() -> void:
 	# jak w Watrze: gra startuje po polsku, niezależnie od języka telefonu (wybór języka dojdzie w ustawieniach)
 	Lang.set_language(Lang.DEFAULT)
 	load_settings()
+	load_game()
 
 
 ## Numer wersji gry z project.godot (pokazywany w rogu menu).
@@ -51,3 +58,28 @@ func save_settings() -> void:
 	cfg.set_value("controls", "left_handed", left_handed)
 	cfg.set_value("controls", "gesture", gesture)
 	cfg.save(settings_path)
+
+
+func load_game() -> void:
+	embers = 0
+	embers_brought = 0
+	if not FileAccess.file_exists(save_path):
+		return
+	var data = JSON.parse_string(FileAccess.get_file_as_string(save_path))
+	if data is Dictionary:
+		embers = int(data.get("embers", 0))
+
+
+func save_game() -> void:
+	var f := FileAccess.open(save_path, FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify({"embers": embers}))
+
+
+## Żar doniesiony z lochu do Watry (powrót do bazy, nie śmierć) - od razu zapisany.
+func bank_embers(amount: int) -> void:
+	if amount <= 0:
+		return
+	embers += amount
+	embers_brought += amount
+	save_game()
