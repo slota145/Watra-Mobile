@@ -18,6 +18,7 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
    loch z ciągłym strumieniem goblinów, pasek zdrowia, licznik, okno wyniku. Do oceny na telefonie: tempo strumienia,
    obrażenia, czytelność goblinów w tłumie. Oceniony na telefonie: działa i bardzo się podoba.
    Iskry żaru z goblinów dla Watry (12.11.2026) - na co wydawać żar, do ustalenia z autorem.
+   Boss i poziomy lochu (12.11.2026): Wódz Goblinów za pełny pasek żaru, skrzynia, odblokowanie następnego poziomu.
 
 1. **Wizja gry:** rdzeń ustalony (lochy + hub, może jak Vampire Survivors bez roguelike) - czekamy na pierwsze pomysły
    autora i odpowiedzi na pytania z `docs/GDD.md` („Do ustalenia”) - od nich zależy cała reszta.
@@ -30,11 +31,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 
 ## Pomysły autora (do zrobienia)
 
-- **Boss w lochu (12.11.2026):** iskry zapełniają pasek żaru w lochu; pełny pasek pozwala przyzwać bossa (np. Wódz
-  Goblinów na bazie modelu goblina). Przyzwanie zjada żar z paska, do bazy idzie tylko nadwyżka. Po przyzwaniu zwykłe
-  gobliny znikają (pomysł Claude: uciekają z piskiem). Pokonanie bossa to jedyne wyjście z żarem (ucieczka i śmierć -
-  bez żaru); wyprawy krótkie (pasek po 2-3 min) - telefon przerywa grę. Do dopytania: koszt, sposób przyzwania
-  (ołtarz?), wygląd i ataki bossa (z ostrzeżeniem), nagroda.
+- **Boss w lochu (12.11.2026):** zrobione (szczegóły w `docs/historia.md`); do oceny na telefonie: czas zapełniania
+  paska (100 żaru), trudność Wodza, czytelność ostrzeżeń. Model, animacje i efekty
+  Wodza gotowe; skrzynia da łup, gdy dojdą przedmioty.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

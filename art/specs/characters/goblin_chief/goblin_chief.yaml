@@ -1,0 +1,372 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: goblin_chief
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.05, 0]}
+palette: "watra"
+size: 80
+extends: ../goblin/goblin.yaml   # the goblin's skeleton, skin, ears, eyes and animations; here only what differs
+
+# Wódz Goblinów (boss): ten sam goblin Hordy, ale ok. 1,6x większy (ok. 44 px wobec 27 px goblina, ta sama
+# camera.scale), grubszy i masywny, nadal przygarbiony. Rogata czaszka zwierzęcia na głowie, futrzana narzutka
+# na ramionach, naszyjnik z kłów, czerwone pasy wojennej farby na twarzy i ramionach, wielki tasak w prawej dłoni.
+# Całe ciało goblina rośnie przez kość `big` (scale 1.6) pod `root`: kanały animacji goblina (hand_L, foot_L...)
+# są w przeskalowanych przestrzeniach, więc odziedziczone animacje zachowują proporcje.
+brief:
+  summary: >
+    boss of the goblin Horde, the Goblin Chief: the same goblin (green skin, long ears, glowing amber eyes,
+    hunch, leather kilt) about 1.6x taller (about 44 px against the goblin's 27 px, same density) and much
+    heavier - a pot belly, broad shoulders, thick arms and legs; a horned animal skull worn as a helmet, a
+    shaggy dark-brown bear-fur mantle with a thick ruff over the shoulders, a necklace of fangs on the bare
+    chest, red war paint (a mask band across the eyes, cheek stripes, bands round the arms), and a huge iron cleaver in the right hand
+  head: >
+    bald goblin head with a bleached animal skull worn on the crown (a small cap, so the green forehead and
+    the back of the head still show; the skull's short snout with two dark sockets over the forehead); two
+    big dark horns grow from the skull's sides, curving out and up like an aurochs's - with the ears they
+    make the widest, most recognisable shape (in profile they tuck in and curve forward, see horn_L); the
+    goblin's long pointed ears still stick out sideways below the horns; face minimal (style): the two
+    glowing amber eyes inside a red war-paint mask band, a short red stripe down each cheek, no nose or mouth
+  must_keep:
+    - instantly a goblin - green skin, the long sideways ears and the glowing amber eyes stay
+    - the horns + ears silhouette: readable among ordinary goblins on a phone, in every direction
+    - size and mass - about 1.6x the goblin, a wide body, still hunched forward
+    - the huge cleaver in the right hand (sockets knife_hit / knife_tip as on the goblin)
+    - red war paint and the fur mantle as the boss's colour accents (red, bone white, dark-brown fur; the cleaver's grey steel stays apart from the fur)
+  simplify:
+    - the skull is one small cap with a short snout, no teeth or jaw (a big cap read as a bald egg)
+    - the fur is the cape kit with a thick ruff, a V-notched hem and darker spots, no strands
+    - the necklace is a strap with three fangs
+    - war paint is painted stripes, no geometry
+  decisions:
+    - the whole goblin is scaled by the bone `big` (1.6) and its IK lengths x1.6; the head bone scale goes from
+      1.4 to 1.3 (a heavier, more adult build than the plain goblin)
+    - the chest is bare green skin (the tunic is gone; the leather kilt and belt remain) so the war paint, the
+      fang necklace and the fur stand out against it and the chief does not read as a big plain goblin
+    - the back (n) shows the fur mantle over the shoulders, the skull's back and the horns
+    - the cleaver is the goblin's, about 2.6x longer and 3x wider, with a notch on the back; it hangs lower and
+      more upright than the goblin's knife (bones knife/knife_edge) so its flat shows in s, sw, n; in e it is
+      behind the body (right hand, far side)
+    - the cleaver's iron is one step lighter (bands 2-5) and the fur warm dark brown, so they do not merge
+    - animations are inherited from the goblin (scaled with the body); the animator should refit them for the
+      heavy cleaver (slower wind-up, more weight); no new animations yet - the author approves the model first
+
+ramps:
+  # shaggy bear fur, a dark brown (warmer than the cleaver's grey steel, so the two separate)
+  fur:      ["#0c0908", "#2a1f1a", "#433229", "#5c4637", "#765c48", "#8e7559"]
+  # dark horn, grey-brown, lighter at the tips through the light
+  horn:     ["#0e0c0b", "#352c28", "#574b41", "#756b5a", "#918a73", "#a8a391"]
+  # red war paint (ochre-red clay), brighter than the blood ramp so it reads on the green
+  warpaint: ["#12040a", "#4a0a12", "#7e1620", "#ae2a2a", "#d04a3a"]
+
+materials:
+  fur:      {ramp: fur, finish: matte}
+  fur_dark: {ramp: fur, finish: matte, bands: [1, 3]}
+  bone:     {ramp: bone, finish: soft, bands: [1, 4]}   # no near-white top tone: the skull must not outshine the face
+  fang:     {ramp: bone, finish: soft, bands: [3, 5]}   # small trophies: bright so they read as white specks
+  socket:   {ramp: horn, bands: [0, 1], line: false}
+  horn:     {ramp: horn, finish: soft}
+  warpaint: {ramp: warpaint, finish: matte}
+  iron:     {bands: [2, 5]}   # the goblin's iron one step lighter: the cleaver reads against the dark fur
+
+use:
+  # the big cleaver: the sword kit's bones, grip and sockets (knife_tip, knife_hit), the blade replaced below
+  - {kit: sword, as: knife, at: wrist_R, with: {length: 0.69, width: 0.26, thick: 0.05, guard: 0, tilt: -0.25},
+     materials: {steel: iron, leather: strap}}
+  # the fur mantle: a short cape over the shoulders with a rolled collar, no clasp
+  - {kit: cape, as: mantle, at: pelvis, with: {length: 0.30, width: 0.36, flare: 0.1, drape: 0.06, top: 0.4,
+     thick: 0.04, dip: 0.08, collar: true, clasp: false}, materials: {cape: fur}}
+
+shadow: {rx: 14, ry: 5, alpha: 120}
+
+channels:
+  hand_R: [0.29, 0.07, 0.16]
+  knife_show: 1   # 0 hides the cleaver (throw: it leaves the hand at `release`, the game draws the flying one)
+
+bones:
+  # the whole goblin, 1.6x: everything hangs from `big` (the root channel still moves `root`)
+  big:        {parent: root, scale: 1.6}
+  torso_rot:  {parent: big}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  fxspace:    {parent: big}
+  headbase:   {scale: 1.6}           # it does not inherit the scale (inherit_scale: false in the goblin)
+  head:       {scale: 1.3}
+  # the big cleaver hangs lower and more upright than the goblin's knife, its flat turned to the camera in s/sw/n
+  knife:      {rot: "[-0.6 + knife_pitch, 0, 0.5 + knife_splay]"}
+  knife_edge: {rot: [0, 0.3, 0]}
+  shoulder_L: {pos: [0.21, 0.34, 0.0]}
+  hip_L:      {pos: [0.10, -0.02, 0.0]}
+
+ik:
+  arm_L: {lengths: [0.304, 0.288]}   # the goblin's x1.6 (IK lengths are world units)
+  leg_L: {space: big, lengths: [0.432, 0.416]}
+
+parts:
+  torso:           # bare green chest: pot belly, barrel chest, broad shoulders
+    material: skin
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.05, 0.03], r: [0.165, 0.12, 0.15]}
+      - ellipsoid: {c: [0, 0.19, 0.02], r: [0.165, 0.12, 0.12]}
+      - ellipsoid: {c: [0, 0.31, 0.0], r: [0.22, 0.10, 0.11]}
+  belt:
+    prims:
+      - cylinder: {a: [0, 0.055, 0.02], b: [0, 0.115, 0.02], r: 0.172}
+  neck:
+    prims:
+      - cone: {a: [0, 0.36, 0], b: [0, 0.46, 0.05], r: [0.08, 0.065]}
+  arm_L:           # thick arms (in `big` space, so the radii grow with it)
+    space: big
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.07}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.065, 0.052]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.052, 0.048]}
+    paint:         # two red war-paint bands round the upper arm and one on the forearm (they follow the arm)
+      - material: warpaint
+        prims:
+          - cylinder: {a: {between: ["@shoulder_L", "@elbow_L"], t: 0.3}, b: {between: ["@shoulder_L", "@elbow_L"], t: 0.45}, r: 0.1}
+          - cylinder: {a: {between: ["@shoulder_L", "@elbow_L"], t: 0.65}, b: {between: ["@shoulder_L", "@elbow_L"], t: 0.8}, r: 0.1}
+          - cylinder: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.35}, b: {between: ["@elbow_L", "@wrist_L"], t: 0.55}, r: 0.1}
+  hand_L:          # wrist frames are not scaled: a big fist in world units
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.085}
+  leg_L:
+    space: big
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.08, 0.058]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.058, 0.05]}
+  boot_L:
+    prims:
+      - cone: {a: [0, 0.07, 0], b: [0, -0.02, 0.0], r: [0.05, 0.055]}
+      - ellipsoid: {c: [0, -0.04, 0.06], r: [0.065, 0.04, 0.11]}
+  head:            # the head kit's head, with red war paint down the cheeks
+    paint:
+      - material: warpaint
+        prims:
+          - box: {c: [0, 0.13, 0.10], half: [0.16, 0.028, 0.08]}         # a mask band across the eyes
+          - box: {c: [0.06, 0.07, 0.12], half: [0.013, 0.04, 0.06]}       # a stripe down each cheek
+          - box: {c: [-0.06, 0.07, 0.12], half: [0.013, 0.04, 0.06]}
+  skull:           # a bleached animal skull worn as a cap, down to the brow, with a short snout over the forehead
+    material: bone
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.255, 0.0], r: [0.115, 0.08, 0.115]}
+      - ellipsoid: {c: [0, 0.235, 0.10], r: [0.06, 0.045, 0.06]}
+    cut:
+      - plane: {n: [0, -1, 0], at: -0.2}
+    paint:         # the skull's two dark eye sockets on the snout's sides
+      - material: socket
+        prims:
+          - sphere: {c: [0.05, 0.235, 0.10], r: 0.022}
+          - sphere: {c: [-0.05, 0.235, 0.10], r: 0.022}
+  horn_L:          # a big dark horn from the skull's side, curving out and up (aurochs)
+    material: horn
+    space: head
+    prims:
+      # profile cheat (|yaw| about 90): both horns tuck in towards the skull and curve forward, otherwise the far
+      # one rises high behind the head (depth reads as height from this camera); the far horn in
+      # the back diagonals (yaw*sx about 135) drops a little for the same reason
+      - tube: {pts: [[0.09, 0.26, 0.0], "[0.28 - 0.10*pulse(abs(yaw), 90, 60), 0.25, -0.02]",
+                     "[0.31 - 0.14*pulse(abs(yaw), 90, 60) - 0.06*pulse(yaw*sx, 135, 50),
+                       0.43 - 0.10*pulse(abs(yaw), 90, 60) - 0.08*pulse(yaw*sx, 135, 50), 0.05 + 0.10*pulse(abs(yaw), 90, 60)]"],
+               r: [0.042, 0.012]}
+  mantle:          # the kit's cape, its hem torn into fur tufts (V notches)
+    cut:
+      - plane: {n: [0, 1, 0], at: 0}
+      - plane: {n: "[0, -1, 0.08]", c: "[0, -0.30, -0.10]"}
+      - plane: {n: [0, 0, 1], at: 0}
+      - box: {c: [0.0, -0.31, -0.2], half: [0.035, 0.035, 0.2], rot: [0, 0, 0.785]}
+      - box: {c: [0.11, -0.30, -0.2], half: [0.035, 0.035, 0.2], rot: [0, 0, 0.785]}
+      - box: {c: [-0.11, -0.30, -0.2], half: [0.035, 0.035, 0.2], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, -0.27, -0.1], half: [0.2, 0.035, 0.035], rot: [0.785, 0, 0]}
+      - box: {c: [-0.2, -0.27, -0.1], half: [0.2, 0.035, 0.035], rot: [0.785, 0, 0]}
+    paint:         # darker fur tufts, so the mantle reads as fur and not as cloth
+      - material: fur_dark
+        spots: {scale: 0.06, density: 0.3, seed: 7}
+  mantle_collar:   # a thick fur ruff over the shoulders: the chief's shoulders grow
+    prims:
+      - torus: {c: [0, -0.01, -0.01], R: 0.15, r: 0.075, rot: [0.3, 0, 0]}
+  necklace:        # a leather thong round the neck hanging on the chest
+    material: strap
+    space: pelvis
+    prims:
+      - tube: {pts: [[-0.14, 0.34, 0.04], [-0.02, 0.06, 0.26], [0.13, 0.34, 0.04]], r: 0.016}
+  fangs:           # three fangs on the thong
+    material: fang
+    priority: 2
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.165, 0.175], b: [0, 0.08, 0.20], r: [0.032, 0.012]}
+      - cone: {a: [-0.065, 0.18, 0.165], b: [-0.075, 0.11, 0.19], r: [0.028, 0.011]}
+      - cone: {a: [0.065, 0.18, 0.165], b: [0.075, 0.11, 0.19], r: [0.028, 0.011]}
+  knife_grip: {when: "knife_show > 0.5"}
+  knife_blade:     # a big butcher's cleaver: straight back, a wide square blade, a notch in the back
+    when: "knife_show > 0.5"
+    prims:
+      - extrude: {c: [0, 0, 0], depth: 0.05, round: 0.008,
+                  profile: {polygon: [[-0.05, 0.08], [0.07, 0.08], [0.21, 0.66], [0.17, 0.78], [-0.06, 0.76]]}}
+    cut:
+      - box: {c: [-0.06, 0.50, 0], half: [0.03, 0.03, 0.06], rot: [0, 0, 0.785]}
+
+animations:
+  # heavy breathing: the barrel chest heaves (squash), shoulders and the cleaver arm rise and fall, the head
+  # sinks a little after each breath, the fur mantle and kilt follow late
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      bob: "0.03*sin(p)"
+      squash: "1 + 0.03*sin(p)"
+      lean: "0.06 - 0.03*sin(p)"
+      head_pitch: "0.06*sin(p - 0.8)"
+      hand_L: "[0.24, 0.04 + 0.03*sin(p - 0.6), 0.06]"
+      hand_R: "[0.29, 0.07 + 0.03*sin(p - 0.6), 0.16]"
+      knife_pitch: "0.05*sin(p - 1.0)"
+      mantle_sway: "0.15*sin(p - 1.2)"
+      coat: "0.12*sin(p - 1.0)"
+  # heavy, wide stomp matched to the game's speed (30 px/s on screen = 1.467 world units/s; the feet are in the
+  # `big` space, x1.6, so 0.917/s there): each foot is planted for 4 of the 8 frames (500 ms) and slides back
+  # 0.458 at a constant speed, then swings forward with an eased lift; the body sinks hard at each contact,
+  # rolls onto the planted leg, shoulders twist against the hips, the free arm swings, the cleaver arm less
+  walk:
+    frames: 8
+    ms: 125
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: "0.12 + 0.03*cos(2*p)"
+      bob: "-0.04*cos(2*p) - 0.005"
+      squash: "1 - 0.03*cos(2*p)"
+      twist: "0.11*cos(p)"
+      roll: "0.05*sin(p)"
+      head_yaw: "-0.07*cos(p)"
+      head_pitch: "0.05*cos(2*p - 0.6)"
+      foot_L: "[0.13, 0.10*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.229 - 0.458*clamp(p/tau/0.5, 0, 1) + 0.458*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.13, 0.10*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.229 - 0.458*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.458*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      pitch_foot_L: "0.35*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
+      pitch_foot_R: "0.35*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
+      hand_L: "[0.26, 0.05 + 0.04*pos(cos(p)), 0.06 - 0.14*cos(p)]"
+      hand_R: "[0.30, 0.08 + 0.03*pos(-cos(p)), 0.16 + 0.07*cos(p)]"
+      knife_pitch: "-0.12*cos(p - 0.6)"
+      mantle_sway: "0.25*sin(2*p - 1.2)"
+      coat: "0.4*sin(2*p - 0.8)"
+  # ground slam with both hands: the cleaver goes up over the head (both fists on the grip), a long held
+  # extreme leaning back, then one short strike down into the ground in front with a vertical smear and a
+  # lunge, the body squashed on the impact, a heavy recovery
+  slam:
+    loop: false
+    keys:
+      - {ms: 90, event: windup, set: {lean: 0.12, bob: -0.04, squash: 0.95, twist: -0.05, coat: -0.1,
+          hand_R: [0.14, 0.34, 0.16], hand_L: [-0.04, 0.30, 0.18], knife_pitch: 1.0, knife_splay: -0.3, head_pitch: 0.05}}
+      - {ms: 130, set: {lean: -0.25, bob: 0.01, squash: 1.04, twist: -0.1, coat: -0.3, mantle_sway: 0.3,
+          hand_R: [0.07, 0.62, 0.02], hand_L: [-0.03, 0.60, 0.04], knife_pitch: 1.8, knife_splay: -0.5, head_pitch: -0.15,
+          foot_L: [0.13, 0, 0.12], foot_R: [0.13, 0, -0.06]}}
+      - {ms: 180, set: {lean: -0.36, bob: 0.02, squash: 1.07, twist: -0.12, coat: -0.35, mantle_sway: 0.4,
+          hand_R: [0.05, 0.68, -0.04], hand_L: [-0.03, 0.66, -0.02], knife_pitch: 2.1, knife_splay: -0.55, head_pitch: -0.2,
+          foot_L: [0.13, 0, 0.14], foot_R: [0.13, 0, -0.06]}}
+      - {ms: 60, event: hit, set: {root: [0, 0, 0.14], lean: 0.45, bob: -0.10, squash: 0.92, twist: 0.05, coat: 0.5, mantle_sway: -0.3,
+          hand_R: [0.05, -0.08, 0.40], hand_L: [-0.03, -0.06, 0.38], knife_pitch: 1.1, knife_splay: -0.5, head_pitch: 0.15,
+          foot_L: [0.13, 0, 0.22], foot_R: [0.13, 0, -0.08],
+          smear_w: 0.12, smear_a0: 1.9, smear_a1: -0.7}}
+      - {ms: 100, set: {root: [0, 0, 0.14], lean: 0.5, bob: -0.13, squash: 0.89, twist: 0.05, coat: 0.6, mantle_sway: -0.4,
+          hand_R: [0.05, -0.10, 0.40], hand_L: [-0.03, -0.08, 0.38], knife_pitch: 1.2, knife_splay: -0.5, head_pitch: 0.18,
+          foot_L: [0.13, 0, 0.22], foot_R: [0.13, 0, -0.08],
+          smear_w: 0.09, smear_a0: 0.8, smear_a1: -0.75, smear_fade: 0.6}}
+      - {ms: 120, set: {root: [0, 0, 0.12], lean: 0.4, bob: -0.09, squash: 0.95, coat: 0.3,
+          hand_R: [0.08, -0.04, 0.38], hand_L: [0.0, -0.03, 0.36], knife_pitch: 1.1, knife_splay: -0.45, head_pitch: 0.1,
+          foot_L: [0.13, 0, 0.20], foot_R: [0.13, 0, -0.07]}}
+      - {ms: 130, set: {root: [0, 0, 0.07], lean: 0.25, bob: -0.04, coat: 0.0, mantle_sway: 0.1,
+          hand_R: [0.20, 0.03, 0.28], hand_L: [0.16, 0.02, 0.18], knife_pitch: 0.5, knife_splay: -0.2,
+          foot_L: [0.13, 0, 0.12], foot_R: [0.12, 0, -0.03]}}
+      - {ms: 110, set: {root: [0, 0, 0.02], lean: 0.08, coat: -0.05, hand_R: [0.28, 0.06, 0.18], hand_L: [0.23, 0.04, 0.07],
+          knife_pitch: 0.1, foot_L: [0.11, 0, 0.05]}}
+  # cleaver throw: the right shoulder turns back with the cleaver cocked behind it, the left arm points at
+  # the target, a fast forward whip; the cleaver leaves the hand on `release` and is hidden from then on
+  throw:
+    loop: false
+    keys:
+      - {ms: 80, event: windup, set: {twist: -0.3, lean: -0.05, squash: 0.97, bob: -0.02, coat: -0.15,
+          hand_R: [0.32, 0.42, -0.12], hand_L: [0.20, 0.20, 0.24], knife_pitch: 1.6, knife_splay: -0.2, head_pitch: -0.05}}
+      - {ms: 140, set: {twist: -0.5, lean: -0.18, squash: 1.03, bob: 0.0, coat: -0.3, mantle_sway: 0.3,
+          hand_R: [0.34, 0.52, -0.26], hand_L: [0.16, 0.24, 0.32], knife_pitch: 2.4, knife_splay: -0.3, head_pitch: -0.1,
+          foot_L: [0.13, 0, 0.14], foot_R: [0.13, 0, -0.06]}}
+      - {ms: 80, set: {twist: -0.05, lean: 0.1, squash: 1.0, coat: 0.0,
+          hand_R: [0.24, 0.55, 0.10], hand_L: [0.24, 0.14, 0.10], knife_pitch: 1.2, knife_splay: -0.2, head_pitch: 0.0,
+          foot_L: [0.13, 0, 0.16], foot_R: [0.13, 0, -0.06],
+          smear_w: 0.10, smear_a0: 1.9, smear_a1: 0.6}}
+      - {ms: 60, event: release, set: {root: [0, 0, 0.08], twist: 0.35, lean: 0.38, squash: 0.95, bob: -0.04, coat: 0.4, mantle_sway: -0.3,
+          hand_R: [0.10, 0.30, 0.42], hand_L: [0.28, 0.06, -0.10], knife_show: 0, head_pitch: 0.08,
+          foot_L: [0.13, 0, 0.20], foot_R: [0.13, 0, -0.07],
+          smear_w: 0.08, smear_a0: 0.9, smear_a1: -0.2, smear_fade: 0.6}}
+      - {ms: 100, set: {root: [0, 0, 0.09], twist: 0.42, lean: 0.42, squash: 0.94, bob: -0.05, coat: 0.5, mantle_sway: -0.35,
+          hand_R: [0.04, 0.12, 0.38], hand_L: [0.29, 0.05, -0.12], knife_show: 0, head_pitch: 0.1,
+          foot_L: [0.13, 0, 0.20], foot_R: [0.13, 0, -0.07]}}
+      - {ms: 120, set: {root: [0, 0, 0.04], twist: 0.12, lean: 0.15, bob: -0.01, coat: 0.1,
+          hand_R: [0.22, 0.06, 0.24], hand_L: [0.24, 0.04, 0.02], knife_show: 0,
+          foot_L: [0.12, 0, 0.10], foot_R: [0.12, 0, -0.03]}}
+  # war cry: a crouched inhale, then he rears back, arms flung wide, the cleaver raised high, head thrown back;
+  # `roar` at the peak, the whole body trembling while he roars (root and roll jitter), then settles
+  roar:
+    loop: false
+    keys:
+      - {ms: 120, set: {lean: 0.28, bob: -0.05, squash: 0.94, coat: 0.2, head_pitch: 0.18,
+          hand_L: [0.22, -0.02, 0.18], hand_R: [0.26, 0.0, 0.22], knife_pitch: 0.2}}
+      - {ms: 150, set: {lean: -0.12, bob: 0.0, squash: 1.03, coat: -0.2, mantle_sway: 0.2, head_pitch: -0.15,
+          hand_L: [0.40, 0.30, 0.06], hand_R: [0.38, 0.40, 0.06], knife_pitch: 1.2, knife_splay: -0.1}}
+      - {ms: 110, event: roar, set: {lean: -0.38, bob: 0.02, squash: 1.08, coat: -0.35, mantle_sway: 0.4, head_pitch: -0.42,
+          hand_L: [0.48, 0.56, 0.0], hand_R: [0.36, 0.68, 0.02], knife_pitch: 2.0, knife_splay: -0.3}}
+      - {ms: 100, set: {root: [0.03, 0, 0], roll: 0.04, lean: -0.36, bob: 0.01, squash: 1.06, coat: -0.3, mantle_sway: 0.35, head_pitch: -0.4,
+          hand_L: [0.49, 0.54, 0.0], hand_R: [0.37, 0.66, 0.02], knife_pitch: 1.95, knife_splay: -0.28}}
+      - {ms: 100, set: {root: [-0.03, 0, 0], roll: -0.04, lean: -0.38, bob: 0.02, squash: 1.08, coat: -0.35, mantle_sway: 0.4, head_pitch: -0.43,
+          hand_L: [0.47, 0.57, 0.0], hand_R: [0.35, 0.69, 0.02], knife_pitch: 2.05, knife_splay: -0.32}}
+      - {ms: 100, set: {root: [0.03, 0, 0], roll: 0.04, lean: -0.36, bob: 0.01, squash: 1.06, coat: -0.3, mantle_sway: 0.35, head_pitch: -0.4,
+          hand_L: [0.49, 0.54, 0.0], hand_R: [0.37, 0.66, 0.02], knife_pitch: 1.95, knife_splay: -0.28}}
+      - {ms: 100, set: {root: [-0.03, 0, 0], roll: -0.04, lean: -0.37, bob: 0.02, squash: 1.07, coat: -0.35, mantle_sway: 0.4, head_pitch: -0.42,
+          hand_L: [0.47, 0.56, 0.0], hand_R: [0.35, 0.68, 0.02], knife_pitch: 2.0, knife_splay: -0.3}}
+      - {ms: 100, set: {root: [0.02, 0, 0], roll: 0.02, lean: -0.32, bob: 0.01, squash: 1.05, coat: -0.25, mantle_sway: 0.3, head_pitch: -0.35,
+          hand_L: [0.46, 0.48, 0.02], hand_R: [0.36, 0.60, 0.04], knife_pitch: 1.8, knife_splay: -0.2}}
+      - {ms: 150, set: {lean: -0.05, bob: -0.02, squash: 0.98, coat: 0.1, mantle_sway: -0.1, head_pitch: -0.05,
+          hand_L: [0.32, 0.18, 0.06], hand_R: [0.32, 0.24, 0.14], knife_pitch: 0.5}}
+      - {ms: 130, set: {lean: 0.07, coat: 0.05, hand_L: [0.24, 0.05, 0.06], hand_R: [0.29, 0.08, 0.16], knife_pitch: 0.05}}
+  # hit: a short flinch (the boss does not stop his attack): the body jolts back a pixel or two and returns
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.14, bob: -0.02, squash: 0.96, head_pitch: -0.18, coat: -0.3, mantle_sway: 0.2,
+          hand_L: [0.27, 0.10, 0.02], hand_R: [0.31, 0.12, 0.12], knife_pitch: -0.15}}
+      - {ms: 70, set: {root: [0, 0, -0.02], lean: -0.04, bob: -0.01, squash: 0.98, head_pitch: -0.07, coat: -0.1, mantle_sway: 0.1,
+          hand_L: [0.25, 0.07, 0.04], hand_R: [0.30, 0.09, 0.14], knife_pitch: -0.07}}
+      - {ms: 70, set: {lean: 0.05, head_pitch: 0.02, coat: 0.05, hand_L: [0.23, 0.04, 0.06], hand_R: [0.29, 0.07, 0.16]}}
+  # death: struck back, staggers, the knees buckle (he drops onto them, slumped), then the whole mass
+  # topples on its back with a hard bounce; the cleaver flung out beside him; the last frame held
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.05], lean: -0.32, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5, mantle_sway: 0.3,
+          hand_L: [0.30, 0.18, -0.02], hand_R: [0.33, 0.20, 0.04], knife_pitch: -0.3}}
+      - {ms: 140, set: {root: [0, 0, -0.10], twist: 0.2, roll: 0.08, lean: -0.25, bob: -0.05, head_pitch: -0.15,
+          coat: -0.3, hand_L: [0.32, 0.12, 0.0], hand_R: [0.34, 0.12, 0.02], knife_pitch: -0.1,
+          foot_L: [0.12, 0, 0.06], foot_R: [0.13, 0.05, -0.16]}}
+      - {ms: 180, set: {root: [0, 0, -0.10], twist: 0.12, roll: 0.06, lean: 0.25, bob: -0.20, squash: 0.93,
+          head_pitch: 0.3, coat: 0.3, mantle_sway: -0.2, hand_L: [0.26, -0.08, 0.14], hand_R: [0.28, -0.06, 0.16], knife_pitch: 0.4,
+          foot_L: [0.12, 0, 0.04], foot_R: [0.13, 0, -0.12]}}
+      - {ms: 130, set: {root: [0, 0, -0.10], twist: 0.1, roll: 0.05, lean: -0.5, bob: -0.24, head_pitch: -0.2,
+          coat: -0.4, hand_L: [0.34, 0.15, 0.10], hand_R: [0.36, 0.18, 0.12], knife_pitch: -0.4,
+          foot_L: [0.12, 0.04, 0.16], foot_R: [0.13, 0.02, 0.08]}}
+      - {ms: 100, set: {root: [0, 0, 0.0], twist: "0.3*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.25, bob: -0.36, head_pitch: -0.45,
+          coat: -0.5, hand_L: [0.36, 0.12, 0.12], hand_R: [0.38, 0.14, 0.12], knife_pitch: -0.6, knife_splay: 0.4,
+          foot_L: [0.12, 0.10, 0.36], foot_R: [0.13, 0.06, 0.30]}}
+      - {ms: 90, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.78, bob: -0.45, squash: 0.9, head_pitch: -0.75,
+          coat: -0.6, hand_L: [0.36, 0.06, -0.08], hand_R: [0.40, 0.06, -0.08], knife_pitch: -0.9, knife_splay: 0.8,
+          foot_L: [0.13, 0.06, 0.44], foot_R: [0.14, 0.03, 0.40]}}
+      - {ms: 130, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.66, bob: -0.40, squash: 0.98, head_pitch: -0.62,
+          coat: -0.5, hand_L: [0.37, 0.08, -0.05], hand_R: [0.40, 0.08, -0.06], knife_pitch: -0.9, knife_splay: 0.8,
+          foot_L: [0.13, 0.04, 0.45], foot_R: [0.14, 0.02, 0.42]}}
+      - {ms: 600, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.74, bob: -0.44, head_pitch: -0.7,
+          coat: -0.6, hand_L: [0.37, 0.06, -0.08], hand_R: [0.40, 0.06, -0.08], knife_pitch: -0.9, knife_splay: 0.8,
+          foot_L: [0.13, 0, 0.46], foot_R: [0.14, 0, 0.44]}}
+
+timing:
+  slam: {hit: 400ms, total: 920ms}
+  throw: {release: 300ms, total: 580ms}
+  roar: {roar: 270ms}

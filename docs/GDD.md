@@ -56,7 +56,8 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
 
 ## Do ustalenia z autorem
 
-- **Poziomy lochów:** wybór dowolnego poziomu do najwyższego przebitego? Limit czasu jak w D3 czy bez? Które systemy
+- **Poziomy lochów:** wybór dowolnego poziomu do najwyższego przebitego - ustalone 12.11.2026 (pokonanie bossa
+  odblokowuje następny poziom, potwory +15% siły na poziom). Limit czasu jak w D3 czy bez? Które systemy
   odblokowują się na których poziomach? Lista ulepszeń lochów za żar i ich ceny.
 
 - **Walka w lochu:** w stylu Vampire Survivors (auto-ataki, ruch palcem) czy ARPG jak Watra (gałka i przyciski

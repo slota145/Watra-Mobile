@@ -27,5 +27,97 @@
       17
     ],
     "columns": 4
+  },
+  "boss_appear": {
+    "effect": "eeb50edc-ca0b-415c-b527-07f38581726a",
+    "name": "Boss - pojawienie sie (z Watry)",
+    "frame": [
+      144,
+      96
+    ],
+    "frames": 11,
+    "columns": 6,
+    "fps": 18,
+    "anchor": [
+      72,
+      58
+    ]
+  },
+  "boss_slam": {
+    "effect": "251a781c-9bf9-4b02-aa21-388a2160f697",
+    "name": "Boss A - uderzenie w ziemie (z Watry)",
+    "frame": [
+      75,
+      48
+    ],
+    "frames": 12,
+    "fps": 16,
+    "anchor": [
+      37,
+      25
+    ]
+  },
+  "boss_death": {
+    "effect": "71116e7c-6939-49cd-bc7e-da25ac1ad7e3",
+    "name": "Boss - smierc (z Watry)",
+    "frame": [
+      126,
+      122
+    ],
+    "frames": 15,
+    "columns": 8,
+    "fps": 16,
+    "anchor": [
+      63,
+      88
+    ]
+  },
+  "chief_roar": {
+    "effect": "3cadf253-af69-452c-8967-ee45d9925e60",
+    "name": "Wódz Goblinów - okrzyk (ryk Biesa z Watry, przebarwiony na pomarańcz Hordy)",
+    "frame": [
+      144,
+      84
+    ],
+    "frames": 10,
+    "columns": 5,
+    "fps": 16,
+    "anchor": [
+      73,
+      42
+    ],
+    "source": "bies_roar",
+    "hue": "#ff8a2a",
+    "boost": 1.7
+  },
+  "cleaver_spin": {
+    "effect": "eb884ce1-5229-48ac-90a4-b02701be958c",
+    "name": "Wódz Goblinów - smuga wirującego tasaka (pętla)",
+    "frame": [
+      40,
+      40
+    ],
+    "frames": 8,
+    "columns": 3,
+    "fps": 16,
+    "anchor": [
+      20,
+      20
+    ]
+  },
+  "cleaver_impact": {
+    "effect": "e589a10a-ef8f-4a94-bbfe-aba98e2f854d",
+    "name": "Wódz Goblinów - tasak wbity w ziemię (iskry, kurz, odłamki)",
+    "frame": [
+      45,
+      31
+    ],
+    "frames": 9,
+    "columns": 3,
+    "fps": 16,
+    "anchor": [
+      23,
+      17
+    ]
   }
 }

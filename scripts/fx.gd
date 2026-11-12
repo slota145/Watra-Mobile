@@ -4,15 +4,16 @@ class_name Fx
 
 
 ## Odtwarza arkusz raz w punkcie `at` (współrzędne świata) i usuwa efekt. `anchor` - punkt zaczepienia w klatce
-## (z pixellab_src/vfx/ids.json). Zwraca węzeł efektu (np. do obrócenia).
+## (z pixellab_src/vfx/ids.json), `size` - skala efektu. Zwraca węzeł efektu (np. do obrócenia).
 static func once(parent: Node, texture: Texture2D, frames: int, fps: float, at: Vector2, anchor: Vector2,
-		z := 20) -> Sprite2D:
+		z := 20, size := 1.0) -> Sprite2D:
 	var fx := Sprite2D.new()
 	fx.texture = texture
 	fx.hframes = frames
 	fx.centered = false
 	fx.offset = -anchor
 	fx.z_index = z
+	fx.scale = Vector2.ONE * size
 	parent.add_child(fx)
 	fx.global_position = at
 	var tween := fx.create_tween()

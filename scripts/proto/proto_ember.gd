@@ -19,6 +19,12 @@ const BIG := 5
 
 var hero: ProtoHero
 var value := 1
+## Z jakiej odległości iskra sama leci do postaci (skrzynia bossa daje dużą - wszystko leci od razu).
+var magnet := MAGNET
+## Jak daleko odskakuje od miejsca wypadnięcia (piksele).
+var spread := 10.0
+## Przez tyle sekund po wypadnięciu iskra leży (żeby było widać wysyp ze skrzyni).
+var delay := 0.0
 
 var _sprite: Sprite2D
 var _glow: Sprite2D
@@ -45,7 +51,7 @@ func _ready() -> void:
 	_sprite.frame_coords = Vector2i(0, 1 if big else 0)
 	add_child(_sprite)
 	# wyskok z ciała potwora: łuk w bok i w dół na ziemię
-	var land := position + Vector2(randf_range(-10, 10), randf_range(-3, 5))
+	var land := position + Vector2(randf_range(-spread, spread), randf_range(-spread * 0.3, spread * 0.5))
 	_sprite.position.y = -10.0
 	var tween := create_tween().set_parallel()
 	tween.tween_property(self, "position", land, 0.35).set_ease(Tween.EASE_OUT)
@@ -56,11 +62,12 @@ func _process(delta: float) -> void:
 	_time += delta
 	_sprite.frame_coords.x = int(_time * FPS) % FRAMES
 	_glow.modulate.a = 0.4 + 0.15 * sin(_time * 6.0)
+	delay -= delta
 	if _taken or hero == null or hero.dead:
 		return
 	var target := hero.global_position + Vector2(0, -6)
 	var to := target - global_position
-	if not _pulled and to.length() <= MAGNET:
+	if not _pulled and delay <= 0.0 and to.length() <= magnet:
 		_pulled = true
 		_speed = 40.0
 	if _pulled:
