@@ -20,8 +20,8 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   z Watry, CC0), wibracja 60 ms.
 - `ProtoWeapon`: `damage_mult` (obrażenia x poziom), `auto_attack` - cios rusza sam, gdy cel jest w zasięgu `REACH`
   (`_nearest`); bez celu miecz czeka.
-- Arena: wiersz „Poz. N” + niebieski pasek doświadczenia 5 px (`_make_xp_row`) - w lochu pod paskiem zdrowia, w bazie
-  obok „Menu”; poziom lochu w pasku to teraz „Loch N”. Doświadczenie z goblinów (`kills_changed`) i Wodza
+- Arena: wiersz „Poz. N” + złoty pasek doświadczenia 5 px (prośba autora, wcześniej niebieski) (`_make_xp_row`) - w lochu pod paskiem zdrowia, w bazie
+  obok „Menu”; w lochu między zdrowiem a doświadczeniem pusty pasek 6 px na później (`spare_bar`, prośba autora); poziom lochu w pasku to teraz „Loch N”. Doświadczenie z goblinów (`kills_changed`) i Wodza
   (`_on_chief_died`), `run_xp` do podsumowania. `RunResult.add_xp_lines`: „Doświadczenie: +N”, „Awans na poziom N!”.
 - `ActionButton.locked_level`: kłódka i „Poz. N” na zablokowanym miejscu, `unlock_flash` przy odblokowaniu
   (`ActionCluster.set_hero_level`).

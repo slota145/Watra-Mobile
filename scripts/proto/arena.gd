@@ -13,7 +13,7 @@ extends Node2D
 ## Ucieczka (okno pauzy) i śmierć gaszą żar z wyprawy. W bazie Watra pokazuje zgromadzony żar, a jej dotknięcie
 ## otwiera wybór poziomu lochu (LevelPicker).
 ## Rozwój postaci (HeroLevels, stan w Game): gobliny i Wódz dają doświadczenie (śmierć go nie zabiera), cienki pasek
-## doświadczenia z poziomem postaci u góry (w lochu pod paskiem zdrowia, w bazie obok „Menu”), awans leczy i pokazuje
+## doświadczenia (złoty) z poziomem postaci u góry (w lochu pod paskiem zdrowia i pustym paskiem na później, w bazie obok „Menu”), awans leczy i pokazuje
 ## efekt na postaci, odblokowuje miejsca na umiejętności. Okno wyniku podsumowuje zdobyte doświadczenie.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
@@ -53,6 +53,8 @@ var level_label: Label
 ## Poziom postaci i pasek doświadczenia.
 var hero_level_label: Label
 var xp_bar: ProgressBar
+## Pusty pasek między zdrowiem a doświadczeniem - miejsce na później (np. mana albo energia, do ustalenia).
+var spare_bar: ProgressBar
 ## Doświadczenie zdobyte w tej wyprawie i poziom postaci na jej starcie (do podsumowania).
 var run_xp := 0
 var _start_hero_level := 1
@@ -269,6 +271,19 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	health_bar.add_theme_stylebox_override("background", bg)
 	health_bar.add_theme_stylebox_override("fill", fill)
 	box.add_child(health_bar)
+	spare_bar = ProgressBar.new()
+	spare_bar.value = 0
+	spare_bar.show_percentage = false
+	spare_bar.custom_minimum_size = Vector2(0, 6)
+	spare_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var spare_bg := StyleBoxFlat.new()
+	spare_bg.bg_color = Color(0.05, 0.05, 0.06, 0.8)
+	spare_bg.border_color = Color(0.35, 0.33, 0.3)
+	spare_bg.set_border_width_all(1)
+	spare_bg.set_corner_radius_all(2)
+	spare_bar.add_theme_stylebox_override("background", spare_bg)
+	spare_bar.add_theme_stylebox_override("fill", StyleBoxEmpty.new())
+	box.add_child(spare_bar)
 	_make_xp_row(box)
 	ember_bar = ProgressBar.new()
 	ember_bar.max_value = DungeonLevels.SUMMON_COST
@@ -322,7 +337,7 @@ func _make_xp_row(parent: Container) -> void:
 	parent.add_child(row)
 	hero_level_label = _hud_label(tr("Poz. %d") % Game.hero_level)
 	hero_level_label.add_theme_font_size_override("font_size", 11)
-	hero_level_label.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
+	hero_level_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45))
 	row.add_child(hero_level_label)
 	xp_bar = ProgressBar.new()
 	xp_bar.show_percentage = false
@@ -331,12 +346,12 @@ func _make_xp_row(parent: Container) -> void:
 	xp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	xp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.03, 0.05, 0.1, 0.85)
-	bg.border_color = Color(0.3, 0.45, 0.6)
+	bg.bg_color = Color(0.08, 0.06, 0.02, 0.85)
+	bg.border_color = Color(0.55, 0.45, 0.2)
 	bg.set_border_width_all(1)
 	bg.set_corner_radius_all(2)
 	var fill := StyleBoxFlat.new()
-	fill.bg_color = Color(0.45, 0.75, 1.0)
+	fill.bg_color = Color(1.0, 0.8, 0.25)
 	fill.set_corner_radius_all(2)
 	xp_bar.add_theme_stylebox_override("background", bg)
 	xp_bar.add_theme_stylebox_override("fill", fill)
