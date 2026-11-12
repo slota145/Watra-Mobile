@@ -2,7 +2,8 @@ extends SceneTree
 ## Test rozwoju postaci: krzywa doświadczenia i statystyki z poziomu (HeroLevels), dodawanie doświadczenia z awansami
 ## i zapis (Game), doświadczenie za gobliny i Wodza w lochu, awans leczy i zwiększa zdrowie, pasek doświadczenia,
 ## miejsca na umiejętności zablokowane do swoich poziomów, podsumowanie w oknie wyniku, auto atak (sam tnie kukłę
-## w zasięgu, bez celu - nie) oraz skróty deweloperskie w oknie pauzy (+1 poziom, +100 żaru, postać od nowa).
+## w zasięgu, bez celu - nie), liczby na paskach zdrowia, many i doświadczenia, okno „Postać” ze statystykami
+## oraz skróty deweloperskie w oknie pauzy (+1 poziom, +100 żaru, postać od nowa).
 
 var _failed := 0
 
@@ -74,7 +75,7 @@ func _test_dungeon(game: Node) -> void:
 	_check(arena.xp_bar != null and arena.hero_level_label.text == "Poz. 1" and arena.level_label.text == "Loch 1", "pasek doświadczenia i poziom postaci, loch osobno")
 	var hp_bar: Rect2 = arena.health_bar.get_global_rect()
 	var xp_rect: Rect2 = arena.xp_bar.get_global_rect()
-	_check(xp_rect.position.y > hp_bar.position.y and xp_rect.size.y <= 6.0, "cienki pasek pod paskiem zdrowia")
+	_check(xp_rect.position.y > hp_bar.position.y and xp_rect.size.y <= 12.0, "cienki pasek pod paskiem zdrowia")
 	_check(arena.actions.skills[0].locked_level == 3 and arena.actions.skills[3].locked_level == 15, "miejsca na umiejętności zablokowane")
 	var g := horde.spawn_at(hero.position + Vector2(200, 0))
 	await process_frame
@@ -82,11 +83,16 @@ func _test_dungeon(game: Node) -> void:
 	await process_frame
 	_check(game.hero_xp == HeroLevels.goblin_xp(1) and arena.run_xp == game.hero_xp, "goblin daje doświadczenie (%d)" % game.hero_xp)
 	_check(is_equal_approx(arena.xp_bar.value, game.hero_xp), "pasek doświadczenia rośnie")
+	_check(arena.xp_text.text == "%d / %d" % [game.hero_xp, game.xp_needed()], "liczby na pasku doświadczenia (%s)" % arena.xp_text.text)
+	_check(arena.health_text.text == "100 / 100" and arena.mana_text.text == "50 / 50", "liczby na paskach zdrowia i many")
+	var mana_rect: Rect2 = arena.mana_bar.get_global_rect()
+	_check(mana_rect.position.y > hp_bar.position.y and mana_rect.position.y < xp_rect.position.y, "pasek many między zdrowiem a doświadczeniem")
 	# awans w lochu: pełne zdrowie, więcej zdrowia, efekt
 	hero.take_damage(40)
 	game.add_xp(game.xp_needed() - game.hero_xp)
 	await process_frame
 	_check(game.hero_level == 2 and hero.max_hp == HeroLevels.max_hp(2) and hero.hp == hero.max_hp, "awans leczy do pełna i dodaje zdrowia (%d)" % hero.max_hp)
+	_check(arena.health_text.text == "110 / 110" and arena.mana_text.text == "55 / 55", "po awansie więcej zdrowia i many na paskach")
 	_check(arena.health_bar.max_value == hero.max_hp and arena.hero_level_label.text == "Poz. 2", "pasek zdrowia i numer poziomu po awansie")
 	_check(is_equal_approx(arena.weapon.damage_mult, HeroLevels.damage_mult(2)), "miecz bije mocniej")
 	var effect := false
@@ -99,6 +105,17 @@ func _test_dungeon(game: Node) -> void:
 	_check(menu.level_button.get_global_rect().size.y >= 44.0, "skróty deweloperskie w pauzie, 44 px")
 	menu.level_button.pressed.emit()
 	_check(game.hero_level == 3 and arena.actions.skills[0].locked_level == 0 and arena.actions.skills[1].locked_level == 6, "+1 poziom - odblokowane miejsce")
+	# okno „Postać”: statystyki obecnego poziomu i przyrost z następnym
+	menu.stats_button.pressed.emit()
+	var stats: HeroStats = menu.stats
+	_check(stats.visible and stats._title.text == "Poziom 3", "okno „Postać” z poziomem")
+	_check(stats.rows["hp"][0].text == str(HeroLevels.max_hp(3)) and stats.rows["hp"][1].text == "+10", "zdrowie i przyrost z awansem")
+	var dmg := HeroStats.damage_range(3)
+	_check(stats.rows["damage"][0].text == "%d-%d" % [dmg.x, dmg.y] and dmg.x > ProtoWeapon.DAMAGE.x, "obrażenia miecza rosną (%s)" % stats.rows["damage"][0].text)
+	_check(stats.rows["slots"][0].text == "1 / 4" and stats.rows["slots"][1].text == "na poz. 6", "miejsca na umiejętności i następne")
+	_check(stats.back_button.get_global_rect().size.y >= 44.0, "przycisk „Wróć” 44 px")
+	menu.back()
+	_check(not stats.visible and menu.visible, "„wstecz” zamyka okno „Postać”, pauza zostaje")
 	var before: int = horde.embers
 	menu.embers_button.pressed.emit()
 	_check(horde.embers == before + PauseMenu.DEV_EMBERS, "+100 żaru do paska wyprawy")

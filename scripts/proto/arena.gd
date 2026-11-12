@@ -13,7 +13,7 @@ extends Node2D
 ## Ucieczka (okno pauzy) i śmierć gaszą żar z wyprawy. W bazie Watra pokazuje zgromadzony żar, a jej dotknięcie
 ## otwiera wybór poziomu lochu (LevelPicker).
 ## Rozwój postaci (HeroLevels, stan w Game): gobliny i Wódz dają doświadczenie (śmierć go nie zabiera), cienki pasek
-## doświadczenia (złoty) z poziomem postaci u góry (w lochu pod paskiem zdrowia i pustym paskiem na później, w bazie obok „Menu”), awans leczy i pokazuje
+## doświadczenia (złoty) z poziomem postaci u góry (w lochu pod paskami zdrowia i many, liczby na paskach, w bazie obok „Menu”), awans leczy i pokazuje
 ## efekt na postaci, odblokowuje miejsca na umiejętności. Okno wyniku podsumowuje zdobyte doświadczenie.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
@@ -53,8 +53,12 @@ var level_label: Label
 ## Poziom postaci i pasek doświadczenia.
 var hero_level_label: Label
 var xp_bar: ProgressBar
-## Pusty pasek między zdrowiem a doświadczeniem - miejsce na później (np. mana albo energia, do ustalenia).
-var spare_bar: ProgressBar
+## Pasek many między zdrowiem a doświadczeniem (na razie pełny - manę zużyją umiejętności).
+var mana_bar: ProgressBar
+## Liczby na paskach („obecne / największe”).
+var health_text: Label
+var mana_text: Label
+var xp_text: Label
 ## Doświadczenie zdobyte w tej wyprawie i poziom postaci na jej starcie (do podsumowania).
 var run_xp := 0
 var _start_hero_level := 1
@@ -123,7 +127,12 @@ func _ready() -> void:
 		add_child(horde_spawner)
 		hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
 			health_bar.max_value = max_hp
-			health_bar.value = hp)
+			health_bar.value = hp
+			health_text.text = "%d / %d" % [hp, max_hp])
+		hero.mana_changed.connect(func(mana: int, max_mana: int) -> void:
+			mana_bar.max_value = max_mana
+			mana_bar.value = mana
+			mana_text.text = "%d / %d" % [mana, max_mana])
 		hero.set_level(Game.hero_level)
 		hero.died.connect(_on_hero_died)
 		hero.death_avoided.connect(func(n: int) -> void: deaths_label.text = tr("Zgony: %d") % n)
@@ -271,19 +280,25 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	health_bar.add_theme_stylebox_override("background", bg)
 	health_bar.add_theme_stylebox_override("fill", fill)
 	box.add_child(health_bar)
-	spare_bar = ProgressBar.new()
-	spare_bar.value = 0
-	spare_bar.show_percentage = false
-	spare_bar.custom_minimum_size = Vector2(0, 6)
-	spare_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var spare_bg := StyleBoxFlat.new()
-	spare_bg.bg_color = Color(0.05, 0.05, 0.06, 0.8)
-	spare_bg.border_color = Color(0.35, 0.33, 0.3)
-	spare_bg.set_border_width_all(1)
-	spare_bg.set_corner_radius_all(2)
-	spare_bar.add_theme_stylebox_override("background", spare_bg)
-	spare_bar.add_theme_stylebox_override("fill", StyleBoxEmpty.new())
-	box.add_child(spare_bar)
+	health_text = _bar_text(health_bar, 10)
+	mana_bar = ProgressBar.new()
+	mana_bar.max_value = HeroLevels.MANA_BASE
+	mana_bar.value = HeroLevels.MANA_BASE
+	mana_bar.show_percentage = false
+	mana_bar.custom_minimum_size = Vector2(0, 11)
+	mana_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mana_bg := StyleBoxFlat.new()
+	mana_bg.bg_color = Color(0.03, 0.05, 0.12, 0.85)
+	mana_bg.border_color = Color(0.3, 0.45, 0.7)
+	mana_bg.set_border_width_all(1)
+	mana_bg.set_corner_radius_all(2)
+	var mana_fill := StyleBoxFlat.new()
+	mana_fill.bg_color = Color(0.2, 0.42, 0.9)
+	mana_fill.set_corner_radius_all(2)
+	mana_bar.add_theme_stylebox_override("background", mana_bg)
+	mana_bar.add_theme_stylebox_override("fill", mana_fill)
+	box.add_child(mana_bar)
+	mana_text = _bar_text(mana_bar, 9)
 	_make_xp_row(box)
 	ember_bar = ProgressBar.new()
 	ember_bar.max_value = DungeonLevels.SUMMON_COST
@@ -341,7 +356,7 @@ func _make_xp_row(parent: Container) -> void:
 	row.add_child(hero_level_label)
 	xp_bar = ProgressBar.new()
 	xp_bar.show_percentage = false
-	xp_bar.custom_minimum_size = Vector2(0, 5)
+	xp_bar.custom_minimum_size = Vector2(0, 11)
 	xp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	xp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	xp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -356,6 +371,23 @@ func _make_xp_row(parent: Container) -> void:
 	xp_bar.add_theme_stylebox_override("background", bg)
 	xp_bar.add_theme_stylebox_override("fill", fill)
 	row.add_child(xp_bar)
+	xp_text = _bar_text(xp_bar, 9)
+
+
+## Liczba na środku paska (z obwódką, czytelna na każdym kolorze wypełnienia).
+func _bar_text(bar: ProgressBar, font_size: int) -> Label:
+	var l := Label.new()
+	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", font_size)
+	l.add_theme_color_override("font_color", Color(1, 0.97, 0.9))
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	l.add_theme_constant_override("outline_size", 3)
+	l.add_theme_constant_override("line_spacing", 0)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.add_child(l)
+	return l
 
 
 ## Doświadczenie dla postaci (pokonany potwór) - liczone też do podsumowania wyprawy.
@@ -371,6 +403,7 @@ func _on_xp(lvl: int, xp: int, need: int) -> void:
 	hero_level_label.text = tr("Poz. %d") % lvl
 	xp_bar.max_value = maxi(need, 1)
 	xp_bar.value = xp if need > 0 else xp_bar.max_value
+	xp_text.text = "%d / %d" % [xp, need] if need > 0 else tr("Najwyższy poziom")
 	actions.set_hero_level(lvl, true)
 	weapon.damage_mult = HeroLevels.damage_mult(lvl)
 	if hero.max_hp != HeroLevels.max_hp(lvl) and not hero.dead:
@@ -615,7 +648,7 @@ func _notification(what: int) -> void:
 			picker.close()
 		return
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and pause_menu.visible:
-		pause_menu.close()
+		pause_menu.back()
 	elif what in [NOTIFICATION_WM_GO_BACK_REQUEST, NOTIFICATION_APPLICATION_PAUSED] and not pause_menu.visible \
 			and not (result and result.visible):
 		_open_menu()

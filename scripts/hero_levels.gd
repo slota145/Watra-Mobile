@@ -1,7 +1,7 @@
 class_name HeroLevels
 ## Poziomy doświadczenia postaci (ustalone z autorem 12.11.2026): doświadczenie za każdego pokonanego goblina
 ## i dużo za Wodza Goblinów (więcej na wyższych poziomach lochu). Śmierć nie zabiera zdobytego doświadczenia.
-## Awans daje statystyki (więcej zdrowia i obrażeń, pełne leczenie), a na wybranych poziomach odblokowuje kolejne
+## Awans daje statystyki (więcej zdrowia, many i obrażeń, pełne leczenie), a na wybranych poziomach odblokowuje kolejne
 ## miejsce na umiejętność (`SKILL_SLOT_LEVELS`). Stan postaci (poziom, doświadczenie) trzyma i zapisuje `Game`.
 
 ## Najwyższy poziom postaci (na razie - do rozbudowy razem z lochami).
@@ -12,6 +12,9 @@ const XP_POW := 1.4
 ## Zdrowie na 1. poziomie i przyrost na każdy kolejny.
 const HP_BASE := 100
 const HP_STEP := 10
+## Mana na 1. poziomie i przyrost na każdy kolejny (prośba autora: pasek many; zużyją ją umiejętności).
+const MANA_BASE := 50
+const MANA_STEP := 5
 ## Mnożnik obrażeń broni rośnie o tyle na poziom (+6%).
 const DAMAGE_STEP := 0.06
 ## Na tych poziomach odblokowują się kolejne miejsca na umiejętności (w kolejności od boku ekranu do góry).
@@ -29,6 +32,11 @@ static func xp_to_next(level: int) -> int:
 ## Największe zdrowie postaci na danym poziomie.
 static func max_hp(level: int) -> int:
 	return HP_BASE + HP_STEP * (maxi(level, 1) - 1)
+
+
+## Największa mana postaci na danym poziomie.
+static func max_mana(level: int) -> int:
+	return MANA_BASE + MANA_STEP * (maxi(level, 1) - 1)
 
 
 ## Mnożnik obrażeń broni na danym poziomie (1. poziom - 1.0).

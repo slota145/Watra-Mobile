@@ -39,8 +39,7 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   postać od nowa) zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: tempo awansów (krzywa w
   `HeroLevels`), czy Wódz robi się łatwiejszy. Dalej: przedmioty (łup ze skrzyni Wodza, skrót „przedmioty” w pauzie),
   umiejętności w odblokowanych miejscach, kamienie.
-  Pusty pasek między zdrowiem a doświadczeniem (`Arena.spare_bar`) czeka na decyzję, co pokaże (np. mana albo energia
-  umiejętności).
+  Pasek many i okno „Postać” ze statystykami zrobione - manę zużyją umiejętności.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

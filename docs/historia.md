@@ -2,6 +2,20 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - liczby na paskach, mana i okno „Postać”
+
+- Prośba autora: liczby na paskach zdrowia, many i doświadczenia oraz ekran statystyk („ciężko stwierdzić, co daje poziom”).
+- Pusty pasek między zdrowiem a doświadczeniem to teraz **pasek many** (niebieski, 11 px, `Arena.mana_bar`). Mana:
+  `HeroLevels.max_mana` = 50 + 5 na poziom, `ProtoHero.max_mana`/`mana`, sygnał `mana_changed`; na razie nic jej nie
+  zużywa (czeka na umiejętności), awans napełnia ją do pełna.
+- Liczby „obecne / największe” na środku pasków (`Arena._bar_text`, `health_text`, `mana_text`, `xp_text`; na
+  najwyższym poziomie „Najwyższy poziom”). Pasek doświadczenia pogrubiony do 11 px.
+- `scripts/ui/hero_stats.gd` (`HeroStats`): okno „Postać” pod przyciskiem w oknie pauzy (w lochu i w bazie) - poziom,
+  doświadczenie, zdrowie, mana, obrażenia miecza (`damage_range`), szybkość ataku (`attacks_per_second` = 1 / (rozbieg
+  + cięcie + powrót + odpoczynek) = 1,08/s), szybkość ruchu, miejsca na umiejętności; w zielonej kolumnie przyrost
+  z następnym poziomem (+10 zdrowia, +5 many, +6% obrażeń, „na poz. 6”). „Wstecz” Androida najpierw zamyka to okno
+  (`PauseMenu.back`).
+
 ## 12.11.2026 - rozwój postaci: poziomy doświadczenia, auto atak, skróty deweloperskie
 
 - Ustalenia z autorem: zaczynamy od poziomów (przedmioty w kolejnej sesji); doświadczenie za każdego goblina i dużo

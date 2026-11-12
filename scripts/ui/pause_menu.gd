@@ -4,7 +4,7 @@ extends Control
 ## atak i umiejętności po lewej stronie, gest postaci przy ataku, auto atak (tylko podstawowy cios), tryb deweloperski
 ## (nieśmiertelność i skróty: +1 poziom postaci, +100 żaru, postać od nowa) - oraz powrót do gry i wyjście do menu głównego.
 ## Skróty poziomu zmieniają postać w Game (arena słucha jego sygnałów), żar - sygnał `dev_embers` (arena dodaje go
-## do paska wyprawy w lochu albo do Watry w bazie). Okno przewija się, gdy nie mieści się na niskim ekranie.
+## do paska wyprawy w lochu albo do Watry w bazie). Przycisk „Postać” otwiera okno statystyk (HeroStats) nad pauzą. Okno przewija się, gdy nie mieści się na niskim ekranie.
 ## Ustawienia zapisuje Game (user://settings.cfg). Działa także przy zatrzymanej grze (PROCESS_MODE_ALWAYS).
 ## Autoload Game bierzemy z drzewa (_game), bo w skrypcie z class_name nazwa autoloadu nie zawsze jest znana
 ## (np. w testach uruchamianych przez -s).
@@ -29,6 +29,9 @@ var _reset_armed := false
 var _scroll: ScrollContainer
 var _column: VBoxContainer
 var resume_button: Button
+var stats_button: Button
+## Okno „Postać” ze statystykami.
+var stats: HeroStats
 var quit_button: Button
 ## Scena bazy - gdy ustawiona (w lochu), okno ma też przycisk „Powrót do bazy”.
 var base_scene := ""
@@ -102,6 +105,9 @@ func _ready() -> void:
 	embers_button.pressed.connect(func() -> void: dev_embers.emit(DEV_EMBERS))
 	reset_button = _dev_button(dev_row, tr("Od nowa"))
 	reset_button.pressed.connect(_on_reset)
+	stats_button = _button(column, tr("Postać"))
+	stats_button.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
+	stats_button.pressed.connect(func() -> void: stats.open())
 	resume_button = _button(column, tr("Wróć do gry"))
 	resume_button.pressed.connect(close)
 	if base_scene != "":
@@ -121,6 +127,9 @@ func _ready() -> void:
 	quit_button.pressed.connect(func() -> void:
 		leaving.emit()
 		_game.change_scene(_game.MENU_SCENE))
+	stats = HeroStats.new()
+	stats.visible = false
+	add_child(stats)
 
 
 ## Pokazuje okno i zatrzymuje grę. `at_stake` - żar, który zgaśnie przy ucieczce z lochu.
@@ -137,7 +146,16 @@ func open(at_stake := 0) -> void:
 	get_tree().paused = true
 
 
+## Przycisk „wstecz”: zamyka okno „Postać”, a gdy go nie ma - pauzę.
+func back() -> void:
+	if stats.visible:
+		stats.close()
+	else:
+		close()
+
+
 func close() -> void:
+	stats.visible = false
 	visible = false
 	get_tree().paused = false
 	closed.emit()
