@@ -1,7 +1,7 @@
 extends Node2D
 ## Prototyp walki: polana z trawy, Wojciech z lewitującym mieczem i kukły treningowe z Watry.
-## Chodzenie: przeciągnij palcem w dowolnym miejscu ekranu (pływająca gałka). Miecz atakuje sam, gdy kukła
-## jest blisko. Przycisk „Gest” włącza i wyłącza gest ręką postaci przy ataku (porównanie obu wersji).
+## Chodzenie: przeciągnij palcem w dowolnym miejscu ekranu (pływająca gałka). Atak: trzymaj przycisk miecza
+## w prawym dolnym rogu (wokół niego 4 puste miejsca na umiejętności). Przycisk „Gest” włącza i wyłącza gest ręką postaci przy ataku (porównanie obu wersji).
 ## Wszystko budowane w kodzie, żeby prototyp łatwo było zmieniać i wyrzucić.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
@@ -11,6 +11,7 @@ var hero: ProtoHero
 var weapon: ProtoWeapon
 var joystick: Joystick
 var gesture_button: Button
+var actions: ActionCluster
 
 
 func _ready() -> void:
@@ -45,6 +46,8 @@ func _ready() -> void:
 		world.add_child(dummy)
 		weapon.targets.append(dummy)
 	world.add_child(weapon)
+	actions.attack.pressed.connect(func() -> void: weapon.attack_held = true)
+	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
 
 
 ## Trawa z Watry powtarzana na całej polanie, z ciemniejszym brzegiem.
@@ -95,20 +98,25 @@ func _make_hud() -> void:
 	gesture_button.toggled.connect(_on_gesture_toggled)
 	top.add_child(gesture_button)
 	_on_gesture_toggled(true)
-	var fill := Control.new()
-	fill.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(fill)
 	var hint := Label.new()
-	hint.text = tr("Przeciągnij palcem, żeby iść. Miecz atakuje sam.")
+	hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.add_theme_font_size_override("font_size", 12)
+	hint.add_theme_font_size_override("font_size", 11)
 	hint.add_theme_color_override("font_color", Color(1, 0.95, 0.85, 0.8))
 	hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	hint.add_theme_constant_override("outline_size", 3)
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(hint)
+	var fill := Control.new()
+	fill.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(fill)
+	# prawy dolny róg: atak i miejsca na umiejętności
+	actions = ActionCluster.new()
+	actions.size_flags_horizontal = Control.SIZE_SHRINK_END
+	column.add_child(actions)
+	joystick.blocked = [top, actions]
 
 
 func _on_gesture_toggled(on: bool) -> void:

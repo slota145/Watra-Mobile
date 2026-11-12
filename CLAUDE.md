@@ -25,7 +25,8 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   a nie stać na sztywnych współrzędnych.
 - **Dotyk:** każde sterowanie działa palcem. Pola do stukania min. 44x44 px gry, ważne przyciski w dolnej połowie
   ekranu (kciuk jednej ręki). Bez najeżdżania kursorem, skrótów klawiszowych jako jedynej drogi i małych okien.
-  Na komputerze mysz udaje dotyk (`emulate_touch_from_mouse`), więc testuj zdarzeniami dotyku (`InputEventScreenTouch`).
+  Na komputerze mysz udaje dotyk (`emulate_touch_from_mouse`). Sterowanie w grze czyta dotyk z numerem palca
+  (`InputEventScreenTouch`/`ScreenDrag`), żeby działało kilkoma palcami naraz; w testach `root.push_input(e, true)`.
 - **Bezpieczny obszar:** interfejs w `SafeArea` (`scripts/ui/safe_area.gd`) - wcięcia aparatu i paski gestów.
 - **Wydajność:** renderer zgodności (`gl_compatibility`), słabsze telefony - unikaj ciężkich shaderów, setek świateł
   i tysięcy węzłów naraz; przy zmianach walki sprawdzaj liczbę klatek.
@@ -44,7 +45,8 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
 - `scripts/`: logika. `game.gd` (autoload `Game`: wersja, zmiana sceny, ścieżka zapisu), `main_menu.gd` (ekran startowy),
   `lang.gd` (tłumaczenia), `scripts/ui/` (interfejs, `safe_area.gd`).
 - `scripts/proto/`: prototyp walki (`arena.gd` - polana i interfejs, `proto_hero.gd` - postać, `proto_weapon.gd` -
-  lewitujący miecz, `proto_dummy.gd` - kukła); `scripts/ui/joystick.gd` - pływająca gałka.
+  lewitujący miecz, `proto_dummy.gd` - kukła); `scripts/ui/joystick.gd` - pływająca gałka (dotyk wieloma palcami),
+  `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w prawym dolnym rogu.
 - `scenes/`: sceny (`main_menu.tscn` startowa, `prototype.tscn` - prototyp walki pod „Graj”).
 - `assets/`: grafiki, muzyka, dźwięki; `assets/watra/` - pliki skopiowane z Watry; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
 - `art/specs/`: specyfikacje postaci SpriteKiln (YAML; Godot je pomija). Wyniki renderów w `out/` są generowane i nie idą do gita.

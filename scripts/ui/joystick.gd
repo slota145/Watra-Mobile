@@ -2,8 +2,9 @@ class_name Joystick
 extends Control
 ## Pływająca gałka do chodzenia: dotknij ekranu w dowolnym wolnym miejscu i przeciągnij palcem.
 ## Gałka pojawia się tam, gdzie zaczął się dotyk, a gdy palec odjedzie za daleko, podąża za nim.
-## Leży pod przyciskami interfejsu (pierwsze dziecko warstwy), więc dotyk przycisku jej nie uruchamia.
-## Działa na zdarzeniach myszy: na telefonie Godot zamienia dotyk na mysz, na komputerze to zwykła mysz.
+## Obsługuje dotyk wieloma palcami (InputEventScreenTouch / ScreenDrag z numerem palca), więc można iść
+## i jednocześnie trzymać przycisk ataku. Na komputerze mysz udaje dotyk (emulate_touch_from_mouse).
+## Dotyk zaczęty na zablokowanym obszarze (przyciski - `blocked`) nie uruchamia gałki.
 
 ## Promień ruchu gałki w pikselach gry.
 const RADIUS := 28.0
@@ -12,41 +13,49 @@ const DEAD_ZONE := 0.15
 
 ## Kierunek i siła (długość 0..1). Odczytuje go postać w każdej klatce.
 var vector := Vector2.ZERO
-var _active := false
+## Kontrolki, na których dotyk nie uruchamia gałki (przyciski interfejsu).
+var blocked: Array[Control] = []
+var _finger := -1
 var _base := Vector2.ZERO
 var _knob := Vector2.ZERO
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
-func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
-			_active = true
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		if event.pressed and _finger == -1 and not _is_blocked(event.position):
+			_finger = event.index
 			_base = event.position
 			_knob = _base
-		else:
-			_active = false
 			vector = Vector2.ZERO
-		queue_redraw()
-		accept_event()
-	elif event is InputEventMouseMotion and _active:
+			queue_redraw()
+		elif not event.pressed and event.index == _finger:
+			_finger = -1
+			vector = Vector2.ZERO
+			queue_redraw()
+	elif event is InputEventScreenDrag and event.index == _finger:
 		_knob = event.position
 		var offset := _knob - _base
 		if offset.length() > RADIUS:
 			_base = _knob - offset.limit_length(RADIUS)  # gałka jedzie za palcem
 			offset = _knob - _base
-		var strength := offset.length() / RADIUS
-		vector = Vector2.ZERO if strength < DEAD_ZONE else offset / RADIUS
+		vector = Vector2.ZERO if offset.length() / RADIUS < DEAD_ZONE else offset / RADIUS
 		queue_redraw()
-		accept_event()
+
+
+func _is_blocked(pos: Vector2) -> bool:
+	for c in blocked:
+		if c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
+			return true
+	return false
 
 
 func _draw() -> void:
-	if not _active:
+	if _finger == -1:
 		return
 	draw_circle(_base, RADIUS, Color(1, 1, 1, 0.12))
 	draw_arc(_base, RADIUS, 0.0, TAU, 32, Color(1, 0.85, 0.5, 0.45), 1.5)

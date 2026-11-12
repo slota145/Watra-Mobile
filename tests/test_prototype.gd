@@ -1,6 +1,6 @@
 extends SceneTree
-## Test prototypu walki: palec (zdarzenia myszy jak na telefonie) prowadzi postać do kukły, miecz sam atakuje,
-## kukła liczy trafienia; przycisk gestu przełącza gest postaci. Z oknem (tools/screenshot.sh) zapisuje
+## Test prototypu walki: palce (zdarzenia dotyku z numerem palca) prowadzą postać i trzymają przycisk ataku,
+## miecz tnie kukłę, kukła liczy trafienia; 4 puste miejsca na umiejętności; przycisk gestu przełącza gest postaci. Z oknem (tools/screenshot.sh) zapisuje
 ## klatki zamachu do podanego folderu: SCRIPT=tests/test_prototype.gd tools/screenshot.sh <folder>
 
 var _failed := 0
@@ -22,21 +22,19 @@ func _check(ok: bool, what: String) -> void:
 	print(("OK   " if ok else "FAIL ") + what)
 
 
-func _mouse_button(pos: Vector2, pressed: bool) -> void:
-	var e := InputEventMouseButton.new()
-	e.button_index = MOUSE_BUTTON_LEFT
+func _touch(pos: Vector2, pressed: bool, finger := 0) -> void:
+	var e := InputEventScreenTouch.new()
+	e.index = finger
 	e.pressed = pressed
 	e.position = pos
-	e.global_position = pos
-	root.push_input(e)
+	root.push_input(e, true)  # pozycje w pikselach gry, nie okna
 
 
-func _mouse_move(pos: Vector2) -> void:
-	var e := InputEventMouseMotion.new()
+func _drag(pos: Vector2, finger := 0) -> void:
+	var e := InputEventScreenDrag.new()
+	e.index = finger
 	e.position = pos
-	e.global_position = pos
-	e.button_mask = MOUSE_BUTTON_MASK_LEFT
-	root.push_input(e)
+	root.push_input(e, true)  # pozycje w pikselach gry, nie okna
 
 
 func _wait(seconds: float) -> void:
@@ -52,23 +50,47 @@ func _run() -> void:
 	var start := hero.position
 	# palec w dolnej części ekranu, przeciągnięcie w górę - postać idzie w stronę kukły (0, -70)
 	var view := root.get_visible_rect().size
-	var finger := Vector2(view.x / 2, view.y * 0.75)
-	_mouse_button(finger, true)
+	var finger := Vector2(view.x * 0.3, view.y * 0.6)
+	_touch(finger, true)
 	await process_frame
-	_mouse_move(finger + Vector2(0, -40))
+	_drag(finger + Vector2(0, -40))
 	await _wait(0.5)
 	_check(hero.position.y < start.y - 20.0, "postać idzie za palcem (%.0f -> %.0f)" % [start.y, hero.position.y])
 	_check(hero.facing.y < -0.5, "postać patrzy w stronę ruchu")
-	_mouse_button(finger + Vector2(0, -40), false)
+	# drugi palec na przycisku ataku w trakcie marszu: gałka dalej działa, atak trzymany
+	var attack: ActionButton = arena.actions.attack
+	var attack_at := attack.get_global_rect().get_center()
+	_check(attack_at.x > view.x * 0.6 and attack_at.y > view.y * 0.7, "przycisk ataku w prawym dolnym rogu")
+	_touch(attack_at, true, 1)
 	await process_frame
-	_check(arena.joystick.vector == Vector2.ZERO, "puszczenie palca zatrzymuje postać")
-	# podejście aż kukła będzie w zasięgu miecza
+	_check(attack.held and arena.weapon.attack_held, "przycisk ataku trzymany drugim palcem")
+	_check(arena.joystick.vector.y < -0.5, "gałka działa razem z atakiem")
+	_touch(attack_at, false, 1)
+	_touch(finger + Vector2(0, -40), false)
+	await process_frame
+	_check(arena.joystick.vector == Vector2.ZERO and not arena.weapon.attack_held, "puszczenie palców zatrzymuje postać i atak")
+	_touch(attack_at, true)
+	await process_frame
+	_check(arena.joystick._finger == -1, "dotyk przycisku nie uruchamia gałki")
+	_touch(attack_at, false)
+	var skills: Array = arena.actions.skills
+	var inside := skills.size() == 4
+	for sk in skills:
+		var r: Rect2 = sk.get_global_rect()
+		inside = inside and Rect2(Vector2.ZERO, view).encloses(r) and r.size.x >= 44.0
+		inside = inside and r.intersection(attack.get_global_rect()).get_area() < 1.0
+	_check(inside, "4 miejsca na umiejętności na ekranie, po 44 px, nie nachodzą na atak")
+	# przy kukle: bez przycisku miecz nie tnie, z przyciskiem tnie
+	await _wait(0.5)  # wcześniejsze stuknięcia kończą swoje cięcia
 	hero.position = dummy.position + Vector2(-14, 22)
+	await _wait(1.0)
+	_check(dummy._count == 0, "bez przycisku miecz nie atakuje")
+	_touch(attack_at, true, 1)
 	if _shots != "":
-		await _wait(0.8)  # kamera i miecz dojeżdżają po przestawieniu postaci
 		await _capture_swing(arena)
 	await _wait(2.0)
-	_check(dummy._count >= 2, "miecz sam atakuje kukłę (trafień: %d)" % dummy._count)
+	_touch(attack_at, false, 1)
+	_check(dummy._count >= 2, "trzymany atak tnie kukłę (trafień: %d)" % dummy._count)
 	_check(dummy._total >= 28, "kukła liczy obrażenia (suma %d)" % dummy._total)
 	var far: ProtoDummy = arena.weapon.targets[2]
 	_check(far._count == 0, "daleka kukła nietknięta")

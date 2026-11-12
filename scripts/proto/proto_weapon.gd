@@ -1,8 +1,8 @@
 class_name ProtoWeapon
 extends Node2D
 ## Lewitujący miecz z prototypu. Poza walką unosi się za ramieniem postaci (lekko się kołysze i dogania ją
-## z opóźnieniem). Gdy kukła jest w zasięgu ostrza, miecz wskakuje na orbitę wokół postaci - rękojeścią do niej,
-## ostrzem na zewnątrz - i tnie po łuku w stronę celu, a nad łukiem gra efekt cięcia ze zwykłego ataku Watry
+## z opóźnieniem). Dopóki gracz trzyma przycisk ataku (`attack_held`), miecz co chwilę wskakuje na orbitę wokół postaci - rękojeścią do niej,
+## ostrzem na zewnątrz - i tnie po łuku w stronę najbliższej kukły w zasięgu (bez kukły - przed siebie), a nad łukiem gra efekt cięcia ze zwykłego ataku Watry
 ## (assets/effects/sword_slash.png z kreatora efektów PixelLab). Kolejne cięcia na przemian z góry i z dołu.
 ## Węzeł stoi na ziemi (sortowanie po Y z postacią i kukłą), a obrazek miecza wisi wyżej (ujemne _sprite.position.y).
 
@@ -18,8 +18,8 @@ const ORBIT_HEIGHT := 12.0
 const HILT_RADIUS := 8.0
 ## Szerokość łuku cięcia (jak żelazny miecz w Watrze: 160 stopni).
 const ARC := deg_to_rad(160.0)
-## Zasięg: kukła bliżej niż tyle (stopy-stopy) dostaje cięcie.
-const REACH := 36.0
+## Zasięg celowania: cięcie idzie w stronę kukły bliższej niż tyle (stopy-stopy).
+const REACH := 48.0
 const COOLDOWN := 0.55
 const WINDUP := 0.12
 ## Czas cięcia (jak attack_duration w Watrze).
@@ -33,6 +33,8 @@ const SLASH_FRAMES := 5
 const SLASH_FX_RADIUS := 29.0
 
 var hero: ProtoHero
+## Czy gracz trzyma przycisk ataku.
+var attack_held := false
 ## Cele do bicia (kukły). Arena dopisuje je przy starcie.
 var targets: Array[ProtoDummy] = []
 
@@ -80,8 +82,8 @@ func _process(delta: float) -> void:
 	match _state:
 		"follow":
 			_follow(delta)
-			if _cooldown <= 0.0:
-				_try_attack()
+			if _cooldown <= 0.0 and attack_held:
+				_attack()
 		"windup":
 			# miecz wskakuje na orbitę, na początek łuku (odrobinę dalej - zamach)
 			var k := ease(clampf(_t / WINDUP, 0.0, 1.0), -2.0)
@@ -126,7 +128,7 @@ func _follow(delta: float) -> void:
 	_sprite.rotation = lerp_angle(_sprite.rotation, rest, k)
 
 
-func _try_attack() -> void:
+func _attack() -> void:
 	var best: ProtoDummy = null
 	var best_d := REACH
 	for t in targets:
@@ -134,16 +136,14 @@ func _try_attack() -> void:
 		if d <= best_d:
 			best = t
 			best_d = d
-	if not best:
-		return
-	_aim = (best.center() - _orbit_center()).angle()
+	_aim = (best.center() - _orbit_center()).angle() if best else hero.facing.angle()
 	_sign = -_sign  # kolejne cięcia na przemian
 	_from_pos = position
 	_from_sprite = _sprite.position
 	_from_rot = _sprite.rotation
 	_hit_done = false
 	_set_state("windup")
-	hero.play_gesture(best.global_position)
+	hero.play_gesture(_orbit_center() + Vector2.from_angle(_aim) * 20.0 + Vector2(0, ORBIT_HEIGHT))
 
 
 ## Kąt ostrza w chwili `k` cięcia (0 - początek łuku, 1 - koniec; poza 0..1 - przed i za łukiem).
