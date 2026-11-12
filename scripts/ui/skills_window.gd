@@ -127,6 +127,7 @@ func _make_row(list: VBoxContainer, i: int) -> void:
 	row.add_child(texts)
 	_label(texts, Skills.name_of(id), 14, GOLD)
 	var info := tr("Bez many i odnowienia") if Skills.mana_of(id) == 0 \
+			else tr("%d many za skok, bez odnowienia") % Skills.mana_of(id) if Skills.cooldown_of(id) == 0.0 \
 			else tr("%d many · odnowienie %d s") % [Skills.mana_of(id), roundi(Skills.cooldown_of(id))]
 	_label(texts, info, 11, BLUE)
 	var desc := _label(texts, Lang.t(Skills.DATA[id].description), 11, TEXT)

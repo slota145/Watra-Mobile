@@ -10,8 +10,8 @@ extends Node2D
 ## Poziom postaci (`set_level`, HeroLevels) ustala największe zdrowie; awans (`level_up`) leczy do pełna
 ## ze złotym błyskiem, napisem „Poziom N!” i dźwiękiem. Przedmioty (`gear` - Items.totals) dokładają zdrowie, manę,
 ## szybkość ruchu, regenerację zdrowia i ochronę (mniej obrażeń od potworów).
-## Mana odnawia się sama (HeroLevels.MANA_REGEN), a wydają ją umiejętności miecza (`spend_mana`). Doskok (`dash`,
-## Mgnienie) przenosi postać po prostej - w trakcie nie dostaje obrażeń i nie słucha gałki.
+## Mana odnawia się sama (HeroLevels.MANA_REGEN), a wydają ją umiejętności miecza (`spend_mana`). Skok Mgnienia
+## (`teleport`) przenosi postać od razu, zostawia gasnący cień w miejscu startu i daje chwilę nietykalności.
 
 signal health_changed(hp: int, max_hp: int)
 signal mana_changed(mana: int, max_mana: int)
@@ -57,11 +57,6 @@ var regen := 0.0
 var protection := 0.0
 var _regen_acc := 0.0
 var _mana_acc := 0.0
-## Doskok: skąd, dokąd, ile już trwa i ile ma trwać (s; 0 - brak doskoku).
-var _dash_from := Vector2.ZERO
-var _dash_to := Vector2.ZERO
-var _dash_t := 0.0
-var _dash_time := 0.0
 ## Ostatnio podane cechy z przedmiotów (awans liczy z nimi nowe zdrowie).
 var gear := {}
 
@@ -104,18 +99,6 @@ func _process(delta: float) -> void:
 			mana_changed.emit(mana, max_mana)
 	else:
 		_mana_acc = 0.0
-	if _dash_time > 0.0:
-		_dash_t += delta
-		var k := clampf(_dash_t / _dash_time, 0.0, 1.0)
-		position = _dash_from.lerp(_dash_to, ease(k, 0.4))
-		velocity = (_dash_to - _dash_from) / _dash_time
-		if k >= 1.0:
-			_dash_time = 0.0
-			position = _push_out(position)
-		_play("walk")
-		_time += delta
-		_update_frame()
-		return
 	var input := joystick.vector if joystick else Vector2.ZERO
 	velocity = input * SPEED * move_mult
 	position = _push_out((position + velocity * delta).clamp(bounds.position, bounds.end))
@@ -133,7 +116,7 @@ func _process(delta: float) -> void:
 
 ## Trafienie przez potwora: czerwony błysk, liczba nad głową, krótka nietykalność; przy zerze - śmierć.
 func take_damage(amount: int) -> void:
-	if dead or _invulnerable > 0.0 or _dash_time > 0.0:
+	if dead or _invulnerable > 0.0:
 		return
 	_invulnerable = INVULNERABLE
 	amount = maxi(1, roundi(amount * (1.0 - protection)))
@@ -171,19 +154,33 @@ func spend_mana(amount: int) -> bool:
 	return true
 
 
-## Doskok o `distance` pikseli w kierunku `dir` w czasie `duration` (w granicach areny). Zwraca punkt docelowy.
-func dash(dir: Vector2, distance: float, duration: float) -> Vector2:
-	_dash_from = position
-	_dash_to = (position + dir.normalized() * distance).clamp(bounds.position, bounds.end)
-	_dash_t = 0.0
-	_dash_time = duration
-	facing = dir.normalized()
-	return _dash_to
-
-
-## Czy postać jest w trakcie doskoku.
-func dashing() -> bool:
-	return _dash_time > 0.0
+## Skok Mgnienia do punktu `to` (świat; w granicach areny, poza przeszkodami): gasnący niebieskawy cień w miejscu
+## startu, postać patrzy w stronę skoku, 0,15 s nietykalności. Zwraca punkt, w którym wylądowała (świat).
+func teleport(to: Vector2) -> Vector2:
+	var parent := get_parent() as Node2D
+	var local := parent.to_local(to) if parent else to
+	local = _push_out(local.clamp(bounds.position, bounds.end))
+	if parent:
+		var ghost := Sprite2D.new()
+		ghost.texture = _sprite.texture
+		ghost.hframes = _sprite.hframes
+		ghost.vframes = _sprite.vframes
+		ghost.frame = _sprite.frame
+		ghost.flip_h = _sprite.flip_h
+		ghost.offset = _sprite.offset
+		ghost.position = position
+		ghost.modulate = Color(0.6, 0.75, 1.0, 0.6)
+		parent.add_child(ghost)
+		var fade := ghost.create_tween()
+		fade.tween_property(ghost, "modulate:a", 0.0, 0.25)
+		fade.tween_callback(ghost.queue_free)
+	var dir := local - position
+	if dir.length() > 0.5:
+		facing = dir.normalized()
+	position = local
+	_invulnerable = maxf(_invulnerable, 0.15)
+	_update_frame()
+	return parent.to_global(local) if parent else local
 
 
 ## Ustawia zdrowie i manę według poziomu postaci i przedmiotów (`gear` - Items.totals; pełne).

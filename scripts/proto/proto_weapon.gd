@@ -10,7 +10,8 @@ extends Node2D
 ## Węzeł stoi na ziemi (sortowanie po Y z postacią i kukłą), a obrazek miecza wisi wyżej (ujemne _sprite.position.y).
 ## Umiejętności (Skills, `cast` z małych przycisków albo `main_skill` pod dużym przyciskiem): Młynek (miecz wiruje
 ## wokół postaci), Rzut mieczem (leci, przebija, wraca), Rozłupanie Ziemi (spada z góry, ogłusza), Mgnienie
-## (doskok postaci z cięciem po drodze). Każda kosztuje manę (ProtoHero.spend_mana) i ma odnowienie (`cooldown_left`).
+## (jak w Watrze: dopóki gracz trzyma przycisk - `flicker_held` - postać przeskakuje na wylot przez najbliższego
+## wroga, tnąc wszystkich po drodze i wokół celu, potem przez kolejnego, za manę za każdy skok). Każda kosztuje manę (ProtoHero.spend_mana) i ma odnowienie (`cooldown_left`).
 ## Umiejętność pod dużym przyciskiem rusza przy trzymaniu albo z auto atakiem; bez many lub w czasie odnowienia
 ## miecz tnie zwykłym ciosem. Umiejętność stuknięta w trakcie innego ruchu miecza czeka w kolejce (`_queued`).
 
@@ -71,16 +72,25 @@ const SLAM_FX := preload("res://assets/effects/ground_slam.png")
 const SLAM_FX_FRAMES := 10
 const SLAM_FX_FPS := 15.0
 const SLAM_FX_ANCHOR := Vector2(26, 35)
-## Mgnienie: długość i czas doskoku, szerokość pasa cięcia wzdłuż drogi.
-const BLINK_DISTANCE := 80.0
-const BLINK_TIME := 0.16
-const BLINK_WIDTH := 18.0
-const BLINK_FX := preload("res://assets/effects/blink.png")
-const BLINK_FX_FRAMES := 8
-const BLINK_FX_FPS := 14.0
-const BLINK_FX_ANCHOR := Vector2(23, 21)
+## Mgnienie (liczby z Watry, zasięg mniejszy - węższy ekran telefonu): zasięg skoku, odstęp między skokami
+## przy trzymaniu, jak daleko za celem ląduje postać, szerokość pasa cięcia wzdłuż drogi i promień cięcia wokół celu.
+const FLICKER_RANGE := 150.0
+const FLICKER_INTERVAL := 0.32
+const FLICKER_OVERSHOOT := 18.0
+const FLICKER_PATH_WIDTH := 12.0
+const FLICKER_HIT_RADIUS := 30.0
+## Efekty Mgnienia z Watry (kreator efektów PixelLab): smuga od miejsca startu (rysowana w prawo, długość w klatce
+## FLICKER_TRAIL_LENGTH) i cięcie na celu ukośnie do drogi skoku.
+const FLICKER_TRAIL := preload("res://assets/effects/flicker_trail.png")
+const FLICKER_TRAIL_ANCHOR := Vector2(8, 10)
+const FLICKER_TRAIL_LENGTH := 64.0
+const FLICKER_SLASH := preload("res://assets/effects/flicker_hit.png")
+const FLICKER_SLASH_ANCHOR := Vector2(43, 16)
+const FLICKER_SLASH_TILT := 0.6
+const FLICKER_FX_FPS := 16.0
 
-## Umiejętności nie dało się użyć (`reason`: "mana" - brak many, "cooldown" - jeszcze się odnawia).
+## Umiejętności nie dało się użyć (`reason`: "mana" - brak many, "cooldown" - jeszcze się odnawia,
+## "target" - Mgnienie bez wroga w zasięgu).
 signal cast_failed(id: String, reason: String)
 ## Użyto umiejętności (zapłacono manę, ruszyło odnowienie).
 signal skill_used(id: String)
@@ -99,6 +109,8 @@ var damage_mult := 1.0
 var damage := DAMAGE
 ## Mnożnik szybkości ataku (rozbieg, cięcie, powrót i odpoczynek trwają tyle razy krócej).
 var speed_mult := 1.0
+## Czy gracz trzyma przycisk Mgnienia (skoki co FLICKER_INTERVAL, dopóki starcza many).
+var flicker_held := false
 ## Umiejętność pod dużym przyciskiem (Skills; zwykły cios - Skills.STRIKE).
 var main_skill := Skills.STRIKE
 ## Cele do bicia (kukły, potwory). Arena dopisuje je przy starcie, potwory dopisują się same w grupie TARGETS.
@@ -128,6 +140,10 @@ var _whirl_fx: Sprite2D
 var _goal := Vector2.ZERO
 var _dir := Vector2.RIGHT
 var _hit_set: Array = []
+## Mgnienie: czas do następnego skoku, jeden skok po samym stuknięciu, poprzedni cel (skacze się przez innego).
+var _flicker_timer := 0.0
+var _flicker_once := false
+var _last_target: ProtoTarget
 
 
 func _ready() -> void:
@@ -169,6 +185,7 @@ func _process(delta: float) -> void:
 		_cd[id] = maxf(_cd[id] - delta, 0.0)
 	if hero.dead and _state != "follow":
 		_end_skill()
+	_process_flicker(delta)
 	match _state:
 		"follow":
 			_follow(delta)
@@ -338,6 +355,13 @@ func cast(id: String) -> bool:
 	if hero.mana < Skills.mana_of(id):
 		cast_failed.emit(id, "mana")
 		return false
+	if id == "blink":
+		if _flicker_target() == null:
+			cast_failed.emit(id, "target")
+			return false
+		_flicker_once = true  # stuknięcie bez trzymania - jeden skok
+		_process_flicker(0.0)
+		return true
 	if _state == "follow" and (id != Skills.STRIKE or _cooldown <= 0.0):
 		_start(id)
 	else:
@@ -382,8 +406,6 @@ func _start(id: String) -> void:
 			_from_rot = _sprite.rotation
 			hero.play_gesture(_goal)
 			_set_state("slam_rise")
-		"blink":
-			_blink()
 	skill_used.emit(id)
 
 
@@ -466,25 +488,72 @@ func _slam_hit() -> void:
 		shake.tween_property(cam, "offset", Vector2.ZERO, 0.03)
 
 
-## Mgnienie: doskok postaci w stronę patrzenia (gałka), cięcie wszystkich w pasie wzdłuż drogi, błysk na początku
-## i końcu; miecz tnie po łuku w kierunku doskoku.
-func _blink() -> void:
-	var start := hero.global_position
-	var dir := hero.facing.normalized() if hero.facing != Vector2.ZERO else Vector2.DOWN
-	var end_local := hero.dash(dir, BLINK_DISTANCE, BLINK_TIME)
-	var end: Vector2 = hero.get_parent().to_global(end_local) if hero.get_parent() else end_local
-	Fx.once(get_parent(), BLINK_FX, BLINK_FX_FRAMES, BLINK_FX_FPS, start + Vector2(0, -12), BLINK_FX_ANCHOR)
-	Fx.once(get_parent(), BLINK_FX, BLINK_FX_FRAMES, BLINK_FX_FPS, end + Vector2(0, -12), BLINK_FX_ANCHOR, -1)  # pod postacią
-	var hit := false
+## Mgnienie przy trzymaniu przycisku (albo jeden skok po stuknięciu): skok co FLICKER_INTERVAL, dopóki starcza many
+## i jest wróg w zasięgu. Nie w czasie Młynka, Rzutu i Rozłupania (miecz jest zajęty) - wtedy czeka.
+func _process_flicker(delta: float) -> void:
+	_flicker_timer -= delta
+	if not (flicker_held or _flicker_once) or _flicker_timer > 0.0 or hero.dead:
+		return
+	if not _state in ["follow", "windup", "swing", "recover"]:
+		return
+	_flicker_once = false
+	if hero.mana < Skills.mana_of("blink"):
+		cast_failed.emit("blink", "mana")
+		_flicker_timer = 0.3
+		return
+	var best := _flicker_target()
+	if best == null:
+		cast_failed.emit("blink", "target")
+		_flicker_timer = 0.3
+		return
+	hero.spend_mana(Skills.mana_of("blink"))
+	_flicker_jump(best)
+	_flicker_timer = FLICKER_INTERVAL / speed_mult
+	skill_used.emit("blink")
+
+
+## Najbliższy wróg w zasięgu Mgnienia; poprzedni cel tylko wtedy, gdy nie ma innego (null - nikogo).
+func _flicker_target() -> ProtoTarget:
+	var best: ProtoTarget = null
+	var best_d := INF
 	for t in _live_targets():
-		var p := Geometry2D.get_closest_point_to_segment(t.global_position, start, end)
-		if p.distance_to(t.global_position) <= BLINK_WIDTH:
-			t.take_damage(_roll(Skills.DATA.blink.power), start)
-			Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, t.center().round(), HIT_FX_ANCHOR)
-			hit = true
-	if hit:
-		Input.vibrate_handheld(20)
-	_aim = dir.angle()
+		var d := hero.global_position.distance_to(t.global_position)
+		if d > FLICKER_RANGE:
+			continue
+		if t == _last_target:
+			d += FLICKER_RANGE
+		if d < best_d:
+			best = t
+			best_d = d
+	return best
+
+
+## Skok na wylot przez `best`: postać ląduje za nim (na przedłużeniu skoku), smuga od miejsca startu, cięcie na celu;
+## rani wszystkich w pasie wzdłuż drogi i wokół celu. Miecz tnie po łuku w stronę skoku.
+func _flicker_jump(best: ProtoTarget) -> void:
+	var from := hero.global_position
+	var through := (best.global_position - from).normalized()
+	if through == Vector2.ZERO:
+		through = hero.facing.normalized()
+	var spot := hero.teleport(best.global_position + through * FLICKER_OVERSHOOT)
+	_last_target = best
+	var travel := spot - from
+	var body := Vector2(0, -ORBIT_HEIGHT)
+	var trail := Fx.once(get_parent(), FLICKER_TRAIL, 7, FLICKER_FX_FPS, from + body, FLICKER_TRAIL_ANCHOR)
+	trail.rotation = travel.angle()
+	trail.scale = Vector2.ONE * maxf(0.5, (travel.length() - 8.0) / FLICKER_TRAIL_LENGTH)
+	var cut := Fx.once(get_parent(), FLICKER_SLASH, 8, FLICKER_FX_FPS, best.center(), FLICKER_SLASH_ANCHOR)
+	cut.rotation = travel.angle() + FLICKER_SLASH_TILT * (1.0 if randf() < 0.5 else -1.0)
+	for t in _live_targets():
+		var c := t.center()
+		var on_path := Geometry2D.get_closest_point_to_segment(c, from + body, spot + body).distance_to(c) \
+				<= FLICKER_PATH_WIDTH + t.center_height * 0.5
+		if on_path or c.distance_to(best.center()) <= FLICKER_HIT_RADIUS:
+			t.take_damage(_roll(Skills.DATA.blink.power), spot)
+	Input.vibrate_handheld(20)
+	if _state != "follow":
+		_slash.visible = false
+	_aim = travel.angle()
 	_sign = -_sign
 	_hit_done = true  # cięcie już zadane wzdłuż drogi
 	_set_state("swing")

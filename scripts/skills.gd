@@ -13,7 +13,7 @@ const MAIN := 0
 
 ## name - nazwa, icon - ikona, mana - koszt, cooldown - odnowienie (s), price - złoto, level - wymagany poziom postaci,
 ## main - czy może stać pod dużym przyciskiem (auto atak), range - z jakiej odległości auto atak jej używa (stopy-stopy),
-## power - obrażenia jako wielokrotność zwykłego cięcia (w Młynku - na jedno trafienie).
+## power - obrażenia jako wielokrotność zwykłego cięcia (w Młynku - na jedno trafienie). Mgnienie: mana za każdy skok.
 const DATA := {
 	"strike": {
 		"name": "Zwykły cios", "icon": preload("res://assets/watra/iron_sword_icon.png"),
@@ -37,8 +37,8 @@ const DATA := {
 	},
 	"blink": {
 		"name": "Mgnienie", "icon": preload("res://assets/watra/skills/flicker.png"),
-		"mana": 15, "cooldown": 5.0, "price": 1500, "level": 15, "main": false, "range": 0.0, "power": 1.2,
-		"description": "Doskok w stronę, w którą idziesz, z cięciem wszystkich po drodze. Ratuje z okrążenia. Nie może stać pod dużym przyciskiem.",
+		"mana": 7, "cooldown": 0.0, "price": 1500, "level": 15, "main": false, "range": 0.0, "power": 1.2,
+		"description": "Przytrzymaj - przeskakujesz na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego, dopóki starcza many. Nie może stać pod dużym przyciskiem.",
 	},
 }
 ## Kolejność w oknie umiejętności.

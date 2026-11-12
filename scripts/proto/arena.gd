@@ -210,6 +210,7 @@ func _ready() -> void:
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
 	for i in actions.skills.size():
 		actions.skills[i].pressed.connect(_on_skill_pressed.bind(i + 1))
+		actions.skills[i].released.connect(func() -> void: weapon.flicker_held = false)
 	_apply_skills()
 	Game.skills_changed.connect(_apply_skills)
 
@@ -497,12 +498,15 @@ func _apply_skills() -> void:
 
 
 ## Stuknięcie małego przycisku: umiejętność z tego miejsca; gdy się odnawia albo brakuje many - drgnięcie przycisku.
+## Mgnienie skacze, dopóki palec trzyma przycisk (puszczenie - `released` wyłącza `flicker_held`).
 func _on_skill_pressed(slot: int) -> void:
 	var id: String = Game.skill_slots[slot]
 	if id == "" or not Game.slot_open(slot) or hero.dead:
 		return
 	if not weapon.cast(id):
 		actions.button(slot).deny()
+	elif id == "blink":
+		weapon.flicker_held = true
 
 
 ## Odnowienie i brak many na przyciskach walki (co klatkę; przycisk przerysowuje się tylko przy zmianie).
@@ -732,7 +736,7 @@ func victory() -> void:
 	phase = "won"
 	horde_spawner.clock = false
 	joystick.release()
-	actions.attack.release()
+	actions.release_all()
 	weapon.attack_held = false
 	var banked := horde_spawner.embers
 	_bank()
@@ -756,7 +760,7 @@ func _on_retry() -> void:
 ## Baza: okno skrzyni (stuknięcie albo podejście).
 func open_stash() -> void:
 	joystick.release()
-	actions.attack.release()
+	actions.release_all()
 	weapon.attack_held = false
 	stash_window.open()
 
@@ -764,14 +768,14 @@ func open_stash() -> void:
 ## Baza: okno umiejętności z kupowaniem (stuknięcie albo podejście do kamienia run).
 func open_skills() -> void:
 	joystick.release()
-	actions.attack.release()
+	actions.release_all()
 	weapon.attack_held = false
 	skills_window.open(true)
 
 
 func open_picker() -> void:
 	joystick.release()
-	actions.attack.release()
+	actions.release_all()
 	picker.open(Game.dungeon_level, Game.unlocked_level())
 
 
@@ -784,7 +788,7 @@ func enter_dungeon(chosen: int) -> void:
 ## Śmierć Wojciecha w lochu: chwila na upadek, potem okno wyniku i pauza.
 func _on_hero_died() -> void:
 	joystick.release()
-	actions.attack.release()
+	actions.release_all()
 	weapon.attack_held = false
 	await get_tree().create_timer(RESULT_DELAY).timeout
 	summon_button.visible = false
@@ -804,7 +808,7 @@ func _bank() -> void:
 
 func _open_menu() -> void:
 	joystick.release()
-	actions.attack.release()
+	actions.release_all()
 	Game.save_if_dirty()
 	pause_menu.open(horde_spawner.embers if horde_spawner and phase != "won" else 0)
 

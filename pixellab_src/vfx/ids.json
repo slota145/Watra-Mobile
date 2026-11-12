@@ -149,18 +149,32 @@
       35
     ]
   },
-  "blink": {
-    "effect": "8b3b1ac8-7e58-46d3-b35c-14d53c33cd50",
-    "name": "Krok przez Mgle (z Watry)",
+  "flicker_trail": {
+    "effect": "f655299b-2754-4093-881d-a5b827bdee3b",
+    "name": "Mgnienie - smuga (wersja B) (z Watry)",
     "frame": [
-      44,
-      39
+      74,
+      19
+    ],
+    "frames": 7,
+    "fps": 16,
+    "anchor": [
+      8,
+      10
+    ]
+  },
+  "flicker_hit": {
+    "effect": "f5d629cb-a186-413b-9df2-089ed571d4b9",
+    "name": "Mgnienie - cięcie trafienia (z Watry)",
+    "frame": [
+      82,
+      30
     ],
     "frames": 8,
-    "fps": 14,
+    "fps": 16,
     "anchor": [
-      23,
-      21
+      43,
+      16
     ]
   }
 }

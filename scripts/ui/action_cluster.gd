@@ -63,6 +63,13 @@ func show_skills(slots: Array) -> void:
 		skills[i].queue_redraw()
 
 
+## Puszcza wszystkie przyciski (pauza, okna, śmierć) - np. trzymane Mgnienie przestaje skakać.
+func release_all() -> void:
+	attack.release()
+	for b in skills:
+		b.release()
+
+
 ## Przycisk miejsca `slot` (0 - atak, 1-4 - małe).
 func button(slot: int) -> ActionButton:
 	return attack if slot == 0 else skills[slot - 1]

@@ -61,10 +61,12 @@ func _run() -> void:
 	await create_timer(0.42).timeout
 	await _shot("5_rozlupanie")
 	await create_timer(0.6).timeout
-	arena.hero.facing = Vector2.UP
+	arena.hero.mana = arena.hero.max_mana
 	weapon.cast("blink")
-	await create_timer(0.1).timeout
+	weapon.flicker_held = true  # trzymany przycisk - skoki przez kolejne gobliny
+	await create_timer(0.38).timeout
 	await _shot("6_mgnienie")
+	weapon.flicker_held = false
 	await create_timer(0.3).timeout
 	arena._open_menu()
 	await create_timer(0.2).timeout

@@ -122,17 +122,36 @@ func _test_combat(game: Node) -> void:
 	await _wait(0.4)
 	_check(goblin.position.distance_to(at) < 3.0, "ogłuszony goblin stoi")
 	goblin.queue_free()
-	# Mgnienie: doskok z cięciem po drodze
+	# Mgnienie jak w Watrze: skok na wylot przez najbliższego wroga, przy trzymaniu kolejne skoki za manę
 	await _wait(0.4)
 	weapon.reset_cooldowns()
 	hero.mana = hero.max_mana
-	hero.position = dummy.position + Vector2(-50, 0)
-	hero.facing = Vector2.RIGHT
+	hero.position = dummy.position + Vector2(-200, 0)
+	await _wait(0.1)
+	_check(not weapon.cast("blink"), "Mgnienie bez wroga w zasięgu się nie uda")
+	hero.position = dummy.position + Vector2(-60, 0)
+	await _wait(0.1)
 	total = dummy._count
-	var start := hero.position
+	mana = hero.mana
 	_check(weapon.cast("blink"), "Mgnienie rusza")
-	await _wait(0.3)
-	_check(absf(hero.position.x - start.x - ProtoWeapon.BLINK_DISTANCE) < 2.0 and dummy._count > total, "doskok o 80 px tnie kukłę po drodze")
+	_check(hero.position.x > dummy.position.x + 10.0 and absf(hero.position.y - dummy.position.y) < 2.0,
+			"postać ląduje za kukłą, na wylot")
+	_check(dummy._count == total + 1 and hero.mana == mana - 7, "skok tnie kukłę i kosztuje 7 many")
+	await _wait(0.5)
+	_check(dummy._count == total + 1, "samo stuknięcie - jeden skok")
+	weapon.flicker_held = true
+	await _wait(1.0)
+	weapon.flicker_held = false
+	var jumps := dummy._count - total - 1
+	_check(jumps >= 2 and jumps <= 4, "trzymanie - skok co 0,32 s, bez innego celu znów przez tę samą kukłę (%d)" % jumps)
+	var after := dummy._count
+	await _wait(0.5)
+	_check(dummy._count == after, "puszczenie przycisku kończy skoki")
+	weapon.flicker_held = true
+	hero.mana = 3
+	await _wait(0.4)
+	weapon.flicker_held = false
+	_check(dummy._count == after and hero.mana >= 3, "bez many nie skacze")
 	# brak many
 	await _wait(0.3)
 	weapon.reset_cooldowns()

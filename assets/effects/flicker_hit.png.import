@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c14tvjb0lt4i"
-path="res://.godot/imported/blink.png-878d9b8640d78d517e7fa2bfa5306eb9.ctex"
+uid="uid://bjbcgjlfxxyfx"
+path="res://.godot/imported/flicker_hit.png-76db9af9cadb8497087578837e94b7ad.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://pixellab_src/vfx/blink.png"
-dest_files=["res://.godot/imported/blink.png-878d9b8640d78d517e7fa2bfa5306eb9.ctex"]
+source_file="res://assets/effects/flicker_hit.png"
+dest_files=["res://.godot/imported/flicker_hit.png-76db9af9cadb8497087578837e94b7ad.ctex"]
 
 [params]
 

@@ -6,7 +6,7 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 
 - Ustalenia z autorem: 4 umiejętności - Młynek, Rzut mieczem, Rozłupanie Ziemi, Mgnienie; kupowane za złoto w bazie
   przy nowym obiekcie (kamień run), stała cena i wymagany poziom (100 zł / poz. 3, 300 / 6, 800 / 10, 1500 / 15);
-  rytm średni (15-25 many, odnowienie 4-8 s, mana +3/s). Pomysł autora: zwykły cios też jest umiejętnością - można
+  rytm średni (15-25 many, odnowienie 4-8 s, mana +3/s). Mgnienie na prośbę autora działa jak w Watrze (niżej). Pomysł autora: zwykły cios też jest umiejętnością - można
   go przestawić, a pod duży przycisk dać inną; ta podlega auto atakowi. Przy braku many albo w czasie odnowienia
   duży przycisk tnie zwykłym ciosem (zgoda autora). Mgnienie nie może stać pod dużym przyciskiem (auto atak wrzucałby
   postać w hordę). Przypisywanie w oknie umiejętności stuknięciem albo przeciąganiem.
@@ -15,13 +15,17 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - `Game`: `skills_owned`, `skill_slots` (w zapisie), `can_buy_skill`, `buy_skill` (wstawia w pierwsze wolne małe
   miejsce), `slot_open`, `assign_skill` (zamiana miejsc; to, co nie może stać pod „Atak”, zostawia go pustym),
   `clear_skill_slot`, `main_skill` (pusty „Atak” = zwykły cios), `dev_skills`, sygnał `skills_changed`; „Od nowa” zeruje.
-- `ProtoHero`: odnawianie many (`HeroLevels.MANA_REGEN` = 3/s), `spend_mana`, `dash` (doskok bez obrażeń i gałki).
+- `ProtoHero`: odnawianie many (`HeroLevels.MANA_REGEN` = 3/s), `spend_mana`, `teleport` (skok Mgnienia: gasnący
+  cień w miejscu startu, 0,15 s nietykalności, lądowanie w granicach areny i poza przeszkodami).
 - `ProtoWeapon`: `cast` (mały przycisk; w trakcie innego ruchu - kolejka), `main_skill`, `can_use`, `cooldown_left`,
   sygnały `cast_failed`, `skill_used`. Młynek: 3 s wiru (2,2 obrotu/s), co 0,3 s 0,6 cięcia w promieniu 48 px,
   efekt `whirl` z Watry. Rzut: lot 130 px (300 px/s) i powrót (340 px/s), 1,5 cięcia raz w każdą stronę. Rozłupanie:
   wzlot nad cel (do 70 px), spadek, fala 46 px (spłaszczona) 2,2 cięcia i ogłuszenie 1,2 s, efekt `ground_slam`
-  z Watry, drżenie kamery. Mgnienie: doskok 80 px w 0,16 s w stronę patrzenia, 1,2 cięcia w pasie 18 px, efekt `blink`
-  z Watry (koniec pod postacią). Efekty: `pixellab_src/vfx/` + `ids.json` (z Watry) -> `python tools/vfx_art.py`.
+  z Watry, drżenie kamery. Mgnienie jak w Watrze: dopóki palec trzyma przycisk (`flicker_held`; samo stuknięcie -
+  jeden skok), co 0,32 s skok na wylot przez najbliższego wroga w zasięgu 150 px (poprzedni cel tylko, gdy nie ma
+  innego), lądowanie 18 px za nim, 1,2 cięcia w pasie wzdłuż drogi i w promieniu 30 px od celu, 7 many za skok,
+  bez odnowienia, bez wroga - drgnięcie przycisku; efekty `flicker_trail` i `flicker_hit` z Watry.
+  `ActionCluster.release_all` puszcza też małe przyciski (pauza, okna, śmierć). Efekty: `pixellab_src/vfx/` + `ids.json` (z Watry) -> `python tools/vfx_art.py`.
 - `ProtoTarget.stun` (domyślnie nic - Wódz i kukły), `ProtoGoblin.stun` (stoi, nie atakuje, szarzeje).
 - Przyciski walki: `ActionCluster.show_skills` (ikony z miejsc), `button(slot)`; `ActionButton.set_state` (ciemny
   wycinek z sekundami odnowienia, niebieska ikona przy braku many), `deny` (drgnięcie). Arena: `_apply_skills`,
