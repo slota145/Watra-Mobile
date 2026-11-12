@@ -7,6 +7,8 @@ extends ProtoTarget
 ##   potem wraca do Wodza jak bumerang (po drodze też rani);
 ## - okrzyk wojenny: pomarańczowe fale wokół Wodza, po chwili wokół niego pojawiają się zwykłe gobliny.
 ## Nie przerywa ataków od trafień (boss), tylko błyska. Siła rośnie z poziomem lochu (`power`).
+## Efekty z Watry (kreator efektów PixelLab, `tools/vfx_art.py`): wejście `boss_appear`, cios `boss_slam`,
+## okrzyk `chief_roar` (ryk Biesa przebarwiony na pomarańcz), śmierć `boss_death`.
 ## Grafika: model SpriteKiln assets/spritekiln/goblin_chief/ (gdy jest), a do tego czasu powiększony goblin.
 
 signal died(chief: ProtoChief)
@@ -45,8 +47,8 @@ const ROAR_COOLDOWN := 9.0
 ## Po ataku Wódz stoi jeszcze tyle sekund (okno na kontrę).
 const RECOVER := 0.6
 ## W którym momencie animacji pada cios (s od startu) - animacja startuje tak, żeby cios zgrał się z końcem
-## ostrzeżenia. Zastępczy goblin: `attack` z ciosem po 0,3 s.
-const ANIM_HIT_AT := {&"slam": 0.3, &"throw": 0.3}
+## ostrzeżenia (`hit` animacji `slam`, `release` animacji `throw`). Zastępczy goblin: `attack` z ciosem po 0,3 s.
+const ANIM_HIT_AT := {&"slam": 0.4, &"throw": 0.3}
 ## Zastępcze animacje, dopóki model Wodza ich nie ma.
 const ANIM_FALLBACK := {&"slam": &"attack", &"throw": &"attack", &"roar": &"idle"}
 const ROAR_SOUND := preload("res://assets/watra/chief_roar.ogg")
@@ -54,6 +56,13 @@ const SLAM_SOUND := preload("res://assets/watra/chief_slam.ogg")
 const LAND_SOUND := preload("res://assets/watra/cleaver_land.ogg")
 const HIT_SOUNDS := ProtoGoblin.HIT_SOUNDS
 const CORPSE_TIME := 1.0
+const FX_APPEAR := preload("res://assets/effects/boss_appear.png")
+const FX_SLAM := preload("res://assets/effects/boss_slam.png")
+const FX_ROAR := preload("res://assets/effects/chief_roar.png")
+const FX_DEATH := preload("res://assets/effects/boss_death.png")
+const FX_IMPACT := preload("res://assets/effects/cleaver_impact.png")
+## Skala efektów wejścia i śmierci (bossowie Watry są więksi niż Wódz na telefonie).
+const FX_SIZE := 0.6
 
 var hero: ProtoHero
 var bounds := Rect2(-300, -300, 600, 600)
@@ -116,8 +125,9 @@ func _enter() -> void:
 	var tween := create_tween().set_parallel()
 	tween.tween_property(_sprite, "position:y", 0.0, 0.35).set_ease(Tween.EASE_IN)
 	tween.tween_property(self, "modulate:a", 1.0, 0.2)
-	tween.chain().tween_callback(func() -> void: _shake(5.0, 0.4))
-	_roar_waves()
+	tween.chain().tween_callback(func() -> void:
+		_shake(5.0, 0.4)
+		Fx.once(get_parent(), FX_APPEAR, 11, 18.0, global_position, Vector2(72, 58), -1, FX_SIZE))
 
 
 func _process(delta: float) -> void:
@@ -186,7 +196,7 @@ func _slam_hit() -> void:
 	_remove_telegraph()
 	_sound(SLAM_SOUND, 2.0, randf_range(0.75, 0.85))
 	_shake(4.0, 0.25)
-	_dust(global_position, SLAM_RADIUS)
+	Fx.once(get_parent(), FX_SLAM, 12, 16.0, global_position, Vector2(37, 25), 20, SLAM_RADIUS / 34.0)
 	_set_state("recover")
 
 
@@ -230,7 +240,7 @@ func _cleaver_landed() -> void:
 	if _cleaver:
 		_cleaver.landed = true
 	_sound(LAND_SOUND, -2.0, randf_range(0.8, 0.95))
-	_dust(_cleaver_to, THROW_RADIUS)
+	Fx.once(get_parent(), FX_IMPACT, 9, 16.0, _cleaver_to, Vector2(23, 17), 20)
 
 
 func _cleaver_back() -> void:
@@ -286,6 +296,7 @@ func _die() -> void:
 	z_index = -1
 	_sound(ROAR_SOUND, -2.0, 0.65)
 	_shake(6.0, 0.5)
+	Fx.once(get_parent(), FX_DEATH, 15, 16.0, global_position, Vector2(63, 88), 20, FX_SIZE)
 	died.emit(self)
 	if &"death" in _anims:
 		_play(&"death", true)
@@ -303,6 +314,8 @@ func _vanish() -> void:
 func _on_anim_finished(anim: StringName) -> void:
 	if anim == &"death":
 		_vanish()
+	elif state == "enter" or (state == "recover" and anim != &"walk"):
+		_play(&"idle")  # ryk przy wejściu jest krótszy niż ENTER_TIME, cios i rzut kończą się przed powrotem do marszu
 
 
 func _set_state(s: String) -> void:
@@ -339,26 +352,9 @@ func _remove_telegraph() -> void:
 	_telegraph = null
 
 
-## Pomarańczowe fale rozchodzące się od Wodza (okrzyk i wejście) - zapowiedź goblinów.
+## Pomarańczowe fale okrzyku rozchodzące się od Wodza - zapowiedź goblinów.
 func _roar_waves() -> void:
-	for i in 3:
-		var ring := ProtoRing.new()
-		ring.color = Color(1.0, 0.6, 0.2, 0.8)
-		ring.max_radius = ROAR_RING + 16.0
-		ring.duration = 0.6
-		ring.delay = i * 0.22
-		ring.position = Vector2(0, -2)
-		add_child(ring)
-
-
-## Kurz po uderzeniu: jasne koło rozchodzące się po ziemi.
-func _dust(at: Vector2, radius: float) -> void:
-	var ring := ProtoRing.new()
-	ring.color = Color(0.85, 0.75, 0.6, 0.9)
-	ring.max_radius = radius + 6.0
-	ring.duration = 0.35
-	ring.global_position = at
-	get_parent().add_child(ring)
+	Fx.once(get_parent(), FX_ROAR, 10, 16.0, global_position, Vector2(73, 42), -1, (ROAR_RING + 16.0) / 64.0)
 
 
 func _shake(strength: float, duration: float) -> void:

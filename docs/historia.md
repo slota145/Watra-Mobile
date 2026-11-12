@@ -24,7 +24,16 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   modelu zastępczy goblin x1,6, czerwonawy (`ANIM_FALLBACK`). Dźwięki z Watry: `chief_roar` (horde_roar), `chief_slam`,
   `cleaver_land` (Kenney CC0).
 - `proto_telegraph.gd` (`ProtoTelegraph`): czerwone koło z Watry (`telegraph.gd`), spłaszczone 0,6. `proto_cleaver.gd` -
-  tasak rysowany w kodzie, `proto_ring.gd` - fale okrzyku i kurz.
+  tasak rysowany w kodzie ze smugą `cleaver_spin`.
+- Model Wodza w SpriteKiln (zatwierdzony przez autora): `art/specs/characters/goblin_chief/goblin_chief.yaml` (extends
+  goblina, kość `big` x1,6, ok. 42 px + rogi, klatka 80; czaszka z rogami, farba wojenna, futrzana narzuta, kły, wielki
+  tasak). Animacje: idle 1200 ms, walk 1000 ms (30 px/s = `ProtoChief.SPEED`), slam 920 ms (`hit` 400), throw 580 ms
+  (`release` 300, kanał `knife_show` chowa tasak po rzucie), roar 1160 ms (`roar` 270), hit 210 ms, death 1490 ms.
+  Eksport: `assets/spritekiln/goblin_chief/`.
+- Efekty (ustalenie autora - z Watry, czego brak - w kreatorze PixelLab): z Watry `boss_appear` (wejście), `boss_slam`
+  (cios), `boss_death` (śmierć), `chief_roar` (ryk Biesa przebarwiony - `vfx_art.py` umie teraz `source`, `hue`, `boost`);
+  nowe w kreatorze: `cleaver_spin` (smuga wirującego tasaka, pętla) i `cleaver_impact` (iskry, kurz, odłamki przy upadku).
+  `Fx.once` ma skalę `size`.
 - `proto_chest.gd` (`ProtoChest`): skrzynia z Watry (`assets/watra/chest.png`) spada 1,4 s po śmierci Wodza, otwiera się
   z bliska (22 px) albo stuknięciem, sypie iskry (duże po 5), które po 0,5 s same lecą do postaci (`ProtoEmber.magnet`,
   `spread`, `delay`). Po 2,2 s `victory()`: `_bank` (cały żar z wyprawy), `Game.beat_level`, `RunResult.show_victory`

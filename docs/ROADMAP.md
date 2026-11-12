@@ -32,8 +32,8 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 ## Pomysły autora (do zrobienia)
 
 - **Boss w lochu (12.11.2026):** zrobione (szczegóły w `docs/historia.md`); do oceny na telefonie: czas zapełniania
-  paska (100 żaru), trudność Wodza, czytelność ostrzeżeń. Do zrobienia: animacje Wodza (cios w ziemię, okrzyk, rzut)
-  po zatwierdzeniu modelu; skrzynia da łup, gdy dojdą przedmioty.
+  paska (100 żaru), trudność Wodza, czytelność ostrzeżeń. Model, animacje i efekty
+  Wodza gotowe; skrzynia da łup, gdy dojdą przedmioty.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

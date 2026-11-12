@@ -4,9 +4,12 @@ Dane efektów: pixellab_src/vfx/ids.json, np.
   "ciecie_miecza": {"effect": "<id z My effects>", "name": "Cięcie miecza", "frame": [64, 48],
                     "frames": 8, "fps": 16, "anchor": [32, 24]}
 ("columns" tylko gdy arkusz jest siatką - pixelart_workbench składa najwyżej 1024 px na bok).
+Przebarwiony efekt z innego źródła: "source": "<nazwa pliku źródła>", "hue": "#ff8a2a" - każdy piksel dostaje odcień
+podanego koloru, a "boost": 1.5 mnoży nasycenie i jasność (blady fioletowy ryk Biesa -> żywy pomarańczowy okrzyk Wodza).
 Źródło: pixellab_src/vfx/<nazwa>.png - wynik `pixelart_workbench join <image id> --as sheet --columns <klatki>`
 zapisany bez zmian (pasek podpisu u góry ucina ten skrypt, ciemne tło (31, 37, 44) zamienia na przezroczyste).
 Wynik: assets/effects/<nazwa>.png - zawsze jeden rząd klatek. Uruchom: python tools/vfx_art.py"""
+import colorsys
 import json
 import os
 
@@ -28,13 +31,28 @@ def clear(sheet):
     return sheet
 
 
+def recolor(sheet, colour, boost=1.0):
+    """Zmienia odcień każdego piksela na odcień `colour` (#rrggbb); `boost` mnoży nasycenie i jasność."""
+    target = colorsys.rgb_to_hsv(*(int(colour[i:i + 2], 16) / 255 for i in (1, 3, 5)))[0]
+    px = sheet.load()
+    for y in range(sheet.height):
+        for x in range(sheet.width):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                continue
+            _h, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+            nr, ng, nb = colorsys.hsv_to_rgb(target, min(1.0, s * boost), min(1.0, v * boost))
+            px[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), a)
+    return sheet
+
+
 def main():
     out = os.path.join(ROOT, "assets", "effects")
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(SRC, "ids.json"), encoding="utf-8") as f:
         effects = json.load(f)
     for name, info in effects.items():
-        sheet = Image.open(os.path.join(SRC, name + ".png")).convert("RGBA")
+        sheet = Image.open(os.path.join(SRC, info.get("source", name) + ".png")).convert("RGBA")
         w, h = info["frame"]
         columns = info.get("columns", info["frames"])
         rows = -(-info["frames"] // columns)
@@ -46,6 +64,8 @@ def main():
                 x, y = (i % columns) * w, (i // columns) * h
                 row.alpha_composite(sheet.crop((x, y, x + w, y + h)), (i * w, 0))
             sheet = row
+        if "hue" in info:
+            sheet = recolor(sheet, info["hue"], info.get("boost", 1.0))
         assert sheet.size == (w * info["frames"], h), (name, sheet.size)
         sheet.save(os.path.join(out, name + ".png"))
         print(name, sheet.size)
