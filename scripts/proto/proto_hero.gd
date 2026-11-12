@@ -11,6 +11,7 @@ extends Node2D
 ## ze złotym błyskiem, napisem „Poziom N!” i dźwiękiem.
 
 signal health_changed(hp: int, max_hp: int)
+signal mana_changed(mana: int, max_mana: int)
 signal died
 ## Nieśmiertelność uratowała postać od śmierci (`count` - ile razy w tym lochu).
 signal death_avoided(count: int)
@@ -36,6 +37,9 @@ var gesture := true
 var facing := Vector2.DOWN
 var velocity := Vector2.ZERO
 var max_hp := MAX_HP
+## Mana (na razie nic jej nie zużywa - czeka na umiejętności).
+var max_mana := HeroLevels.MANA_BASE
+var mana := HeroLevels.MANA_BASE
 var hp := MAX_HP
 var dead := false
 ## Tryb deweloperski: zamiast śmierci zdrowie wraca do pełna.
@@ -113,11 +117,14 @@ func take_damage(amount: int) -> void:
 		died.emit()
 
 
-## Ustawia zdrowie według poziomu postaci (pełne zdrowie).
+## Ustawia zdrowie i manę według poziomu postaci (pełne).
 func set_level(level: int) -> void:
 	max_hp = HeroLevels.max_hp(level)
 	hp = max_hp
 	health_changed.emit(hp, max_hp)
+	max_mana = HeroLevels.max_mana(level)
+	mana = max_mana
+	mana_changed.emit(mana, max_mana)
 
 
 ## Awans: nowe zdrowie (pełne), złoty błysk, słup światła, napis „Poziom N!” nad głową i dźwięk. Gra się nie zatrzymuje.

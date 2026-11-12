@@ -1,8 +1,8 @@
 extends SceneTree
 ## Zrzuty rozwoju postaci do oceny wyglądu: loch z paskiem doświadczenia i chwilą awansu, okno pauzy
-## (auto atak, skróty deweloperskie), okno wyniku z doświadczeniem i baza z poziomem postaci.
+## (auto atak, skróty deweloperskie), okno „Postać”, okno wyniku z doświadczeniem i baza z poziomem postaci.
 ## Użycie: SCRIPT=tools/level_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
-## Pliki: <prefiks>_1_awans.png, _2_pauza.png, _3_wynik.png, _4_baza.png
+## Pliki: <prefiks>_1_awans.png, _2_pauza.png, _2b_postac.png, _3_wynik.png, _4_baza.png
 
 var _prefix := "/tmp/poziom"
 
@@ -33,6 +33,9 @@ func _run() -> void:
 	await _shot("1_awans")
 	arena._open_menu()
 	await _shot("2_pauza")
+	arena.pause_menu.stats.open()
+	await _shot("2b_postac")
+	arena.pause_menu.stats.close()
 	arena.pause_menu.close()
 	arena.run_xp = 143
 	arena._start_hero_level = 2
