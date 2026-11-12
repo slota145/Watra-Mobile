@@ -56,6 +56,12 @@ func _test_data() -> void:
 	var low := Items.roll(1, "armor", "common")
 	var high := Items.roll(10, "armor", "common")
 	_check(high.base.hp > low.base.hp, "zbroja z wyższego lochu daje więcej zdrowia (%d > %d)" % [high.base.hp, low.base.hp])
+	var mid := 0.0
+	var deep := 0.0
+	for k in 40:
+		mid += Items.roll_affix("damage_pct", 17)
+		deep += Items.roll_affix("damage_pct", 30)
+	_check(deep > mid and Items.roll(30, "ring").base.damage_pct > Items.roll(17, "ring").base.damage_pct, "procenty rosną dalej po lochu 17")
 	var w := Items.roll(1, "weapon", "common")
 	_check(w.base.damage[0] > 0 and w.base.damage[1] > w.base.damage[0], "broń ma obrażenia cięcia (%d-%d)" % w.base.damage)
 	var t := Items.totals({"helmet": {"slot": "helmet", "base": {"hp": 10}, "affixes": [{"stat": "protection_pct", "value": 40.0}]},

@@ -2,6 +2,13 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - przedmioty: procenty rosną płynnie z lochem
+
+- Decyzja autora (wariant A): premie procentowe i stała cecha butów i pierścienia rosły skokami co stopień
+  (co 4 lochy) i stawały od lochu 17. Teraz rosną z każdym poziomem lochu (`Items.AFFIXES[...].per_level`):
+  obrażenia +0,6, szybkość ataku +0,4, ruch +0,2, ochrona +0,2, doświadczenie +0,4 na poziom; buty i pierścień
+  +0,2 (`BASE_PCT_PER_LEVEL`). Liczby stałe bez zmian (x `DungeonLevels.power`), sufity sumy (`CAPS`) zostają.
+
 ## 12.11.2026 - przedmioty (rozwój postaci, część 2)
 
 - Ustalenia z autorem: 6 miejsc (broń, hełm, zbroja, buty, pierścień, amulet), łup ze skrzyni Wodza i rzadko

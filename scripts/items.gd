@@ -66,20 +66,21 @@ const STAT_FORMATS := {
 	"xp_pct": "+%d%% doświadczenia",
 }
 ## Losowe premie: [najmniej, najwięcej] na 1. poziomie lochu; `scales` - rośnie z siłą lochu (DungeonLevels.power),
-## inaczej rośnie o `per_tier` na każdy stopień przedmiotu.
+## inaczej (procenty) rośnie płynnie o `per_level` z każdym poziomem lochu (decyzja autora 12.11.2026 - wcześniej
+## skokami co stopień, przez co od lochu 17 procenty stawały).
 const AFFIXES := {
 	"hp": {"min": 6.0, "max": 14.0, "scales": true},
 	"mana": {"min": 5.0, "max": 12.0, "scales": true},
-	"damage_pct": {"min": 4.0, "max": 9.0, "per_tier": 3.0},
-	"attack_speed_pct": {"min": 3.0, "max": 7.0, "per_tier": 2.0},
-	"move_pct": {"min": 3.0, "max": 6.0, "per_tier": 1.0},
+	"damage_pct": {"min": 4.0, "max": 9.0, "per_level": 0.6},
+	"attack_speed_pct": {"min": 3.0, "max": 7.0, "per_level": 0.4},
+	"move_pct": {"min": 3.0, "max": 6.0, "per_level": 0.2},
 	"regen": {"min": 0.4, "max": 1.2, "scales": true},
-	"protection_pct": {"min": 2.0, "max": 5.0, "per_tier": 1.0},
-	"xp_pct": {"min": 4.0, "max": 10.0, "per_tier": 2.0},
+	"protection_pct": {"min": 2.0, "max": 5.0, "per_level": 0.2},
+	"xp_pct": {"min": 4.0, "max": 10.0, "per_level": 0.4},
 }
 ## Sufity sumy z całego ekwipunku (żeby postać nie stała się nieśmiertelna ani nie fruwała po lochu).
 const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0}
-## Stała cecha każdego miejsca na 1. poziomie lochu (rośnie z siłą lochu albo ze stopniem).
+## Stała cecha każdego miejsca na 1. poziomie lochu (liczby rosną z siłą lochu, procenty o BASE_PCT_PER_LEVEL).
 ## Broń: obrażenia cięcia (od-do) zamiast zwykłego miecza postaci.
 const BASE := {
 	"weapon": {"damage": Vector2(15.0, 21.0)},
@@ -89,6 +90,8 @@ const BASE := {
 	"ring": {"damage_pct": 4.0},
 	"amulet": {"mana": 10.0},
 }
+## Stała cecha butów i pierścienia (procenty) rośnie o tyle z każdym poziomem lochu.
+const BASE_PCT_PER_LEVEL := 0.2
 ## Cena sprzedaży: tyle złota za zwykły przedmiot z 1. poziomu lochu, mnożnik rzadkości.
 const SELL_BASE := 5.0
 const SELL_RARITY := {"common": 1.0, "magic": 2.0, "rare": 4.0}
@@ -114,7 +117,7 @@ static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS
 			var m := (1.0 + 0.12 * (maxi(level, 1) - 1)) * randf_range(0.92, 1.08)
 			base[stat] = [roundi(v.x * m), roundi(v.y * m)]
 		elif stat in ["move_pct", "damage_pct"]:
-			base[stat] = roundi(v + tier)
+			base[stat] = roundi(v + BASE_PCT_PER_LEVEL * (maxi(level, 1) - 1))
 		else:
 			base[stat] = roundi(v * p)
 	var affixes: Array = []
@@ -134,7 +137,7 @@ static func roll_affix(stat: String, level: int) -> float:
 	if a.get("scales", false):
 		v *= DungeonLevels.power(level)
 	else:
-		v += a.get("per_tier", 0.0) * tier_for(level)
+		v += a.get("per_level", 0.0) * (maxi(level, 1) - 1)
 	return snappedf(v, 0.1) if stat == "regen" else float(roundi(v))
 
 
@@ -259,6 +262,7 @@ static func normalize(data) -> Dictionary:
 	if raw_affixes is Array:
 		for a in raw_affixes:
 			if a is Dictionary and STAT_FORMATS.has(a.get("stat", "")):
-				affixes.append({"stat": a.stat, "value": float(a.get("value", 0))})
+				var v := float(a.get("value", 0))
+				affixes.append({"stat": a.stat, "value": snappedf(v, 0.1) if a.stat == "regen" else v})
 	return {"slot": data.slot, "tier": clampi(int(data.get("tier", 0)), 0, 4), "level": maxi(int(data.get("level", 1)), 1),
 			"rarity": data.rarity, "base": base, "affixes": affixes}
