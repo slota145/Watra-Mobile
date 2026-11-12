@@ -14,8 +14,8 @@ const SCALE := 0.5
 const BLADE := 26.0
 ## Środek orbity: tyle pikseli nad stopami postaci.
 const ORBIT_HEIGHT := 12.0
-## Rękojeść krąży w tej odległości od środka postaci, czubek ostrza - o BLADE dalej.
-const HILT_RADIUS := 8.0
+## Rękojeść krąży w tej odległości od środka postaci (miecz lewituje, nie jest w dłoni), czubek ostrza - o BLADE dalej.
+const HILT_RADIUS := 14.0
 ## Szerokość łuku cięcia (jak żelazny miecz w Watrze: 160 stopni).
 const ARC := deg_to_rad(160.0)
 ## Zasięg celowania: cięcie idzie w stronę kukły bliższej niż tyle (stopy-stopy).
@@ -31,6 +31,11 @@ const SLASH_FX := preload("res://assets/effects/sword_slash.png")
 const SLASH_FRAMES := 5
 ## Promień półksiężyca w klatce efektu (px) - efekt skalujemy tak, żeby łuk pokrywał się z czubkiem ostrza.
 const SLASH_FX_RADIUS := 29.0
+## Efekt trafienia z kreatora PixelLab (pixellab_src/vfx/ids.json: sword_hit).
+const HIT_FX := preload("res://assets/effects/sword_hit.png")
+const HIT_FX_FRAMES := 12
+const HIT_FX_FPS := 20.0
+const HIT_FX_ANCHOR := Vector2(23, 17)
 
 var hero: ProtoHero
 ## Czy gracz trzyma przycisk ataku.
@@ -168,13 +173,16 @@ func _place(a: float) -> void:
 	_slash.flip_v = _sign < 0.0
 
 
-## Trafienie: wszystkie kukły w zasięgu ostrza i w łuku cięcia.
+## Trafienie: wszystkie kukły w zasięgu ostrza i w łuku cięcia; na każdej błysk z iskrami.
 func _hit_in_arc() -> void:
 	var hit := false
 	for t in targets:
 		var to := t.center() - _orbit_center()
 		if to.length() <= HILT_RADIUS + BLADE + 6.0 and absf(angle_difference(_aim, to.angle())) <= ARC / 2.0:
 			t.take_damage(randi_range(DAMAGE.x, DAMAGE.y), hero.global_position)
+			# błysk tam, gdzie ostrze przecina kukłę (na linii od postaci, nie dalej niż czubek)
+			var at := _orbit_center() + to.limit_length(HILT_RADIUS + BLADE * 0.8)
+			Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, at.round(), HIT_FX_ANCHOR)
 			hit = true
 	if hit:
 		Input.vibrate_handheld(15)

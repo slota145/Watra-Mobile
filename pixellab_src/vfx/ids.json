@@ -2,9 +2,30 @@
   "sword_slash": {
     "effect": "8d742d10-ae44-454e-ac89-e54ed6f1b5eb",
     "name": "Cięcie mieczem z Watry (5 pierwszych z 6 klatek)",
-    "frame": [64, 64],
+    "frame": [
+      64,
+      64
+    ],
     "frames": 5,
     "fps": 24,
-    "anchor": [32, 32]
+    "anchor": [
+      32,
+      32
+    ]
+  },
+  "sword_hit": {
+    "effect": "c6789000-6891-435e-aa71-9c751f0cfed2",
+    "name": "Trafienie miecza (gwiazdka i stygnące iskry)",
+    "frame": [
+      42,
+      39
+    ],
+    "frames": 12,
+    "fps": 20,
+    "anchor": [
+      23,
+      17
+    ],
+    "columns": 4
   }
 }

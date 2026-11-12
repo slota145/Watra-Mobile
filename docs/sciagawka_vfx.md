@@ -48,9 +48,14 @@ start --effect <id efektu>                    -> dalsza praca nad zapisanym (z s
 Do lewitującej broni: smuga za bronią to `arc` z `profile: "slash"` i `points` wzdłuż toru broni albo `ribbon` na
 ścieżce (`paths`). Mocny cios: `freeze` (zatrzymanie 2-4 klatek) i `impact` (klatka-błysk).
 
-## Z kreatora do gry (obejście blokady pobierania w chmurze)
+## Z kreatora do gry
 
-Kontener nie pobierze plików z `backblaze.pixellab.ai` ani z `api.pixellab.ai`. Dlatego:
+Od 12.11.2026 pobieranie działa: `export` podaje adres `download https://api.pixellab.ai/mcp/pixel-tools/<id>/`
+z plikami `<nazwa>.png` (przezroczysta siatka klatek, kolejność wierszami) i `<nazwa>.json` (klatki, czasy, `pivot`).
+Pobierz PNG curlem do `pixellab_src/vfx/<nazwa>.png`, dopisz wpis w `ids.json` (przy siatce `columns`; zaczepienie =
+`anchor (origin)` z wyniku eksportu) i uruchom `python tools/vfx_art.py`. W grze: `Fx.once` (`scripts/fx.gd`).
+
+Gdyby pobieranie znów było zablokowane (dawne obejście):
 1. `export` zwraca **image id** arkusza.
 2. `mcp__PixelLab__pixelart_workbench` z `["join", "<image id>", "--as", "sheet", "--columns", "<liczba klatek>"]`
    zapisuje PNG w katalogu `tool-results` sesji: skala 1:1, pasek podpisu u góry, tło (31, 37, 44).
