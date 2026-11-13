@@ -2,6 +2,44 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - kamienie unikalne umiejętności, Mgnienie z odnowieniem
+
+- Pomysł autora: po jednym unikalnym kamieniu na umiejętność, zmieniającym jej działanie. Ustalone: rzadko ze skrzyni
+  Wodza (`Gems.CHEST_UNIQUE` 3% -> 8%, od 5. poziomu lochu, losowa umiejętność), zajmuje zwykłe gniazdo, bez stopni,
+  pasuje tylko do swojej umiejętności (`Game.skill_socket_problem` -> "skill"). Identyfikator `unique:<umiejętność>`
+  (`Gems.UNIQUE`, `is_unique`, `unique_of`, `has_unique`); `is_support` obejmuje też unikalne. Ikony - złote wersje ikon
+  kamieni z Watry (`tools/unique_gem_art.py` -> `assets/watra/unique_gems/`). Skrót deweloperski „+kamienie” daje też unikalne.
+- Działanie (`ProtoWeapon`, `_unique`): zwykły cios - Wichrowe Ostrze: każde cięcie wypuszcza falę (efekt
+  `legend_wind_crescent` z Watry), 140 px, 260 px/s, przebija, 60% obrażeń cięcia (`_spawn_wave`, `_process_waves`);
+  Młynek - Wieczny Wir: bez odnowienia, wiruje do drugiego stuknięcia / puszczenia „Atak” (auto atak - do braku wrogów)
+  albo końca many, płaci 1/3 kosztu na sekundę (`WHIRL_DRAIN`), z 10. poziomem wybuch co czas odnowienia
+  (`_cooldown_base`, min. 1 s); Rzut - Rykoszet: odbija się od trafionego w najbliższego nietrafionego (90 px), do 3 razy,
+  widmowe miecze rozchodzą się od miejsca odbicia (`_ricochet`); Rozłupanie - Drżąca Ziemia: wokół każdego trafionego
+  (najwyżej 10) fala 34 px, 50% siły, bez kolejnych fal (`_slam_shocks`, efekt `legend_shockwave` z Watry); Mgnienie -
+  Nieskończona Mgła: bez limitu skoków i odnowienia (jak wcześniej).
+- Zwykłe Mgnienie (decyzja autora): seria do 3 skoków (`Skills.BLINK_JUMPS`), potem 6 s odnowienia; urwana seria
+  (0,6 s bez skoku) też włącza odnowienie (`_end_blink_series`).
+- Okno: Młynek z kamieniem pokazuje „25 many, potem 8 na sekundę, bez odnowienia”. Testy: `test_gems.gd` (dane, łup,
+  gniazda), `test_skills.gd` (`_test_unique`); zrzuty `tools/unique_shots.gd`.
+
+## 13.11.2026 - poziomy umiejętności
+
+- Ustalone z autorem: 10 poziomów, kolejny za złoto przy kamieniu run (przycisk „Ulepsz” w oknie umiejętności, drugie
+  stuknięcie potwierdza), najwyżej połowa poziomu postaci w górę (`Skills.level_cap`: poz. 10 umiejętności od
+  19. poziomu postaci). Cena z poziomu n na n+1: `Skills.UPGRADE_PRICE` x n (zwykły cios 40, Młynek 60, Rzut 90,
+  Rozłupanie 140, Mgnienie 200 zł; razem do 10. poziomu 45 x cena, np. Mgnienie 9000 zł).
+- Każdy poziom: +10% obrażeń (`Skills.level_damage`). Poziomy 3 i 7: -10% many i odnowienia (`level_cost`; zwykły cios -
+  +10% szybkości), 4 i 8: +10% obszaru i zasięgu (`level_area`). Sumują się z kamieniami (Pośpiech, Oszczędność, Szerokość).
+- Nowe działanie na 5. i 10. poziomie (`Skills.PERKS`, `ProtoWeapon._perk`): zwykły cios - co trzeci cios tnie dwa razy
+  pełną siłą / cięcie najbliższego wroga poza łukiem (`STRIKE_CLEAVE_RANGE`); Młynek - 4 s zamiast 3 / wybuch na koniec
+  z odepchnięciem (`ProtoTarget.push_away`, goblin; bossy i kukły stoją); Rzut - na końcu lotu odbicie w najbliższego
+  nietrafionego wroga (`THROW_BOUNCE_RANGE` 90 px) / drugi pełny miecz (pierwszy widmowy miecz); Rozłupanie - ogłuszenie
+  2 s zamiast 1,2 / druga fala po 0,5 s (pełna siła, bez ogłuszenia); Mgnienie - pierwszy skok serii za darmo (seria
+  kończy się po `FLICKER_SERIES_GAP` 0,6 s bez skoku) / po ostatnim skoku wir wokół postaci (80% siły).
+- Stan: `Game.skill_levels` (zapis, `skill_level`, `skill_upgrade_problem`, `upgrade_skill`; postać od nowa zeruje),
+  miecz dostaje go w `Arena._apply_skills`. Okno: „poz. X/10” przy nazwie, mana i odnowienie z premią poziomu, progi 5/10
+  (złote - odblokowane), „Następny poziom: …”. Testy w `test_skills.gd` (`_test_levels`), zrzut w `tools/skill_shots.gd`.
+
 ## 13.11.2026 - postać zawsze na środku ekranu
 
 - Zgłoszenie autora: przy krawędzi mapy kamera stawała, postać zjeżdżała do rogu ekranu i chowała się pod palcem.

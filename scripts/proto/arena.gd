@@ -628,6 +628,7 @@ func _apply_skills() -> void:
 	actions.show_skills(Game.skill_slots)
 	weapon.main_skill = Game.main_skill()
 	weapon.skill_gems = Game.skill_gems
+	weapon.skill_levels = Game.skill_levels
 
 
 ## Stuknięcie małego przycisku: umiejętność z tego miejsca; gdy się odnawia albo brakuje many - drgnięcie przycisku.

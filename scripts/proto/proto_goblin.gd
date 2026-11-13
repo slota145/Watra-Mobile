@@ -157,6 +157,12 @@ func burn_tick(amount: int) -> void:
 		_die()
 
 
+## Odepchnięcie (wybuch Młynka): mocniejszy odrzut niż zwykłe trafienie.
+func push_away(from: Vector2, force: float) -> void:
+	if alive():
+		_push = (global_position - from).normalized() * force
+
+
 ## Ogłuszenie: przerywa zamach, goblin stoi i chwieje się (szarzeje) przez `time` sekund.
 func stun(time: float) -> void:
 	if not alive():

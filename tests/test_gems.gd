@@ -61,10 +61,28 @@ func _test_data() -> void:
 	var grades_ok := true
 	for i in 300:
 		for id in Gems.roll_chest(10):
-			if not Gems.is_special(id):
+			if not Gems.is_special(id) and not Gems.is_unique(id):
 				gems += 1
 				grades_ok = grades_ok and Gems.grade_of(id) == Items.tier_for(10)
 	_check(gems > 200 and grades_ok, "skrzynia Wodza zwykle daje kamień, stopień z poziomu lochu (%d)" % gems)
+	# kamienie unikalne
+	var ok := true
+	for skill in Skills.ORDER:
+		var u := Gems.unique_of(skill)
+		ok = ok and Gems.is_unique(u) and Gems.is_support(u) and Gems.valid(u) and Gems.icon_of(u) != null \
+				and Gems.unique_skill(u) == skill and Gems.name_of(u) != "" and Gems.short_text(u, skill) != ""
+	_check(ok, "kamienie unikalne: po jednym na umiejętność, z ikoną i opisem")
+	_check(Gems.support_text(Gems.unique_of("whirl"), "throw").contains(Skills.name_of("whirl")),
+			"opis unikalnego w cudzej umiejętności mówi, do czego pasuje")
+	var uniques := 0
+	var low_unique := 0
+	for i in 2000:
+		for id in Gems.roll_chest(10):
+			uniques += 1 if Gems.is_unique(id) else 0
+		for id in Gems.roll_chest(4):
+			low_unique += 1 if Gems.is_unique(id) else 0
+	_check(uniques > 40 and uniques < 300 and low_unique == 0,
+			"unikalne rzadko ze skrzyni (%d na 2000 na poz. 10), poniżej 5. poziomu lochu nie" % uniques)
 
 
 func _test_skill_sockets(game: Node) -> void:
@@ -96,6 +114,15 @@ func _test_skill_sockets(game: Node) -> void:
 			and game.gem_count("ember:1") == 1 and game.gem_count(Gems.KEY) == 1, "gniazda i sakwa w zapisie")
 	_check(game.unsocket_skill("strike", 0) and game.gem_count("ember:3") == 1 and game.skill_sockets("strike")[0] == "",
 			"wyjęcie za darmo - kamień wraca do sakwy")
+	game.add_gem(Gems.unique_of("whirl"))
+	game.add_gem(Gems.unique_of("strike"))
+	_check(game.skill_socket_problem("strike", 2, Gems.unique_of("whirl")) == "skill", "unikalny Młynka nie pasuje do zwykłego ciosu")
+	_check(game.socket_skill("strike", 2, Gems.unique_of("strike")) and Gems.has_unique(game.skill_sockets("strike"), "strike"),
+			"unikalny zwykłego ciosu w zwykłym gnieździe")
+	_check(game.gem_list("support").front() == Gems.unique_of("whirl"), "unikalne na początku listy kamieni umiejętności")
+	game.load_game()
+	_check(game.skill_sockets("strike")[2] == Gems.unique_of("strike") and game.gem_count(Gems.unique_of("whirl")) == 1,
+			"unikalny w zapisie")
 	game.reset_hero()
 	_check(game.gems.is_empty() and game.skill_gems.is_empty() and game.skill_open.is_empty(), "postać od nowa zeruje kamienie")
 
