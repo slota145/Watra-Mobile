@@ -52,6 +52,16 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   i ich odczuwalność (czy +10% potworów widać), ceny kowala i kupca (przedmioty u kupca tanie wobec klucza),
   czy pasek skrótów nie zasłania widoku na 16:9.
 
+- **Czytelniejsze okno „Postać” i kamienie (ustalone 13.11.2026, do zrobienia):** autorowi okno „Postać” wydaje się
+  zbyt rozległe, a wkładanie kamieni nieintuicyjne (nie widać, co kamień zrobi w danej umiejętności). Ustalone:
+  1) zakładki w „Postać” na dole ekranu: Ekwipunek / Statystyki / Sakwa - ekwipunek z torbą bez przewijania, pod postacią
+  3 najważniejsze liczby, pełna lista w „Statystyki”, sprzedaż hurtem w nagłówku torby;
+  2) stuknięcie gniazda (umiejętności albo przedmiotu) pokazuje tylko pasujące kamienie, przy każdym opis działania
+  w tym miejscu (`Gems.support_text(id, skill)`, `Gems.jewel_text(id, slot)`), niepasujące przygaszone z powodem,
+  przycisk „Włóż”; 3) pod zajętym gniazdem krótki opis działania, kropki stopnia na ikonach kamieni;
+  4) droga „najpierw kamień”: kamień w sakwie -> lista miejsc, gdzie pasuje („Włóż do: …”), z opisem działania.
+  Niewybrane na razie: krótsze porównanie przedmiotów (tylko zmieniające się liczby ze strzałkami).
+
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
 - Watra jako „serce” ekranu startowego: animowany ogień, który przygasa, gdy długo nie grasz, i rozpala się po powrocie.
