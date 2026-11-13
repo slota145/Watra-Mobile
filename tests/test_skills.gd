@@ -152,24 +152,33 @@ func _test_levels(game: Node) -> void:
 	await _wait(2.5)
 	weapon.attack_held = false
 	_check(weapon._strike_count - swings >= 3, "zwykły cios tnie dalej z poziomem (%d)" % (weapon._strike_count - swings))
-	# Mgnienie: pierwszy skok serii za darmo, potem za manę
+	# Mgnienie 10. poziomu: każdy skok za manę, co 5. skok wir; zabicie skokiem zwraca 2x więcej many (5. poziom)
 	await _wait(0.6)
 	weapon.reset_cooldowns()
 	hero.mana = hero.max_mana
 	hero.position = dummy.position + Vector2(-60, 0)
 	await _wait(0.8)
 	var mana := hero.mana
-	var hits := dummy._count
 	_check(weapon.cast("blink"), "Mgnienie 10. poziomu rusza")
-	_check(hero.mana == mana, "5. poziom: pierwszy skok serii nic nie kosztuje")
+	_check(hero.mana == mana - weapon.mana_cost("blink"), "każdy skok kosztuje manę")
 	await _wait(0.1)
 	weapon.flicker_held = true
-	await _wait(0.4)
+	await _wait(2.0)
 	weapon.flicker_held = false
-	_check(hero.mana < mana, "kolejny skok w serii kosztuje manę")
-	var before_spin := _dummy_hits(weapon)
-	await _wait(0.6)
-	_check(_dummy_hits(weapon) > before_spin and dummy._count > hits, "10. poziom: po ostatnim skoku wir rani kukłę obok")
+	_check(weapon._blink_jumps >= Skills.BLINK_SPIN_EVERY and weapon._blink_spins == weapon._blink_jumps / Skills.BLINK_SPIN_EVERY,
+			"10. poziom: wir co 5. skok (%d skoków, %d wirów)" % [weapon._blink_jumps, weapon._blink_spins])
+	var victim := ProtoGoblin.new()
+	victim.hero = hero
+	victim.bounds = Rect2(-400, -600, 800, 1200)
+	victim.position = hero.position + Vector2(50, 0)
+	arena.get_node("World").add_child(victim)
+	await _wait(0.4)
+	victim.hp = 1
+	hero.mana = 30
+	weapon.crit_chance = 0.0
+	weapon._flicker_jump(victim)
+	_check(not victim.alive() and hero.mana == 30 + Skills.BLINK_MANA_ON_KILL * 2,
+			"5. poziom: zabicie skokiem zwraca %d many" % (hero.mana - 30))
 	arena.queue_free()
 	await process_frame
 	game.reset_hero()
@@ -191,7 +200,8 @@ func _test_unique(game: Node) -> void:
 	var weapon: ProtoWeapon = arena.weapon
 	var dummy: ProtoDummy = weapon.targets[0]
 	_check(weapon._unique("whirl") and not weapon._unique("x") and weapon.cooldown_full("whirl") == 0.0
-			and weapon.cooldown_full("blink") == 0.0 and weapon.cooldown_full("throw") > 0.0, "miecz widzi kamienie unikalne")
+			and weapon.mana_cost("blink") == roundi(Skills.mana_of("blink") * 0.5) and weapon.cooldown_full("throw") > 0.0,
+			"miecz widzi kamienie unikalne (Mgnienie za pół many: %d)" % weapon.mana_cost("blink"))
 	# fala cięcia: kukła 90 px dalej, poza zasięgiem ciosu
 	hero.position = dummy.position + Vector2(-90, 0)
 	hero.facing = Vector2.RIGHT
@@ -252,17 +262,6 @@ func _test_unique(game: Node) -> void:
 	_check(g1.hp < far_hp, "fala z trafionego rani goblina poza zasięgiem uderzenia")
 	for g in goblins:
 		g.queue_free()
-	# Mgnienie bez limitu: więcej niż 3 skoki i bez odnowienia
-	await _wait(0.4)
-	weapon.reset_cooldowns()
-	hero.mana = hero.max_mana
-	hero.position = dummy.position + Vector2(-60, 0)
-	await _wait(0.3)
-	weapon.flicker_held = true
-	await _wait(1.8)
-	weapon.flicker_held = false
-	_check(weapon._blink_jumps > Skills.BLINK_JUMPS and weapon.cooldown_left("blink") == 0.0,
-			"Mgnienie z kamieniem skacze dalej niż 3 razy (%d), bez odnowienia" % weapon._blink_jumps)
 	arena.queue_free()
 	await process_frame
 	game.reset_hero()
@@ -350,22 +349,22 @@ func _test_combat(game: Node) -> void:
 	_check(dummy._count == total + 1 and hero.mana == mana - 7, "skok tnie kukłę i kosztuje 7 many")
 	await _wait(0.5)
 	_check(dummy._count == total + 1, "samo stuknięcie - jeden skok")
+	var jumps := weapon._blink_jumps
 	weapon.flicker_held = true
-	await _wait(1.0)
+	await _wait(1.8)
 	weapon.flicker_held = false
-	_check(_dummy_hits(weapon) > total + 1 and weapon.cooldown_left("blink") > 4.0,
-			"trzymanie - kolejne skoki, po 3 skokach odnowienie 6 s (%.1f)" % weapon.cooldown_left("blink"))
-	var after := dummy._count
-	weapon.flicker_held = true
+	_check(weapon._blink_jumps - jumps > 3 and weapon.cooldown_left("blink") == 0.0 and weapon.cooldown_full("blink") == 0.0,
+			"trzymanie - skoki bez limitu i bez odnowienia (%d)" % (weapon._blink_jumps - jumps))
+	_check(weapon._blink_spins == 0, "bez 10. poziomu nie ma wiru")
+	await _wait(0.4)
+	_check(weapon.cast("blink"), "zaraz po serii znów skacze")
+	var hp0 := hero.hp
+	hero._invulnerable = 0.0
+	weapon._flicker_jump(dummy)
+	hero.take_damage(5)
+	_check(hero.hp < hp0, "skok nie daje nietykalności")
 	await _wait(0.5)
-	weapon.flicker_held = false
-	_check(dummy._count == after, "w czasie odnowienia Mgnienie nie skacze")
-	weapon.reset_cooldowns()
-	_check(weapon.cast("blink"), "po odnowieniu znów skacze")
-	await _wait(1.0)
-	_check(weapon.cooldown_left("blink") > 4.0, "urwana seria (1 skok) też włącza odnowienie")
-	weapon.reset_cooldowns()
-	after = dummy._count
+	var after := dummy._count
 	weapon.flicker_held = true
 	hero.mana = 3
 	await _wait(0.4)

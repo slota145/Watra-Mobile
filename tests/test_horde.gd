@@ -40,6 +40,7 @@ func _wait(seconds: float) -> void:
 
 
 func _run() -> void:
+	_test_depth()
 	await _test_base()
 	await _test_horde()
 	await _test_chief()
@@ -104,6 +105,24 @@ func _test_embers(arena: Node, hero: ProtoHero, horde: ProtoHorde) -> void:
 	arena.pause_menu.close()
 	_check(game.embers == 0, "ucieczka nie zanosi żaru do Watry")
 	horde.embers = 3  # tyle zgaśnie przy śmierci (sprawdzane niżej)
+
+
+## Głębokie lochy (13.11.2026): siła rośnie coraz szybciej, więcej potworów (do ALIVE_CAP), doświadczenie liniowo.
+func _test_depth() -> void:
+	var p10 := DungeonLevels.power(10)
+	var p50 := DungeonLevels.power(50)
+	var p100 := DungeonLevels.power(100)
+	_check(is_equal_approx(DungeonLevels.power(1), 1.0) and p10 > 2.7 and p10 < 2.9 and p50 > 20.0 and p50 < 24.0
+			and p100 > 100.0 and p100 < 120.0, "siła: 10. poz. x%.1f, 50. x%.1f, 100. x%.0f" % [p10, p50, p100])
+	_check(roundi(ProtoGoblin.DAMAGE * p100) > HeroLevels.max_hp(15) * 3, "na 100. poziomie goblin zabija postać 15. poziomu jednym ciosem")
+	_check(DungeonLevels.crowd(1) == 1.0 and DungeonLevels.crowd(30) > 1.25 and DungeonLevels.crowd(100) == DungeonLevels.CROWD_MAX,
+			"tłum rośnie do x%.2f" % DungeonLevels.crowd(100))
+	_check(HeroLevels.goblin_xp(100) == roundi(HeroLevels.GOBLIN_XP * DungeonLevels.reward(100)), "doświadczenie rośnie liniowo")
+	var horde := ProtoHorde.new()
+	horde.density = 3.0
+	horde.time = ProtoHorde.RAMP_TIME
+	_check(horde.max_alive() == ProtoHorde.ALIVE_CAP, "najwyżej %d potworów naraz" % ProtoHorde.ALIVE_CAP)
+	horde.free()
 
 
 func _test_base() -> void:

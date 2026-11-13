@@ -15,13 +15,14 @@ const STRIKE := "strike"
 ## Miejsca: 0 - duży przycisk (atak), 1-4 - małe miejsca wokół niego (odblokowane z poziomem - HeroLevels).
 const SLOTS := 5
 const MAIN := 0
-## Mgnienie: najwięcej skoków w serii przed odnowieniem.
-const BLINK_JUMPS := 3
+## Mgnienie: tyle many wraca za każdego wroga zabitego skokiem (5. poziom - x2) i co który skok wir z 10. poziomu.
+const BLINK_MANA_ON_KILL := 2
+const BLINK_SPIN_EVERY := 5
 
 ## name - nazwa, icon - ikona, mana - koszt, cooldown - odnowienie (s), price - złoto, level - wymagany poziom postaci,
 ## main - czy może stać pod dużym przyciskiem (auto atak), range - z jakiej odległości auto atak jej używa (stopy-stopy),
-## power - obrażenia jako wielokrotność zwykłego cięcia (w Młynku - na jedno trafienie). Mgnienie: mana za każdy skok,
-## seria najwyżej BLINK_JUMPS skoków, potem odnowienie (zmiana z 13.11.2026; kamień unikalny znosi limit i odnowienie).
+## power - obrażenia jako wielokrotność zwykłego cięcia (w Młynku - na jedno trafienie). Mgnienie jak Flicker Strike z PoE
+## (decyzja autora 13.11.2026): bez odnowienia, skacze, dopóki starcza many; zabite skokiem wrogi zwracają manę.
 const DATA := {
 	"strike": {
 		"name": "Zwykły cios", "icon": preload("res://assets/watra/iron_sword_icon.png"),
@@ -45,8 +46,8 @@ const DATA := {
 	},
 	"blink": {
 		"name": "Mgnienie", "icon": preload("res://assets/watra/skills/flicker.png"),
-		"mana": 7, "cooldown": 6.0, "price": 1500, "level": 15, "main": false, "range": 0.0, "power": 1.2,
-		"description": "Przytrzymaj - przeskakujesz na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego: do 3 skoków, potem odnowienie. Nie może stać pod dużym przyciskiem.",
+		"mana": 7, "cooldown": 0.0, "price": 1500, "level": 15, "main": false, "range": 0.0, "power": 1.2,
+		"description": "Przytrzymaj - przeskakujesz na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego, dopóki starcza many. Każdy wróg zabity skokiem zwraca 2 many. Nie może stać pod dużym przyciskiem.",
 	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
@@ -66,7 +67,7 @@ const PERKS := {
 	"whirl": ["Wiruje 4 s zamiast 3.", "Na koniec wybuch odpycha wrogów."],
 	"throw": ["Na końcu lotu miecz odbija się w kolejnego wroga.", "Rzuca dwa miecze naraz."],
 	"slam": ["Dłuższe ogłuszenie.", "Po pół sekundy uderza druga fala pęknięć."],
-	"blink": ["Pierwszy skok serii nic nie kosztuje.", "Po ostatnim skoku krótki wir wokół postaci."],
+	"blink": ["Zabicie skokiem zwraca dwa razy więcej many.", "Co 5. skok krótki wir wokół postaci."],
 }
 ## Kolejność w oknie umiejętności.
 const ORDER := ["strike", "whirl", "throw", "slam", "blink"]

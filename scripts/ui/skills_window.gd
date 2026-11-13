@@ -473,7 +473,9 @@ func _show_level(i: int, id: String, lvl: int, owned: bool) -> void:
 	var mana := roundi(Skills.mana_of(id) * k)
 	var cd := Skills.cooldown_of(id) * k
 	var unique: bool = id in ["whirl", "blink"] and Gems.has_unique(_game.skill_sockets(id), id)
-	if unique:
+	if unique and id == "blink":
+		mana = roundi(Skills.mana_of(id) * k * 0.5)  # kamień unikalny: skoki za pół many
+	elif unique:
 		cd = 0.0  # kamień unikalny: bez odnowienia
 	if unique and id == "whirl":
 		info_labels[i].text = tr("%d many, potem %d na sekundę, bez odnowienia") \

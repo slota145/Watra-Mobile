@@ -2,6 +2,25 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - głębokie lochy trudniejsze, Mgnienie jak Flicker Strike
+
+- Zgłoszenie autora z testu w oknie deweloperskim: na 100. poziomie lochu za mało potworów, za mało zdrowia i obrażeń
+  (postać 15. poziomu wytrzymywała 2-3 ciosy), a Mgnienie ze 100% skrócenia odnowienia dawało prawie nietykalność.
+- Siła lochu (`DungeonLevels.power`): `(1 + 0,15 x (poziom-1)) x 1,02^(poziom-1)` - 10. poziom x2,8 (było 2,35),
+  50. x22 (było 8,4), 100. x113 (było 16). Premie przedmiotów, które rosną z lochem, idą za tą samą krzywą.
+  Doświadczenie za potwory rośnie po staremu liniowo (`DungeonLevels.reward`), żeby postać nie awansowała lawinowo.
+- Tłum (`DungeonLevels.crowd`): +1% gęstości strumienia na poziom, najwyżej x1,55; razy ulepszenie „Gęstsza Horda”.
+  Twardy limit `ProtoHorde.ALIVE_CAP` = 70 potworów naraz. Pomiar w chmurze (programowy OpenGL): 45 goblinów - 55
+  klatek/s, 70 - 43 klatek/s; do sprawdzenia na telefonie.
+- Mgnienie (decyzja autora: spam jak Flicker Strike w PoE): bez odnowienia i bez limitu 3 skoków (`Skills` cooldown 0,
+  usunięte `BLINK_JUMPS` i przerwa serii), hamulcem jest mana (7 na skok). Wróg zabity skokiem zwraca
+  `Skills.BLINK_MANA_ON_KILL` = 2 many (`ProtoWeapon._blink_kill`, też z cięcia Mnożenia i wiru). Skok nie daje już
+  nietykalności (`ProtoHero.teleport`). Nowe działania: 5. poziom - zwrot many x2 (było: pierwszy skok serii za darmo),
+  10. poziom - wir co `BLINK_SPIN_EVERY` = 5 skoków (było: po ostatnim skoku serii). Kamień unikalny „Nieskończonej Mgły”:
+  skoki za pół many (było: bez limitu i odnowienia). Ciosy goblinów nadal chybiają, gdy postać odskoczy w trakcie zamachu.
+- Skrócenie odnowienia zostaje do 100% (autor: Mgnienie już go nie potrzebuje).
+- Testy: `test_skills.gd` (Mgnienie), `test_horde.gd` (`_test_depth`).
+
 ## 13.11.2026 - okno trybu deweloperskiego
 
 - Prośba autora: okno z wszystkimi funkcjami trybu deweloperskiego, każda statystyka postaci ustawiana na dowolną wartość

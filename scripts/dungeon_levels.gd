@@ -5,8 +5,14 @@ class_name DungeonLevels
 
 ## Tyle żaru zapełnia pasek w lochu i tyle zjada przyzwanie bossa (nadwyżka zostaje i po zwycięstwie idzie do bazy).
 const SUMMON_COST := 100
-## O tyle rośnie siła potworów (zdrowie i obrażenia) z każdym poziomem (+15%).
+## Siła potworów (zdrowie i obrażenia): +15% z każdym poziomem, a całość dodatkowo x1,02 na poziom - w głębi rośnie
+## coraz szybciej (decyzja autora 13.11.2026: poziom 10 ~2,8x, 50 ~22x, 100 ~112x; wcześniej tylko liniowo, 100 = 16x).
 const POWER_STEP := 0.15
+const POWER_GROWTH := 1.02
+## Tłum: z każdym poziomem o tyle więcej potworów (gęstość strumienia), najwyżej CROWD_MAX razy
+## (z 45 naraz robi się ~70 - ProtoHorde.ALIVE_CAP pilnuje telefonu).
+const CROWD_STEP := 0.01
+const CROWD_MAX := 1.55
 ## Żar ze skrzyni bossa na 1. poziomie i przyrost na każdy kolejny.
 const CHEST_BASE := 20
 const CHEST_STEP := 10
@@ -22,9 +28,20 @@ const BRUTE_SHARE_STEP := 0.02
 const BRUTE_SHARE_MAX := 0.15
 
 
-## Mnożnik zdrowia i obrażeń potworów na danym poziomie (1. poziom - 1.0).
+## Mnożnik zdrowia i obrażeń potworów (i premii przedmiotów, które rosną z lochem) na danym poziomie (1. poziom - 1.0).
 static func power(level: int) -> float:
+	var steps := maxi(level, 1) - 1
+	return (1.0 + POWER_STEP * steps) * pow(POWER_GROWTH, steps)
+
+
+## Liniowy przyrost (stara krzywa siły) - doświadczenie za potwory, żeby postać nie awansowała lawinowo w głębi.
+static func reward(level: int) -> float:
 	return 1.0 + POWER_STEP * (maxi(level, 1) - 1)
+
+
+## Mnożnik liczby potworów w strumieniu na danym poziomie.
+static func crowd(level: int) -> float:
+	return minf(1.0 + CROWD_STEP * (maxi(level, 1) - 1), CROWD_MAX)
 
 
 ## Ile żaru sypie skrzynia po pokonaniu bossa.

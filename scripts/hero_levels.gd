@@ -21,7 +21,7 @@ const MANA_REGEN := 3.0
 const DAMAGE_STEP := 0.06
 ## Na tych poziomach odblokowują się kolejne miejsca na umiejętności (w kolejności od boku ekranu do góry).
 const SKILL_SLOT_LEVELS := [3, 6, 10, 15]
-## Doświadczenie za goblina i za Wodza na 1. poziomie lochu (rośnie z siłą lochu - DungeonLevels.power).
+## Doświadczenie za goblina i za Wodza na 1. poziomie lochu (rośnie liniowo z poziomem lochu - DungeonLevels.reward).
 const GOBLIN_XP := 2.0
 const CHIEF_XP := 60.0
 
@@ -57,9 +57,9 @@ static func skill_slots(level: int) -> int:
 
 ## Doświadczenie za pokonanego goblina na danym poziomie lochu.
 static func goblin_xp(dungeon_level: int) -> int:
-	return roundi(GOBLIN_XP * DungeonLevels.power(dungeon_level))
+	return roundi(GOBLIN_XP * DungeonLevels.reward(dungeon_level))
 
 
 ## Doświadczenie za Wodza Goblinów na danym poziomie lochu.
 static func chief_xp(dungeon_level: int) -> int:
-	return roundi(CHIEF_XP * DungeonLevels.power(dungeon_level))
+	return roundi(CHIEF_XP * DungeonLevels.reward(dungeon_level))

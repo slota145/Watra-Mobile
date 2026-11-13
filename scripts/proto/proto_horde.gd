@@ -26,6 +26,8 @@ const INTERVAL_END := 0.3
 ## Najwięcej potworów naraz na starcie i po pełnym rozkręceniu.
 const ALIVE_START := 8
 const ALIVE_END := 45
+## Twardy limit potworów naraz (gęstość z ulepszeń i tłum głębokich lochów) - żeby słabszy telefon nie zwolnił.
+const ALIVE_CAP := 70
 ## Po tylu sekundach strumień osiąga pełne tempo.
 const RAMP_TIME := 180.0
 ## Pierwszy potwór po tylu sekundach (chwila na rozejrzenie się).
@@ -100,7 +102,7 @@ func interval() -> float:
 
 
 func max_alive() -> int:
-	return roundi(lerpf(ALIVE_START, ALIVE_END, _ramp()) * density)
+	return mini(roundi(lerpf(ALIVE_START, ALIVE_END, _ramp()) * density), ALIVE_CAP)
 
 
 func _ramp() -> float:
