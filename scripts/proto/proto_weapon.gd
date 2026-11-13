@@ -169,6 +169,8 @@ var crit_chance := HeroStats.CRIT_CHANCE / 100.0
 var crit_mult := HeroStats.CRIT_DAMAGE / 100.0
 var elite_mult := 1.0
 var cooldown_cut := 0.0
+## Premia przedmiotów: o tyle procent większy obszar cięć i umiejętności (dodaje się do kamienia Szerokość).
+var area_bonus := 0.0
 ## Czy gracz trzyma przycisk Mgnienia (skoki co FLICKER_INTERVAL, dopóki starcza many).
 var flicker_held := false
 ## Umiejętność pod dużym przyciskiem (Skills; zwykły cios - Skills.STRIKE).
@@ -492,9 +494,9 @@ func _power(skill: String) -> float:
 	return Skills.DATA[skill].power * Skills.level_damage(level_of(skill))
 
 
-## Mnożnik zasięgu umiejętności (kamień Szerokość i poziom).
+## Mnożnik zasięgu umiejętności (kamień Szerokość, premia przedmiotów i poziom).
 func _area(skill: String) -> float:
-	return (1.0 + gem_power(skill, "area") / 100.0) * Skills.level_area(level_of(skill))
+	return (1.0 + (gem_power(skill, "area") + area_bonus) / 100.0) * Skills.level_area(level_of(skill))
 
 
 ## Szybkość zwykłego ciosu: premia szybkości ataku, kamień Pośpiech i poziomy zwykłego ciosu (mniejszy „koszt” -

@@ -28,11 +28,11 @@ const LEFT_SLOTS := ["helmet", "armor", "boots"]
 const RIGHT_SLOTS := ["weapon", "amulet", "ring"]
 ## Kolejność statystyk w oknie; te z EXTRA_STATS pokazują się tylko, gdy przedmioty coś do nich dają.
 const STAT_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "mana_regen", "protection", "regen",
-	"life_on_kill", "cdr", "elite_dmg", "xp", "slots"]
-const EXTRA_STATS := ["protection", "regen", "life_on_kill", "cdr", "elite_dmg", "xp"]
+	"life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp", "slots"]
+const EXTRA_STATS := ["protection", "regen", "life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
 ## Statystyki porównywane przy zakładaniu przedmiotu (bez miejsc na umiejętności).
 const COMPARE_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "mana_regen", "protection", "regen",
-	"life_on_kill", "cdr", "elite_dmg", "xp"]
+	"life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
 ## Bazowe trafienie krytyczne postaci (bez przedmiotów): szansa i obrażenia w procentach.
 const CRIT_CHANCE := 5.0
 const CRIT_DAMAGE := 150.0
@@ -369,6 +369,10 @@ static func summary(level: int, gear: Dictionary) -> Dictionary:
 		"life_on_kill": "+%d" % roundi(gear.get("life_on_kill", 0.0)),
 		"cdr": "-%d%%" % roundi(gear.get("cdr_pct", 0.0)),
 		"elite_dmg": "+%d%%" % roundi(gear.get("elite_dmg_pct", 0.0)),
+		"dodge": "%d%%" % roundi(gear.get("dodge_pct", 0.0)),
+		"area": "+%d%%" % roundi(gear.get("area_pct", 0.0)),
+		"pickup": "+%d%%" % roundi(gear.get("pickup_pct", 0.0)),
+		"ember": "+%d%%" % roundi(gear.get("ember_pct", 0.0)),
 	}
 
 
@@ -858,6 +862,14 @@ func _stat_name(key: String) -> String:
 			return tr("Odnowienie umiejętności")
 		"elite_dmg":
 			return tr("Przeciw elitom i bossom")
+		"dodge":
+			return tr("Unik")
+		"area":
+			return tr("Obszar umiejętności")
+		"pickup":
+			return tr("Zasięg zbierania")
+		"ember":
+			return tr("Żar")
 		"xp":
 			return tr("Doświadczenie")
 	return tr("Miejsca na umiejętności")

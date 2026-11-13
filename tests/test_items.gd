@@ -33,6 +33,7 @@ func _run() -> void:
 	await _test_dungeon(game)
 	await _test_window(game)
 	await _test_new_stats(game)
+	await _test_utility_stats(game)
 	DirAccess.remove_absolute(game.settings_path)
 	DirAccess.remove_absolute(game.save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
@@ -320,6 +321,57 @@ func _test_new_stats(game: Node) -> void:
 	hero.mana = 0
 	await _wait(1.0)
 	_check(hero.mana >= 4 and hero.mana <= 6, "odnowa many z premią (%d na s)" % hero.mana)
+	arena.queue_free()
+	await process_frame
+	game.equipped = {}
+	game.save_game()
+
+
+## Premie z 13.11.2026 (drugi rzut): obszar, unik, zasięg zbierania, żar.
+func _test_utility_stats(game: Node) -> void:
+	var fresh := ["area_pct", "dodge_pct", "pickup_pct", "ember_pct"]
+	var known := true
+	for stat in fresh:
+		known = known and Items.AFFIXES.has(stat) and Items.STAT_FORMATS.has(stat) and Items.CAPS.has(stat)
+	_check(known, "obszar, unik, zasięg i żar w puli losowania, z opisem i sufitem")
+	var big := {"ring": {"slot": "ring", "base": {}, "affixes": [{"stat": "dodge_pct", "value": 300.0}], "sockets": []}}
+	_check(Items.totals(big).dodge_pct == 50.0, "sufit uniku 50%")
+	var ring := Items.roll(1, "ring", "common")
+	ring.affixes = [{"stat": "area_pct", "value": 50.0}, {"stat": "dodge_pct", "value": 50.0},
+		{"stat": "pickup_pct", "value": 100.0}, {"stat": "ember_pct", "value": 50.0}]
+	game.equipped = {"ring": ring}
+	game.dungeon_level = 1
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	var horde: ProtoHorde = arena.horde_spawner
+	var weapon: ProtoWeapon = arena.weapon
+	horde.running = false
+	weapon.auto_attack = false
+	var area := weapon._area("whirl")
+	weapon.area_bonus = 0.0
+	_check(is_equal_approx(area, weapon._area("whirl") * 1.5), "obszar umiejętności +50%% (x%.2f)" % area)
+	weapon.area_bonus = 50.0
+	var hits := 0
+	for i in 200:
+		var before := hero.hp
+		hero._invulnerable = 0.0
+		hero.take_damage(1)
+		if hero.hp < before:
+			hits += 1
+		hero.hp = hero.max_hp
+	_check(hits > 60 and hits < 140, "unik 50%%: trafiło %d na 200 ciosów" % hits)
+	var loot := horde.drop_item({"gem": "ruby_1"}, hero.position + Vector2(300, 0))
+	_check(is_equal_approx(loot.magnet, (ProtoLoot.MAGNET + horde.reach) * 2.0), "zasięg zbierania x2 (%d px)" % loot.magnet)
+	horde.embers = 0
+	horde._ember_rest = 0.0
+	for i in 4:
+		horde._on_ember(1)
+	_check(horde.embers == 6, "żar +50%%: 4 iskry dają %d" % horde.embers)
+	horde.add_embers(10)
+	_check(horde.embers == 16, "skrót deweloperski bez premii żaru")
+	loot.queue_free()
 	arena.queue_free()
 	await process_frame
 	game.equipped = {}

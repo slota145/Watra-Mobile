@@ -10,7 +10,8 @@ extends Node
 ## Od 2. poziomu co jakiś czas przychodzi elita (Elites, ProtoElite: cechy, większa, z napisem) - pokonana daje
 ## pewny przedmiot, iskrę za Elites.EMBERS żaru i sygnał `elite_killed` (arena dolicza doświadczenie).
 ## Ulepszenia lochów (DungeonUpgrades, ustawia arena): `density` - gęstszy strumień, `loot_mult` - mnożnik szans łupu,
-## `reach` - o tyle pikseli dalej iskry i łup lecą do postaci.
+## `reach` - o tyle pikseli dalej iskry i łup lecą do postaci. Premie przedmiotów (ustawia arena): `pickup_mult` - mnożnik
+## zasięgu przyciągania, `ember_mult` - mnożnik żaru z iskier (ułamki zbierają się w `_ember_rest`).
 
 signal kills_changed(kills: int)
 signal embers_changed(embers: int)
@@ -59,6 +60,9 @@ var level := 1
 var density := 1.0
 var loot_mult := 1.0
 var reach := 0.0
+var pickup_mult := 1.0
+var ember_mult := 1.0
+var _ember_rest := 0.0
 
 var _next := FIRST_DELAY
 ## Za ile sekund następna elita (ustawia _ready; ujemne - poziom bez elit).
@@ -207,7 +211,7 @@ func _on_died(g: ProtoGoblin) -> void:
 	if g.elite:
 		ember.value = Elites.EMBERS
 	ember.position = g.position
-	ember.magnet = ProtoEmber.MAGNET + reach
+	ember.magnet = (ProtoEmber.MAGNET + reach) * pickup_mult
 	ember.collected.connect(_on_ember)
 	world.add_child.call_deferred(ember)
 	var item := Items.roll(level, "", "", Items.CHEST_WEIGHTS) if g.elite else Items.roll_goblin(level, loot_mult)
@@ -225,13 +229,22 @@ func drop_item(item: Dictionary, at: Vector2) -> ProtoLoot:
 	var loot := ProtoLoot.new()
 	loot.hero = hero
 	loot.item = item
-	loot.magnet = ProtoLoot.MAGNET + reach
+	loot.magnet = (ProtoLoot.MAGNET + reach) * pickup_mult
 	loot.position = at
 	loot_spawned.emit(loot)
 	world.add_child.call_deferred(loot)
 	return loot
 
 
+## Zebrana iskra: żar z premią przedmiotów (`ember_mult`).
 func _on_ember(value: int) -> void:
+	var total := value * ember_mult + _ember_rest
+	var whole := floori(total)
+	_ember_rest = total - whole
+	add_embers(whole)
+
+
+## Żar do paska wyprawy bez premii (skrót deweloperski).
+func add_embers(value: int) -> void:
 	embers += value
 	embers_changed.emit(embers)

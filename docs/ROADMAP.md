@@ -62,8 +62,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   telefonie: czy zakładki i wybór kamienia są wygodne, czy opisy pod gniazdami są czytelne (czcionka 9 px).
   Do decyzji później: krótsze porównanie przedmiotów (tylko zmieniające się liczby ze strzałkami).
 
-- **Więcej statystyk na przedmiotach (13.11.2026):** zrobione (szczegóły w `docs/historia.md`). Na później:
-  obszar umiejętności, unik, zasięg zbierania, więcej żaru; nowe premie w kamieniach.
+- **Więcej statystyk na przedmiotach (13.11.2026):** zrobione, także drugi rzut - obszar umiejętności, unik, zasięg
+  zbierania, więcej żaru (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy unik 2-4% na przedmiot jest
+  odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
