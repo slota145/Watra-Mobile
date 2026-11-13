@@ -94,7 +94,7 @@ func _strike() -> void:
 	_struck = true
 	if _telegraph and is_instance_valid(_telegraph):
 		if hero and not hero.dead and _telegraph.contains(hero.global_position):
-			hero.take_damage(roundi(damage * power))
+			hero.take_damage(hit_damage())
 		Fx.once(get_parent(), FX_SLAM, 12, 16.0, _telegraph.global_position, Vector2(37, 25), 20, SLAM_RADIUS / 34.0)
 	_remove_telegraph()
 	_audio.stream = SLAM_SOUND
@@ -120,6 +120,9 @@ func take_damage(amount: int, from: Vector2) -> void:
 	if _state != "attack":
 		super(amount, from)
 		_push *= HEAVY
+		return
+	amount = _absorb(amount)
+	if amount <= 0:
 		return
 	hp -= amount
 	spawn_number(amount)

@@ -7,6 +7,8 @@ extends Node
 ## Przyzwanie bossa (`call_boss`) zatrzymuje strumień, a gobliny uciekają z piskiem. Siła goblinów rośnie z poziomem
 ## lochu (`power`). Od 2. poziomu część goblinów to łucznicy (DungeonLevels.archer_share, najwyżej `MAX_ARCHERS`
 ## naraz), od 3. - osiłki (DungeonLevels.brute_share, najwyżej `MAX_BRUTES`; z osiłka wypada `BRUTE_EMBERS` żaru). Rzadko goblin upuszcza przedmiot z poziomu lochu (`level`, Items.roll_goblin).
+## Od 2. poziomu co jakiś czas przychodzi elita (Elites, ProtoElite: cechy, większa, z napisem) - pokonana daje
+## pewny przedmiot, iskrę za Elites.EMBERS żaru i sygnał `elite_killed` (arena dolicza doświadczenie).
 ## Ulepszenia lochów (DungeonUpgrades, ustawia arena): `density` - gęstszy strumień, `loot_mult` - mnożnik szans łupu,
 ## `reach` - o tyle pikseli dalej iskry i łup lecą do postaci.
 
@@ -14,6 +16,8 @@ signal kills_changed(kills: int)
 signal embers_changed(embers: int)
 ## Goblin upuścił przedmiot (arena liczy podniesione do podsumowania).
 signal loot_spawned(loot: ProtoLoot)
+## Pokonano elitę (arena dolicza doświadczenie ponad zwykłego goblina).
+signal elite_killed(goblin: ProtoGoblin)
 
 ## Odstęp między potworami na starcie i po pełnym rozkręceniu (s).
 const INTERVAL_START := 1.3
@@ -57,7 +61,14 @@ var loot_mult := 1.0
 var reach := 0.0
 
 var _next := FIRST_DELAY
+## Za ile sekund następna elita (ustawia _ready; ujemne - poziom bez elit).
+var _elite_next := -1.0
 var _alive := 0
+
+
+func _ready() -> void:
+	if Elites.max_traits(level) > 0:
+		_elite_next = randf_range(Elites.FIRST.x, Elites.FIRST.y)
 
 
 func _process(delta: float) -> void:
@@ -67,6 +78,11 @@ func _process(delta: float) -> void:
 		time += delta
 	if not running:
 		return
+	if _elite_next > 0.0:
+		_elite_next -= delta
+		if _elite_next <= 0.0:
+			_elite_next = randf_range(Elites.EVERY.x, Elites.EVERY.y)
+			spawn_elite()
 	_next -= delta
 	if _next <= 0.0:
 		_next = interval()
@@ -87,7 +103,17 @@ func _ramp() -> float:
 	return clampf(time / RAMP_TIME, 0.0, 1.0)
 
 
+## Elita: goblin losowego rodzaju (jak w strumieniu) z cechami z poziomu lochu, tuż poza ekranem.
+func spawn_elite() -> ProtoGoblin:
+	return spawn_at(spawn_point(), _roll_kind(), Elites.roll_traits(maxi(level, Elites.FROM_LEVEL)))
+
+
 func spawn() -> ProtoGoblin:
+	return spawn_at(spawn_point(), _roll_kind())
+
+
+## Rodzaj goblina ze strumienia: osiłek, łucznik albo zwykły (udziały z poziomu, limity naraz).
+func _roll_kind() -> String:
 	var roll := randf()
 	var brute := DungeonLevels.brute_share(level)
 	var kind := "goblin"
@@ -96,12 +122,12 @@ func spawn() -> ProtoGoblin:
 			kind = "brute"
 	elif roll < brute + DungeonLevels.archer_share(level) and archers() < MAX_ARCHERS:
 		kind = "archer"
-	return spawn_at(spawn_point(), kind)
+	return kind
 
 
 ## Goblin w danym miejscu (strumień albo okrzyk Wodza; `kind`: goblin, archer - łucznik, brute - osiłek).
-## Liczy się do pokonanych i daje iskrę.
-func spawn_at(pos: Vector2, kind := "goblin") -> ProtoGoblin:
+## Liczy się do pokonanych i daje iskrę. `elite_traits` - cechy elity (puste - zwykły goblin).
+func spawn_at(pos: Vector2, kind := "goblin", elite_traits: Array[String] = []) -> ProtoGoblin:
 	var g: ProtoGoblin
 	match kind:
 		"archer":
@@ -115,6 +141,8 @@ func spawn_at(pos: Vector2, kind := "goblin") -> ProtoGoblin:
 	g.power = power
 	g.position = pos.clamp(bounds.position, bounds.end)
 	g.died.connect(_on_died)
+	if not elite_traits.is_empty():
+		ProtoElite.promote(g, elite_traits)
 	_alive += 1
 	world.add_child(g)
 	return g
@@ -173,16 +201,20 @@ func _on_died(g: ProtoGoblin) -> void:
 	var ember := ProtoEmber.new()
 	ember.hero = hero
 	ember.value = ProtoEmber.BIG if kills % BIG_EVERY == 0 else (BRUTE_EMBERS if g is ProtoGoblinBrute else 1)
+	if g.elite:
+		ember.value = Elites.EMBERS
 	ember.position = g.position
 	ember.magnet = ProtoEmber.MAGNET + reach
 	ember.collected.connect(_on_ember)
 	world.add_child.call_deferred(ember)
-	var item := Items.roll_goblin(level, loot_mult)
+	var item := Items.roll(level, "", "", Items.CHEST_WEIGHTS) if g.elite else Items.roll_goblin(level, loot_mult)
 	if not item.is_empty():
 		drop_item(item, g.position)
 	var gem := Gems.roll_goblin(level, loot_mult)
 	if gem != "":
 		drop_item({"gem": gem}, g.position)
+	if g.elite:
+		elite_killed.emit(g)
 
 
 ## Przedmiot na ziemi w danym miejscu.

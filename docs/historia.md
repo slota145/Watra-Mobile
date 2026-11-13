@@ -2,6 +2,25 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - elitarne potwory
+
+- Ustalone z autorem: elity rzadko od 2. poziomu lochu, cechy Szybki, Tarczowy, Wybuchowy, Dowódczy, nagroda - przedmiot
+  i dużo żaru, wygląd - większa, poświata, napis z cechami i pasek zdrowia. Kolczastego (odbijanie obrażeń) odradziłem na
+  telefon (auto atak).
+- `Elites` (`scripts/elites.gd`, dane): cechy z kolorami, pierwsza elita po 25-35 s, kolejne co 45-65 s; cech najwyżej
+  1 (poziomy 2-3), 2 (od 4.), 3 (od 7.), losowo max-1..max; zdrowie x3 (+0,75 za każdą cechę ponad pierwszą), obrażenia x1,3,
+  większa o 25%; nagroda: iskra za 10 żaru, przedmiot z wagami skrzyni bossa (`Items.CHEST_WEIGHTS`), doświadczenie x5.
+  Szybki: prędkość x1,6, odstęp ataków x0,6. Tarczowy: tarcza 50% zdrowia, wraca po 4 s bez obrażeń (niebieskie liczby,
+  bańka, niebieski pasek). Wybuchowy: po śmierci koło 34 px, po 1,2 s wybuch 20 obrażeń x siła poziomu (`ProtoElite.blast`,
+  efekt `boss_slam` na pomarańczowo). Dowódczy: gobliny w promieniu 90 px szybsze i silniejsze o 30%, lekko złote
+  (`ProtoGoblin.empower`, `hit_damage`, `speed_factor`), krąg na ziemi.
+- `ProtoElite` (`scripts/proto/proto_elite.gd`, dziecko goblina, `promote` przed dodaniem do sceny): poświata - shader
+  obrysu (1 px pełny + 2 px półprzezroczysty, pulsuje; zdejmowany po śmierci i ucieczce), napis z cechami (8 px), pasek zdrowia.
+- `ProtoGoblin`: `elite`, `damage_mult`, `hit_damage()` (też łucznik i osiłek), `_absorb` (tarcza; także osiłek w zamachu
+  i podpalenie), `empower`. `ProtoHorde`: `spawn_elite`, `spawn_at(pos, kind, elite_traits)`, `_roll_kind`, sygnał
+  `elite_killed` (arena dolicza `HeroLevels.goblin_xp` x (Elites.XP - 1)).
+- Test: `_test_elites` w `tests/test_horde.gd`; zrzuty `tools/elite_shots.gd`.
+
 ## 13.11.2026 - goblin osiłek (trzeci rodzaj potwora)
 
 - Ustalone z autorem: goblin osiłek od 3. poziomu lochu, grafika ze SpriteKiln, cios w ziemię z czerwonym kołem.

@@ -92,7 +92,7 @@ func _strike() -> void:
 	var arrow := ProtoArrow.new()
 	arrow.hero = hero
 	arrow.direction = aim
-	arrow.damage = roundi(damage * power)
+	arrow.damage = hit_damage()
 	arrow.position = position + aim * 6.0
 	get_parent().add_child(arrow)
 

@@ -5,6 +5,8 @@ extends ProtoTarget
 ## mieczem błyska, odskakuje i gra animację trafienia; po śmierci gra animację śmierci, gaśnie i znika.
 ## Siła rośnie z poziomem lochu (`power` - mnoży zdrowie i obrażenia). Gdy gracz przyzwie bossa, gobliny uciekają
 ## z piskiem poza ekran (`flee`) i znikają. Ogłuszony (`stun`, Rozłupanie Ziemi) stoi w miejscu i nie atakuje.
+## Elita (ProtoElite.promote, dziecko `elite`): tarcza pochłania trafienia (`_absorb`), Dowódczy wzmacnia sąsiadów
+## (`empower` - szybsi i silniejsi), po śmierci elita może wybuchnąć (ProtoElite.on_death).
 ## Grafika: scena SpriteKiln assets/spritekiln/goblin/goblin.tscn (KilnSprite2D - animacje idle, walk, attack, hit, death).
 
 signal died(goblin: ProtoGoblin)
@@ -48,6 +50,11 @@ var damage := DAMAGE
 var attack_cooldown := ATTACK_COOLDOWN
 ## Wielkość cienia pod stopami (osiłek ma większy).
 var shadow_scale := 0.85
+## Elita (cechy, tarcza, napis) albo null; mnożnik obrażeń (elita - Elites.DAMAGE).
+var elite: ProtoElite
+var damage_mult := 1.0
+## Wzmocnienie od Dowódczej elity (sekundy do końca).
+var _empowered := 0.0
 ## Bez grafiki (zastępczy kształt): po tylu sekundach zamachu pada cios i po tylu zamach się kończy.
 var strike_time := 0.3
 var attack_time := 0.6
@@ -99,6 +106,10 @@ func alive() -> bool:
 func _process(delta: float) -> void:
 	_cooldown -= delta
 	_timer += delta
+	if _empowered > 0.0:
+		_empowered -= delta
+		if _empowered <= 0.0 and _sprite:
+			_sprite.self_modulate = Color.WHITE
 	_push = _push.move_toward(Vector2.ZERO, KNOCKBACK * 6.0 * delta)
 	if _state == "dead":
 		return
@@ -145,8 +156,35 @@ func _walk_move(to_hero: Vector2) -> Vector2:
 	return Vector2.ZERO
 
 
+## Obrażenia ciosu tego goblina (siła poziomu, elita, wzmocnienie Dowódczego).
+func hit_damage() -> int:
+	var mult := damage_mult * (Elites.EMPOWER_DAMAGE if _empowered > 0.0 else 1.0)
+	return roundi(damage * power * mult)
+
+
+## Wzmocnienie od Dowódczej elity na `time` s: szybszy i silniejszy, lekko złoty.
+func empower(time: float) -> void:
+	if not alive():
+		return
+	_empowered = maxf(_empowered, time)
+	if _sprite:
+		_sprite.self_modulate = Elites.EMPOWER_TINT
+
+
+func speed_factor() -> float:
+	return super() * (Elites.EMPOWER_SPEED if _empowered > 0.0 else 1.0)
+
+
+## Tarcza elity pochłania obrażenia; zwraca, ile przechodzi dalej (0 - całe trafienie na tarczy).
+func _absorb(amount: int) -> int:
+	return elite.absorb(amount) if elite else amount
+
+
 func take_damage(amount: int, from: Vector2) -> void:
 	if not alive():
+		return
+	amount = _absorb(amount)
+	if amount <= 0:
 		return
 	hp -= amount
 	spawn_number(amount)
@@ -170,6 +208,9 @@ func take_damage(amount: int, from: Vector2) -> void:
 ## Podpalenie (kamień Żar): obrażenia bez odrzutu i przerwania zamachu, pomarańczowa liczba.
 func burn_tick(amount: int) -> void:
 	if not alive():
+		return
+	amount = _absorb(amount)
+	if amount <= 0:
 		return
 	hp -= amount
 	spawn_number(amount, Color(1.0, 0.6, 0.25))
@@ -210,13 +251,15 @@ func _start_attack(to_hero: Vector2) -> void:
 func _strike() -> void:
 	_struck = true
 	if hero and not hero.dead and global_position.distance_to(hero.global_position) <= HIT_RANGE:
-		hero.take_damage(roundi(damage * power))
+		hero.take_damage(hit_damage())
 
 
 func _die() -> void:
 	_state = "dead"
 	remove_from_group(ProtoWeapon.TARGETS)
 	z_index = -1  # ciało pod żywymi
+	if elite:
+		elite.on_death()
 	died.emit(self)
 	if _scene:
 		_play(&"death", true)

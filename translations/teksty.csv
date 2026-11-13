@@ -25,6 +25,10 @@
 "Hojność Watry","","dungeon_upgrades.gd"
 "Nauka z walki","","dungeon_upgrades.gd"
 "+%d%% doświadczenia","","dungeon_upgrades.gd, items.gd"
+"Dowódczy","","elites.gd"
+"Szybki","","elites.gd"
+"Tarczowy","","elites.gd"
+"Wybuchowy","","elites.gd"
 "%s - gniazdo %d","","gem_picker.gd"
 "Brak kamieni szlachetnych. Wypadają w lochach od poziomu %d.","","gem_picker.gd"
 "Brak kamieni umiejętności. Wypadają w lochach od poziomu %d.","","gem_picker.gd"
@@ -245,6 +249,29 @@ Ochrona %s","","hero_stats.gd"
 "%d obrażeń/s","%d damage/s","proto_dummy.gd"
 "Kukła treningowa","Training dummy","proto_dummy.gd"
 "Suma %d, trafień: %d","Total %d, hits: %d","proto_dummy.gd"
+"
+shader_type canvas_item;
+uniform vec4 glow : source_color = vec4(1.0);
+uniform float pulse = 1.0;
+
+void fragment() {
+	vec4 c = texture(TEXTURE, UV);
+	vec4 m = COLOR;
+	if (c.a > 0.1) {
+		COLOR = c * m;
+	} else {
+		vec2 p = TEXTURE_PIXEL_SIZE;
+		float near = max(max(texture(TEXTURE, UV + vec2(p.x, 0.0)).a, texture(TEXTURE, UV - vec2(p.x, 0.0)).a),
+			max(texture(TEXTURE, UV + vec2(0.0, p.y)).a, texture(TEXTURE, UV - vec2(0.0, p.y)).a));
+		float far = max(max(texture(TEXTURE, UV + vec2(2.0 * p.x, 0.0)).a, texture(TEXTURE, UV - vec2(2.0 * p.x, 0.0)).a),
+			max(max(texture(TEXTURE, UV + p).a, texture(TEXTURE, UV - p).a),
+			max(texture(TEXTURE, UV + vec2(p.x, -p.y)).a, texture(TEXTURE, UV + vec2(-p.x, p.y)).a)));
+		far = max(far, max(texture(TEXTURE, UV + vec2(0.0, 2.0 * p.y)).a, texture(TEXTURE, UV - vec2(0.0, 2.0 * p.y)).a));
+		float a = near > 0.1 ? 0.95 : (far > 0.1 ? 0.4 : 0.0);
+		COLOR = vec4(glow.rgb, a * pulse * m.a);
+	}
+}
+","","proto_elite.gd"
 "Poziom %d!","Level %d!","proto_hero.gd"
 "+%d złota","","proto_loot.gd"
 "Torba pełna!","","proto_loot.gd"
