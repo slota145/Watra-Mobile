@@ -1,7 +1,7 @@
 extends SceneTree
 ## Zrzuty goblina łucznika do oceny wyglądu: łucznicy w tłumie goblinów, naciąganie z linią celu, strzała w locie.
 ## Użycie: SCRIPT=tools/archer_shots.gd tools/screenshot.sh <prefiks> [rozdzielczość jako RESOLUTION]
-## Pliki: <prefiks>_1_celuje.png, _2_strzala.png
+## Pliki: <prefiks>_1_celuje.png, _2_strzala.png, _3_trafienie.png
 
 var _prefix := "/tmp/lucznik"
 
@@ -41,4 +41,6 @@ func _run() -> void:
 	await _shot("1_celuje")
 	await create_timer(0.45).timeout
 	await _shot("2_strzala")
+	await create_timer(0.55).timeout
+	await _shot("3_trafienie")
 	quit()

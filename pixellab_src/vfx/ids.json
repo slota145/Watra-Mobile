@@ -176,5 +176,36 @@
       43,
       16
     ]
+  },
+  "arrow_fly": {
+    "effect": "b8e05f21-2015-4b2c-80d4-7be4b53f95f4",
+    "name": "Strzała goblina łucznika - lot (pętla, grot w prawo)",
+    "frame": [
+      44,
+      16
+    ],
+    "frames": 6,
+    "columns": 3,
+    "fps": 16,
+    "loop": true,
+    "anchor": [
+      30,
+      8
+    ]
+  },
+  "arrow_hit": {
+    "effect": "6c429368-b3e1-42cd-931f-90a42f36c201",
+    "name": "Strzała goblina łucznika - trafienie (błysk, iskry, drzazgi)",
+    "frame": [
+      32,
+      28
+    ],
+    "frames": 8,
+    "columns": 3,
+    "fps": 16,
+    "anchor": [
+      16,
+      14
+    ]
   }
 }

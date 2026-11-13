@@ -10,7 +10,10 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   cofa się), strzał co 2,2 s. Naciąganie: na ziemi czerwona przerywana linia celu (`_AimLine`), podąża za postacią,
   0,3 s przed strzałem staje i jaśnieje (`AIM_LOCK`); strzał 0,63 s po początku (zdarzenie `release` animacji).
   Cięcie w trakcie naciągania przerywa strzał.
-- `ProtoArrow` (`scripts/proto/proto_arrow.gd`): strzała rysowana kodem, 115 px/s, 11 px nad ziemią z cieniem,
+- `ProtoArrow` (`scripts/proto/proto_arrow.gd`): strzała z kreatora efektów PixelLab (prośba autora): `arrow_fly`
+  (pętla 6 klatek 44x16, własny rysunek strzały 20x8 px - grubsze drzewce i czerwone lotki, czytelne na trawie,
+  plus smugi pędu; obracana w kierunku lotu) i `arrow_hit` (błysk, iskry, drzazgi; `Fx.once`), wpisy w
+  `pixellab_src/vfx/ids.json`; 115 px/s, 11 px nad ziemią z cieniem,
   trafia w promieniu 8 px od stóp postaci (8 obrażeń x siła poziomu), zasięg 240 px.
 - `DungeonLevels.archer_share`: od `ARCHER_FROM` = 2 udział 15%, +3% na poziom, sufit 30%; `ProtoHorde.spawn_at(pos, archer)`,
   `ProtoHorde.archers()`, najwyżej `MAX_ARCHERS` = 6 naraz.
