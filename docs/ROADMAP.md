@@ -62,6 +62,11 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   telefonie: czy zakładki i wybór kamienia są wygodne, czy opisy pod gniazdami są czytelne (czcionka 9 px).
   Do decyzji później: krótsze porównanie przedmiotów (tylko zmieniające się liczby ze strzałkami).
 
+- **Więcej statystyk na przedmiotach (13.11.2026):** pomysł autora - nowe premie poza obecnymi 8 (zdrowie, mana,
+  obrażenia %, szybkość ataku, szybkość ruchu, regeneracja, ochrona, doświadczenie). Propozycje Claude: krytyki,
+  zdrowie za zabicie, skrócenie odnowienia, obszar umiejętności, unik, zasięg zbierania, obrażenia przeciw elitom
+  i bossom, więcej żaru. Czeka na wybór autora.
+
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
 - Watra jako „serce” ekranu startowego: animowany ogień, który przygasa, gdy długo nie grasz, i rozpala się po powrocie.
