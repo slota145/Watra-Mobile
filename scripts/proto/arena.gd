@@ -52,6 +52,10 @@ const CHEST_DELAY := 1.4
 const VICTORY_DELAY := 2.2
 ## Ziemia pod wszystkim - także pod ciałami i czerwonymi kołami ostrzeżeń (z_index -1).
 const GROUND_Z := -10
+## Ciemne tło poza polaną (szersze niż pół najwyższego ekranu - kamera nie ma granic) i miękki cień przy brzegu.
+const EDGE_PAD := 700.0
+const EDGE_SHADE := 28.0
+const EDGE_COLOR := Color(0.11, 0.16, 0.1)
 const EMBER_FILL := Color(1.0, 0.55, 0.12)
 const EMBER_FULL := Color(1.0, 0.8, 0.3)
 
@@ -151,10 +155,8 @@ func _ready() -> void:
 	var camera := Camera2D.new()
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 8.0
-	camera.limit_left = int(ARENA.position.x)
-	camera.limit_top = int(ARENA.position.y)
-	camera.limit_right = int(ARENA.end.x)
-	camera.limit_bottom = int(ARENA.end.y)
+	# bez granic kamery: postać zawsze na środku ekranu, także przy brzegu polany (prośba autora 13.11.2026 -
+	# przy brzegu postać chowała się pod kciukiem); za brzegiem widać ciemny pas (`_make_ground`)
 	hero.add_child(camera)
 
 	weapon = ProtoWeapon.new()
@@ -276,10 +278,10 @@ func _apply_upgrades() -> void:
 ## Trawa z Watry powtarzana na całej polanie, z ciemniejszym brzegiem.
 func _make_ground() -> void:
 	var edge := ColorRect.new()
-	edge.color = Color(0.11, 0.16, 0.1)
+	edge.color = EDGE_COLOR
 	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	edge.position = ARENA.position - Vector2(400, 400)
-	edge.size = ARENA.size + Vector2(800, 800)
+	edge.position = ARENA.position - Vector2(EDGE_PAD, EDGE_PAD)
+	edge.size = ARENA.size + Vector2(EDGE_PAD, EDGE_PAD) * 2.0
 	edge.z_index = GROUND_Z
 	add_child(edge)
 	var grass := Sprite2D.new()
@@ -293,6 +295,36 @@ func _make_ground() -> void:
 	if horde:
 		grass.modulate = Color(0.72, 0.68, 0.8)  # loch: ta sama trawa, chłodniej i ciemniej (Horda)
 	add_child(grass)
+	# miękki cień wzdłuż brzegu polany: trawa ciemnieje w stronę ciemnego tła (cztery paski z gradientem)
+	for side in 4:
+		var shade := TextureRect.new()
+		var g := Gradient.new()
+		g.colors = PackedColorArray([Color(EDGE_COLOR, 0.95), Color(EDGE_COLOR, 0.0)])
+		var t := GradientTexture2D.new()
+		t.gradient = g
+		t.width = 32
+		t.height = 32
+		t.fill_from = [Vector2(0, 0), Vector2(1, 0), Vector2(0, 0), Vector2(0, 1)][side]
+		t.fill_to = [Vector2(1, 0), Vector2(0, 0), Vector2(0, 1), Vector2(0, 0)][side]
+		shade.texture = t
+		shade.stretch_mode = TextureRect.STRETCH_SCALE
+		shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		shade.z_index = GROUND_Z
+		match side:
+			0:  # lewy
+				shade.position = ARENA.position
+				shade.size = Vector2(EDGE_SHADE, ARENA.size.y)
+			1:  # prawy
+				shade.position = Vector2(ARENA.end.x - EDGE_SHADE, ARENA.position.y)
+				shade.size = Vector2(EDGE_SHADE, ARENA.size.y)
+			2:  # górny
+				shade.position = ARENA.position
+				shade.size = Vector2(ARENA.size.x, EDGE_SHADE)
+			3:  # dolny
+				shade.position = Vector2(ARENA.position.x, ARENA.end.y - EDGE_SHADE)
+				shade.size = Vector2(ARENA.size.x, EDGE_SHADE)
+		add_child(shade)
 
 
 func _make_hud() -> void:

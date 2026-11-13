@@ -2,7 +2,7 @@ extends SceneTree
 ## Test bazy: ulepszenia lochów za żar (ceny 50-1000, premie, zapis, działanie w lochu), kowal (przeróbka jednej premii,
 ## rosnąca cena, zapis przeróbek), kupiec (półka: klucz, dłuto, 2 różne kamienie 1. stopnia, 3 przedmioty; kupno
 ## do sakwy i torby, pełna torba, brak złota, nowa dostawa, zapis), baza (kowal i kupiec otwierają okna, pasek skrótów
-## w dolnej połowie, min. 44 px, po drugiej stronie niż przyciski walki), okna (potwierdzenie drugim stuknięciem,
+## w dolnej połowie, min. 44 px, po drugiej stronie niż przyciski walki), kamera przy brzegu polany, okna (potwierdzenie drugim stuknięciem,
 ## „Wróć”, „wstecz”, pauza), przycisk ulepszeń w wyborze poziomu przy Watrze.
 
 var _failed := 0
@@ -143,6 +143,11 @@ func _test_dungeon(game: Node) -> void:
 	var loot := horde.drop_item(Items.roll(1), Vector2(500, 500))
 	await process_frame
 	_check(loot.magnet == ProtoLoot.MAGNET + 32.0, "łup przyciąga się z dalszej odległości")
+	# kamera bez granic: przy brzegu polany postać zostaje na środku ekranu
+	arena.hero.position = Vector2(-340, 540)
+	await _wait(1.5)
+	var on_screen: Vector2 = arena.hero.get_global_transform_with_canvas().origin
+	_check(on_screen.distance_to(root.get_visible_rect().size / 2.0) < 4.0, "w rogu polany postać na środku ekranu (%s)" % on_screen)
 	arena.queue_free()
 	await process_frame
 	game.upgrades = {}

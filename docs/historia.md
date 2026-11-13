@@ -2,6 +2,14 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - postać zawsze na środku ekranu
+
+- Zgłoszenie autora: przy krawędzi mapy kamera stawała, postać zjeżdżała do rogu ekranu i chowała się pod palcem.
+  Ustalone (wersja 1 z dwóch): kamera bez granic, za polaną ciemny pas. Las z grafik Watry wokół polany - może później.
+- `Arena`: kamera bez `limit_*`; ciemne tło poza polaną poszerzone (`EDGE_PAD` 700 px - więcej niż pół najwyższego
+  ekranu), wzdłuż brzegu miękki cień w stronę tła (4 paski z gradientem, `EDGE_SHADE` 28 px). Postać dalej nie wyjdzie
+  za brzeg (`ProtoHero.bounds`). Test w `test_base.gd` (postać w rogu polany na środku ekranu).
+
 ## 13.11.2026 - ikonki „Postać” i „Umiejętności” w górnym rzędzie
 
 - Pomysł autora: ekwipunek i umiejętności jednym stuknięciem w ikonkę, nie przez „Menu”. Ustalone: dwie ikonki 44 px
