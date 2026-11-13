@@ -45,7 +45,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
 - `scripts/`: logika. `game.gd` (autoload `Game`: wersja, zmiana sceny, zapis gry - żar Watry, przebity poziom lochu), `main_menu.gd` (ekran startowy),
   `lang.gd` (tłumaczenia), `scripts/ui/` (interfejs, `safe_area.gd`).
 - `scripts/proto/`: prototyp walki (`arena.gd` - polana i interfejs, `proto_hero.gd` - postać, `proto_weapon.gd` -
-  lewitujący miecz, `proto_target.gd` - wspólna baza celów miecza, `proto_dummy.gd` - kukła, `proto_goblin.gd` - goblin Hordy,
+  lewitujący miecz, `proto_target.gd` - wspólna baza celów miecza, `proto_dummy.gd` - kukła, `proto_goblin.gd` - goblin Hordy, `proto_goblin_archer.gd` - goblin łucznik (od 2. poziomu, strzały `proto_arrow.gd`),
   `proto_horde.gd` - strumień potworów, `proto_watra.gd` - Watra = wejście do lochu i licznik żaru, `proto_ember.gd` - iskra żaru z potworów,
   `proto_chief.gd` - boss Wódz Goblinów (ataki z ostrzeżeniem `proto_telegraph.gd`, tasak `proto_cleaver.gd`),
   `proto_chest.gd` - skrzynia po bossie; `scripts/dungeon_levels.gd` - poziomy lochu (siła, koszt przyzwania, nagroda);
@@ -73,7 +73,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `horde.tscn` - loch z ciągłym strumieniem goblinów; obie na `arena.gd`).
 - `assets/`: grafiki, muzyka, dźwięki; `assets/watra/` - pliki skopiowane z Watry; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
 - `art/specs/`: specyfikacje postaci SpriteKiln (YAML; Godot je pomija). Wyniki renderów w `out/` są generowane i nie idą do gita.
-- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia, `ember_art.py` - iskra żaru, `goblin_squeak.py` - pisk goblinów, `boss_shots.gd` - zrzuty walki z bossem, `level_shots.gd` - zrzuty rozwoju postaci, `item_shots.gd` - zrzuty przedmiotów, `stash_shots.gd` - zrzuty skrzyni, `skill_shots.gd` - zrzuty umiejętności, `gem_shots.gd` - zrzuty kamieni, `unique_shots.gd` - zrzuty kamieni unikalnych, `unique_gem_art.py` - ikony kamieni unikalnych, `base_shots.gd` - zrzuty okien bazy,
+- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia, `ember_art.py` - iskra żaru, `goblin_squeak.py` - pisk goblinów, `boss_shots.gd` - zrzuty walki z bossem, `archer_shots.gd` - zrzuty goblina łucznika, `level_shots.gd` - zrzuty rozwoju postaci, `item_shots.gd` - zrzuty przedmiotów, `stash_shots.gd` - zrzuty skrzyni, `skill_shots.gd` - zrzuty umiejętności, `gem_shots.gd` - zrzuty kamieni, `unique_shots.gd` - zrzuty kamieni unikalnych, `unique_gem_art.py` - ikony kamieni unikalnych, `base_shots.gd` - zrzuty okien bazy,
   `vfx_art.py` - efekty z kreatora PixelLab do `assets/effects/`).
 - `tests/`: testy (`run_tests.ps1` u autora).
 - `translations/`: `teksty.csv` (pl/en), `pomijane.txt` (napisy bez tłumaczenia), `slowniczek.md`.

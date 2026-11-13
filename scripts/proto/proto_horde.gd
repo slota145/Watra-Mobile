@@ -5,7 +5,8 @@ extends Node
 ## Liczy pokonane potwory i czas przetrwania (`kills`, `time`). Z każdego potwora wypada iskra żaru (co `BIG_EVERY`
 ## potwór - duża), zebrany żar liczy `embers` - do bazy trafia tylko po pokonaniu bossa, ucieczka i śmierć go gaszą.
 ## Przyzwanie bossa (`call_boss`) zatrzymuje strumień, a gobliny uciekają z piskiem. Siła goblinów rośnie z poziomem
-## lochu (`power`). Rzadko goblin upuszcza przedmiot z poziomu lochu (`level`, Items.roll_goblin).
+## lochu (`power`). Od 2. poziomu część goblinów to łucznicy (DungeonLevels.archer_share, najwyżej `MAX_ARCHERS`
+## naraz). Rzadko goblin upuszcza przedmiot z poziomu lochu (`level`, Items.roll_goblin).
 ## Ulepszenia lochów (DungeonUpgrades, ustawia arena): `density` - gęstszy strumień, `loot_mult` - mnożnik szans łupu,
 ## `reach` - o tyle pikseli dalej iskry i łup lecą do postaci.
 
@@ -28,6 +29,8 @@ const FIRST_DELAY := 1.5
 const BIG_EVERY := 20
 ## Przy ucieczce przed bossem piszczy najwyżej tylu goblinów (żeby tłum nie zagłuszył ryku).
 const SQUEAKERS := 6
+## Najwięcej łuczników naraz (żeby strzały dało się wymijać, a nie były deszczem).
+const MAX_ARCHERS := 6
 
 var hero: ProtoHero
 ## Gdzie dodawać potwory (świat z sortowaniem po Y).
@@ -82,12 +85,12 @@ func _ramp() -> float:
 
 
 func spawn() -> ProtoGoblin:
-	return spawn_at(spawn_point())
+	return spawn_at(spawn_point(), randf() < DungeonLevels.archer_share(level) and archers() < MAX_ARCHERS)
 
 
-## Goblin w danym miejscu (strumień albo okrzyk Wodza). Liczy się do pokonanych i daje iskrę.
-func spawn_at(pos: Vector2) -> ProtoGoblin:
-	var g := ProtoGoblin.new()
+## Goblin w danym miejscu (strumień albo okrzyk Wodza; `archer` - łucznik). Liczy się do pokonanych i daje iskrę.
+func spawn_at(pos: Vector2, archer := false) -> ProtoGoblin:
+	var g: ProtoGoblin = ProtoGoblinArcher.new() if archer else ProtoGoblin.new()
 	g.hero = hero
 	g.bounds = bounds
 	g.power = power
@@ -96,6 +99,15 @@ func spawn_at(pos: Vector2) -> ProtoGoblin:
 	_alive += 1
 	world.add_child(g)
 	return g
+
+
+## Ilu łuczników żyje teraz w lochu.
+func archers() -> int:
+	var n := 0
+	for c in world.get_children():
+		if c is ProtoGoblinArcher and c.alive():
+			n += 1
+	return n
 
 
 ## Punkt tuż poza widocznym kadrem (w losowym kierunku od postaci), w granicach areny.

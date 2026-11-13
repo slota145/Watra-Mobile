@@ -6,6 +6,8 @@ extends SceneTree
 ## Wódz: przyzwanie zjada żar z paska, gobliny uciekają, ataki z ostrzeżeniem (cios w ziemię, rzut tasakiem, okrzyk),
 ## po śmierci skrzynia, zwycięstwo zanosi żar do Watry i odblokowuje poziom; śmierć i ucieczka gaszą żar.
 ## Baza: dotknięcie Watry otwiera wybór poziomu lochu.
+## Łucznik (od 2. poziomu): trzyma dystans, przed strzałem linia celu, strzała trafia stojącą postać, da się ją wyminąć,
+## trafienie mieczem przerywa naciąganie, limit łuczników naraz.
 
 var _failed := 0
 
@@ -37,6 +39,7 @@ func _run() -> void:
 	await _test_base()
 	await _test_horde()
 	await _test_chief()
+	await _test_archer()
 	DirAccess.remove_absolute(root.get_node("Game").settings_path)
 	DirAccess.remove_absolute(root.get_node("Game").save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
@@ -223,6 +226,84 @@ func _test_horde() -> void:
 	_check(game.embers == 0, "martwy Wojciech nie donosi żaru do Watry (%d)" % game.embers)
 	_check(not arena.summon_button.visible, "po śmierci bez przycisku przyzwania")
 	paused = false
+	arena.queue_free()
+	await process_frame
+
+
+func _arrows(arena: Node) -> Array:
+	var out: Array = []
+	for n in arena.get_node("World").get_children():
+		if n is ProtoArrow and not n._done:
+			out.append(n)
+	return out
+
+
+func _test_archer() -> void:
+	var game: Node = root.get_node("Game")
+	_check(DungeonLevels.archer_share(1) == 0.0 and DungeonLevels.archer_share(2) > 0.0
+		and DungeonLevels.archer_share(99) == DungeonLevels.ARCHER_SHARE_MAX, "łucznicy od 2. poziomu, udział rośnie do sufitu")
+	game.best_level = 2
+	game.dungeon_level = 2
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	var horde: ProtoHorde = arena.horde_spawner
+	horde.running = false
+	arena.weapon.auto_attack = false
+	var a: ProtoGoblinArcher = horde.spawn_at(hero.position + Vector2(100, 0), true)
+	await process_frame
+	_check(a.hp == roundi(ProtoGoblinArcher.ARCHER_HP * horde.power) and a.hp < roundi(ProtoGoblin.MAX_HP * horde.power), "łucznik słabszy od goblina (%d)" % a.hp)
+	# z daleka podchodzi, z bliska się cofa
+	a._cooldown = 99.0
+	a.position = hero.position + Vector2(170, 0)
+	await _wait(0.5)
+	_check(a.position.x - hero.position.x < 165.0, "łucznik z daleka podchodzi")
+	a.position = hero.position + Vector2(30, 0)
+	await _wait(0.5)
+	_check(a.position.x - hero.position.x > 40.0, "za blisko - łucznik się cofa")
+	# strzał w stojącą postać: linia celu, strzała, obrażenia
+	a.position = hero.position + Vector2(100, 0)
+	hero.hp = hero.max_hp
+	a._cooldown = 0.0
+	await _wait(0.15)
+	_check(a.aiming() and a._aim_line.visible, "łucznik naciąga łuk - na ziemi linia celu")
+	await _wait(ProtoGoblinArcher.RELEASE_TIME + 0.1)
+	_check(_arrows(arena).size() == 1, "strzała wylatuje")
+	a._cooldown = 99.0
+	await _wait(1.2)
+	_check(hero.hp < hero.max_hp, "strzała trafia stojącą postać (zdrowie %d)" % hero.hp)
+	# zejście z linii po zablokowaniu celu ratuje
+	await _wait(0.4)
+	hero.hp = hero.max_hp
+	a.position = hero.position + Vector2(100, 0)
+	a._cooldown = 0.0
+	await _wait(ProtoGoblinArcher.RELEASE_TIME - ProtoGoblinArcher.AIM_LOCK + 0.1)
+	_check(a.aim_locked(), "cel zablokowany przed strzałem")
+	var aim := a.aim
+	hero.position += Vector2(0, 30)
+	await _wait(0.3)
+	_check(a.aim == aim, "po zablokowaniu linia nie podąża za postacią")
+	a._cooldown = 99.0
+	await _wait(1.6)
+	_check(hero.hp == hero.max_hp, "zejście z linii - strzała chybia")
+	# cięcie w trakcie naciągania przerywa strzał
+	for n in _arrows(arena):
+		n.queue_free()
+	await process_frame
+	a.position = hero.position + Vector2(100, 0)
+	a._cooldown = 0.0
+	await _wait(0.2)
+	a.take_damage(1, hero.global_position)
+	await _wait(ProtoGoblinArcher.RELEASE_TIME + 0.2)
+	_check(_arrows(arena).is_empty(), "trafienie mieczem przerywa naciąganie")
+	# limit łuczników naraz
+	horde.level = 50
+	for i in 40:
+		horde.spawn()
+	_check(horde.archers() <= ProtoHorde.MAX_ARCHERS and horde.archers() >= 2, "najwyżej %d łuczników naraz (%d)" % [ProtoHorde.MAX_ARCHERS, horde.archers()])
+	horde.scatter()
+	_check(horde.archers() == 0, "łucznicy też uciekają przed Wodzem")
 	arena.queue_free()
 	await process_frame
 

@@ -1,0 +1,355 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: goblin_archer
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.68, 0]}
+palette: "watra"
+size: 48
+extends: humanoid   # its skeleton, body, kits and animations: write here only what differs
+# `spritekiln spec outline` lists what comes from the base; `spritekiln spec show <path>` prints its lines,
+# `--resolved` the result. Keys given here merge into the base's (parts.belt.prims replaces its prims);
+# `remove: [parts.cape, use.sword]` drops a part or a kit of the base.
+
+# Goblin łucznik Hordy: wróg z dystansu. To samo ciało co goblin (art/specs/characters/goblin/goblin.yaml):
+# niski, przygarbiony, wielka łysa głowa z długimi uszami, świecące oczy, tunika z paskiem, bose stopy.
+# Różnice: krótki łuk refleksyjny w LEWEJ dłoni (kit bow na wrist_L), kołczan na plecach z lotkami nad
+# prawym ramieniem, bordowa opaska na głowie (akcent odróżniający go od goblina z tasakiem).
+brief:
+  summary: >
+    goblin archer of the Horde: the melee goblin's body (short, hunched, big bald head, long ears, glowing
+    amber eyes, torn leather tunic, bare feet), with a short dark recurve bow in the left hand, a leather
+    quiver on the back with pale fletched arrow ends over the right shoulder and a maroon cloth headband
+  head: >
+    the goblin's head unchanged (bald, long pointed ears, two glowing amber eyes, no nose or mouth) plus a
+    maroon headband round the skull above the eyes, its two short knotted tails hanging at the back of the
+    head (they read in n and the back diagonals); the band stays inside the skull outline, so the ears remain
+    the widest shape
+  must_keep:
+    - the ears: still the widest shape of the silhouette, readable in s, n and diagonals
+    - green skin, glowing amber eyes, the hunch (as the goblin)
+    - the bow in the left hand and the fletchings over the right shoulder (the archer reads in a crowd)
+    - the maroon headband (the only colour accent that differs from the melee goblin)
+  simplify:
+    - the arrows in the quiver are three shafts with a pale fletch blob each, no nocks
+    - the quiver strap is painted on the tunic, not modelled
+    - the drawn string is two straight segments to the right fist
+  decisions:
+    - accent: a maroon headband rather than a cap or a cooler tunic (keeps the bald-goblin read and the ears)
+    - fletchings pale bone, not red: they must pop against the brown quiver and the green head from n
+    - the bow is darker, cooler wood than Ostoja's (a Horde weapon); the string is pale bone
+    - in the attack the left forearm points forward, so the arm IK switches its up vector (`arm_up`) to keep
+      the bow upright; the kit's string is hidden while the custom drawn string (`draw`) shows
+    - the arrow socket `arrow` is at the bow grip, where the game spawns the projectile
+
+ramps:
+  # olive / lime skin, the deep tones cooled toward blue-green (the Horde)
+  goblin_skin: ["#0d120b", "#2e3d1d", "#526628", "#7c8e34", "#a3b04a", "#c4cb76"]
+  # worn brown leather, a little colder and darker than Ostoja's leather
+  tunic:  ["#0e0a09", "#36231b", "#573827", "#785234", "#93704a", "#ab8d66"]
+  strap:  ["#0b0808", "#261a16", "#3f2c24", "#5b4234", "#715644"]
+  # the archer's accent: a maroon cloth headband
+  band:   ["#120509", "#3d1018", "#651c26", "#8a2c34", "#a8443f"]
+  # dark, cool bow wood (a Horde weapon, darker than Ostoja's wood)
+  bow_wood: ["#100907", "#3a2416", "#5e3c22", "#83592f", "#a57a44", "#bf9a62"]
+  # pale feathers of the fletchings
+  fletch: ["#16120f", "#4a4038", "#7c7064", "#ab9f8e", "#d4cbb8", "#ece6d6"]
+  iron:   ["#0d0c0d", "#3d3838", "#625b58", "#8a8380", "#aca7a2", "#d0ccc6"]
+
+materials:
+  skin:    {ramp: goblin_skin, gamma: 0.8, finish: soft}
+  tunic:   {ramp: tunic, finish: soft}
+  strap:   {ramp: strap}
+  band:    {ramp: band, finish: matte}
+  bow_wood: {ramp: bow_wood, finish: matte, bands: [2, 5]}
+  fletch:  {ramp: fletch, finish: matte, bands: [2, 5]}
+  iron:    {ramp: iron, finish: metal}
+  eye:     {ramp: eye, emissive: true, band: 2, outline: false, glow: {color: "#ff9a2a", mix: 0.2, radius: 1}}
+
+remove: [use.hair, use.sword]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 0.95, jaw: 0.2, chin: 0.8, nose: 0, ears: 0}}
+  # a short recurve bow (about 13 px tip to tip) in the left fist; its lean, turn and cheat are channels so the
+  # attack can bring it upright in front with the curve seen from the side
+  - {kit: bow, as: bow, at: wrist_L,
+     with: {length: 0.74, depth: 0.11, thick: 0.06, tilt: bow_tilt, roll: bow_roll, pitch: 0, cheat: bow_cheat},
+     materials: {wood: bow_wood, leather: strap}}
+
+shadow: {rx: 8, ry: 3, alpha: 120}
+
+channels:
+  hand_L: [0.27, 0.06, 0.08]
+  hand_R: [0.27, 0.07, 0.16]
+  foot_L: [0.10, 0, 0.02]
+  bow_tilt: -0.9    # bow lean about the hand's x (kit param)
+  bow_roll: 0.8     # bow turn about its grip (0: curve to the front, -1.5708: curve forward-back)
+  bow_cheat: 1      # the kit's per-direction profile cheat (0 in the draw: the bow stays side-on)
+  arm_up: [0, 0, 1] # the arm IK's up vector: [0, 1, 0] when the forearm points forward (the draw)
+  draw: 0           # 1: the string is pulled to the right fist (drawn-string part), the kit's string hidden
+  nocked: 0         # 1: an arrow lies on the bow from the right fist through the grip
+
+bones:
+  # hip height 0.55 (human 0.84); the +0.15 is the goblin's permanent hunch
+  torso_rot: {parent: root, pos: "[0, 0.55 + bob, 0]", rot: "[lean + 0.15, twist, roll]"}
+  headbase:  {parent: pelvis, pos: [0, 0.46, 0.06], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5 - 0.08, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.4}
+  shoulder_L: {parent: pelvis, pos: [0.18, 0.36, 0.0]}
+  coatbase:   {parent: pelvis, rot: "[-coat*0.25 - 0.12, 0, 0]"}   # the skirt hangs straight despite the hunch
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  # the quiver: on the back, leaning so its mouth sits behind the right shoulder (x < 0 is the right side)
+  quiver:     {parent: pelvis, pos: [-0.05, 0.24, -0.16], rot: [-0.3, 0, 0.75]}
+
+ik:
+  arm_L: {lengths: [0.19, 0.18], up: arm_up}
+  leg_L: {lengths: [0.27, 0.26]}
+
+parts:
+  torso:
+    material: tunic
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.03, 0.01], r: [0.14, 0.10, 0.12]}
+      - ellipsoid: {c: [0, 0.17, 0.01], r: [0.13, 0.11, 0.09]}
+      - ellipsoid: {c: [0, 0.31, 0.0], r: [0.17, 0.10, 0.10]}
+    paint:
+      - material: strap   # the quiver strap: from the right shoulder across the chest to the left hip
+        prims:
+          - box: {c: [0.0, 0.22, 0.0], half: [0.03, 0.22, 0.3], rot: [0, 0, 0.75]}
+  coat:            # short tunic skirt with a torn hem (notches cut in)
+    material: tunic
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.0, 0.0], b: [0, -0.06, -0.01], r: [0.15, 0.17]}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.15}                                    # straight hem
+      - box: {c: [0.07, -0.16, 0.17], half: [0.03, 0.07, 0.08], rot: [0, 0, 0.3]}     # tears
+      - box: {c: [-0.10, -0.16, 0.14], half: [0.03, 0.07, 0.08], rot: [0, 0, -0.3]}
+      - box: {c: [0.17, -0.17, -0.05], half: [0.08, 0.06, 0.03], rot: [0.3, 0, 0]}
+      - box: {c: [-0.03, -0.16, -0.19], half: [0.03, 0.06, 0.08], rot: [0, 0, 0.3]}
+      - box: {c: [-0.17, -0.17, -0.08], half: [0.08, 0.05, 0.03], rot: [-0.3, 0, 0]}
+  belt:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.065, 0.005], b: [0, 0.125, 0.005], r: 0.172}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.36, 0], b: [0, 0.46, 0.05], r: [0.06, 0.05]}
+  eye_L:           # a small glowing eye on the face plane's side slope
+    material: eye
+    space: head
+    prims:
+      - extrude: {c: [0.075, 0.13, 0.112], rot: [0, 0.65, 0], depth: 0.04, profile: {rect: [0.018, 0.02], round: 0.006}}
+  ear_L:           # long pointed ear sweeping out, a little up and back
+    material: skin
+    space: head
+    blend: 0.02
+    prims:
+      # profile cheat: the ear nearer the camera (yaw*sx about 90) sweeps back past the skull, the far one
+      # tucks in and down so it does not stand up like an antenna
+      - cone: {a: [0.11, 0.13, -0.03], r: [0.048, 0.012],
+               b: "[0.34 - 0.13*pulse(yaw*sx, 90, 60) - 0.10*pulse(yaw*sx, -90, 60),
+                    0.18 + 0.02*pulse(yaw*sx, 90, 60) - 0.06*pulse(yaw*sx, -90, 60),
+                    -0.05 - 0.20*pulse(yaw*sx, 90, 60) - 0.05*pulse(yaw*sx, -90, 60)]"}
+  headband:        # maroon band round the skull above the eyes, a little lower at the back; two tails behind
+    material: band
+    space: head
+    blend: 0.015
+    prims:
+      - torus: {c: [0, 0.205, -0.02], R: 0.128, r: 0.026, rot: [-0.15, 0, 0]}
+      - cone: {a: [0, 0.2, -0.15], b: [0.04, 0.10, -0.19], r: [0.026, 0.02]}
+      - cone: {a: [0, 0.2, -0.15], b: [-0.03, 0.09, -0.18], r: [0.026, 0.018]}
+  arm_L:
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.05}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.045, 0.038]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.038, 0.035]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.03], r: 0.05}
+  leg_L:
+    material: skin
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.06, 0.042]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.042, 0.036]}
+  boot_L:          # a bare foot: heel and a long flat sole
+    material: skin
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.07, 0], b: [0, -0.02, 0.0], r: [0.04, 0.045]}
+      - ellipsoid: {c: [0, -0.04, 0.06], r: [0.055, 0.035, 0.10]}
+  quiver:          # a leather tube on the back, open at the top
+    material: strap
+    space: quiver
+    blend: 0.02
+    prims:
+      - cone: {a: [0, -0.14, 0], b: [0, 0.18, 0], r: [0.05, 0.062]}
+  quiver_rim:      # a maroon cloth wrap round the quiver's mouth (the accent again, seen from n)
+    material: band
+    space: quiver
+    prims:
+      - torus: {c: [0, 0.18, 0], R: 0.062, r: 0.02}
+  quiver_arrows:   # three shafts sticking out of the quiver
+    material: bow_wood
+    space: quiver
+    min_cover: 2
+    prims:
+      - cylinder: {a: [0.0, 0.1, 0.0], b: [0.0, 0.31, 0.01], r: 0.015}
+      - cylinder: {a: [0.028, 0.1, 0.0], b: [0.045, 0.28, -0.015], r: 0.015}
+      - cylinder: {a: [-0.028, 0.1, 0.0], b: [-0.05, 0.29, 0.02], r: 0.015}
+  fletchings:      # pale feather blobs at the shaft ends: the archer's read from n and the diagonals
+    material: fletch
+    space: quiver
+    priority: 2
+    min_cover: 2
+    prims:
+      - ellipsoid: {c: [0.0, 0.33, 0.01], r: [0.036, 0.06, 0.028]}
+      - ellipsoid: {c: [0.05, 0.30, -0.015], r: [0.034, 0.055, 0.026], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [-0.055, 0.31, 0.02], r: [0.034, 0.055, 0.026], rot: [0, 0, 0.3]}
+  bow_string: {when: "draw < 0.5"}
+  drawn_string:    # the string pulled to the right fist: two straight segments from the bow tips
+    material: string
+    when: "draw > 0.5"
+    priority: 2
+    min_cover: 1
+    line: false
+    prims:
+      - cylinder: {a: {at: bow_stave, off: [-0.11, 0.36, 0]}, b: "@wrist_R", r: 0.014}
+      - cylinder: {a: {at: bow_stave, off: [-0.11, -0.36, 0]}, b: "@wrist_R", r: 0.014}
+  arrow_shaft:     # the nocked arrow: from the right fist through the bow grip and beyond
+    material: bow_wood
+    when: "nocked > 0.5"
+    priority: 2
+    min_cover: 1
+    prims:
+      - cylinder: {a: {between: ["@wrist_R", "@bow"], t: -0.05}, b: {between: ["@wrist_R", "@bow"], t: 1.3}, r: 0.016}
+  arrow_head:
+    material: iron
+    when: "nocked > 0.5"
+    priority: 3
+    min_cover: 1
+    prims:
+      - cone: {a: {between: ["@wrist_R", "@bow"], t: 1.28}, b: {between: ["@wrist_R", "@bow"], t: 1.42}, r: [0.03, 0.006]}
+  arrow_fletch:
+    material: fletch
+    when: "nocked > 0.5"
+    priority: 2
+    min_cover: 1
+    prims:
+      - cone: {a: {between: ["@wrist_R", "@bow"], t: 0.02}, b: {between: ["@wrist_R", "@bow"], t: 0.2}, r: [0.026, 0.018]}
+
+# the game's contract: the arrow leaves 630 ms into the 930 ms shot (after a 280 ms held full draw)
+timing: {attack: {release: 630ms, total: 930ms}}
+
+sockets:
+  arrow: {bone: bow, offset: [0, 0, 0.03]}   # the bow grip: where the shot arrow (projectile) spawns
+
+animations:
+  idle:
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: [0.27, 0.06, 0.08]   # still in the torso: the thin bow blinks if the fist bobs on its own
+      hand_R: "[0.27, 0.07 + 0.015*sin(p - 0.6), 0.16]"
+      coat: "0.15*sin(p - 1.0)"
+  # the goblin's trot (matched to 42 px/s): the left arm carrying the bow swings less than the free right arm
+  walk:
+    frames: 8
+    ms: 90
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.12
+      bob: "-0.028*cos(2*p) + 0.005"
+      squash: "1 - 0.02*cos(2*p)"
+      twist: "0.09*cos(p)"
+      head_yaw: "-0.06*cos(p)"
+      head_pitch: "0.04*cos(2*p - 0.6)"
+      foot_L: "[0.11, 0.08*sin(pi*clamp((p/tau - 0.375)/0.625, 0, 1)), 0.03 + 0.277 - 0.554*clamp(p/tau/0.375, 0, 1) + 0.554*clamp((p/tau - 0.375)/0.625, 0, 1)**2*(3 - 2*clamp((p/tau - 0.375)/0.625, 0, 1))]"
+      foot_R: "[0.11, 0.08*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1)), 0.03 + 0.277 - 0.554*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.375, 0, 1) + 0.554*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1))]"
+      pitch_foot_L: "0.35*sin(pi*clamp((p/tau - 0.375)/0.625, 0, 1))"
+      pitch_foot_R: "0.35*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1))"
+      hand_L: "[0.24, 0.06 + 0.02*pos(cos(p)), 0.07 - 0.07*cos(p)]"
+      hand_R: "[0.28, 0.09 + 0.03*pos(-cos(p)), 0.15 + 0.10*cos(p)]"
+      bow_tilt: "-0.9 + 0.12*cos(p - 0.5)"
+      coat: "0.4*sin(2*p - 0.6)"
+  # draw and shoot forward: raise the bow, nock, draw to the cheek, hold the full draw (the readable aiming
+  # telegraph), release with a small recoil, recover
+  attack:
+    loop: false
+    keys:
+      # reach: the bow comes up, the right hand goes back over the shoulder to the quiver
+      - {ms: 120, event: windup, set: {twist: -0.15, lean: 0.05, bob: -0.01, squash: 0.98, coat: -0.1, head_pitch: -0.05,
+          hand_L: [0.24, 0.22, 0.18], bow_tilt: -0.45, bow_roll: -0.5, bow_cheat: 0.5, arm_up: [0, 0.6, 0.8],
+          hand_R: [0.12, 0.40, -0.10]}}
+      # nock: the bow up in front, canted outwards (arm_up) so its top limb shows beside the head in n; in s and
+      # n the stave turns part of its curve to the camera (an edge-on bow is a 1 px line there); in s (the most common
+      # facing: the player below) the bow also moves out to the side, so the bow and the string triangle show
+      - {ms: 110, set: {twist: "-0.3 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.02, coat: -0.15, head_pitch: 0.02,
+          hand_L: "[0.22 + 0.10*pulse(yaw, -15, 80), 0.38, 0.27 - 0.05*pulse(yaw, -15, 80)]", bow_tilt: 0, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [-0.10, 0.37, 0.17], nocked: 1, draw: 1}}
+      # drawing
+      - {ms: 120, set: {twist: "-0.35 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.04, squash: 1.01, coat: -0.2, head_pitch: 0.04,
+          hand_L: "[0.22 + 0.10*pulse(yaw, -15, 80), 0.40, 0.29 - 0.05*pulse(yaw, -15, 80)]", bow_tilt: 0, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [-0.03, 0.41, 0.08], nocked: 1, draw: 1}}
+      # full draw held: the aiming telegraph (string at the cheek)
+      - {ms: 280, set: {twist: "-0.38 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.05, squash: 1.02, coat: -0.2, head_pitch: 0.05,
+          hand_L: "[0.22 + 0.10*pulse(yaw, -15, 80), 0.41, 0.30 - 0.05*pulse(yaw, -15, 80)]", bow_tilt: 0, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [0.04, 0.44, -0.04], nocked: 1, draw: 1}}
+      # release: the arrow is gone, the string snaps straight, the drawing hand flies back, the bow kicks
+      - {ms: 70, event: release, set: {root: [0, 0, -0.03], twist: "-0.4 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.1, squash: 0.98, coat: 0.1, head_pitch: 0.02,
+          hand_L: "[0.22 + 0.10*pulse(yaw, -15, 80), 0.43, 0.26 - 0.05*pulse(yaw, -15, 80)]", bow_tilt: -0.2, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [0.14, 0.46, -0.13]}}
+      - {ms: 100, set: {root: [0, 0, -0.02], twist: -0.25, lean: 0.0, coat: 0.2,
+          hand_L: [0.22, 0.30, 0.24], bow_tilt: -0.3, bow_roll: -1.2, bow_cheat: 0, arm_up: [0, 1, 0],
+          hand_R: [0.20, 0.28, -0.06]}}
+      - {ms: 130, set: {twist: -0.05, lean: 0.03, coat: 0.05,
+          hand_L: [0.23, 0.08, 0.09], bow_tilt: -0.75, bow_roll: 0.4,
+          hand_R: [0.26, 0.08, 0.15]}}
+  # hit reaction: body and head snap back, then return
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.3, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5,
+          hand_L: [0.30, 0.16, -0.04], hand_R: [0.33, 0.18, 0.04], bow_tilt: -1.2}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.15, bob: -0.01, squash: 0.98, head_pitch: -0.12, coat: -0.2,
+          hand_L: [0.27, 0.09, 0.02], hand_R: [0.30, 0.12, 0.10], bow_tilt: -1.05}}
+      - {ms: 70, set: {root: [0, 0, -0.01], lean: 0.0, head_pitch: 0.02, coat: 0.1,
+          hand_L: [0.24, 0.05, 0.05], hand_R: [0.28, 0.08, 0.15]}}
+  # death: struck back, staggers a step, knees buckle, falls on its back, the bow flung out beside it
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: -0.35, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5,
+          hand_L: [0.30, 0.18, -0.02], hand_R: [0.33, 0.20, 0.04], bow_tilt: -1.2}}
+      - {ms: 110, set: {root: [0, 0, -0.08], twist: 0.2, roll: 0.08, lean: -0.3, bob: -0.04, head_pitch: -0.2,
+          coat: -0.3, hand_L: [0.32, 0.12, 0.0], hand_R: [0.34, 0.14, 0.0], bow_tilt: -1.3,
+          foot_L: [0.11, 0, 0.06], foot_R: [0.12, 0.05, -0.14]}}
+      - {ms: 120, set: {root: [0, 0, -0.08], twist: 0.15, roll: 0.1, lean: -0.15, bob: -0.14, squash: 0.94,
+          head_pitch: 0.15, coat: 0.2, hand_L: [0.26, -0.02, 0.10], hand_R: [0.28, 0.0, 0.12], bow_tilt: -0.6,
+          foot_L: [0.11, 0, 0.08], foot_R: [0.12, 0, -0.10]}}
+      - {ms: 110, set: {root: [0, 0, -0.08], twist: 0.1, roll: 0.06, lean: -0.75, bob: -0.24, head_pitch: -0.2,
+          coat: -0.4, hand_L: [0.34, 0.15, 0.10], hand_R: [0.36, 0.18, 0.12], bow_tilt: -1.4, bow_roll: 1.2,
+          foot_L: [0.11, 0.04, 0.20], foot_R: [0.12, 0.02, 0.12]}}
+      - {ms: 100, set: {root: [0, 0, 0.0], twist: "0.3*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.3, bob: -0.36, head_pitch: -0.45,
+          coat: -0.5, hand_L: [0.40, 0.12, 0.12], hand_R: [0.38, 0.14, 0.12], bow_tilt: -1.8, bow_roll: 1.5,
+          foot_L: [0.11, 0.10, 0.36], foot_R: [0.12, 0.06, 0.30]}}
+      - {ms: 110, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.75, bob: -0.43, squash: 0.92, head_pitch: -0.75,
+          coat: -0.6, hand_L: [0.42, 0.06, -0.08], hand_R: [0.40, 0.06, -0.08], bow_tilt: -2.2, bow_roll: 1.57,
+          foot_L: [0.12, 0.06, 0.44], foot_R: [0.13, 0.03, 0.40]}}
+      - {ms: 120, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.68, bob: -0.41, squash: 0.97, head_pitch: -0.65,
+          coat: -0.5, hand_L: [0.43, 0.06, -0.05], hand_R: [0.40, 0.06, -0.06], bow_tilt: -2.2, bow_roll: 1.57,
+          foot_L: [0.12, 0.02, 0.45], foot_R: [0.13, 0, 0.42]}}
+      - {ms: 500, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.72, bob: -0.43, head_pitch: -0.7,
+          coat: -0.6, hand_L: [0.43, 0.06, -0.08], hand_R: [0.40, 0.06, -0.08], bow_tilt: -2.2, bow_roll: 1.57,
+          foot_L: [0.12, 0, 0.46], foot_R: [0.13, 0, 0.44]}}
