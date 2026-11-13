@@ -1,9 +1,10 @@
 ﻿extends SceneTree
-## Test umiejętności miecza: kupno za złoto (poziom, cena), miejsca (zamiana, Mgnienie nie pod „Atak”, zablokowane
+## Test umiejętności miecza: odblokowanie mistrzostwem broni (progi, wolne miejsca, napis), przejście starego zapisu
+## (zwrot złota i żaru), miejsca (zamiana, Mgnienie nie pod „Atak”, zablokowane
 ## miejsca), zapis, działanie w walce (Młynek, Rzut mieczem, Rozłupanie Ziemi z ogłuszeniem, Mgnienie), mana
 ## i odnowienie, zwykły cios przy braku many pod dużym przyciskiem, auto atak z umiejętnością, przyciski walki
-## (ikony, odnowienie, stuknięcie), kamień run w bazie i okno umiejętności (kupno, przypisywanie, przeciąganie,
-## pola 44 px, „wstecz”), poziomy umiejętności (ulepszanie za złoto, limit z poziomu postaci, zapis, obrażenia,
+## (ikony, odnowienie, stuknięcie), kamień run w bazie i okno umiejętności (mistrzostwo, przypisywanie, przeciąganie,
+## pola 44 px, „wstecz”), poziomy umiejętności (ulepszanie za żar, limit z mistrzostwa, zapis, obrażenia,
 ## mana, odnowienie, obszar i nowe działania z 5. i 10. poziomu, przycisk „Ulepsz” w oknie).
 
 var _failed := 0
@@ -29,6 +30,7 @@ func _run() -> void:
 	DirAccess.remove_absolute(game.save_path)
 	game.load_game()
 	_test_game(game)
+	_test_migration(game)
 	await _test_levels(game)
 	await _test_unique(game)
 	await _test_combat(game)
@@ -43,49 +45,83 @@ func _run() -> void:
 func _test_game(game: Node) -> void:
 	_check(game.skills_owned == ["strike"] and game.skill_slots == ["strike", "", "", "", ""] and game.main_skill() == "strike",
 			"na start tylko zwykły cios pod „Atak”")
-	game.gold = 5000
-	_check(not game.buy_skill("whirl"), "Młynka nie kupi się przed 3. poziomem")
+	_check(game.mastery_level() == 1 and game.weapon == "sword" and Skills.unlocked_at("sword", 1) == ["strike"],
+			"na start mistrzostwo miecza 1")
+	var unlocked: Array = []
+	game.skill_unlocked.connect(func(id: String) -> void: unlocked.append(id))
 	game.hero_level = 3
-	_check(game.buy_skill("whirl") and game.gold == 4900 and game.skill_slots[1] == "whirl", "Młynek za 100 złota trafia w 1. miejsce")
-	_check(not game.buy_skill("whirl"), "drugi raz się nie kupi")
+	var need: int = Weapons.xp_to_next(1) + Weapons.xp_to_next(2)
+	_check(game.add_mastery(need - 1) == 1 and game.mastery_level() == 2 and not game.skills_owned.has("whirl"),
+			"mistrzostwo 2 - Młynka jeszcze nie ma")
+	_check(game.add_mastery(1) == 1 and game.mastery_level() == 3 and game.skills_owned.has("whirl")
+			and game.skill_slots[1] == "whirl" and unlocked == ["whirl"], "mistrzostwo 3 odblokowuje Młynek w 1. miejscu (napis)")
+	_check(game.gold == 0, "odblokowanie nic nie kosztuje")
 	_check(not game.assign_skill("whirl", 2), "zablokowane miejsce nic nie przyjmuje")
 	_check(game.assign_skill("whirl", 0) and game.skill_slots == ["whirl", "strike", "", "", ""] and game.main_skill() == "whirl",
 			"Młynek pod „Atak”, zwykły cios zamienia się z nim miejscami")
 	game.hero_level = 15
-	game.gold = 0
-	_check(not game.buy_skill("blink"), "bez złota nie kupi się")
-	game.gold = 3000
-	_check(game.buy_skill("blink") and game.gold == 1500 and game.skill_slots[2] == "blink", "Mgnienie za 1500 w wolne miejsce")
+	game.mastery["sword"] = 14
+	game.mastery_xp["sword"] = 0
+	game.add_mastery(Weapons.xp_to_next(14))
+	_check(unlocked == ["whirl", "throw", "slam", "blink"] and game.skill_slots == ["whirl", "strike", "throw", "slam", "blink"],
+			"skok na mistrzostwo 15: reszta umiejętności w wolnych miejscach")
+	game.skill_slots = ["whirl", "strike", "blink", "", ""]
+	game.skills_owned = ["strike", "whirl", "blink"]
+	game.mastery["sword"] = 2
 	_check(not game.assign_skill("blink", 0) and game.skill_slots[0] == "whirl", "Mgnienie nie może stać pod „Atak”")
 	_check(game.assign_skill("whirl", 2) and game.skill_slots[0] == "" and game.skill_slots[2] == "whirl",
 			"zamiana z Mgnieniem zostawia „Atak” pusty")
 	_check(game.main_skill() == "strike", "pusty „Atak” to zwykły cios")
+	game.save_game()
 	game.load_game()
-	_check(game.skills_owned == ["strike", "whirl", "blink"] and game.skill_slots == ["", "strike", "whirl", "", ""],
-			"umiejętności i miejsca w zapisie")
+	_check(game.skills_owned == ["strike", "whirl", "blink"] and game.skill_slots == ["", "strike", "whirl", "", ""]
+			and game.mastery_level() == 2, "umiejętności, miejsca i mistrzostwo w zapisie")
 	game.clear_skill_slot(1)
 	_check(game.skill_slots[1] == "", "zdjęcie z miejsca")
 	game.reset_hero()
-	_check(game.skills_owned == ["strike"] and game.skill_slots == ["strike", "", "", "", ""], "postać od nowa zeruje umiejętności")
+	_check(game.skills_owned == ["strike"] and game.skill_slots == ["strike", "", "", "", ""] and game.mastery_level() == 1,
+			"postać od nowa zeruje umiejętności i mistrzostwo")
+
+
+## Stary zapis (sprzed mistrzostwa): mistrzostwo = poziom postaci, kupione zostają, złoto i żar wracają.
+func _test_migration(game: Node) -> void:
+	var f := FileAccess.open(game.save_path, FileAccess.WRITE)
+	f.store_string(JSON.stringify({"hero_level": 7, "gold": 10, "embers": 5, "skills_owned": ["strike", "whirl"],
+			"skill_slots": ["strike", "whirl", "", "", ""], "skill_levels": {"strike": 3, "whirl": 2},
+			"upgrades": {"xp": 2}}))
+	f.close()
+	game.load_game()
+	# złoto: Młynek 100 + poziomy zwykłego ciosu 40 + 80 + Młynka 60; żar: ulepszenie 50 + 120
+	_check(game.mastery_level() == 7 and game.gold == 10 + 100 + 40 + 80 + 60 and game.embers == 5 + 50 + 120,
+			"stary zapis: mistrzostwo 7, zwrot złota (%d) i żaru (%d)" % [game.gold, game.embers])
+	_check(game.skills_owned == ["strike", "whirl", "throw"] and game.skill_level("strike") == 3 and game.upgrade_steps("xp") == 2
+			and game.skill_slots == ["strike", "whirl", "throw", "", ""],
+			"kupione i poziomy zostają, Rzut mieczem (mistrz. 6) odblokowany")
+	game.save_game()
+	game.load_game()
+	_check(game.gold == 290 and game.embers == 175, "zwrot tylko raz")
+	game.reset_hero()
 
 
 func _test_levels(game: Node) -> void:
 	game.reset_hero()
-	_check(game.skill_level("strike") == 1 and game.skill_upgrade_problem("whirl") == "owned", "na start 1. poziom, niekupionej się nie ulepszy")
-	_check(game.skill_upgrade_problem("strike") == "hero" and Skills.level_cap(1) == 1 and Skills.level_cap(4) == 2
-			and Skills.level_cap(19) == 10 and Skills.level_cap(50) == 10, "limit: połowa poziomu postaci w górę, najwyżej 10")
-	game.hero_level = 3
-	game.gold = 39
-	_check(game.skill_upgrade_problem("strike") == "gold", "bez złota się nie ulepszy")
-	game.gold = 1000
-	_check(game.upgrade_skill("strike") and game.skill_level("strike") == 2 and game.gold == 960, "zwykły cios na 2. poziom za 40 zł")
-	_check(game.skill_upgrade_problem("strike") == "hero" and not game.upgrade_skill("strike"), "3. poziom dopiero od 5. poziomu postaci")
+	_check(game.skill_level("strike") == 1 and game.skill_upgrade_problem("whirl") == "owned", "na start 1. poziom, nieodblokowanej się nie ulepszy")
+	_check(game.skill_upgrade_problem("strike") == "mastery" and Skills.level_cap(1) == 1 and Skills.level_cap(4) == 2
+			and Skills.level_cap(19) == 10 and Skills.level_cap(50) == 10, "limit: połowa mistrzostwa w górę, najwyżej 10")
+	game.hero_level = 20
+	game.mastery["sword"] = 3
+	game.embers = 39
+	_check(game.skill_upgrade_problem("strike") == "embers", "bez żaru się nie ulepszy (poziom postaci nie pomaga)")
+	game.embers = 1000
+	game.gold = 0
+	_check(game.upgrade_skill("strike") and game.skill_level("strike") == 2 and game.embers == 960, "zwykły cios na 2. poziom za 40 żaru")
+	_check(game.skill_upgrade_problem("strike") == "mastery" and not game.upgrade_skill("strike"), "3. poziom dopiero od 5. mistrzostwa")
 	_check(Skills.upgrade_price("strike", 2) == 80 and Skills.upgrade_price("blink", 9) == 1800 and Skills.upgrade_price("blink", 10) == 0,
 			"cena rośnie z poziomem, na 10. koniec")
 	game.load_game()
 	_check(game.skill_level("strike") == 2, "poziom w zapisie")
-	game.hero_level = 20
-	game.gold = 100000
+	game.mastery["sword"] = 20
+	game.embers = 100000
 	while game.upgrade_skill("strike"):
 		pass
 	_check(game.skill_level("strike") == 10 and game.skill_upgrade_problem("strike") == "max", "najwyżej 10. poziom")
@@ -279,7 +315,7 @@ func _dummy_hits(weapon: ProtoWeapon) -> int:
 func _test_combat(game: Node) -> void:
 	game.hero_level = 15
 	game.dev_skills()
-	_check(game.skills_owned.size() == Skills.ORDER.size(), "skrót deweloperski daje wszystkie umiejętności")
+	_check(game.skills_owned.size() == Skills.of_weapon("sword").size(), "skrót deweloperski daje wszystkie umiejętności broni")
 	game.save_game()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
 	root.add_child(arena)
@@ -411,7 +447,8 @@ func _test_combat(game: Node) -> void:
 
 func _test_window(game: Node) -> void:
 	game.hero_level = 6
-	game.gold = 1000
+	game.mastery["sword"] = 5
+	game.embers = 1000
 	game.save_game()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
 	root.add_child(arena)
@@ -433,16 +470,19 @@ func _test_window(game: Node) -> void:
 			"na 6. poziomie 2 małe miejsca, 3. od poz. 10")
 	var whirl_i := Skills.ORDER.find("whirl")
 	var slam_i := Skills.ORDER.find("slam")
-	_check(win.buy_buttons[slam_i].disabled and win.buy_buttons[slam_i].visible, "Rozłupanie Ziemi (poz. 10) - kupno nieaktywne")
+	_check(not win.buy_buttons[slam_i].visible and win.status_labels[slam_i].text == tr("od mistrz. %d") % 10,
+			"Rozłupanie Ziemi - bez kupna, próg mistrzostwa 10")
+	_check(win.mastery_label.text.contains(Weapons.name_of("sword")) and win.embers_label.text == "1000", "mistrzostwo i żar w oknie")
+	game.add_mastery(Weapons.xp_to_next(5))
+	await process_frame
+	_check(game.skills_owned.has("throw") and win.status_labels[Skills.ORDER.find("throw")].text.begins_with(tr("W miejscu %d") % 2),
+			"mistrzostwo 6 przy otwartym oknie: Rzut mieczem odblokowany i w miejscu")
 	win.buy_buttons[whirl_i].pressed.emit()
-	_check(not game.skills_owned.has("whirl") and win.buy_buttons[whirl_i].text == tr("Na pewno?"), "kupno pyta „Na pewno?”")
+	_check(game.skill_level("whirl") == 1 and win.buy_buttons[whirl_i].text == tr("Na pewno?"), "„Ulepsz” pyta „Na pewno?”")
 	win.buy_buttons[whirl_i].pressed.emit()
-	_check(game.skills_owned.has("whirl") and game.gold == 900 and win.buy_buttons[whirl_i].text == tr("Ulepsz"), "Młynek kupiony - przycisk „Ulepsz”")
-	win.buy_buttons[whirl_i].pressed.emit()
-	win.buy_buttons[whirl_i].pressed.emit()
-	_check(game.skill_level("whirl") == 2 and game.gold == 840 and win.name_labels[whirl_i].text.contains("2/10"),
-			"„Ulepsz” (dwa stuknięcia) - Młynek na 2. poziomie za 60 zł")
-	_check(win.buy_buttons[whirl_i].visible and not win.buy_buttons[whirl_i].disabled, "na 6. poziomie postaci można dalej (do 3.)")
+	_check(game.skill_level("whirl") == 2 and game.embers == 940 and win.name_labels[whirl_i].text.contains("2/10")
+			and win.embers_label.text == "940", "„Ulepsz” (dwa stuknięcia) - Młynek na 2. poziomie za 60 żaru")
+	_check(win.buy_buttons[whirl_i].visible and not win.buy_buttons[whirl_i].disabled, "przy mistrzostwie 6 można dalej (do 3.)")
 	# stuknij umiejętność, potem miejsce
 	win.list_icons[whirl_i].pressed.emit()
 	win.slots[0].pressed.emit()
@@ -453,7 +493,8 @@ func _test_window(game: Node) -> void:
 			"przeciąganie tylko na odblokowane miejsce")
 	win.slots[2]._drop_data(Vector2.ZERO, data)
 	_check(game.skill_slots[2] == "strike", "przeciągnięty zwykły cios w 2. miejscu")
-	_check(win.list_icons[Skills.ORDER.find("throw")]._get_drag_data(Vector2.ZERO) == null, "niekupionej nie da się przeciągnąć")
+	_check(win.list_icons[Skills.ORDER.find("throw")]._get_drag_data(Vector2.ZERO) != null
+			and win.list_icons[Skills.ORDER.find("slam")]._get_drag_data(Vector2.ZERO) == null, "nieodblokowanej nie da się przeciągnąć")
 	var back = win.slots[2]._get_drag_data(Vector2.ZERO)
 	win.list_icons[0]._drop_data(Vector2.ZERO, back)
 	_check(game.skill_slots[2] == "", "przeciągnięcie na listę zdejmuje z miejsca")

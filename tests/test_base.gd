@@ -1,5 +1,5 @@
 extends SceneTree
-## Test bazy: ulepszenia lochów za żar (ceny 50-1000, premie, zapis, działanie w lochu), kowal (przeróbka jednej premii,
+## Test bazy: ulepszenia lochów za złoto (ceny 50-1000, premie, zapis, działanie w lochu), kowal (przeróbka jednej premii,
 ## rosnąca cena, zapis przeróbek), kupiec (półka: klucz, dłuto, 2 różne kamienie 1. stopnia, 3 przedmioty; kupno
 ## do sakwy i torby, pełna torba, brak złota, nowa dostawa, zapis), baza (kowal i kupiec otwierają okna, pasek skrótów
 ## w dolnej połowie, min. 44 px, po drugiej stronie niż przyciski walki), kamera przy brzegu polany, okna (potwierdzenie drugim stuknięciem,
@@ -40,15 +40,16 @@ func _run() -> void:
 
 
 func _test_upgrades(game: Node) -> void:
-	_check(DungeonUpgrades.ORDER.size() == 4 and game.upgrade_price("monsters") == 50, "4 ulepszenia, pierwszy stopień za 50 żaru")
-	game.embers = 40
-	_check(not game.buy_upgrade("monsters") and game.embers == 40, "za mało żaru - nie kupi")
-	game.embers = 3000
+	_check(DungeonUpgrades.ORDER.size() == 4 and game.upgrade_price("monsters") == 50, "4 ulepszenia, pierwszy stopień za 50 złota")
+	game.gold = 40
+	game.embers = 5000
+	_check(not game.buy_upgrade("monsters") and game.gold == 40 and game.embers == 5000, "za mało złota - nie kupi (żar nie pomaga)")
+	game.gold = 3000
 	var prices: Array = []
 	while game.upgrade_price("monsters") > 0:
 		prices.append(game.upgrade_price("monsters"))
 		game.buy_upgrade("monsters")
-	_check(prices == [50, 120, 250, 500, 1000] and game.embers == 3000 - 1920, "stopnie za 50, 120, 250, 500, 1000 żaru")
+	_check(prices == [50, 120, 250, 500, 1000] and game.gold == 3000 - 1920 and game.embers == 5000, "stopnie za 50, 120, 250, 500, 1000 złota")
 	_check(not game.buy_upgrade("monsters") and game.upgrade_steps("monsters") == 5, "więcej niż 5 stopni się nie kupi")
 	_check(game.upgrade_bonus("monsters") == 50.0 and DungeonUpgrades.bonus("xp", 5) == 40.0
 			and DungeonUpgrades.bonus("loot", 5) == 50.0 and DungeonUpgrades.bonus("reach", 5) == 40.0,
@@ -56,8 +57,8 @@ func _test_upgrades(game: Node) -> void:
 	_check(DungeonUpgrades.text("monsters", 2) == "+20% potworów", "opis premii („%s”)" % DungeonUpgrades.text("monsters", 2))
 	game.buy_upgrade("reach")
 	game.load_game()
-	_check(game.upgrade_steps("monsters") == 5 and game.upgrade_steps("reach") == 1 and game.embers == 3000 - 1970,
-			"ulepszenia i żar zapisane")
+	_check(game.upgrade_steps("monsters") == 5 and game.upgrade_steps("reach") == 1 and game.gold == 3000 - 1970,
+			"ulepszenia i złoto zapisane")
 	_check(not game.buy_upgrade("nic"), "nieznane ulepszenie")
 
 
@@ -209,8 +210,8 @@ func _test_base(game: Node) -> void:
 	var b: Button = arena.upgrades_window.content.find_child("Buy_xp", true, false)
 	b.pressed.emit()
 	arena.upgrades_window.content.find_child("Buy_xp", true, false).pressed.emit()
-	_check(game.upgrade_steps("xp") == 1 and game.embers == 250 and arena.watra.embers_label.text == "Żar Watry: 250",
-			"kupno ulepszenia: żar z Watry, licznik pod ogniem (%d, %d, %s)" % [game.upgrade_steps("xp"), game.embers, arena.watra.embers_label.text])
+	_check(game.upgrade_steps("xp") == 1 and game.gold == 550 and game.embers == 300 and arena.watra.embers_label.text == "Żar Watry: 300",
+			"kupno ulepszenia za złoto, żar Watry nietknięty (%d, %d, %s)" % [game.upgrade_steps("xp"), game.gold, arena.watra.embers_label.text])
 	arena.upgrades_window.back_button.pressed.emit()
 	_check(arena.picker.visible and paused, "po zamknięciu ulepszeń wraca wybór poziomu")
 	arena.picker.close()

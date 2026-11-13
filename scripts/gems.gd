@@ -118,9 +118,9 @@ const JEWELS := {
 }
 const JEWEL_ORDER := ["ruby", "sapphire", "emerald", "onyx"]
 ## Grupa miejsca przedmiotu dla kamieni szlachetnych.
-const SLOT_GROUPS := {"weapon": "weapon", "helmet": "gear", "armor": "gear", "boots": "gear", "ring": "jewelry",
+const SLOT_GROUPS := {"earring": "weapon", "helmet": "gear", "armor": "gear", "boots": "gear", "ring": "jewelry",
 		"amulet": "jewelry"}
-const GROUP_NAMES := {"weapon": "broń", "gear": "strój", "jewelry": "biżuteria"}
+const GROUP_NAMES := {"weapon": "kolczyk", "gear": "strój", "jewelry": "biżuteria"}
 ## Wartość cechy kamienia szlachetnego na stopniach 0-4.
 const JEWEL_VALUES := {
 	"damage_pct": [4, 6, 9, 12, 16],
@@ -256,9 +256,9 @@ static func short_text(id: String, skill := "", slot := "") -> String:
 		return Lang.t(UNIQUE[unique_skill(id)].short)
 	if is_support(id):
 		var kind := kind_of(id)
-		if kind == "thrift" and skill == Skills.STRIKE:
+		if kind == "thrift" and Skills.is_basic(skill):
 			return Lang.t(SHORT_STRIKE.thrift) % THRIFT_STRIKE[grade_of(id)]
-		var text: String = SHORT_STRIKE[kind] if skill == Skills.STRIKE and SHORT_STRIKE.has(kind) else SHORT[kind]
+		var text: String = SHORT_STRIKE[kind] if Skills.is_basic(skill) and SHORT_STRIKE.has(kind) else SHORT[kind]
 		return Lang.t(text) % roundi(support_value(id)) if text.contains("%d") else Lang.t(text)
 	if is_jewel(id) and slot != "":
 		return jewel_text(id, slot)
@@ -280,7 +280,7 @@ static func support_text(id: String, skill := "") -> String:
 		return text if skill == "" or skill == own else Lang.t("Pasuje tylko do: %s.") % Skills.name_of(own)
 	var kind := kind_of(id)
 	var data: Dictionary = SUPPORT[kind]
-	if kind == "thrift" and skill == Skills.STRIKE:
+	if kind == "thrift" and Skills.is_basic(skill):
 		return Lang.t(data.skills.strike) % THRIFT_STRIKE[grade_of(id)]
 	var text: String = data.get("skills", {}).get(skill, data.text)
 	return Lang.t(text) % roundi(support_value(id))
@@ -350,7 +350,7 @@ static func roll_chest(level: int, chance_mult := 1.0) -> Array:
 	var step := CHEST_RARE_STEP * (level - MIN_LEVEL)
 	if level >= UNIQUE_MIN_LEVEL and randf() < minf(CHEST_UNIQUE.x + CHEST_RARE_STEP * (level - UNIQUE_MIN_LEVEL),
 			CHEST_UNIQUE.y) * chance_mult:
-		out.append(unique_of(Skills.ORDER.pick_random()))
+		out.append(unique_of(UNIQUE.keys().pick_random()))
 	if randf() < minf(CHEST_KEY.x + step, CHEST_KEY.y) * chance_mult:
 		out.append(KEY)
 	if randf() < minf(CHEST_CHISEL.x + step, CHEST_CHISEL.y) * chance_mult:

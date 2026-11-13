@@ -159,7 +159,7 @@ func _ready() -> void:
 	# przy brzegu postać chowała się pod kciukiem); za brzegiem widać ciemny pas (`_make_ground`)
 	hero.add_child(camera)
 
-	weapon = ProtoWeapon.new()
+	weapon = Weapons.make(Game.weapon)
 	weapon.name = "Weapon"
 	weapon.hero = hero
 	weapon.auto_attack = Game.auto_attack
@@ -239,6 +239,7 @@ func _ready() -> void:
 	_on_xp(Game.hero_level, Game.hero_xp, Game.xp_needed())
 	Game.xp_changed.connect(_on_xp)
 	Game.leveled_up.connect(_on_level_up)
+	Game.skill_unlocked.connect(func(id: String) -> void: hero.skill_unlocked(Skills.name_of(id)))
 	Game.inventory_changed.connect(_on_inventory)
 	actions.attack.pressed.connect(func() -> void: weapon.attack_held = true)
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
@@ -247,6 +248,7 @@ func _ready() -> void:
 		actions.skills[i].released.connect(func() -> void: weapon.flicker_held = false)
 	_apply_skills()
 	Game.skills_changed.connect(_apply_skills)
+	Game.weapon_changed.connect(_swap_weapon)
 
 
 ## Postać z Watry w bazie (arkusz 4x4 klatek, animowany pierwszy rząd) z rekwizytem obok; otwiera okno jak skrzynia.
@@ -594,13 +596,15 @@ func _bar_text(bar: ProgressBar, font_size: int) -> Label:
 	return l
 
 
-## Doświadczenie dla postaci (pokonany potwór) - liczone też do podsumowania wyprawy.
+## Doświadczenie dla postaci (pokonany potwór) - liczone też do podsumowania wyprawy - i tyle samo mistrzostwa
+## broni w ręku (Weapons).
 func _gain_xp(amount: int) -> void:
 	if hero.dead:
 		return
 	amount = roundi(amount * (1.0 + (gear.get("xp_pct", 0.0) + Game.upgrade_bonus("xp")) / 100.0))
 	run_xp += amount
 	Game.add_xp(amount)
+	Game.add_mastery(amount)
 
 
 ## Zmiana doświadczenia w Game: pasek i numer poziomu (na najwyższym poziomie pasek pełny).
@@ -639,9 +643,28 @@ func _apply_weapon() -> void:
 		horde_spawner.ember_mult = 1.0 + gear.get("ember_pct", 0.0) / 100.0
 
 
+## Zmiana broni w bazie (okno umiejętności): nowy węzeł broni w miejscu starego (te same cele - kukły), statystyki
+## i umiejętności nowej broni.
+func _swap_weapon() -> void:
+	if (weapon is ProtoGlaive) == (Game.weapon == Weapons.GLAIVE):
+		return
+	var old := weapon
+	weapon = Weapons.make(Game.weapon)
+	weapon.name = "Weapon"
+	weapon.hero = hero
+	weapon.auto_attack = old.auto_attack
+	weapon.targets = old.targets
+	weapon.position = old.position
+	old.get_parent().add_child(weapon)
+	old.get_parent().remove_child(old)
+	old.queue_free()
+	_apply_weapon()
+	_apply_skills()
+
+
 ## Umiejętności z miejsc na przyciski walki i do miecza (duży przycisk - umiejętność z auto atakiem).
 func _apply_skills() -> void:
-	actions.show_skills(Game.skill_slots)
+	actions.show_skills(Game.skill_slots, Skills.basic_of(Game.weapon))
 	weapon.main_skill = Game.main_skill()
 	weapon.skill_gems = Game.skill_gems
 	weapon.skill_levels = Game.skill_levels

@@ -2,7 +2,7 @@ class_name HeroStats
 extends Control
 ## Okno „Postać” (ikonka portretu w górnym rzędzie areny) na cały ekran, z zakładkami na dole pod kciukiem (ustalone z autorem 13.11.2026):
 ## u góry poziom, doświadczenie i złoto; „Ekwipunek” - 6 miejsc wokół Wojciecha (po lewej hełm, zbroja, buty; po prawej
-## broń, amulet, pierścień), pod postacią zdrowie, obrażenia i ochrona, niżej torba 5x4 i sprzedaż hurtem;
+## kolczyk, amulet, pierścień), pod postacią zdrowie, obrażenia i ochrona, niżej torba 5x4 i sprzedaż hurtem;
 ## „Statystyki” - pełna lista z poziomu i przedmiotów (zielona kolumna - co da następny awans); „Sakwa” - kamienie. Stuknięcie w przedmiot otwiera opis przy dolnej krawędzi ekranu (pod kciukiem): cechy, zmiana
 ## statystyk po założeniu i przyciski „Załóż” / „Zdejmij” i „Sprzedaj” (magiczny i rzadki - drugie stuknięcie „Na pewno?”).
 ## Pod torbą: „Sprzedaj zwykłe” i „Sprzedaj magiczne i rzadkie” (drugie stuknięcie potwierdza i pokazuje cenę)
@@ -25,7 +25,7 @@ const SLOT_SIZE := 52.0
 const BAG_COLUMNS := 5
 ## Miejsca ekwipunku po lewej i po prawej stronie postaci.
 const LEFT_SLOTS := ["helmet", "armor", "boots"]
-const RIGHT_SLOTS := ["weapon", "amulet", "ring"]
+const RIGHT_SLOTS := ["earring", "amulet", "ring"]
 ## Kolejność statystyk w oknie; te z EXTRA_STATS pokazują się tylko, gdy przedmioty coś do nich dają.
 const STAT_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "mana_regen", "protection", "regen",
 	"life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp", "slots"]
@@ -841,7 +841,7 @@ func _stat_name(key: String) -> String:
 		"mana":
 			return tr("Mana")
 		"damage":
-			return tr("Obrażenia miecza")
+			return tr("Obrażenia ciosu")
 		"speed":
 			return tr("Szybkość ataku")
 		"move":

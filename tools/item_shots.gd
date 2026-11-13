@@ -24,7 +24,7 @@ func _run() -> void:
 	var game: Node = root.get_node("Game")
 	game.reset_hero()
 	game.dungeon_level = 3
-	for slot in ["weapon", "helmet", "armor", "ring"]:
+	for slot in ["earring", "helmet", "armor", "ring"]:
 		game.add_item(Items.roll(3, slot, ["magic", "rare", "common", "rare"][game.bag.size()]))
 		game.equip(0)
 	game.dev_items(9)
@@ -51,7 +51,7 @@ func _run() -> void:
 	arena.stats_window.sell_common_button.pressed.emit()
 	await create_timer(0.2).timeout
 	await _shot("2b_dol")
-	game.bag[0] = Items.roll(3, "weapon", "rare")
+	game.bag[0] = Items.roll(3, "earring", "rare")
 	arena.stats_window.refresh()
 	arena.stats_window.bag_buttons[0].pressed.emit()
 	await create_timer(0.2).timeout

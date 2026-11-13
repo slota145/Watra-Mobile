@@ -30,6 +30,7 @@ func _run() -> void:
 	game.load_game()
 	_test_data()
 	_test_game(game)
+	_test_earring(game)
 	await _test_dungeon(game)
 	await _test_window(game)
 	await _test_new_stats(game)
@@ -54,7 +55,7 @@ func _test_data() -> void:
 		stats[a.stat] = true
 	_check(stats.size() == rare.affixes.size(), "premie się nie powtarzają")
 	_check(Items.tier_for(1) == 0 and Items.tier_for(5) == 1 and Items.tier_for(99) == 4, "stopnie przedmiotów z poziomu lochu")
-	_check(Items.name_of(Items.roll(1, "weapon")) == "Żelazny miecz" and Items.name_of(Items.roll(9, "armor")) == "Mithrilowy napierśnik", "nazwy z Watry według stopnia")
+	_check(Items.name_of(Items.roll(1, "earring")) == "Kolczyk z kłem" and Items.name_of(Items.roll(9, "armor")) == "Mithrilowy napierśnik", "nazwy z Watry według stopnia")
 	_check(Items.icon_of(rare) != null and Items.icon_of(Items.roll(20, "amulet", "magic")) != null, "ikony wszystkich wersji")
 	var low := Items.roll(1, "armor", "common")
 	var high := Items.roll(10, "armor", "common")
@@ -65,7 +66,7 @@ func _test_data() -> void:
 		mid += Items.roll_affix("damage_pct", 17)
 		deep += Items.roll_affix("damage_pct", 30)
 	_check(deep > mid and Items.roll(30, "ring").base.damage_pct > Items.roll(17, "ring").base.damage_pct, "procenty rosną dalej po lochu 17")
-	var w := Items.roll(1, "weapon", "common")
+	var w := Items.roll(1, "earring", "common")
 	_check(w.base.damage[0] > 0 and w.base.damage[1] > w.base.damage[0], "broń ma obrażenia cięcia (%d-%d)" % w.base.damage)
 	var t := Items.totals({"helmet": {"slot": "helmet", "base": {"hp": 10}, "affixes": [{"stat": "protection_pct", "value": 40.0}]},
 			"armor": {"slot": "armor", "base": {"hp": 20}, "affixes": [{"stat": "protection_pct", "value": 40.0}]}})
@@ -75,6 +76,23 @@ func _test_data() -> void:
 	_check(chest.size() == Items.CHEST_ITEMS and chest[0].rarity != "common", "skrzynia: %d przedmioty, pierwszy co najmniej magiczny" % chest.size())
 	_check(Items.stat_text("hp", 12) == "+12 do zdrowia" and Items.stat_text("regen", 0.8) == "+0.8 zdrowia na sekundę", "opisy premii")
 	_check(Items.normalize({"slot": "x"}).is_empty() and Items.normalize(JSON.parse_string(JSON.stringify(rare))) == rare, "wczytany przedmiot taki jak zapisany")
+
+
+## Kolczyk z kłem zamiast miejsca „Broń” (13.11.2026): stare miecze z zapisu wczytują się jako kolczyki tej samej siły.
+func _test_earring(game: Node) -> void:
+	_check(Items.SLOTS[0] == "earring" and not Items.SLOTS.has("weapon") and Items.icon_of(Items.roll(1, "earring")) != null,
+			"miejsce „Kolczyk” z ikoną zamiast „Broń”")
+	var old := {"slot": "weapon", "tier": 1, "level": 5, "rarity": "rare", "base": {"damage": [30, 42]},
+			"affixes": [{"stat": "hp", "value": 12}], "sockets": ["ruby:0"]}
+	var f := FileAccess.open(game.save_path, FileAccess.WRITE)
+	f.store_string(JSON.stringify({"equipped": {"weapon": old}, "bag": [old]}))
+	f.close()
+	game.load_game()
+	var e: Dictionary = game.equipped.get("earring", {})
+	_check(not game.equipped.has("weapon") and e.get("slot") == "earring" and e.base.damage == [30, 42]
+			and e.sockets == ["ruby:0"] and game.bag[0].slot == "earring", "stary miecz założony i w torbie -> kolczyk tej samej siły")
+	_check(Items.name_of(e) == "Kolczyk z kłem niedźwiedzia", "nazwa kolczyka według stopnia")
+	game.reset_hero()
 
 
 func _test_game(game: Node) -> void:
@@ -118,12 +136,12 @@ func _test_dungeon(game: Node) -> void:
 	horde.running = false
 	_check(hero.max_hp == HeroLevels.max_hp(1) + helmet.base.hp and hero.hp == hero.max_hp, "hełm dodaje zdrowia (%d)" % hero.max_hp)
 	_check(arena.health_text.text == "%d / %d" % [hero.max_hp, hero.max_hp], "pasek zdrowia z hełmem")
-	_check(arena.weapon.damage == ProtoWeapon.DAMAGE, "bez broni - zwykły miecz")
+	_check(arena.weapon.damage == ProtoWeapon.DAMAGE, "bez kolczyka - gołe obrażenia")
 	_check(arena.ember_text.text == "0 / %d" % DungeonLevels.SUMMON_COST, "liczby na pasku żaru: " + arena.ember_text.text)
 	horde._on_ember(37)
 	_check(arena.ember_text.text == "37 / %d" % DungeonLevels.SUMMON_COST, "pasek żaru liczy zebrany żar")
 	# broń, ochrona, szybkość - założone w trakcie wyprawy (pauza)
-	var sword := Items.roll(1, "weapon", "common")
+	var sword := Items.roll(1, "earring", "common")
 	sword.affixes = [{"stat": "attack_speed_pct", "value": 20.0}, {"stat": "damage_pct", "value": 10.0}]
 	var boots := Items.roll(1, "boots", "common")
 	boots.affixes = [{"stat": "protection_pct", "value": 20.0}]
@@ -210,7 +228,7 @@ func _test_window(game: Node) -> void:
 	_check(not small, "pola przedmiotów co najmniej 44 px")
 	var vp := stats.get_viewport_rect()
 	_check(vp.encloses(stats._scroll.get_global_rect()), "okno mieści się na ekranie")
-	var sword := Items.roll(3, "weapon", "rare")
+	var sword := Items.roll(3, "earring", "rare")
 	game.bag[0] = sword
 	stats.refresh()
 	stats.bag_buttons[0].pressed.emit()
@@ -220,13 +238,13 @@ func _test_window(game: Node) -> void:
 	_check(r.position.y > vp.size.y / 2.0 and r.size.y >= 44.0, "przyciski opisu w dolnej połowie, 44 px")
 	var compare := false
 	for l in stats.detail_lines.get_children():
-		compare = compare or (l is Label and l.text.begins_with(tr("Obrażenia miecza")))
+		compare = compare or (l is Label and l.text.begins_with(tr("Obrażenia ciosu")))
 	_check(compare, "porównanie obrażeń po założeniu")
 	stats.back()
 	_check(not stats.detail.visible and stats.visible, "„wstecz” zamyka najpierw opis")
 	stats.bag_buttons[0].pressed.emit()
 	stats.equip_button.pressed.emit()
-	_check(game.equipped.get("weapon") == sword and not stats.detail.visible, "„Załóż”")
+	_check(game.equipped.get("earring") == sword and not stats.detail.visible, "„Załóż”")
 	_check(stats.rows["damage"][0].text == "%d-%d" % [HeroStats.damage_range(1, game.gear()).x, HeroStats.damage_range(1, game.gear()).y], "statystyki z bronią")
 	_check(arena.weapon.damage == HeroStats.weapon_damage(game.gear()), "miecz w bazie też dostaje broń")
 	# sprzedaż: magiczny/rzadki wymaga drugiego stuknięcia
@@ -238,10 +256,10 @@ func _test_window(game: Node) -> void:
 	_check(game.bag.size() == n and stats.sell_button.text == tr("Na pewno?"), "rzadki - „Na pewno?”")
 	stats.sell_button.pressed.emit()
 	_check(game.bag.size() == n - 1 and game.gold > 0 and stats.gold_label.text == str(game.gold), "sprzedany, złoto w oknie (%d)" % game.gold)
-	stats.equip_buttons["weapon"].pressed.emit()
+	stats.equip_buttons["earring"].pressed.emit()
 	_check(stats.detail.visible and stats.equip_button.text == tr("Zdejmij") and not stats.sell_button.visible, "założony: „Zdejmij” bez sprzedaży")
 	stats.equip_button.pressed.emit()
-	_check(not game.equipped.has("weapon"), "zdjęty")
+	_check(not game.equipped.has("earring"), "zdjęty")
 	arena._notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 	_check(not stats.visible and not paused, "„wstecz” zamyka okno „Postać” i wznawia grę")
 	# sprzedaż hurtem: zwykłe osobno, magiczne i rzadkie osobno, z potwierdzeniem

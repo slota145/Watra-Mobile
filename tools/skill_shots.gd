@@ -24,9 +24,8 @@ func _run() -> void:
 	var game: Node = root.get_node("Game")
 	game.reset_hero()
 	game.hero_level = 10
-	game.gold = 1250
-	game.buy_skill("whirl")
-	game.buy_skill("throw")
+	game.dev_set_level(10)
+	game.embers = 420
 	game.assign_skill("whirl", 0)
 	game.skill_levels = {"strike": 3, "whirl": 5}  # poziomy umiejętności: próg 5. poziomu Młynka odblokowany
 	game.save_game()

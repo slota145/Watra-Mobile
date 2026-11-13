@@ -1,5 +1,5 @@
 class_name Items
-## Przedmioty (ustalone z autorem 12.11.2026): 6 miejsc ekwipunku (broń, hełm, zbroja, buty, pierścień, amulet),
+## Przedmioty (ustalone z autorem 12.11.2026): 6 miejsc ekwipunku (kolczyk, hełm, zbroja, buty, pierścień, amulet),
 ## 3 rzadkości jak w Watrze, ale prościej - zwykły (bez premii), magiczny (1-2 losowe premie), rzadki (3-4).
 ## Siła przedmiotu zależy od poziomu lochu, z którego wypadł (`level`): od niego rośnie stała cecha miejsca
 ## (np. zdrowie z hełmu) i wartości premii, a co `LEVELS_PER_TIER` poziomów zmienia się wygląd i nazwa (5 stopni
@@ -13,15 +13,20 @@ class_name Items
 ## Stan (torba, założone, złoto) trzyma i zapisuje `Game`; sumę cech założonych przedmiotów liczy `totals`.
 ## Ikony: assets/watra/items/ (skopiowane z Watry, wersje _magic i _rare).
 
-const SLOTS := ["weapon", "helmet", "armor", "boots", "ring", "amulet"]
-const SLOT_NAMES := {"weapon": "Broń", "helmet": "Hełm", "armor": "Zbroja", "boots": "Buty", "ring": "Pierścień",
+## Kolczyk z kłem (decyzja autora 13.11.2026) zastąpił miejsce „Broń”: daje obrażenia każdej broni (Weapons), więc
+## nie gryzie się z mieczem, glewią itd. Stare przedmioty z miejsca "weapon" (miecze) wczytują się jako kolczyki
+## tej samej siły (`normalize`, LEGACY_SLOTS).
+## Dawne miejsca w zapisie -> obecne.
+const LEGACY_SLOTS := {"weapon": "earring"}
+const SLOTS := ["earring", "helmet", "armor", "boots", "ring", "amulet"]
+const SLOT_NAMES := {"earring": "Kolczyk", "helmet": "Hełm", "armor": "Zbroja", "boots": "Buty", "ring": "Pierścień",
 		"amulet": "Amulet"}
 ## Pusty obrazek miejsca w oknie ekwipunku (z Watry).
-const SLOT_ICONS := {"weapon": "slot_weapon", "helmet": "slot_helmet", "armor": "slot_chest", "boots": "slot_boots",
+const SLOT_ICONS := {"earring": "slot_earring", "helmet": "slot_helmet", "armor": "slot_chest", "boots": "slot_boots",
 		"ring": "slot_ring", "amulet": "slot_necklace"}
 ## Linie przedmiotów z Watry: plik ikony na każdy stopień.
 const LINES := {
-	"weapon": ["iron_sword", "sword_t2", "sword_t3", "sword_t4", "sword_t5"],
+	"earring": ["fang_earring", "fang_t2", "fang_t3", "fang_t4", "fang_t5"],
 	"helmet": ["iron_helmet", "helm_t2", "helm_t3", "helm_t4", "helm_t5"],
 	"armor": ["chainmail", "plate_t2", "plate_t3", "plate_t4", "plate_t5"],
 	"boots": ["leather_boots", "boots_t2", "boots_t3", "boots_t4", "boots_t5"],
@@ -30,7 +35,8 @@ const LINES := {
 }
 ## Nazwy z Watry, według stopnia.
 const NAMES := {
-	"weapon": ["Żelazny miecz", "Stalowy miecz", "Mithrilowy miecz", "Runiczne ostrze", "Smocze ostrze"],
+	"earring": ["Kolczyk z kłem", "Kolczyk z kłem niedźwiedzia", "Kolczyk z kłem bazyliszka", "Kolczyk z kłem demona",
+			"Kolczyk ze smoczym kłem"],
 	"helmet": ["Żelazny hełm", "Stalowy hełm", "Mithrilowy hełm", "Runiczny hełm", "Smoczy hełm"],
 	"armor": ["Kolczuga", "Stalowy napierśnik", "Mithrilowy napierśnik", "Runiczna zbroja", "Smocza zbroja"],
 	"boots": ["Skórzane buty", "Buty wędrowca", "Elfie buty", "Buty cienia", "Buty ze smoczej skóry"],
@@ -115,9 +121,9 @@ const DECIMAL_STATS := ["regen", "mana_regen"]
 const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0, "crit_pct": 95.0, "cdr_pct": 100.0,
 	"dodge_pct": 50.0, "area_pct": 100.0, "pickup_pct": 200.0, "ember_pct": 100.0}
 ## Stała cecha każdego miejsca na 1. poziomie lochu (liczby rosną z siłą lochu, procenty o BASE_PCT_PER_LEVEL).
-## Broń: obrażenia cięcia (od-do) zamiast zwykłego miecza postaci.
+## Kolczyk: obrażenia ciosu (od-do) każdej broni zamiast gołych obrażeń postaci.
 const BASE := {
-	"weapon": {"damage": Vector2(15.0, 21.0)},
+	"earring": {"damage": Vector2(15.0, 21.0)},
 	"helmet": {"hp": 8.0},
 	"armor": {"hp": 18.0},
 	"boots": {"move_pct": 4.0},
@@ -247,12 +253,12 @@ static func stat_text(stat: String, value: float) -> String:
 	return Lang.t(STAT_FORMATS[stat]) % roundi(value)
 
 
-## Linie stałej cechy przedmiotu (broń - obrażenia cięcia).
+## Linie stałej cechy przedmiotu (kolczyk - obrażenia ciosu).
 static func base_lines(item: Dictionary) -> Array[String]:
 	var lines: Array[String] = []
 	for stat in item.base:
 		if stat == "damage":
-			lines.append(Lang.t("Obrażenia cięcia: %d-%d") % [item.base.damage[0], item.base.damage[1]])
+			lines.append(Lang.t("Obrażenia ciosu: %d-%d") % [item.base.damage[0], item.base.damage[1]])
 		else:
 			lines.append(stat_text(stat, item.base[stat]))
 	return lines
@@ -348,6 +354,9 @@ static func socket_lines(item: Dictionary) -> Array[String]:
 ## Przedmiot wczytany z JSON-a (liczby przychodzą jako float) - typy jak przy losowaniu. Zły wpis - pusty słownik.
 ## Stare zapisy (sprzed gniazd) dostają jedno puste gniazdo.
 static func normalize(data) -> Dictionary:
+	if data is Dictionary and LEGACY_SLOTS.has(data.get("slot", "")):
+		data = data.duplicate()
+		data.slot = LEGACY_SLOTS[data.slot]
 	if not (data is Dictionary) or not SLOTS.has(data.get("slot", "")) or not RARITIES.has(data.get("rarity", "")):
 		return {}
 	var base := {}

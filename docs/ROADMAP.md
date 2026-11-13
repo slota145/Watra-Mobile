@@ -68,14 +68,20 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   zbierania, więcej żaru (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy unik 2-4% na przedmiot jest
   odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
-- **Żywioły i wiele broni (13.11.2026, duży temat - do ustalenia szczegółów):** żywioły (nazwy ustalone 13.11.2026): ogień,
-  woda, lód, Grom (pioruny), ziemia, powietrze, Nawia (ciemność), natura (trucizna, a później pnącza, ciernie, drzewce).
-  Do decyzji później: światło. Wiele broni, każda z własnymi umiejętnościami; część związana z żywiołem, część nie: łuk, hydrosfera (kula
-  do władania wodą), mroczna kosa, ostrza na łańcuchach, księgi z wybieranym żywiołem (każdy żywioł - własne umiejętności),
-  sztylety powietrza, glewia ognia, lodowy rapier, elektryczna katana, kostur nekromancji. Mistrzostwo broni: granie bronią
-  podnosi jej poziom i to odblokowuje umiejętności (zamiast złota); umiejętności ulepsza się żarem. Bronie po kolei,
-  każda dopracowana; w międzyczasie nowe rodzaje lochów z innymi potworami. Watra ma gotowy system żywiołów do skopiowania
-  (`scripts/elements.gd` Watry).
+- **Glewia ognia i kolczyk z kłem (13.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie:
+  siła i zasięg umiejętności glewii wobec miecza, czy podpalenie jest odczuwalne, nowe działania 5. i 10. poziomu
+  (propozycje Claude), cena 3000 zł i próg Wodza 10, czy płonący krąg i pas ognia nie zasłaniają wrogów, liczba klatek
+  w Tańcu płomieni z ogniem na ziemi. Później: kamienie unikalne glewii, własne ikony umiejętności glewii (teraz z Watry),
+  kolor liczb obrażeń od ognia.
+
+- **Żywioły i wiele broni (13.11.2026):** etap 1 zrobiony - fundament żywiołów, mistrzostwo broni odblokowuje
+  umiejętności, żar ulepsza umiejętności, złoto - ulepszenia lochów (szczegóły i decyzje w `docs/historia.md`).
+  Do oceny na telefonie (balans): ceny ulepszeń umiejętności w żarze (te same liczby co dawniej w złocie) i ulepszeń
+  lochów w złocie (te same co dawniej w żarze), czy złota i żaru starcza; czy napis „Nowa umiejętność” jest widoczny.
+  Dalej: kolejne bronie po jednej, każda dopracowana, z działaniem swojego żywiołu (Elements.EFFECTS): łuk, hydrosfera,
+  mroczna kosa, ostrza na łańcuchach, księgi żywiołów, sztylety powietrza, glewia ognia, lodowy rapier, elektryczna
+  katana, kostur nekromancji; zmiana broni w bazie i kupno za złoto przed progiem (`Weapons.unlock`, `price`);
+  kamienie dodające mieczowi żywioł; później odporności bohatera i potwory bijące żywiołami. Do decyzji: światło.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

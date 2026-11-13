@@ -244,21 +244,7 @@ func level_up(level: int) -> void:
 	var glow := _LevelGlow.new()
 	glow.z_index = 15
 	add_child(glow)
-	var num := Label.new()
-	num.text = tr("Poziom %d!") % level
-	num.add_theme_font_size_override("font_size", 16)
-	num.add_theme_color_override("font_color", Color(1.0, 0.86, 0.4))
-	num.add_theme_color_override("font_outline_color", Color(0.25, 0.1, 0.0))
-	num.add_theme_constant_override("outline_size", 5)
-	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	num.size = Vector2(100, 20)
-	num.position = Vector2(-50, -62)
-	num.z_index = 21
-	add_child(num)
-	var up := num.create_tween()
-	up.tween_property(num, "position:y", num.position.y - 22, 1.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	up.parallel().tween_property(num, "modulate:a", 0.0, 0.5).set_delay(1.0)
-	up.tween_callback(num.queue_free)
+	float_text(tr("Poziom %d!") % level, -62.0)
 	var sound := AudioStreamPlayer.new()
 	sound.stream = LEVEL_UP_SOUND
 	sound.volume_db = -4.0
@@ -266,6 +252,33 @@ func level_up(level: int) -> void:
 	sound.play()
 	sound.finished.connect(sound.queue_free)
 	Input.vibrate_handheld(60)
+
+
+## Napis nad postacią, który unosi się i gaśnie (awans, nowa umiejętność z mistrzostwa broni); `y` - wysokość startu.
+func float_text(text: String, y: float, color := Color(1.0, 0.86, 0.4), size := 16, seconds := 1.4) -> Label:
+	var num := Label.new()
+	num.text = text
+	num.add_theme_font_size_override("font_size", size)
+	num.add_theme_color_override("font_color", color)
+	num.add_theme_color_override("font_outline_color", Color(0.25, 0.1, 0.0))
+	num.add_theme_constant_override("outline_size", 5)
+	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	num.size = Vector2(200, 20)
+	num.position = Vector2(-100, y)
+	num.z_index = 21
+	add_child(num)
+	var up := num.create_tween()
+	up.tween_property(num, "position:y", num.position.y - 22, seconds).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	up.parallel().tween_property(num, "modulate:a", 0.0, 0.5).set_delay(seconds - 0.4)
+	up.tween_callback(num.queue_free)
+	return num
+
+
+## Nowa umiejętność odblokowana mistrzostwem broni: niebieski napis wyżej niż napis awansu, dłużej widoczny.
+func skill_unlocked(skill_name: String) -> void:
+	if dead:
+		return
+	float_text(tr("Nowa umiejętność: %s!") % skill_name, -84.0, Color(0.6, 0.85, 1.0), 13, 2.4)
 
 
 ## Słup złotego światła przy awansie: rośnie od stóp w górę i gaśnie (rysowany w kodzie, bez tekstur).

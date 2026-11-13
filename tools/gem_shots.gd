@@ -34,7 +34,7 @@ func _run() -> void:
 	game.socket_skill("throw", 1, "discharge:2")
 	game.socket_skill("strike", 0, "ember:2")
 	game.socket_skill("strike", 1, "rime:2")
-	var weapon_item := Items.roll(9, "weapon", "rare")
+	var weapon_item := Items.roll(9, "earring", "rare")
 	weapon_item.sockets = ["ruby:2", ""]
 	game.bag = [weapon_item, Items.roll(9, "helmet", "magic"), Items.roll(9, "ring", "rare")]
 	game.equip(0)
@@ -70,7 +70,7 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	await _shot("2c_sakwa")
 	stats.set_tab("equip")
-	stats._select_equipped("weapon")
+	stats._select_equipped("earring")
 	await create_timer(0.2).timeout
 	await _shot("3_opis")
 	stats._on_item_socket(1)

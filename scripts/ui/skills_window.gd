@@ -1,9 +1,9 @@
 class_name SkillsWindow
 extends Control
-## Okno umiejętności (ustalenia z autorem 12.11.2026). U góry złoto, niżej przewijana lista umiejętności miecza
-## (Skills): ikona, nazwa, koszt many i odnowienie, opis, a obok cena i wymagany poziom albo „Kupiona”. Kupuje się
-## tylko w bazie przy kamieniu run (`open(true)`; drugie stuknięcie „Kup” potwierdza), z pauzy okno służy do
-## przestawiania. Na dole, pod kciukiem, rząd miejsc jak na przyciskach walki: „Atak” (duży przycisk - z auto atakiem)
+## Okno umiejętności (ustalenia z autorem 12.11.2026). U góry mistrzostwo broni w ręku (Weapons) i żar Watry, niżej
+## przewijana lista umiejętności miecza (Skills): ikona, nazwa, koszt many i odnowienie, opis, a obok miejsce albo
+## próg mistrzostwa, który ją odblokuje (13.11.2026: odblokowuje mistrzostwo, a nie złoto). Ulepsza się tylko w bazie
+## przy kamieniu run (`open(true)`), z pauzy okno służy do przestawiania. Na dole, pod kciukiem, rząd miejsc jak na przyciskach walki: „Atak” (duży przycisk - z auto atakiem)
 ## i 4 małe (zablokowane do poziomu postaci). Przypisanie: stuknij umiejętność, potem miejsce - albo przeciągnij ikonę
 ## na miejsce (SkillSlot). Stuknięcie zajętego miejsca wybiera je: potem stuknięcie innego miejsca zamienia je
 ## miejscami, a „Zdejmij” opróżnia. Mgnienie nie może stać pod „Atak”. Stan trzyma i zapisuje Game.
@@ -15,9 +15,12 @@ extends Control
 ## gdzie pasuje; można też przeciągnąć kamień na gniazdo (GemSlot), a z gniazda do sakwy (wyjęcie za darmo).
 ## W każdym wierszu listy małe ikony kamieni z gniazd tej umiejętności.
 ## Poziomy umiejętności (13.11.2026): przy nazwie „poz. X/10”, mana i odnowienie już z premią poziomu, pod opisem
-## nowe działania z 5. i 10. poziomu (złote - odblokowane) i co da następny poziom. Kupiona umiejętność ma z prawej
-## przycisk „Ulepsz” z ceną (przy kamieniu run, drugie stuknięcie potwierdza; Game.upgrade_skill), a gdy poziom
-## postaci nie pozwala - od którego poziomu postaci (Skills.level_cap).
+## nowe działania z 5. i 10. poziomu (złote - odblokowane) i co da następny poziom. Odblokowana umiejętność ma z prawej
+## przycisk „Ulepsz” z ceną w żarze (przy kamieniu run, drugie stuknięcie potwierdza; Game.upgrade_skill), a gdy
+## mistrzostwo nie pozwala - od którego poziomu mistrzostwa (Skills.level_cap).
+## Bronie (13.11.2026): pod mistrzostwem rząd przycisków broni (Weapons.ORDER) - broń w ręku złota; przy kamieniu run
+## stuknięcie dostępnej broni bierze ją do ręki (Game.set_weapon), a niedostępnej - kupuje ją za złoto (drugie stuknięcie
+## potwierdza; Game.buy_weapon). Lista pokazuje tylko umiejętności broni w ręku.
 ## Zatrzymuje grę, gdy jest otwarte (PROCESS_MODE_ALWAYS).
 
 signal closed
@@ -32,7 +35,12 @@ const SLOT_SIZE := 52.0
 
 ## Czy można kupować (baza, kamień run).
 var can_shop := false
-var gold_label: Label
+## Żar Watry (waluta ulepszeń) i mistrzostwo broni w ręku.
+var embers_label: Label
+var mastery_label: Label
+## Przyciski broni (identyfikator Weapons -> przycisk) i wiersze listy (do ukrywania umiejętności innych broni).
+var weapon_buttons := {}
+var row_boxes: Array[Control] = []
 var hint: Label
 var list_icons: Array[SkillSlot] = []
 var buy_buttons: Array[Button] = []
@@ -68,7 +76,7 @@ var _key_armed := false
 ## Wybrana umiejętność z listy ("" - żadna) albo wybrane miejsce (-1 - żadne).
 var selected_skill := ""
 var selected_slot := -1
-## Umiejętność czekająca na drugie stuknięcie „Kup”.
+## Umiejętność czekająca na drugie stuknięcie „Ulepsz”.
 var _buy_armed := ""
 var _game: Node
 
@@ -99,13 +107,26 @@ func _ready() -> void:
 	column.add_child(head)
 	var title := _label(head, tr("Umiejętności"), 18, GOLD)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var coin := TextureRect.new()
-	coin.texture = preload("res://assets/watra/items/coin.png")
-	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	coin.custom_minimum_size = Vector2(18, 18)
-	head.add_child(coin)
-	gold_label = _label(head, "0", 15, GOLD)
+	var ember := TextureRect.new()
+	ember.texture = preload("res://assets/watra/ember_icon.png")
+	ember.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ember.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ember.custom_minimum_size = Vector2(18, 18)
+	head.add_child(ember)
+	embers_label = _label(head, "0", 15, GOLD)
+	mastery_label = _label(column, "", 12, BLUE)
+	var weapons_row := HBoxContainer.new()
+	weapons_row.add_theme_constant_override("separation", 6)
+	column.add_child(weapons_row)
+	for w in Weapons.ORDER:
+		var wb := _button(weapons_row, Weapons.name_of(w))
+		wb.custom_minimum_size.y = 44
+		wb.icon = Weapons.icon_of(w)
+		wb.expand_icon = true
+		wb.add_theme_constant_override("icon_max_width", 24)
+		wb.add_theme_font_size_override("font_size", 12)
+		wb.pressed.connect(_on_weapon.bind(w))
+		weapon_buttons[w] = wb
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 6)
 	column.add_child(tabs)
@@ -147,9 +168,12 @@ func _ready() -> void:
 	_game.inventory_changed.connect(func() -> void:
 		if visible:
 			refresh())
+	_game.embers_changed.connect(func() -> void:
+		if visible:
+			refresh())
 
 
-## Wiersz listy: ikona (pole do przeciągania), nazwa z manę i odnowieniem, opis, z prawej kupno albo stan.
+## Wiersz listy: ikona (pole do przeciągania), nazwa z manę i odnowieniem, opis, z prawej ulepszanie albo stan.
 func _make_row(list: VBoxContainer, i: int) -> void:
 	var id: String = Skills.ORDER[i]
 	var box := PanelContainer.new()
@@ -159,6 +183,7 @@ func _make_row(list: VBoxContainer, i: int) -> void:
 	style.set_content_margin_all(5)
 	box.add_theme_stylebox_override("panel", style)
 	list.add_child(box)
+	row_boxes.append(box)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	box.add_child(row)
@@ -283,8 +308,8 @@ func set_gems_mode(on: bool) -> void:
 	selected_gem = ""
 	selected_socket = -1
 	_key_armed = false
-	if on and not _game.skills_owned.has(gem_skill):
-		gem_skill = Skills.STRIKE
+	if on and (not _game.skills_owned.has(gem_skill) or Skills.weapon_of(gem_skill) != _game.weapon):
+		gem_skill = Skills.basic_of(_game.weapon)
 	refresh()
 
 
@@ -324,9 +349,27 @@ func back() -> void:
 
 
 func refresh() -> void:
-	gold_label.text = str(_game.gold)
+	embers_label.text = str(_game.embers)
+	var need: int = _game.mastery_needed()
+	mastery_label.text = tr("Mistrzostwo: %s, poziom %d (%d/%d)") % [Weapons.name_of(_game.weapon),
+			_game.mastery_level(), _game.weapon_xp(), need] if need > 0 \
+			else tr("Mistrzostwo: %s, poziom %d") % [Weapons.name_of(_game.weapon), _game.mastery_level()]
+	for w in weapon_buttons:
+		var wb: Button = weapon_buttons[w]
+		var ready: bool = _game.weapon_available(w)
+		_tab_look(wb, w == _game.weapon)
+		if _buy_armed == "weapon:" + w:
+			wb.text = tr("Na pewno?")
+		elif ready:
+			wb.text = Weapons.name_of(w)
+		else:
+			wb.text = tr("%s: %d zł") % [Weapons.name_of(w), Weapons.price_of(w)]
+		wb.modulate = Color.WHITE if ready else Color(0.75, 0.75, 0.75)
+	if Skills.weapon_of(gem_skill) != _game.weapon:
+		gem_skill = Skills.basic_of(_game.weapon)
 	for i in Skills.ORDER.size():
 		var id: String = Skills.ORDER[i]
+		row_boxes[i].visible = Skills.weapon_of(id) == _game.weapon
 		var owned: bool = _game.skills_owned.has(id)
 		list_icons[i].draggable = owned
 		list_icons[i].show_skill(id, 0, (gem_skill == id) if gems_mode else (selected_skill == id))
@@ -338,7 +381,7 @@ func refresh() -> void:
 		var lvl: int = _game.skill_level(id)
 		_show_level(i, id, lvl, owned)
 		if owned:
-			var place := (tr("Pod „Atak”") if at == Skills.MAIN else tr("W miejscu %d") % at) if at >= 0 else tr("Kupiona")
+			var place := (tr("Pod „Atak”") if at == Skills.MAIN else tr("W miejscu %d") % at) if at >= 0 else tr("Odblokowana")
 			var problem: String = _game.skill_upgrade_problem(id)
 			var price := Skills.upgrade_price(id, lvl)
 			buy.visible = can_shop and problem != "max"
@@ -347,29 +390,19 @@ func refresh() -> void:
 			status.add_theme_color_override("font_color", GOLD if at >= 0 else DIM)
 			if problem == "max":
 				status.text = place + "\n" + tr("najwyższy poziom")
-			elif problem == "hero":
-				status.text = place + "\n" + tr("ulepsz od poz. %d") % Skills.hero_level_for(lvl + 1)
+			elif problem == "mastery":
+				status.text = place + "\n" + tr("ulepsz od mistrz. %d") % Skills.mastery_for(lvl + 1)
 				status.add_theme_color_override("font_color", RED)
 			elif can_shop:
-				status.text = place + "\n" + tr("%d zł") % price
-				if problem == "gold":
+				status.text = place + "\n" + tr("%d żaru") % price
+				if problem == "embers":
 					status.add_theme_color_override("font_color", RED)
 			else:
 				status.text = place
 		else:
-			var need := Skills.level_of(id)
-			var price := Skills.price_of(id)
-			buy.visible = can_shop
-			buy.text = tr("Na pewno?") if _buy_armed == id else tr("Kup")
-			buy.disabled = not _game.can_buy_skill(id)
-			if _game.hero_level < need:
-				status.text = tr("%d zł\nod poz. %d") % [price, need]
-				status.add_theme_color_override("font_color", RED)
-			else:
-				status.text = tr("%d zł") % price
-				status.add_theme_color_override("font_color", GOLD if _game.gold >= price else RED)
-			if not can_shop:
-				status.text += "\n" + tr("kup przy kamieniu run")
+			buy.visible = false
+			status.text = tr("od mistrz. %d") % Skills.mastery_of(id)
+			status.add_theme_color_override("font_color", RED)
 	for i in Skills.SLOTS:
 		var locked: int = 0 if _game.slot_open(i) else HeroLevels.SKILL_SLOT_LEVELS[i - 1]
 		slots[i].show_skill(_game.skill_slots[i], locked, selected_slot == i)
@@ -398,7 +431,7 @@ func _on_list_pressed(i: int) -> void:
 		selected_socket = -1
 		if not _game.skills_owned.has(id):
 			refresh()
-			hint.text = tr("Najpierw kup tę umiejętność przy kamieniu run w bazie.")
+			hint.text = _locked_hint(id)
 			return
 		gem_skill = id
 		refresh()
@@ -408,7 +441,7 @@ func _on_list_pressed(i: int) -> void:
 		selected_skill = ""
 		_buy_armed = ""
 		refresh()
-		hint.text = tr("Najpierw kup tę umiejętność przy kamieniu run w bazie.")
+		hint.text = _locked_hint(id)
 		return
 	selected_skill = "" if selected_skill == id else id
 	refresh()
@@ -500,16 +533,53 @@ func _show_perks(i: int, id: String, lvl: int, owned: bool) -> void:
 	next_labels[i].text = tr("Następny poziom: %s") % Skills.next_level_text(id, lvl)
 
 
-## Kupno i ulepszanie: pierwsze stuknięcie pyta „Na pewno?”, drugie kupuje (niekupioną) albo ulepsza (kupioną).
+## Stuknięcie broni: dostępną bierze do ręki (tylko przy kamieniu run), niedostępną kupuje za złoto (drugie stuknięcie).
+## Bez kamienia run i przy braku złota - podpowiedź, skąd ją wziąć.
+func _on_weapon(w: String) -> void:
+	selected_skill = ""
+	selected_slot = -1
+	if w == _game.weapon:
+		_buy_armed = ""
+		refresh()
+		return
+	var why := ""
+	if not can_shop:
+		why = tr("Broń zmienisz przy kamieniu run w bazie.")
+	elif _game.weapon_available(w):
+		_buy_armed = ""
+		_game.set_weapon(w)
+		_play(preload("res://assets/watra/ember_pickup_big.ogg"))
+	elif _game.gold < Weapons.price_of(w):
+		_buy_armed = ""
+		why = tr("%s: za darmo po pokonaniu Wodza na %d. poziomie lochu albo wcześniej za %d zł.") \
+				% [Weapons.name_of(w), Weapons.unlock_level(w), Weapons.price_of(w)]
+	elif _buy_armed != "weapon:" + w:
+		_buy_armed = "weapon:" + w
+		why = tr("Kupić: %s za %d zł? Stuknij jeszcze raz.") % [Weapons.name_of(w), Weapons.price_of(w)]
+	else:
+		_buy_armed = ""
+		if _game.buy_weapon(w):
+			_play(preload("res://assets/watra/handleCoins.ogg"))
+	refresh()
+	if why != "":
+		hint.text = why
+
+
+## Podpowiedź przy nieodblokowanej umiejętności: od którego poziomu mistrzostwa broni.
+func _locked_hint(id: String) -> String:
+	return tr("Odblokuje ją mistrzostwo: %s, poziom %d. Rośnie od pokonanych potworów i bossów.") \
+			% [Weapons.name_of(Skills.weapon_of(id)), Skills.mastery_of(id)]
+
+
+## Ulepszanie: pierwsze stuknięcie pyta „Na pewno?”, drugie ulepsza za żar.
 func _on_buy(id: String) -> void:
 	if _buy_armed != id:
 		_buy_armed = id
 		refresh()
 		return
 	_buy_armed = ""
-	var ok: bool = _game.upgrade_skill(id) if _game.skills_owned.has(id) else _game.buy_skill(id)
-	if ok:
-		_play(preload("res://assets/watra/handleCoins.ogg"))
+	if _game.upgrade_skill(id):
+		_play(preload("res://assets/watra/ember_pickup_big.ogg"))
 	refresh()
 
 

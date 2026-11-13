@@ -2,6 +2,68 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - glewia ognia (pierwsza nowa broń) i kolczyk z kłem
+
+- Decyzje autora (ankiety 13.11.2026): pierwsza broń po mieczu - glewia ognia; za darmo po pokonaniu Wodza na 10.
+  poziomie lochu, wcześniej za 3000 złota; zmiana broni w oknie umiejętności przy kamieniu run; miejsce „Broń”
+  zamienione na kolczyk z kłem (wspólny dla wszystkich broni); umiejętności jak w propozycji, ale 15. próg to seria
+  zamaszystych cięć lecących dookoła (pomysł autora zamiast kul ognia); grafika rysowana w narzędziu pikseli PixelLab,
+  wszystkie efekty nowe z kreatora efektów.
+- Kolczyk z kłem (`Items`): miejsce "earring" zamiast "weapon" (ikony z Watry - linia „fang”, 5 stopni + magiczne
+  i rzadkie, `assets/watra/items/fang_*.png`, pusty `slot_earring.png`), stała cecha „Obrażenia ciosu” (dawne obrażenia
+  cięcia miecza). Stare miecze z zapisu (torba, skrzynia, założone) wczytują się jako kolczyki tej samej siły
+  (`Items.LEGACY_SLOTS`, `Items.normalize`, `Game.load_game`). Kamienie szlachetne: grupa „kolczyk” (dawniej „broń”).
+- Bronie (`Weapons`): glewia (`glaive`: ogień, `unlock` 10, `price` 3000), `Weapons.make` - węzeł broni (miecz -
+  ProtoWeapon, glewia - ProtoGlaive). `Game.weapon_available`, `buy_weapon`, `set_weapon` (sygnał `weapon_changed`),
+  `weapons_bought`, `weapon_slots` - każda broń ma własne miejsca umiejętności i mistrzostwo; `assign_skill` przyjmuje
+  tylko umiejętności broni w ręku. Arena podmienia węzeł broni po zmianie (`_swap_weapon`). Okno umiejętności: rząd
+  przycisków broni pod mistrzostwem (stuknięcie bierze broń do ręki albo kupuje ją - drugie stuknięcie; z pauzy nic),
+  lista tylko umiejętności broni w ręku (`row_boxes`).
+- Umiejętności glewii (`Skills`, "weapon": "glaive", pole "burn" - ile obrażeń trafienia dopala się przez 3 s):
+  Pchnięcie glewii (zwykły cios, zasięg 64, linia ±12 px, podpalenie 30%; 5. poziom - podpalenie x2, 10. - co trzecie
+  dźga dwa razy), Ognisty zamach (mistrz. 3, 15 many, 5 s, łuk 200°, 58 px, x1,3, podpalenie 100%; 5. - odpycha,
+  10. - drugi zamach w drugą stronę), Płonący ślad (mistrz. 6, 20 many, 7 s, doskok 90 px, pas ognia 3 s; 5. - 5 s,
+  10. - wybuch na końcu), Słup ognia (mistrz. 10, 25 many, 8 s, wybuch 50 px x2,2 i płonący krąg 36 px na 3 s;
+  5. - krąg x1,5, 10. - drugi wybuch po 0,5 s), Taniec płomieni (mistrz. 15, 30 many, 10 s, 3 s wirowania, co 0,3 s
+  sierp ognia leci 70 px/s na 150 px i przebija; 5. - 4 s, 10. - po dwa sierpy w przeciwne strony). Ogień na ziemi
+  co 0,5 s rani (25% siły umiejętności) i podpala. Nowe działania 5. i 10. poziomu zaproponował Claude - do oceny.
+  Ceny ulepszeń w żarze jak umiejętności miecza (40-200 x poziom). Kamieni unikalnych glewia jeszcze nie ma.
+- `ProtoGlaive` (`scripts/proto/proto_glaive.gd`) dziedziczy po ProtoWeapon (podążanie, mana, odnowienia, kamienie,
+  krytyki); ProtoWeapon dostał `basic` (zwykły cios broni) i `STRIKE_STATES`, `Skills.basic_of`, `is_basic`,
+  `of_weapon`, `burn_of`. Pusty „Atak” to zwykły cios broni w ręku (`Game.main_skill`, `ActionCluster.show_skills`).
+- Grafika: glewia `assets/weapons/glaive.png` (96x20, skala 0,5) narysowana w pixelart_workbench (lint bez błędów).
+  Efekty z kreatora (My effects autora, `pixellab_src/vfx/ids.json`): `glaive_thrust` (smuga pchnięcia),
+  `glaive_sweep` (ognisty łuk), `glaive_blast` (wybuch), `glaive_ground_fire` (płomyk w pętli - wiele na pas i krąg),
+  `glaive_cut` (lecący sierp, klatki 3-12 w pętli), `glaive_hit` (trafienie ogniem). Ikony umiejętności tymczasowo
+  z Watry (enchanted_blade, crescent, fire_wall, aura_swarog_ember, ks_blade_dance). Zrzuty: `tools/glaive_shots.gd`
+  (w tańcu z ogniem na ziemi 83 klatki/s w chmurze).
+- Testy: `tests/test_glaive.gd` (nowy), `test_items.gd` (kolczyk i przejście zapisu).
+
+## 13.11.2026 - żywioły i mistrzostwo broni (etap 1: fundament)
+
+- Decyzje autora (ankieta 13.11.2026): żywioły jak w propozycji, najpierw fundament (efekty razem z bronią danego
+  żywiołu); potwory na razie biją fizycznie, odporności bohatera później; miecz fizyczny, żywioł dodadzą mu najwyżej
+  kamienie; nowe bronie odblokowuje postęp (Wódz na danym poziomie) albo wcześniej dużo złota; jedna broń naraz,
+  zmiana w bazie; ulepszenia lochów za złoto, żar na umiejętności; mistrzostwo z pokonanych potworów i bossów.
+- `scripts/elements.gd` (`Elements`): fizyczne + 8 żywiołów (ogień, woda, lód, Grom, ziemia, powietrze, Nawia, natura),
+  nazwy, kolory, opisy działania (`EFFECTS`), odporności potworów (`MONSTER_RESIST`, na razie puste), obrażenia
+  z odpornością `reduce` (odporność najwyżej 75%, wrażliwość do -100%, cały mnożnik z combo najwyżej `MAX_MULT` = x2).
+  Jeszcze niepodpięte do walki - pierwsza broń żywiołowa to zrobi.
+- `scripts/weapons.gd` (`Weapons`): rodzaje broni (na razie miecz: fizyczny, od początku), pola `unlock` (poziom lochu)
+  i `price` (złoto) pod kolejne bronie, mistrzostwo po krzywej poziomów postaci (`xp_to_next`), najwyżej 50.
+- Mistrzostwo (`Game.weapon`, `Game.mastery`, `Game.mastery_xp`, `add_mastery`, sygnały `mastery_changed`,
+  `skill_unlocked`): arena dolicza je w `_gain_xp` - tyle samo co doświadczenie postaci, więc dla miecza tempo
+  się nie zmienia. Progi umiejętności (`Skills.DATA` pole `mastery`): Młynek 3, Rzut 6, Rozłupanie 10, Mgnienie 15
+  (jak dawne wymagane poziomy postaci). Odblokowana umiejętność sama wskakuje w wolne miejsce, nad postacią napis
+  „Nowa umiejętność: …!” (`ProtoHero.skill_unlocked`, wspólne `float_text`). Limit poziomu umiejętności: połowa
+  mistrzostwa (`Skills.level_cap`).
+- Ulepszenia umiejętności za żar (`Game.upgrade_skill`, ceny bez zmian liczbowych: 40-200 x poziom), ulepszenia lochów
+  za złoto (`Game.buy_upgrade`, ceny 50-1000 bez zmian). Okno umiejętności: żar i pasek mistrzostwa u góry, przy
+  nieodblokowanej „od mistrz. N” zamiast „Kup”; okno ulepszeń lochów pokazuje złoto.
+- Stary zapis (bez `mastery`, `Game._migrate_mastery`): mistrzostwo miecza = poziom postaci, kupione umiejętności
+  i poziomy zostają, wraca złoto za umiejętności (`Skills.LEGACY_PRICE`) i ich poziomy oraz żar za ulepszenia lochów.
+- Testy: `tests/test_elements.gd` (nowy), `test_skills.gd` (mistrzostwo, przejście zapisu), `test_base.gd` (złoto).
+
 ## 13.11.2026 - głębokie lochy trudniejsze, Mgnienie jak Flicker Strike
 
 - Zgłoszenie autora z testu w oknie deweloperskim: na 100. poziomie lochu za mało potworów, za mało zdrowia i obrażeń
