@@ -5,7 +5,11 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 
 ## Do poprawy
 
-(na razie nic)
+- **Balans trudności do pilnowania (13.11.2026, uwaga autora):** po nowej krzywej siły lochu (100. poziom x113) i Mgnieniu
+  jak Flicker Strike pierwsze testy bez alarmów (postać morduje dużo szybciej), ale autor nie miał jeszcze czasu na
+  dłuższe testy. Przy każdej zmianie walki i przy dłuższym graniu sprawdzać: tempo trudności lochów, siłę postaci
+  z poziomem i łupem, spam Mgnienia. Pomysł Claude: symulacja balansu (jak `tests/balance_sim.gd` w Watrze) - liczby
+  postaci i potworów dla kilku poziomów w jednej tabeli.
 
 ## Najbliższe kroki
 
