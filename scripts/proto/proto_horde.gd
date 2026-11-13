@@ -6,7 +6,7 @@ extends Node
 ## potwór - duża), zebrany żar liczy `embers` - do bazy trafia tylko po pokonaniu bossa, ucieczka i śmierć go gaszą.
 ## Przyzwanie bossa (`call_boss`) zatrzymuje strumień, a gobliny uciekają z piskiem. Siła goblinów rośnie z poziomem
 ## lochu (`power`). Od 2. poziomu część goblinów to łucznicy (DungeonLevels.archer_share, najwyżej `MAX_ARCHERS`
-## naraz). Rzadko goblin upuszcza przedmiot z poziomu lochu (`level`, Items.roll_goblin).
+## naraz), od 3. - osiłki (DungeonLevels.brute_share, najwyżej `MAX_BRUTES`; z osiłka wypada `BRUTE_EMBERS` żaru). Rzadko goblin upuszcza przedmiot z poziomu lochu (`level`, Items.roll_goblin).
 ## Ulepszenia lochów (DungeonUpgrades, ustawia arena): `density` - gęstszy strumień, `loot_mult` - mnożnik szans łupu,
 ## `reach` - o tyle pikseli dalej iskry i łup lecą do postaci.
 
@@ -31,6 +31,9 @@ const BIG_EVERY := 20
 const SQUEAKERS := 6
 ## Najwięcej łuczników naraz (żeby strzały dało się wymijać, a nie były deszczem).
 const MAX_ARCHERS := 6
+## Najwięcej osiłków naraz i ile żaru daje iskra z osiłka.
+const MAX_BRUTES := 3
+const BRUTE_EMBERS := 3
 
 var hero: ProtoHero
 ## Gdzie dodawać potwory (świat z sortowaniem po Y).
@@ -85,12 +88,28 @@ func _ramp() -> float:
 
 
 func spawn() -> ProtoGoblin:
-	return spawn_at(spawn_point(), randf() < DungeonLevels.archer_share(level) and archers() < MAX_ARCHERS)
+	var roll := randf()
+	var brute := DungeonLevels.brute_share(level)
+	var kind := "goblin"
+	if roll < brute:
+		if count(ProtoGoblinBrute) < MAX_BRUTES:
+			kind = "brute"
+	elif roll < brute + DungeonLevels.archer_share(level) and archers() < MAX_ARCHERS:
+		kind = "archer"
+	return spawn_at(spawn_point(), kind)
 
 
-## Goblin w danym miejscu (strumień albo okrzyk Wodza; `archer` - łucznik). Liczy się do pokonanych i daje iskrę.
-func spawn_at(pos: Vector2, archer := false) -> ProtoGoblin:
-	var g: ProtoGoblin = ProtoGoblinArcher.new() if archer else ProtoGoblin.new()
+## Goblin w danym miejscu (strumień albo okrzyk Wodza; `kind`: goblin, archer - łucznik, brute - osiłek).
+## Liczy się do pokonanych i daje iskrę.
+func spawn_at(pos: Vector2, kind := "goblin") -> ProtoGoblin:
+	var g: ProtoGoblin
+	match kind:
+		"archer":
+			g = ProtoGoblinArcher.new()
+		"brute":
+			g = ProtoGoblinBrute.new()
+		_:
+			g = ProtoGoblin.new()
 	g.hero = hero
 	g.bounds = bounds
 	g.power = power
@@ -103,9 +122,14 @@ func spawn_at(pos: Vector2, archer := false) -> ProtoGoblin:
 
 ## Ilu łuczników żyje teraz w lochu.
 func archers() -> int:
+	return count(ProtoGoblinArcher)
+
+
+## Ile żywych goblinów danego rodzaju (klasy) jest teraz w lochu.
+func count(type: Variant) -> int:
 	var n := 0
 	for c in world.get_children():
-		if c is ProtoGoblinArcher and c.alive():
+		if is_instance_of(c, type) and c.alive():
 			n += 1
 	return n
 
@@ -148,7 +172,7 @@ func _on_died(g: ProtoGoblin) -> void:
 	kills_changed.emit(kills)
 	var ember := ProtoEmber.new()
 	ember.hero = hero
-	ember.value = ProtoEmber.BIG if kills % BIG_EVERY == 0 else 1
+	ember.value = ProtoEmber.BIG if kills % BIG_EVERY == 0 else (BRUTE_EMBERS if g is ProtoGoblinBrute else 1)
 	ember.position = g.position
 	ember.magnet = ProtoEmber.MAGNET + reach
 	ember.collected.connect(_on_ember)

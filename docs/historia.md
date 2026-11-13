@@ -2,6 +2,20 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - goblin osiłek (trzeci rodzaj potwora)
+
+- Ustalone z autorem: goblin osiłek od 3. poziomu lochu, grafika ze SpriteKiln, cios w ziemię z czerwonym kołem.
+- `ProtoGoblinBrute` (`scripts/proto/proto_goblin_brute.gd`, podklasa `ProtoGoblin`): 150 zdrowia, 28 px/s, z 28 px
+  bierze zamach; koło `ProtoTelegraph` (promień 26) 14 px przed nim w stronę postaci, wypełnia się przez 1 s, potem
+  maczuga uderza (22 obrażenia x siła poziomu, tylko w kole; efekt `boss_slam` i dźwięk `chief_slam`), 0,45 s powrotu,
+  zamach co 2,4 s. Animacja `attack` rusza `ANIM_HIT_AT` s przed uderzeniem (jak u Wodza), uderzenie liczy zegar.
+  Ciężki: cięcie w trakcie zamachu tylko rani (bez przerwania), odrzut i odepchnięcie x0,3; ogłuszenie przerywa i gasi koło.
+- `DungeonLevels.brute_share`: od `BRUTE_FROM` = 3 udział 8%, +2% na poziom, sufit 15%; `ProtoHorde`: `spawn_at(pos, kind)`
+  (`"goblin"`, `"archer"`, `"brute"`), `count(klasa)`, najwyżej `MAX_BRUTES` = 3 naraz, z osiłka iskra za `BRUTE_EMBERS` = 3 żaru.
+- `ProtoGoblin.shadow_scale` (większy cień osiłka).
+- Grafika: `art/specs/characters/goblin_brute/goblin_brute.yaml` (na bazie goblina) -> `assets/spritekiln/goblin_brute/`.
+- Test: `_test_brute` w `tests/test_horde.gd`.
+
 ## 13.11.2026 - goblin łucznik (drugi rodzaj potwora)
 
 - Ustalone z autorem: goblin łucznik od 2. poziomu lochu, grafika ze SpriteKiln, strzały do unikania.

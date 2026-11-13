@@ -33,8 +33,8 @@ func _run() -> void:
 	horde.running = false
 	for p in [Vector2(-40, -50), Vector2(50, -30), Vector2(-60, 40), Vector2(30, 60)]:
 		horde.spawn_at(hero.position + p * 1.6)
-	var a := horde.spawn_at(hero.position + Vector2(90, -60), true) as ProtoGoblinArcher
-	var b := horde.spawn_at(hero.position + Vector2(-100, 30), true) as ProtoGoblinArcher
+	var a := horde.spawn_at(hero.position + Vector2(90, -60), "archer") as ProtoGoblinArcher
+	var b := horde.spawn_at(hero.position + Vector2(-100, 30), "archer") as ProtoGoblinArcher
 	a._cooldown = 0.0
 	b._cooldown = 0.25
 	await create_timer(0.5).timeout

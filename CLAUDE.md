@@ -45,7 +45,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
 - `scripts/`: logika. `game.gd` (autoload `Game`: wersja, zmiana sceny, zapis gry - żar Watry, przebity poziom lochu), `main_menu.gd` (ekran startowy),
   `lang.gd` (tłumaczenia), `scripts/ui/` (interfejs, `safe_area.gd`).
 - `scripts/proto/`: prototyp walki (`arena.gd` - polana i interfejs, `proto_hero.gd` - postać, `proto_weapon.gd` -
-  lewitujący miecz, `proto_target.gd` - wspólna baza celów miecza, `proto_dummy.gd` - kukła, `proto_goblin.gd` - goblin Hordy, `proto_goblin_archer.gd` - goblin łucznik (od 2. poziomu, strzały `proto_arrow.gd`),
+  lewitujący miecz, `proto_target.gd` - wspólna baza celów miecza, `proto_dummy.gd` - kukła, `proto_goblin.gd` - goblin Hordy, `proto_goblin_archer.gd` - goblin łucznik (od 2. poziomu, strzały `proto_arrow.gd`), `proto_goblin_brute.gd` - goblin osiłek (od 3. poziomu, cios w ziemię z kołem),
   `proto_horde.gd` - strumień potworów, `proto_watra.gd` - Watra = wejście do lochu i licznik żaru, `proto_ember.gd` - iskra żaru z potworów,
   `proto_chief.gd` - boss Wódz Goblinów (ataki z ostrzeżeniem `proto_telegraph.gd`, tasak `proto_cleaver.gd`),
   `proto_chest.gd` - skrzynia po bossie; `scripts/dungeon_levels.gd` - poziomy lochu (siła, koszt przyzwania, nagroda);

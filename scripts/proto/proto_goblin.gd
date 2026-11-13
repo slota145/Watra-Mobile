@@ -46,6 +46,8 @@ var max_hp := MAX_HP
 var speed := SPEED
 var damage := DAMAGE
 var attack_cooldown := ATTACK_COOLDOWN
+## Wielkość cienia pod stopami (osiłek ma większy).
+var shadow_scale := 0.85
 ## Bez grafiki (zastępczy kształt): po tylu sekundach zamachu pada cios i po tylu zamach się kończy.
 var strike_time := 0.3
 var attack_time := 0.6
@@ -68,7 +70,7 @@ func _ready() -> void:
 	add_to_group(ProtoWeapon.TARGETS)
 	var shadow := Sprite2D.new()
 	shadow.texture = ProtoHero._shadow_texture()
-	shadow.scale = Vector2(0.85, 0.85)
+	shadow.scale = Vector2(shadow_scale, shadow_scale)
 	add_child(shadow)
 	if not _scenes.has(scene_path):
 		_scenes[scene_path] = load(scene_path) if ResourceLoader.exists(scene_path) else null
