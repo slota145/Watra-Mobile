@@ -10,7 +10,7 @@ extends Node2D
 ## Poziom postaci (`set_level`, HeroLevels) ustala największe zdrowie; awans (`level_up`) leczy do pełna
 ## ze złotym błyskiem, napisem „Poziom N!” i dźwiękiem. Przedmioty (`gear` - Items.totals) dokładają zdrowie, manę,
 ## szybkość ruchu, regenerację zdrowia i ochronę (mniej obrażeń od potworów).
-## Mana odnawia się sama (HeroLevels.MANA_REGEN), a wydają ją umiejętności miecza (`spend_mana`). Skok Mgnienia
+## Mana odnawia się sama (HeroLevels.MANA_REGEN i premia przedmiotów `mana_regen`), a wydają ją umiejętności miecza (`spend_mana`). Skok Mgnienia
 ## (`teleport`) przenosi postać od razu, zostawia gasnący cień w miejscu startu i daje chwilę nietykalności.
 
 signal health_changed(hp: int, max_hp: int)
@@ -91,7 +91,7 @@ func _process(delta: float) -> void:
 			hp = mini(hp + heal, max_hp)
 			health_changed.emit(hp, max_hp)
 	if mana < max_mana:
-		_mana_acc += HeroLevels.MANA_REGEN * delta
+		_mana_acc += (HeroLevels.MANA_REGEN + gear.get("mana_regen", 0.0)) * delta
 		if _mana_acc >= 1.0:
 			var add := int(_mana_acc)
 			_mana_acc -= add

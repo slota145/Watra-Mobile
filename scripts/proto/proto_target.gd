@@ -5,8 +5,14 @@ extends Node2D
 ## Kamienie umiejętności (Gems): podpalenie (`burn` - obrażenia co BURN_TICK przez `burn_tick`, pomarańczowe liczby)
 ## i spowolnienie (`slow` - potwory mnożą prędkość przez `speed_factor()`); znaczki rysuje węzeł _Status pod celem.
 
+## Kolor i wielkość liczby trafienia krytycznego.
+const CRIT_COLOR := Color(1.0, 0.82, 0.25)
+const CRIT_SIZE := 15
+
 ## Wysokość środka celu nad ziemią (tam celuje broń i wyskakują liczby).
 var center_height := 18.0
+## Następna liczba obrażeń to trafienie krytyczne (ustawia miecz tuż przed take_damage; liczba złota, większa, z „!”).
+var crit_next := false
 
 
 ## Punkt, w który celuje broń.
@@ -81,9 +87,13 @@ func _status() -> _Status:
 
 ## Liczba obrażeń wyskakująca nad celem.
 func spawn_number(amount: int, color := Color(1.0, 0.95, 0.8)) -> void:
+	var crit := crit_next
+	crit_next = false
 	var num := Label.new()
-	num.text = str(amount)
-	num.add_theme_font_size_override("font_size", 12)
+	num.text = str(amount) + ("!" if crit else "")
+	if crit:
+		color = CRIT_COLOR
+	num.add_theme_font_size_override("font_size", CRIT_SIZE if crit else 12)
 	num.add_theme_color_override("font_color", color)
 	num.add_theme_color_override("font_outline_color", Color(0.15, 0.08, 0.05))
 	num.add_theme_constant_override("outline_size", 4)

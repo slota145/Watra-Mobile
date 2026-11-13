@@ -131,10 +131,14 @@
 "Miejsca na umiejętności","Skill slots","hero_stats.gd"
 "Na pewno? +%d złota","","hero_stats.gd"
 "Następny poziom","Next level","hero_stats.gd"
+"Obrażenia krytyczne","","hero_stats.gd"
 "Obrażenia miecza","Sword damage","hero_stats.gd"
 "Ochrona","","hero_stats.gd"
+"Odnowa many","","hero_stats.gd"
+"Odnowienie umiejętności","","hero_stats.gd"
 "Po założeniu:","","hero_stats.gd"
 "Po zdjęciu:","","hero_stats.gd"
+"Przeciw elitom i bossom","","hero_stats.gd"
 "Regeneracja","","hero_stats.gd"
 "Sakwa","","hero_stats.gd"
 "Sakwa (%d)","","hero_stats.gd"
@@ -146,6 +150,7 @@
 "Statystyki","","hero_stats.gd"
 "Stuknij gniazdo, żeby włożyć, wymienić albo wyjąć kamień.","","hero_stats.gd"
 "Stuknij kamień: zobaczysz, gdzie pasuje i co tam da. Kropki pod kamieniem to jego stopień.","","hero_stats.gd"
+"Szansa na krytyk","","hero_stats.gd"
 "Szybkość ataku","Attack speed","hero_stats.gd"
 "Szybkość ruchu","Move speed","hero_stats.gd"
 "Załóż","","hero_stats.gd"
@@ -153,17 +158,24 @@
 "Zdrowie %s
 Obrażenia %s
 Ochrona %s","","hero_stats.gd"
+"Zdrowie za zabicie","","hero_stats.gd"
 "na poz. %d","at lv. %d","hero_stats.gd"
 "Poziom %d","Level %d","hero_stats.gd, level_picker.gd"
 "Torba: %d / %d","","hero_stats.gd, shop_window.gd, smith_window.gd, stash_window.gd"
 "Sakwa pusta - kamienie wypadają w lochach od poziomu %d.","","hero_stats.gd, skills_window.gd"
 "Zdejmij","Remove","hero_stats.gd, skills_window.gd"
 "puste","","hero_stats.gd, skills_window.gd"
+"%d%% krótsze odnowienie umiejętności","","items.gd"
 "%s - %s, loch %d","","items.gd"
+"+%.1f many na sekundę","","items.gd"
 "+%.1f zdrowia na sekundę","","items.gd"
 "+%d do many","","items.gd"
 "+%d do zdrowia","","items.gd"
+"+%d zdrowia za zabicie potwora","","items.gd"
+"+%d%% obrażeń krytycznych","","items.gd"
+"+%d%% obrażeń przeciw elitom i bossom","","items.gd"
 "+%d%% ochrony przed obrażeniami","","items.gd"
+"+%d%% szansy na trafienie krytyczne","","items.gd"
 "+%d%% szybkości ataku","","items.gd"
 "+%d%% szybkości ruchu","","items.gd"
 "Amulet","","items.gd"
@@ -253,13 +265,14 @@ Ochrona %s","","hero_stats.gd"
 shader_type canvas_item;
 uniform vec4 glow : source_color = vec4(1.0);
 uniform float pulse = 1.0;
+varying vec4 tint;
+
+void vertex() {
+	tint = COLOR;
+}
 
 void fragment() {
-	vec4 c = texture(TEXTURE, UV);
-	vec4 m = COLOR;
-	if (c.a > 0.1) {
-		COLOR = c * m;
-	} else {
+	if (COLOR.a < 0.1) {
 		vec2 p = TEXTURE_PIXEL_SIZE;
 		float near = max(max(texture(TEXTURE, UV + vec2(p.x, 0.0)).a, texture(TEXTURE, UV - vec2(p.x, 0.0)).a),
 			max(texture(TEXTURE, UV + vec2(0.0, p.y)).a, texture(TEXTURE, UV - vec2(0.0, p.y)).a));
@@ -268,7 +281,7 @@ void fragment() {
 			max(texture(TEXTURE, UV + vec2(p.x, -p.y)).a, texture(TEXTURE, UV + vec2(-p.x, p.y)).a)));
 		far = max(far, max(texture(TEXTURE, UV + vec2(0.0, 2.0 * p.y)).a, texture(TEXTURE, UV - vec2(0.0, 2.0 * p.y)).a));
 		float a = near > 0.1 ? 0.95 : (far > 0.1 ? 0.4 : 0.0);
-		COLOR = vec4(glow.rgb, a * pulse * m.a);
+		COLOR = vec4(glow.rgb, a * pulse * tint.a);
 	}
 }
 ","","proto_elite.gd"

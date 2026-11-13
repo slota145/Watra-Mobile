@@ -163,6 +163,12 @@ var damage_mult := 1.0
 var damage := DAMAGE
 ## Mnożnik szybkości ataku (rozbieg, cięcie, powrót i odpoczynek trwają tyle razy krócej).
 var speed_mult := 1.0
+## Premie przedmiotów (ustawia arena z HeroStats): szansa na krytyk (0-1) i mnożnik krytyka, mnożnik obrażeń
+## przeciw elitom i bossom, skrócenie odnowienia umiejętności (0-1).
+var crit_chance := HeroStats.CRIT_CHANCE / 100.0
+var crit_mult := HeroStats.CRIT_DAMAGE / 100.0
+var elite_mult := 1.0
+var cooldown_cut := 0.0
 ## Czy gracz trzyma przycisk Mgnienia (skoki co FLICKER_INTERVAL, dopóki starcza many).
 var flicker_held := false
 ## Umiejętność pod dużym przyciskiem (Skills; zwykły cios - Skills.STRIKE).
@@ -518,13 +524,21 @@ func cooldown_full(id: String) -> float:
 
 ## Odnowienie bez kamienia unikalnego (Młynek z nim - co tyle wybuch z 10. poziomu).
 func _cooldown_base(id: String) -> float:
-	return Skills.cooldown_of(id) * (1.0 - gem_power(id, "haste") / 100.0) * Skills.level_cost(level_of(id))
+	return Skills.cooldown_of(id) * (1.0 - gem_power(id, "haste") / 100.0) * Skills.level_cost(level_of(id)) \
+			* (1.0 - cooldown_cut)
 
 
-## Trafienie umiejętnością `skill` - obrażenia i działanie jej kamieni (podpalenie, spowolnienie, leczenie, mana,
+## Trafienie umiejętnością `skill` - premia przeciw elitom i bossom, trafienie krytyczne (złota liczba), obrażenia
+## i działanie jej kamieni (podpalenie, spowolnienie, leczenie, mana,
 ## piorun).
 func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
+	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
+		amount = roundi(amount * elite_mult)
+	if randf() < crit_chance:
+		amount = roundi(amount * crit_mult)
+		t.crit_next = true
 	t.take_damage(amount, from)
+	t.crit_next = false
 	var sockets: Array = skill_gems.get(skill, [])
 	if sockets.is_empty():
 		return

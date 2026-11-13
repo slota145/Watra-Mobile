@@ -2,6 +2,25 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - nowe statystyki przedmiotów, poprawka górnego paska w lochu
+
+- Pomysł autora: więcej statystyk na przedmiotach. Ustalone: 6 nowych premii, wszystkie na każdym miejscu (jak stare 8),
+  bazowy krytyk postaci 5% za 150%, liczby jak w propozycji, kamienie bez zmian.
+- `Items` (`STAT_FORMATS`, `AFFIXES`, `CAPS`, `DECIMAL_STATS`): `crit_pct` 2-4% (+0,1 na poziom lochu, sufit z przedmiotów
+  95% - razem pewny krytyk), `crit_dmg_pct` 10-20% (+0,5), `life_on_kill` 1-2 (z siłą lochu), `cdr_pct` 3-6% (+0,15, sufit
+  100% - odnowienie aż do zera; decyzja autora: osiągalne, ale bardzo trudne, jak w PoE),
+  `elite_dmg_pct` 6-12% (+0,5), `mana_regen` 0,5-1,2 na s (z siłą lochu; jedno miejsce po przecinku, też przy wczytaniu zapisu).
+- Działanie: `ProtoWeapon._deal` - premia przeciw elitom (`ProtoGoblin.elite`) i Wodzowi, krytyk (`crit_chance`,
+  `crit_mult`; liczba złota, większa, z „!” - `ProtoTarget.crit_next`, `CRIT_COLOR`), `cooldown_cut` w `_cooldown_base`;
+  arena ustawia je w `_apply_weapon` z `HeroStats.crit_chance` / `crit_damage` (bazowe `CRIT_CHANCE` 5, `CRIT_DAMAGE` 150);
+  `ProtoHero` - mana na sekundę `HeroLevels.MANA_REGEN` + `mana_regen`; `ProtoHorde._on_died` leczy o `life_on_kill`.
+- Okno „Postać”: nowe wiersze (szansa na krytyk, obrażenia krytyczne, odnowa many zawsze; zdrowie za zabicie,
+  odnowienie, przeciw elitom - gdy przedmioty coś dają), porównanie przy zakładaniu (`COMPARE_KEYS`; odnowienie - mniej to lepiej).
+- Poprawka: wiersz „Loch N · Pokonane · żar · czas” w lochu potrzebował ok. 216 px przy ok. 180 dostępnych - rozpychał
+  cały interfejs (czas ucięty za krawędzią, okno „Postać” szersze od ekranu, ucięte „Wróć”). Teraz dwa wiersze:
+  „Loch N … czas” i „Pokonane … żar”.
+- Test: `_test_new_stats` w `tests/test_items.gd`.
+
 ## 13.11.2026 - elitarne potwory
 
 - Ustalone z autorem: elity rzadko od 2. poziomu lochu, cechy Szybki, Tarczowy, Wybuchowy, Dowódczy, nagroda - przedmiot

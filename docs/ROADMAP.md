@@ -62,6 +62,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   telefonie: czy zakładki i wybór kamienia są wygodne, czy opisy pod gniazdami są czytelne (czcionka 9 px).
   Do decyzji później: krótsze porównanie przedmiotów (tylko zmieniające się liczby ze strzałkami).
 
+- **Więcej statystyk na przedmiotach (13.11.2026):** zrobione (szczegóły w `docs/historia.md`). Na później:
+  obszar umiejętności, unik, zasięg zbierania, więcej żaru; nowe premie w kamieniach.
+
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
 - Watra jako „serce” ekranu startowego: animowany ogień, który przygasa, gdy długo nie grasz, i rozpala się po powrocie.

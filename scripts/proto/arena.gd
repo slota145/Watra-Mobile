@@ -503,12 +503,19 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	box.add_child(ember_bar)
 	ember_text = _bar_text(ember_bar, 9)
 	ember_text.text = "0 / %d" % DungeonLevels.SUMMON_COST
+	# dwa krótkie wiersze (w jednym nie mieściły się na 360 px i rozpychały cały interfejs): poziom i czas,
+	# pokonane i żar
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(row)
 	level_label = _hud_label(tr("Loch %d") % level)
-	level_label.custom_minimum_size = Vector2(46, 0)
+	level_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(level_label)
+	time_label = _hud_label("0:00")
+	row.add_child(time_label)
+	row = HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(row)
 	kills_label = _hud_label(tr("Pokonane: %d") % 0)
 	kills_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(kills_label)
@@ -522,8 +529,6 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	embers_label = _hud_label("0")
 	embers_label.custom_minimum_size = Vector2(34, 0)
 	row.add_child(embers_label)
-	time_label = _hud_label("0:00")
-	row.add_child(time_label)
 	deaths_label = _hud_label(tr("Zgony: %d") % 0)
 	deaths_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35))
 	deaths_label.visible = Game.dev_immortal
@@ -618,11 +623,16 @@ func _on_inventory() -> void:
 	_apply_weapon()
 
 
-## Miecz: obrażenia z założonej broni, mnożnik z poziomu i premii, szybkość ataku.
+## Miecz: obrażenia z założonej broni, mnożnik z poziomu i premii, szybkość ataku, krytyki, premia przeciw elitom
+## i bossom, krótsze odnowienie umiejętności.
 func _apply_weapon() -> void:
 	weapon.damage = HeroStats.weapon_damage(gear)
 	weapon.damage_mult = HeroStats.damage_mult(Game.hero_level, gear)
 	weapon.speed_mult = HeroStats.attack_speed_mult(gear)
+	weapon.crit_chance = HeroStats.crit_chance(gear) / 100.0
+	weapon.crit_mult = HeroStats.crit_damage(gear) / 100.0
+	weapon.elite_mult = 1.0 + gear.get("elite_dmg_pct", 0.0) / 100.0
+	weapon.cooldown_cut = gear.get("cdr_pct", 0.0) / 100.0
 
 
 ## Umiejętności z miejsc na przyciski walki i do miecza (duży przycisk - umiejętność z auto atakiem).
