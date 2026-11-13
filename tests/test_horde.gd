@@ -10,6 +10,8 @@ extends SceneTree
 ## trafienie mieczem przerywa naciąganie, limit łuczników naraz.
 ## Osiłek (od 3. poziomu): wytrzymały, przed ciosem czerwone koło przed nim, wyjście z koła ratuje, cięcie nie przerywa
 ## zamachu, ogłuszenie przerywa, limit osiłków naraz, więcej żaru.
+## Elity (od 2. poziomu): więcej zdrowia, napis z cechami, tarcza, szybkość, wzmocnienie sąsiadów, wybuch po śmierci,
+## nagroda (przedmiot, duża iskra, sygnał do doświadczenia).
 
 var _failed := 0
 
@@ -43,6 +45,7 @@ func _run() -> void:
 	await _test_chief()
 	await _test_archer()
 	await _test_brute()
+	await _test_elites()
 	DirAccess.remove_absolute(root.get_node("Game").settings_path)
 	DirAccess.remove_absolute(root.get_node("Game").save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
@@ -378,6 +381,77 @@ func _test_brute() -> void:
 	_check(horde.count(ProtoGoblinBrute) <= ProtoHorde.MAX_BRUTES and horde.count(ProtoGoblinBrute) >= 1, "najwyżej %d osiłków naraz (%d)" % [ProtoHorde.MAX_BRUTES, horde.count(ProtoGoblinBrute)])
 	horde.scatter()
 	_check(horde.count(ProtoGoblinBrute) == 0, "osiłki też uciekają przed Wodzem")
+	arena.queue_free()
+	await process_frame
+
+
+func _test_elites() -> void:
+	var game: Node = root.get_node("Game")
+	_check(Elites.max_traits(1) == 0 and Elites.max_traits(2) == 1 and Elites.max_traits(4) == 2 and Elites.max_traits(9) == 3,
+		"elity od 2. poziomu, więcej cech wyżej")
+	var rolled := Elites.roll_traits(9)
+	_check(rolled.size() >= 2 and rolled.size() <= 3 and rolled[0] != rolled[1], "cechy elity są różne (%s)" % [rolled])
+	game.best_level = 4
+	game.dungeon_level = 4
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	var horde: ProtoHorde = arena.horde_spawner
+	horde.running = false
+	arena.weapon.auto_attack = false
+	_check(horde._elite_next >= Elites.FIRST.x, "pierwsza elita po chwili (%.0f s)" % horde._elite_next)
+	var e := horde.spawn_elite()
+	_check(e.elite != null and e.elite.traits.size() >= 1 and e.elite.traits.size() <= 2, "spawn_elite: elita z cechami (%s)" % [e.elite.traits])
+	e.queue_free()
+	# tarcza, napis, poświata
+	var s: ProtoGoblin = horde.spawn_at(hero.position + Vector2(150, 0), "goblin", ["shield"] as Array[String])
+	await process_frame
+	await process_frame
+	_check(s.hp == roundi(ProtoGoblin.MAX_HP * Elites.HEALTH * horde.power), "elita ma więcej zdrowia (%d)" % s.hp)
+	_check(s.elite._label != null and s.elite._label.text == "Tarczowy" and s._sprite.material != null, "elita: napis z cechą i poświata")
+	var hp := s.hp
+	s.take_damage(10, hero.global_position)
+	_check(s.hp == hp and s.elite.shield < s.elite.shield_max, "tarcza bierze trafienie")
+	s.take_damage(roundi(s.elite.shield_max), hero.global_position)
+	_check(s.hp < hp and s.elite.shield == 0.0, "zbita tarcza - obrażenia idą w zdrowie")
+	s.elite._since_hit = Elites.SHIELD_DELAY
+	await process_frame
+	_check(s.elite.shield == s.elite.shield_max, "tarcza wraca po chwili bez obrażeń")
+	s.queue_free()
+	# szybki
+	var f: ProtoGoblin = horde.spawn_at(hero.position + Vector2(150, 0), "goblin", ["fast"] as Array[String])
+	_check(is_equal_approx(f.speed, ProtoGoblin.SPEED * Elites.FAST_SPEED), "szybka elita biega szybciej")
+	f.queue_free()
+	# dowódczy wzmacnia sąsiadów
+	var c: ProtoGoblin = horde.spawn_at(hero.position + Vector2(150, 0), "goblin", ["commanding"] as Array[String])
+	var near: ProtoGoblin = horde.spawn_at(hero.position + Vector2(170, 0))
+	var normal_hit := near.hit_damage()
+	await _wait(0.2)
+	_check(near._empowered > 0.0 and near.hit_damage() > normal_hit and near.speed_factor() > 1.0, "dowódczy wzmacnia gobliny wokół")
+	c.take_damage(100000, hero.global_position)
+	near.queue_free()
+	# wybuchowy: koło po śmierci, wybuch rani w kole; nagroda
+	var kills := [0]
+	horde.elite_killed.connect(func(_g: ProtoGoblin) -> void: kills[0] += 1)
+	var v: ProtoGoblin = horde.spawn_at(hero.position + Vector2(10, 0), "goblin", ["volatile"] as Array[String])
+	await process_frame
+	hero.hp = hero.max_hp
+	v._cooldown = 99.0
+	v.take_damage(100000, hero.global_position)
+	await process_frame
+	await process_frame
+	var circle := false
+	var ember := false
+	var loot := false
+	for n in arena.get_node("World").get_children():
+		circle = circle or n is ProtoTelegraph
+		ember = ember or (n is ProtoEmber and n.value == Elites.EMBERS)
+		loot = loot or n is ProtoLoot
+	_check(circle, "wybuchowa elita zostawia koło")
+	_check(ember and loot and kills[0] == 1, "nagroda za elitę: duża iskra, przedmiot, doświadczenie")
+	await _wait(Elites.VOLATILE_WARN + 0.1)
+	_check(hero.hp == hero.max_hp - roundi(Elites.VOLATILE_DAMAGE * horde.power), "wybuch rani w kole (zdrowie %d)" % hero.hp)
 	arena.queue_free()
 	await process_frame
 

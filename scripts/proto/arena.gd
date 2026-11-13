@@ -178,6 +178,8 @@ func _ready() -> void:
 			kills_label.text = tr("Pokonane: %d") % k
 			_gain_xp(HeroLevels.goblin_xp(level)))
 		horde_spawner.embers_changed.connect(_on_embers)
+		horde_spawner.elite_killed.connect(func(_g: ProtoGoblin) -> void:
+			_gain_xp(HeroLevels.goblin_xp(level) * (Elites.XP - 1)))
 		add_child(horde_spawner)
 		hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
 			health_bar.max_value = max_hp
