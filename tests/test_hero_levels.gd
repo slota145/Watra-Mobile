@@ -148,7 +148,7 @@ func _test_base(game: Node) -> void:
 	for n in arena.get_node("World").get_children():
 		if n is ProtoDummy:
 			dummy = n
-	hero.position = Vector2(0, 300)  # daleko od kukieł
+	hero.position = Vector2(0, 450)  # daleko od kukieł
 	await _wait(1.0)
 	_check(arena.weapon._state == "follow" and dummy._hits.size() == 0, "auto atak bez celu nie tnie")
 	hero.position = dummy.position + Vector2(-30, 0)

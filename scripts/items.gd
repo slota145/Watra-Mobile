@@ -6,7 +6,8 @@ class_name Items
 ## z Watry: żelazny, stalowy, mithrilowy, runiczny, smoczy). Łup: skrzynia Wodza (`roll_chest`) i rzadko gobliny
 ## (`roll_goblin`). Niepotrzebne przedmioty sprzedaje się za złoto (`sell_price`).
 ## Przedmiot to słownik z samymi identyfikatorami i liczbami (nazwy składane przy pokazywaniu - zasady w lang.gd):
-## {"slot", "tier", "level", "rarity", "base": {cecha: wartość}, "affixes": [{"stat", "value"}], "sockets": [kamień]}.
+## {"slot", "tier", "level", "rarity", "base": {cecha: wartość}, "affixes": [{"stat", "value"}], "sockets": [kamień],
+## "rerolls": ile razy kowal przerabiał premię (od tego rośnie cena kolejnej przeróbki - `reroll_price`)}.
 ## Gniazda na kamienie szlachetne (Gems): "sockets" - lista identyfikatorów kamieni ("" - puste gniazdo); każdy przedmiot
 ## ma 1 gniazdo, bardzo rzadko 2 (SECOND_SOCKET), drugie dorabia Dłuto Jubilera (Game.add_socket).
 ## Stan (torba, założone, złoto) trzyma i zapisuje `Game`; sumę cech założonych przedmiotów liczy `totals`.
@@ -100,6 +101,10 @@ const SECOND_SOCKET := {"common": 0.0, "magic": 0.01, "rare": 0.03}
 ## Cena sprzedaży: tyle złota za zwykły przedmiot z 1. poziomu lochu, mnożnik rzadkości.
 const SELL_BASE := 5.0
 const SELL_RARITY := {"common": 1.0, "magic": 2.0, "rare": 4.0}
+## Kowal (ustalone z autorem 12.11.2026): przeróbka jednej premii kosztuje REROLL_BASE x cena sprzedaży,
+## a każda kolejna przeróbka tego samego przedmiotu REROLL_GROWTH razy więcej.
+const REROLL_BASE := 2.0
+const REROLL_GROWTH := 1.5
 
 
 ## Stopień przedmiotu (0-4) z poziomu lochu.
@@ -173,9 +178,9 @@ static func roll_chest(level: int) -> Array:
 	return items
 
 
-## Goblin padł: z szansą GOBLIN_DROP przedmiot, inaczej pusty słownik.
-static func roll_goblin(level: int) -> Dictionary:
-	return roll(level) if randf() < GOBLIN_DROP else {}
+## Goblin padł: z szansą GOBLIN_DROP (razy `chance_mult` - ulepszenie łupu) przedmiot, inaczej pusty słownik.
+static func roll_goblin(level: int, chance_mult := 1.0) -> Dictionary:
+	return roll(level) if randf() < GOBLIN_DROP * chance_mult else {}
 
 
 ## Nazwa przedmiotu w obecnym języku.
@@ -232,6 +237,27 @@ static func affix_lines(item: Dictionary) -> Array[String]:
 ## Ile złota daje sprzedaż.
 static func sell_price(item: Dictionary) -> int:
 	return maxi(1, roundi(SELL_BASE * DungeonLevels.power(item.level) * SELL_RARITY[item.rarity]))
+
+
+## Cena następnej przeróbki premii u kowala.
+static func reroll_price(item: Dictionary) -> int:
+	return roundi(REROLL_BASE * sell_price(item) * pow(REROLL_GROWTH, int(item.get("rerolls", 0))))
+
+
+## Kowal: premia `index` losowana od nowa - rodzaj (spośród tych, których przedmiot jeszcze nie ma; może wypaść
+## ten sam) i siła z poziomu przedmiotu. Zmienia przedmiot w miejscu i liczy przeróbki. Zwraca false przy złym indeksie.
+static func reroll_affix(item: Dictionary, index: int) -> bool:
+	if index < 0 or index >= item.get("affixes", []).size():
+		return false
+	var taken: Array = []
+	for i in item.affixes.size():
+		if i != index:
+			taken.append(item.affixes[i].stat)
+	var pool: Array = AFFIXES.keys().filter(func(stat: String) -> bool: return not stat in taken)
+	var stat: String = pool.pick_random()
+	item.affixes[index] = {"stat": stat, "value": roll_affix(stat, item.level)}
+	item.rerolls = int(item.get("rerolls", 0)) + 1
+	return true
 
 
 ## Suma cech założonych przedmiotów (słownik miejsce -> przedmiot). Klucze ze STAT_FORMATS (z sufitami CAPS)
@@ -296,5 +322,8 @@ static func normalize(data) -> Dictionary:
 			sockets.append(Gems.make(Gems.kind_of(id), Gems.grade_of(id)) if id is String and Gems.is_jewel(id) else "")
 	if sockets.is_empty():
 		sockets.append("")
-	return {"slot": data.slot, "tier": clampi(int(data.get("tier", 0)), 0, 4), "level": maxi(int(data.get("level", 1)), 1),
+	var item := {"slot": data.slot, "tier": clampi(int(data.get("tier", 0)), 0, 4), "level": maxi(int(data.get("level", 1)), 1),
 			"rarity": data.rarity, "base": base, "affixes": affixes, "sockets": sockets}
+	if int(data.get("rerolls", 0)) > 0:
+		item.rerolls = int(data.rerolls)
+	return item

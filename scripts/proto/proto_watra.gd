@@ -96,6 +96,12 @@ func _process(delta: float) -> void:
 	_glow.modulate.a = 0.45 + 0.15 * minf(glow_size() - 1.0, 1.0) + _flare * 0.3
 
 
+## Nowa ilość żaru (np. po kupnie ulepszenia) - licznik pod ogniem i wielkość poświaty.
+func set_embers(value: int) -> void:
+	embers = value
+	embers_label.text = tr("Żar Watry: %d") % embers
+
+
 ## Wielkość poświaty z ilości żaru: 1 bez żaru, rośnie powoli (logarytmicznie) do 1,6 przy 1000 żaru.
 func glow_size() -> float:
 	return 1.0 + 0.6 * clampf(log(1.0 + embers) / log(1001.0), 0.0, 1.0)

@@ -3,10 +3,12 @@ extends Control
 ## Wybór poziomu lochu po dotknięciu Watry w bazie (jak wybór poziomu szczeliny w Diablo 3): strzałki ◀ ▶ zmieniają
 ## poziom od 1 do najwyższego odblokowanego (`Game.unlocked_level`), pod spodem siła potworów i nagroda ze skrzyni
 ## Wodza, na dole duże przyciski „Wejdź” i „Anuluj” (pod kciukiem). Zatrzymuje grę na czas wyboru.
-## Wybrany poziom trafia do `Game.dungeon_level` (zapisywany z grą).
+## Wybrany poziom trafia do `Game.dungeon_level` (zapisywany z grą). Nad „Wejdź” przycisk „Ulepszenia lochów”
+## (sygnał `upgrades` - arena chowa wybór i otwiera UpgradesWindow; po jego zamknięciu wybór wraca).
 
 signal enter(level: int)
 signal canceled
+signal upgrades
 
 var level := 1
 var max_level := 1
@@ -14,6 +16,7 @@ var minus_button: Button
 var plus_button: Button
 var enter_button: Button
 var cancel_button: Button
+var upgrades_button: Button
 var _level_label: Label
 var _info: Label
 
@@ -52,6 +55,13 @@ func _ready() -> void:
 	gap.custom_minimum_size = Vector2(0, 8)
 	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(gap)
+	upgrades_button = _button(column, tr("Ulepszenia lochów"), Vector2(220, 48))
+	upgrades_button.icon = preload("res://assets/watra/ember_icon.png")
+	upgrades_button.add_theme_constant_override("icon_max_width", 20)
+	upgrades_button.add_theme_font_size_override("font_size", 16)
+	upgrades_button.pressed.connect(func() -> void:
+		visible = false
+		upgrades.emit())
 	enter_button = _button(column, tr("Wejdź"), Vector2(220, 52))
 	enter_button.pressed.connect(func() -> void:
 		visible = false

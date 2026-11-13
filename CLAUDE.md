@@ -55,7 +55,11 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/items.gd` - przedmioty (miejsca, rzadkości, premie, łup, ceny; torba, założone i złoto w `Game`),
   `scripts/gems.gd` - kamienie w umiejętnościach i przedmiotach (dane, łup; sakwa i gniazda w `Game`, działanie w `proto_weapon.gd`
   i `Items.totals`, pole `scripts/ui/gem_slot.gd`, zakładka „Kamienie” w oknie umiejętności, gniazda w opisie przedmiotu w „Postać”),
-  `proto_loot.gd` - przedmiot na ziemi, `proto_stash.gd` - skrzynia w bazie (okno `scripts/ui/stash_window.gd`, pola z przeciąganiem `item_slot.gd`);
+  `proto_loot.gd` - przedmiot na ziemi, `proto_stash.gd` - skrzynia w bazie (okno `scripts/ui/stash_window.gd`, pola z przeciąganiem `item_slot.gd`;
+  ten sam skrypt to kamień run, kowal i kupiec); baza i waluty: `scripts/dungeon_upgrades.gd` - ulepszenia lochów za żar
+  (okno `scripts/ui/upgrades_window.gd` z wyboru poziomu), kowal - przeróbka premii (`Items.reroll_affix`, okno
+  `scripts/ui/smith_window.gd`), `scripts/shop.gd` - kupiec (okno `scripts/ui/shop_window.gd`), wspólny szkielet okien
+  `scripts/ui/base_window.gd`, pasek skrótów w bazie `scripts/ui/base_bar.gd`;
   `scripts/ui/run_result.gd` - wynik po śmierci i okno zwycięstwa, `scripts/ui/level_picker.gd` - wybór poziomu przy Watrze); `scripts/ui/joystick.gd` - pływająca gałka (dotyk wieloma palcami),
   `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
   `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania i auto atakiem (zapis w `Game`, `user://settings.cfg`)
@@ -68,7 +72,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `horde.tscn` - loch z ciągłym strumieniem goblinów; obie na `arena.gd`).
 - `assets/`: grafiki, muzyka, dźwięki; `assets/watra/` - pliki skopiowane z Watry; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
 - `art/specs/`: specyfikacje postaci SpriteKiln (YAML; Godot je pomija). Wyniki renderów w `out/` są generowane i nie idą do gita.
-- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia, `ember_art.py` - iskra żaru, `goblin_squeak.py` - pisk goblinów, `boss_shots.gd` - zrzuty walki z bossem, `level_shots.gd` - zrzuty rozwoju postaci, `item_shots.gd` - zrzuty przedmiotów, `stash_shots.gd` - zrzuty skrzyni, `skill_shots.gd` - zrzuty umiejętności, `gem_shots.gd` - zrzuty kamieni,
+- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia, `ember_art.py` - iskra żaru, `goblin_squeak.py` - pisk goblinów, `boss_shots.gd` - zrzuty walki z bossem, `level_shots.gd` - zrzuty rozwoju postaci, `item_shots.gd` - zrzuty przedmiotów, `stash_shots.gd` - zrzuty skrzyni, `skill_shots.gd` - zrzuty umiejętności, `gem_shots.gd` - zrzuty kamieni, `base_shots.gd` - zrzuty okien bazy,
   `vfx_art.py` - efekty z kreatora PixelLab do `assets/effects/`).
 - `tests/`: testy (`run_tests.ps1` u autora).
 - `translations/`: `teksty.csv` (pl/en), `pomijane.txt` (napisy bez tłumaczenia), `slowniczek.md`.

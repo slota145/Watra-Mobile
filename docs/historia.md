@@ -2,6 +2,38 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 12.11.2026 - baza: ulepszenia lochów za żar, kowal, kupiec, pasek skrótów
+
+- Ustalenia z autorem (zasady w `docs/GDD.md`, „Baza i waluty”): żar tylko na ulepszenia lochów, złoto na kowala
+  (przeróbka jednej wybranej premii) i kupca (towar w ograniczonej liczbie, nowy po każdym pokonanym Wodzu),
+  w bazie chodzenie postacią plus pasek ikon. Liczby zaproponowane przez Claude i zatwierdzone przez autora.
+- `scripts/dungeon_upgrades.gd` (`DungeonUpgrades`): 4 ulepszenia po 5 stopni za 50/120/250/500/1000 żaru (razem 7680):
+  Gęstsza Horda +10% potworów na stopień, Nauka z walki +8% doświadczenia, Hojność Watry +10% szansy na łup,
+  Długie ręce +8 px zasięgu zbierania. Stan `Game.upgrades`, `upgrade_steps`, `upgrade_bonus`, `upgrade_price`,
+  `buy_upgrade` (sygnał `Game.embers_changed` - licznik pod Watrą, `ProtoWatra.set_embers`).
+- Działanie w lochu (`Arena._apply_upgrades`): `ProtoHorde.density` dzieli odstęp między potworami i mnoży ich
+  największą liczbę naraz, `loot_mult` mnoży szanse w `Items.roll_goblin`, `Gems.roll_goblin` i `Gems.roll_chest`
+  (nowy parametr `chance_mult`), `reach` dodaje piksele do `ProtoEmber.magnet` (40) i `ProtoLoot.magnet` (36);
+  doświadczenie w `Arena._gain_xp` (razem z premią z przedmiotów).
+- Kowal (`Items.reroll_affix`, `reroll_price`, `Game.reroll`): premia losowana od nowa (rodzaj spośród tych, których
+  przedmiot jeszcze nie ma - może wypaść ten sam - i siła z poziomu przedmiotu); cena 2x cena sprzedaży, każda kolejna
+  przeróbka 1,5x droższa (licznik `rerolls` w przedmiocie, zapisywany). Okno `scripts/ui/smith_window.gd`: założone
+  i torba, opis przedmiotu od dołu z przyciskiem przy każdej premii, nowa premia błyska, dźwięk kowadła z Watry.
+- Kupiec (`scripts/shop.gd`, `Shop`; `Game.shop`, `shop_ready`, `shop_offers`, `restock_shop`, `shop_problem`, `buy_offer`):
+  Klucz Runiczny 400, Dłuto Jubilera 250, 2 różne kamienie 1. stopnia (Okruch) po 60, 3 przedmioty magiczne lub rzadkie
+  (25%) z najwyższego przebitego lochu za 4x cenę sprzedaży. Pierwszy towar przy pierwszym otwarciu, nowa dostawa
+  w `Arena.victory`. Okno `scripts/ui/shop_window.gd` (pełna torba - przedmiotu nie kupi, kamienie tak).
+- Okna mają wspólny szkielet `scripts/ui/base_window.gd` (`BaseWindow`: panel na cały ekran, waluta w nagłówku,
+  przewijana treść, „Wróć”, kupno drugim stuknięciem - `confirm`, `price_button`). Ulepszenia: `scripts/ui/upgrades_window.gd`,
+  otwiera je przycisk „Ulepszenia lochów” w wyborze poziomu (`LevelPicker.upgrades`; po zamknięciu wybór wraca).
+- W bazie: kowal (postać `smith` z Watry przy kowadle) i wędrowny kupiec (`traveling_merchant` przy straganie
+  `stall_goods`) - `ProtoStash` umie arkusz klatek (`frames`, `rows`) i rekwizyt (`prop`, `prop_offset`); kukły
+  przesunięte niżej (`Arena.DUMMIES`). Pasek skrótów `scripts/ui/base_bar.gd` (`BaseBar`): pionowa kolumna 5 ikon
+  54 px w dolnym rogu po drugiej stronie niż przyciski walki (leworęczni - po prawej): Watra, Skrzynia, Umiejętności,
+  Kowal, Kupiec. Grafiki i dźwięk z Watry w `assets/watra/base/`.
+- Test `tests/test_base.gd`; zrzuty `SCRIPT=tools/base_shots.gd tools/screenshot.sh <prefiks>`. W `test_horde.gd`
+  i `test_hero_levels.gd` przesunięte punkty „pustego miejsca” (teraz stoją tam pasek skrótów i kukła).
+
 ## 12.11.2026 - kamienie w umiejętnościach i ekwipunku (rozwój postaci, część 4)
 
 - Ustalenia z autorem: kamienie to łup z lochu (od 3. poziomu lochu - decyzja autora; rzadko gobliny, częściej skrzynia

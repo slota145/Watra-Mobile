@@ -6,6 +6,8 @@ extends Node
 ## potwór - duża), zebrany żar liczy `embers` - do bazy trafia tylko po pokonaniu bossa, ucieczka i śmierć go gaszą.
 ## Przyzwanie bossa (`call_boss`) zatrzymuje strumień, a gobliny uciekają z piskiem. Siła goblinów rośnie z poziomem
 ## lochu (`power`). Rzadko goblin upuszcza przedmiot z poziomu lochu (`level`, Items.roll_goblin).
+## Ulepszenia lochów (DungeonUpgrades, ustawia arena): `density` - gęstszy strumień, `loot_mult` - mnożnik szans łupu,
+## `reach` - o tyle pikseli dalej iskry i łup lecą do postaci.
 
 signal kills_changed(kills: int)
 signal embers_changed(embers: int)
@@ -43,6 +45,10 @@ var clock := true
 var power := 1.0
 ## Poziom lochu (siła przedmiotów z goblinów).
 var level := 1
+## Ulepszenia lochów: mnożnik liczby potworów (częściej i więcej naraz), mnożnik szans łupu, dodatkowy zasięg zbierania.
+var density := 1.0
+var loot_mult := 1.0
+var reach := 0.0
 
 var _next := FIRST_DELAY
 var _alive := 0
@@ -64,11 +70,11 @@ func _process(delta: float) -> void:
 
 ## Obecny odstęp między potworami.
 func interval() -> float:
-	return lerpf(INTERVAL_START, INTERVAL_END, _ramp())
+	return lerpf(INTERVAL_START, INTERVAL_END, _ramp()) / density
 
 
 func max_alive() -> int:
-	return roundi(lerpf(ALIVE_START, ALIVE_END, _ramp()))
+	return roundi(lerpf(ALIVE_START, ALIVE_END, _ramp()) * density)
 
 
 func _ramp() -> float:
@@ -132,12 +138,13 @@ func _on_died(g: ProtoGoblin) -> void:
 	ember.hero = hero
 	ember.value = ProtoEmber.BIG if kills % BIG_EVERY == 0 else 1
 	ember.position = g.position
+	ember.magnet = ProtoEmber.MAGNET + reach
 	ember.collected.connect(_on_ember)
 	world.add_child.call_deferred(ember)
-	var item := Items.roll_goblin(level)
+	var item := Items.roll_goblin(level, loot_mult)
 	if not item.is_empty():
 		drop_item(item, g.position)
-	var gem := Gems.roll_goblin(level)
+	var gem := Gems.roll_goblin(level, loot_mult)
 	if gem != "":
 		drop_item({"gem": gem}, g.position)
 
@@ -147,6 +154,7 @@ func drop_item(item: Dictionary, at: Vector2) -> ProtoLoot:
 	var loot := ProtoLoot.new()
 	loot.hero = hero
 	loot.item = item
+	loot.magnet = ProtoLoot.MAGNET + reach
 	loot.position = at
 	loot_spawned.emit(loot)
 	world.add_child.call_deferred(loot)
