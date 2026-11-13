@@ -1,5 +1,7 @@
 class_name Skills
-## Umiejętności miecza (ustalone z autorem 12.11.2026). Zwykły cios też jest umiejętnością: można go przestawić,
+## Umiejętności broni (Weapons): miecza (ustalone z autorem 12.11.2026) i glewii ognia (13.11.2026). Każda broń
+## ma własny zwykły cios (`basic_of`) i własne umiejętności (pole "weapon", `of_weapon`); w oknie i na przyciskach
+## są tylko umiejętności broni w ręku. Miecz: Zwykły cios też jest umiejętnością: można go przestawić,
 ## a na jego miejsce pod dużym przyciskiem dać inną - wtedy ta podlega auto atakowi. Gdy umiejętności pod dużym
 ## przyciskiem brakuje many albo się odnawia, miecz tnie zwykłym ciosem. Pozostałe odblokowuje mistrzostwo broni
 ## (Weapons; decyzja autora 13.11.2026 - wcześniej kupowało się je za złoto): po dojściu do progu "mastery" umiejętność
@@ -51,6 +53,32 @@ const DATA := {
 		"name": "Mgnienie", "icon": preload("res://assets/watra/skills/flicker.png"),
 		"mana": 7, "cooldown": 0.0, "weapon": "sword", "mastery": 15, "main": false, "range": 0.0, "power": 1.2,
 		"description": "Przytrzymaj - przeskakujesz na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego, dopóki starcza many. Każdy wróg zabity skokiem zwraca 2 many. Nie może stać pod dużym przyciskiem.",
+	},	# Glewia ognia (ustalone z autorem 13.11.2026): każde trafienie podpala (ProtoGlaive), "burn" - ile obrażeń
+	# trafienia dopala się przez 3 s.
+	"g_thrust": {
+		"name": "Pchnięcie glewii", "icon": preload("res://assets/watra/skills/enchanted_blade.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "glaive", "mastery": 1, "main": true, "range": 64.0, "power": 1.0, "burn": 0.3,
+		"description": "Glewia dźga daleko przed siebie, rani wszystkich na linii i słabo ich podpala.",
+	},
+	"g_sweep": {
+		"name": "Ognisty zamach", "icon": preload("res://assets/watra/skills/crescent.png"),
+		"mana": 15, "cooldown": 5.0, "weapon": "glaive", "mastery": 3, "main": true, "range": 56.0, "power": 1.3, "burn": 1.0,
+		"description": "Glewia zatacza szeroki półokrąg przed tobą i mocno podpala trafionych.",
+	},
+	"g_trail": {
+		"name": "Płonący ślad", "icon": preload("res://assets/watra/skills/fire_wall.png"),
+		"mana": 20, "cooldown": 7.0, "weapon": "glaive", "mastery": 6, "main": true, "range": 110.0, "power": 1.2, "burn": 0.5,
+		"description": "Doskakujesz z pchnięciem w stronę wroga, a za tobą zostaje pas ognia, który pali wrogów przez 3 s.",
+	},
+	"g_pillar": {
+		"name": "Słup ognia", "icon": preload("res://assets/watra/skills/aura_swarog_ember.png"),
+		"mana": 25, "cooldown": 8.0, "weapon": "glaive", "mastery": 10, "main": true, "range": 80.0, "power": 2.2, "burn": 0.5,
+		"description": "Glewia spada z góry i wbija się w ziemię: wybuch ognia rani wszystkich wokół, a ziemia płonie przez 3 s.",
+	},
+	"g_dance": {
+		"name": "Taniec płomieni", "icon": preload("res://assets/watra/skills/ks_blade_dance.png"),
+		"mana": 30, "cooldown": 10.0, "weapon": "glaive", "mastery": 15, "main": true, "range": 60.0, "power": 0.7, "burn": 0.3,
+		"description": "Glewia wiruje wokół ciebie przez 3 s i co chwilę wypuszcza zamaszyste cięcia, które powoli lecą na wszystkie strony i przebijają wrogów.",
 	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
@@ -64,7 +92,8 @@ const AREA_STEP := 0.1
 const PERK_LEVELS := [5, 10]
 ## Cena ulepszenia z poziomu n na n+1 (żar): UPGRADE_PRICE[umiejętność] * n (zwykły cios najtańszy, Mgnienie
 ## najdroższe; liczby jak dawne ceny w złocie - do oceny na telefonie).
-const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "blink": 200}
+const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "blink": 200,
+		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200}
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
@@ -72,11 +101,16 @@ const PERKS := {
 	"throw": ["Na końcu lotu miecz odbija się w kolejnego wroga.", "Rzuca dwa miecze naraz."],
 	"slam": ["Dłuższe ogłuszenie.", "Po pół sekundy uderza druga fala pęknięć."],
 	"blink": ["Zabicie skokiem zwraca dwa razy więcej many.", "Co 5. skok krótki wir wokół postaci."],
+	"g_thrust": ["Podpalenie dwa razy silniejsze.", "Co trzecie pchnięcie dźga dwa razy."],
+	"g_sweep": ["Zamach odpycha wrogów.", "Zaraz po nim drugi zamach w drugą stronę."],
+	"g_trail": ["Pas ognia płonie 5 s zamiast 3.", "Na końcu doskoku wybuch ognia."],
+	"g_pillar": ["Płonący krąg o połowę większy.", "Po pół sekundy drugi wybuch."],
+	"g_dance": ["Tańczy 4 s zamiast 3.", "Cięcia lecą po dwa naraz, w przeciwne strony."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 ## Kolejność w oknie umiejętności.
-const ORDER := ["strike", "whirl", "throw", "slam", "blink"]
+const ORDER := ["strike", "whirl", "throw", "slam", "blink", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance"]
 
 
 static func has(id: String) -> bool:
@@ -107,6 +141,31 @@ static func mastery_of(id: String) -> int:
 ## Broń, do której należy umiejętność.
 static func weapon_of(id: String) -> String:
 	return DATA[id].weapon if DATA.has(id) else ""
+
+
+## Umiejętności broni `weapon` w kolejności okna.
+static func of_weapon(weapon: String) -> Array[String]:
+	var list: Array[String] = []
+	for id in ORDER:
+		if weapon_of(id) == weapon:
+			list.append(id)
+	return list
+
+
+## Zwykły cios broni (pierwsza jej umiejętność; pusty duży przycisk to ten cios).
+static func basic_of(weapon: String) -> String:
+	var list := of_weapon(weapon)
+	return list[0] if not list.is_empty() else STRIKE
+
+
+## Czy to zwykły cios którejś broni (bez many i odnowienia, szybszy z poziomami).
+static func is_basic(id: String) -> bool:
+	return DATA.has(id) and basic_of(weapon_of(id)) == id
+
+
+## Ile obrażeń trafienia dopala się w podpaleniu (glewia ognia; 0 - nie podpala).
+static func burn_of(id: String) -> float:
+	return DATA[id].get("burn", 0.0) if DATA.has(id) else 0.0
 
 
 ## Umiejętności broni `weapon` odblokowane na poziomie mistrzostwa `mastery` (w kolejności okna).

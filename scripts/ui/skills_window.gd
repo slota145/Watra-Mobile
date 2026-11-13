@@ -18,6 +18,9 @@ extends Control
 ## nowe działania z 5. i 10. poziomu (złote - odblokowane) i co da następny poziom. Odblokowana umiejętność ma z prawej
 ## przycisk „Ulepsz” z ceną w żarze (przy kamieniu run, drugie stuknięcie potwierdza; Game.upgrade_skill), a gdy
 ## mistrzostwo nie pozwala - od którego poziomu mistrzostwa (Skills.level_cap).
+## Bronie (13.11.2026): pod mistrzostwem rząd przycisków broni (Weapons.ORDER) - broń w ręku złota; przy kamieniu run
+## stuknięcie dostępnej broni bierze ją do ręki (Game.set_weapon), a niedostępnej - kupuje ją za złoto (drugie stuknięcie
+## potwierdza; Game.buy_weapon). Lista pokazuje tylko umiejętności broni w ręku.
 ## Zatrzymuje grę, gdy jest otwarte (PROCESS_MODE_ALWAYS).
 
 signal closed
@@ -35,6 +38,9 @@ var can_shop := false
 ## Żar Watry (waluta ulepszeń) i mistrzostwo broni w ręku.
 var embers_label: Label
 var mastery_label: Label
+## Przyciski broni (identyfikator Weapons -> przycisk) i wiersze listy (do ukrywania umiejętności innych broni).
+var weapon_buttons := {}
+var row_boxes: Array[Control] = []
 var hint: Label
 var list_icons: Array[SkillSlot] = []
 var buy_buttons: Array[Button] = []
@@ -109,6 +115,18 @@ func _ready() -> void:
 	head.add_child(ember)
 	embers_label = _label(head, "0", 15, GOLD)
 	mastery_label = _label(column, "", 12, BLUE)
+	var weapons_row := HBoxContainer.new()
+	weapons_row.add_theme_constant_override("separation", 6)
+	column.add_child(weapons_row)
+	for w in Weapons.ORDER:
+		var wb := _button(weapons_row, Weapons.name_of(w))
+		wb.custom_minimum_size.y = 44
+		wb.icon = Weapons.icon_of(w)
+		wb.expand_icon = true
+		wb.add_theme_constant_override("icon_max_width", 24)
+		wb.add_theme_font_size_override("font_size", 12)
+		wb.pressed.connect(_on_weapon.bind(w))
+		weapon_buttons[w] = wb
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 6)
 	column.add_child(tabs)
@@ -165,6 +183,7 @@ func _make_row(list: VBoxContainer, i: int) -> void:
 	style.set_content_margin_all(5)
 	box.add_theme_stylebox_override("panel", style)
 	list.add_child(box)
+	row_boxes.append(box)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	box.add_child(row)
@@ -289,8 +308,8 @@ func set_gems_mode(on: bool) -> void:
 	selected_gem = ""
 	selected_socket = -1
 	_key_armed = false
-	if on and not _game.skills_owned.has(gem_skill):
-		gem_skill = Skills.STRIKE
+	if on and (not _game.skills_owned.has(gem_skill) or Skills.weapon_of(gem_skill) != _game.weapon):
+		gem_skill = Skills.basic_of(_game.weapon)
 	refresh()
 
 
@@ -335,8 +354,22 @@ func refresh() -> void:
 	mastery_label.text = tr("Mistrzostwo: %s, poziom %d (%d/%d)") % [Weapons.name_of(_game.weapon),
 			_game.mastery_level(), _game.weapon_xp(), need] if need > 0 \
 			else tr("Mistrzostwo: %s, poziom %d") % [Weapons.name_of(_game.weapon), _game.mastery_level()]
+	for w in weapon_buttons:
+		var wb: Button = weapon_buttons[w]
+		var ready: bool = _game.weapon_available(w)
+		_tab_look(wb, w == _game.weapon)
+		if _buy_armed == "weapon:" + w:
+			wb.text = tr("Na pewno?")
+		elif ready:
+			wb.text = Weapons.name_of(w)
+		else:
+			wb.text = tr("%s: %d zł") % [Weapons.name_of(w), Weapons.price_of(w)]
+		wb.modulate = Color.WHITE if ready else Color(0.75, 0.75, 0.75)
+	if Skills.weapon_of(gem_skill) != _game.weapon:
+		gem_skill = Skills.basic_of(_game.weapon)
 	for i in Skills.ORDER.size():
 		var id: String = Skills.ORDER[i]
+		row_boxes[i].visible = Skills.weapon_of(id) == _game.weapon
 		var owned: bool = _game.skills_owned.has(id)
 		list_icons[i].draggable = owned
 		list_icons[i].show_skill(id, 0, (gem_skill == id) if gems_mode else (selected_skill == id))
@@ -498,6 +531,38 @@ func _show_perks(i: int, id: String, lvl: int, owned: bool) -> void:
 		perk.add_theme_color_override("font_color", GOLD if on else DIM)
 	next_labels[i].visible = owned and lvl < Skills.MAX_LEVEL
 	next_labels[i].text = tr("Następny poziom: %s") % Skills.next_level_text(id, lvl)
+
+
+## Stuknięcie broni: dostępną bierze do ręki (tylko przy kamieniu run), niedostępną kupuje za złoto (drugie stuknięcie).
+## Bez kamienia run i przy braku złota - podpowiedź, skąd ją wziąć.
+func _on_weapon(w: String) -> void:
+	selected_skill = ""
+	selected_slot = -1
+	if w == _game.weapon:
+		_buy_armed = ""
+		refresh()
+		return
+	var why := ""
+	if not can_shop:
+		why = tr("Broń zmienisz przy kamieniu run w bazie.")
+	elif _game.weapon_available(w):
+		_buy_armed = ""
+		_game.set_weapon(w)
+		_play(preload("res://assets/watra/ember_pickup_big.ogg"))
+	elif _game.gold < Weapons.price_of(w):
+		_buy_armed = ""
+		why = tr("%s: za darmo po pokonaniu Wodza na %d. poziomie lochu albo wcześniej za %d zł.") \
+				% [Weapons.name_of(w), Weapons.unlock_level(w), Weapons.price_of(w)]
+	elif _buy_armed != "weapon:" + w:
+		_buy_armed = "weapon:" + w
+		why = tr("Kupić: %s za %d zł? Stuknij jeszcze raz.") % [Weapons.name_of(w), Weapons.price_of(w)]
+	else:
+		_buy_armed = ""
+		if _game.buy_weapon(w):
+			_play(preload("res://assets/watra/handleCoins.ogg"))
+	refresh()
+	if why != "":
+		hint.text = why
 
 
 ## Podpowiedź przy nieodblokowanej umiejętności: od którego poziomu mistrzostwa broni.

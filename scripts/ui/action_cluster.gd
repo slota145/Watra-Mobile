@@ -51,9 +51,10 @@ func set_hero_level(level: int, flash := false) -> void:
 var slot_skills: Array = ["", "", "", "", ""]
 
 
-func show_skills(slots: Array) -> void:
+## `basic` - zwykły cios broni w ręku (pusty duży przycisk).
+func show_skills(slots: Array, basic := Skills.STRIKE) -> void:
 	slot_skills = slots.duplicate()
-	var main: String = slots[0] if slots[0] != "" else Skills.STRIKE
+	var main: String = slots[0] if slots[0] != "" else basic
 	attack.icon = Skills.icon_of(main)
 	attack.queue_redraw()
 	for i in SKILL_SLOTS:

@@ -5,7 +5,8 @@ extends Node
 ## i postać - poziom i doświadczenie (`hero_level`, `hero_xp`; dane poziomów w HeroLevels), przedmioty w torbie
 ## (`bag`, najwyżej BAG_SIZE), założone (`equipped`: miejsce -> przedmiot) i złoto ze sprzedaży (`gold`; dane w Items),
 ## skrzynia w bazie (`stash`: zakładki po STASH_TAB_SIZE miejsc; kolejne zakładki za złoto - STASH_TAB_PRICES),
-## broń i mistrzostwo (`weapon`, `mastery` - broń -> poziom, `mastery_xp`; dane w Weapons), umiejętności
+## broń i mistrzostwo (`weapon`, `mastery` - broń -> poziom, `mastery_xp`, `weapons_bought` - kupione przed progiem,
+## `weapon_slots` - miejsca umiejętności każdej broni; dane w Weapons), umiejętności
 ## (`skills_owned` - odblokowane, `skill_slots` - co stoi w miejscach, `skill_levels` - poziomy; dane w Skills), kamienie (Gems):
 ## sakwa (`gems`: identyfikator -> ile sztuk), kamienie w umiejętnościach (`skill_gems`: umiejętność -> lista
 ## Gems.SKILL_SOCKETS identyfikatorów, "" - puste) i otwarte gniazda (`skill_open`); kamienie w przedmiotach
@@ -28,6 +29,8 @@ signal skills_changed
 signal mastery_changed(level: int, xp: int, need: int)
 ## Mistrzostwo odblokowało umiejętność (arena pokazuje napis nad postacią).
 signal skill_unlocked(id: String)
+## Zmiana broni w ręku (arena podmienia węzeł broni) albo kupno broni.
+signal weapon_changed
 ## Zmiana żaru w Watrze (ulepszenie umiejętności, żar z lochu).
 signal embers_changed
 
@@ -72,6 +75,10 @@ var stash: Array = [[]]
 var weapon := Weapons.SWORD
 var mastery := {}
 var mastery_xp := {}
+## Bronie kupione za złoto przed progiem odblokowania i miejsca umiejętności broni, których nie ma w ręku
+## (broń -> lista jak `skill_slots`; obecna broń ma swoje w `skill_slots`).
+var weapons_bought: Array = []
+var weapon_slots := {}
 ## Odblokowane umiejętności (identyfikatory ze Skills; zwykły cios zawsze) i co stoi w miejscach
 ## (Skills.SLOTS; 0 - duży przycisk, "" - puste miejsce).
 var skills_owned: Array = [Skills.STRIKE]
@@ -166,6 +173,8 @@ func load_game() -> void:
 	weapon = Weapons.SWORD
 	mastery = {}
 	mastery_xp = {}
+	weapons_bought = []
+	weapon_slots = {}
 	skills_owned = [Skills.STRIKE]
 	skill_slots = _default_slots()
 	skill_levels = {}
@@ -203,8 +212,13 @@ func load_game() -> void:
 						if not item.is_empty() and tab.size() < STASH_TAB_SIZE:
 							tab.append(item)
 				stash.append(tab)
+		var raw_bought = data.get("weapons_bought", [])
+		if raw_bought is Array:
+			for id in raw_bought:
+				if id is String and Weapons.has(id) and not weapons_bought.has(id):
+					weapons_bought.append(id)
 		var raw_weapon = data.get("weapon", Weapons.SWORD)
-		weapon = raw_weapon if raw_weapon is String and Weapons.has(raw_weapon) else Weapons.SWORD
+		weapon = raw_weapon if raw_weapon is String and weapon_available(raw_weapon) else Weapons.SWORD
 		var raw_mastery = data.get("mastery", {})
 		var raw_mxp = data.get("mastery_xp", {})
 		if raw_mastery is Dictionary and raw_mxp is Dictionary:
@@ -217,14 +231,12 @@ func load_game() -> void:
 			for id in raw_owned:
 				if id is String and Skills.has(id) and not skills_owned.has(id):
 					skills_owned.append(id)
-		var raw_slots = data.get("skill_slots", [])
-		if raw_slots is Array and not raw_slots.is_empty():
-			skill_slots = []
-			for i in Skills.SLOTS:
-				var id = raw_slots[i] if i < raw_slots.size() else ""
-				var ok: bool = id is String and skills_owned.has(id) and not skill_slots.has(id) \
-						and (i != Skills.MAIN or Skills.can_be_main(id))
-				skill_slots.append(id if ok else "")
+		skill_slots = _read_slots(data.get("skill_slots", []), weapon)
+		var raw_ws = data.get("weapon_slots", {})
+		if raw_ws is Dictionary:
+			for id in raw_ws:
+				if Weapons.has(id) and id != weapon:
+					weapon_slots[id] = _read_slots(raw_ws[id], id)
 		var raw_levels = data.get("skill_levels", {})
 		if raw_levels is Dictionary:
 			for id in raw_levels:
@@ -284,7 +296,8 @@ func save_game() -> void:
 	if f:
 		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
-				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems,
+				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
+				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems,
 				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "shop": shop,
 				"shop_ready": shop_ready}))
 
@@ -343,6 +356,8 @@ func reset_hero() -> void:
 	weapon = Weapons.SWORD
 	mastery = {}
 	mastery_xp = {}
+	weapons_bought = []
+	weapon_slots = {}
 	skills_owned = [Skills.STRIKE]
 	skill_slots = _default_slots()
 	skill_levels = {}
@@ -567,15 +582,64 @@ func beat_level(level: int) -> bool:
 	return true
 
 
-## Miejsca na start: zwykły cios pod dużym przyciskiem, reszta pusta.
-static func _default_slots() -> Array:
-	var slots: Array = [Skills.STRIKE]
+## Miejsca z zapisu dla broni `w`: tylko odblokowane umiejętności tej broni, bez powtórek, pod dużym przyciskiem
+## tylko te, które mogą tam stać (pusty zapis - miejsca na start).
+func _read_slots(raw, w: String) -> Array:
+	if not raw is Array or raw.is_empty():
+		return _default_slots(w)
+	var slots: Array = []
+	for i in Skills.SLOTS:
+		var id = raw[i] if i < raw.size() else ""
+		var ok: bool = id is String and skills_owned.has(id) and not slots.has(id) and Skills.weapon_of(id) == w \
+				and (i != Skills.MAIN or Skills.can_be_main(id))
+		slots.append(id if ok else "")
+	return slots
+
+
+## Miejsca na start: zwykły cios broni pod dużym przyciskiem, reszta pusta.
+static func _default_slots(w := Weapons.SWORD) -> Array:
+	var slots: Array = [Skills.basic_of(w)]
 	for i in Skills.SLOTS - 1:
 		slots.append("")
 	return slots
 
 
-# --- Mistrzostwo broni (Weapons) ---
+# --- Bronie i mistrzostwo (Weapons) ---
+
+## Czy broń można wziąć do ręki: miecz zawsze, inne po przebiciu progu lochu albo kupione za złoto.
+func weapon_available(id: String) -> bool:
+	return Weapons.has(id) and (Weapons.unlocked_by(id, best_level) or weapons_bought.has(id))
+
+
+## Kupuje broń za złoto przed progiem odblokowania. Zwraca false, gdy już dostępna, nieznana albo brakuje złota.
+func buy_weapon(id: String) -> bool:
+	if not Weapons.has(id) or weapon_available(id) or gold < Weapons.price_of(id):
+		return false
+	gold -= Weapons.price_of(id)
+	weapons_bought.append(id)
+	save_game()
+	inventory_changed.emit()
+	weapon_changed.emit()
+	return true
+
+
+## Bierze do ręki inną broń: jej własne miejsca umiejętności (pierwszy raz - jej zwykły cios pod „Atak”) i mistrzostwo;
+## od razu odblokowuje jej umiejętności, do których starcza mistrzostwa. Zwraca false, gdy niedostępna.
+func set_weapon(id: String) -> bool:
+	if not weapon_available(id):
+		return false
+	if id == weapon:
+		return true
+	weapon_slots[weapon] = skill_slots
+	weapon = id
+	skill_slots = weapon_slots.get(id, _default_slots(id))
+	weapon_slots.erase(id)
+	_unlock_skills()
+	save_game()
+	weapon_changed.emit()
+	skills_changed.emit()
+	mastery_changed.emit(mastery_level(), weapon_xp(), mastery_needed())
+	return true
 
 ## Poziom mistrzostwa broni (domyślnie tej w ręku).
 func mastery_level(id := "") -> int:
@@ -625,6 +689,8 @@ func _unlock_skills() -> Array[String]:
 			continue
 		skills_owned.append(id)
 		added.append(id)
+		if skill_slots.has(id):
+			continue
 		for i in range(1, Skills.open_slots(hero_level)):
 			if skill_slots[i] == "":
 				skill_slots[i] = id
@@ -690,7 +756,8 @@ func slot_open(slot: int) -> bool:
 ## Wstawia kupioną umiejętność w miejsce. Jeśli stała już w innym miejscu, zamienia się z tym, co było w docelowym
 ## (o ile to, co wraca, może tam stać - inaczej tamto miejsce zostaje puste). Zwraca false, gdy się nie da.
 func assign_skill(id: String, slot: int) -> bool:
-	if not skills_owned.has(id) or not slot_open(slot) or (slot == Skills.MAIN and not Skills.can_be_main(id)):
+	if not skills_owned.has(id) or not slot_open(slot) or (slot == Skills.MAIN and not Skills.can_be_main(id)) \
+			or Skills.weapon_of(id) != weapon:
 		return false
 	var from := skill_slots.find(id)
 	if from == slot:
@@ -716,12 +783,12 @@ func clear_skill_slot(slot: int) -> void:
 ## Umiejętność pod dużym przyciskiem (pusty - zwykły cios).
 func main_skill() -> String:
 	var id: String = skill_slots[Skills.MAIN]
-	return id if id != "" else Skills.STRIKE
+	return id if id != "" else Skills.basic_of(weapon)
 
 
-## Tryb deweloperski: wszystkie umiejętności bez wymaganego mistrzostwa.
+## Tryb deweloperski: wszystkie umiejętności broni w ręku bez wymaganego mistrzostwa.
 func dev_skills() -> void:
-	for id in Skills.ORDER:
+	for id in Skills.of_weapon(weapon):
 		if not skills_owned.has(id):
 			skills_owned.append(id)
 			for i in range(1, Skills.open_slots(hero_level)):
@@ -932,7 +999,7 @@ func dev_gems() -> void:
 		add_gem(Gems.make(kind, grade), 1, false)
 	for kind in Gems.JEWEL_ORDER:
 		add_gem(Gems.make(kind, grade), 1, false)
-	for skill in Skills.ORDER:
+	for skill in Gems.UNIQUE:
 		add_gem(Gems.unique_of(skill), 1, false)
 	add_gem(Gems.KEY, 2, false)
 	add_gem(Gems.CHISEL, 2, false)

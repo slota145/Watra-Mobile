@@ -151,6 +151,8 @@ const WHIRL_DRAIN := 1.0 / 3.0
 
 ## Grupa węzłów, które miecz sam znajduje jako cele (potwory Hordy).
 const TARGETS := &"proto_targets"
+## Stany zwykłego ciosu (szybkość ataku i Pośpiech go przyspieszają); glewia dokłada swoje pchnięcie.
+const STRIKE_STATES := ["follow", "windup", "swing", "recover", "thrust_windup", "thrust", "thrust_recover"]
 
 var hero: ProtoHero
 ## Czy gracz trzyma przycisk ataku.
@@ -173,7 +175,9 @@ var cooldown_cut := 0.0
 var area_bonus := 0.0
 ## Czy gracz trzyma przycisk Mgnienia (skoki co FLICKER_INTERVAL, dopóki starcza many).
 var flicker_held := false
-## Umiejętność pod dużym przyciskiem (Skills; zwykły cios - Skills.STRIKE).
+## Zwykły cios tej broni (miecz - Skills.STRIKE; glewia - ProtoGlaive ustawia swój).
+var basic := Skills.STRIKE
+## Umiejętność pod dużym przyciskiem (Skills; zwykły cios - `basic`).
 var main_skill := Skills.STRIKE
 ## Kamienie w gniazdach umiejętności (Game.skill_gems: umiejętność -> lista identyfikatorów Gems).
 var skill_gems := {}
@@ -283,7 +287,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_clock += delta
 	_chained = false
-	var sp := _strike_speed() if _state in ["follow", "windup", "swing", "recover"] else speed_mult
+	var sp := _strike_speed() if _state in STRIKE_STATES else speed_mult
 	_cooldown -= delta * sp
 	_t += delta * sp
 	for id in _cd:
@@ -302,12 +306,12 @@ func _process(delta: float) -> void:
 				_queued = ""
 				_start(q)
 			elif _cooldown <= 0.0:
-				var main_ok := main_skill != Skills.STRIKE and can_use(main_skill)
+				var main_ok := main_skill != basic and can_use(main_skill)
 				var main_range: float = Skills.DATA[main_skill].range if Skills.has(main_skill) else REACH
 				if main_ok and (attack_held or (auto_attack and _nearest(main_range) != null)):
 					_start(main_skill)
 					_whirl_main = true
-				elif attack_held or (auto_attack and _nearest() != null):
+				elif attack_held or (auto_attack and _nearest(Skills.DATA[basic].range) != null):
 					_attack()
 		"whirl":
 			_process_whirl(delta)
@@ -503,8 +507,8 @@ func _area(skill: String) -> float:
 ## Szybkość zwykłego ciosu: premia szybkości ataku, kamień Pośpiech i poziomy zwykłego ciosu (mniejszy „koszt” -
 ## szybszy cios).
 func _strike_speed() -> float:
-	return speed_mult * (1.0 + gem_power(Skills.STRIKE, "haste") / 100.0) \
-			* (2.0 - Skills.level_cost(level_of(Skills.STRIKE)))
+	return speed_mult * (1.0 + gem_power(basic, "haste") / 100.0) \
+			* (2.0 - Skills.level_cost(level_of(basic)))
 
 
 ## Koszt many umiejętności z kamieniem Oszczędność i poziomem (Mgnienie z kamieniem unikalnym - o połowę mniej).
@@ -561,7 +565,7 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		if heal > 0:
 			_leech_acc -= heal
 			hero.heal(heal)
-	if skill == Skills.STRIKE:
+	if skill == basic:
 		var grade := Gems.skill_grade(sockets, "thrift")
 		if grade >= 0:
 			hero.add_mana(Gems.THRIFT_STRIKE[grade])
@@ -636,7 +640,7 @@ func cast(id: String) -> bool:
 		_flicker_once = true  # stuknięcie bez trzymania - jeden skok
 		_process_flicker(0.0)
 		return true
-	if _state == "follow" and (id != Skills.STRIKE or _cooldown <= 0.0):
+	if _state == "follow" and (id != basic or _cooldown <= 0.0):
 		_start(id)
 	else:
 		_queued = id
@@ -647,7 +651,7 @@ func cast(id: String) -> bool:
 func _start(id: String) -> void:
 	if not can_use(id):
 		return
-	if id == Skills.STRIKE:
+	if id == basic:
 		_attack()
 		return
 	if not hero.spend_mana(mana_cost(id)):

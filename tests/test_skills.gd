@@ -315,7 +315,7 @@ func _dummy_hits(weapon: ProtoWeapon) -> int:
 func _test_combat(game: Node) -> void:
 	game.hero_level = 15
 	game.dev_skills()
-	_check(game.skills_owned.size() == Skills.ORDER.size(), "skrót deweloperski daje wszystkie umiejętności")
+	_check(game.skills_owned.size() == Skills.of_weapon("sword").size(), "skrót deweloperski daje wszystkie umiejętności broni")
 	game.save_game()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
 	root.add_child(arena)
