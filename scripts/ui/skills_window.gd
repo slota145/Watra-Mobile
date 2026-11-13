@@ -287,11 +287,10 @@ func open(shop := false) -> void:
 	get_tree().paused = true
 
 
-## Zamyka okno i wznawia grę (otwarte z pauzy wraca do pauzy, więc gra stoi dalej).
+## Zamyka okno i wznawia grę.
 func close() -> void:
 	visible = false
-	if not get_parent() is PauseMenu:
-		get_tree().paused = false
+	get_tree().paused = false
 	closed.emit()
 
 

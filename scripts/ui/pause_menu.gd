@@ -3,11 +3,10 @@ extends Control
 ## Okno pauzy w trakcie gry (przycisk „Menu”): zatrzymuje grę i daje ustawienia sterowania -
 ## atak i umiejętności po lewej stronie, gest postaci przy ataku, auto atak (umiejętność pod dużym przyciskiem), tryb deweloperski
 ## (nieśmiertelność i skróty: +1 poziom postaci, +100 żaru, +5 losowych przedmiotów z obecnego poziomu lochu, wszystkie
-## umiejętności, kamienie, postać od nowa) - oraz powrót do gry i wyjście do menu głównego. „Umiejętności” otwiera okno
-## umiejętności (SkillsWindow) do przestawiania; kupować można tylko w bazie.
+## umiejętności, kamienie, postać od nowa) - oraz powrót do gry i wyjście do menu głównego. Okna „Postać”
+## i umiejętności otwierają ikonki w górnym rzędzie areny (decyzja autora 13.11.2026), nie pauza.
 ## Skróty poziomu zmieniają postać w Game (arena słucha jego sygnałów), żar - sygnał `dev_embers` (arena dodaje go
-## do paska wyprawy w lochu albo do Watry w bazie). Przycisk „Postać i ekwipunek” otwiera okno postaci z ekwipunkiem
-## i torbą (HeroStats) nad pauzą. Okno przewija się, gdy nie mieści się na niskim ekranie.
+## do paska wyprawy w lochu albo do Watry w bazie). Okno przewija się, gdy nie mieści się na niskim ekranie.
 ## W lochu „Uciekaj do bazy” i „Menu główne” pytają „Na pewno?” (drugie stuknięcie wychodzi), żeby nie stracić
 ## wyprawy przypadkiem.
 ## Ustawienia zapisuje Game (user://settings.cfg). Działa także przy zatrzymanej grze (PROCESS_MODE_ALWAYS).
@@ -41,12 +40,6 @@ var _leave_armed: Button = null
 var _scroll: ScrollContainer
 var _column: VBoxContainer
 var resume_button: Button
-var stats_button: Button
-## Okno „Postać” ze statystykami.
-var stats: HeroStats
-var skills_button: Button
-## Okno umiejętności (przestawianie miejsc; w bazie także kupno).
-var skills_window: SkillsWindow
 var quit_button: Button
 ## Scena bazy - gdy ustawiona (w lochu), okno ma też przycisk „Powrót do bazy”.
 var base_scene := ""
@@ -129,12 +122,6 @@ func _ready() -> void:
 	gems_dev_button.pressed.connect(func() -> void: _game.dev_gems())
 	reset_button = _dev_button(dev_row2, tr("Od nowa"))
 	reset_button.pressed.connect(_on_reset)
-	stats_button = _button(column, tr("Postać i ekwipunek"))
-	stats_button.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
-	stats_button.pressed.connect(func() -> void: stats.open())
-	skills_button = _button(column, tr("Umiejętności"))
-	skills_button.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
-	skills_button.pressed.connect(func() -> void: skills_window.open(base_scene == ""))
 	resume_button = _button(column, tr("Wróć do gry"))
 	resume_button.pressed.connect(close)
 	if base_scene != "":
@@ -150,12 +137,6 @@ func _ready() -> void:
 		column.add_child(leave_note)
 	quit_button = _button(column, tr("Menu główne"))
 	quit_button.pressed.connect(func() -> void: _leave(quit_button, _game.MENU_SCENE))
-	stats = HeroStats.new()
-	stats.visible = false
-	add_child(stats)
-	skills_window = SkillsWindow.new()
-	skills_window.visible = false
-	add_child(skills_window)
 
 
 ## Pokazuje okno i zatrzymuje grę. `at_stake` - żar, który zgaśnie przy ucieczce z lochu.
@@ -173,19 +154,12 @@ func open(at_stake := 0) -> void:
 	get_tree().paused = true
 
 
-## Przycisk „wstecz”: zamyka opis przedmiotu albo okno „Postać”, a gdy go nie ma - pauzę.
+## Przycisk „wstecz”: zamyka pauzę.
 func back() -> void:
-	if stats.visible:
-		stats.back()
-	elif skills_window.visible:
-		skills_window.back()
-	else:
-		close()
+	close()
 
 
 func close() -> void:
-	stats.visible = false
-	skills_window.visible = false
 	visible = false
 	get_tree().paused = false
 	closed.emit()

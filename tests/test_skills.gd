@@ -241,14 +241,18 @@ func _test_window(game: Node) -> void:
 	_check(game.skill_slots[0] == "" and arena.weapon.main_skill == "strike", "„Zdejmij” - pod „Atak” znów zwykły cios")
 	arena._notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 	_check(not win.visible and not paused, "„wstecz” zamyka okno")
-	# z pauzy - bez kupowania w lochu
-	arena.pause_menu.base_scene = "res://scenes/prototype.tscn"
-	arena._open_menu()
-	arena.pause_menu.skills_button.pressed.emit()
-	var pwin: SkillsWindow = arena.pause_menu.skills_window
-	_check(pwin.visible and not pwin.can_shop and not pwin.buy_buttons[slam_i].visible, "w lochu okno z pauzy bez kupowania")
+	arena.queue_free()
+	await process_frame
+	# w lochu: ikonka w górnym rzędzie, bez kupowania
+	arena = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	_check(arena.skills_icon.get_global_rect().size.y >= 44.0, "ikonka umiejętności w górnym rzędzie lochu, 44 px")
+	arena.skills_icon.pressed.emit()
+	var pwin: SkillsWindow = arena.skills_window
+	_check(pwin.visible and paused and not pwin.can_shop and not pwin.buy_buttons[slam_i].visible,
+			"w lochu okno z ikonki bez kupowania, gra stoi")
 	pwin.close()
-	_check(paused and arena.pause_menu.visible, "zamknięcie wraca do pauzy")
-	arena.pause_menu.close()
+	_check(not paused, "zamknięcie wznawia grę")
 	arena.queue_free()
 	await process_frame

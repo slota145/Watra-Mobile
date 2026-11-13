@@ -59,8 +59,7 @@ func _run() -> void:
 	await _shot("1c_kamien")
 	win.picker.close()
 	win.close()
-	arena._open_menu()
-	var stats: HeroStats = arena.pause_menu.stats
+	var stats: HeroStats = arena.stats_window
 	stats.open()
 	await create_timer(0.2).timeout
 	await _shot("2_postac")

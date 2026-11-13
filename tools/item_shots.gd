@@ -43,21 +43,21 @@ func _run() -> void:
 	arena.notify_loot(Items.roll(3, "boots", "common"), tr("Sprzedano: %s (+%d złota)") % ["Skórzane buty", 8])
 	await create_timer(1.0).timeout
 	await _shot("1_lup")
-	arena._open_menu()
-	arena.pause_menu.stats.open()
+	arena.stats_window.open()
 	await create_timer(0.2).timeout
 	await _shot("2_okno")
-	var sc: ScrollContainer = arena.pause_menu.stats._scroll
+	var sc: ScrollContainer = arena.stats_window._scroll
 	sc.scroll_vertical = 10000
-	arena.pause_menu.stats.sell_common_button.pressed.emit()
+	arena.stats_window.sell_common_button.pressed.emit()
 	await create_timer(0.2).timeout
 	await _shot("2b_dol")
 	game.bag[0] = Items.roll(3, "weapon", "rare")
-	arena.pause_menu.stats.refresh()
-	arena.pause_menu.stats.bag_buttons[0].pressed.emit()
+	arena.stats_window.refresh()
+	arena.stats_window.bag_buttons[0].pressed.emit()
 	await create_timer(0.2).timeout
 	await _shot("3_opis")
-	arena.pause_menu.stats.close()
+	arena.stats_window.close()
+	arena._open_menu()
 	arena.pause_menu.base_button.pressed.emit()
 	await create_timer(0.2).timeout
 	await _shot("4_ucieczka")
