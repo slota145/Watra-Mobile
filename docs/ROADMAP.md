@@ -66,6 +66,15 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   zbierania, więcej żaru (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy unik 2-4% na przedmiot jest
   odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
+- **Żywioły i wiele broni (13.11.2026, duży temat - do ustalenia szczegółów):** żywioły ogień, woda, lód, pioruny
+  (nazwa do ustalenia, np. Grom), ziemia, powietrze, ciemność (+ propozycje Claude: Nawia jako ciemność, natura/trucizna,
+  światło). Wiele broni, każda z własnymi umiejętnościami; część związana z żywiołem, część nie: łuk, hydrosfera (kula
+  do władania wodą), mroczna kosa, ostrza na łańcuchach, księgi z wybieranym żywiołem (każdy żywioł - własne umiejętności),
+  sztylety powietrza, glewia ognia, lodowy rapier, elektryczna katana, kostur nekromancji. Mistrzostwo broni: granie bronią
+  podnosi jej poziom i to odblokowuje umiejętności (zamiast złota); umiejętności ulepsza się żarem. Bronie po kolei,
+  każda dopracowana; w międzyczasie nowe rodzaje lochów z innymi potworami. Watra ma gotowy system żywiołów do skopiowania
+  (`scripts/elements.gd` Watry).
+
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
 - Watra jako „serce” ekranu startowego: animowany ogień, który przygasa, gdy długo nie grasz, i rozpala się po powrocie.
