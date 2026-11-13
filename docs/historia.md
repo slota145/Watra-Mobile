@@ -2,6 +2,23 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - goblin łucznik (drugi rodzaj potwora)
+
+- Ustalone z autorem: goblin łucznik od 2. poziomu lochu, grafika ze SpriteKiln, strzały do unikania.
+- `ProtoGoblinArcher` (`scripts/proto/proto_goblin_archer.gd`, podklasa `ProtoGoblin` - ucieczka przed Wodzem, iskry,
+  łup, ogłuszenie, rozpychanie bez zmian): 26 zdrowia (goblin 40), 38 px/s, trzyma dystans 65-130 px (za blisko -
+  cofa się), strzał co 2,2 s. Naciąganie: na ziemi czerwona przerywana linia celu (`_AimLine`), podąża za postacią,
+  0,3 s przed strzałem staje i jaśnieje (`AIM_LOCK`); strzał 0,65 s po początku (zdarzenie `release` animacji).
+  Cięcie w trakcie naciągania przerywa strzał.
+- `ProtoArrow` (`scripts/proto/proto_arrow.gd`): strzała rysowana kodem, 115 px/s, 11 px nad ziemią z cieniem,
+  trafia w promieniu 8 px od stóp postaci (8 obrażeń x siła poziomu), zasięg 240 px.
+- `DungeonLevels.archer_share`: od `ARCHER_FROM` = 2 udział 15%, +3% na poziom, sufit 30%; `ProtoHorde.spawn_at(pos, archer)`,
+  `ProtoHorde.archers()`, najwyżej `MAX_ARCHERS` = 6 naraz.
+- `ProtoGoblin`: liczby i grafika w zmiennych (`scene_path`, `max_hp`, `speed`, `damage`, `attack_cooldown`,
+  `strike_time`, `attack_time`), wczytane sceny w `_scenes` (osobno dla każdego rodzaju), ruch w marszu w `_walk_move`.
+- Grafika: `art/specs/characters/goblin_archer/goblin_archer.yaml` (na bazie goblina) -> `assets/spritekiln/goblin_archer/`.
+- Test: `_test_archer` w `tests/test_horde.gd`.
+
 ## 13.11.2026 - kamienie unikalne umiejętności, Mgnienie z odnowieniem
 
 - Pomysł autora: po jednym unikalnym kamieniu na umiejętność, zmieniającym jej działanie. Ustalone: rzadko ze skrzyni

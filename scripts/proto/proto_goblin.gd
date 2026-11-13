@@ -32,13 +32,23 @@ const SQUEAKS := [preload("res://assets/sounds/goblin_squeak_0.ogg"), preload("r
 const FLEE_SPEED := 120.0
 const FLEE_TIME := 1.4
 
-static var _scene: PackedScene
+## Wczytane sceny grafik (wspólne dla wszystkich goblinów danego rodzaju; klucz - ścieżka).
+static var _scenes := {}
 
 var hero: ProtoHero
 var bounds := Rect2(-300, -300, 600, 600)
 var hp := MAX_HP
 ## Mnożnik zdrowia i obrażeń (DungeonLevels.power poziomu lochu) - ustawiany przed dodaniem do sceny.
 var power := 1.0
+## Liczby tego rodzaju goblina (podklasy, np. łucznik, ustawiają inne w `_init`).
+var scene_path := SCENE_PATH
+var max_hp := MAX_HP
+var speed := SPEED
+var damage := DAMAGE
+var attack_cooldown := ATTACK_COOLDOWN
+## Bez grafiki (zastępczy kształt): po tylu sekundach zamachu pada cios i po tylu zamach się kończy.
+var strike_time := 0.3
+var attack_time := 0.6
 
 var _state := "walk"  # walk, attack, hurt, flee, dead
 var _cooldown := 0.0
@@ -47,20 +57,22 @@ var _struck := false  # cios bieżącego zamachu już zadany
 var _timer := 0.0
 ## Ile jeszcze sekund goblin jest ogłuszony.
 var _stunned := 0.0
+var _scene: PackedScene
 var _sprite  # KilnSprite2D (scena SpriteKiln) albo zastępczy Polygon2D
 var _audio: AudioStreamPlayer2D
 
 
 func _ready() -> void:
 	center_height = 12.0
-	hp = roundi(MAX_HP * power)
+	hp = roundi(max_hp * power)
 	add_to_group(ProtoWeapon.TARGETS)
 	var shadow := Sprite2D.new()
 	shadow.texture = ProtoHero._shadow_texture()
 	shadow.scale = Vector2(0.85, 0.85)
 	add_child(shadow)
-	if _scene == null and ResourceLoader.exists(SCENE_PATH):
-		_scene = load(SCENE_PATH)
+	if not _scenes.has(scene_path):
+		_scenes[scene_path] = load(scene_path) if ResourceLoader.exists(scene_path) else null
+	_scene = _scenes[scene_path]
 	if _scene:
 		_sprite = _scene.instantiate()
 		add_child(_sprite)
@@ -104,25 +116,31 @@ func _process(delta: float) -> void:
 	match _state:
 		"walk":
 			if hero and not hero.dead:
-				if to_hero.length() <= ATTACK_RANGE and _cooldown <= 0.0:
-					_start_attack(to_hero)
-				elif to_hero.length() > ATTACK_RANGE * 0.8:
-					move += to_hero.normalized() * SPEED * speed_factor()
-					_face(to_hero)
-			move += _separation() * SPEED
+				move += _walk_move(to_hero)
+			move += _separation() * speed
 			if _state == "walk":  # zamach mógł się właśnie zacząć - wtedy gra animacja ataku
 				_play(&"walk" if move.length() > 4.0 else &"idle")
 		"attack":
-			move += _separation() * SPEED * 0.5
+			move += _separation() * speed * 0.5
 			if not _scene:  # bez grafiki: cios po 0.3 s
-				if not _struck and _timer > 0.3:
+				if not _struck and _timer > strike_time:
 					_strike()
-				if _timer > 0.6:
+				if _timer > attack_time:
 					_state = "walk"
 		"hurt":
 			if not _scene and _timer > 0.25:
 				_state = "walk"
 	position = (position + move * delta).clamp(bounds.position, bounds.end)
+
+
+## Ruch w stanie marszu (postać żyje): podejście i zamach z bliska. Łucznik nadpisuje (dystans i strzał).
+func _walk_move(to_hero: Vector2) -> Vector2:
+	if to_hero.length() <= ATTACK_RANGE and _cooldown <= 0.0:
+		_start_attack(to_hero)
+	elif to_hero.length() > ATTACK_RANGE * 0.8:
+		_face(to_hero)
+		return to_hero.normalized() * speed * speed_factor()
+	return Vector2.ZERO
 
 
 func take_damage(amount: int, from: Vector2) -> void:
@@ -181,7 +199,7 @@ func _start_attack(to_hero: Vector2) -> void:
 	_state = "attack"
 	_timer = 0.0
 	_struck = false
-	_cooldown = ATTACK_COOLDOWN
+	_cooldown = attack_cooldown
 	_face(to_hero)
 	_play(&"attack", true)
 
@@ -190,7 +208,7 @@ func _start_attack(to_hero: Vector2) -> void:
 func _strike() -> void:
 	_struck = true
 	if hero and not hero.dead and global_position.distance_to(hero.global_position) <= HIT_RANGE:
-		hero.take_damage(roundi(DAMAGE * power))
+		hero.take_damage(roundi(damage * power))
 
 
 func _die() -> void:
@@ -212,7 +230,7 @@ func flee(squeak := true) -> void:
 	remove_from_group(ProtoWeapon.TARGETS)
 	_play(&"walk", true)
 	if _scene:
-		_sprite.speed_scale = FLEE_SPEED / SPEED
+		_sprite.speed_scale = FLEE_SPEED / speed
 	if squeak:
 		_audio.stream = SQUEAKS.pick_random()
 		_audio.pitch_scale = randf_range(0.9, 1.2)
