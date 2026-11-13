@@ -50,7 +50,7 @@ func _test_data() -> void:
 	_check(Gems.valid("ruby:0") and Gems.valid(Gems.KEY) and not Gems.valid("bzdura:1") and not Gems.valid(3),
 			"sprawdzanie identyfikatorów z zapisu")
 	_check(Gems.name_of("ember:1") == "Żar - Odłamek", "nazwa kamienia ze stopniem")
-	_check(Gems.jewel_stat("ruby:0", "weapon")[0] == "damage_pct" and Gems.jewel_stat("ruby:0", "helmet")[0] == "hp"
+	_check(Gems.jewel_stat("ruby:0", "earring")[0] == "damage_pct" and Gems.jewel_stat("ruby:0", "helmet")[0] == "hp"
 			and Gems.jewel_stat("ruby:0", "ring")[0] == "regen", "rubin: premia zależy od miejsca")
 	_check(Gems.support_text("multi:0", "throw").contains("3 miecze"), "opis kamienia zależy od umiejętności")
 	var low := true
@@ -281,7 +281,7 @@ func _test_windows(game: Node) -> void:
 	game.add_gem(Gems.KEY)
 	game.add_gem("sapphire:1")
 	game.add_gem(Gems.CHISEL)
-	var item := Items.roll(4, "weapon", "rare")
+	var item := Items.roll(4, "earring", "rare")
 	item.sockets = [""]
 	game.bag = [item]
 	game.equip(0)
@@ -365,7 +365,7 @@ func _test_windows(game: Node) -> void:
 	_check(stats.page_pouch.visible and not stats.page_equip.visible and stats.pouch_grid.get_child_count() == game.gem_list().size()
 			and game.gem_list().has(Gems.CHISEL) and game.gem_list().has("sapphire:1"), "zakładka „Sakwa”: kamienie, dłuto")
 	stats.set_tab("equip")
-	stats._select_equipped("weapon")
+	stats._select_equipped("earring")
 	await process_frame
 	var sockets: Array = stats.socket_row.find_children("*", "GemSlot", true, false)
 	_check(sockets.size() == 1 and stats.chisel_button != null and stats.socket_labels[0].text == "puste",
@@ -374,16 +374,16 @@ func _test_windows(game: Node) -> void:
 	_check(stats.picker.visible and stats.picker.actions.has("sapphire:1") and stats.picker.actions.size() == 1,
 			"gniazdo przedmiotu: tylko kamienie szlachetne")
 	stats.picker.actions["sapphire:1"].pressed.emit()
-	_check(game.equipped.weapon.sockets[0] == "sapphire:1" and game.gem_count("sapphire:1") == 0, "szafir w broni")
-	_check(stats.detail.visible and stats.socket_labels[0].text == Gems.jewel_text("sapphire:1", "weapon"),
+	_check(game.equipped.earring.sockets[0] == "sapphire:1" and game.gem_count("sapphire:1") == 0, "szafir w kolczyku")
+	_check(stats.detail.visible and stats.socket_labels[0].text == Gems.jewel_text("sapphire:1", "earring"),
 			"opis zostaje, pod gniazdem premia („%s”)" % stats.socket_labels[0].text)
 	stats.chisel_button.pressed.emit()
 	stats.chisel_button.pressed.emit()
-	_check(game.equipped.weapon.sockets.size() == 2 and game.gem_count(Gems.CHISEL) == 0, "dłuto: drugie stuknięcie dorabia gniazdo")
+	_check(game.equipped.earring.sockets.size() == 2 and game.gem_count(Gems.CHISEL) == 0, "dłuto: drugie stuknięcie dorabia gniazdo")
 	sockets = stats.socket_row.find_children("*", "GemSlot", true, false).filter(func(c: Node) -> bool: return not c.is_queued_for_deletion())
 	sockets[0].pressed.emit()
 	stats.picker.actions["out"].pressed.emit()
-	_check(game.equipped.weapon.sockets[0] == "" and game.gem_count("sapphire:1") == 1, "„Wyjmij” wyjmuje kamień z przedmiotu")
+	_check(game.equipped.earring.sockets[0] == "" and game.gem_count("sapphire:1") == 1, "„Wyjmij” wyjmuje kamień z przedmiotu")
 	stats.back()
 	# najpierw kamień: szafir z sakwy do przedmiotu
 	stats.set_tab("pouch")
@@ -394,7 +394,7 @@ func _test_windows(game: Node) -> void:
 	sapphire.pressed.emit()
 	_check(stats.picker.visible and stats.picker.actions.has("item_0"), "kamień z sakwy: lista przedmiotów, gdzie pasuje")
 	stats.picker.actions["item_0"].pressed.emit()
-	_check(game.equipped.weapon.sockets[0] == "sapphire:1", "„Włóż” w pierwsze wolne gniazdo przedmiotu")
+	_check(game.equipped.earring.sockets[0] == "sapphire:1", "„Włóż” w pierwsze wolne gniazdo przedmiotu")
 	stats.close()
 	arena.pause_menu.visible = false
 	paused = false

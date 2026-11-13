@@ -118,9 +118,9 @@ const JEWELS := {
 }
 const JEWEL_ORDER := ["ruby", "sapphire", "emerald", "onyx"]
 ## Grupa miejsca przedmiotu dla kamieni szlachetnych.
-const SLOT_GROUPS := {"weapon": "weapon", "helmet": "gear", "armor": "gear", "boots": "gear", "ring": "jewelry",
+const SLOT_GROUPS := {"earring": "weapon", "helmet": "gear", "armor": "gear", "boots": "gear", "ring": "jewelry",
 		"amulet": "jewelry"}
-const GROUP_NAMES := {"weapon": "broń", "gear": "strój", "jewelry": "biżuteria"}
+const GROUP_NAMES := {"weapon": "kolczyk", "gear": "strój", "jewelry": "biżuteria"}
 ## Wartość cechy kamienia szlachetnego na stopniach 0-4.
 const JEWEL_VALUES := {
 	"damage_pct": [4, 6, 9, 12, 16],

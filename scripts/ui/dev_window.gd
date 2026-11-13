@@ -157,7 +157,7 @@ func _sync() -> void:
 		stat_rows[stat].slider.value = value
 		_show_stat(stat, value)
 		if stat == Items.WEAPON_DAMAGE and gear.damage == Vector2i.ZERO:
-			stat_rows[stat].label.text = tr("Obrażenia broni: zwykły miecz %d-%d") % [ProtoWeapon.DAMAGE.x, ProtoWeapon.DAMAGE.y]
+			stat_rows[stat].label.text = tr("Obrażenia ciosu: bez kolczyka %d-%d") % [ProtoWeapon.DAMAGE.x, ProtoWeapon.DAMAGE.y]
 	_syncing = false
 
 

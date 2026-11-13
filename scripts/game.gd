@@ -256,8 +256,9 @@ func load_game() -> void:
 				skill_gems[id] = list
 		var raw_eq = data.get("equipped", {})
 		if raw_eq is Dictionary:
-			for slot in raw_eq:
-				var item := Items.normalize(raw_eq[slot])
+			for raw_slot in raw_eq:
+				var item := Items.normalize(raw_eq[raw_slot])
+				var slot: String = Items.LEGACY_SLOTS.get(raw_slot, raw_slot)
 				if not item.is_empty() and item.slot == slot:
 					equipped[slot] = item
 		var raw_up = data.get("upgrades", {})
