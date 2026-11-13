@@ -1,9 +1,10 @@
-extends SceneTree
+﻿extends SceneTree
 ## Test umiejętności miecza: kupno za złoto (poziom, cena), miejsca (zamiana, Mgnienie nie pod „Atak”, zablokowane
 ## miejsca), zapis, działanie w walce (Młynek, Rzut mieczem, Rozłupanie Ziemi z ogłuszeniem, Mgnienie), mana
 ## i odnowienie, zwykły cios przy braku many pod dużym przyciskiem, auto atak z umiejętnością, przyciski walki
 ## (ikony, odnowienie, stuknięcie), kamień run w bazie i okno umiejętności (kupno, przypisywanie, przeciąganie,
-## pola 44 px, „wstecz”).
+## pola 44 px, „wstecz”), poziomy umiejętności (ulepszanie za złoto, limit z poziomu postaci, zapis, obrażenia,
+## mana, odnowienie, obszar i nowe działania z 5. i 10. poziomu, przycisk „Ulepsz” w oknie).
 
 var _failed := 0
 
@@ -28,6 +29,7 @@ func _run() -> void:
 	DirAccess.remove_absolute(game.save_path)
 	game.load_game()
 	_test_game(game)
+	await _test_levels(game)
 	await _test_combat(game)
 	await _test_window(game)
 	game.reset_hero()
@@ -64,6 +66,121 @@ func _test_game(game: Node) -> void:
 	_check(game.skill_slots[1] == "", "zdjęcie z miejsca")
 	game.reset_hero()
 	_check(game.skills_owned == ["strike"] and game.skill_slots == ["strike", "", "", "", ""], "postać od nowa zeruje umiejętności")
+
+
+func _test_levels(game: Node) -> void:
+	game.reset_hero()
+	_check(game.skill_level("strike") == 1 and game.skill_upgrade_problem("whirl") == "owned", "na start 1. poziom, niekupionej się nie ulepszy")
+	_check(game.skill_upgrade_problem("strike") == "hero" and Skills.level_cap(1) == 1 and Skills.level_cap(4) == 2
+			and Skills.level_cap(19) == 10 and Skills.level_cap(50) == 10, "limit: połowa poziomu postaci w górę, najwyżej 10")
+	game.hero_level = 3
+	game.gold = 39
+	_check(game.skill_upgrade_problem("strike") == "gold", "bez złota się nie ulepszy")
+	game.gold = 1000
+	_check(game.upgrade_skill("strike") and game.skill_level("strike") == 2 and game.gold == 960, "zwykły cios na 2. poziom za 40 zł")
+	_check(game.skill_upgrade_problem("strike") == "hero" and not game.upgrade_skill("strike"), "3. poziom dopiero od 5. poziomu postaci")
+	_check(Skills.upgrade_price("strike", 2) == 80 and Skills.upgrade_price("blink", 9) == 1800 and Skills.upgrade_price("blink", 10) == 0,
+			"cena rośnie z poziomem, na 10. koniec")
+	game.load_game()
+	_check(game.skill_level("strike") == 2, "poziom w zapisie")
+	game.hero_level = 20
+	game.gold = 100000
+	while game.upgrade_skill("strike"):
+		pass
+	_check(game.skill_level("strike") == 10 and game.skill_upgrade_problem("strike") == "max", "najwyżej 10. poziom")
+	_check(is_equal_approx(Skills.level_damage(10), 1.9) and is_equal_approx(Skills.level_cost(7), 0.8)
+			and is_equal_approx(Skills.level_cost(6), 0.9) and is_equal_approx(Skills.level_area(8), 1.2)
+			and Skills.perks_at(4) == 0 and Skills.perks_at(5) == 1 and Skills.perks_at(10) == 2, "premie poziomów")
+	_check(Skills.next_level_text("whirl", 4).contains(tr("nowe działanie")) and Skills.next_level_text("whirl", 10) == "",
+			"opis następnego poziomu")
+	game.reset_hero()
+	_check(game.skill_levels.is_empty(), "postać od nowa zeruje poziomy")
+	# w walce: mana, odnowienie, obrażenia i nowe działania
+	game.hero_level = 20
+	game.dev_skills()
+	for id in Skills.ORDER:
+		game.skill_levels[id] = 10
+	game.save_game()
+	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	var weapon: ProtoWeapon = arena.weapon
+	_check(weapon.level_of("whirl") == 10 and weapon.mana_cost("whirl") == 20 and is_equal_approx(weapon.cooldown_full("whirl"), 6.4)
+			and is_equal_approx(weapon._area("slam"), 1.2), "miecz zna poziomy: mniej many, krótsze odnowienie, większy obszar")
+	var dummy: ProtoDummy = weapon.targets[0]
+	# Młynek 10. poziomu: 4 s i wybuch odpychający goblina na koniec
+	var goblin := ProtoGoblin.new()
+	goblin.hero = hero
+	goblin.bounds = Rect2(-400, -600, 800, 1200)
+	goblin.power = 50.0
+	hero.position = dummy.position + Vector2(0, 160)
+	goblin.position = hero.position + Vector2(30, 0)
+	arena.get_node("World").add_child(goblin)
+	await _wait(0.1)
+	hero.mana = hero.max_mana
+	_check(weapon.cast("whirl"), "Młynek 10. poziomu rusza")
+	await _wait(3.4)
+	_check(weapon._state == "whirl", "Młynek 5. poziomu wiruje dłużej niż 3 s")
+	await _wait(0.8)
+	_check(weapon._state != "whirl" and goblin._push.length() > ProtoGoblin.KNOCKBACK, "na koniec wybuch odpycha goblina")
+	# Rozłupanie: dłuższe ogłuszenie i druga fala
+	await _wait(0.4)
+	goblin.position = hero.position + Vector2(30, 0)
+	weapon.reset_cooldowns()
+	hero.mana = hero.max_mana
+	_check(weapon.cast("slam"), "Rozłupanie 10. poziomu rusza")
+	await _wait(0.45)
+	var hp := goblin.hp
+	_check(goblin._stunned > 1.2, "5. poziom: dłuższe ogłuszenie (%.1f s)" % goblin._stunned)
+	await _wait(0.6)
+	_check(goblin.hp < hp, "10. poziom: druga fala pęknięć rani po chwili")
+	goblin.queue_free()
+	# Rzut 10. poziomu: drugi miecz, odbicie i powrót; zwykły cios: co trzeci podwójny
+	await _wait(0.6)
+	weapon.reset_cooldowns()
+	hero.mana = hero.max_mana
+	hero.position = dummy.position + Vector2(0, 90)
+	await _wait(0.4)
+	_check(weapon.cast("throw") and weapon._ghosts[0].visible, "Rzut 10. poziomu: drugi miecz leci obok")
+	await _wait(2.0)
+	_check(weapon._state == "follow", "Rzut z odbiciem wraca do postaci")
+	hero.position = dummy.position + Vector2(0, 20)
+	var swings := weapon._strike_count
+	weapon.attack_held = true
+	await _wait(2.5)
+	weapon.attack_held = false
+	_check(weapon._strike_count - swings >= 3, "zwykły cios tnie dalej z poziomem (%d)" % (weapon._strike_count - swings))
+	# Mgnienie: pierwszy skok serii za darmo, potem za manę
+	await _wait(0.6)
+	weapon.reset_cooldowns()
+	hero.mana = hero.max_mana
+	hero.position = dummy.position + Vector2(-60, 0)
+	await _wait(0.8)
+	var mana := hero.mana
+	var hits := dummy._count
+	_check(weapon.cast("blink"), "Mgnienie 10. poziomu rusza")
+	_check(hero.mana == mana, "5. poziom: pierwszy skok serii nic nie kosztuje")
+	await _wait(0.1)
+	weapon.flicker_held = true
+	await _wait(0.4)
+	weapon.flicker_held = false
+	_check(hero.mana < mana, "kolejny skok w serii kosztuje manę")
+	var before_spin := _dummy_hits(weapon)
+	await _wait(0.6)
+	_check(_dummy_hits(weapon) > before_spin and dummy._count > hits, "10. poziom: po ostatnim skoku wir rani kukłę obok")
+	arena.queue_free()
+	await process_frame
+	game.reset_hero()
+
+
+## Suma trafień we wszystkie kukły w bazie.
+func _dummy_hits(weapon: ProtoWeapon) -> int:
+	var n := 0
+	for t in weapon.targets:
+		if t is ProtoDummy:
+			n += t._count
+	return n
 
 
 func _test_combat(game: Node) -> void:
@@ -219,7 +336,12 @@ func _test_window(game: Node) -> void:
 	win.buy_buttons[whirl_i].pressed.emit()
 	_check(not game.skills_owned.has("whirl") and win.buy_buttons[whirl_i].text == tr("Na pewno?"), "kupno pyta „Na pewno?”")
 	win.buy_buttons[whirl_i].pressed.emit()
-	_check(game.skills_owned.has("whirl") and game.gold == 900 and not win.buy_buttons[whirl_i].visible, "Młynek kupiony")
+	_check(game.skills_owned.has("whirl") and game.gold == 900 and win.buy_buttons[whirl_i].text == tr("Ulepsz"), "Młynek kupiony - przycisk „Ulepsz”")
+	win.buy_buttons[whirl_i].pressed.emit()
+	win.buy_buttons[whirl_i].pressed.emit()
+	_check(game.skill_level("whirl") == 2 and game.gold == 840 and win.name_labels[whirl_i].text.contains("2/10"),
+			"„Ulepsz” (dwa stuknięcia) - Młynek na 2. poziomie za 60 zł")
+	_check(win.buy_buttons[whirl_i].visible and not win.buy_buttons[whirl_i].disabled, "na 6. poziomie postaci można dalej (do 3.)")
 	# stuknij umiejętność, potem miejsce
 	win.list_icons[whirl_i].pressed.emit()
 	win.slots[0].pressed.emit()

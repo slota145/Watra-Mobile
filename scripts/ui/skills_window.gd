@@ -14,6 +14,10 @@ extends Control
 ## w tej umiejętności („Włóż”, „Wymień”, „Wyjmij”), stuknięcie kamienia w sakwie - GemPicker z listą umiejętności,
 ## gdzie pasuje; można też przeciągnąć kamień na gniazdo (GemSlot), a z gniazda do sakwy (wyjęcie za darmo).
 ## W każdym wierszu listy małe ikony kamieni z gniazd tej umiejętności.
+## Poziomy umiejętności (13.11.2026): przy nazwie „poz. X/10”, mana i odnowienie już z premią poziomu, pod opisem
+## nowe działania z 5. i 10. poziomu (złote - odblokowane) i co da następny poziom. Kupiona umiejętność ma z prawej
+## przycisk „Ulepsz” z ceną (przy kamieniu run, drugie stuknięcie potwierdza; Game.upgrade_skill), a gdy poziom
+## postaci nie pozwala - od którego poziomu postaci (Skills.level_cap).
 ## Zatrzymuje grę, gdy jest otwarte (PROCESS_MODE_ALWAYS).
 
 signal closed
@@ -33,6 +37,11 @@ var hint: Label
 var list_icons: Array[SkillSlot] = []
 var buy_buttons: Array[Button] = []
 var status_labels: Array[Label] = []
+## Wiersze: nazwa z poziomem, mana i odnowienie, nowe działania (5. i 10. poziom), co da następny poziom.
+var name_labels: Array[Label] = []
+var info_labels: Array[Label] = []
+var perk_labels: Array = []
+var next_labels: Array[Label] = []
 var slots: Array[SkillSlot] = []
 var clear_button: Button
 var back_button: Button
@@ -165,13 +174,19 @@ func _make_row(list: VBoxContainer, i: int) -> void:
 	texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	texts.add_theme_constant_override("separation", 1)
 	row.add_child(texts)
-	_label(texts, Skills.name_of(id), 14, GOLD)
-	var info := tr("Bez many i odnowienia") if Skills.mana_of(id) == 0 \
-			else tr("%d many za skok, bez odnowienia") % Skills.mana_of(id) if Skills.cooldown_of(id) == 0.0 \
-			else tr("%d many · odnowienie %d s") % [Skills.mana_of(id), roundi(Skills.cooldown_of(id))]
-	_label(texts, info, 11, BLUE)
+	name_labels.append(_label(texts, Skills.name_of(id), 14, GOLD))
+	info_labels.append(_label(texts, "", 11, BLUE))
 	var desc := _label(texts, Lang.t(Skills.DATA[id].description), 11, TEXT)
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var perks: Array[Label] = []
+	for k in Skills.PERK_LEVELS.size():
+		var perk := _label(texts, "", 10, DIM)
+		perk.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		perks.append(perk)
+	perk_labels.append(perks)
+	var next := _label(texts, "", 10, BLUE)
+	next.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	next_labels.append(next)
 	var gem_icons := HBoxContainer.new()
 	gem_icons.add_theme_constant_override("separation", 2)
 	texts.add_child(gem_icons)
@@ -320,10 +335,27 @@ func refresh() -> void:
 		var buy := buy_buttons[i]
 		var status := status_labels[i]
 		var at: int = _game.skill_slots.find(id)
+		var lvl: int = _game.skill_level(id)
+		_show_level(i, id, lvl, owned)
 		if owned:
-			buy.visible = false
-			status.text = (tr("Pod „Atak”") if at == Skills.MAIN else tr("W miejscu %d") % at) if at >= 0 else tr("Kupiona")
+			var place := (tr("Pod „Atak”") if at == Skills.MAIN else tr("W miejscu %d") % at) if at >= 0 else tr("Kupiona")
+			var problem: String = _game.skill_upgrade_problem(id)
+			var price := Skills.upgrade_price(id, lvl)
+			buy.visible = can_shop and problem != "max"
+			buy.text = tr("Na pewno?") if _buy_armed == id else tr("Ulepsz")
+			buy.disabled = problem != ""
 			status.add_theme_color_override("font_color", GOLD if at >= 0 else DIM)
+			if problem == "max":
+				status.text = place + "\n" + tr("najwyższy poziom")
+			elif problem == "hero":
+				status.text = place + "\n" + tr("ulepsz od poz. %d") % Skills.hero_level_for(lvl + 1)
+				status.add_theme_color_override("font_color", RED)
+			elif can_shop:
+				status.text = place + "\n" + tr("%d zł") % price
+				if problem == "gold":
+					status.add_theme_color_override("font_color", RED)
+			else:
+				status.text = place
 		else:
 			var need := Skills.level_of(id)
 			var price := Skills.price_of(id)
@@ -433,14 +465,34 @@ func _on_clear() -> void:
 		refresh()
 
 
-## Kupno: pierwsze stuknięcie pyta „Na pewno?”, drugie kupuje.
+## Poziom w wierszu: nazwa z „poz. X/10”, mana i odnowienie z premią poziomu, nowe działania (złote - odblokowane)
+## i co da następny poziom (tylko przy kupionej).
+func _show_level(i: int, id: String, lvl: int, owned: bool) -> void:
+	name_labels[i].text = Skills.name_of(id) + ("  " + tr("poz. %d/%d") % [lvl, Skills.MAX_LEVEL] if owned else "")
+	var k := Skills.level_cost(lvl)
+	var mana := roundi(Skills.mana_of(id) * k)
+	var cd := Skills.cooldown_of(id) * k
+	info_labels[i].text = tr("Bez many i odnowienia") if mana == 0 and cd == 0.0 \
+			else tr("%d many za skok, bez odnowienia") % mana if cd == 0.0 \
+			else tr("%d many · odnowienie %s s") % [mana, String.num(cd, 1).trim_suffix(".0")]
+	for n in Skills.PERK_LEVELS.size():
+		var perk: Label = perk_labels[i][n]
+		var on: bool = lvl >= Skills.PERK_LEVELS[n]
+		perk.text = tr("Poz. %d: %s") % [Skills.PERK_LEVELS[n], Skills.perk_text(id, n)]
+		perk.add_theme_color_override("font_color", GOLD if on else DIM)
+	next_labels[i].visible = owned and lvl < Skills.MAX_LEVEL
+	next_labels[i].text = tr("Następny poziom: %s") % Skills.next_level_text(id, lvl)
+
+
+## Kupno i ulepszanie: pierwsze stuknięcie pyta „Na pewno?”, drugie kupuje (niekupioną) albo ulepsza (kupioną).
 func _on_buy(id: String) -> void:
 	if _buy_armed != id:
 		_buy_armed = id
 		refresh()
 		return
 	_buy_armed = ""
-	if _game.buy_skill(id):
+	var ok: bool = _game.upgrade_skill(id) if _game.skills_owned.has(id) else _game.buy_skill(id)
+	if ok:
 		_play(preload("res://assets/watra/handleCoins.ogg"))
 	refresh()
 

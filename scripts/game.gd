@@ -5,7 +5,7 @@ extends Node
 ## i postać - poziom i doświadczenie (`hero_level`, `hero_xp`; dane poziomów w HeroLevels), przedmioty w torbie
 ## (`bag`, najwyżej BAG_SIZE), założone (`equipped`: miejsce -> przedmiot) i złoto ze sprzedaży (`gold`; dane w Items),
 ## skrzynia w bazie (`stash`: zakładki po STASH_TAB_SIZE miejsc; kolejne zakładki za złoto - STASH_TAB_PRICES),
-## umiejętności (`skills_owned` - kupione, `skill_slots` - co stoi w miejscach; dane w Skills), kamienie (Gems):
+## umiejętności (`skills_owned` - kupione, `skill_slots` - co stoi w miejscach, `skill_levels` - poziomy; dane w Skills), kamienie (Gems):
 ## sakwa (`gems`: identyfikator -> ile sztuk), kamienie w umiejętnościach (`skill_gems`: umiejętność -> lista
 ## Gems.SKILL_SOCKETS identyfikatorów, "" - puste) i otwarte gniazda (`skill_open`); kamienie w przedmiotach
 ## leżą w samych przedmiotach ("sockets"). Baza (ustalone 12.11.2026): ulepszenia lochów za żar (`upgrades`:
@@ -64,6 +64,8 @@ var stash: Array = [[]]
 ## (Skills.SLOTS; 0 - duży przycisk, "" - puste miejsce).
 var skills_owned: Array = [Skills.STRIKE]
 var skill_slots: Array = _default_slots()
+## Poziomy umiejętności (umiejętność -> poziom 2-Skills.MAX_LEVEL; brak wpisu - 1. poziom).
+var skill_levels := {}
 ## Sakwa z kamieniami, kluczami i dłutami (identyfikator Gems -> liczba sztuk).
 var gems := {}
 ## Kamienie w gniazdach umiejętności i liczba otwartych gniazd (brak wpisu - Gems.SKILL_OPEN).
@@ -141,6 +143,7 @@ func load_game() -> void:
 	stash = [[]]
 	skills_owned = [Skills.STRIKE]
 	skill_slots = _default_slots()
+	skill_levels = {}
 	gems = {}
 	skill_gems = {}
 	skill_open = {}
@@ -188,6 +191,11 @@ func load_game() -> void:
 				var ok: bool = id is String and skills_owned.has(id) and not skill_slots.has(id) \
 						and (i != Skills.MAIN or Skills.can_be_main(id))
 				skill_slots.append(id if ok else "")
+		var raw_levels = data.get("skill_levels", {})
+		if raw_levels is Dictionary:
+			for id in raw_levels:
+				if skills_owned.has(id) and int(raw_levels[id]) > 1:
+					skill_levels[id] = clampi(int(raw_levels[id]), 1, Skills.MAX_LEVEL)
 		var raw_gems = data.get("gems", {})
 		if raw_gems is Dictionary:
 			for id in raw_gems:
@@ -237,7 +245,7 @@ func save_game() -> void:
 	if f:
 		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
-				"stash": stash, "skills_owned": skills_owned, "skill_slots": skill_slots, "gems": gems,
+				"stash": stash, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems,
 				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "shop": shop,
 				"shop_ready": shop_ready}))
 
@@ -295,6 +303,7 @@ func reset_hero() -> void:
 	stash = [[]]
 	skills_owned = [Skills.STRIKE]
 	skill_slots = _default_slots()
+	skill_levels = {}
 	gems = {}
 	skill_gems = {}
 	skill_open = {}
@@ -506,6 +515,39 @@ func buy_skill(id: String) -> bool:
 		if skill_slots[i] == "":
 			skill_slots[i] = id
 			break
+	save_game()
+	inventory_changed.emit()
+	skills_changed.emit()
+	return true
+
+
+## Poziom umiejętności (1 - nieulepszona albo niekupiona).
+func skill_level(id: String) -> int:
+	return skill_levels.get(id, 1)
+
+
+## Dlaczego nie da się ulepszyć umiejętności ("" - da się): "owned" - niekupiona, "max" - najwyższy poziom,
+## "hero" - za niski poziom postaci (Skills.level_cap), "gold" - za mało złota.
+func skill_upgrade_problem(id: String) -> String:
+	if not skills_owned.has(id):
+		return "owned"
+	var lvl := skill_level(id)
+	if lvl >= Skills.MAX_LEVEL:
+		return "max"
+	if lvl >= Skills.level_cap(hero_level):
+		return "hero"
+	if gold < Skills.upgrade_price(id, lvl):
+		return "gold"
+	return ""
+
+
+## Ulepsza umiejętność o poziom za złoto. Zwraca false, gdy się nie da (skill_upgrade_problem).
+func upgrade_skill(id: String) -> bool:
+	if skill_upgrade_problem(id) != "":
+		return false
+	var lvl := skill_level(id)
+	gold -= Skills.upgrade_price(id, lvl)
+	skill_levels[id] = lvl + 1
 	save_game()
 	inventory_changed.emit()
 	skills_changed.emit()

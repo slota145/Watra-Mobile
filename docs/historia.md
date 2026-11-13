@@ -2,6 +2,24 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - poziomy umiejętności
+
+- Ustalone z autorem: 10 poziomów, kolejny za złoto przy kamieniu run (przycisk „Ulepsz” w oknie umiejętności, drugie
+  stuknięcie potwierdza), najwyżej połowa poziomu postaci w górę (`Skills.level_cap`: poz. 10 umiejętności od
+  19. poziomu postaci). Cena z poziomu n na n+1: `Skills.UPGRADE_PRICE` x n (zwykły cios 40, Młynek 60, Rzut 90,
+  Rozłupanie 140, Mgnienie 200 zł; razem do 10. poziomu 45 x cena, np. Mgnienie 9000 zł).
+- Każdy poziom: +10% obrażeń (`Skills.level_damage`). Poziomy 3 i 7: -10% many i odnowienia (`level_cost`; zwykły cios -
+  +10% szybkości), 4 i 8: +10% obszaru i zasięgu (`level_area`). Sumują się z kamieniami (Pośpiech, Oszczędność, Szerokość).
+- Nowe działanie na 5. i 10. poziomie (`Skills.PERKS`, `ProtoWeapon._perk`): zwykły cios - co trzeci cios tnie dwa razy
+  pełną siłą / cięcie najbliższego wroga poza łukiem (`STRIKE_CLEAVE_RANGE`); Młynek - 4 s zamiast 3 / wybuch na koniec
+  z odepchnięciem (`ProtoTarget.push_away`, goblin; bossy i kukły stoją); Rzut - na końcu lotu odbicie w najbliższego
+  nietrafionego wroga (`THROW_BOUNCE_RANGE` 90 px) / drugi pełny miecz (pierwszy widmowy miecz); Rozłupanie - ogłuszenie
+  2 s zamiast 1,2 / druga fala po 0,5 s (pełna siła, bez ogłuszenia); Mgnienie - pierwszy skok serii za darmo (seria
+  kończy się po `FLICKER_SERIES_GAP` 0,6 s bez skoku) / po ostatnim skoku wir wokół postaci (80% siły).
+- Stan: `Game.skill_levels` (zapis, `skill_level`, `skill_upgrade_problem`, `upgrade_skill`; postać od nowa zeruje),
+  miecz dostaje go w `Arena._apply_skills`. Okno: „poz. X/10” przy nazwie, mana i odnowienie z premią poziomu, progi 5/10
+  (złote - odblokowane), „Następny poziom: …”. Testy w `test_skills.gd` (`_test_levels`), zrzut w `tools/skill_shots.gd`.
+
 ## 13.11.2026 - postać zawsze na środku ekranu
 
 - Zgłoszenie autora: przy krawędzi mapy kamera stawała, postać zjeżdżała do rogu ekranu i chowała się pod palcem.

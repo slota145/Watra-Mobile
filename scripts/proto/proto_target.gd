@@ -24,6 +24,11 @@ func take_damage(_amount: int, _from: Vector2) -> void:
 	pass
 
 
+## Odepchnięcie od punktu `from` z siłą `force` (wybuch Młynka na 10. poziomie). Domyślnie nic - bossy i kukły stoją.
+func push_away(_from: Vector2, _force: float) -> void:
+	pass
+
+
 ## Ogłuszenie na `time` sekund (Rozłupanie Ziemi). Domyślnie nic - bossy i kukły się nie zatrzymują.
 func stun(_time: float) -> void:
 	pass

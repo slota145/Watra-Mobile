@@ -50,7 +50,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `proto_chief.gd` - boss Wódz Goblinów (ataki z ostrzeżeniem `proto_telegraph.gd`, tasak `proto_cleaver.gd`),
   `proto_chest.gd` - skrzynia po bossie; `scripts/dungeon_levels.gd` - poziomy lochu (siła, koszt przyzwania, nagroda);
   `scripts/hero_levels.gd` - poziomy postaci (doświadczenie, zdrowie, obrażenia, miejsca na umiejętności; stan w `Game`);
-  `scripts/skills.gd` - umiejętności miecza (dane; kupione i miejsca w `Game`, działanie w `proto_weapon.gd`, okno
+  `scripts/skills.gd` - umiejętności miecza (dane i poziomy 1-10 za złoto z nowym działaniem na 5. i 10.; kupione, miejsca i poziomy w `Game`, działanie w `proto_weapon.gd`, okno
   `scripts/ui/skills_window.gd` z polami `skill_slot.gd`, kamień run w bazie);
   `scripts/items.gd` - przedmioty (miejsca, rzadkości, premie, łup, ceny; torba, założone i złoto w `Game`),
   `scripts/gems.gd` - kamienie w umiejętnościach i przedmiotach (dane, łup; sakwa i gniazda w `Game`, działanie w `proto_weapon.gd`

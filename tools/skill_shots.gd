@@ -28,6 +28,7 @@ func _run() -> void:
 	game.buy_skill("whirl")
 	game.buy_skill("throw")
 	game.assign_skill("whirl", 0)
+	game.skill_levels = {"strike": 3, "whirl": 5}  # poziomy umiejętności: próg 5. poziomu Młynka odblokowany
 	game.save_game()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
 	root.add_child(arena)
