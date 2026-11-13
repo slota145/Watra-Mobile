@@ -52,6 +52,10 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   i ich odczuwalność (czy +10% potworów widać), ceny kowala i kupca (przedmioty u kupca tanie wobec klucza),
   czy pasek skrótów nie zasłania widoku na 16:9.
 
+- **Czytelniejsze okno „Postać” i kamienie (13.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na
+  telefonie: czy zakładki i wybór kamienia są wygodne, czy opisy pod gniazdami są czytelne (czcionka 9 px).
+  Do decyzji później: krótsze porównanie przedmiotów (tylko zmieniające się liczby ze strzałkami).
+
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
 - Watra jako „serce” ekranu startowego: animowany ogień, który przygasa, gdy długo nie grasz, i rozpala się po powrocie.

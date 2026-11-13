@@ -9,9 +9,11 @@ extends Control
 ## miejscami, a „Zdejmij” opróżnia. Mgnienie nie może stać pod „Atak”. Stan trzyma i zapisuje Game.
 ## Zakładka „Kamienie” (Gems, część 4 rozwoju postaci): stuknięcie umiejętności na liście wybiera ją, na dole jej
 ## 5 gniazd (otwarte Game.skill_open_count, zamknięte z kluczem - stuknięcie otwiera Kluczem Runicznym, drugie
-## potwierdza) i sakwa z kamieniami umiejętności. Wkładanie: stuknij kamień, potem gniazdo - albo przeciągnij kamień
-## na gniazdo (GemSlot). Stuknięcie zajętego gniazda wybiera je (opis), „Wyjmij” albo przeciągnięcie do sakwy
-## wyjmuje kamień za darmo. W każdym wierszu listy małe ikony kamieni z gniazd tej umiejętności.
+## potwierdza) i sakwa z kamieniami umiejętności. Pod każdym gniazdem krótko, co robi jego kamień (Gems.short_text).
+## Wkładanie (13.11.2026): stuknięcie otwartego gniazda otwiera GemPicker z pasującymi kamieniami i ich działaniem
+## w tej umiejętności („Włóż”, „Wymień”, „Wyjmij”), stuknięcie kamienia w sakwie - GemPicker z listą umiejętności,
+## gdzie pasuje; można też przeciągnąć kamień na gniazdo (GemSlot), a z gniazda do sakwy (wyjęcie za darmo).
+## W każdym wierszu listy małe ikony kamieni z gniazd tej umiejętności.
 ## Zatrzymuje grę, gdy jest otwarte (PROCESS_MODE_ALWAYS).
 
 signal closed
@@ -41,6 +43,9 @@ var gems_mode := false
 var slots_row: HBoxContainer
 var gems_box: VBoxContainer
 var socket_slots: Array[GemSlot] = []
+## Krótkie opisy pod gniazdami i wysuwany wybór kamienia.
+var socket_labels: Array[Label] = []
+var picker: GemPicker
 var pouch_row: HBoxContainer
 var pouch_empty: Label
 ## Małe ikony kamieni w wierszach listy (wiersz -> pojemnik).
@@ -124,6 +129,9 @@ func _ready() -> void:
 	clear_button.pressed.connect(_on_clear)
 	back_button = _button(bottom, tr("Wróć"))
 	back_button.pressed.connect(close)
+	picker = GemPicker.new()
+	picker.changed.connect(refresh)
+	add_child(picker)
 	_game.skills_changed.connect(func() -> void:
 		if visible:
 			refresh())
@@ -216,16 +224,26 @@ func _make_gems(column: VBoxContainer) -> void:
 	column.add_child(gems_box)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", 3)
 	gems_box.add_child(row)
 	for i in Gems.SKILL_SOCKETS:
+		var cell := VBoxContainer.new()
+		cell.custom_minimum_size = Vector2(58, 0)
+		cell.add_theme_constant_override("separation", 0)
+		row.add_child(cell)
 		var slot := GemSlot.new(48.0)
 		slot.area = "socket"
 		slot.index = i
+		slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		slot.pressed.connect(_on_socket_pressed.bind(i))
 		slot.dropped.connect(_on_dropped_to_socket.bind(i))
-		row.add_child(slot)
+		cell.add_child(slot)
 		socket_slots.append(slot)
+		var cap := _label(cell, "", 9, DIM)
+		cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cap.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cap.custom_minimum_size = Vector2(58, 24)
+		socket_labels.append(cap)
 	var scroll := ScrollContainer.new()
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.custom_minimum_size = Vector2(0, 52)
@@ -277,9 +295,11 @@ func close() -> void:
 	closed.emit()
 
 
-## Przycisk „wstecz”: najpierw zdejmuje wybór, potem zamyka okno.
+## Przycisk „wstecz”: najpierw zamyka wybór kamienia, potem zdejmuje wybór, potem zamyka okno.
 func back() -> void:
-	if selected_skill != "" or selected_slot >= 0 or selected_gem != "" or selected_socket >= 0:
+	if picker.visible:
+		picker.close()
+	elif selected_skill != "" or selected_slot >= 0 or selected_gem != "" or selected_socket >= 0:
 		selected_skill = ""
 		selected_slot = -1
 		selected_gem = ""
@@ -326,6 +346,7 @@ func refresh() -> void:
 	_tab_look(tab_gems, gems_mode)
 	slots_row.visible = not gems_mode
 	gems_box.visible = gems_mode
+	clear_button.visible = not gems_mode
 	if gems_mode:
 		_refresh_gems()
 		return
@@ -467,6 +488,16 @@ func _refresh_gems() -> void:
 	var open: int = _game.skill_open_count(gem_skill)
 	for i in Gems.SKILL_SOCKETS:
 		socket_slots[i].show_gem(sockets[i] if i < open else "", 0, selected_socket == i, i >= open)
+		var cap := socket_labels[i]
+		if i >= open:
+			cap.text = tr("zamknięte")
+			cap.add_theme_color_override("font_color", Color(1, 0.85, 0.6, 0.45))
+		elif sockets[i] == "":
+			cap.text = tr("puste")
+			cap.add_theme_color_override("font_color", DIM)
+		else:
+			cap.text = Gems.short_text(sockets[i], gem_skill)
+			cap.add_theme_color_override("font_color", Gems.color_of(sockets[i]))
 	for c in pouch_row.get_children():
 		pouch_row.remove_child(c)
 		c.queue_free()
@@ -500,14 +531,16 @@ func _refresh_gems() -> void:
 		var id: String = sockets[selected_socket]
 		hint.text = tr("%s: %s „Wyjmij” odkłada kamień do sakwy.") % [Gems.name_of(id), Gems.support_text(id, gem_skill)]
 	else:
-		hint.text = tr("Kamienie w: %s. Stuknij kamień, potem gniazdo - albo przeciągnij go na gniazdo.") % skill_name
+		hint.text = tr("Kamienie w: %s. Stuknij gniazdo, żeby włożyć kamień, albo kamień, żeby zobaczyć, gdzie pasuje.") % skill_name
 
 
+## Kamień w sakwie: GemPicker z listą umiejętności, gdzie pasuje (klucz - gdzie otworzyć gniazdo).
 func _on_pouch_pressed(id: String) -> void:
 	_key_armed = false
 	selected_socket = -1
-	selected_gem = "" if selected_gem == id else id
+	selected_gem = ""
 	refresh()
+	picker.open_gem(id)
 
 
 func _on_socket_pressed(i: int) -> void:
@@ -529,13 +562,10 @@ func _on_socket_pressed(i: int) -> void:
 			refresh()
 		return
 	_key_armed = false
-	if selected_gem != "" and not Gems.is_special(selected_gem):
-		_put(selected_gem, i)
-		return
-	var id: String = _game.skill_sockets(gem_skill)[i]
 	selected_gem = ""
-	selected_socket = -1 if selected_socket == i or id == "" else i
+	selected_socket = -1
 	refresh()
+	picker.open_skill_socket(gem_skill, i)
 
 
 ## Wkłada kamień w gniazdo z komunikatem, gdy się nie da.

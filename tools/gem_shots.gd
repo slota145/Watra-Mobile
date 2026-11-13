@@ -2,7 +2,8 @@ extends SceneTree
 ## Zrzuty kamieni: okno umiejętności (zakładka „Kamienie”), okno „Postać” z sakwą i opisem broni z gniazdami,
 ## a w lochu walka - Rzut mieczem z Mnożeniem (widmowe miecze), Żar, Szron i Piorun na goblinach.
 ## Użycie: SCRIPT=tools/gem_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
-## Pliki: <prefiks>_1_umiejetnosci.png, _2_postac.png, _3_opis.png, _4_rzut.png, _5_zar.png
+## Pliki: <prefiks>_1_umiejetnosci.png, _1b_gniazdo, _1c_kamien (wybór kamienia), _2_postac, _2b_statystyki, _2c_sakwa,
+## _3_opis, _3b_gniazdo, _4_rzut.png, _5_zar.png
 
 var _prefix := "/tmp/kamienie"
 
@@ -45,22 +46,38 @@ func _run() -> void:
 	var win: SkillsWindow = arena.skills_window
 	win.set_gems_mode(true)
 	win.list_icons[Skills.ORDER.find("throw")].pressed.emit()
-	for p in win.pouch_row.get_children():
-		if p.gem == "ember:2":
-			p.pressed.emit()
 	await create_timer(0.2).timeout
 	await _shot("1_umiejetnosci")
+	win.socket_slots[2].pressed.emit()  # puste gniazdo: pasujące kamienie
+	await create_timer(0.2).timeout
+	await _shot("1b_gniazdo")
+	win.picker.close()
+	for p in win.pouch_row.get_children():
+		if p.gem == "ember:1":
+			p.pressed.emit()  # kamień z sakwy: gdzie pasuje
+	await create_timer(0.2).timeout
+	await _shot("1c_kamien")
+	win.picker.close()
 	win.close()
 	arena._open_menu()
 	var stats: HeroStats = arena.pause_menu.stats
 	stats.open()
 	await create_timer(0.2).timeout
-	stats._scroll.scroll_vertical = 400
-	await create_timer(0.2).timeout
 	await _shot("2_postac")
+	stats.set_tab("stats")
+	await create_timer(0.2).timeout
+	await _shot("2b_statystyki")
+	stats.set_tab("pouch")
+	await create_timer(0.2).timeout
+	await _shot("2c_sakwa")
+	stats.set_tab("equip")
 	stats._select_equipped("weapon")
 	await create_timer(0.2).timeout
 	await _shot("3_opis")
+	stats._on_item_socket(1)
+	await create_timer(0.2).timeout
+	await _shot("3b_gniazdo")
+	stats.picker.close()
 	stats.close()
 	arena.pause_menu.visible = false
 	paused = false
