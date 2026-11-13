@@ -269,10 +269,10 @@ func _npc(world: Node2D, node_name: String, title: String, sheet: Texture2D, at:
 	return npc
 
 
-## Ulepszenia lochów za żar (Game.upgrades) do strumienia Hordy: gęstość, szansa łupu, zasięg zbierania.
+## Ulepszenia lochów za żar (Game.upgrades) do strumienia Hordy: gęstość (razy tłum poziomu lochu), szansa łupu, zasięg zbierania.
 ## Doświadczenie dolicza `_gain_xp`, szansę na kamienie ze skrzyni Wodza - `_on_chief_died`.
 func _apply_upgrades() -> void:
-	horde_spawner.density = 1.0 + Game.upgrade_bonus("monsters") / 100.0
+	horde_spawner.density = (1.0 + Game.upgrade_bonus("monsters") / 100.0) * DungeonLevels.crowd(Game.dungeon_level)
 	horde_spawner.loot_mult = 1.0 + Game.upgrade_bonus("loot") / 100.0
 	horde_spawner.reach = Game.upgrade_bonus("reach")
 

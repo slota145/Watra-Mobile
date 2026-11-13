@@ -201,8 +201,7 @@ func teleport(to: Vector2) -> Vector2:
 	var dir := local - position
 	if dir.length() > 0.5:
 		facing = dir.normalized()
-	position = local
-	_invulnerable = maxf(_invulnerable, 0.15)
+	position = local  # bez nietykalności (decyzja autora 13.11.2026 - Mgnienie jak Flicker Strike)
 	_update_frame()
 	return parent.to_global(local) if parent else local
 

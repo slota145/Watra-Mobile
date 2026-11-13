@@ -96,8 +96,8 @@ const UNIQUE := {
 		"text": "Miecz (i widmowe miecze) odbija się od trafionego wroga w kolejnego - do 3 odbić."},
 	"slam": {"name": "Kamień Drżącej Ziemi", "short": "Fale z trafionych",
 		"text": "Każdy trafiony wróg wywołuje wokół siebie falę uderzeniową, która rani pobliskich (50% obrażeń)."},
-	"blink": {"name": "Kamień Nieskończonej Mgły", "short": "Bez limitu skoków",
-		"text": "Mgnienie nie ma odnowienia ani limitu 3 skoków - skacze, dopóki trzymasz przycisk i starcza many."},
+	"blink": {"name": "Kamień Nieskończonej Mgły", "short": "Skoki za pół many",
+		"text": "Każdy skok Mgnienia kosztuje o połowę mniej many."},
 }
 const UNIQUE_COLOR := Color(1.0, 0.82, 0.35)
 const SUPPORT_ORDER := ["multi", "area", "ember", "rime", "discharge", "haste", "thrift", "leech"]

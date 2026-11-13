@@ -22,13 +22,14 @@ extends Node2D
 ## Poziomy umiejętności (Skills, `skill_levels` z Game): więcej obrażeń (`_power`), mniej many i krótsze odnowienie,
 ## większy obszar (`_area`), a na 5. i 10. poziomie nowe działanie (`_perk`): zwykły cios - co trzeci tnie dwa razy,
 ## cięcie sąsiada; Młynek - dłużej, wybuch na koniec; Rzut - odbicie w kolejnego wroga, drugi miecz; Rozłupanie -
-## dłuższe ogłuszenie, druga fala po chwili; Mgnienie - pierwszy skok serii za darmo, wir po ostatnim skoku.
-## Mgnienie (13.11.2026): seria najwyżej Skills.BLINK_JUMPS skoków, potem odnowienie (też gdy seria się urwie).
+## dłuższe ogłuszenie, druga fala po chwili; Mgnienie - podwójny zwrot many za zabicie, wir co Skills.BLINK_SPIN_EVERY skoków.
+## Mgnienie (13.11.2026, jak Flicker Strike z PoE): bez odnowienia, skacze, dopóki starcza many; każdy wróg zabity
+## skokiem zwraca Skills.BLINK_MANA_ON_KILL many.
 ## Kamienie unikalne (Gems.UNIQUE, `_unique`): zwykły cios - fala cięcia leci do przodu i przebija (`_waves`);
 ## Młynek - bez odnowienia, wiruje do wyłączenia albo końca many (mana co sekundę), z 10. poziomem wybuch co czas
 ## odnowienia; Rzut - odbija się od trafionego wroga w kolejnego (do THROW_GEM_BOUNCES razy, widmowe miecze za nim);
-## Rozłupanie - każdy trafiony wywołuje falę uderzeniową wokół siebie (bez kolejnych fal); Mgnienie - bez limitu
-## skoków i odnowienia.
+## Rozłupanie - każdy trafiony wywołuje falę uderzeniową wokół siebie (bez kolejnych fal); Mgnienie - skoki
+## za pół many.
 
 const TEXTURE := preload("res://assets/watra/iron_sword.png")
 ## Punkt chwytu na obrazku miecza (rękojeść) - wokół niego miecz się obraca.
@@ -121,15 +122,14 @@ const SLAM_ECHO := 0.22
 const SLAM_ECHO_RADIUS := 1.4
 const FLICKER_EXTRA_RANGE := 60.0
 ## Nowe działania poziomów umiejętności: zasięg cięcia sąsiada, czas dłuższego Młynka, siła odepchnięcia wybuchu,
-## zasięg odbicia Rzutu, dłuższe ogłuszenie, opóźnienie drugiej fali Rozłupania, przerwa kończąca serię Mgnień,
-## siła wiru po Mgnieniu.
+## zasięg odbicia Rzutu, dłuższe ogłuszenie, opóźnienie drugiej fali Rozłupania, siła wiru
+## z Mgnienia.
 const STRIKE_CLEAVE_RANGE := 40.0
 const WHIRL_TIME_LONG := 4.0
 const WHIRL_BLAST_PUSH := 160.0
 const THROW_BOUNCE_RANGE := 90.0
 const SLAM_STUN_LONG := 2.0
 const SLAM_AFTERSHOCK := 0.5
-const FLICKER_SERIES_GAP := 0.6
 const FLICKER_SPIN_POWER := 0.8
 ## Kamienie unikalne: fala cięcia (zasięg, prędkość, promień trafienia, siła), odbicia Rzutu, fale z trafionych
 ## Rozłupaniem (promień, siła, najwięcej naraz), mana Młynka na sekundę (ułamek kosztu).
@@ -225,10 +225,11 @@ var _strike_count := 0
 var _perk_second := false
 var _bounced := false
 var _last_jump := -INF
-var _spin_pending := false
-## Mgnienie: skoki w bieżącej serii. Młynek: czy ruszył spod dużego przycisku, ułamek many do zapłacenia, czas do
+## Mgnienie: wszystkie skoki (wir co Skills.BLINK_SPIN_EVERY). Młynek: czy ruszył spod dużego przycisku, ułamek many do zapłacenia, czas do
 ## wybuchu (10. poziom z kamieniem unikalnym). Rzut: odbicia z kamienia. Fale cięcia w locie.
 var _blink_jumps := 0
+## Ile razy zawirował wir z 10. poziomu Mgnienia (do testów).
+var _blink_spins := 0
 var _whirl_main := false
 var _whirl_drain_acc := 0.0
 var _whirl_blast_t := 0.0
@@ -506,20 +507,23 @@ func _strike_speed() -> float:
 			* (2.0 - Skills.level_cost(level_of(Skills.STRIKE)))
 
 
-## Koszt many umiejętności z kamieniem Oszczędność i poziomem.
+## Koszt many umiejętności z kamieniem Oszczędność i poziomem (Mgnienie z kamieniem unikalnym - o połowę mniej).
 func mana_cost(id: String) -> int:
-	return roundi(Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0) * Skills.level_cost(level_of(id)))
+	var cost := Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0) * Skills.level_cost(level_of(id))
+	if id == "blink" and _unique(id):
+		cost *= 0.5
+	return roundi(cost)
 
 
-## Koszt bieżącego skoku Mgnienia (5. poziom: pierwszy skok serii za darmo).
+## Koszt skoku Mgnienia.
 func _blink_cost() -> int:
-	return 0 if _perk("blink", 0) and _clock - _last_jump > FLICKER_SERIES_GAP else mana_cost("blink")
+	return mana_cost("blink")
 
 
 ## Pełne odnowienie umiejętności z kamieniem Pośpiech i poziomem.
-## Młynek i Mgnienie z kamieniem unikalnym - bez odnowienia.
+## Młynek z kamieniem unikalnym - bez odnowienia (Mgnienie nie ma go wcale).
 func cooldown_full(id: String) -> float:
-	if id in ["whirl", "blink"] and _unique(id):
+	if id == "whirl" and _unique(id):
 		return 0.0
 	return _cooldown_base(id)
 
@@ -943,12 +947,6 @@ func _process_waves(delta: float) -> void:
 ## i jest wróg w zasięgu. Nie w czasie Młynka, Rzutu i Rozłupania (miecz jest zajęty) - wtedy czeka.
 func _process_flicker(delta: float) -> void:
 	_flicker_timer -= delta
-	if _spin_pending and not flicker_held and not _flicker_once and _clock - _last_jump > FLICKER_INTERVAL * 1.2:
-		_spin_pending = false
-		if not hero.dead:
-			_flicker_spin()
-	if _blink_jumps > 0 and not flicker_held and not _flicker_once and _clock - _last_jump > FLICKER_SERIES_GAP:
-		_end_blink_series()  # seria się urwała - odnowienie
 	if not (flicker_held or _flicker_once) or _flicker_timer > 0.0 or hero.dead:
 		return
 	if cooldown_left("blink") > 0.0:
@@ -971,10 +969,9 @@ func _process_flicker(delta: float) -> void:
 		hero.spend_mana(cost)
 	_flicker_jump(best)
 	_last_jump = _clock
-	_spin_pending = _perk("blink", 1)
 	_blink_jumps += 1
-	if _blink_jumps >= Skills.BLINK_JUMPS and not _unique("blink"):
-		_end_blink_series()
+	if _perk("blink", 1) and _blink_jumps % Skills.BLINK_SPIN_EVERY == 0:
+		_flicker_spin()
 	_flicker_timer = FLICKER_INTERVAL / (speed_mult * (1.0 + gem_power("blink", "haste") / 100.0))
 	skill_used.emit("blink")
 
@@ -1020,6 +1017,7 @@ func _flicker_jump(best: ProtoTarget) -> void:
 		if on_path or c.distance_to(best.center()) <= FLICKER_HIT_RADIUS * area:
 			hit.append(t)
 			_deal(t, _roll(_power("blink")), spot, "blink")
+			_blink_kill(t)
 	var extra := gem_power("blink", "multi") / 100.0
 	if extra > 0.0:
 		# Mnożenie: dodatkowe cięcie najbliższego wroga, którego skok nie trafił
@@ -1034,6 +1032,7 @@ func _flicker_jump(best: ProtoTarget) -> void:
 			var cut2 := Fx.once(get_parent(), FLICKER_SLASH, 8, FLICKER_FX_FPS, near.center(), FLICKER_SLASH_ANCHOR)
 			cut2.rotation = randf() * TAU
 			_deal(near, _roll(_power("blink") * extra), spot, "blink")
+			_blink_kill(near)
 	Input.vibrate_handheld(20)
 	if _state != "follow":
 		_slash.visible = false
@@ -1046,18 +1045,20 @@ func _flicker_jump(best: ProtoTarget) -> void:
 	_slash.visible = true
 
 
-## Koniec serii Mgnienia: licznik skoków od zera, odnowienie (z kamieniem unikalnym - zero).
-func _end_blink_series() -> void:
-	_blink_jumps = 0
-	_cd["blink"] = cooldown_full("blink")
+## Wróg zabity Mgnieniem zwraca manę (5. poziom - dwa razy więcej). Kukły nie giną, więc nic nie dają.
+func _blink_kill(t: ProtoTarget) -> void:
+	if not t.alive():
+		hero.add_mana(Skills.BLINK_MANA_ON_KILL * (2 if _perk("blink", 0) else 1))
 
 
-## 10. poziom Mgnienia: po ostatnim skoku serii krótki wir - trafia wszystkich wokół postaci.
+## 10. poziom Mgnienia: co Skills.BLINK_SPIN_EVERY skoków krótki wir - trafia wszystkich wokół postaci.
 func _flicker_spin() -> void:
+	_blink_spins += 1
 	var radius := WHIRL_RADIUS * _area("blink")
 	for t in _live_targets():
 		if t.center().distance_to(_orbit_center()) <= radius:
 			_deal(t, _roll(_power("blink") * FLICKER_SPIN_POWER), hero.global_position, "blink")
+			_blink_kill(t)
 	var fx := Fx.once(get_parent(), WHIRL_FX, WHIRL_FX_FRAMES, WHIRL_FX_FPS, _orbit_center(),
 			Vector2(WHIRL_FX.get_width() / WHIRL_FX_FRAMES / 2.0, WHIRL_FX.get_height() / 2.0), 6,
 			radius / WHIRL_FX_RADIUS)
