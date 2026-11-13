@@ -1,0 +1,202 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: goblin_brute
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.95, 0]}
+palette: "watra"
+size: 64
+extends: ../goblin/goblin.yaml   # the goblin's skeleton, ears, eyes and head; here only what differs
+
+# Goblin osiłek Hordy: wolny, wytrzymały wróg wręcz. Ten sam goblin, ale ok. 1,4x większy (ok. 38 px wobec
+# 27 px goblina, ta sama camera.scale), dużo szerszy: masywne barki i ręce, wielkie pięści, brzuch, mała głowa
+# wciśnięta między barki, mocny garb. Ciemniejsza, oliwkowa skóra, goła pierś z rzemienną uprzężą na ukos,
+# przepaska biodrowa, sznurowe owijki na przedramionach, wielka drewniana maczuga (sęk z żelaznymi kolcami).
+# Całe ciało rośnie przez kość `big` (scale 1.4) pod `root`, jak u Wodza.
+brief:
+  summary: >
+    goblin brute of the Horde: a big, slow, dumb heavy bruiser. The goblin's long ears and glowing amber eyes,
+    about 1.4x taller (about 38 px against the goblin's 27 px, same density) and far wider: huge rounded
+    shoulders with a muscle hump behind the neck, thick gorilla arms hanging low, big fists, a belly, short
+    thick legs; a small head sunk low and forward between the shoulders. Darker olive skin than the goblin,
+    a bare chest crossed by one leather strap with iron studs, a leather belt and a loincloth, rough hemp rope
+    wrapped round both forearms (the accent), a big crude wooden club (a knotty log with an iron band and
+    three iron spikes) in the right hand, dragged at its side
+  head: >
+    bald goblin head (the goblin's head kit), but small relative to the body (head scale 1.05 inside the
+    1.4x body instead of 1.4) and set low and forward, the hump of the shoulders rising behind it; the
+    goblin's long pointed ears sweep out sideways (they still break the circle of the head); face minimal
+    (style): the two glowing amber eyes, no nose or mouth
+  must_keep:
+    - instantly a goblin - the long sideways ears and the glowing amber eyes stay
+    - clearly NOT the chief - no horns, skull, fur mantle, war paint or trophies; a plain, dumb, heavy body
+    - the mass - very wide shoulders and long thick arms, the widest shapes of the silhouette with the club
+    - darker olive skin than the plain goblin (another type in the crowd)
+    - the club in the right hand (socket `impact` on its head for the slam's dust)
+  simplify:
+    - the harness is one strap across the chest with a few painted iron studs, no buckles
+    - the rope wraps are painted bands on the forearms, no geometry
+    - the club's knots are three small bumps; its bark is not textured
+  decisions:
+    - the whole goblin is scaled by the bone `big` (1.4) and its IK lengths x1.4 (the arms a little longer);
+      the head bone scale goes from 1.4 to 1.05 so the head reads small on the heavy body
+    - the permanent hunch is stronger (torso +0.32 instead of +0.15) and the head sits lower and more forward
+    - the club hangs from the fist with its head low and forward (a dragged weapon); the slam raises it over
+      the head with both hands
+    - the back (n) shows the muscle hump, the strap crossing the back and the loincloth's back flap
+    - the goblin's tunic is replaced by bare skin, so the type reads at a glance: green-olive mass, brown club
+
+ramps:
+  # darker, more olive skin than the plain goblin (the Horde's heavy type)
+  brute_skin: ["#0b0c07", "#25281a", "#3a4023", "#51592c", "#6a7238", "#858b4f"]
+  # old, greyish wood of the club (cooler and darker than Ostoja's warm wood)
+  club_wood:  ["#0f0a08", "#332319", "#4f3824", "#6d5032", "#8a6a44", "#a5875f"]
+  # rough pale hemp rope (the accent: it catches the eye on the dark arms)
+  rope:       ["#16100a", "#5a4630", "#8a7350", "#b09a6c", "#cbb98a"]
+
+materials:
+  skin:  {ramp: brute_skin, gamma: 0.9, finish: soft}
+  tunic: {ramp: tunic, finish: soft, bands: [1, 4]}     # loincloth (the goblin's skirt part)
+  strap: {ramp: strap}
+  wood:  {ramp: club_wood, finish: soft}
+  rope:  {ramp: rope, finish: matte}
+  iron:  {ramp: iron, finish: metal, bands: [1, 5]}
+
+remove: [use.knife]
+
+shadow: {rx: 14, ry: 5, alpha: 120}
+
+channels:
+  hand_L: [0.32, -0.04, 0.08]
+  hand_R: [0.33, -0.03, 0.12]
+  foot_L: [0.12, 0, 0.02]
+  club_pitch: 0    # club lean at the wrist (+: head up and forward)
+  club_splay: 0    # club turned outwards (+) or across the body (-)
+
+bones:
+  # the whole goblin, 1.4x: everything hangs from `big` (the root channel still moves `root`)
+  big:        {parent: root, scale: 1.5}
+  torso_rot:  {parent: big, pos: "[0, 0.53 + bob, 0]", rot: "[lean + 0.32, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  fxspace:    {parent: big}
+  headbase:   {pos: [0, 0.41, 0.13], scale: 1.5, rot: "[lean*0.5 - 0.3, twist, roll]"}
+  head:       {scale: 0.9}
+  shoulder_L: {pos: [0.28, 0.30, 0.0]}
+  hip_L:      {pos: [0.11, -0.02, 0.0]}
+  # the club: along the bone's y from the fist; at rest it hangs down and forward (dragged)
+  club:       {parent: wrist_R, pos: [0, 0, 0.04], rot: "[1.25 + club_pitch, 0, -0.7 + club_splay]"}
+
+ik:
+  arm_L: {lengths: [0.30, 0.29]}
+  leg_L: {space: big, lengths: [0.39, 0.37]}
+
+parts:
+  torso:           # bare chest: a belly, a barrel chest, huge shoulders and a muscle hump behind the neck
+    material: skin
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.04, 0.05], r: [0.16, 0.12, 0.16]}
+      - ellipsoid: {c: [0, 0.18, 0.03], r: [0.19, 0.12, 0.14]}
+      - ellipsoid: {c: [0, 0.30, -0.01], r: [0.30, 0.11, 0.13]}
+      - ellipsoid: {c: [0, 0.37, -0.06], r: [0.15, 0.08, 0.10]}
+  coat:            # the loincloth: a short leather skirt with a front and a back flap
+    material: tunic
+    space: coatbase
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0.0, 0.0], b: [0, -0.04, 0.0], r: [0.16, 0.17]}
+      - box: {c: [0, -0.13, 0.15], half: [0.08, 0.10, 0.02], round: 0.01}
+      - box: {c: [0, -0.13, -0.15], half: [0.09, 0.10, 0.02], round: 0.01}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.24}
+      - box: {c: [0, -0.24, 0.17], half: [0.03, 0.03, 0.05], rot: [0, 0, 0.785]}     # notched flap ends
+      - box: {c: [0, -0.24, -0.17], half: [0.03, 0.03, 0.05], rot: [0, 0, 0.785]}
+  belt:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.07, 0.04], b: [0, 0.13, 0.04], r: 0.17}
+    paint:
+      - material: iron
+        prims:
+          - sphere: {c: [0.08, 0.10, 0.20], r: 0.025}
+          - sphere: {c: [-0.08, 0.10, 0.20], r: 0.025}
+  harness:         # one leather strap from the left shoulder across the chest to the right hip, and back
+    material: strap
+    space: pelvis
+    prims:
+      - tube: {pts: [[0.20, 0.36, 0.04], [0.04, 0.24, 0.20], [-0.16, 0.10, 0.12]], r: 0.03}
+      - tube: {pts: [[0.20, 0.36, 0.0], [0.06, 0.26, -0.18], [-0.16, 0.10, -0.12]], r: 0.03}
+    paint:
+      - material: iron
+        prims:
+          - sphere: {c: [0.115, 0.30, 0.15], r: 0.022}
+          - sphere: {c: [0.005, 0.22, 0.18], r: 0.022}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.32, 0.02], b: [0, 0.40, 0.12], r: [0.09, 0.07]}
+  ear_L:           # the goblin's ear, longer and thicker (the head is smaller, the ears must still read)
+    prims:
+      - cone: {a: [0.11, 0.13, -0.03], r: [0.06, 0.014],
+               b: "[0.44 - 0.17*pulse(yaw*sx, 90, 60) - 0.14*pulse(yaw*sx, -90, 60),
+                    0.25 - 0.04*pulse(yaw*sx, 90, 60) - 0.12*pulse(yaw*sx, -90, 60),
+                    -0.06 - 0.22*pulse(yaw*sx, 90, 60) - 0.05*pulse(yaw*sx, -90, 60)]"}
+  arm_L:           # thick gorilla arms (in `big` space, so the radii grow with it), rope round the forearm
+    material: skin
+    space: big
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.085}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.075, 0.058]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.065, 0.058]}
+    paint:
+      - material: rope
+        prims:
+          - cylinder: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.45}, b: {between: ["@elbow_L", "@wrist_L"], t: 0.85}, r: 0.11}
+  hand_L:          # wrist frames are not scaled: a big fist in world units
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.085}
+  leg_L:           # short, thick legs
+    material: skin
+    space: big
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.085, 0.065]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.065, 0.058]}
+  boot_L:          # a big bare foot
+    material: skin
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.07, 0], b: [0, -0.02, 0.0], r: [0.055, 0.06]}
+      - ellipsoid: {c: [0, -0.04, 0.06], r: [0.07, 0.045, 0.12]}
+  club_grip:       # the handle, wrapped in rope
+    material: rope
+    space: club
+    prims:
+      - cylinder: {a: [0, -0.10, 0], b: [0, 0.20, 0], r: 0.038}
+  club_log:        # a knotty log thickening to a heavy rounded head
+    material: wood
+    space: club
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.18, 0], b: [0, 0.74, 0], r: [0.05, 0.12]}
+      - sphere: {c: [0, 0.76, 0], r: 0.125}
+      - sphere: {c: [0.06, 0.42, 0.03], r: 0.04}
+      - sphere: {c: [-0.07, 0.56, -0.02], r: 0.045}
+  club_iron:       # an iron band round the head and three spikes
+    material: iron
+    space: club
+    priority: 2
+    prims:
+      - torus: {c: [0, 0.62, 0], R: 0.105, r: 0.024}
+      - cone: {a: [0.10, 0.77, 0], b: [0.21, 0.81, 0], r: [0.03, 0.008]}
+      - cone: {a: [-0.07, 0.78, 0.07], b: [-0.15, 0.84, 0.15], r: [0.03, 0.008]}
+      - cone: {a: [0, 0.84, -0.07], b: [0, 0.91, -0.17], r: [0.03, 0.008]}
+
+sockets:
+  impact: {bone: club, offset: [0, 0.80, 0]}   # the club's head: the slam's dust bursts here
