@@ -30,6 +30,7 @@ func _run() -> void:
 	game.load_game()
 	_test_game(game)
 	await _test_levels(game)
+	await _test_unique(game)
 	await _test_combat(game)
 	await _test_window(game)
 	game.reset_hero()
@@ -174,6 +175,99 @@ func _test_levels(game: Node) -> void:
 	game.reset_hero()
 
 
+## Kamienie unikalne w walce: fala cięcia, Młynek bez odnowienia, odbicia Rzutu, fale z Rozłupania, Mgnienie bez limitu.
+func _test_unique(game: Node) -> void:
+	game.reset_hero()
+	game.hero_level = 20
+	game.dev_skills()
+	for id in Skills.ORDER:
+		game.add_gem(Gems.unique_of(id), 1, false)
+		game.socket_skill(id, 0, Gems.unique_of(id))
+	game.save_game()
+	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	var weapon: ProtoWeapon = arena.weapon
+	var dummy: ProtoDummy = weapon.targets[0]
+	_check(weapon._unique("whirl") and not weapon._unique("x") and weapon.cooldown_full("whirl") == 0.0
+			and weapon.cooldown_full("blink") == 0.0 and weapon.cooldown_full("throw") > 0.0, "miecz widzi kamienie unikalne")
+	# fala cięcia: kukła 90 px dalej, poza zasięgiem ciosu
+	hero.position = dummy.position + Vector2(-90, 0)
+	hero.facing = Vector2.RIGHT
+	await _wait(0.3)
+	var hits := dummy._count
+	weapon._attack()
+	await _wait(0.3)
+	_check(not weapon._waves.is_empty(), "cięcie wypuszcza falę")
+	await _wait(0.5)
+	_check(dummy._count > hits and weapon._waves.is_empty(), "fala trafia kukłę 90 px dalej i znika")
+	# Młynek bez odnowienia: wiruje dłużej niż 4 s, wyłącza go drugie stuknięcie
+	hero.position = dummy.position + Vector2(0, 20)
+	hero.mana = hero.max_mana
+	await _wait(0.4)
+	_check(weapon.cast("whirl"), "Młynek z kamieniem rusza")
+	await _wait(4.5)
+	_check(weapon._state == "whirl" and hero.mana < hero.max_mana, "wiruje dłużej niż 4 s i zużywa manę")
+	_check(weapon.cast("whirl") and weapon._state != "whirl", "drugie stuknięcie wyłącza Młynek")
+	hero.mana = 30
+	weapon.cast("whirl")
+	await _wait(5.0)
+	_check(weapon._state != "whirl", "bez many Młynek się kończy")
+	# Rzut: odbicia między goblinami
+	var goblins: Array = []
+	for i in 3:
+		var g := ProtoGoblin.new()
+		g.hero = hero
+		g.bounds = Rect2(-400, -600, 800, 1200)
+		g.power = 50.0
+		g.position = hero.position + Vector2(-150 + 60 * i, -140 + 50 * (i % 2))
+		arena.get_node("World").add_child(g)
+		goblins.append(g)
+	hero.position += Vector2(0, 0)
+	await _wait(0.2)
+	for g in goblins:
+		g._stunned = 10.0
+	hero.mana = hero.max_mana
+	weapon.reset_cooldowns()
+	hero.position = goblins[0].position + Vector2(0, 60)
+	await _wait(0.1)
+	var full: int = goblins[2].hp
+	_check(weapon.cast("throw"), "Rzut z kamieniem rusza")
+	await _wait(1.5)
+	_check(weapon._bounces_left < ProtoWeapon.THROW_GEM_BOUNCES and goblins[2].hp < full,
+			"miecz odbija się od trafionego w kolejnych (%d odbić)" % (ProtoWeapon.THROW_GEM_BOUNCES - weapon._bounces_left))
+	# Rozłupanie: fale z trafionych ranią sąsiadów poza falą główną
+	await _wait(1.5)
+	weapon.reset_cooldowns()
+	hero.mana = hero.max_mana
+	var g0: ProtoGoblin = goblins[0]
+	var g1: ProtoGoblin = goblins[1]
+	g0.position = hero.position + Vector2(30, 0)
+	g1.position = g0.position + Vector2(25, 0)
+	await _wait(0.05)
+	var far_hp := g1.hp
+	weapon._slam_hit(g0.position - Vector2(30, 0))  # g1 55 px od uderzenia (poza falą), 25 px od g0
+	await _wait(0.3)
+	_check(g1.hp < far_hp, "fala z trafionego rani goblina poza zasięgiem uderzenia")
+	for g in goblins:
+		g.queue_free()
+	# Mgnienie bez limitu: więcej niż 3 skoki i bez odnowienia
+	await _wait(0.4)
+	weapon.reset_cooldowns()
+	hero.mana = hero.max_mana
+	hero.position = dummy.position + Vector2(-60, 0)
+	await _wait(0.3)
+	weapon.flicker_held = true
+	await _wait(1.8)
+	weapon.flicker_held = false
+	_check(weapon._blink_jumps > Skills.BLINK_JUMPS and weapon.cooldown_left("blink") == 0.0,
+			"Mgnienie z kamieniem skacze dalej niż 3 razy (%d), bez odnowienia" % weapon._blink_jumps)
+	arena.queue_free()
+	await process_frame
+	game.reset_hero()
+
+
 ## Suma trafień we wszystkie kukły w bazie.
 func _dummy_hits(weapon: ProtoWeapon) -> int:
 	var n := 0
@@ -259,11 +353,19 @@ func _test_combat(game: Node) -> void:
 	weapon.flicker_held = true
 	await _wait(1.0)
 	weapon.flicker_held = false
-	var jumps := dummy._count - total - 1
-	_check(jumps >= 2 and jumps <= 4, "trzymanie - skok co 0,32 s, bez innego celu znów przez tę samą kukłę (%d)" % jumps)
+	_check(_dummy_hits(weapon) > total + 1 and weapon.cooldown_left("blink") > 4.0,
+			"trzymanie - kolejne skoki, po 3 skokach odnowienie 6 s (%.1f)" % weapon.cooldown_left("blink"))
 	var after := dummy._count
+	weapon.flicker_held = true
 	await _wait(0.5)
-	_check(dummy._count == after, "puszczenie przycisku kończy skoki")
+	weapon.flicker_held = false
+	_check(dummy._count == after, "w czasie odnowienia Mgnienie nie skacze")
+	weapon.reset_cooldowns()
+	_check(weapon.cast("blink"), "po odnowieniu znów skacze")
+	await _wait(1.0)
+	_check(weapon.cooldown_left("blink") > 4.0, "urwana seria (1 skok) też włącza odnowienie")
+	weapon.reset_cooldowns()
+	after = dummy._count
 	weapon.flicker_held = true
 	hero.mana = 3
 	await _wait(0.4)

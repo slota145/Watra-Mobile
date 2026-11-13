@@ -2,6 +2,26 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - kamienie unikalne umiejętności, Mgnienie z odnowieniem
+
+- Pomysł autora: po jednym unikalnym kamieniu na umiejętność, zmieniającym jej działanie. Ustalone: rzadko ze skrzyni
+  Wodza (`Gems.CHEST_UNIQUE` 3% -> 8%, od 5. poziomu lochu, losowa umiejętność), zajmuje zwykłe gniazdo, bez stopni,
+  pasuje tylko do swojej umiejętności (`Game.skill_socket_problem` -> "skill"). Identyfikator `unique:<umiejętność>`
+  (`Gems.UNIQUE`, `is_unique`, `unique_of`, `has_unique`); `is_support` obejmuje też unikalne. Ikony - złote wersje ikon
+  kamieni z Watry (`tools/unique_gem_art.py` -> `assets/watra/unique_gems/`). Skrót deweloperski „+kamienie” daje też unikalne.
+- Działanie (`ProtoWeapon`, `_unique`): zwykły cios - Wichrowe Ostrze: każde cięcie wypuszcza falę (efekt
+  `legend_wind_crescent` z Watry), 140 px, 260 px/s, przebija, 60% obrażeń cięcia (`_spawn_wave`, `_process_waves`);
+  Młynek - Wieczny Wir: bez odnowienia, wiruje do drugiego stuknięcia / puszczenia „Atak” (auto atak - do braku wrogów)
+  albo końca many, płaci 1/3 kosztu na sekundę (`WHIRL_DRAIN`), z 10. poziomem wybuch co czas odnowienia
+  (`_cooldown_base`, min. 1 s); Rzut - Rykoszet: odbija się od trafionego w najbliższego nietrafionego (90 px), do 3 razy,
+  widmowe miecze rozchodzą się od miejsca odbicia (`_ricochet`); Rozłupanie - Drżąca Ziemia: wokół każdego trafionego
+  (najwyżej 10) fala 34 px, 50% siły, bez kolejnych fal (`_slam_shocks`, efekt `legend_shockwave` z Watry); Mgnienie -
+  Nieskończona Mgła: bez limitu skoków i odnowienia (jak wcześniej).
+- Zwykłe Mgnienie (decyzja autora): seria do 3 skoków (`Skills.BLINK_JUMPS`), potem 6 s odnowienia; urwana seria
+  (0,6 s bez skoku) też włącza odnowienie (`_end_blink_series`).
+- Okno: Młynek z kamieniem pokazuje „25 many, potem 8 na sekundę, bez odnowienia”. Testy: `test_gems.gd` (dane, łup,
+  gniazda), `test_skills.gd` (`_test_unique`); zrzuty `tools/unique_shots.gd`.
+
 ## 13.11.2026 - poziomy umiejętności
 
 - Ustalone z autorem: 10 poziomów, kolejny za złoto przy kamieniu run (przycisk „Ulepsz” w oknie umiejętności, drugie

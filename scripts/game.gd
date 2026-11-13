@@ -217,7 +217,8 @@ func load_game() -> void:
 					var dup := false
 					for other in list:
 						dup = dup or (other != "" and g is String and Gems.kind_of(other) == Gems.kind_of(g))
-					list.append(g if g is String and Gems.is_support(g) and i < skill_open_count(id) and not dup else "")
+					list.append(g if g is String and Gems.is_support(g) and i < skill_open_count(id) and not dup \
+							and (not Gems.is_unique(g) or Gems.unique_skill(g) == id) else "")
 				skill_gems[id] = list
 		var raw_eq = data.get("equipped", {})
 		if raw_eq is Dictionary:
@@ -646,6 +647,8 @@ func gem_list(filter := "") -> Array:
 static func _gem_order(id: String) -> int:
 	if Gems.is_special(id):
 		return 0 if id == Gems.KEY else 1
+	if Gems.is_unique(id):
+		return 50 + Skills.ORDER.find(Gems.unique_skill(id))
 	var kind := Gems.kind_of(id)
 	var base := 100 + Gems.SUPPORT_ORDER.find(kind) * 10 if Gems.is_support(id) else 200 + Gems.JEWEL_ORDER.find(kind) * 10
 	return base + (4 - Gems.grade_of(id))
@@ -667,7 +670,7 @@ func skill_sockets(skill: String) -> Array:
 
 
 ## Czemu kamienia nie da się włożyć w gniazdo umiejętności ("" - da się): "owned", "locked", "kind" (nie kamień
-## umiejętności), "none" (brak w sakwie), "same" (ten rodzaj już jest w innym gnieździe tej umiejętności).
+## umiejętności), "skill" (kamień unikalny innej umiejętności), "none" (brak w sakwie), "same" (ten rodzaj już jest w innym gnieździe tej umiejętności).
 func skill_socket_problem(skill: String, index: int, id: String) -> String:
 	if not skills_owned.has(skill):
 		return "owned"
@@ -675,6 +678,8 @@ func skill_socket_problem(skill: String, index: int, id: String) -> String:
 		return "locked"
 	if not Gems.is_support(id):
 		return "kind"
+	if Gems.is_unique(id) and Gems.unique_skill(id) != skill:
+		return "skill"
 	if gem_count(id) <= 0:
 		return "none"
 	var sockets := skill_sockets(skill)
@@ -793,13 +798,15 @@ func _return_item_gems(item: Dictionary) -> void:
 			add_gem(id, 1, false)
 
 
-## Tryb deweloperski: po kamieniu każdego rodzaju (stopień z obecnego poziomu lochu), 2 klucze i 2 dłuta.
+## Tryb deweloperski: po kamieniu każdego rodzaju (stopień z obecnego poziomu lochu), kamienie unikalne, 2 klucze i 2 dłuta.
 func dev_gems() -> void:
 	var grade := Items.tier_for(dungeon_level)
 	for kind in Gems.SUPPORT_ORDER:
 		add_gem(Gems.make(kind, grade), 1, false)
 	for kind in Gems.JEWEL_ORDER:
 		add_gem(Gems.make(kind, grade), 1, false)
+	for skill in Skills.ORDER:
+		add_gem(Gems.unique_of(skill), 1, false)
 	add_gem(Gems.KEY, 2, false)
 	add_gem(Gems.CHISEL, 2, false)
 	save_game()

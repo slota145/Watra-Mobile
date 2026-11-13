@@ -49,6 +49,10 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   Poziomy umiejętności zrobione (13.11.2026, szczegóły w `docs/historia.md`). Do oceny na telefonie: ceny ulepszeń
   (40-200 zł x poziom), czy +10% obrażeń na poziom jest odczuwalne, czy nowe działania z 5. i 10. poziomu są widoczne
   i nie za mocne (wybuch Młynka, drugi miecz Rzutu, wir po Mgnieniu - efekty pożyczone z innych umiejętności).
+  Kamienie unikalne (po jednym na umiejętność) i Mgnienie z odnowieniem zrobione (13.11.2026, szczegóły w
+  `docs/historia.md`). Do oceny na telefonie: szansa łupu (3-8% ze skrzyni Wodza od 5. poziomu), czy Młynek bez
+  odnowienia nie jest za mocny (mana 1/3 kosztu na sekundę), siła fal Rozłupania i fali cięcia, 3 skoki / 6 s Mgnienia.
+  Później może: więcej kamieni unikalnych na umiejętność (autor: „na razie po jednym”).
 
 - **Baza: żar i złoto (12.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: ceny ulepszeń
   i ich odczuwalność (czy +10% potworów widać), ceny kowala i kupca (przedmioty u kupca tanie wobec klucza),

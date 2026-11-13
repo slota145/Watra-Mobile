@@ -472,9 +472,23 @@ func _show_level(i: int, id: String, lvl: int, owned: bool) -> void:
 	var k := Skills.level_cost(lvl)
 	var mana := roundi(Skills.mana_of(id) * k)
 	var cd := Skills.cooldown_of(id) * k
+	var unique: bool = id in ["whirl", "blink"] and Gems.has_unique(_game.skill_sockets(id), id)
+	if unique:
+		cd = 0.0  # kamień unikalny: bez odnowienia
+	if unique and id == "whirl":
+		info_labels[i].text = tr("%d many, potem %d na sekundę, bez odnowienia") \
+				% [mana, roundi(mana * ProtoWeapon.WHIRL_DRAIN)]
+		_show_perks(i, id, lvl, owned)
+		return
 	info_labels[i].text = tr("Bez many i odnowienia") if mana == 0 and cd == 0.0 \
 			else tr("%d many za skok, bez odnowienia") % mana if cd == 0.0 \
+			else tr("%d many za skok · odnowienie %s s") % [mana, String.num(cd, 1).trim_suffix(".0")] if id == "blink" \
 			else tr("%d many · odnowienie %s s") % [mana, String.num(cd, 1).trim_suffix(".0")]
+	_show_perks(i, id, lvl, owned)
+
+
+## Nowe działania z 5. i 10. poziomu i co da następny poziom.
+func _show_perks(i: int, id: String, lvl: int, owned: bool) -> void:
 	for n in Skills.PERK_LEVELS.size():
 		var perk: Label = perk_labels[i][n]
 		var on: bool = lvl >= Skills.PERK_LEVELS[n]
@@ -631,6 +645,8 @@ func _put(id: String, i: int) -> void:
 	refresh()
 	if problem == "same":
 		hint.text = tr("%s ma już kamień tego rodzaju.") % Skills.name_of(gem_skill)
+	elif problem == "skill":
+		hint.text = tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(id))
 
 
 func _on_dropped_to_socket(gem: String, from_area: String, from_index: int, i: int) -> void:

@@ -15,10 +15,13 @@ const STRIKE := "strike"
 ## Miejsca: 0 - duży przycisk (atak), 1-4 - małe miejsca wokół niego (odblokowane z poziomem - HeroLevels).
 const SLOTS := 5
 const MAIN := 0
+## Mgnienie: najwięcej skoków w serii przed odnowieniem.
+const BLINK_JUMPS := 3
 
 ## name - nazwa, icon - ikona, mana - koszt, cooldown - odnowienie (s), price - złoto, level - wymagany poziom postaci,
 ## main - czy może stać pod dużym przyciskiem (auto atak), range - z jakiej odległości auto atak jej używa (stopy-stopy),
-## power - obrażenia jako wielokrotność zwykłego cięcia (w Młynku - na jedno trafienie). Mgnienie: mana za każdy skok.
+## power - obrażenia jako wielokrotność zwykłego cięcia (w Młynku - na jedno trafienie). Mgnienie: mana za każdy skok,
+## seria najwyżej BLINK_JUMPS skoków, potem odnowienie (zmiana z 13.11.2026; kamień unikalny znosi limit i odnowienie).
 const DATA := {
 	"strike": {
 		"name": "Zwykły cios", "icon": preload("res://assets/watra/iron_sword_icon.png"),
@@ -42,8 +45,8 @@ const DATA := {
 	},
 	"blink": {
 		"name": "Mgnienie", "icon": preload("res://assets/watra/skills/flicker.png"),
-		"mana": 7, "cooldown": 0.0, "price": 1500, "level": 15, "main": false, "range": 0.0, "power": 1.2,
-		"description": "Przytrzymaj - przeskakujesz na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego, dopóki starcza many. Nie może stać pod dużym przyciskiem.",
+		"mana": 7, "cooldown": 6.0, "price": 1500, "level": 15, "main": false, "range": 0.0, "power": 1.2,
+		"description": "Przytrzymaj - przeskakujesz na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego: do 3 skoków, potem odnowienie. Nie może stać pod dużym przyciskiem.",
 	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem

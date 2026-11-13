@@ -163,7 +163,8 @@ func _build_skill_socket() -> void:
 		_label(list, tr("Brak kamieni umiejętności. Wypadają w lochach od poziomu %d.") % Gems.MIN_LEVEL, 12, DIM, true)
 	for id in gems:
 		var problem: String = _game.skill_socket_problem(skill, index, id)
-		var reason := tr("%s ma już kamień tego rodzaju.") % Skills.name_of(skill) if problem == "same" else ""
+		var reason := tr("%s ma już kamień tego rodzaju.") % Skills.name_of(skill) if problem == "same" \
+				else tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(id)) if problem == "skill" else ""
 		var b := _row(id, Gems.icon_of(id), Gems.name_of(id), Gems.color_of(id), Gems.support_text(id, skill),
 				reason, tr("Wymień") if current != "" else tr("Włóż"))
 		b.disabled = problem != ""
@@ -224,7 +225,8 @@ func _build_gem() -> void:
 			var free: int = _game.free_skill_socket(id)
 			var problem: String = _game.skill_socket_problem(id, free, gem) if free >= 0 else "full"
 			var reason := tr("Brak wolnego gniazda (otwiera je Klucz Runiczny).") if problem == "full" \
-					else tr("Ma już kamień tego rodzaju.") if problem == "same" else ""
+					else tr("Ma już kamień tego rodzaju.") if problem == "same" \
+					else tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(gem)) if problem == "skill" else ""
 			var b := _row(id, Skills.icon_of(id), Skills.name_of(id), GOLD, Gems.support_text(gem, id), reason, tr("Włóż"))
 			b.disabled = problem != ""
 			b.pressed.connect(func() -> void:

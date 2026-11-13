@@ -8,6 +8,10 @@ class_name Gems
 ## - kamienie szlachetne (JEWELS: rubin, szafir, szmaragd, onyks) - włożone w przedmiot dają premię zależną od
 ##   miejsca (broń / strój - hełm, zbroja, buty / biżuteria - pierścień, amulet); przedmiot ma 1 gniazdo, bardzo rzadko 2
 ##   (Items.roll), drugie dorabia rzadkie Dłuto Jubilera (CHISEL); premie liczy Items.totals.
+## - kamienie unikalne (UNIQUE, ustalone z autorem 13.11.2026) - po jednym na umiejętność, bez stopni, pasują tylko
+##   do swojej umiejętności, zajmują zwykłe gniazdo i zmieniają sposób jej działania (Młynek bez odnowienia, Mgnienie
+##   bez limitu skoków, odbicia Rzutu, fale z trafionych Rozłupaniem, fala cięcia zwykłego ciosu); rzadko ze skrzyni
+##   Wodza od UNIQUE_MIN_LEVEL; identyfikator "unique:<umiejętność>"; działanie - ProtoWeapon (`Gems.has_unique`).
 ## Kamień ma stopień 0-4 (GRADES, jak stopnie przedmiotów - Items.tier_for poziomu lochu). Kamienie leżą w osobnej
 ## sakwie (`Game.gems`: identyfikator -> ile sztuk), więc nie zajmują torby. Identyfikator kamienia: "rodzaj:stopień"
 ## (np. "ember:2"), klucza i dłuta - KEY i CHISEL. Wkładanie i wyjmowanie (za darmo) - Game, okna SkillsWindow i HeroStats.
@@ -28,6 +32,9 @@ const CHEST_KEY := Vector2(0.04, 0.15)
 const CHEST_CHISEL := Vector2(0.06, 0.2)
 const CHEST_RARE_STEP := 0.005
 const GOBLIN_RARE := 0.0015
+## Kamień unikalny ze skrzyni Wodza: od poziomu lochu, szansa (rośnie o CHEST_RARE_STEP na poziom do sufitu).
+const UNIQUE_MIN_LEVEL := 5
+const CHEST_UNIQUE := Vector2(0.03, 0.08)
 ## Szansa, że kamień to kamień umiejętności (inaczej szlachetny).
 const SUPPORT_SHARE := 0.5
 
@@ -77,6 +84,22 @@ const SUPPORT := {
 		"values": [2, 3, 4, 5, 7],
 		"text": "Leczy %d%% zadanych obrażeń."},
 }
+## Kamienie unikalne (klucz - umiejętność): nazwa, kolor, krótki opis pod gniazdem i pełny opis. Ikony -
+## assets/watra/unique_gems/<umiejętność>.png (tools/unique_gem_art.py).
+const UNIQUE_PREFIX := "unique:"
+const UNIQUE := {
+	"strike": {"name": "Kamień Wichrowego Ostrza", "short": "Fala cięcia",
+		"text": "Każde cięcie wypuszcza do przodu falę, która przebija wrogów (60% obrażeń ciosu)."},
+	"whirl": {"name": "Kamień Wiecznego Wiru", "short": "Bez odnowienia",
+		"text": "Młynek nie ma odnowienia: wiruje, dopóki go nie wyłączysz (drugie stuknięcie, puszczenie „Atak”) albo nie skończy się mana - zużywa ją co sekundę. Z 10. poziomem wybuch co tyle, ile trwałoby odnowienie."},
+	"throw": {"name": "Kamień Rykoszetu", "short": "Odbicia",
+		"text": "Miecz (i widmowe miecze) odbija się od trafionego wroga w kolejnego - do 3 odbić."},
+	"slam": {"name": "Kamień Drżącej Ziemi", "short": "Fale z trafionych",
+		"text": "Każdy trafiony wróg wywołuje wokół siebie falę uderzeniową, która rani pobliskich (50% obrażeń)."},
+	"blink": {"name": "Kamień Nieskończonej Mgły", "short": "Bez limitu skoków",
+		"text": "Mgnienie nie ma odnowienia ani limitu 3 skoków - skacze, dopóki trzymasz przycisk i starcza many."},
+}
+const UNIQUE_COLOR := Color(1.0, 0.82, 0.35)
 const SUPPORT_ORDER := ["multi", "area", "ember", "rime", "discharge", "haste", "thrift", "leech"]
 ## Oszczędność w zwykłym ciosie: many za trafienie na stopniach 0-4.
 const THRIFT_STRIKE := [1, 1, 2, 2, 3]
@@ -136,8 +159,29 @@ static func is_special(id: String) -> bool:
 	return SPECIAL.has(id)
 
 
+## Kamień umiejętności: zwykły (rodzaj:stopień) albo unikalny.
 static func is_support(id: String) -> bool:
-	return SUPPORT.has(kind_of(id)) and id.contains(":")
+	return (SUPPORT.has(kind_of(id)) and id.contains(":")) or is_unique(id)
+
+
+## Kamień unikalny ("unique:<umiejętność>").
+static func is_unique(id: String) -> bool:
+	return id.begins_with(UNIQUE_PREFIX) and UNIQUE.has(id.trim_prefix(UNIQUE_PREFIX))
+
+
+## Identyfikator kamienia unikalnego umiejętności.
+static func unique_of(skill: String) -> String:
+	return UNIQUE_PREFIX + skill
+
+
+## Umiejętność kamienia unikalnego ("" - to nie unikalny).
+static func unique_skill(id: String) -> String:
+	return id.trim_prefix(UNIQUE_PREFIX) if is_unique(id) else ""
+
+
+## Czy w gniazdach umiejętności `skill` siedzi jej kamień unikalny.
+static func has_unique(sockets: Array, skill: String) -> bool:
+	return sockets.has(unique_of(skill))
 
 
 static func is_jewel(id: String) -> bool:
@@ -153,6 +197,8 @@ static func valid(id) -> bool:
 static func name_of(id: String) -> String:
 	if is_special(id):
 		return Lang.t(SPECIAL[id].name)
+	if is_unique(id):
+		return Lang.t(UNIQUE[unique_skill(id)].name)
 	var data: Dictionary = SUPPORT.get(kind_of(id), JEWELS.get(kind_of(id), {}))
 	if data.is_empty():
 		return ""
@@ -162,6 +208,8 @@ static func name_of(id: String) -> String:
 static func color_of(id: String) -> Color:
 	if is_special(id):
 		return SPECIAL[id].color
+	if is_unique(id):
+		return UNIQUE_COLOR
 	var data: Dictionary = SUPPORT.get(kind_of(id), JEWELS.get(kind_of(id), {}))
 	return data.get("color", Color.WHITE)
 
@@ -169,6 +217,8 @@ static func color_of(id: String) -> Color:
 static func icon_of(id: String) -> Texture2D:
 	if is_special(id):
 		return load(SPECIAL[id].icon)
+	if is_unique(id):
+		return load("res://assets/watra/unique_gems/%s.png" % unique_skill(id))
 	if is_support(id):
 		return load("res://assets/watra/supports/%s.png" % SUPPORT[kind_of(id)].icon)
 	if is_jewel(id):
@@ -180,6 +230,8 @@ static func icon_of(id: String) -> Texture2D:
 static func kind_line(id: String) -> String:
 	if is_special(id):
 		return Lang.t("Rzadki przedmiot")
+	if is_unique(id):
+		return Lang.t("Kamień unikalny: %s") % Skills.name_of(unique_skill(id))
 	var kind := Lang.t("Kamień umiejętności") if is_support(id) else Lang.t("Kamień szlachetny")
 	return Lang.t("%s, stopień %d/%d") % [kind, grade_of(id) + 1, GRADES.size()]
 
@@ -200,6 +252,8 @@ const SHORT_STRIKE := {"haste": "+%d%% szybkości", "thrift": "+%d many za cios"
 
 
 static func short_text(id: String, skill := "", slot := "") -> String:
+	if is_unique(id):
+		return Lang.t(UNIQUE[unique_skill(id)].short)
 	if is_support(id):
 		var kind := kind_of(id)
 		if kind == "thrift" and skill == Skills.STRIKE:
@@ -213,13 +267,17 @@ static func short_text(id: String, skill := "", slot := "") -> String:
 
 ## Siła kamienia umiejętności (liczba z `values` jego stopnia).
 static func support_value(id: String) -> float:
-	return float(SUPPORT[kind_of(id)].values[grade_of(id)]) if is_support(id) else 0.0
+	return float(SUPPORT[kind_of(id)].values[grade_of(id)]) if is_support(id) and not is_unique(id) else 0.0
 
 
 ## Opis działania kamienia umiejętności; z `skill` - jak działa w tej umiejętności.
 static func support_text(id: String, skill := "") -> String:
 	if not is_support(id):
 		return ""
+	if is_unique(id):
+		var own := unique_skill(id)
+		var text := Lang.t(UNIQUE[own].text)
+		return text if skill == "" or skill == own else Lang.t("Pasuje tylko do: %s.") % Skills.name_of(own)
 	var kind := kind_of(id)
 	var data: Dictionary = SUPPORT[kind]
 	if kind == "thrift" and skill == Skills.STRIKE:
@@ -290,6 +348,9 @@ static func roll_chest(level: int, chance_mult := 1.0) -> Array:
 		if randf() < chance * chance_mult:
 			out.append(roll(level))
 	var step := CHEST_RARE_STEP * (level - MIN_LEVEL)
+	if level >= UNIQUE_MIN_LEVEL and randf() < minf(CHEST_UNIQUE.x + CHEST_RARE_STEP * (level - UNIQUE_MIN_LEVEL),
+			CHEST_UNIQUE.y) * chance_mult:
+		out.append(unique_of(Skills.ORDER.pick_random()))
 	if randf() < minf(CHEST_KEY.x + step, CHEST_KEY.y) * chance_mult:
 		out.append(KEY)
 	if randf() < minf(CHEST_CHISEL.x + step, CHEST_CHISEL.y) * chance_mult:
@@ -300,7 +361,7 @@ static func roll_chest(level: int, chance_mult := 1.0) -> Array:
 ## Siła kamienia umiejętności rodzaju `kind` w gniazdach (lista identyfikatorów; 0 - brak).
 static func skill_power(sockets: Array, kind: String) -> float:
 	for id in sockets:
-		if id is String and is_support(id) and kind_of(id) == kind:
+		if id is String and is_support(id) and not is_unique(id) and kind_of(id) == kind:
 			return support_value(id)
 	return 0.0
 
