@@ -207,5 +207,95 @@
       16,
       14
     ]
+  },
+  "glaive_thrust": {
+    "effect": "fc0bcebd-0dfb-47dc-ba76-180cd73f9352",
+    "name": "Glewia - pchnięcie ognia",
+    "frame": [
+      58,
+      16
+    ],
+    "frames": 7,
+    "fps": 16,
+    "anchor": [
+      5,
+      8
+    ],
+    "columns": 3
+  },
+  "glaive_sweep": {
+    "effect": "b2d9ab67-ce26-44a3-9d4d-4f91989f574a",
+    "name": "Glewia - ognisty zamach",
+    "frame": [
+      121,
+      135
+    ],
+    "frames": 9,
+    "fps": 16,
+    "anchor": [
+      53,
+      67
+    ],
+    "columns": 3
+  },
+  "glaive_blast": {
+    "effect": "81fe0e23-9384-4c33-8d81-5e4c3a788d1b",
+    "name": "Glewia - wybuch ognia",
+    "frame": [
+      72,
+      70
+    ],
+    "frames": 12,
+    "fps": 14,
+    "anchor": [
+      35,
+      35
+    ],
+    "columns": 4
+  },
+  "glaive_ground_fire": {
+    "effect": "74058ed1-62c1-48f5-bc11-8dee933c6f80",
+    "name": "Glewia - ogień na ziemi (pętla)",
+    "frame": [
+      20,
+      20
+    ],
+    "frames": 8,
+    "fps": 12,
+    "anchor": [
+      10,
+      15
+    ],
+    "columns": 3
+  },
+  "glaive_cut": {
+    "effect": "6bca01af-1692-4523-b644-fdfad85c388d",
+    "name": "Glewia - lecące cięcie ognia (klatki 3-12 w pętli)",
+    "frame": [
+      35,
+      40
+    ],
+    "frames": 14,
+    "fps": 16,
+    "anchor": [
+      20,
+      20
+    ],
+    "columns": 4
+  },
+  "glaive_hit": {
+    "effect": "1f232cdb-4523-44d1-9a72-46db817dfd87",
+    "name": "Glewia - trafienie ogniem",
+    "frame": [
+      40,
+      37
+    ],
+    "frames": 12,
+    "fps": 16,
+    "anchor": [
+      19,
+      19
+    ],
+    "columns": 4
   }
 }

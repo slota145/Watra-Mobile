@@ -14,7 +14,9 @@ extends ProtoWeapon
 ##   (5. poziom - dłużej, 10. - po dwa cięcia naraz w przeciwne strony).
 ## Każde trafienie podpala (`_hit`): Skills.burn_of - ile obrażeń trafienia dopala się przez BURN_TIME (silniejsze
 ## podpalenie zastępuje słabsze - ProtoTarget.burn). Ogień na ziemi (`_zones`) co ZONE_TICK rani i podpala stojących
-## w nim wrogów. Grafika glewii: assets/weapons/glaive.png (ostrze w prawo, rękojeść po lewej).
+## w nim wrogów. Grafika glewii: assets/weapons/glaive.png (ostrze w prawo, rękojeść po lewej; narysowana w narzędziu
+## pikseli PixelLab). Efekty ognia z kreatora efektów PixelLab (assets/effects/glaive_*.png, pixellab_src/vfx/ids.json):
+## pchnięcie, zamach, wybuch, ogień na ziemi (pętla, wiele płomyków na strefę), lecące cięcie, trafienie ogniem.
 
 const GLAIVE_TEXTURE := preload("res://assets/weapons/glaive.png")
 ## Punkt chwytu na obrazku (piksele obrazka) i długość glewii w grze (od chwytu do czubka).
@@ -60,8 +62,29 @@ const CUT_RADIUS := 15.0
 ## Ogień na ziemi: co ile rani i jaką częścią obrażeń umiejętności.
 const ZONE_TICK := 0.5
 const ZONE_POWER := 0.25
-## Kolor ognia (efekty zastępcze, zanim dojdą grafiki z kreatora efektów).
+## Kolor ognia (wir Tańca płomieni).
 const FIRE := Color(1.0, 0.55, 0.2)
+## Efekty (klatki, fps, punkt zaczepienia, wielkość w pikselach efektu: długość smugi, promień łuku i wybuchu).
+const THRUST_FX := preload("res://assets/effects/glaive_thrust.png")
+const THRUST_FX_ANCHOR := Vector2(5, 8)
+const THRUST_FX_LENGTH := 52.0
+const SWEEP_FX := preload("res://assets/effects/glaive_sweep.png")
+const SWEEP_FX_ANCHOR := Vector2(53, 67)
+const SWEEP_FX_RADIUS := 56.0
+const BLAST_FX := preload("res://assets/effects/glaive_blast.png")
+const BLAST_FX_ANCHOR := Vector2(35, 35)
+const BLAST_FX_RADIUS := 33.0
+const GROUND_FX := preload("res://assets/effects/glaive_ground_fire.png")
+const GROUND_FX_ANCHOR := Vector2(10, 15)
+const GROUND_FX_FRAMES := 8
+const GROUND_FX_SPACING := 9.0
+const CUT_FX := preload("res://assets/effects/glaive_cut.png")
+const CUT_FX_ANCHOR := Vector2(20, 20)
+const CUT_FX_FRAMES := 14
+## Klatki lecącego sierpa (bez rozbłysku na początku i gaśnięcia na końcu) - grają w pętli w locie.
+const CUT_FX_LOOP := Vector2i(2, 12)
+const FIRE_HIT_FX := preload("res://assets/effects/glaive_hit.png")
+const FIRE_HIT_ANCHOR := Vector2(19, 19)
 
 ## Lecące cięcia Tańca płomieni: {"fx", "dir", "left", "hits"}.
 var _cuts: Array = []
@@ -84,7 +107,6 @@ func _ready() -> void:
 	for s in [_sprite] + _ghosts:
 		s.texture = GLAIVE_TEXTURE
 		s.offset = -G_GRIP
-	_slash.modulate = FIRE
 	_whirl_fx.modulate = Color(FIRE, 0.85)
 
 
@@ -103,6 +125,11 @@ func _process(delta: float) -> void:
 			_process_dance(delta)
 	_process_cuts(delta)
 	_process_zones(delta)
+
+
+## Błysk trafienia ogniem na celu.
+func _fire_hit(t: ProtoTarget) -> void:
+	Fx.once(get_parent(), FIRE_HIT_FX, 12, 16.0, t.center().round(), FIRE_HIT_ANCHOR, 21, 0.75)
 
 
 ## Trafienie glewią: obrażenia jak każdej broni (`_deal` - krytyk, elity, kamienie) i podpalenie wg umiejętności.
@@ -180,9 +207,11 @@ func _thrust_hit() -> void:
 		var along := to.dot(dir)
 		if along >= 0.0 and along <= reach + 6.0 and absf(to.cross(dir)) <= THRUST_WIDTH:
 			_hit(t, _swing_power * _power(basic), hero.global_position, basic, 2.0 if _perk(basic, 0) else 1.0)
-			Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, t.center().round(), HIT_FX_ANCHOR)
+			_fire_hit(t)
 			any = true
-	_flame_line(_orbit_center() + dir * 10.0, _orbit_center() + dir * reach, 0.15)
+	var fx := Fx.once(get_parent(), THRUST_FX, 7, 16.0, (_orbit_center() + dir * 8.0).round(), THRUST_FX_ANCHOR, 6,
+			(reach - 8.0) / THRUST_FX_LENGTH)
+	fx.rotation = _aim
 	if any:
 		Input.vibrate_handheld(15)
 
@@ -203,6 +232,7 @@ func _start(id: String) -> void:
 		"g_sweep":
 			_sweep_again = _perk(id, 1)
 			_sign = -_sign
+			_sweep_fx()
 			_set_state("sweep")
 		"g_trail":
 			_dash_from = hero.global_position
@@ -231,12 +261,6 @@ func _process_sweep() -> void:
 	var k := clampf(_t / SWEEP_TIME, 0.0, 1.0)
 	var a := _aim + lerpf(-SWEEP_ARC / 2.0, SWEEP_ARC / 2.0, ease(k, 0.5)) * _sign
 	_place_line(a, 6.0)
-	_slash.visible = true
-	_slash.position = _orbit_center() - global_position
-	_slash.rotation = _aim
-	_slash.flip_v = _sign < 0.0
-	_slash.scale = Vector2.ONE * SWEEP_RADIUS * _area("g_sweep") / SLASH_FX_RADIUS
-	_slash.frame = mini(int(k * SLASH_FRAMES), SLASH_FRAMES - 1)
 	if not _hit_done and k >= 0.5:
 		_hit_done = true
 		var radius := SWEEP_RADIUS * _area("g_sweep")
@@ -246,16 +270,25 @@ func _process_sweep() -> void:
 				_hit(t, _power("g_sweep"), hero.global_position, "g_sweep")
 				if _perk("g_sweep", 0):
 					t.push_away(hero.global_position, SWEEP_PUSH)
+				_fire_hit(t)
 		Input.vibrate_handheld(20)
 	if _t >= SWEEP_TIME:
-		_slash.visible = false
 		if _sweep_again and not hero.dead:
 			_sweep_again = false
 			_hit_done = false
 			_sign = -_sign
+			_sweep_fx()
 			_set_state("sweep")
 		else:
 			_end_skill()
+
+
+## Ognisty łuk zamachu z kreatora (rysowany zgodnie z ruchem wskazówek zegara - w drugą stronę odbity).
+func _sweep_fx() -> void:
+	var size := SWEEP_RADIUS * _area("g_sweep") / SWEEP_FX_RADIUS
+	var fx := Fx.once(get_parent(), SWEEP_FX, 9, 16.0, _orbit_center().round(), SWEEP_FX_ANCHOR, 6, size)
+	fx.scale = Vector2(size, size * _sign)
+	fx.rotation = _aim
 
 
 ## Płonący ślad: postać doskakuje z wysuniętą glewią, rani wszystkich na drodze (każdego raz), a za nią zostaje pas ognia.
@@ -321,7 +354,7 @@ func _blast(at: Vector2, radius: float, power: float, skill: String) -> void:
 		var d := t.global_position - at
 		if Vector2(d.x, d.y * 1.6).length() <= radius:
 			_hit(t, power, at, skill)
-	_flame_burst(at, radius)
+	Fx.once(get_parent(), BLAST_FX, 12, 14.0, at.round(), BLAST_FX_ANCHOR, 6, radius / BLAST_FX_RADIUS)
 	Input.vibrate_handheld(35)
 
 
@@ -345,13 +378,13 @@ func _process_dance(delta: float) -> void:
 ## Zamaszyste cięcie Tańca płomieni: sierp ognia leci powoli od postaci pod kątem `a`.
 func _spawn_cut(a: float) -> void:
 	var fx := Sprite2D.new()
-	fx.texture = WAVE_FX
-	fx.hframes = WAVE_FX_FRAMES
+	fx.texture = CUT_FX
+	fx.hframes = CUT_FX_FRAMES
+	fx.frame = CUT_FX_LOOP.x
 	fx.centered = false
-	fx.offset = -WAVE_FX_ANCHOR
+	fx.offset = -CUT_FX_ANCHOR
 	fx.z_index = 20
 	fx.rotation = a
-	fx.modulate = FIRE
 	fx.scale = Vector2.ONE * _area("g_dance")
 	get_parent().add_child(fx)
 	fx.global_position = _orbit_center()
@@ -364,7 +397,7 @@ func _process_cuts(delta: float) -> void:
 		var fx: Sprite2D = c.fx
 		var step := CUT_SPEED * delta
 		fx.global_position += c.dir * step
-		fx.frame = int(_clock * 12.0) % WAVE_FX_FRAMES
+		fx.frame = CUT_FX_LOOP.x + int(_clock * 16.0 + i) % (CUT_FX_LOOP.y - CUT_FX_LOOP.x)
 		c.left -= step
 		fx.modulate.a = clampf(c.left / 30.0, 0.0, 1.0)
 		var reach := CUT_RADIUS * _area("g_dance")
@@ -372,6 +405,7 @@ func _process_cuts(delta: float) -> void:
 			if not c.hits.has(t) and t.center().distance_to(fx.global_position) <= reach:
 				c.hits.append(t)
 				_hit(t, _power("g_dance"), fx.global_position - c.dir * 10.0, "g_dance")
+				_fire_hit(t)
 		if c.left <= 0.0:
 			fx.queue_free()
 			_cuts.remove_at(i)
@@ -379,16 +413,41 @@ func _process_cuts(delta: float) -> void:
 
 # --- Ogień na ziemi ---
 
-## Pas (a-b) albo koło (a == b) ognia na `time` sekund; co ZONE_TICK rani i podpala wrogów w środku.
+## Pas (a-b) albo koło (a == b) ognia na `time` sekund; co ZONE_TICK rani i podpala wrogów w środku. Na ziemi
+## płomyki z kreatora (pętla) co GROUND_FX_SPACING wzdłuż pasa albo w kręgach koła.
 func _add_zone(a: Vector2, b: Vector2, radius: float, time: float, skill: String) -> void:
-	var node := _FireZone.new()
-	node.a = a
-	node.b = b
-	node.radius = radius
+	var node := Node2D.new()
 	node.z_index = -1
 	get_parent().add_child(node)
-	node.global_position = Vector2.ZERO  # a i b w układzie świata
-	_zones.append({"node": node, "a": a, "b": b, "radius": radius, "left": time, "tick": ZONE_TICK, "skill": skill})
+	node.global_position = Vector2.ZERO  # płomyki w układzie świata
+	var spots: Array[Vector2] = []
+	if a.distance_to(b) > 1.0:
+		var n := maxi(1, int(a.distance_to(b) / GROUND_FX_SPACING))
+		for i in n + 1:
+			var side := (b - a).orthogonal().normalized() * radius * 0.5 * (1.0 if i % 2 == 0 else -1.0)
+			spots.append(a.lerp(b, float(i) / n) + side * randf_range(0.2, 1.0))
+	else:
+		spots.append(a)
+		var r := GROUND_FX_SPACING
+		while r < radius:
+			var count := int(TAU * r / GROUND_FX_SPACING)
+			for i in count:
+				var ang := TAU * i / count + r
+				spots.append(a + Vector2(cos(ang), sin(ang) / 1.6) * r)
+			r += GROUND_FX_SPACING
+	var flames: Array = []
+	for p in spots:
+		var f := Sprite2D.new()
+		f.texture = GROUND_FX
+		f.hframes = GROUND_FX_FRAMES
+		f.centered = false
+		f.offset = -GROUND_FX_ANCHOR
+		f.position = p.round()
+		f.frame = randi() % GROUND_FX_FRAMES
+		node.add_child(f)
+		flames.append(f)
+	_zones.append({"node": node, "flames": flames, "a": a, "b": b, "radius": radius, "left": time, "tick": ZONE_TICK,
+			"skill": skill})
 
 
 func _process_zones(delta: float) -> void:
@@ -404,8 +463,10 @@ func _process_zones(delta: float) -> void:
 		if z.left <= 0.0:
 			z.node.queue_free()
 			_zones.remove_at(i)
-		else:
-			z.node.fade = clampf(z.left / 0.5, 0.0, 1.0)
+			continue
+		z.node.modulate.a = clampf(z.left / 0.5, 0.0, 1.0)
+		for k in z.flames.size():
+			z.flames[k].frame = (int(_clock * 12.0) + k * 3) % GROUND_FX_FRAMES
 
 
 ## Czy punkt `p` (stopy wroga) stoi w ogniu strefy `z` (odległość od odcinka, rzut z góry - spłaszczony pion).
@@ -420,76 +481,4 @@ static func _in_zone(z: Dictionary, p: Vector2) -> bool:
 
 func _end_skill() -> void:
 	super._end_skill()
-	_slash.modulate = FIRE
 	_cooldown = maxf(_cooldown, THRUST_COOLDOWN * 0.5)
-
-
-## Zastępczy błysk ognia wzdłuż pchnięcia (do podmiany na efekt z kreatora).
-func _flame_line(a: Vector2, b: Vector2, time: float) -> void:
-	var line := Line2D.new()
-	line.width = 4.0
-	line.default_color = Color(FIRE, 0.8)
-	line.add_point(a)
-	line.add_point(b)
-	line.z_index = 6
-	get_parent().add_child(line)
-	var tween := line.create_tween()
-	tween.tween_property(line, "modulate:a", 0.0, time)
-	tween.tween_callback(line.queue_free)
-
-
-## Zastępczy wybuch ognia: pierścień rośnie i gaśnie (do podmiany na efekt z kreatora).
-func _flame_burst(at: Vector2, radius: float) -> void:
-	var node := _FireZone.new()
-	node.a = at
-	node.b = at
-	node.radius = radius
-	node.burst = true
-	node.z_index = 6
-	get_parent().add_child(node)
-	node.global_position = Vector2.ZERO
-	var tween := node.create_tween()
-	tween.tween_property(node, "fade", 0.0, 0.35).from(1.0)
-	tween.tween_callback(node.queue_free)
-
-
-## Rysunek ognia na ziemi: migoczące plamy płomieni wzdłuż pasa albo w kole (zastępczo, w kodzie).
-class _FireZone extends Node2D:
-	var a := Vector2.ZERO
-	var b := Vector2.ZERO
-	var radius := 10.0
-	var fade := 1.0:
-		set(v):
-			fade = v
-			queue_redraw()
-	var burst := false
-	var _t := 0.0
-
-	func _process(delta: float) -> void:
-		_t += delta
-		queue_redraw()
-
-	func _draw() -> void:
-		var ab := b - a
-		var n := maxi(1, int(ab.length() / 10.0)) if ab.length() > 1.0 else 1
-		if burst:
-			draw_circle(a, radius * (1.2 - 0.4 * fade), Color(1.0, 0.6, 0.2, 0.45 * fade))
-			draw_arc(a, radius * (1.2 - 0.4 * fade), 0.0, TAU, 32, Color(1.0, 0.85, 0.4, fade), 2.0)
-			return
-		for i in n + 1:
-			var p := a.lerp(b, float(i) / n) if n > 0 else a
-			if ab.length() <= 1.0:
-				for j in 7:
-					var ang := TAU * j / 7.0 + _t
-					var q := p + Vector2(cos(ang), sin(ang) / 1.6) * radius * 0.6
-					_flame(q, radius * 0.45)
-				_flame(p, radius * 0.6)
-			else:
-				_flame(p, radius * 0.9)
-
-	func _flame(p: Vector2, r: float) -> void:
-		var flick := 0.8 + 0.2 * sin(_t * 13.0 + p.x * 0.7 + p.y)
-		draw_set_transform(p, 0.0, Vector2(1.0, 1.0 / 1.6))
-		draw_circle(Vector2.ZERO, r * flick, Color(0.85, 0.25, 0.05, 0.35 * fade))
-		draw_circle(Vector2.ZERO, r * 0.55 * flick, Color(1.0, 0.6, 0.15, 0.55 * fade))
-		draw_set_transform(Vector2.ZERO)
