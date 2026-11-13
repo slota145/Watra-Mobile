@@ -2,6 +2,28 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - czytelniejsze okno „Postać” i kamienie
+
+- Zgłoszenie autora: okno „Postać” zbyt rozległe, wkładanie kamieni nieintuicyjne, nie widać, co kamień robi
+  w danej umiejętności. Ustalone: zakładki w „Postać”, „najpierw gniazdo”, opisy pod gniazdami, „najpierw kamień”.
+  Na razie bez krótszego porównania przedmiotów (punkt niewybrany).
+- `scripts/ui/hero_stats.gd`: okno na cały ekran, u góry poziom, doświadczenie i złoto, na dole zakładki
+  „Ekwipunek” / „Statystyki” / „Sakwa (N)” i „Wróć” (`set_tab`, `page_equip`, `page_stats`, `page_pouch`).
+  Ekwipunek: 6 miejsc wokół postaci, pod nią zdrowie, obrażenia i ochrona (`key_stats`), torba, sprzedaż hurtem,
+  auto sprzedaż - na 16:9 bez przewijania. W opisie przedmiotu gniazda z krótkim opisem pod każdym (`socket_labels`);
+  sakwa kamieni szlachetnych w opisie i przeciąganie zniknęły - stuknięcie gniazda otwiera GemPicker.
+- `scripts/ui/gem_picker.gd` (`GemPicker`): panel wysuwany od dołu. „Najpierw gniazdo” (`open_skill_socket`,
+  `open_item_socket`): tylko pasujące kamienie z działaniem w tym miejscu, ten sam rodzaj w innym gnieździe -
+  przygaszony z powodem, kamień w gnieździe z „Wyjmij”, „Włóż” / „Wymień”. „Najpierw kamień” (`open_gem`, stuknięcie
+  w sakwie): opis i lista miejsc - umiejętności (w pierwsze wolne gniazdo, `Game.free_skill_socket`) albo przedmioty
+  (założone, potem torba - `Game.all_items`, `free_item_socket`) z powodem, gdy się nie da; klucz - „Otwórz”
+  gniazdo w umiejętności, dłuto - „Dorób” w przedmiocie (oba z potwierdzeniem). Po włożeniu zamyka się (`changed`).
+- Okno umiejętności, zakładka „Kamienie”: pod gniazdami krótki opis (`Gems.short_text`, `SHORT`: „Więcej ostrzy”,
+  „Piorun 40%”, puste / zamknięte), stuknięcie otwartego gniazda i kamienia w sakwie otwiera GemPicker (przeciąganie
+  zostało), przycisk „Wyjmij” w tej zakładce zniknął (jest w GemPicker). `GemSlot`: kropki stopnia (1-5) u dołu ikony.
+- Testy: `test_gems.gd` (nowe drogi wkładania, opisy pod gniazdami, zakładki), zrzuty: `tools/gem_shots.gd`
+  (nowe pliki `_1b_gniazdo`, `_1c_kamien`, `_2b_statystyki`, `_2c_sakwa`, `_3b_gniazdo`).
+
 ## 12.11.2026 - baza: ulepszenia lochów za żar, kowal, kupiec, pasek skrótów
 
 - Ustalenia z autorem (zasady w `docs/GDD.md`, „Baza i waluty”): żar tylko na ulepszenia lochów, złoto na kowala

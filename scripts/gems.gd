@@ -184,6 +184,33 @@ static func kind_line(id: String) -> String:
 	return Lang.t("%s, stopień %d/%d") % [kind, grade_of(id) + 1, GRADES.size()]
 
 
+## Krótki opis działania kamienia pod gniazdem (kilka słów): kamień umiejętności w umiejętności `skill`,
+## szlachetny w miejscu przedmiotu `slot`.
+const SHORT := {
+	"multi": "Więcej ostrzy",
+	"area": "+%d%% obszaru",
+	"ember": "Podpala %d%%",
+	"rime": "Spowalnia %d%%",
+	"discharge": "Piorun %d%%",
+	"haste": "-%d%% odnowienia",
+	"thrift": "-%d%% many",
+	"leech": "Leczy %d%%",
+}
+const SHORT_STRIKE := {"haste": "+%d%% szybkości", "thrift": "+%d many za cios"}
+
+
+static func short_text(id: String, skill := "", slot := "") -> String:
+	if is_support(id):
+		var kind := kind_of(id)
+		if kind == "thrift" and skill == Skills.STRIKE:
+			return Lang.t(SHORT_STRIKE.thrift) % THRIFT_STRIKE[grade_of(id)]
+		var text: String = SHORT_STRIKE[kind] if skill == Skills.STRIKE and SHORT_STRIKE.has(kind) else SHORT[kind]
+		return Lang.t(text) % roundi(support_value(id)) if text.contains("%d") else Lang.t(text)
+	if is_jewel(id) and slot != "":
+		return jewel_text(id, slot)
+	return ""
+
+
 ## Siła kamienia umiejętności (liczba z `values` jego stopnia).
 static func support_value(id: String) -> float:
 	return float(SUPPORT[kind_of(id)].values[grade_of(id)]) if is_support(id) else 0.0

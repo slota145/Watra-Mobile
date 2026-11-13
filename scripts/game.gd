@@ -720,6 +720,30 @@ func add_socket(item: Dictionary) -> bool:
 	return true
 
 
+## Pierwsze wolne otwarte gniazdo umiejętności (-1 - brak).
+func free_skill_socket(skill: String) -> int:
+	var sockets := skill_sockets(skill)
+	for i in skill_open_count(skill):
+		if sockets[i] == "":
+			return i
+	return -1
+
+
+## Pierwsze wolne gniazdo przedmiotu (-1 - brak).
+func free_item_socket(item: Dictionary) -> int:
+	return item.get("sockets", []).find("")
+
+
+## Wszystkie przedmioty: założone (w kolejności Items.SLOTS), potem torba.
+func all_items() -> Array:
+	var out: Array = []
+	for slot in Items.SLOTS:
+		if equipped.has(slot):
+			out.append(equipped[slot])
+	out.append_array(bag)
+	return out
+
+
 ## Kamienie z przedmiotu (sprzedaż) wracają do sakwy - nie przepadają.
 func _return_item_gems(item: Dictionary) -> void:
 	for id in item.get("sockets", []):

@@ -54,7 +54,8 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/ui/skills_window.gd` z polami `skill_slot.gd`, kamień run w bazie);
   `scripts/items.gd` - przedmioty (miejsca, rzadkości, premie, łup, ceny; torba, założone i złoto w `Game`),
   `scripts/gems.gd` - kamienie w umiejętnościach i przedmiotach (dane, łup; sakwa i gniazda w `Game`, działanie w `proto_weapon.gd`
-  i `Items.totals`, pole `scripts/ui/gem_slot.gd`, zakładka „Kamienie” w oknie umiejętności, gniazda w opisie przedmiotu w „Postać”),
+  i `Items.totals`, pole `scripts/ui/gem_slot.gd`, zakładka „Kamienie” w oknie umiejętności, gniazda w opisie przedmiotu w „Postać”,
+  wybór kamienia wysuwany od dołu `scripts/ui/gem_picker.gd` - „najpierw gniazdo” i „najpierw kamień”),
   `proto_loot.gd` - przedmiot na ziemi, `proto_stash.gd` - skrzynia w bazie (okno `scripts/ui/stash_window.gd`, pola z przeciąganiem `item_slot.gd`;
   ten sam skrypt to kamień run, kowal i kupiec); baza i waluty: `scripts/dungeon_upgrades.gd` - ulepszenia lochów za żar
   (okno `scripts/ui/upgrades_window.gd` z wyboru poziomu), kowal - przeróbka premii (`Items.reroll_affix`, okno
@@ -64,7 +65,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
   `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania i auto atakiem (zapis w `Game`, `user://settings.cfg`)
   oraz trybem deweloperskim (nieśmiertelność, skróty: +1 poziom, +100 żaru, +5 przedmiotów, +umiejętności, +kamienie, postać od nowa), `scripts/ui/hero_stats.gd` -
-  okno „Postać” ze statystykami, ekwipunkiem i torbą (przycisk w pauzie).
+  okno „Postać” z zakładkami Ekwipunek / Statystyki / Sakwa (przycisk w pauzie).
 - `scripts/updater.gd`: autoload `Updater` (pierwszy na liście) - aktualizacja wersji testowej z menu bez całego apk
   (paczka `game.pck` z gałęzi `apk`); przy zmianach project.godot, export_presets.cfg, updater.gd albo wersji Godota
   podbij w nim `APK_LEVEL` (gra poprosi wtedy o pełny apk). Test: `tests/test_updater.gd -- --with-updates`.

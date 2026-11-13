@@ -4,7 +4,7 @@ extends Button
 ## `area` - "pouch" (kamień w sakwie, w rogu liczba sztuk) albo "socket" (gniazdo umiejętności lub przedmiotu,
 ## `index` - które). Stuknięcie - sygnał `pressed`. Przeciągnięcie palcem kamienia z sakwy na gniazdo - sygnał
 ## `dropped` na gnieździe; przeciągnięcie z gniazda na sakwę - `dropped` na polu sakwy (wyjęcie). Zamknięte
-## gniazdo (`locked`) pokazuje kłódkę z kluczem i nic na nie nie wpada.
+## gniazdo (`locked`) pokazuje kłódkę z kluczem i nic na nie nie wpada. Stopień kamienia (1-5) - kropki u dołu ikony.
 
 ## Na to pole upuszczono kamień `gem` przeciągnięty z pola `from_area` / `from_index`.
 signal dropped(gem: String, from_area: String, from_index: int)
@@ -22,6 +22,8 @@ var locked := false
 var _styles := {}
 var _count_label: Label
 var _socket: TextureRect
+## Kropki stopnia kamienia (rysowane w kodzie).
+var _pips: Control
 
 
 func _init(size_px := 44.0) -> void:
@@ -58,6 +60,11 @@ func _init(size_px := 44.0) -> void:
 	_count_label.offset_bottom = 1
 	_count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_count_label)
+	_pips = Control.new()
+	_pips.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pips.draw.connect(_draw_pips)
+	add_child(_pips)
 
 
 ## Pokazuje kamień (albo puste / zamknięte gniazdo). `selected` - złota ramka.
@@ -69,10 +76,26 @@ func show_gem(id: String, amount := 0, selected := false, is_locked := false) ->
 	modulate = Color(1, 1, 1, 0.45) if locked else Color.WHITE
 	_socket.visible = area == "socket" and not locked
 	_count_label.text = str(amount) if area == "pouch" and amount > 1 else ""
+	_pips.queue_redraw()
 	for state in _styles:
 		var st: StyleBoxFlat = _styles[state]
 		st.border_color = GOLD if selected else (Gems.color_of(id).darkened(0.3) if id != "" else FRAME)
 		st.set_border_width_all(3 if selected else 2)
+
+
+## Kropki stopnia (1-5) u dołu pola, w kolorze kamienia z ciemną obwódką.
+func _draw_pips() -> void:
+	if gem == "" or locked or Gems.is_special(gem):
+		return
+	var n := Gems.grade_of(gem) + 1
+	var step := 4.0
+	var y := _pips.size.y - 5.0
+	var x0 := _pips.size.x / 2.0 - (n - 1) * step / 2.0
+	var c := Gems.color_of(gem).lightened(0.3)
+	for i in n:
+		var p := Vector2(x0 + i * step, y)
+		_pips.draw_circle(p, 1.8, Color(0.08, 0.04, 0.02))
+		_pips.draw_circle(p, 1.1, c)
 
 
 func _get_drag_data(_at: Vector2) -> Variant:

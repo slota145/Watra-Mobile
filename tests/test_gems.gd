@@ -277,19 +277,51 @@ func _test_windows(game: Node) -> void:
 	_check(win.gem_skill == "throw", "stuknięcie umiejętności wybiera jej gniazda")
 	var pouch: Array = win.pouch_row.get_children()
 	_check(pouch.size() == 3 and pouch[0].gem == Gems.KEY, "sakwa: klucz i 2 kamienie umiejętności")
-	var ember_slot: GemSlot = null
-	for p in pouch:
-		if p.gem == "ember:0":
-			ember_slot = p
-	ember_slot.pressed.emit()
+	_check(win.socket_labels[0].text == "puste" and win.socket_labels[2].text == "zamknięte", "pod gniazdami: puste / zamknięte")
+	# najpierw gniazdo: lista pasujących kamieni z działaniem w tej umiejętności
 	win.socket_slots[0].pressed.emit()
-	_check(game.skill_sockets("throw")[0] == "ember:0" and game.gem_count("ember:0") == 0, "stuknij kamień, potem gniazdo")
+	var picker: GemPicker = win.picker
+	_check(picker.visible and picker.actions.has("ember:0") and picker.actions.has("rime:0") and not picker.actions.has(Gems.KEY),
+			"gniazdo: tylko pasujące kamienie")
+	var effect_shown := false
+	for l in picker.list.find_children("*", "Label", true, false):
+		effect_shown = effect_shown or l.text == Gems.support_text("ember:0", "throw")
+	_check(effect_shown, "przy kamieniu widać, co zrobi w tej umiejętności")
+	_check(picker.actions["ember:0"].get_global_rect().size.y >= 44.0 and picker.close_button.get_global_rect().get_center().y \
+			> root.get_visible_rect().size.y * 0.5, "przyciski wyboru 44 px, „Zamknij” na dole")
+	picker.actions["ember:0"].pressed.emit()
+	_check(game.skill_sockets("throw")[0] == "ember:0" and game.gem_count("ember:0") == 0 and not picker.visible,
+			"„Włóż” wkłada kamień i zamyka wybór")
+	_check(win.socket_labels[0].text == Gems.short_text("ember:0", "throw"), "pod gniazdem krótki opis („%s”)" % win.socket_labels[0].text)
 	win.socket_slots[1].dropped.emit("rime:0", "pouch", 0)
 	_check(game.skill_sockets("throw")[1] == "rime:0", "przeciągnięcie kamienia na gniazdo")
-	win.socket_slots[0].pressed.emit()
-	_check(win.selected_socket == 0 and not win.clear_button.disabled, "stuknięcie zajętego gniazda wybiera je")
-	win.clear_button.pressed.emit()
-	_check(game.skill_sockets("throw")[0] == "" and game.gem_count("ember:0") == 1, "„Wyjmij” odkłada kamień do sakwy")
+	game.add_gem("ember:1")
+	win.socket_slots[1].pressed.emit()
+	_check(picker.actions["ember:1"].disabled, "ten sam rodzaj w innym gnieździe - przygaszony z powodem")
+	picker.actions["out"].pressed.emit()
+	_check(game.skill_sockets("throw")[1] == "" and game.gem_count("rime:0") == 1, "„Wyjmij” odkłada kamień do sakwy")
+	# najpierw kamień: gdzie pasuje
+	var rime_slot: GemSlot = null
+	for p in win.pouch_row.get_children():
+		if p is GemSlot and p.gem == "rime:0" and not p.is_queued_for_deletion():
+			rime_slot = p
+	rime_slot.pressed.emit()
+	_check(picker.visible and picker.mode == "gem" and picker.actions.has("throw") and picker.actions.has("strike"),
+			"kamień z sakwy: lista umiejętności, gdzie pasuje")
+	picker.actions["strike"].pressed.emit()
+	_check(game.skill_sockets("strike")[0] == "rime:0", "„Włóż” w pierwsze wolne gniazdo umiejętności")
+	game.add_gem("rime:0")
+	game.skill_gems["whirl"] = ["leech:0", "area:0", "", "", ""]  # oba otwarte gniazda zajęte
+	win.refresh()
+	for p in win.pouch_row.get_children():
+		if p is GemSlot and p.gem == "rime:0" and not p.is_queued_for_deletion():
+			rime_slot = p
+	rime_slot.pressed.emit()
+	_check(picker.actions["whirl"].disabled, "pełna umiejętność przygaszona („brak wolnego gniazda”)")
+	picker.close()
+	game.skill_gems.erase("whirl")
+	game.gems.erase("ember:1")
+	game.gems.erase("rime:0")
 	win.socket_slots[2].pressed.emit()
 	_check(game.skill_open_count("throw") == 2 and win._key_armed, "pierwsze stuknięcie zamkniętego gniazda pyta")
 	win.socket_slots[2].pressed.emit()
@@ -303,22 +335,40 @@ func _test_windows(game: Node) -> void:
 	var stats: HeroStats = arena.pause_menu.stats
 	stats.open()
 	await process_frame
-	_check(stats.pouch_grid.get_child_count() == 3, "sakwa pod torbą: kamienie, dłuto")
+	stats.set_tab("pouch")
+	_check(stats.page_pouch.visible and not stats.page_equip.visible and stats.pouch_grid.get_child_count() == game.gem_list().size()
+			and game.gem_list().has(Gems.CHISEL) and game.gem_list().has("sapphire:1"), "zakładka „Sakwa”: kamienie, dłuto")
+	stats.set_tab("equip")
 	stats._select_equipped("weapon")
 	await process_frame
-	var sockets: Array = stats.socket_row.get_children().filter(func(c: Node) -> bool: return c is GemSlot)
-	_check(sockets.size() == 1 and stats.chisel_button != null, "opis broni: gniazdo i przycisk dłuta")
-	var jewels: Array = stats.jewel_row.get_children()
-	_check(jewels.size() == 1 and jewels[0].gem == "sapphire:1", "w opisie sakwa z kamieniami szlachetnymi")
-	jewels[0].pressed.emit()
+	var sockets: Array = stats.socket_row.find_children("*", "GemSlot", true, false)
+	_check(sockets.size() == 1 and stats.chisel_button != null and stats.socket_labels[0].text == "puste",
+			"opis broni: gniazdo z opisem i przycisk dłuta")
 	sockets[0].pressed.emit()
+	_check(stats.picker.visible and stats.picker.actions.has("sapphire:1") and stats.picker.actions.size() == 1,
+			"gniazdo przedmiotu: tylko kamienie szlachetne")
+	stats.picker.actions["sapphire:1"].pressed.emit()
 	_check(game.equipped.weapon.sockets[0] == "sapphire:1" and game.gem_count("sapphire:1") == 0, "szafir w broni")
+	_check(stats.detail.visible and stats.socket_labels[0].text == Gems.jewel_text("sapphire:1", "weapon"),
+			"opis zostaje, pod gniazdem premia („%s”)" % stats.socket_labels[0].text)
 	stats.chisel_button.pressed.emit()
 	stats.chisel_button.pressed.emit()
 	_check(game.equipped.weapon.sockets.size() == 2 and game.gem_count(Gems.CHISEL) == 0, "dłuto: drugie stuknięcie dorabia gniazdo")
-	sockets = stats.socket_row.get_children().filter(func(c: Node) -> bool: return c is GemSlot and not c.is_queued_for_deletion())
+	sockets = stats.socket_row.find_children("*", "GemSlot", true, false).filter(func(c: Node) -> bool: return not c.is_queued_for_deletion())
 	sockets[0].pressed.emit()
-	_check(game.equipped.weapon.sockets[0] == "" and game.gem_count("sapphire:1") == 1, "stuknięcie zajętego gniazda wyjmuje kamień")
+	stats.picker.actions["out"].pressed.emit()
+	_check(game.equipped.weapon.sockets[0] == "" and game.gem_count("sapphire:1") == 1, "„Wyjmij” wyjmuje kamień z przedmiotu")
+	stats.back()
+	# najpierw kamień: szafir z sakwy do przedmiotu
+	stats.set_tab("pouch")
+	var sapphire: GemSlot = null
+	for g in stats.pouch_grid.get_children():
+		if g is GemSlot and g.gem == "sapphire:1" and not g.is_queued_for_deletion():
+			sapphire = g
+	sapphire.pressed.emit()
+	_check(stats.picker.visible and stats.picker.actions.has("item_0"), "kamień z sakwy: lista przedmiotów, gdzie pasuje")
+	stats.picker.actions["item_0"].pressed.emit()
+	_check(game.equipped.weapon.sockets[0] == "sapphire:1", "„Włóż” w pierwsze wolne gniazdo przedmiotu")
 	stats.close()
 	arena.pause_menu.visible = false
 	paused = false
