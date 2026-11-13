@@ -68,6 +68,18 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   zbierania, więcej żaru (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy unik 2-4% na przedmiot jest
   odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
+- **Glewia ognia - pierwsza nowa broń (13.11.2026, w trakcie):** ustalenia autora (ankiety 13.11.2026):
+  - odblokowanie: za darmo po pokonaniu Wodza na 10. poziomie lochu, wcześniej za 3000 złota; zmiana broni w oknie
+    umiejętności przy kamieniu run (u góry wybór broni, niżej jej umiejętności i mistrzostwo);
+  - miejsce „Broń” w ekwipunku zamienione na **kolczyk z kłem** (wspólny dla wszystkich broni, daje obrażenia jak
+    dawny miecz z łupu; ikony z Watry - linia „fang”); stare miecze z zapisu stają się kolczykami tej samej siły;
+  - umiejętności (progi mistrzostwa 1, 3, 6, 10, 15): zwykły cios - długie pchnięcie, słabo podpala; Ognisty zamach -
+    szeroki półokrąg przed postacią, mocno podpala; Płonący ślad - pchnięcie z doskokiem, pas ognia na ziemi na 3 s;
+    Słup ognia - glewia wbija się w ziemię, wybuch ognia wokół i podpalony obszar; 15. - seria zamaszystych cięć
+    glewią dookoła postaci, które powoli lecą we wszystkich kierunkach (autor zamiast kul ognia);
+  - podpalenie: obrażenia przez 3 s, nie kumuluje się (silniejsze zastępuje słabsze);
+  - grafika glewii rysowana w darmowym narzędziu pikseli PixelLab, wszystkie efekty ognia nowe z kreatora efektów.
+
 - **Żywioły i wiele broni (13.11.2026):** etap 1 zrobiony - fundament żywiołów, mistrzostwo broni odblokowuje
   umiejętności, żar ulepsza umiejętności, złoto - ulepszenia lochów (szczegóły i decyzje w `docs/historia.md`).
   Do oceny na telefonie (balans): ceny ulepszeń umiejętności w żarze (te same liczby co dawniej w złocie) i ulepszeń
