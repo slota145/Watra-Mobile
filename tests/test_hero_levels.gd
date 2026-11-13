@@ -102,8 +102,10 @@ func _test_dungeon(game: Node) -> void:
 	# skróty deweloperskie: +1 poziom odblokowuje miejsce na 3. poziomie, +100 żaru do paska wyprawy
 	arena._open_menu()
 	var menu: PauseMenu = arena.pause_menu
-	_check(menu.level_button.get_global_rect().size.y >= 44.0, "skróty deweloperskie w pauzie, 44 px")
-	menu.level_button.pressed.emit()
+	menu.dev_button.pressed.emit()
+	await process_frame
+	_check(menu.dev.visible and menu.dev.level_button.get_global_rect().size.y >= 44.0, "okno deweloperskie z pauzy, skróty 44 px")
+	menu.dev.level_button.pressed.emit()
 	_check(game.hero_level == 3 and arena.actions.skills[0].locked_level == 0 and arena.actions.skills[1].locked_level == 6, "+1 poziom - odblokowane miejsce")
 	# okno „Postać”: statystyki obecnego poziomu i przyrost z następnym
 	menu.close()
@@ -119,8 +121,8 @@ func _test_dungeon(game: Node) -> void:
 	_check(not stats.visible and not paused, "„wstecz” zamyka okno „Postać”, gra rusza")
 	arena._open_menu()
 	var before: int = horde.embers
-	menu.embers_button.pressed.emit()
-	_check(horde.embers == before + PauseMenu.DEV_EMBERS, "+100 żaru do paska wyprawy")
+	menu.dev.embers_button.pressed.emit()
+	_check(horde.embers == before + DevWindow.DEV_EMBERS, "+100 żaru do paska wyprawy")
 	menu.close()
 	# Wódz daje dużo doświadczenia; okno zwycięstwa je pokazuje
 	arena.summon_chief()

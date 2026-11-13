@@ -315,6 +315,25 @@ static func totals(equipped: Dictionary) -> Dictionary:
 	return t
 
 
+## Tryb deweloperski: klucz statystyki „obrażenia broni” (najmniejsze obrażenia cięcia) w Game.dev_stats.
+const WEAPON_DAMAGE := "weapon_damage"
+
+
+## Obrażenia cięcia z najmniejszej wartości (rozrzut jak u broni: najwięcej = 1,4 x najmniej).
+static func weapon_damage_from(low: float) -> Vector2i:
+	return Vector2i(roundi(low), roundi(low * 1.4))
+
+
+## Suma cech z nadpisanymi statystykami trybu deweloperskiego (statystyka -> wartość, najwyżej do sufitu CAPS).
+static func with_overrides(t: Dictionary, overrides: Dictionary) -> Dictionary:
+	for stat in overrides:
+		if stat == WEAPON_DAMAGE:
+			t.damage = weapon_damage_from(overrides[stat])
+		elif t.has(stat):
+			t[stat] = minf(float(overrides[stat]), CAPS.get(stat, INF))
+	return t
+
+
 ## Linie kamieni w gniazdach („Rubin - Odłamek: +20 do zdrowia”); puste gniazdo - „Puste gniazdo”.
 static func socket_lines(item: Dictionary) -> Array[String]:
 	var lines: Array[String] = []

@@ -2,10 +2,10 @@ class_name PauseMenu
 extends Control
 ## Okno pauzy w trakcie gry (przycisk „Menu”): zatrzymuje grę i daje ustawienia sterowania -
 ## atak i umiejętności po lewej stronie, gest postaci przy ataku, auto atak (umiejętność pod dużym przyciskiem), tryb deweloperski
-## (nieśmiertelność i skróty: +1 poziom postaci, +100 żaru, +5 losowych przedmiotów z obecnego poziomu lochu, wszystkie
-## umiejętności, kamienie, postać od nowa) - oraz powrót do gry i wyjście do menu głównego. Okna „Postać”
+## (przycisk otwiera DevWindow: nieśmiertelność, wszystkie poziomy lochu, skróty, poziom postaci, statystyki suwakami)
+## - oraz powrót do gry i wyjście do menu głównego. Okna „Postać”
 ## i umiejętności otwierają ikonki w górnym rzędzie areny (decyzja autora 13.11.2026), nie pauza.
-## Skróty poziomu zmieniają postać w Game (arena słucha jego sygnałów), żar - sygnał `dev_embers` (arena dodaje go
+## Skróty zmieniają postać w Game (arena słucha jego sygnałów), żar - sygnał `dev_embers` (arena dodaje go
 ## do paska wyprawy w lochu albo do Watry w bazie). Okno przewija się, gdy nie mieści się na niskim ekranie.
 ## W lochu „Uciekaj do bazy” i „Menu główne” pytają „Na pewno?” (drugie stuknięcie wychodzi), żeby nie stracić
 ## wyprawy przypadkiem.
@@ -19,22 +19,12 @@ signal leaving
 ## Tryb deweloperski: dodaj tyle żaru.
 signal dev_embers(amount: int)
 
-const DEV_EMBERS := 100
-const DEV_ITEMS := 5
-
 var left_toggle: CheckButton
 var gesture_toggle: CheckButton
 var auto_toggle: CheckButton
-var immortal_toggle: CheckButton
-var level_button: Button
-var embers_button: Button
-var items_button: Button
-var skills_dev_button: Button
-## Tryb deweloperski: po kamieniu każdego rodzaju, 2 klucze i 2 dłuta (Game.dev_gems).
-var gems_dev_button: Button
-var reset_button: Button
-## Reset postaci wymaga drugiego stuknięcia (żeby nie wyzerować jej przypadkiem).
-var _reset_armed := false
+## Przycisk i okno trybu deweloperskiego.
+var dev_button: Button
+var dev: DevWindow
 ## Wyjście z lochu czekające na potwierdzenie (przycisk albo null).
 var _leave_armed: Button = null
 var _scroll: ScrollContainer
@@ -99,29 +89,12 @@ func _ready() -> void:
 	auto_toggle.toggled.connect(func(on: bool) -> void:
 		_game.auto_attack = on
 		_game.save_settings())
-	immortal_toggle = _toggle(column, tr("Tryb deweloperski: nieśmiertelność"), _game.dev_immortal)
-	immortal_toggle.add_theme_color_override("font_color", Color(1, 0.7, 0.5))
-	immortal_toggle.toggled.connect(func(on: bool) -> void:
-		_game.dev_immortal = on
-		_game.save_settings())
-	var dev_row := HBoxContainer.new()
-	dev_row.add_theme_constant_override("separation", 4)
-	column.add_child(dev_row)
-	level_button = _dev_button(dev_row, tr("+1 poz."))
-	level_button.pressed.connect(func() -> void: _game.dev_level_up())
-	embers_button = _dev_button(dev_row, tr("+%d żaru") % DEV_EMBERS)
-	embers_button.pressed.connect(func() -> void: dev_embers.emit(DEV_EMBERS))
-	items_button = _dev_button(dev_row, tr("+%d łupu") % DEV_ITEMS)
-	items_button.pressed.connect(func() -> void: _game.dev_items(DEV_ITEMS))
-	var dev_row2 := HBoxContainer.new()  # drugi rząd - w jednym pięć przycisków się nie mieści
-	dev_row2.add_theme_constant_override("separation", 4)
-	column.add_child(dev_row2)
-	skills_dev_button = _dev_button(dev_row2, tr("+umiejętności"))
-	skills_dev_button.pressed.connect(func() -> void: _game.dev_skills())
-	gems_dev_button = _dev_button(dev_row2, tr("+kamienie"))
-	gems_dev_button.pressed.connect(func() -> void: _game.dev_gems())
-	reset_button = _dev_button(dev_row2, tr("Od nowa"))
-	reset_button.pressed.connect(_on_reset)
+	dev_button = _button(column, tr("Tryb deweloperski"))
+	dev_button.add_theme_color_override("font_color", Color(1, 0.7, 0.5))
+	dev_button.pressed.connect(func() -> void: dev.open())
+	dev = DevWindow.new()
+	dev.visible = false
+	dev.dev_embers.connect(func(amount: int) -> void: dev_embers.emit(amount))
 	resume_button = _button(column, tr("Wróć do gry"))
 	resume_button.pressed.connect(close)
 	if base_scene != "":
@@ -137,6 +110,7 @@ func _ready() -> void:
 		column.add_child(leave_note)
 	quit_button = _button(column, tr("Menu główne"))
 	quit_button.pressed.connect(func() -> void: _leave(quit_button, _game.MENU_SCENE))
+	add_child(dev)  # nad oknem pauzy
 
 
 ## Pokazuje okno i zatrzymuje grę. `at_stake` - żar, który zgaśnie przy ucieczce z lochu.
@@ -146,20 +120,22 @@ func open(at_stake := 0) -> void:
 	left_toggle.set_pressed_no_signal(_game.left_handed)
 	gesture_toggle.set_pressed_no_signal(_game.gesture)
 	auto_toggle.set_pressed_no_signal(_game.auto_attack)
-	immortal_toggle.set_pressed_no_signal(_game.dev_immortal)
-	_disarm_reset()
 	_disarm_leave()
 	visible = true
 	_fit.call_deferred()
 	get_tree().paused = true
 
 
-## Przycisk „wstecz”: zamyka pauzę.
+## Przycisk „wstecz”: zamyka okno deweloperskie, a gdy go nie ma - pauzę.
 func back() -> void:
+	if dev.visible:
+		dev.close()
+		return
 	close()
 
 
 func close() -> void:
+	dev.visible = false
 	visible = false
 	get_tree().paused = false
 	closed.emit()
@@ -190,32 +166,6 @@ func _disarm_leave() -> void:
 		base_button.remove_theme_color_override("font_color")
 	quit_button.text = tr("Menu główne")
 	quit_button.remove_theme_color_override("font_color")
-
-
-func _on_reset() -> void:
-	if not _reset_armed:
-		_reset_armed = true
-		reset_button.text = tr("Na pewno?")
-		return
-	_disarm_reset()
-	_game.reset_hero()
-
-
-func _disarm_reset() -> void:
-	_reset_armed = false
-	reset_button.text = tr("Od nowa")
-
-
-func _dev_button(parent: Control, text: String) -> Button:
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = Vector2(0, 44)
-	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	b.add_theme_font_size_override("font_size", 12)
-	b.add_theme_color_override("font_color", Color(1, 0.7, 0.5))
-	b.clip_text = true
-	parent.add_child(b)
-	return b
 
 
 func _toggle(parent: Control, text: String, on: bool) -> CheckButton:

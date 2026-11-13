@@ -191,8 +191,8 @@ func _test_window(game: Node) -> void:
 	await process_frame
 	var menu: PauseMenu = arena.pause_menu
 	arena._open_menu()
-	menu.items_button.pressed.emit()
-	_check(game.bag.size() == PauseMenu.DEV_ITEMS, "„+5 łupu” w pauzie")
+	menu.dev.items_button.pressed.emit()
+	_check(game.bag.size() == DevWindow.DEV_ITEMS, "„+5 łupu” w pauzie")
 	menu.close()
 	_check(arena.stats_icon.get_global_rect().size.x >= 44.0 and arena.stats_icon.get_global_rect().size.y >= 44.0,
 			"ikonka „Postać” w górnym rzędzie, 44 px")

@@ -5,6 +5,7 @@ extends Control
 ## Wodza, na dole duże przyciski „Wejdź” i „Anuluj” (pod kciukiem). Zatrzymuje grę na czas wyboru.
 ## Wybrany poziom trafia do `Game.dungeon_level` (zapisywany z grą). Nad „Wejdź” przycisk „Ulepszenia lochów”
 ## (sygnał `upgrades` - arena chowa wybór i otwiera UpgradesWindow; po jego zamknięciu wybór wraca).
+## Przy ponad 10 dostępnych poziomach (np. tryb deweloperski „wszystkie poziomy”) dochodzą skoki o 10 (−10 / +10).
 
 signal enter(level: int)
 signal canceled
@@ -14,6 +15,8 @@ var level := 1
 var max_level := 1
 var minus_button: Button
 var plus_button: Button
+var minus10_button: Button
+var plus10_button: Button
 var enter_button: Button
 var cancel_button: Button
 var upgrades_button: Button
@@ -40,15 +43,23 @@ func _ready() -> void:
 	column.add_child(title)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 14)
+	row.add_theme_constant_override("separation", 5)
 	column.add_child(row)
+	minus10_button = _button(row, "−10", Vector2(48, 56))
+	minus10_button.add_theme_font_size_override("font_size", 13)
+	minus10_button.pressed.connect(func() -> void: set_level(level - 10))
 	minus_button = _button(row, "◀", Vector2(56, 56))
 	minus_button.pressed.connect(func() -> void: set_level(level - 1))
 	_level_label = _label("", 24, Color(1, 0.92, 0.78))
-	_level_label.custom_minimum_size = Vector2(130, 0)
+	_level_label.custom_minimum_size = Vector2(124, 0)
+	_level_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_level_label.add_theme_font_size_override("font_size", 22)
 	row.add_child(_level_label)
 	plus_button = _button(row, "▶", Vector2(56, 56))
 	plus_button.pressed.connect(func() -> void: set_level(level + 1))
+	plus10_button = _button(row, "+10", Vector2(48, 56))
+	plus10_button.add_theme_font_size_override("font_size", 13)
+	plus10_button.pressed.connect(func() -> void: set_level(level + 10))
 	_info = _label("", 13, Color(1, 0.88, 0.7))
 	column.add_child(_info)
 	var gap := Control.new()
@@ -78,6 +89,8 @@ func _ready() -> void:
 ## Pokazuje wybór (zaczyna od ostatnio wybranego poziomu) i zatrzymuje grę.
 func open(current: int, unlocked: int) -> void:
 	max_level = maxi(unlocked, 1)
+	minus10_button.visible = max_level > 10
+	plus10_button.visible = max_level > 10
 	set_level(current)
 	visible = true
 	get_tree().paused = true
@@ -94,6 +107,8 @@ func set_level(value: int) -> void:
 	_level_label.text = tr("Poziom %d") % level
 	minus_button.disabled = level <= 1
 	plus_button.disabled = level >= max_level
+	minus10_button.disabled = level <= 1
+	plus10_button.disabled = level >= max_level
 	var lines: Array[String] = [tr("Siła potworów: %d%%") % roundi(DungeonLevels.power(level) * 100.0),
 		tr("Skrzynia Wodza: %d żaru") % DungeonLevels.chest_embers(level)]
 	if level == max_level:
