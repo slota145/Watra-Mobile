@@ -15,6 +15,11 @@ const ARCHER_FROM := 2
 const ARCHER_SHARE := 0.15
 const ARCHER_SHARE_STEP := 0.03
 const ARCHER_SHARE_MAX := 0.3
+## Gobliny osiłki: od tego poziomu, udział na nim, przyrost na każdy następny i sufit udziału.
+const BRUTE_FROM := 3
+const BRUTE_SHARE := 0.08
+const BRUTE_SHARE_STEP := 0.02
+const BRUTE_SHARE_MAX := 0.15
 
 
 ## Mnożnik zdrowia i obrażeń potworów na danym poziomie (1. poziom - 1.0).
@@ -32,3 +37,10 @@ static func archer_share(level: int) -> float:
 	if level < ARCHER_FROM:
 		return 0.0
 	return minf(ARCHER_SHARE + ARCHER_SHARE_STEP * (level - ARCHER_FROM), ARCHER_SHARE_MAX)
+
+
+## Jaka część goblinów ze strumienia to osiłki (0 przed BRUTE_FROM).
+static func brute_share(level: int) -> float:
+	if level < BRUTE_FROM:
+		return 0.0
+	return minf(BRUTE_SHARE + BRUTE_SHARE_STEP * (level - BRUTE_FROM), BRUTE_SHARE_MAX)

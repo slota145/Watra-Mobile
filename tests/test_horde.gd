@@ -8,6 +8,8 @@ extends SceneTree
 ## Baza: dotknięcie Watry otwiera wybór poziomu lochu.
 ## Łucznik (od 2. poziomu): trzyma dystans, przed strzałem linia celu, strzała trafia stojącą postać, da się ją wyminąć,
 ## trafienie mieczem przerywa naciąganie, limit łuczników naraz.
+## Osiłek (od 3. poziomu): wytrzymały, przed ciosem czerwone koło przed nim, wyjście z koła ratuje, cięcie nie przerywa
+## zamachu, ogłuszenie przerywa, limit osiłków naraz, więcej żaru.
 
 var _failed := 0
 
@@ -40,6 +42,7 @@ func _run() -> void:
 	await _test_horde()
 	await _test_chief()
 	await _test_archer()
+	await _test_brute()
 	DirAccess.remove_absolute(root.get_node("Game").settings_path)
 	DirAccess.remove_absolute(root.get_node("Game").save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
@@ -251,7 +254,7 @@ func _test_archer() -> void:
 	var horde: ProtoHorde = arena.horde_spawner
 	horde.running = false
 	arena.weapon.auto_attack = false
-	var a: ProtoGoblinArcher = horde.spawn_at(hero.position + Vector2(100, 0), true)
+	var a: ProtoGoblinArcher = horde.spawn_at(hero.position + Vector2(100, 0), "archer")
 	await process_frame
 	_check(a.hp == roundi(ProtoGoblinArcher.ARCHER_HP * horde.power) and a.hp < roundi(ProtoGoblin.MAX_HP * horde.power), "łucznik słabszy od goblina (%d)" % a.hp)
 	# z daleka podchodzi, z bliska się cofa
@@ -304,6 +307,77 @@ func _test_archer() -> void:
 	_check(horde.archers() <= ProtoHorde.MAX_ARCHERS and horde.archers() >= 2, "najwyżej %d łuczników naraz (%d)" % [ProtoHorde.MAX_ARCHERS, horde.archers()])
 	horde.scatter()
 	_check(horde.archers() == 0, "łucznicy też uciekają przed Wodzem")
+	arena.queue_free()
+	await process_frame
+
+
+func _test_brute() -> void:
+	var game: Node = root.get_node("Game")
+	_check(DungeonLevels.brute_share(2) == 0.0 and DungeonLevels.brute_share(3) > 0.0
+		and DungeonLevels.brute_share(99) == DungeonLevels.BRUTE_SHARE_MAX, "osiłki od 3. poziomu, udział rośnie do sufitu")
+	game.best_level = 3
+	game.dungeon_level = 3
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	var horde: ProtoHorde = arena.horde_spawner
+	horde.running = false
+	arena.weapon.auto_attack = false
+	var b: ProtoGoblinBrute = horde.spawn_at(hero.position + Vector2(80, 0), "brute")
+	await process_frame
+	_check(b.hp == roundi(ProtoGoblinBrute.BRUTE_HP * horde.power) and b.hp > roundi(ProtoGoblin.MAX_HP * horde.power) * 3, "osiłek ma dużo zdrowia (%d)" % b.hp)
+	await _wait(0.5)
+	_check(b.position.x - hero.position.x < 78.0 and b.position.x - hero.position.x > 60.0, "osiłek idzie powoli (%.0f)" % (b.position.x - hero.position.x))
+	# cios: koło przed osiłkiem, stojąca postać obrywa, cięcie nie przerywa zamachu
+	b.position = hero.position + Vector2(20, 0)
+	b._cooldown = 0.0
+	hero.hp = hero.max_hp
+	await _wait(0.2)
+	_check(b._state == "attack" and is_instance_valid(b._telegraph) and b._telegraph.contains(hero.global_position), "zamach: czerwone koło pod postacią")
+	b.take_damage(1, hero.global_position)
+	await process_frame
+	_check(b._state == "attack" and is_instance_valid(b._telegraph), "cięcie nie przerywa zamachu osiłka")
+	await _wait(ProtoGoblinBrute.SLAM_WARN)
+	_check(hero.hp == hero.max_hp - roundi(ProtoGoblinBrute.SLAM_DAMAGE * horde.power), "maczuga trafia w kole (zdrowie %d)" % hero.hp)
+	_check(b._telegraph == null, "po ciosie koło znika")
+	# wyjście z koła ratuje
+	await _wait(0.6)
+	b._cooldown = 99.0
+	await _wait(0.5)
+	hero.hp = hero.max_hp
+	b.position = hero.position + Vector2(20, 0)
+	b._state = "walk"
+	b._cooldown = 0.0
+	await _wait(0.3)
+	hero.position += Vector2(-50, 0)
+	b._cooldown = 99.0
+	await _wait(ProtoGoblinBrute.SLAM_WARN)
+	_check(hero.hp == hero.max_hp, "wyjście z koła ratuje przed maczugą")
+	# ogłuszenie przerywa zamach
+	await _wait(0.6)
+	b.position = hero.position + Vector2(20, 0)
+	b._state = "walk"
+	b._cooldown = 0.0
+	await _wait(0.2)
+	b.stun(1.5)
+	await process_frame
+	_check(b._state != "attack" and b._telegraph == null, "ogłuszenie przerywa zamach i gasi koło")
+	# więcej żaru, limit naraz
+	var kills := horde.kills
+	b.take_damage(100000, hero.global_position)
+	await process_frame
+	await process_frame
+	var big := false
+	for n in arena.get_node("World").get_children():
+		big = big or (n is ProtoEmber and n.value == ProtoHorde.BRUTE_EMBERS)
+	_check(horde.kills == kills + 1 and big, "z osiłka wypada więcej żaru (%d)" % ProtoHorde.BRUTE_EMBERS)
+	horde.level = 50
+	for i in 60:
+		horde.spawn()
+	_check(horde.count(ProtoGoblinBrute) <= ProtoHorde.MAX_BRUTES and horde.count(ProtoGoblinBrute) >= 1, "najwyżej %d osiłków naraz (%d)" % [ProtoHorde.MAX_BRUTES, horde.count(ProtoGoblinBrute)])
+	horde.scatter()
+	_check(horde.count(ProtoGoblinBrute) == 0, "osiłki też uciekają przed Wodzem")
 	arena.queue_free()
 	await process_frame
 

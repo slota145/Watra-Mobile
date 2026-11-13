@@ -1,0 +1,325 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: goblin_brute
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.95, 0]}
+palette: "watra"
+size: 80
+extends: ../goblin/goblin.yaml   # the goblin's skeleton, ears, eyes and head; here only what differs
+
+# Goblin brute (osiłek) of the Horde: a slow, tough melee enemy. The same goblin, about 1.5x bigger (about 36 px
+# opaque against the goblin's 25, same camera.scale), much wider: massive shoulders and arms, big fists, a belly,
+# a small head sunk between the shoulders, a strong hunch. Darker olive skin, a bare chest with one leather strap
+# across it, a loincloth, rope wraps on the forearms, a big wooden club (a knotty log with iron spikes).
+# The whole body grows through the bone `big` (scale 1.5) under `root`, as on the chief.
+brief:
+  summary: >
+    goblin brute of the Horde: a big, slow, dumb heavy bruiser. The goblin's long ears and glowing amber eyes,
+    about 1.5x taller (about 36-38 px against the goblin's 27 px, same density) and far wider: huge rounded
+    shoulders with a muscle hump behind the neck, thick gorilla arms hanging low, big fists, a belly, short
+    thick legs; a small head sunk low and forward between the shoulders. Darker olive skin than the goblin,
+    a bare chest crossed by one leather strap with iron studs, a leather belt and a loincloth, rough hemp rope
+    wrapped round both forearms (the accent), a big crude wooden club (a knotty log with an iron band and
+    three iron spikes) in the right hand, dragged at its side
+  head: >
+    bald goblin head (the goblin's head kit), but small relative to the body (head scale 0.9 inside the
+    1.5x body instead of 1.4) and set low and forward, the hump of the shoulders rising behind it; the
+    goblin's long pointed ears sweep out sideways (they still break the circle of the head); face minimal
+    (style): the two glowing amber eyes, no nose or mouth
+  must_keep:
+    - instantly a goblin - the long sideways ears and the glowing amber eyes stay
+    - clearly NOT the chief - no horns, skull, fur mantle, war paint or trophies; a plain, dumb, heavy body
+    - the mass - very wide shoulders and long thick arms, the widest shapes of the silhouette with the club
+    - darker olive skin than the plain goblin (another type in the crowd)
+    - the club in the right hand (socket `impact` on its head for the slam's dust)
+  simplify:
+    - the harness is one strap across the chest with a few painted iron studs, no buckles
+    - the rope wraps are painted bands on the forearms, no geometry
+    - the club's knots are three small bumps; its bark is not textured
+  decisions:
+    - the whole goblin is scaled by the bone `big` (1.5) and its IK lengths about x1.5 (the arms a little
+      longer); the head bone scale goes from 1.4 to 0.9 so the head reads small on the heavy body
+    - the permanent hunch is stronger (torso +0.32 instead of +0.15) and the head sits lower and more forward
+    - the club hangs from the fist with its head low and forward (a dragged weapon); the slam raises it over
+      the head with both hands
+    - the back (n) shows the muscle hump, the strap crossing the back and the loincloth's back flap
+    - the goblin's tunic is replaced by bare skin, so the type reads at a glance (green-olive mass, brown club)
+    - the club bone is oriented in the torso's space (placed at wrist_R), so the slam's club angles are exact in
+      every key; cheats per direction - in n/ne/nw the raised club leans forward (it shows above the head),
+      and on the ground (hit) it swings sideways (`club_yaw`) so its head peeks out beside the body
+    - frame 80 px (camera.center y 0.95): the raised club and the club flung out in death fit with 2 px margins
+    - death falls forward onto the face (the goblin falls on its back), the club flung out on the right
+    - all five animations are written here (none inherited from the goblin); the game's contract - `attack`
+      event `windup` at 0 ms, `hit` at 820 ms (club on the ground), total 1280 ms; socket `impact` = club head
+
+ramps:
+  # darker, more olive skin than the plain goblin (the Horde's heavy type)
+  brute_skin: ["#0b0c07", "#25281a", "#3a4023", "#51592c", "#6a7238", "#858b4f"]
+  # old, greyish wood of the club (cooler and darker than Ostoja's warm wood)
+  club_wood:  ["#0f0a08", "#332319", "#4f3824", "#6d5032", "#8a6a44", "#a5875f"]
+  # rough pale hemp rope (the accent: it catches the eye on the dark arms)
+  rope:       ["#16100a", "#5a4630", "#8a7350", "#b09a6c", "#cbb98a"]
+
+materials:
+  skin:  {ramp: brute_skin, gamma: 0.9, finish: soft}
+  tunic: {ramp: tunic, finish: soft, bands: [1, 4]}     # loincloth (the goblin's skirt part)
+  strap: {ramp: strap}
+  wood:  {ramp: club_wood, finish: soft}
+  rope:  {ramp: rope, finish: matte}
+  iron:  {ramp: iron, finish: metal, bands: [1, 5]}
+
+remove: [use.knife]
+
+shadow: {rx: 14, ry: 5, alpha: 120}
+
+channels:
+  hand_L: [0.32, -0.04, 0.08]
+  hand_R: [0.33, -0.03, 0.12]
+  foot_L: [0.12, 0, 0.02]
+  club_pitch: 0    # club angle from the rest pose, about the torso's x (-: head up, then over the top and back)
+  club_splay: 0    # club turned across the body (+) or outwards (-)
+  club_yaw: 0      # club swung sideways about the torso's vertical (for a club lying forward)
+
+bones:
+  # the whole goblin, 1.5x: everything hangs from `big` (the root channel still moves `root`)
+  big:        {parent: root, scale: 1.5}
+  torso_rot:  {parent: big, pos: "[0, 0.53 + bob, 0]", rot: "[lean + 0.32, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  fxspace:    {parent: big, pos: [-0.04, 0.55, 0.05]}   # the slam's smear: centred, in front of the head
+  headbase:   {pos: [0, 0.41, 0.13], scale: 1.5, rot: "[lean*0.5 - 0.3, twist, roll]"}
+  head:       {scale: 0.9}
+  shoulder_L: {pos: [0.28, 0.30, 0.0]}
+  hip_L:      {pos: [0.11, -0.02, 0.0]}
+  # the club: along the bone's y from the fist, oriented in the torso's space (not the wrist's, which flips
+  # when the arms rise); at rest (2.33 about x) it hangs down and a little forward, splayed out (dragged)
+  club:       {parent: torso_rot, at: wrist_R, inherit_scale: false, rot: "[2.33 + club_pitch, club_yaw, -0.35 + club_splay]"}
+
+ik:
+  arm_L: {lengths: [0.30, 0.29]}
+  leg_L: {space: big, lengths: [0.39, 0.37]}
+
+parts:
+  torso:           # bare chest: a belly, a barrel chest, huge shoulders and a muscle hump behind the neck
+    material: skin
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.04, 0.05], r: [0.16, 0.12, 0.16]}
+      - ellipsoid: {c: [0, 0.18, 0.03], r: [0.19, 0.12, 0.14]}
+      - ellipsoid: {c: [0, 0.30, -0.01], r: [0.30, 0.11, 0.13]}
+      - ellipsoid: {c: [0, 0.37, -0.06], r: [0.15, 0.08, 0.10]}
+  coat:            # the loincloth: a short leather skirt with a front and a back flap
+    material: tunic
+    space: coatbase
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0.0, 0.0], b: [0, -0.04, 0.0], r: [0.16, 0.17]}
+      - box: {c: [0, -0.13, 0.15], half: [0.08, 0.10, 0.02], round: 0.01}
+      - box: {c: [0, -0.13, -0.15], half: [0.09, 0.10, 0.02], round: 0.01}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.24}
+      - box: {c: [0, -0.24, 0.17], half: [0.03, 0.03, 0.05], rot: [0, 0, 0.785]}     # notched flap ends
+      - box: {c: [0, -0.24, -0.17], half: [0.03, 0.03, 0.05], rot: [0, 0, 0.785]}
+  belt:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.07, 0.04], b: [0, 0.13, 0.04], r: 0.17}
+    paint:
+      - material: iron
+        prims:
+          - sphere: {c: [0.08, 0.10, 0.20], r: 0.025}
+          - sphere: {c: [-0.08, 0.10, 0.20], r: 0.025}
+  harness:         # one leather strap from the left shoulder across the chest to the right hip, and back
+    material: strap
+    space: pelvis
+    prims:
+      - tube: {pts: [[0.20, 0.36, 0.04], [0.04, 0.24, 0.20], [-0.16, 0.10, 0.12]], r: 0.03}
+      - tube: {pts: [[0.20, 0.36, 0.0], [0.06, 0.26, -0.18], [-0.16, 0.10, -0.12]], r: 0.03}
+    paint:
+      - material: iron
+        prims:
+          - sphere: {c: [0.115, 0.30, 0.15], r: 0.022}
+          - sphere: {c: [0.005, 0.22, 0.18], r: 0.022}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.32, 0.02], b: [0, 0.40, 0.12], r: [0.09, 0.07]}
+  eye_L:           # the goblin's eye, a touch bigger (the head is a little smaller in pixels)
+    prims:
+      - extrude: {c: [0.075, 0.13, 0.112], rot: [0, 0.65, 0], depth: 0.04, profile: {rect: [0.021, 0.022], round: 0.006}}
+  ear_L:           # the goblin's ear, longer and thicker (the head is smaller, the ears must still read)
+    prims:
+      - cone: {a: [0.11, 0.13, -0.03], r: [0.06, 0.014],
+               b: "[0.44 - 0.17*pulse(yaw*sx, 90, 60) - 0.14*pulse(yaw*sx, -90, 60),
+                    0.25 - 0.04*pulse(yaw*sx, 90, 60) - 0.12*pulse(yaw*sx, -90, 60),
+                    -0.06 - 0.22*pulse(yaw*sx, 90, 60) - 0.05*pulse(yaw*sx, -90, 60)]"}
+  arm_L:           # thick gorilla arms (in `big` space, so the radii grow with it), rope round the forearm
+    material: skin
+    space: big
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.085}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.075, 0.058]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.065, 0.058]}
+    paint:
+      - material: rope
+        prims:
+          - cylinder: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.45}, b: {between: ["@elbow_L", "@wrist_L"], t: 0.85}, r: 0.11}
+  hand_L:          # wrist frames are not scaled: a big fist in world units
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.085}
+  leg_L:           # short, thick legs
+    material: skin
+    space: big
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.085, 0.065]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.065, 0.058]}
+  boot_L:          # a big bare foot
+    material: skin
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.07, 0], b: [0, -0.02, 0.0], r: [0.055, 0.06]}
+      - ellipsoid: {c: [0, -0.04, 0.06], r: [0.07, 0.045, 0.12]}
+  club_grip:       # the handle, wrapped in rope
+    material: rope
+    space: club
+    prims:
+      - cylinder: {a: [0, -0.10, 0], b: [0, 0.20, 0], r: 0.038}
+  club_log:        # a knotty log thickening to a heavy rounded head
+    material: wood
+    space: club
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.18, 0], b: [0, 0.74, 0], r: [0.05, 0.12]}
+      - sphere: {c: [0, 0.76, 0], r: 0.125}
+      - sphere: {c: [0.06, 0.42, 0.03], r: 0.04}
+      - sphere: {c: [-0.07, 0.56, -0.02], r: 0.045}
+  club_iron:       # an iron band round the head and three spikes
+    material: iron
+    space: club
+    priority: 2
+    prims:
+      - torus: {c: [0, 0.62, 0], R: 0.105, r: 0.024}
+      - cone: {a: [0.10, 0.77, 0], b: [0.21, 0.81, 0], r: [0.03, 0.008]}
+      - cone: {a: [-0.07, 0.78, 0.07], b: [-0.15, 0.84, 0.15], r: [0.03, 0.008]}
+      - cone: {a: [0, 0.84, -0.07], b: [0, 0.91, -0.17], r: [0.03, 0.008]}
+
+sockets:
+  impact: {bone: club, offset: [0, 0.80, 0]}   # the club's head: the slam's dust bursts here
+
+animations:
+  # heavy breathing: the chest heaves (squash), the shoulders rise and fall, the head sinks after each
+  # breath, the club arm sways a little, the loincloth follows late
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.03*sin(p)"
+      lean: "0.05 - 0.03*sin(p)"
+      head_pitch: "0.07*sin(p - 0.8)"
+      hand_L: "[0.32, -0.04 + 0.03*sin(p - 0.6), 0.08]"
+      hand_R: "[0.33, -0.03 + 0.025*sin(p - 0.6), 0.12]"
+      club_pitch: "0.04*sin(p - 1.0)"
+      coat: "0.12*sin(p - 1.0)"
+  # slow, weighty stomp matched to the game's speed (30 px/s on screen = 1.467 world units/s; the feet are
+  # in the `big` space, x1.5, so 0.978/s there): each foot is planted for 4 of the 8 frames (520 ms) and
+  # slides back 0.509 at a constant speed, then swings forward with an eased lift; the body sinks hard at
+  # each contact and rolls onto the planted leg, shoulders twist against the hips, the free arm swings,
+  # the club drags behind the right hand
+  walk:
+    frames: 8
+    ms: 130
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: "0.10 + 0.03*cos(2*p)"
+      bob: "-0.045*cos(2*p) - 0.01"
+      squash: "1 - 0.035*cos(2*p)"
+      twist: "0.10*cos(p)"
+      roll: "0.06*sin(p)"
+      head_yaw: "-0.06*cos(p)"
+      head_pitch: "0.06*cos(2*p - 0.6)"
+      foot_L: "[0.14, 0.09*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.2545 - 0.509*clamp(p/tau/0.5, 0, 1) + 0.509*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.14, 0.09*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.2545 - 0.509*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.509*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      pitch_foot_L: "0.3*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
+      pitch_foot_R: "0.3*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
+      hand_L: "[0.32, -0.03 + 0.04*pos(cos(p)), 0.08 - 0.14*cos(p)]"
+      hand_R: "[0.33, -0.02 + 0.02*pos(-cos(p)), 0.10 + 0.06*cos(p)]"
+      club_pitch: "-0.10*cos(p - 0.7)"
+      coat: "0.4*sin(2*p - 0.8)"
+  # two-handed overhead ground slam: gather (windup), the club goes up over the right shoulder, the held top
+  # pose leaning back (the red circle shows meanwhile), one fast swing frame with a vertical smear, the club
+  # smashes the ground in front (`hit`, body squashed, lunge), a short hold on the ground, a slow recovery
+  attack:
+    loop: false
+    keys:
+      - {ms: 130, event: windup, set: {lean: 0.20, bob: -0.05, squash: 0.94, twist: -0.10, coat: -0.1, head_pitch: 0.08,
+          hand_R: [0.22, 0.02, 0.24], hand_L: [-0.02, 0.0, 0.26], club_pitch: -1.63, club_splay: 0.1}}
+      - {ms: 170, set: {lean: -0.05, bob: -0.01, squash: 1.0, twist: -0.18, coat: -0.25, head_pitch: -0.05,
+          hand_R: [0.18, 0.40, 0.10], hand_L: [0.02, 0.36, 0.14], club_pitch: "-2.4 + 0.9*pulse(abs(yaw), 180, 70)", club_splay: 0.3,
+          foot_L: [0.14, 0, 0.12], foot_R: [0.14, 0, -0.06]}}
+      - {ms: 220, set: {lean: -0.30, bob: 0.01, squash: 1.05, twist: -0.12, coat: -0.35, head_pitch: -0.15,
+          hand_R: [0.08, 0.66, -0.02], hand_L: [0.0, 0.62, 0.0], club_pitch: "-3.05 + 0.9*pulse(abs(yaw), 180, 70)", club_splay: 0.35,
+          foot_L: [0.14, 0, 0.14], foot_R: [0.14, 0, -0.06]}}
+      - {ms: 230, set: {lean: -0.36, bob: 0.02, squash: 1.07, twist: -0.12, coat: -0.4, head_pitch: -0.2,
+          hand_R: [0.07, 0.70, -0.06], hand_L: [-0.01, 0.66, -0.04], club_pitch: "-3.14 + 0.9*pulse(abs(yaw), 180, 70)", club_splay: 0.35,
+          foot_L: [0.14, 0, 0.14], foot_R: [0.14, 0, -0.06]}}
+      - {ms: 70, set: {lean: 0.10, bob: -0.02, squash: 1.0, twist: 0.0, coat: 0.2, head_pitch: 0.05,
+          hand_R: [0.06, 0.52, 0.30], hand_L: [-0.02, 0.48, 0.30], club_pitch: -2.15, club_splay: 0.35,
+          foot_L: [0.14, 0, 0.18], foot_R: [0.14, 0, -0.07],
+          smear_w: 0.12, smear_a0: 2.0, smear_a1: 0.7}}
+      - {ms: 90, event: hit, set: {root: [0, 0, 0.12], lean: 0.38, bob: -0.07, squash: 0.88, twist: 0.04, coat: 0.6, head_pitch: 0.15,
+          hand_R: [0.06, -0.02, 0.42], hand_L: [-0.02, -0.02, 0.40], club_pitch: -1.25, club_splay: 0.35, club_yaw: "-0.8*pulse(abs(yaw), 180, 60)",
+          foot_L: [0.14, 0, 0.22], foot_R: [0.14, 0, -0.08],
+          smear_w: 0.10, smear_a0: 1.0, smear_a1: -0.6, smear_fade: 0.6}}
+      - {ms: 140, set: {root: [0, 0, 0.12], lean: 0.36, bob: -0.06, squash: 0.92, twist: 0.04, coat: 0.4, head_pitch: 0.12,
+          hand_R: [0.06, -0.01, 0.42], hand_L: [-0.02, -0.01, 0.40], club_pitch: -1.25, club_splay: 0.35, club_yaw: "-0.8*pulse(abs(yaw), 180, 60)",
+          foot_L: [0.14, 0, 0.22], foot_R: [0.14, 0, -0.08]}}
+      - {ms: 120, set: {root: [0, 0, 0.08], lean: 0.32, bob: -0.05, squash: 0.97, coat: 0.1, head_pitch: 0.05,
+          hand_R: [0.20, -0.02, 0.30], hand_L: [0.14, -0.02, 0.24], club_pitch: -0.8, club_splay: 0.2,
+          foot_L: [0.14, 0, 0.14], foot_R: [0.14, 0, -0.04]}}
+      - {ms: 110, set: {root: [0, 0, 0.02], lean: 0.10, coat: -0.05,
+          hand_R: [0.31, -0.03, 0.15], hand_L: [0.30, -0.04, 0.10], club_pitch: -0.15, foot_L: [0.13, 0, 0.05]}}
+  # hit: a small, heavy flinch (less snap than the goblin): the body jolts back about a pixel and returns
+  hit:
+    loop: false
+    keys:
+      - {ms: 80, set: {root: [0, 0, -0.03], lean: -0.10, bob: -0.02, squash: 0.96, head_pitch: -0.15, coat: -0.25,
+          hand_L: [0.34, 0.0, 0.04], hand_R: [0.35, 0.0, 0.08], club_pitch: -0.1}}
+      - {ms: 80, set: {root: [0, 0, -0.02], lean: -0.03, bob: -0.01, squash: 0.98, head_pitch: -0.06, coat: -0.1,
+          hand_L: [0.33, -0.02, 0.06], hand_R: [0.34, -0.02, 0.10], club_pitch: -0.05}}
+      - {ms: 80, set: {lean: 0.06, head_pitch: 0.03, coat: 0.05}}
+  # death: struck back, staggers, the knees buckle (he drops onto them), then the whole mass topples forward
+  # onto its face with a heavy bounce; the club falls out of the hand beside him; the last frame held
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.04], lean: -0.25, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.4,
+          hand_L: [0.36, 0.08, 0.0], hand_R: [0.37, 0.08, 0.04], club_pitch: -0.2}}
+      - {ms: 140, set: {root: [0, 0, -0.08], twist: 0.15, roll: 0.06, lean: -0.15, bob: -0.04, head_pitch: -0.15,
+          coat: -0.2, hand_L: [0.36, 0.02, 0.02], hand_R: [0.37, 0.0, 0.06], club_pitch: -0.1, club_splay: 0.3,
+          foot_L: [0.13, 0, 0.06], foot_R: [0.14, 0.05, -0.14]}}
+      - {ms: 180, set: {root: [0, 0, -0.06], twist: 0.1, roll: 0.05, lean: 0.35, bob: -0.20, squash: 0.92,
+          head_pitch: 0.2, coat: 0.3, hand_L: [0.30, -0.12, 0.16], hand_R: [0.32, -0.12, 0.18], club_pitch: 0.2, club_splay: 0.6,
+          foot_L: [0.13, 0, -0.02], foot_R: [0.14, 0, -0.12]}}
+      - {ms: 120, set: {root: [0, 0, 0.0], twist: 0.05, lean: 0.8, bob: -0.28, squash: 0.95, head_pitch: 0.2,
+          coat: 0.4, hand_L: [0.34, 0.0, 0.30], hand_R: [0.36, 0.0, 0.30], club_pitch: -2.0, club_splay: 1.2,
+          foot_L: [0.13, 0.02, -0.06], foot_R: [0.14, 0.02, -0.14]}}
+      - {ms: 90, set: {root: [0, 0, 0.10], lean: 1.30, bob: -0.38, squash: 0.9, head_pitch: 0.1,
+          coat: 0.5, hand_L: [0.38, 0.10, 0.30], hand_R: [0.40, 0.10, 0.30], club_pitch: -2.6, club_splay: 1.5,
+          foot_L: [0.13, 0.06, -0.20], foot_R: [0.14, 0.04, -0.26]}}
+      - {ms: 120, set: {root: [0, 0, 0.12], lean: 1.22, bob: -0.35, squash: 0.98, head_pitch: 0.05,
+          coat: 0.4, hand_L: [0.38, 0.12, 0.28], hand_R: [0.40, 0.12, 0.28], club_pitch: -2.6, club_splay: 1.5,
+          foot_L: [0.13, 0.04, -0.22], foot_R: [0.14, 0.02, -0.28]}}
+      - {ms: 600, set: {root: [0, 0, 0.12], lean: 1.28, bob: -0.37, head_pitch: 0.1,
+          coat: 0.5, hand_L: [0.38, 0.10, 0.30], hand_R: [0.40, 0.10, 0.30], club_pitch: -2.6, club_splay: 1.5,
+          foot_L: [0.13, 0.02, -0.24], foot_R: [0.14, 0.0, -0.30]}}
+
+timing:
+  attack: {hit: 820ms, total: 1280ms}
