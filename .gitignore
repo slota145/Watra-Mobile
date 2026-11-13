@@ -21,3 +21,4 @@ art/specs/**/*_ref/
 
 # numer kompilacji - wpisuje go tools/publish_apk.sh przy eksporcie
 build_info.json
+/out/

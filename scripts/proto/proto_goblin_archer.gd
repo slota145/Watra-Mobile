@@ -17,7 +17,7 @@ const SHOOT_COOLDOWN := 2.2
 const SHOOT_RANGE := 130.0
 const KEEP_MIN := 65.0
 ## Strzał pada tyle sekund po początku naciągania (zdarzenie `release` animacji; bez grafiki - z zegara).
-const RELEASE_TIME := 0.65
+const RELEASE_TIME := 0.63
 ## Na tyle sekund przed strzałem cel przestaje podążać za postacią.
 const AIM_LOCK := 0.3
 ## Skąd wylatuje strzała, gdy grafika nie ma punktu `arrow` (nad stopami, trochę przed postacią).

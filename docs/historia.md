@@ -8,7 +8,7 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - `ProtoGoblinArcher` (`scripts/proto/proto_goblin_archer.gd`, podklasa `ProtoGoblin` - ucieczka przed Wodzem, iskry,
   łup, ogłuszenie, rozpychanie bez zmian): 26 zdrowia (goblin 40), 38 px/s, trzyma dystans 65-130 px (za blisko -
   cofa się), strzał co 2,2 s. Naciąganie: na ziemi czerwona przerywana linia celu (`_AimLine`), podąża za postacią,
-  0,3 s przed strzałem staje i jaśnieje (`AIM_LOCK`); strzał 0,65 s po początku (zdarzenie `release` animacji).
+  0,3 s przed strzałem staje i jaśnieje (`AIM_LOCK`); strzał 0,63 s po początku (zdarzenie `release` animacji).
   Cięcie w trakcie naciągania przerywa strzał.
 - `ProtoArrow` (`scripts/proto/proto_arrow.gd`): strzała rysowana kodem, 115 px/s, 11 px nad ziemią z cieniem,
   trafia w promieniu 8 px od stóp postaci (8 obrażeń x siła poziomu), zasięg 240 px.
