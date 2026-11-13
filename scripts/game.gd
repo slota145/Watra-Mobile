@@ -88,6 +88,11 @@ var auto_attack := false
 var auto_sell_common := false
 ## Tryb deweloperski (okno pauzy): nieśmiertelność - zdrowie schodzi, ale zamiast śmierci wraca do pełna.
 var dev_immortal := false
+## Tryb deweloperski: wybór dowolnego poziomu lochu (do DEV_MAX_LEVEL) bez przebijania poprzednich.
+var dev_all_levels := false
+## Tryb deweloperski: statystyki ustawione suwakiem (statystyka -> wartość) zamiast sumy z przedmiotów (Items.with_overrides).
+var dev_stats := {}
+const DEV_MAX_LEVEL := 100
 
 
 func _ready() -> void:
@@ -117,6 +122,9 @@ func load_settings() -> void:
 	gesture = cfg.get_value("controls", "gesture", true)
 	auto_attack = cfg.get_value("controls", "auto_attack", false)
 	dev_immortal = cfg.get_value("dev", "immortal", false)
+	dev_all_levels = cfg.get_value("dev", "all_levels", false)
+	var raw_stats = cfg.get_value("dev", "stats", {})
+	dev_stats = raw_stats if raw_stats is Dictionary else {}
 	auto_sell_common = cfg.get_value("items", "auto_sell_common", false)
 
 
@@ -126,6 +134,8 @@ func save_settings() -> void:
 	cfg.set_value("controls", "gesture", gesture)
 	cfg.set_value("controls", "auto_attack", auto_attack)
 	cfg.set_value("dev", "immortal", dev_immortal)
+	cfg.set_value("dev", "all_levels", dev_all_levels)
+	cfg.set_value("dev", "stats", dev_stats)
 	cfg.set_value("items", "auto_sell_common", auto_sell_common)
 	cfg.save(settings_path)
 
@@ -314,9 +324,37 @@ func reset_hero() -> void:
 	skills_changed.emit()
 
 
-## Suma cech założonych przedmiotów (Items.totals).
+## Suma cech założonych przedmiotów (Items.totals), w trybie deweloperskim z nadpisanymi statystykami (dev_stats).
 func gear() -> Dictionary:
-	return Items.totals(equipped)
+	return Items.with_overrides(Items.totals(equipped), dev_stats)
+
+
+## Tryb deweloperski: statystyka ustawiona na wartość (zamiast przedmiotów). Zapis przy zamknięciu okna.
+func dev_set_stat(stat: String, value: float) -> void:
+	dev_stats[stat] = value
+	inventory_changed.emit()
+
+
+## Tryb deweloperski: statystyka znów z przedmiotów.
+func dev_clear_stat(stat: String) -> void:
+	dev_stats.erase(stat)
+	inventory_changed.emit()
+
+
+func dev_clear_stats() -> void:
+	dev_stats.clear()
+	inventory_changed.emit()
+
+
+## Tryb deweloperski: poziom postaci ustawiony wprost (1-HeroLevels.MAX_LEVEL, doświadczenie od zera).
+func dev_set_level(level: int) -> void:
+	var old := hero_level
+	hero_level = clampi(level, 1, HeroLevels.MAX_LEVEL)
+	hero_xp = 0
+	save_game()
+	xp_changed.emit(hero_level, hero_xp, xp_needed())
+	if hero_level > old:
+		leveled_up.emit(hero_level)
 
 
 ## Przedmiot do torby (łup) - od razu zapisany. Zwraca false, gdy torba jest pełna.
@@ -478,8 +516,9 @@ func bank_embers(amount: int) -> void:
 
 
 ## Najwyższy poziom lochu, na który można wejść (jeden nad najwyższym przebitym).
+## W trybie deweloperskim „wszystkie poziomy” - aż do DEV_MAX_LEVEL.
 func unlocked_level() -> int:
-	return best_level + 1
+	return maxi(best_level + 1, DEV_MAX_LEVEL) if dev_all_levels else best_level + 1
 
 
 ## Boss pokonany na poziomie `level` - odblokowuje następny (zapis od razu). Zwraca true, gdy to nowy rekord.

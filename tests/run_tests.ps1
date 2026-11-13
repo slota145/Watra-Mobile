@@ -19,7 +19,7 @@ New-Item -ItemType Directory -Force $out | Out-Null
 
 # [plik, czy potrzebuje okna]
 $tests = @(
-    @("test_project.gd", $false), @("test_prototype.gd", $false), @("test_horde.gd", $false), @("test_hero_levels.gd", $false), @("test_items.gd", $false), @("test_stash.gd", $false), @("test_skills.gd", $false), @("test_gems.gd", $false), @("test_base.gd", $false), @("test_updater.gd", $false, "--with-updates")
+    @("test_project.gd", $false), @("test_prototype.gd", $false), @("test_horde.gd", $false), @("test_hero_levels.gd", $false), @("test_items.gd", $false), @("test_stash.gd", $false), @("test_skills.gd", $false), @("test_gems.gd", $false), @("test_base.gd", $false), @("test_dev.gd", $false), @("test_updater.gd", $false, "--with-updates")
 )
 
 Write-Host "Import zasobów..."

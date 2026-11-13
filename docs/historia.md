@@ -2,6 +2,24 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - okno trybu deweloperskiego
+
+- Prośba autora: okno z wszystkimi funkcjami trybu deweloperskiego, każda statystyka postaci ustawiana na dowolną wartość
+  (do sufitu) i wejście na dowolny poziom lochu bez przebijania poprzednich - do testów balansu.
+- Pauza (`pause_menu.gd`): zamiast dwóch rzędów skrótów i przełącznika nieśmiertelności jeden przycisk „Tryb deweloperski”,
+  który otwiera `DevWindow` (`scripts/ui/dev_window.gd`) nad pauzą; „wstecz” zamyka najpierw okno deweloperskie.
+- `DevWindow`: nieśmiertelność, „Wszystkie poziomy lochu (bez przebijania)”, stare skróty (stałe `DEV_EMBERS`, `DEV_ITEMS`
+  przeniesione z pauzy), poziom postaci przyciskami -10/-1/+1/+10 (`Game.dev_set_level`, 1-50, doświadczenie od zera),
+  sekcja „Statystyki”: wiersz z opisem jak na przedmiocie i suwak z −/+/↺ dla obrażeń broni i każdej z 18 premii
+  (zmienione - zielone). Suwak zastępuje sumę z przedmiotów, sięga do sufitu `Items.CAPS` albo `DevWindow.STAT_MAX`.
+  „Wszystkie z przedmiotów” czyści nadpisania. Bez broni wiersz obrażeń pokazuje zwykły miecz.
+- `Game`: `dev_stats` (statystyka -> wartość, `gear()` przez `Items.with_overrides`; obrażenia broni - klucz
+  `Items.WEAPON_DAMAGE`, rozrzut x1,4 - `Items.weapon_damage_from`), `dev_all_levels` (`unlocked_level` daje
+  `DEV_MAX_LEVEL` = 100), oba zapisywane w `user://settings.cfg` (sekcja `dev`). Zmiana suwaka od razu działa w grze
+  (sygnał `inventory_changed`), zapis ustawień przy zamknięciu okna.
+- Wybór poziomu przy Watrze (`level_picker.gd`): przy ponad 10 poziomach dochodzą przyciski −10 / +10.
+- Test: `tests/test_dev.gd`; zrzuty: `SCRIPT=tools/dev_shots.gd tools/screenshot.sh <prefiks>`.
+
 ## 13.11.2026 - premie: obszar, unik, zasięg zbierania, żar
 
 - Wybór autora z punktu „Na później” (więcej statystyk): wszystkie cztery premie, bez nowych kamieni. Każda na każdym miejscu.

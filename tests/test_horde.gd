@@ -202,7 +202,7 @@ func _test_horde() -> void:
 	# tryb deweloperski: nieśmiertelność - zdrowie wraca do pełna, licznik zgonów
 	var game0: Node = root.get_node("Game")
 	arena._open_menu()
-	arena.pause_menu.immortal_toggle.button_pressed = true
+	arena.pause_menu.dev.immortal_toggle.button_pressed = true
 	arena.pause_menu.close()
 	_check(game0.dev_immortal and hero.immortal and arena.deaths_label.visible, "pauza włącza nieśmiertelność, widać licznik zgonów")
 	hero._invulnerable = 0.0
@@ -212,7 +212,7 @@ func _test_horde() -> void:
 	game0.load_settings()
 	_check(game0.dev_immortal, "nieśmiertelność zapamiętana w ustawieniach")
 	arena._open_menu()
-	arena.pause_menu.immortal_toggle.button_pressed = false
+	arena.pause_menu.dev.immortal_toggle.button_pressed = false
 	arena.pause_menu.close()
 	_check(not hero.immortal and not arena.deaths_label.visible, "wyłączenie nieśmiertelności")
 	# śmierć: okno wyniku z przyciskami pod kciukiem
