@@ -2,6 +2,23 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - premie: obszar, unik, zasięg zbierania, żar
+
+- Wybór autora z punktu „Na później” (więcej statystyk): wszystkie cztery premie, bez nowych kamieni. Każda na każdym miejscu.
+- `Items` (`STAT_FORMATS`, `AFFIXES`, `CAPS`): `area_pct` 4-8% (+0,2 na poziom lochu, sufit 100%), `dodge_pct` 2-4% (+0,1,
+  sufit 50%), `pickup_pct` 10-20% (+0,5, sufit 200%), `ember_pct` 4-8% (+0,3, sufit 100%). W puli jest teraz 18 premii.
+- Obszar: `ProtoWeapon.area_bonus` (procenty) dodaje się do kamienia Szerokość w `_area` - działa na zwykły cios, falę,
+  wir, rzut, Rozłupanie i Mgnienie.
+- Unik: `ProtoHero.dodge` (0-1) w `take_damage` - chybiony cios daje napis „Unik!” (jasnoniebieski, `_spawn_text`),
+  sygnał `dodged` i zwykłą krótką nietykalność (żeby dotyk goblina nie losował co klatkę).
+- Zasięg zbierania i żar: `ProtoHorde.pickup_mult` mnoży przyciąganie iskier i łupu (razem z ulepszeniem „Długie ręce”),
+  `ProtoHorde.ember_mult` mnoży żar z iskier (także ze skrzyni Wodza; ułamki zbierają się w `_ember_rest`). Więcej żaru
+  to też szybciej pełny pasek przyzwania Wodza. Skrót deweloperski idzie przez `add_embers` (bez premii).
+  Ustawia je `arena._apply_weapon` (też po zmianie ekwipunku w lochu).
+- Okno „Postać” (`hero_stats.gd`): wiersze Unik, Obszar umiejętności, Zasięg zbierania, Żar - widoczne tylko z premią,
+  w porównaniu przedmiotów.
+- Test: `tests/test_items.gd` (`_test_utility_stats`).
+
 ## 13.11.2026 - nowe statystyki przedmiotów, poprawka górnego paska w lochu
 
 - Pomysł autora: więcej statystyk na przedmiotach. Ustalone: 6 nowych premii, wszystkie na każdym miejscu (jak stare 8),

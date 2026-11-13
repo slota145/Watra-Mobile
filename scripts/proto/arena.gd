@@ -624,7 +624,7 @@ func _on_inventory() -> void:
 
 
 ## Miecz: obrażenia z założonej broni, mnożnik z poziomu i premii, szybkość ataku, krytyki, premia przeciw elitom
-## i bossom, krótsze odnowienie umiejętności.
+## i bossom, krótsze odnowienie umiejętności, obszar; w lochu też zasięg zbierania i żar.
 func _apply_weapon() -> void:
 	weapon.damage = HeroStats.weapon_damage(gear)
 	weapon.damage_mult = HeroStats.damage_mult(Game.hero_level, gear)
@@ -633,6 +633,10 @@ func _apply_weapon() -> void:
 	weapon.crit_mult = HeroStats.crit_damage(gear) / 100.0
 	weapon.elite_mult = 1.0 + gear.get("elite_dmg_pct", 0.0) / 100.0
 	weapon.cooldown_cut = gear.get("cdr_pct", 0.0) / 100.0
+	weapon.area_bonus = gear.get("area_pct", 0.0)
+	if horde_spawner:
+		horde_spawner.pickup_mult = 1.0 + gear.get("pickup_pct", 0.0) / 100.0
+		horde_spawner.ember_mult = 1.0 + gear.get("ember_pct", 0.0) / 100.0
 
 
 ## Umiejętności z miejsc na przyciski walki i do miecza (duży przycisk - umiejętność z auto atakiem).
@@ -729,7 +733,7 @@ func _on_level_up(lvl: int) -> void:
 ## Tryb deweloperski: żar na skróty - w lochu do paska wyprawy (szybkie przyzwanie Wodza), w bazie do Watry.
 func _on_dev_embers(amount: int) -> void:
 	if horde_spawner:
-		horde_spawner._on_ember(amount)
+		horde_spawner.add_embers(amount)
 	else:
 		Game.embers += amount
 		Game.save_game()

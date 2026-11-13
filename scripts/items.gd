@@ -60,7 +60,9 @@ const CHEST_ITEMS := 3
 ## regen - zdrowie na sekundę, protection_pct - mniej obrażeń od potworów, xp_pct - więcej doświadczenia,
 ## crit_pct - szansa na trafienie krytyczne (do bazowych HeroStats.CRIT_CHANCE), crit_dmg_pct - obrażenia krytyczne
 ## (do bazowych HeroStats.CRIT_DAMAGE), life_on_kill - zdrowie za zabicie potwora, cdr_pct - krótsze odnowienie
-## umiejętności, elite_dmg_pct - obrażenia przeciw elitom i bossom, mana_regen - mana na sekundę (do HeroLevels.MANA_REGEN).
+## umiejętności, elite_dmg_pct - obrażenia przeciw elitom i bossom, mana_regen - mana na sekundę (do HeroLevels.MANA_REGEN),
+## area_pct - większy obszar cięć i umiejętności, dodge_pct - szansa, że cios potwora nie trafi, pickup_pct - dalej
+## przyciągane iskry i łup, ember_pct - więcej żaru z iskier (decyzja autora 13.11.2026).
 const STAT_FORMATS := {
 	"hp": "+%d do zdrowia",
 	"mana": "+%d do many",
@@ -76,6 +78,10 @@ const STAT_FORMATS := {
 	"cdr_pct": "%d%% krótsze odnowienie umiejętności",
 	"elite_dmg_pct": "+%d%% obrażeń przeciw elitom i bossom",
 	"mana_regen": "+%.1f many na sekundę",
+	"area_pct": "+%d%% obszaru umiejętności",
+	"dodge_pct": "+%d%% szansy na unik",
+	"pickup_pct": "+%d%% zasięgu zbierania",
+	"ember_pct": "+%d%% żaru",
 }
 ## Losowe premie: [najmniej, najwięcej] na 1. poziomie lochu; `scales` - rośnie z siłą lochu (DungeonLevels.power),
 ## inaczej (procenty) rośnie płynnie o `per_level` z każdym poziomem lochu (decyzja autora 12.11.2026 - wcześniej
@@ -95,13 +101,19 @@ const AFFIXES := {
 	"cdr_pct": {"min": 3.0, "max": 6.0, "per_level": 0.15},
 	"elite_dmg_pct": {"min": 6.0, "max": 12.0, "per_level": 0.5},
 	"mana_regen": {"min": 0.5, "max": 1.2, "scales": true},
+	"area_pct": {"min": 4.0, "max": 8.0, "per_level": 0.2},
+	"dodge_pct": {"min": 2.0, "max": 4.0, "per_level": 0.1},
+	"pickup_pct": {"min": 10.0, "max": 20.0, "per_level": 0.5},
+	"ember_pct": {"min": 4.0, "max": 8.0, "per_level": 0.3},
 }
 ## Premie z ułamkiem (jedno miejsce po przecinku), reszta - liczby całkowite.
 const DECIMAL_STATS := ["regen", "mana_regen"]
 ## Sufity sumy z całego ekwipunku (żeby postać nie stała się nieśmiertelna ani nie fruwała po lochu).
 ## Szansa na krytyk: 95% z przedmiotów + bazowe 5% = pewny krytyk; odnowienie aż do zera (decyzja autora 13.11.2026:
 ## osiągalne, ale bardzo trudne - premie na jednym przedmiocie są małe; przy zerowym odnowieniu hamulcem zostaje mana).
-const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0, "crit_pct": 95.0, "cdr_pct": 100.0}
+## Unik do 50% (połowa ciosów nadal trafia), obszar do +100%, zasięg zbierania do +200%, żar do +100%.
+const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0, "crit_pct": 95.0, "cdr_pct": 100.0,
+	"dodge_pct": 50.0, "area_pct": 100.0, "pickup_pct": 200.0, "ember_pct": 100.0}
 ## Stała cecha każdego miejsca na 1. poziomie lochu (liczby rosną z siłą lochu, procenty o BASE_PCT_PER_LEVEL).
 ## Broń: obrażenia cięcia (od-do) zamiast zwykłego miecza postaci.
 const BASE := {

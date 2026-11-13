@@ -16,6 +16,8 @@ extends Node2D
 signal health_changed(hp: int, max_hp: int)
 signal mana_changed(mana: int, max_mana: int)
 signal died
+## Cios potwora chybił dzięki unikowi.
+signal dodged
 ## Nieśmiertelność uratowała postać od śmierci (`count` - ile razy w tym lochu).
 signal death_avoided(count: int)
 
@@ -55,6 +57,8 @@ var obstacles: Array[Vector3] = []
 var move_mult := 1.0
 var regen := 0.0
 var protection := 0.0
+## Szansa na unik (0-1, premia przedmiotów): cios potwora nie zadaje obrażeń, nad głową napis „Unik!”.
+var dodge := 0.0
 var _regen_acc := 0.0
 var _mana_acc := 0.0
 ## Ostatnio podane cechy z przedmiotów (awans liczy z nimi nowe zdrowie).
@@ -119,10 +123,14 @@ func take_damage(amount: int) -> void:
 	if dead or _invulnerable > 0.0:
 		return
 	_invulnerable = INVULNERABLE
+	if dodge > 0.0 and randf() < dodge:
+		_spawn_text(tr("Unik!"), Color(0.75, 0.9, 1.0))
+		dodged.emit()
+		return
 	amount = maxi(1, roundi(amount * (1.0 - protection)))
 	hp = maxi(hp - amount, 0)
 	health_changed.emit(hp, max_hp)
-	_spawn_number(amount)
+	_spawn_text("-%d" % amount, Color(1.0, 0.4, 0.35))
 	Input.vibrate_handheld(30)
 	var tween := _sprite.create_tween()
 	_sprite.modulate = Color(2.2, 0.5, 0.45)
@@ -221,6 +229,7 @@ func apply_gear(level: int, items_gear: Dictionary) -> void:
 	move_mult = 1.0 + gear.get("move_pct", 0.0) / 100.0
 	regen = gear.get("regen", 0.0)
 	protection = gear.get("protection_pct", 0.0) / 100.0
+	dodge = gear.get("dodge_pct", 0.0) / 100.0
 	health_changed.emit(hp, max_hp)
 	mana_changed.emit(mana, max_mana)
 
@@ -291,16 +300,17 @@ func _push_out(p: Vector2) -> Vector2:
 	return p
 
 
-func _spawn_number(amount: int) -> void:
+## Napis nad głową, który unosi się i znika (liczba obrażeń, „Unik!”).
+func _spawn_text(text: String, color: Color) -> void:
 	var num := Label.new()
-	num.text = "-%d" % amount
+	num.text = text
 	num.add_theme_font_size_override("font_size", 12)
-	num.add_theme_color_override("font_color", Color(1.0, 0.4, 0.35))
+	num.add_theme_color_override("font_color", color)
 	num.add_theme_color_override("font_outline_color", Color(0.15, 0.04, 0.04))
 	num.add_theme_constant_override("outline_size", 4)
 	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	num.size = Vector2(40, 16)
-	num.position = Vector2(-20, -60)
+	num.size = Vector2(60, 16)
+	num.position = Vector2(-30, -60)
 	num.z_index = 20
 	add_child(num)
 	var tween := num.create_tween()
