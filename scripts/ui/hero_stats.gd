@@ -27,8 +27,15 @@ const BAG_COLUMNS := 5
 const LEFT_SLOTS := ["helmet", "armor", "boots"]
 const RIGHT_SLOTS := ["weapon", "amulet", "ring"]
 ## Kolejność statystyk w oknie; te z EXTRA_STATS pokazują się tylko, gdy przedmioty coś do nich dają.
-const STAT_KEYS := ["hp", "mana", "damage", "speed", "move", "protection", "regen", "xp", "slots"]
-const EXTRA_STATS := ["protection", "regen", "xp"]
+const STAT_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "mana_regen", "protection", "regen",
+	"life_on_kill", "cdr", "elite_dmg", "xp", "slots"]
+const EXTRA_STATS := ["protection", "regen", "life_on_kill", "cdr", "elite_dmg", "xp"]
+## Statystyki porównywane przy zakładaniu przedmiotu (bez miejsc na umiejętności).
+const COMPARE_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "mana_regen", "protection", "regen",
+	"life_on_kill", "cdr", "elite_dmg", "xp"]
+## Bazowe trafienie krytyczne postaci (bez przedmiotów): szansa i obrażenia w procentach.
+const CRIT_CHANCE := 5.0
+const CRIT_DAMAGE := 150.0
 const TABS := ["equip", "stats", "pouch"]
 const TAB_NAMES := {"equip": "Ekwipunek", "stats": "Statystyki", "pouch": "Sakwa"}
 
@@ -286,6 +293,8 @@ func refresh() -> void:
 	_put("damage", s.damage, "+%d%%" % roundi(HeroLevels.DAMAGE_STEP * 100.0), top)
 	_put("speed", s.speed, "", true)
 	_put("move", s.move, "", true)
+	for key in ["crit", "crit_dmg", "mana_regen"]:
+		_put(key, s[key], "", true)
 	for key in EXTRA_STATS:
 		_put(key, s[key], "", true)
 		var shown: bool = s[key] != summary(1, {})[key]
@@ -354,7 +363,23 @@ static func summary(level: int, gear: Dictionary) -> Dictionary:
 		"protection": "%d%%" % roundi(gear.get("protection_pct", 0.0)),
 		"regen": Lang.t("%.1f /s") % gear.get("regen", 0.0),
 		"xp": "+%d%%" % roundi(gear.get("xp_pct", 0.0)),
+		"crit": "%d%%" % roundi(crit_chance(gear)),
+		"crit_dmg": "%d%%" % roundi(crit_damage(gear)),
+		"mana_regen": Lang.t("%.1f /s") % (HeroLevels.MANA_REGEN + gear.get("mana_regen", 0.0)),
+		"life_on_kill": "+%d" % roundi(gear.get("life_on_kill", 0.0)),
+		"cdr": "-%d%%" % roundi(gear.get("cdr_pct", 0.0)),
+		"elite_dmg": "+%d%%" % roundi(gear.get("elite_dmg_pct", 0.0)),
 	}
+
+
+## Szansa na trafienie krytyczne w procentach: bazowa i z przedmiotów (sufit przedmiotów - Items.CAPS).
+static func crit_chance(gear: Dictionary) -> float:
+	return CRIT_CHANCE + gear.get("crit_pct", 0.0)
+
+
+## Obrażenia trafienia krytycznego w procentach zwykłego cięcia: bazowe i z przedmiotów.
+static func crit_damage(gear: Dictionary) -> float:
+	return CRIT_DAMAGE + gear.get("crit_dmg_pct", 0.0)
 
 
 ## Obrażenia cięcia przed mnożnikiem: założona broń albo zwykły miecz postaci.
@@ -587,7 +612,7 @@ func _compare(before: Dictionary, after: Dictionary) -> Array:
 	var a := summary(lvl, before)
 	var b := summary(lvl, after)
 	var out: Array = []
-	for key in ["hp", "mana", "damage", "speed", "move", "protection", "regen", "xp"]:
+	for key in COMPARE_KEYS:
 		if a[key] == b[key]:
 			continue
 		var better: bool
@@ -595,6 +620,8 @@ func _compare(before: Dictionary, after: Dictionary) -> Array:
 			var da := damage_range(lvl, before)
 			var db := damage_range(lvl, after)
 			better = db.x + db.y > da.x + da.y
+		elif key == "cdr":
+			better = _num(b[key]) < _num(a[key])  # „-12%” to krótsze odnowienie niż „-5%”
 		else:
 			better = _num(b[key]) > _num(a[key])
 		out.append([tr("%s: %s → %s") % [_stat_name(key), a[key], b[key]], better])
@@ -819,6 +846,18 @@ func _stat_name(key: String) -> String:
 			return tr("Ochrona")
 		"regen":
 			return tr("Regeneracja")
+		"crit":
+			return tr("Szansa na krytyk")
+		"crit_dmg":
+			return tr("Obrażenia krytyczne")
+		"mana_regen":
+			return tr("Odnowa many")
+		"life_on_kill":
+			return tr("Zdrowie za zabicie")
+		"cdr":
+			return tr("Odnowienie umiejętności")
+		"elite_dmg":
+			return tr("Przeciw elitom i bossom")
 		"xp":
 			return tr("Doświadczenie")
 	return tr("Miejsca na umiejętności")

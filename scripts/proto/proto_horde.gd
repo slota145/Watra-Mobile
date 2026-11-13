@@ -196,6 +196,9 @@ func scatter() -> void:
 
 func _on_died(g: ProtoGoblin) -> void:
 	_alive -= 1
+	var heal := roundi(hero.gear.get("life_on_kill", 0.0))
+	if heal > 0 and not hero.dead:
+		hero.heal(heal)  # premia przedmiotów: zdrowie za zabicie
 	kills += 1
 	kills_changed.emit(kills)
 	var ember := ProtoEmber.new()

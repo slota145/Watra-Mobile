@@ -3,7 +3,8 @@ extends SceneTree
 ## z sufitami, cena sprzedaży, torba, zakładanie, zdejmowanie, sprzedaż i zapis (Game), przedmiot z goblina leci
 ## do torby (pełna torba - odskakuje), cechy przedmiotów działają na postać i miecz w lochu (także po zmianie
 ## w pauzie), okno „Postać” z ekwipunkiem i torbą (opis przedmiotu, „Załóż”, „Sprzedaj” z potwierdzeniem, pola
-## 44 px, „wstecz”) i skrót deweloperski „+5 przedm.”.
+## 44 px, „wstecz”) i skrót deweloperski „+5 przedm.”. Nowe premie (13.11.2026): krytyki (złota liczba z „!”), zdrowie
+## za zabicie, krótsze odnowienie, przeciw elitom i bossom, odnowa many - z sufitami i w oknie „Postać”.
 
 var _failed := 0
 
@@ -31,6 +32,7 @@ func _run() -> void:
 	_test_game(game)
 	await _test_dungeon(game)
 	await _test_window(game)
+	await _test_new_stats(game)
 	DirAccess.remove_absolute(game.settings_path)
 	DirAccess.remove_absolute(game.save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
@@ -263,3 +265,62 @@ func _test_window(game: Node) -> void:
 	arena.queue_free()
 	await process_frame
 	game.reset_hero()
+
+
+func _test_new_stats(game: Node) -> void:
+	var fresh := ["crit_pct", "crit_dmg_pct", "life_on_kill", "cdr_pct", "elite_dmg_pct", "mana_regen"]
+	var known := true
+	for stat in fresh:
+		known = known and Items.AFFIXES.has(stat) and Items.STAT_FORMATS.has(stat)
+	_check(known, "nowe premie w puli losowania i z opisem")
+	_check(Items.stat_text("mana_regen", 0.8) == "+0.8 many na sekundę", "opis odnowy many z ułamkiem: " + Items.stat_text("mana_regen", 0.8))
+	var big := {"ring": {"slot": "ring", "base": {}, "affixes": [{"stat": "crit_pct", "value": 80.0}, {"stat": "cdr_pct", "value": 90.0}], "sockets": []}}
+	var t := Items.totals(big)
+	_check(t.crit_pct == Items.CAPS.crit_pct and t.cdr_pct == Items.CAPS.cdr_pct, "sufity: krytyk %d%%, odnowienie %d%%" % [t.crit_pct, t.cdr_pct])
+	_check(HeroStats.summary(1, {}).crit == "5%" and HeroStats.summary(1, {}).crit_dmg == "150%", "bazowy krytyk: 5% za 150%")
+	# premie w lochu
+	var ring := Items.roll(1, "ring", "common")
+	ring.affixes = [{"stat": "crit_pct", "value": 15.0}, {"stat": "crit_dmg_pct", "value": 50.0},
+		{"stat": "elite_dmg_pct", "value": 20.0}, {"stat": "cdr_pct", "value": 20.0},
+		{"stat": "mana_regen", "value": 2.0}, {"stat": "life_on_kill", "value": 5.0}]
+	game.equipped = {"ring": ring}
+	game.dungeon_level = 2
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	var horde: ProtoHorde = arena.horde_spawner
+	var weapon: ProtoWeapon = arena.weapon
+	horde.running = false
+	weapon.auto_attack = false
+	_check(is_equal_approx(weapon.crit_chance, 0.2) and is_equal_approx(weapon.crit_mult, 2.0)
+		and is_equal_approx(weapon.elite_mult, 1.2) and is_equal_approx(weapon.cooldown_cut, 0.2), "premie trafiają do miecza")
+	var full := weapon.cooldown_full("whirl")
+	weapon.cooldown_cut = 0.0
+	_check(is_equal_approx(full, weapon.cooldown_full("whirl") * 0.8), "krótsze odnowienie umiejętności (%.1f s)" % full)
+	weapon.cooldown_cut = 0.2
+	var g := horde.spawn_at(hero.position + Vector2(150, 0))
+	await process_frame
+	weapon.crit_chance = 1.0
+	var hp := g.hp
+	weapon._deal(g, 10, hero.global_position, Skills.STRIKE)
+	var crit_label := false
+	for c in g.get_children():
+		crit_label = crit_label or (c is Label and c.text == "20!")
+	_check(g.hp == hp - 20 and crit_label, "trafienie krytyczne: x2 i złota liczba „20!”")
+	weapon.crit_chance = 0.0
+	var e := horde.spawn_at(hero.position + Vector2(-150, 0), "goblin", ["fast"] as Array[String])
+	await process_frame
+	hp = e.hp
+	weapon._deal(e, 10, hero.global_position, Skills.STRIKE)
+	_check(e.hp == hp - 12, "przeciw elitom +20%% (%d)" % (hp - e.hp))
+	hero.hp = 50
+	g.take_damage(100000, hero.global_position)
+	_check(hero.hp == 55, "zdrowie za zabicie potwora (%d)" % hero.hp)
+	hero.mana = 0
+	await _wait(1.0)
+	_check(hero.mana >= 4 and hero.mana <= 6, "odnowa many z premią (%d na s)" % hero.mana)
+	arena.queue_free()
+	await process_frame
+	game.equipped = {}
+	game.save_game()

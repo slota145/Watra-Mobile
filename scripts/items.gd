@@ -57,7 +57,10 @@ const CHEST_ITEMS := 3
 
 ## Cechy postaci, które dają przedmioty: nazwa we wzorze (z liczbą), czy w procentach.
 ## hp - zdrowie, mana, damage_pct - obrażenia, attack_speed_pct - szybkość ataku, move_pct - szybkość ruchu,
-## regen - zdrowie na sekundę, protection_pct - mniej obrażeń od potworów, xp_pct - więcej doświadczenia.
+## regen - zdrowie na sekundę, protection_pct - mniej obrażeń od potworów, xp_pct - więcej doświadczenia,
+## crit_pct - szansa na trafienie krytyczne (do bazowych HeroStats.CRIT_CHANCE), crit_dmg_pct - obrażenia krytyczne
+## (do bazowych HeroStats.CRIT_DAMAGE), life_on_kill - zdrowie za zabicie potwora, cdr_pct - krótsze odnowienie
+## umiejętności, elite_dmg_pct - obrażenia przeciw elitom i bossom, mana_regen - mana na sekundę (do HeroLevels.MANA_REGEN).
 const STAT_FORMATS := {
 	"hp": "+%d do zdrowia",
 	"mana": "+%d do many",
@@ -67,6 +70,12 @@ const STAT_FORMATS := {
 	"regen": "+%.1f zdrowia na sekundę",
 	"protection_pct": "+%d%% ochrony przed obrażeniami",
 	"xp_pct": "+%d%% doświadczenia",
+	"crit_pct": "+%d%% szansy na trafienie krytyczne",
+	"crit_dmg_pct": "+%d%% obrażeń krytycznych",
+	"life_on_kill": "+%d zdrowia za zabicie potwora",
+	"cdr_pct": "%d%% krótsze odnowienie umiejętności",
+	"elite_dmg_pct": "+%d%% obrażeń przeciw elitom i bossom",
+	"mana_regen": "+%.1f many na sekundę",
 }
 ## Losowe premie: [najmniej, najwięcej] na 1. poziomie lochu; `scales` - rośnie z siłą lochu (DungeonLevels.power),
 ## inaczej (procenty) rośnie płynnie o `per_level` z każdym poziomem lochu (decyzja autora 12.11.2026 - wcześniej
@@ -80,9 +89,18 @@ const AFFIXES := {
 	"regen": {"min": 0.4, "max": 1.2, "scales": true},
 	"protection_pct": {"min": 2.0, "max": 5.0, "per_level": 0.2},
 	"xp_pct": {"min": 4.0, "max": 10.0, "per_level": 0.4},
+	"crit_pct": {"min": 2.0, "max": 4.0, "per_level": 0.1},
+	"crit_dmg_pct": {"min": 10.0, "max": 20.0, "per_level": 0.5},
+	"life_on_kill": {"min": 1.0, "max": 2.0, "scales": true},
+	"cdr_pct": {"min": 3.0, "max": 6.0, "per_level": 0.15},
+	"elite_dmg_pct": {"min": 6.0, "max": 12.0, "per_level": 0.5},
+	"mana_regen": {"min": 0.5, "max": 1.2, "scales": true},
 }
+## Premie z ułamkiem (jedno miejsce po przecinku), reszta - liczby całkowite.
+const DECIMAL_STATS := ["regen", "mana_regen"]
 ## Sufity sumy z całego ekwipunku (żeby postać nie stała się nieśmiertelna ani nie fruwała po lochu).
-const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0}
+## Szansa na krytyk: 45% z przedmiotów + bazowe 5% = 50%; odnowienie najwyżej o 40% krótsze.
+const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0, "crit_pct": 45.0, "cdr_pct": 40.0}
 ## Stała cecha każdego miejsca na 1. poziomie lochu (liczby rosną z siłą lochu, procenty o BASE_PCT_PER_LEVEL).
 ## Broń: obrażenia cięcia (od-do) zamiast zwykłego miecza postaci.
 const BASE := {
@@ -152,7 +170,7 @@ static func roll_affix(stat: String, level: int) -> float:
 		v *= DungeonLevels.power(level)
 	else:
 		v += a.get("per_level", 0.0) * (maxi(level, 1) - 1)
-	return snappedf(v, 0.1) if stat == "regen" else float(roundi(v))
+	return snappedf(v, 0.1) if stat in DECIMAL_STATS else float(roundi(v))
 
 
 static func roll_rarity(weights: Dictionary) -> String:
@@ -211,7 +229,7 @@ static func kind_line(item: Dictionary) -> String:
 static func stat_text(stat: String, value: float) -> String:
 	if stat == "damage":
 		return ""
-	if stat == "regen":
+	if stat in DECIMAL_STATS:
 		return Lang.t(STAT_FORMATS[stat]) % value
 	return Lang.t(STAT_FORMATS[stat]) % roundi(value)
 
@@ -314,7 +332,7 @@ static func normalize(data) -> Dictionary:
 		for a in raw_affixes:
 			if a is Dictionary and STAT_FORMATS.has(a.get("stat", "")):
 				var v := float(a.get("value", 0))
-				affixes.append({"stat": a.stat, "value": snappedf(v, 0.1) if a.stat == "regen" else v})
+				affixes.append({"stat": a.stat, "value": snappedf(v, 0.1) if a.stat in DECIMAL_STATS else v})
 	var sockets: Array = []
 	var raw_sockets = data.get("sockets", [""])
 	if raw_sockets is Array:
