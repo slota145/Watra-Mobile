@@ -2,6 +2,31 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - żywioły i mistrzostwo broni (etap 1: fundament)
+
+- Decyzje autora (ankieta 13.11.2026): żywioły jak w propozycji, najpierw fundament (efekty razem z bronią danego
+  żywiołu); potwory na razie biją fizycznie, odporności bohatera później; miecz fizyczny, żywioł dodadzą mu najwyżej
+  kamienie; nowe bronie odblokowuje postęp (Wódz na danym poziomie) albo wcześniej dużo złota; jedna broń naraz,
+  zmiana w bazie; ulepszenia lochów za złoto, żar na umiejętności; mistrzostwo z pokonanych potworów i bossów.
+- `scripts/elements.gd` (`Elements`): fizyczne + 8 żywiołów (ogień, woda, lód, Grom, ziemia, powietrze, Nawia, natura),
+  nazwy, kolory, opisy działania (`EFFECTS`), odporności potworów (`MONSTER_RESIST`, na razie puste), obrażenia
+  z odpornością `reduce` (odporność najwyżej 75%, wrażliwość do -100%, cały mnożnik z combo najwyżej `MAX_MULT` = x2).
+  Jeszcze niepodpięte do walki - pierwsza broń żywiołowa to zrobi.
+- `scripts/weapons.gd` (`Weapons`): rodzaje broni (na razie miecz: fizyczny, od początku), pola `unlock` (poziom lochu)
+  i `price` (złoto) pod kolejne bronie, mistrzostwo po krzywej poziomów postaci (`xp_to_next`), najwyżej 50.
+- Mistrzostwo (`Game.weapon`, `Game.mastery`, `Game.mastery_xp`, `add_mastery`, sygnały `mastery_changed`,
+  `skill_unlocked`): arena dolicza je w `_gain_xp` - tyle samo co doświadczenie postaci, więc dla miecza tempo
+  się nie zmienia. Progi umiejętności (`Skills.DATA` pole `mastery`): Młynek 3, Rzut 6, Rozłupanie 10, Mgnienie 15
+  (jak dawne wymagane poziomy postaci). Odblokowana umiejętność sama wskakuje w wolne miejsce, nad postacią napis
+  „Nowa umiejętność: …!” (`ProtoHero.skill_unlocked`, wspólne `float_text`). Limit poziomu umiejętności: połowa
+  mistrzostwa (`Skills.level_cap`).
+- Ulepszenia umiejętności za żar (`Game.upgrade_skill`, ceny bez zmian liczbowych: 40-200 x poziom), ulepszenia lochów
+  za złoto (`Game.buy_upgrade`, ceny 50-1000 bez zmian). Okno umiejętności: żar i pasek mistrzostwa u góry, przy
+  nieodblokowanej „od mistrz. N” zamiast „Kup”; okno ulepszeń lochów pokazuje złoto.
+- Stary zapis (bez `mastery`, `Game._migrate_mastery`): mistrzostwo miecza = poziom postaci, kupione umiejętności
+  i poziomy zostają, wraca złoto za umiejętności (`Skills.LEGACY_PRICE`) i ich poziomy oraz żar za ulepszenia lochów.
+- Testy: `tests/test_elements.gd` (nowy), `test_skills.gd` (mistrzostwo, przejście zapisu), `test_base.gd` (złoto).
+
 ## 13.11.2026 - głębokie lochy trudniejsze, Mgnienie jak Flicker Strike
 
 - Zgłoszenie autora z testu w oknie deweloperskim: na 100. poziomie lochu za mało potworów, za mało zdrowia i obrażeń

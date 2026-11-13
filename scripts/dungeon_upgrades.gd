@@ -1,5 +1,6 @@
 class_name DungeonUpgrades
-## Ulepszenia lochów za żar z Watry (ustalone z autorem 12.11.2026): wspólne dla wszystkich lochów, każde ma
+## Ulepszenia lochów za złoto (ustalone z autorem 12.11.2026; do 13.11.2026 za żar z Watry - żar idzie teraz na
+## ulepszanie umiejętności): wspólne dla wszystkich lochów, każde ma
 ## MAX_STEPS stopni z rosnącą ceną (PRICES). Kupione stopnie trzyma i zapisuje `Game.upgrades` (identyfikator -> stopień),
 ## kupuje `Game.buy_upgrade`, okno - `scripts/ui/upgrades_window.gd` (przycisk w wyborze poziomu przy Watrze).
 ## Działanie w lochu (arena.gd): "monsters" - gęstszy strumień goblinów (ProtoHorde.density), "xp" - więcej doświadczenia,
@@ -7,7 +8,7 @@ class_name DungeonUpgrades
 ## z dalszej odległości (ProtoEmber.magnet, ProtoLoot.magnet).
 
 const ORDER := ["monsters", "xp", "loot", "reach"]
-## Ceny kolejnych stopni (żar).
+## Ceny kolejnych stopni (złoto; liczby jak dawne ceny w żarze - do oceny na telefonie).
 const PRICES := [50, 120, 250, 500, 1000]
 const MAX_STEPS := 5
 ## Nazwa, wzór opisu (z liczbą), przyrost na stopień, ikona.

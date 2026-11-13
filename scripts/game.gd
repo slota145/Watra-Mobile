@@ -5,12 +5,16 @@ extends Node
 ## i postać - poziom i doświadczenie (`hero_level`, `hero_xp`; dane poziomów w HeroLevels), przedmioty w torbie
 ## (`bag`, najwyżej BAG_SIZE), założone (`equipped`: miejsce -> przedmiot) i złoto ze sprzedaży (`gold`; dane w Items),
 ## skrzynia w bazie (`stash`: zakładki po STASH_TAB_SIZE miejsc; kolejne zakładki za złoto - STASH_TAB_PRICES),
-## umiejętności (`skills_owned` - kupione, `skill_slots` - co stoi w miejscach, `skill_levels` - poziomy; dane w Skills), kamienie (Gems):
+## broń i mistrzostwo (`weapon`, `mastery` - broń -> poziom, `mastery_xp`; dane w Weapons), umiejętności
+## (`skills_owned` - odblokowane, `skill_slots` - co stoi w miejscach, `skill_levels` - poziomy; dane w Skills), kamienie (Gems):
 ## sakwa (`gems`: identyfikator -> ile sztuk), kamienie w umiejętnościach (`skill_gems`: umiejętność -> lista
 ## Gems.SKILL_SOCKETS identyfikatorów, "" - puste) i otwarte gniazda (`skill_open`); kamienie w przedmiotach
-## leżą w samych przedmiotach ("sockets"). Baza (ustalone 12.11.2026): ulepszenia lochów za żar (`upgrades`:
+## leżą w samych przedmiotach ("sockets"). Baza (ustalone 12.11.2026): ulepszenia lochów za złoto (`upgrades`:
 ## identyfikator DungeonUpgrades -> kupione stopnie), półka kupca (`shop`: oferty Shop, `shop_ready` - był już towar;
 ## odnawia się po każdym pokonanym bossie) i kowal (`reroll` - przeróbka jednej premii przedmiotu za złoto).
+## Żywioły i mistrzostwo (13.11.2026): umiejętności odblokowuje mistrzostwo broni, ulepsza się je żarem, a ulepszenia
+## lochów kupuje się złotem. Stary zapis (bez `mastery`) przechodzi raz (`_migrate_mastery`): mistrzostwo miecza = poziom
+## postaci, kupione umiejętności i poziomy zostają, a wydane na nie złoto i żar wydany na ulepszenia lochów wracają.
 
 ## Zmiana doświadczenia: `xp` na obecnym poziomie, `need` - ile trzeba do awansu (0 na najwyższym poziomie).
 signal xp_changed(level: int, xp: int, need: int)
@@ -18,9 +22,13 @@ signal xp_changed(level: int, xp: int, need: int)
 signal leveled_up(level: int)
 ## Zmiana torby, założonych przedmiotów albo złota.
 signal inventory_changed
-## Kupno umiejętności albo zmiana miejsc umiejętności.
+## Odblokowanie lub ulepszenie umiejętności albo zmiana miejsc umiejętności.
 signal skills_changed
-## Kupno ulepszenia lochów albo zmiana żaru w Watrze.
+## Zmiana mistrzostwa obecnej broni: poziom, doświadczenie na nim i ile trzeba do następnego (0 na najwyższym).
+signal mastery_changed(level: int, xp: int, need: int)
+## Mistrzostwo odblokowało umiejętność (arena pokazuje napis nad postacią).
+signal skill_unlocked(id: String)
+## Zmiana żaru w Watrze (ulepszenie umiejętności, żar z lochu).
 signal embers_changed
 
 ## Miejsca w torbie (siatka 5x4 w oknie „Postać”).
@@ -60,7 +68,11 @@ var equipped := {}
 var gold := 0
 ## Skrzynia w bazie: lista zakładek, każda to lista przedmiotów (najwyżej STASH_TAB_SIZE).
 var stash: Array = [[]]
-## Kupione umiejętności (identyfikatory ze Skills; zwykły cios zawsze) i co stoi w miejscach
+## Broń w ręku (Weapons) i mistrzostwo każdej broni (broń -> poziom; brak wpisu - 1. poziom) z doświadczeniem.
+var weapon := Weapons.SWORD
+var mastery := {}
+var mastery_xp := {}
+## Odblokowane umiejętności (identyfikatory ze Skills; zwykły cios zawsze) i co stoi w miejscach
 ## (Skills.SLOTS; 0 - duży przycisk, "" - puste miejsce).
 var skills_owned: Array = [Skills.STRIKE]
 var skill_slots: Array = _default_slots()
@@ -71,7 +83,7 @@ var gems := {}
 ## Kamienie w gniazdach umiejętności i liczba otwartych gniazd (brak wpisu - Gems.SKILL_OPEN).
 var skill_gems := {}
 var skill_open := {}
-## Ulepszenia lochów za żar (identyfikator DungeonUpgrades -> stopień).
+## Ulepszenia lochów za złoto (identyfikator DungeonUpgrades -> stopień).
 var upgrades := {}
 ## Półka kupca (oferty Shop) i czy był już na niej towar (pierwszy przy pierwszym otwarciu).
 var shop: Array = []
@@ -151,6 +163,9 @@ func load_game() -> void:
 	equipped = {}
 	gold = 0
 	stash = [[]]
+	weapon = Weapons.SWORD
+	mastery = {}
+	mastery_xp = {}
 	skills_owned = [Skills.STRIKE]
 	skill_slots = _default_slots()
 	skill_levels = {}
@@ -188,6 +203,15 @@ func load_game() -> void:
 						if not item.is_empty() and tab.size() < STASH_TAB_SIZE:
 							tab.append(item)
 				stash.append(tab)
+		var raw_weapon = data.get("weapon", Weapons.SWORD)
+		weapon = raw_weapon if raw_weapon is String and Weapons.has(raw_weapon) else Weapons.SWORD
+		var raw_mastery = data.get("mastery", {})
+		var raw_mxp = data.get("mastery_xp", {})
+		if raw_mastery is Dictionary and raw_mxp is Dictionary:
+			for id in raw_mastery:
+				if Weapons.has(id):
+					mastery[id] = clampi(int(raw_mastery[id]), 1, Weapons.MAX_MASTERY)
+					mastery_xp[id] = maxi(int(raw_mxp.get(id, 0)), 0)
 		var raw_owned = data.get("skills_owned", [])
 		if raw_owned is Array:
 			for id in raw_owned:
@@ -248,6 +272,9 @@ func load_game() -> void:
 				var offer := Shop.normalize(raw)
 				if not offer.is_empty():
 					shop.append(offer)
+		if not data.has("mastery"):
+			_migrate_mastery()
+		_unlock_skills()
 
 
 func save_game() -> void:
@@ -256,7 +283,7 @@ func save_game() -> void:
 	if f:
 		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
-				"stash": stash, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems,
+				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems,
 				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "shop": shop,
 				"shop_ready": shop_ready}))
 
@@ -312,6 +339,9 @@ func reset_hero() -> void:
 	equipped = {}
 	gold = 0
 	stash = [[]]
+	weapon = Weapons.SWORD
+	mastery = {}
+	mastery_xp = {}
 	skills_owned = [Skills.STRIKE]
 	skill_slots = _default_slots()
 	skill_levels = {}
@@ -319,6 +349,7 @@ func reset_hero() -> void:
 	skill_gems = {}
 	skill_open = {}
 	save_game()
+	mastery_changed.emit(mastery_level(), weapon_xp(), mastery_needed())
 	xp_changed.emit(hero_level, hero_xp, xp_needed())
 	inventory_changed.emit()
 	skills_changed.emit()
@@ -346,11 +377,16 @@ func dev_clear_stats() -> void:
 	inventory_changed.emit()
 
 
-## Tryb deweloperski: poziom postaci ustawiony wprost (1-HeroLevels.MAX_LEVEL, doświadczenie od zera).
+## Tryb deweloperski: poziom postaci ustawiony wprost (1-HeroLevels.MAX_LEVEL, doświadczenie od zera); mistrzostwo
+## obecnej broni idzie za nim (odblokowuje umiejętności jak w grze).
 func dev_set_level(level: int) -> void:
 	var old := hero_level
 	hero_level = clampi(level, 1, HeroLevels.MAX_LEVEL)
 	hero_xp = 0
+	mastery[weapon] = clampi(level, 1, Weapons.MAX_MASTERY)
+	mastery_xp[weapon] = 0
+	_unlock_skills()
+	mastery_changed.emit(mastery_level(), weapon_xp(), mastery_needed())
 	save_game()
 	xp_changed.emit(hero_level, hero_xp, xp_needed())
 	if hero_level > old:
@@ -538,27 +574,78 @@ static func _default_slots() -> Array:
 	return slots
 
 
-## Czy można kupić umiejętność: jeszcze niekupiona, wymagany poziom postaci i dość złota.
-func can_buy_skill(id: String) -> bool:
-	return Skills.has(id) and not skills_owned.has(id) and hero_level >= Skills.level_of(id) \
-			and gold >= Skills.price_of(id)
+# --- Mistrzostwo broni (Weapons) ---
+
+## Poziom mistrzostwa broni (domyślnie tej w ręku).
+func mastery_level(id := "") -> int:
+	return mastery.get(weapon if id == "" else id, 1)
 
 
-## Kupuje umiejętność za złoto i od razu wstawia ją w pierwsze wolne odblokowane małe miejsce (jeśli jest).
-## Zwraca false, gdy nie da się kupić.
-func buy_skill(id: String) -> bool:
-	if not can_buy_skill(id):
-		return false
-	gold -= Skills.price_of(id)
-	skills_owned.append(id)
-	for i in range(1, Skills.open_slots(hero_level)):
-		if skill_slots[i] == "":
-			skill_slots[i] = id
-			break
-	save_game()
-	inventory_changed.emit()
-	skills_changed.emit()
-	return true
+## Doświadczenie mistrzostwa na obecnym poziomie (domyślnie broni w ręku).
+func weapon_xp(id := "") -> int:
+	return mastery_xp.get(weapon if id == "" else id, 0)
+
+
+## Ile doświadczenia mistrzostwa brakuje broni w ręku do następnego poziomu (0 na najwyższym).
+func mastery_needed() -> int:
+	var lvl := mastery_level()
+	return 0 if lvl >= Weapons.MAX_MASTERY else Weapons.xp_to_next(lvl)
+
+
+## Mistrzostwo dla broni w ręku (pokonany potwór albo boss - tyle samo co doświadczenie postaci). Nowe progi od razu
+## odblokowują umiejętności (sygnał `skill_unlocked` dla każdej). Zwraca liczbę awansów mistrzostwa.
+func add_mastery(amount: int) -> int:
+	var lvl := mastery_level()
+	if amount <= 0 or lvl >= Weapons.MAX_MASTERY:
+		return 0
+	var xp := weapon_xp() + amount
+	var ups := 0
+	while lvl < Weapons.MAX_MASTERY and xp >= Weapons.xp_to_next(lvl):
+		xp -= Weapons.xp_to_next(lvl)
+		lvl += 1
+		ups += 1
+	mastery[weapon] = lvl
+	mastery_xp[weapon] = 0 if lvl >= Weapons.MAX_MASTERY else xp
+	_dirty = true
+	if ups > 0:
+		for id in _unlock_skills():
+			skill_unlocked.emit(id)
+		save_game()
+	mastery_changed.emit(lvl, weapon_xp(), mastery_needed())
+	return ups
+
+
+## Dopisuje do odblokowanych umiejętności broni w ręku te, do których starcza mistrzostwa, i wstawia każdą w pierwsze
+## wolne odblokowane małe miejsce (jeśli jest). Zwraca nowo odblokowane.
+func _unlock_skills() -> Array[String]:
+	var added: Array[String] = []
+	for id in Skills.unlocked_at(weapon, mastery_level()):
+		if skills_owned.has(id):
+			continue
+		skills_owned.append(id)
+		added.append(id)
+		for i in range(1, Skills.open_slots(hero_level)):
+			if skill_slots[i] == "":
+				skill_slots[i] = id
+				break
+	if not added.is_empty():
+		skills_changed.emit()
+	return added
+
+
+## Przejście zapisu sprzed mistrzostwa (13.11.2026): mistrzostwo miecza = poziom postaci, a kupione umiejętności
+## i ich poziomy zostają; wraca złoto wydane na umiejętności i ich poziomy oraz żar wydany na ulepszenia lochów
+## (teraz są za złoto, a żar idzie na umiejętności).
+func _migrate_mastery() -> void:
+	mastery[Weapons.SWORD] = clampi(hero_level, 1, Weapons.MAX_MASTERY)
+	mastery_xp[Weapons.SWORD] = 0
+	for id in skills_owned:
+		gold += Skills.LEGACY_PRICE.get(id, 0)
+		for lvl in range(1, skill_level(id)):
+			gold += Skills.upgrade_price(id, lvl)
+	for id in upgrades:
+		for step in upgrades[id]:
+			embers += DungeonUpgrades.price(step)
 
 
 ## Poziom umiejętności (1 - nieulepszona albo niekupiona).
@@ -566,30 +653,30 @@ func skill_level(id: String) -> int:
 	return skill_levels.get(id, 1)
 
 
-## Dlaczego nie da się ulepszyć umiejętności ("" - da się): "owned" - niekupiona, "max" - najwyższy poziom,
-## "hero" - za niski poziom postaci (Skills.level_cap), "gold" - za mało złota.
+## Dlaczego nie da się ulepszyć umiejętności ("" - da się): "owned" - nieodblokowana, "max" - najwyższy poziom,
+## "mastery" - za niskie mistrzostwo broni (Skills.level_cap), "embers" - za mało żaru.
 func skill_upgrade_problem(id: String) -> String:
 	if not skills_owned.has(id):
 		return "owned"
 	var lvl := skill_level(id)
 	if lvl >= Skills.MAX_LEVEL:
 		return "max"
-	if lvl >= Skills.level_cap(hero_level):
-		return "hero"
-	if gold < Skills.upgrade_price(id, lvl):
-		return "gold"
+	if lvl >= Skills.level_cap(mastery_level(Skills.weapon_of(id))):
+		return "mastery"
+	if embers < Skills.upgrade_price(id, lvl):
+		return "embers"
 	return ""
 
 
-## Ulepsza umiejętność o poziom za złoto. Zwraca false, gdy się nie da (skill_upgrade_problem).
+## Ulepsza umiejętność o poziom za żar z Watry. Zwraca false, gdy się nie da (skill_upgrade_problem).
 func upgrade_skill(id: String) -> bool:
 	if skill_upgrade_problem(id) != "":
 		return false
 	var lvl := skill_level(id)
-	gold -= Skills.upgrade_price(id, lvl)
+	embers -= Skills.upgrade_price(id, lvl)
 	skill_levels[id] = lvl + 1
 	save_game()
-	inventory_changed.emit()
+	embers_changed.emit()
 	skills_changed.emit()
 	return true
 
@@ -631,7 +718,7 @@ func main_skill() -> String:
 	return id if id != "" else Skills.STRIKE
 
 
-## Tryb deweloperski: wszystkie umiejętności bez złota i wymaganego poziomu.
+## Tryb deweloperski: wszystkie umiejętności bez wymaganego mistrzostwa.
 func dev_skills() -> void:
 	for id in Skills.ORDER:
 		if not skills_owned.has(id):
@@ -852,7 +939,7 @@ func dev_gems() -> void:
 	inventory_changed.emit()
 
 
-# --- Baza: ulepszenia lochów (żar), kupiec i kowal (złoto) ---
+# --- Baza: ulepszenia lochów, kupiec i kowal (złoto) ---
 
 ## Kupione stopnie ulepszenia lochów.
 func upgrade_steps(id: String) -> int:
@@ -869,15 +956,16 @@ func upgrade_price(id: String) -> int:
 	return DungeonUpgrades.price(upgrade_steps(id))
 
 
-## Kupuje następny stopień ulepszenia za żar z Watry. Zwraca false, gdy brakuje żaru albo kupiono wszystkie.
+## Kupuje następny stopień ulepszenia za złoto (do 13.11.2026 za żar). Zwraca false, gdy brakuje złota albo
+## kupiono wszystkie.
 func buy_upgrade(id: String) -> bool:
 	var price := upgrade_price(id)
-	if not DungeonUpgrades.has(id) or price == 0 or embers < price:
+	if not DungeonUpgrades.has(id) or price == 0 or gold < price:
 		return false
-	embers -= price
+	gold -= price
 	upgrades[id] = upgrade_steps(id) + 1
 	save_game()
-	embers_changed.emit()
+	inventory_changed.emit()
 	return true
 
 

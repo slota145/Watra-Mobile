@@ -50,14 +50,15 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `proto_chief.gd` - boss Wódz Goblinów (ataki z ostrzeżeniem `proto_telegraph.gd`, tasak `proto_cleaver.gd`),
   `proto_chest.gd` - skrzynia po bossie; `scripts/dungeon_levels.gd` - poziomy lochu (siła, koszt przyzwania, nagroda);
   `scripts/hero_levels.gd` - poziomy postaci (doświadczenie, zdrowie, obrażenia, miejsca na umiejętności; stan w `Game`);
-  `scripts/skills.gd` - umiejętności miecza (dane i poziomy 1-10 za złoto z nowym działaniem na 5. i 10.; kupione, miejsca i poziomy w `Game`, działanie w `proto_weapon.gd`, okno
+  `scripts/elements.gd` - żywioły (8 + fizyczne, odporności, `reduce`); `scripts/weapons.gd` - rodzaje broni i mistrzostwo broni (stan w `Game`);
+  `scripts/skills.gd` - umiejętności miecza (odblokowuje mistrzostwo, poziomy 1-10 za żar z nowym działaniem na 5. i 10.; odblokowane, miejsca i poziomy w `Game`, działanie w `proto_weapon.gd`, okno
   `scripts/ui/skills_window.gd` z polami `skill_slot.gd`, kamień run w bazie);
   `scripts/items.gd` - przedmioty (miejsca, rzadkości, premie, łup, ceny; torba, założone i złoto w `Game`),
   `scripts/gems.gd` - kamienie w umiejętnościach i przedmiotach (dane, łup, kamienie unikalne umiejętności - `Gems.UNIQUE`; sakwa i gniazda w `Game`, działanie w `proto_weapon.gd`
   i `Items.totals`, pole `scripts/ui/gem_slot.gd`, zakładka „Kamienie” w oknie umiejętności, gniazda w opisie przedmiotu w „Postać”,
   wybór kamienia wysuwany od dołu `scripts/ui/gem_picker.gd` - „najpierw gniazdo” i „najpierw kamień”),
   `proto_loot.gd` - przedmiot na ziemi, `proto_stash.gd` - skrzynia w bazie (okno `scripts/ui/stash_window.gd`, pola z przeciąganiem `item_slot.gd`;
-  ten sam skrypt to kamień run, kowal i kupiec); baza i waluty: `scripts/dungeon_upgrades.gd` - ulepszenia lochów za żar
+  ten sam skrypt to kamień run, kowal i kupiec); baza i waluty: `scripts/dungeon_upgrades.gd` - ulepszenia lochów za złoto
   (okno `scripts/ui/upgrades_window.gd` z wyboru poziomu), kowal - przeróbka premii (`Items.reroll_affix`, okno
   `scripts/ui/smith_window.gd`), `scripts/shop.gd` - kupiec (okno `scripts/ui/shop_window.gd`), wspólny szkielet okien
   `scripts/ui/base_window.gd`, pasek skrótów w bazie `scripts/ui/base_bar.gd`;

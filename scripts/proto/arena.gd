@@ -239,6 +239,7 @@ func _ready() -> void:
 	_on_xp(Game.hero_level, Game.hero_xp, Game.xp_needed())
 	Game.xp_changed.connect(_on_xp)
 	Game.leveled_up.connect(_on_level_up)
+	Game.skill_unlocked.connect(func(id: String) -> void: hero.skill_unlocked(Skills.name_of(id)))
 	Game.inventory_changed.connect(_on_inventory)
 	actions.attack.pressed.connect(func() -> void: weapon.attack_held = true)
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
@@ -594,13 +595,15 @@ func _bar_text(bar: ProgressBar, font_size: int) -> Label:
 	return l
 
 
-## Doświadczenie dla postaci (pokonany potwór) - liczone też do podsumowania wyprawy.
+## Doświadczenie dla postaci (pokonany potwór) - liczone też do podsumowania wyprawy - i tyle samo mistrzostwa
+## broni w ręku (Weapons).
 func _gain_xp(amount: int) -> void:
 	if hero.dead:
 		return
 	amount = roundi(amount * (1.0 + (gear.get("xp_pct", 0.0) + Game.upgrade_bonus("xp")) / 100.0))
 	run_xp += amount
 	Game.add_xp(amount)
+	Game.add_mastery(amount)
 
 
 ## Zmiana doświadczenia w Game: pasek i numer poziomu (na najwyższym poziomie pasek pełny).

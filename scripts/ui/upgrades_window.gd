@@ -1,20 +1,20 @@
 class_name UpgradesWindow
 extends BaseWindow
-## Okno ulepszeń lochów za żar z Watry (DungeonUpgrades, stan w Game.upgrades): rząd na każde ulepszenie - ikona,
-## nazwa, stopień i obecna premia, następny stopień i przycisk z ceną w żarze (drugie stuknięcie kupuje).
+## Okno ulepszeń lochów za złoto (DungeonUpgrades, stan w Game.upgrades): rząd na każde ulepszenie - ikona,
+## nazwa, stopień i obecna premia, następny stopień i przycisk z ceną w złocie (drugie stuknięcie kupuje).
 ## Otwiera je przycisk „Ulepszenia lochów” w wyborze poziomu przy Watrze.
 
-const BUY_SOUND := preload("res://assets/watra/ember_pickup_big.ogg")
+const BUY_SOUND := preload("res://assets/watra/handleCoins.ogg")
 
 
 func _build() -> void:
 	title_label.text = tr("Ulepszenia lochów")
-	var hint := label(content, tr("Żar z Watry wzmacnia wszystkie lochy."), 12, DIM, true)
+	var hint := label(content, tr("Złoto wzmacnia wszystkie lochy."), 12, DIM, true)
 	hint.name = "Hint"
 
 
 func refresh() -> void:
-	set_currency(EMBER, _game.embers)
+	set_currency(COIN, _game.gold)
 	for c in content.get_children():
 		if c.name != "Hint":
 			content.remove_child(c)
@@ -29,7 +29,7 @@ func refresh() -> void:
 		var price: int = _game.upgrade_price(id)
 		if price > 0:
 			label(col, tr("Następny: %s") % DungeonUpgrades.text(id, steps + 1), 12, Color(1, 0.7, 0.35), true)
-			var b := price_button(box, id, price, EMBER, _game.embers >= price)
+			var b := price_button(box, id, price, COIN, _game.gold >= price)
 			b.name = "Buy_" + id
 			b.pressed.connect(_buy.bind(id))
 		else:
