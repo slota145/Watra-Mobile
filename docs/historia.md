@@ -7,7 +7,8 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - Pomysł autora: więcej statystyk na przedmiotach. Ustalone: 6 nowych premii, wszystkie na każdym miejscu (jak stare 8),
   bazowy krytyk postaci 5% za 150%, liczby jak w propozycji, kamienie bez zmian.
 - `Items` (`STAT_FORMATS`, `AFFIXES`, `CAPS`, `DECIMAL_STATS`): `crit_pct` 2-4% (+0,1 na poziom lochu, sufit z przedmiotów
-  45% - razem 50%), `crit_dmg_pct` 10-20% (+0,5), `life_on_kill` 1-2 (z siłą lochu), `cdr_pct` 3-6% (+0,15, sufit 40%),
+  95% - razem pewny krytyk), `crit_dmg_pct` 10-20% (+0,5), `life_on_kill` 1-2 (z siłą lochu), `cdr_pct` 3-6% (+0,15, sufit
+  100% - odnowienie aż do zera; decyzja autora: osiągalne, ale bardzo trudne, jak w PoE),
   `elite_dmg_pct` 6-12% (+0,5), `mana_regen` 0,5-1,2 na s (z siłą lochu; jedno miejsce po przecinku, też przy wczytaniu zapisu).
 - Działanie: `ProtoWeapon._deal` - premia przeciw elitom (`ProtoGoblin.elite`) i Wodzowi, krytyk (`crit_chance`,
   `crit_mult`; liczba złota, większa, z „!” - `ProtoTarget.crit_next`, `CRIT_COLOR`), `cooldown_cut` w `_cooldown_base`;

@@ -274,7 +274,7 @@ func _test_new_stats(game: Node) -> void:
 		known = known and Items.AFFIXES.has(stat) and Items.STAT_FORMATS.has(stat)
 	_check(known, "nowe premie w puli losowania i z opisem")
 	_check(Items.stat_text("mana_regen", 0.8) == "+0.8 many na sekundę", "opis odnowy many z ułamkiem: " + Items.stat_text("mana_regen", 0.8))
-	var big := {"ring": {"slot": "ring", "base": {}, "affixes": [{"stat": "crit_pct", "value": 80.0}, {"stat": "cdr_pct", "value": 90.0}], "sockets": []}}
+	var big := {"ring": {"slot": "ring", "base": {}, "affixes": [{"stat": "crit_pct", "value": 130.0}, {"stat": "cdr_pct", "value": 140.0}], "sockets": []}}
 	var t := Items.totals(big)
 	_check(t.crit_pct == Items.CAPS.crit_pct and t.cdr_pct == Items.CAPS.cdr_pct, "sufity: krytyk %d%%, odnowienie %d%%" % [t.crit_pct, t.cdr_pct])
 	_check(HeroStats.summary(1, {}).crit == "5%" and HeroStats.summary(1, {}).crit_dmg == "150%", "bazowy krytyk: 5% za 150%")
