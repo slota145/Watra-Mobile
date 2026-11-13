@@ -66,9 +66,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   zbierania, więcej żaru (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy unik 2-4% na przedmiot jest
   odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
-- **Żywioły i wiele broni (13.11.2026, duży temat - do ustalenia szczegółów):** żywioły ogień, woda, lód, pioruny
-  (nazwa do ustalenia, np. Grom), ziemia, powietrze, ciemność (+ propozycje Claude: Nawia jako ciemność, natura/trucizna,
-  światło). Wiele broni, każda z własnymi umiejętnościami; część związana z żywiołem, część nie: łuk, hydrosfera (kula
+- **Żywioły i wiele broni (13.11.2026, duży temat - do ustalenia szczegółów):** żywioły (nazwy ustalone 13.11.2026): ogień,
+  woda, lód, Grom (pioruny), ziemia, powietrze, Nawia (ciemność), natura (trucizna, a później pnącza, ciernie, drzewce).
+  Do decyzji później: światło. Wiele broni, każda z własnymi umiejętnościami; część związana z żywiołem, część nie: łuk, hydrosfera (kula
   do władania wodą), mroczna kosa, ostrza na łańcuchach, księgi z wybieranym żywiołem (każdy żywioł - własne umiejętności),
   sztylety powietrza, glewia ognia, lodowy rapier, elektryczna katana, kostur nekromancji. Mistrzostwo broni: granie bronią
   podnosi jej poziom i to odblokowuje umiejętności (zamiast złota); umiejętności ulepsza się żarem. Bronie po kolei,
