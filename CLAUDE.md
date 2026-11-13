@@ -65,7 +65,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
   `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania i auto atakiem (zapis w `Game`, `user://settings.cfg`)
   oraz trybem deweloperskim (nieśmiertelność, skróty: +1 poziom, +100 żaru, +5 przedmiotów, +umiejętności, +kamienie, postać od nowa), `scripts/ui/hero_stats.gd` -
-  okno „Postać” z zakładkami Ekwipunek / Statystyki / Sakwa (przycisk w pauzie).
+  okno „Postać” z zakładkami Ekwipunek / Statystyki / Sakwa (ikonka portretu w górnym rzędzie, obok niej ikonka umiejętności).
 - `scripts/updater.gd`: autoload `Updater` (pierwszy na liście) - aktualizacja wersji testowej z menu bez całego apk
   (paczka `game.pck` z gałęzi `apk`); przy zmianach project.godot, export_presets.cfg, updater.gd albo wersji Godota
   podbij w nim `APK_LEVEL` (gra poprosi wtedy o pełny apk). Test: `tests/test_updater.gd -- --with-updates`.

@@ -2,6 +2,17 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 13.11.2026 - ikonki „Postać” i „Umiejętności” w górnym rzędzie
+
+- Pomysł autora: ekwipunek i umiejętności jednym stuknięciem w ikonkę, nie przez „Menu”. Ustalone: dwie ikonki 44 px
+  w górnym rzędzie obok „Menu”, w bazie i w lochu (daleko od kciuka - bez przypadkowego otwarcia w walce), przyciski
+  usunięte z pauzy.
+- `Arena`: `stats_icon` (portret z Watry, `assets/watra/base/character.png`) otwiera `stats_window` (HeroStats),
+  `skills_icon` (księga, `skills.png`) - `skills_window` (w bazie z kupowaniem, w lochu bez); `_top_icon`, `open_stats`,
+  `open_skills(not horde)`; „wstecz” zamyka oba okna. „Menu” wyrównane do 44 px. HeroStats i SkillsWindow same
+  zatrzymują i wznawiają grę. `PauseMenu` bez `stats_button`, `skills_button`, `stats`, `skills_window`.
+- Testy (`test_items`, `test_hero_levels`, `test_skills`, `test_gems`) i narzędzia zrzutów otwierają okna z ikonek.
+
 ## 13.11.2026 - czytelniejsze okno „Postać” i kamienie
 
 - Zgłoszenie autora: okno „Postać” zbyt rozległe, wkładanie kamieni nieintuicyjne, nie widać, co kamień robi

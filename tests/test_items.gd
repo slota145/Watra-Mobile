@@ -190,10 +190,14 @@ func _test_window(game: Node) -> void:
 	arena._open_menu()
 	menu.items_button.pressed.emit()
 	_check(game.bag.size() == PauseMenu.DEV_ITEMS, "„+5 łupu” w pauzie")
-	menu.stats_button.pressed.emit()
+	menu.close()
+	_check(arena.stats_icon.get_global_rect().size.x >= 44.0 and arena.stats_icon.get_global_rect().size.y >= 44.0,
+			"ikonka „Postać” w górnym rzędzie, 44 px")
+	arena.stats_icon.pressed.emit()
 	await process_frame
 	await process_frame
-	var stats: HeroStats = menu.stats
+	var stats: HeroStats = arena.stats_window
+	_check(paused, "okno „Postać” zatrzymuje grę")
 	_check(stats.visible and stats.bag_buttons.size() == game.BAG_SIZE and stats.equip_buttons.size() == 6, "okno: 6 miejsc ekwipunku i torba")
 	_check(stats.bag_buttons[0].icon != null and stats.bag_buttons[game.bag.size()].icon == null, "ikony przedmiotów w torbie")
 	var small := false
@@ -235,8 +239,8 @@ func _test_window(game: Node) -> void:
 	_check(stats.detail.visible and stats.equip_button.text == tr("Zdejmij") and not stats.sell_button.visible, "założony: „Zdejmij” bez sprzedaży")
 	stats.equip_button.pressed.emit()
 	_check(not game.equipped.has("weapon"), "zdjęty")
-	menu.back()
-	_check(not stats.visible and menu.visible, "„wstecz” zamyka okno „Postać”")
+	arena._notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(not stats.visible and not paused, "„wstecz” zamyka okno „Postać” i wznawia grę")
 	# sprzedaż hurtem: zwykłe osobno, magiczne i rzadkie osobno, z potwierdzeniem
 	game.bag.clear()
 	for rar in ["common", "common", "magic", "rare"]:

@@ -1,6 +1,6 @@
 class_name HeroStats
 extends Control
-## Okno „Postać” (z okna pauzy) na cały ekran, z zakładkami na dole pod kciukiem (ustalone z autorem 13.11.2026):
+## Okno „Postać” (ikonka portretu w górnym rzędzie areny) na cały ekran, z zakładkami na dole pod kciukiem (ustalone z autorem 13.11.2026):
 ## u góry poziom, doświadczenie i złoto; „Ekwipunek” - 6 miejsc wokół Wojciecha (po lewej hełm, zbroja, buty; po prawej
 ## broń, amulet, pierścień), pod postacią zdrowie, obrażenia i ochrona, niżej torba 5x4 i sprzedaż hurtem;
 ## „Statystyki” - pełna lista z poziomu i przedmiotów (zielona kolumna - co da następny awans); „Sakwa” - kamienie. Stuknięcie w przedmiot otwiera opis przy dolnej krawędzi ekranu (pod kciukiem): cechy, zmiana
@@ -250,12 +250,14 @@ func open() -> void:
 	_hide_detail()
 	refresh()
 	visible = true
+	get_tree().paused = true
 
 
 func close() -> void:
 	_hide_detail()
 	picker.close()
 	visible = false
+	get_tree().paused = false
 	closed.emit()
 
 

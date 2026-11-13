@@ -106,16 +106,18 @@ func _test_dungeon(game: Node) -> void:
 	menu.level_button.pressed.emit()
 	_check(game.hero_level == 3 and arena.actions.skills[0].locked_level == 0 and arena.actions.skills[1].locked_level == 6, "+1 poziom - odblokowane miejsce")
 	# okno „Postać”: statystyki obecnego poziomu i przyrost z następnym
-	menu.stats_button.pressed.emit()
-	var stats: HeroStats = menu.stats
+	menu.close()
+	arena.stats_icon.pressed.emit()
+	var stats: HeroStats = arena.stats_window
 	_check(stats.visible and stats._title.text == "Poziom 3", "okno „Postać” z poziomem")
 	_check(stats.rows["hp"][0].text == str(HeroLevels.max_hp(3)) and stats.rows["hp"][1].text == "+10", "zdrowie i przyrost z awansem")
 	var dmg := HeroStats.damage_range(3)
 	_check(stats.rows["damage"][0].text == "%d-%d" % [dmg.x, dmg.y] and dmg.x > ProtoWeapon.DAMAGE.x, "obrażenia miecza rosną (%s)" % stats.rows["damage"][0].text)
 	_check(stats.rows["slots"][0].text == "1 / 4" and stats.rows["slots"][1].text == "na poz. 6", "miejsca na umiejętności i następne")
 	_check(stats.back_button.get_global_rect().size.y >= 44.0, "przycisk „Wróć” 44 px")
-	menu.back()
-	_check(not stats.visible and menu.visible, "„wstecz” zamyka okno „Postać”, pauza zostaje")
+	stats.back()
+	_check(not stats.visible and not paused, "„wstecz” zamyka okno „Postać”, gra rusza")
+	arena._open_menu()
 	var before: int = horde.embers
 	menu.embers_button.pressed.emit()
 	_check(horde.embers == before + PauseMenu.DEV_EMBERS, "+100 żaru do paska wyprawy")

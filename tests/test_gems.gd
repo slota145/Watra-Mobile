@@ -330,10 +330,9 @@ func _test_windows(game: Node) -> void:
 	_check(win.slots_row.visible and not win.gems_box.visible, "powrót do zakładki „Miejsca”")
 	win.close()
 	# okno „Postać”: kamień szlachetny w broni
-	arena._open_menu()
 	await process_frame
-	var stats: HeroStats = arena.pause_menu.stats
-	stats.open()
+	var stats: HeroStats = arena.stats_window
+	arena.stats_icon.pressed.emit()
 	await process_frame
 	stats.set_tab("pouch")
 	_check(stats.page_pouch.visible and not stats.page_equip.visible and stats.pouch_grid.get_child_count() == game.gem_list().size()

@@ -33,10 +33,10 @@ func _run() -> void:
 	await _shot("1_awans")
 	arena._open_menu()
 	await _shot("2_pauza")
-	arena.pause_menu.stats.open()
-	await _shot("2b_postac")
-	arena.pause_menu.stats.close()
 	arena.pause_menu.close()
+	arena.stats_window.open()
+	await _shot("2b_postac")
+	arena.stats_window.close()
 	arena.run_xp = 143
 	arena._start_hero_level = 2
 	arena.hero.take_damage(10000)
