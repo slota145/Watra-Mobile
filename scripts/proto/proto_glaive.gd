@@ -78,6 +78,8 @@ const GROUND_FX := preload("res://assets/effects/glaive_ground_fire.png")
 const GROUND_FX_ANCHOR := Vector2(10, 15)
 const GROUND_FX_FRAMES := 8
 const GROUND_FX_SPACING := 9.0
+## Odstęp płomyków w płonącym kręgu (rzadziej niż w pasie, żeby krąg nie zlewał się w plamę).
+const RING_FX_SPACING := 14.0
 const CUT_FX := preload("res://assets/effects/glaive_cut.png")
 const CUT_FX_ANCHOR := Vector2(20, 20)
 const CUT_FX_FRAMES := 14
@@ -428,13 +430,13 @@ func _add_zone(a: Vector2, b: Vector2, radius: float, time: float, skill: String
 			spots.append(a.lerp(b, float(i) / n) + side * randf_range(0.2, 1.0))
 	else:
 		spots.append(a)
-		var r := GROUND_FX_SPACING
-		while r < radius:
-			var count := int(TAU * r / GROUND_FX_SPACING)
+		var r := RING_FX_SPACING
+		while r < radius + 1.0:
+			var count := int(TAU * r / RING_FX_SPACING)
 			for i in count:
 				var ang := TAU * i / count + r
 				spots.append(a + Vector2(cos(ang), sin(ang) / 1.6) * r)
-			r += GROUND_FX_SPACING
+			r += RING_FX_SPACING
 	var flames: Array = []
 	for p in spots:
 		var f := Sprite2D.new()

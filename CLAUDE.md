@@ -50,10 +50,10 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `proto_chief.gd` - boss Wódz Goblinów (ataki z ostrzeżeniem `proto_telegraph.gd`, tasak `proto_cleaver.gd`),
   `proto_chest.gd` - skrzynia po bossie; `scripts/dungeon_levels.gd` - poziomy lochu (siła, koszt przyzwania, nagroda);
   `scripts/hero_levels.gd` - poziomy postaci (doświadczenie, zdrowie, obrażenia, miejsca na umiejętności; stan w `Game`);
-  `scripts/elements.gd` - żywioły (8 + fizyczne, odporności, `reduce`); `scripts/weapons.gd` - rodzaje broni i mistrzostwo broni (stan w `Game`);
-  `scripts/skills.gd` - umiejętności miecza (odblokowuje mistrzostwo, poziomy 1-10 za żar z nowym działaniem na 5. i 10.; odblokowane, miejsca i poziomy w `Game`, działanie w `proto_weapon.gd`, okno
+  `scripts/elements.gd` - żywioły (8 + fizyczne, odporności, `reduce`); `scripts/weapons.gd` - rodzaje broni (miecz, glewia ognia - `proto_glaive.gd` dziedziczy po `proto_weapon.gd`), kupno, zmiana i mistrzostwo broni (stan w `Game`);
+  `scripts/skills.gd` - umiejętności broni (odblokowuje mistrzostwo, poziomy 1-10 za żar z nowym działaniem na 5. i 10.; odblokowane, miejsca i poziomy w `Game`, działanie w `proto_weapon.gd`, okno
   `scripts/ui/skills_window.gd` z polami `skill_slot.gd`, kamień run w bazie);
-  `scripts/items.gd` - przedmioty (miejsca, rzadkości, premie, łup, ceny; torba, założone i złoto w `Game`),
+  `scripts/items.gd` - przedmioty (miejsca z kolczykiem z kłem zamiast broni, rzadkości, premie, łup, ceny; torba, założone i złoto w `Game`),
   `scripts/gems.gd` - kamienie w umiejętnościach i przedmiotach (dane, łup, kamienie unikalne umiejętności - `Gems.UNIQUE`; sakwa i gniazda w `Game`, działanie w `proto_weapon.gd`
   i `Items.totals`, pole `scripts/ui/gem_slot.gd`, zakładka „Kamienie” w oknie umiejętności, gniazda w opisie przedmiotu w „Postać”,
   wybór kamienia wysuwany od dołu `scripts/ui/gem_picker.gd` - „najpierw gniazdo” i „najpierw kamień”),
@@ -76,7 +76,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `horde.tscn` - loch z ciągłym strumieniem goblinów; obie na `arena.gd`).
 - `assets/`: grafiki, muzyka, dźwięki; `assets/watra/` - pliki skopiowane z Watry; `assets/spritekiln/` - postacie wyeksportowane ze SpriteKiln.
 - `art/specs/`: specyfikacje postaci SpriteKiln (YAML; Godot je pomija). Wyniki renderów w `out/` są generowane i nie idą do gita.
-- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia, `ember_art.py` - iskra żaru, `goblin_squeak.py` - pisk goblinów, `boss_shots.gd` - zrzuty walki z bossem, `archer_shots.gd` - zrzuty goblina łucznika, `brute_shots.gd` - zrzuty goblina osiłka, `elite_shots.gd` - zrzuty elit, `level_shots.gd` - zrzuty rozwoju postaci, `item_shots.gd` - zrzuty przedmiotów, `stash_shots.gd` - zrzuty skrzyni, `skill_shots.gd` - zrzuty umiejętności, `gem_shots.gd` - zrzuty kamieni, `unique_shots.gd` - zrzuty kamieni unikalnych, `unique_gem_art.py` - ikony kamieni unikalnych, `base_shots.gd` - zrzuty okien bazy, `dev_shots.gd` - zrzuty okna deweloperskiego,
+- `tools/`: narzędzia (`screenshot.sh`/`screenshot.gd` - zrzuty ekranu, `texts.py` - napisy do tłumaczenia, `ember_art.py` - iskra żaru, `goblin_squeak.py` - pisk goblinów, `boss_shots.gd` - zrzuty walki z bossem, `archer_shots.gd` - zrzuty goblina łucznika, `brute_shots.gd` - zrzuty goblina osiłka, `elite_shots.gd` - zrzuty elit, `level_shots.gd` - zrzuty rozwoju postaci, `item_shots.gd` - zrzuty przedmiotów, `stash_shots.gd` - zrzuty skrzyni, `skill_shots.gd` - zrzuty umiejętności, `gem_shots.gd` - zrzuty kamieni, `unique_shots.gd` - zrzuty kamieni unikalnych, `unique_gem_art.py` - ikony kamieni unikalnych, `base_shots.gd` - zrzuty okien bazy, `dev_shots.gd` - zrzuty okna deweloperskiego, `glaive_shots.gd` - zrzuty glewii ognia,
   `vfx_art.py` - efekty z kreatora PixelLab do `assets/effects/`).
 - `tests/`: testy (`run_tests.ps1` u autora).
 - `translations/`: `teksty.csv` (pl/en), `pomijane.txt` (napisy bez tłumaczenia), `slowniczek.md`.
