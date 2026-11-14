@@ -68,6 +68,11 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   zbierania, więcej żaru (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy unik 2-4% na przedmiot jest
   odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
+- **Hydrosfera (14.11.2026):** zrobiona (szczegóły w `docs/historia.md`). Do oceny na telefonie: siła pocisku na dystans
+  wobec broni wręcz, czy przemoczenie (20% wolniej) jest odczuwalne, Wir i Gejzery, płynność Ulewy z Wirem (w chmurze
+  61-68 klatek/s), cena 4500 zł. Później: kamienie unikalne hydrosfery, combo przemoczenia z Gromem i lodem, widoczny
+  znak przemoczenia na potworze (np. krople z kreatora - część water_drips).
+
 - **Glewia ognia i kolczyk z kłem (13.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie:
   siła i zasięg umiejętności glewii wobec miecza, czy podpalenie jest odczuwalne, nowe działania 5. i 10. poziomu
   (propozycje Claude), cena 3000 zł i próg Wodza 10, czy płonący krąg i pas ognia nie zasłaniają wrogów, liczba klatek

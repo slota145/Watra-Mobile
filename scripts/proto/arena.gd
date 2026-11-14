@@ -646,7 +646,7 @@ func _apply_weapon() -> void:
 ## Zmiana broni w bazie (okno umiejętności): nowy węzeł broni w miejscu starego (te same cele - kukły), statystyki
 ## i umiejętności nowej broni.
 func _swap_weapon() -> void:
-	if (weapon is ProtoGlaive) == (Game.weapon == Weapons.GLAIVE):
+	if weapon.get_script() == Weapons.script_of(Game.weapon):
 		return
 	var old := weapon
 	weapon = Weapons.make(Game.weapon)

@@ -328,5 +328,113 @@
       28
     ],
     "columns": 3
+  },
+  "hydro_bolt": {
+    "effect": "bd21d7db-7b7f-42e2-b6a0-474f664e7b07",
+    "name": "Hydrosfera - wodny pocisk (pętla)",
+    "frame": [
+      30,
+      16
+    ],
+    "frames": 8,
+    "fps": 12,
+    "anchor": [
+      22,
+      8
+    ],
+    "columns": 3
+  },
+  "hydro_splash": {
+    "effect": "9bbc37e1-f0cd-4e21-b289-9360af29f4b4",
+    "name": "Hydrosfera - rozprysk",
+    "frame": [
+      42,
+      35
+    ],
+    "frames": 10,
+    "fps": 14,
+    "anchor": [
+      21,
+      18
+    ],
+    "columns": 4
+  },
+  "hydro_wave": {
+    "effect": "3b1ed68e-f003-4e14-b672-c8f653423ebd",
+    "name": "Hydrosfera - fala (klatki 3-12 w pętli)",
+    "frame": [
+      48,
+      55
+    ],
+    "frames": 14,
+    "fps": 16,
+    "anchor": [
+      28,
+      27
+    ],
+    "columns": 4
+  },
+  "hydro_vortex": {
+    "effect": "fed064b2-0b97-49c7-9595-7c168131baf6",
+    "name": "Hydrosfera - wir (pętla)",
+    "frame": [
+      68,
+      52
+    ],
+    "frames": 16,
+    "fps": 10,
+    "anchor": [
+      34,
+      37
+    ],
+    "columns": 4
+  },
+  "hydro_geyser": {
+    "effect": "3a5c1f94-d43a-4a2e-b0e4-101e4f909433",
+    "name": "Hydrosfera - gejzer",
+    "frame": [
+      97,
+      80
+    ],
+    "frames": 12,
+    "fps": 14,
+    "anchor": [
+      49,
+      39
+    ],
+    "columns": 4
+  },
+  "hydro_drop": {
+    "effect": "40c5ebe7-cfbd-42c5-a24d-4e64d57dce45",
+    "name": "Hydrosfera - sopel ulewy (pętla, w prawo)",
+    "frame": [
+      37,
+      16
+    ],
+    "frames": 8,
+    "fps": 12,
+    "anchor": [
+      29,
+      6
+    ],
+    "columns": 3
+  },
+  "hydro_swirl": {
+    "effect": "bbe70619-b7f8-4d22-94bd-2b2a8874edbf",
+    "name": "Hydrosfera - łuk wiru (przebarwione cięcie tańca glewii)",
+    "frame": [
+      65,
+      40
+    ],
+    "frames": 12,
+    "fps": 28,
+    "anchor": [
+      30,
+      36
+    ],
+    "columns": 4,
+    "source": "glaive_dance_slash",
+    "hue": "#3a9ae8",
+    "boost": 1.1
   }
 }

@@ -2,6 +2,30 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 14.11.2026 - hydrosfera (trzecia broń, woda)
+
+- Decyzje autora (ankiety 14.11.2026): hydrosfera - woda, walka na dystans, kula wody nad ręką; Wódz 15. poziomu albo
+  4500 zł; umiejętności jak w propozycji Claude (nowe działania 5. i 10. poziomu też - do oceny).
+- `ProtoHydrosphere` (`scripts/proto/proto_hydrosphere.gd`, dziedziczy po ProtoWeapon): każde trafienie przemacza
+  (`_hit` -> `ProtoTarget.slow` 20% na 3 s). Wodny pocisk (`h_bolt`, zwykły cios): kula podlatuje i wypluwa bańkę
+  230 px/s do 140 px, lekko naprowadzaną na cel; pęka na pierwszym trafionym, rozprysk 20 px (50%) - 5. poziom x1,5,
+  10. - co trzeci strzał 3 bańki w wachlarzu ±18°. Fala (`h_wave`, mistrz. 3, 15 many, 5 s): sierp wody 160 px/s na
+  110 px, przebija i odpycha (5. - x1,5 dalej, 10. - druga fala po 0,3 s). Wir (`h_vortex`, 6, 20 many, 8 s): 3 s
+  w miejscu wroga, promień 42, wciąga (push_away od punktu za celem), co 0,4 s rani 0,35 (5. - 4 s, 10. - wybuch wody
+  na koniec). Gejzery (`h_geyser`, 10, 25 many, 8 s): pod 5 najbliższymi wrogami w 120 px po 0,35 s (pod wrogiem
+  tam, gdzie akurat stoi) - rani 1,8 i ogłusza 1 s (5. - 1,5 s, 10. - 8 gejzerów). Ulewa (`h_rain`, 15, 30 many,
+  12 s): 4 s, co 0,25 s sopel spada w 0,3 s na losowego wroga w 130 px (5. - 6 s, 10. - co 0,125 s).
+- `Weapons.script_of` / `make` (arena podmienia węzeł przez porównanie skryptu), `Weapons.short_name_of` (krótkie
+  nazwy na przyciskach broni - „Glewia”; niedostępna broń pokazuje cenę), `STRIKE_STATES` z `orb_windup`/`orb_shot`.
+- Grafika: kula 24 px w skali 0,5 (`assets/weapons/hydrosphere.png`, narzędzie pikseli PixelLab; pierwsza wersja 18 px
+  1:1 była za duża i toporna). Efekty z kreatora (My effects autora): `hydro_bolt` (bańka, pętla), `hydro_splash`
+  (rozprysk), `hydro_wave` (sierp wody, klatki 3-12 w pętli), `hydro_vortex` (kręgi z bąbelkami, pętla),
+  `hydro_geyser`, `hydro_drop` (sopel, w grze ostrzem w dół) i `hydro_swirl` (łuk wiru - przebarwione cięcie tańca
+  glewii, `vfx_art.py` `hue`; w grze obracany w spłaszczonym węźle). Ikony: `tools/weapon_icons.py` (dawniej
+  `glaive_icons.py`, motyw wody - granat z turkusową poświatą) -> `assets/skills/hydro/`. Zrzuty `tools/hydro_shots.gd`
+  (Ulewa z wirem: 61-68 klatek/s w chmurze).
+- Test: `tests/test_hydrosphere.gd`. Kamieni unikalnych hydrosfera jeszcze nie ma.
+
 ## 14.11.2026 - efekt podpalenia na potworach
 
 - Prośba autora: podpalony potwór płonie. Nowy zapętlony efekt z kreatora „Podpalenie potwora (pętla)”

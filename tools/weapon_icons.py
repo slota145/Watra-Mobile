@@ -1,8 +1,9 @@
-"""Ikony umiejętności glewii ognia (64x64) złożone z grafik gry - decyzja autora 14.11.2026 (zamiast PixelLab AI).
+"""Ikony umiejętności broni (64x64) złożone z grafik gry - decyzja autora 14.11.2026 (zamiast PixelLab AI).
 
-Każda ikona: ramka z ikony Watry (assets/watra/skills/lunge.png - zaokrąglony kwadrat), w środku ciemne, żarzące się
-tło, a na nim glewia (assets/weapons/glaive.png) i klatki jej efektów z kreatora (assets/effects/glaive_*.png).
-Wynik: assets/skills/glaive/<umiejętność>.png. Uruchom: python tools/glaive_icons.py
+Każda ikona: ramka z ikony Watry (assets/watra/skills/lunge.png - zaokrąglony kwadrat), w środku ciemne tło w barwie
+żywiołu broni (ogień - żar od dołu, woda - turkusowa poświata), a na nim broń (assets/weapons/) i klatki jej efektów
+z kreatora (assets/effects/). Glewia ognia -> assets/skills/glaive/g_*.png, hydrosfera -> assets/skills/hydro/h_*.png.
+Uruchom: python tools/weapon_icons.py
 """
 import math
 import os
@@ -11,7 +12,7 @@ from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FX = os.path.join(ROOT, "assets", "effects")
-OUT = os.path.join(ROOT, "assets", "skills", "glaive")
+OUT = os.path.join(ROOT, "assets", "skills")
 SIZE = 64
 BORDER = 4  # grubość ramki (piksele od krawędzi kształtu)
 
@@ -46,7 +47,7 @@ def rotated(im, deg):
 RING = [(2, 1, 1, 255), (40, 44, 58, 255), (40, 44, 58, 255), (72, 78, 98, 255)]
 
 
-def base():
+def base(theme="fire"):
     """Ramka (kształt ikony Watry, kolory RING) i ciemne tło z żarem od dołu. Zwraca obraz i piksele wnętrza."""
     alpha = load("assets/watra/skills/lunge.png").getchannel("A")
     dist = {}
@@ -74,9 +75,14 @@ def base():
         inside.append((x, y))
         t = y / SIZE  # od góry ciemny granat, ku dołowi bordowy żar
         glow = max(0.0, 1.0 - math.hypot(x - 32, y - 60) / 42.0)
-        r = int(20 + 34 * t + 96 * glow)
-        g = int(16 + 8 * t + 34 * glow)
-        b = int(28 - 12 * t)
+        if theme == "water":  # granat z turkusową poświatą od dołu
+            r = int(10 + 6 * t + 20 * glow)
+            g = int(20 + 20 * t + 70 * glow)
+            b = int(40 + 30 * t + 90 * glow)
+        else:
+            r = int(20 + 34 * t + 96 * glow)
+            g = int(16 + 8 * t + 34 * glow)
+            b = int(28 - 12 * t)
         if (x * 3 + y * 2) % 11 == 0:  # pasy jak pociągnięcia pędzla w ikonach Watry
             r, g, b = r + 6, g + 4, b + 4
         o[x, y] = (min(r, 255), min(g, 255), max(b, 0), 255)
@@ -87,9 +93,9 @@ def paste(img, sprite, center):
     img.alpha_composite(sprite, (round(center[0] - sprite.width / 2), round(center[1] - sprite.height / 2)))
 
 
-def clip(img, inside):
+def clip(img, inside, theme="fire"):
     """Usuwa to, co wyszło na ramkę lub poza nią (ramka zostaje na wierzchu)."""
-    frame_img, _ = base()
+    frame_img, _ = base(theme)
     keep = set(inside)
     out = frame_img.copy()
     px, src = out.load(), img.load()
@@ -149,12 +155,63 @@ def icon_dance():
     return clip(img, inside)
 
 
+ORB = scaled(load("assets/weapons/hydrosphere.png"), 2)
+
+
+def icon_bolt():
+    img, inside = base("water")
+    bolt = trim(frame("hydro_bolt", 2))
+    paste(img, rotated(scaled(bolt, 1.6), 30), (40, 26))
+    paste(img, ORB, (20, 44))
+    paste(img, scaled(trim(frame("hydro_splash", 4)), 0.7), (50, 16))
+    return clip(img, inside, "water")
+
+
+def icon_wave():
+    img, inside = base("water")
+    paste(img, scaled(trim(frame("hydro_wave", 6)), 0.95), (40, 32))
+    paste(img, scaled(ORB, 0.75), (18, 34))
+    return clip(img, inside, "water")
+
+
+def icon_vortex():
+    img, inside = base("water")
+    paste(img, scaled(trim(frame("hydro_vortex", 3)), 0.8), (32, 40))
+    swirl = trim(frame("hydro_swirl", 4))
+    paste(img, scaled(swirl, 0.75), (32, 30))
+    paste(img, rotated(scaled(swirl, 0.75), 180), (32, 44))
+    return clip(img, inside, "water")
+
+
+def icon_geyser():
+    img, inside = base("water")
+    paste(img, scaled(trim(frame("hydro_geyser", 5)), 0.62), (32, 34))
+    return clip(img, inside, "water")
+
+
+def icon_rain():
+    img, inside = base("water")
+    drop = rotated(trim(frame("hydro_drop", 2)), -90)  # ostrzem w dół
+    for x, y in ((18, 20), (34, 14), (48, 24), (26, 36)):
+        paste(img, drop, (x, y))
+    paste(img, scaled(trim(frame("hydro_splash", 5)), 0.7), (40, 50))
+    return clip(img, inside, "water")
+
+
+ICONS = {
+    "glaive": (("g_thrust", icon_thrust), ("g_sweep", icon_sweep), ("g_trail", icon_trail), ("g_pillar", icon_pillar),
+               ("g_dance", icon_dance)),
+    "hydro": (("h_bolt", icon_bolt), ("h_wave", icon_wave), ("h_vortex", icon_vortex), ("h_geyser", icon_geyser),
+              ("h_rain", icon_rain)),
+}
+
+
 def main():
-    os.makedirs(OUT, exist_ok=True)
-    for name, make in (("g_thrust", icon_thrust), ("g_sweep", icon_sweep), ("g_trail", icon_trail),
-                       ("g_pillar", icon_pillar), ("g_dance", icon_dance)):
-        make().save(os.path.join(OUT, name + ".png"))
-        print(name)
+    for folder, icons in ICONS.items():
+        os.makedirs(os.path.join(OUT, folder), exist_ok=True)
+        for name, make in icons:
+            make().save(os.path.join(OUT, folder, name + ".png"))
+            print(folder, name)
 
 
 if __name__ == "__main__":

@@ -119,7 +119,7 @@ func _ready() -> void:
 	weapons_row.add_theme_constant_override("separation", 6)
 	column.add_child(weapons_row)
 	for w in Weapons.ORDER:
-		var wb := _button(weapons_row, Weapons.name_of(w))
+		var wb := _button(weapons_row, Weapons.short_name_of(w))
 		wb.custom_minimum_size.y = 44
 		wb.icon = Weapons.icon_of(w)
 		wb.expand_icon = true
@@ -361,9 +361,9 @@ func refresh() -> void:
 		if _buy_armed == "weapon:" + w:
 			wb.text = tr("Na pewno?")
 		elif ready:
-			wb.text = Weapons.name_of(w)
+			wb.text = Weapons.short_name_of(w)
 		else:
-			wb.text = tr("%s: %d zł") % [Weapons.name_of(w), Weapons.price_of(w)]
+			wb.text = tr("%d zł") % Weapons.price_of(w)
 		wb.modulate = Color.WHITE if ready else Color(0.75, 0.75, 0.75)
 	if Skills.weapon_of(gem_skill) != _game.weapon:
 		gem_skill = Skills.basic_of(_game.weapon)
