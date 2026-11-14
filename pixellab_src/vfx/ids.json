@@ -210,7 +210,7 @@
   },
   "glaive_thrust": {
     "effect": "fc0bcebd-0dfb-47dc-ba76-180cd73f9352",
-    "name": "Glewia - pchnięcie ognia",
+    "name": "Glewia - pchnięcie ognia (tył zwężony w tools/vfx_art.py)",
     "frame": [
       58,
       16
@@ -221,7 +221,8 @@
       5,
       8
     ],
-    "columns": 3
+    "columns": 3,
+    "taper": 14
   },
   "glaive_sweep": {
     "effect": "b2d9ab67-ce26-44a3-9d4d-4f91989f574a",
@@ -295,6 +296,21 @@
     "anchor": [
       19,
       19
+    ],
+    "columns": 4
+  },
+  "glaive_dance_slash": {
+    "effect": "bbe70619-b7f8-4d22-94bd-2b2a8874edbf",
+    "name": "Glewia - cięcie tańca (łuk nad zaczepieniem)",
+    "frame": [
+      65,
+      40
+    ],
+    "frames": 12,
+    "fps": 28,
+    "anchor": [
+      30,
+      36
     ],
     "columns": 4
   }

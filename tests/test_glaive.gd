@@ -169,17 +169,20 @@ func _test_combat(game: Node) -> void:
 	var after: int = near.hp
 	await _wait(1.2)
 	_check(near.hp < after, "płonący krąg dalej rani")
-	# Płonący ślad: doskok i pas ognia
+	# Płonąca bruzda: postać stoi, glewia ryje pas ognia, 3 szybkie cięcia w wachlarzu
 	await _wait(0.6)
 	weapon.reset_cooldowns()
 	hero.mana = hero.max_mana
 	hero.position = Vector2(-60, 0)
 	var start := hero.global_position
 	hp = [near.hp]
-	_check(weapon.cast("g_trail"), "Płonący ślad rusza")
+	_check(weapon.cast("g_trail"), "Płonąca bruzda rusza")
 	await _wait(0.4)
-	_check(hero.global_position.distance_to(start) > 40.0, "doskok przenosi postać")
-	_check(weapon._zones.any(func(z: Dictionary) -> bool: return z.skill == "g_trail"), "za postacią pas ognia")
+	var furrow_cuts := weapon._cuts.filter(func(c: Dictionary) -> bool: return c.skill == "g_trail")
+	_check(hero.global_position.distance_to(start) < 2.0 and furrow_cuts.size() == 3, "postać stoi, 3 cięcia w wachlarzu")
+	_check(weapon._zones.any(func(z: Dictionary) -> bool: return z.skill == "g_trail"), "bruzda płonie")
+	await _wait(0.3)
+	_check(near.hp < hp[0], "cięcia bruzdy ranią wroga przed postacią")
 	# Taniec płomieni: cięcia lecą na zewnątrz
 	await _wait(0.4)
 	weapon.reset_cooldowns()
@@ -188,7 +191,8 @@ func _test_combat(game: Node) -> void:
 	hp = [near.hp, side.hp]
 	_check(weapon.cast("g_dance"), "Taniec płomieni rusza")
 	await _wait(1.0)
-	_check(weapon._state == "dance" and weapon._cuts.size() >= 2, "glewia wiruje, cięcia lecą (%d)" % weapon._cuts.size())
+	_check(weapon._state == "dance" and weapon._cuts.size() >= 2 and not weapon._whirl_fx.visible,
+			"seria cięć bez wiru, sierpy lecą (%d)" % weapon._cuts.size())
 	await _wait(1.5)
 	_check(near.hp < hp[0] or side.hp < hp[1], "cięcia ranią wrogów wokół")
 	await _wait(1.5)

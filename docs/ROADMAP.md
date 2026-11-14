@@ -71,7 +71,8 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 - **Glewia ognia i kolczyk z kłem (13.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie:
   siła i zasięg umiejętności glewii wobec miecza, czy podpalenie jest odczuwalne, nowe działania 5. i 10. poziomu
   (propozycje Claude), cena 3000 zł i próg Wodza 10, czy płonący krąg i pas ognia nie zasłaniają wrogów, liczba klatek
-  w Tańcu płomieni z ogniem na ziemi. Później: kamienie unikalne glewii, własne ikony umiejętności glewii (teraz z Watry),
+  w Tańcu płomieni z ogniem na ziemi. Po poprawkach 14.11.2026 (Płonąca bruzda zamiast doskoku, nowy Taniec, zwężona
+  smuga pchnięcia): czy wachlarz bruzdy trafia, czy seria cięć tańca czyta się na telefonie. Później: kamienie unikalne glewii, własne ikony umiejętności glewii (teraz z Watry),
   kolor liczb obrażeń od ognia.
 
 - **Żywioły i wiele broni (13.11.2026):** etap 1 zrobiony - fundament żywiołów, mistrzostwo broni odblokowuje

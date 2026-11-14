@@ -5,13 +5,14 @@ extends ProtoWeapon
 ## - zwykły cios „Pchnięcie glewii” (`g_thrust`): glewia cofa się i dźga daleko przed siebie, rani wszystkich na linii;
 ## - „Ognisty zamach” (`g_sweep`): szeroki półokrąg przed postacią, mocno podpala (5. poziom - odpycha, 10. - drugi
 ##   zamach w drugą stronę);
-## - „Płonący ślad” (`g_trail`): doskok z pchnięciem w stronę wroga, rani na drodze, za postacią pas ognia na ziemi
-##   (5. poziom - płonie dłużej, 10. - wybuch na końcu doskoku);
+## - „Płonąca bruzda” (`g_trail`, pomysł autora 14.11.2026 zamiast doskoku): glewia wbija się w ziemię przed postacią
+##   i ryje bruzdę do przodu - zostaje krótki pas ognia, a w wachlarzu wylatują 3 szybkie pionowe cięcia ognia
+##   (5. poziom - bruzda płonie dłużej, 10. - 5 cięć);
 ## - „Słup ognia” (`g_pillar`): glewia wznosi się i spada na wroga, wybuch ognia wokół i płonący krąg na ziemi
 ##   (5. poziom - większy krąg, 10. - drugi wybuch po chwili);
-## - „Taniec płomieni” (`g_dance`, pomysł autora): glewia wiruje wokół postaci i co chwilę wypuszcza zamaszyste cięcie,
-##   które powoli leci na zewnątrz (kolejne obracają się dookoła - na wszystkie strony) i przebija wrogów
-##   (5. poziom - dłużej, 10. - po dwa cięcia naraz w przeciwne strony).
+## - „Taniec płomieni” (`g_dance`, pomysł autora): seria zamaszystych cięć dookoła postaci pod różnymi kątami (14.11.2026:
+##   bez wiru) - każde cięcie wypuszcza sierp ognia, który powoli leci na zewnątrz i przebija wrogów
+##   (5. poziom - dłużej, 10. - po dwa sierpy naraz w przeciwne strony).
 ## Każde trafienie podpala (`_hit`): Skills.burn_of - ile obrażeń trafienia dopala się przez BURN_TIME (silniejsze
 ## podpalenie zastępuje słabsze - ProtoTarget.burn). Ogień na ziemi (`_zones`) co ZONE_TICK rani i podpala stojących
 ## w nim wrogów. Grafika glewii: assets/weapons/glaive.png (ostrze w prawo, rękojeść po lewej; narysowana w narzędziu
@@ -34,13 +35,21 @@ const SWEEP_ARC := deg_to_rad(200.0)
 const SWEEP_RADIUS := 58.0
 const SWEEP_TIME := 0.26
 const SWEEP_PUSH := 150.0
-## Płonący ślad: długość i czas doskoku, połowa szerokości pasa, jak długo płonie (5. poziom - dłużej), wybuch z 10.
-const TRAIL_DASH := 90.0
-const TRAIL_TIME := 0.2
-const TRAIL_WIDTH := 14.0
+## Płonąca bruzda: gdzie glewia wbija się w ziemię i dokąd ryje (od środka postaci), czas wbicia i przeciągnięcia,
+## połowa szerokości pasa ognia, jak długo płonie (5. poziom - dłużej), cięcia w wachlarzu (liczba, z 10. poziomu,
+## rozstaw między sąsiednimi, prędkość, zasięg).
+const FURROW_FROM := 12.0
+const FURROW_TO := 40.0
+const FURROW_PLUNGE := 0.1
+const FURROW_DRAG := 0.22
+const TRAIL_WIDTH := 12.0
 const TRAIL_BURN := 3.0
 const TRAIL_BURN_LONG := 5.0
-const TRAIL_BLAST_RADIUS := 40.0
+const FURROW_CUTS := 3
+const FURROW_CUTS_PERK := 5
+const FURROW_SPREAD := deg_to_rad(20.0)
+const FURROW_CUT_SPEED := 260.0
+const FURROW_CUT_DISTANCE := 130.0
 ## Słup ognia: wzniesienie, spadek, tkwienie w ziemi, wysokość, promień wybuchu i płonącego kręgu, drugi wybuch.
 const PILLAR_RISE := 0.25
 const PILLAR_FALL := 0.09
@@ -51,11 +60,13 @@ const PILLAR_ZONE_RADIUS := 36.0
 const PILLAR_ZONE_BIG := 1.5
 const PILLAR_ZONE_TIME := 3.0
 const PILLAR_ECHO := 0.5
-## Taniec płomieni: czas (5. poziom - dłużej), obroty na sekundę, co ile cięcie, prędkość i zasięg cięć, promień trafienia.
+## Taniec płomieni: czas (5. poziom - dłużej), co ile cięcie, łuk jednego cięcia, o ile (od-do) obraca się kolejne,
+## prędkość i zasięg sierpów, promień trafienia.
 const DANCE_TIME := 3.0
 const DANCE_TIME_LONG := 4.0
-const DANCE_SPIN := 1.4
 const DANCE_EVERY := 0.3
+const DANCE_SWING := deg_to_rad(140.0)
+const DANCE_TURN := Vector2(deg_to_rad(100.0), deg_to_rad(200.0))
 const CUT_SPEED := 70.0
 const CUT_DISTANCE := 150.0
 const CUT_RADIUS := 15.0
@@ -85,6 +96,10 @@ const CUT_FX_ANCHOR := Vector2(20, 20)
 const CUT_FX_FRAMES := 14
 ## Klatki lecącego sierpa (bez rozbłysku na początku i gaśnięcia na końcu) - grają w pętli w locie.
 const CUT_FX_LOOP := Vector2i(2, 12)
+const DANCE_SLASH_FX := preload("res://assets/effects/glaive_dance_slash.png")
+## Cięcie tańca: łuk nad punktem zaczepienia (wypukły do góry), promień ok. 27 px.
+const DANCE_SLASH_ANCHOR := Vector2(30, 36)
+const DANCE_SLASH_SIZE := 1.4
 const FIRE_HIT_FX := preload("res://assets/effects/glaive_hit.png")
 const FIRE_HIT_ANCHOR := Vector2(19, 19)
 
@@ -95,8 +110,9 @@ var _zones: Array = []
 var _dance_left := 0.0
 var _dance_acc := 0.0
 var _sweep_again := false
-var _dash_from := Vector2.ZERO
-var _dash_to := Vector2.ZERO
+var _furrow_from := Vector2.ZERO
+var _furrow_to := Vector2.ZERO
+var _dance_sign := 1.0
 
 
 func _init() -> void:
@@ -109,7 +125,6 @@ func _ready() -> void:
 	for s in [_sprite] + _ghosts:
 		s.texture = GLAIVE_TEXTURE
 		s.offset = -G_GRIP
-	_whirl_fx.modulate = Color(FIRE, 0.85)
 
 
 func _process(delta: float) -> void:
@@ -237,9 +252,12 @@ func _start(id: String) -> void:
 			_sweep_fx()
 			_set_state("sweep")
 		"g_trail":
-			_dash_from = hero.global_position
-			_dash_to = hero.global_position + Vector2.from_angle(_aim) * TRAIL_DASH * _area(id)
-			_hit_set = []
+			var dir := Vector2.from_angle(_aim)
+			_furrow_from = hero.global_position + dir * FURROW_FROM
+			_furrow_to = hero.global_position + dir * FURROW_TO * _area(id)
+			_from_pos = position
+			_from_sprite = _sprite.position
+			_from_rot = _sprite.rotation
 			_set_state("trail")
 		"g_pillar":
 			_goal = best.position if best else hero.position + hero.facing.normalized() * 30.0
@@ -251,8 +269,6 @@ func _start(id: String) -> void:
 			_spin = _aim
 			_dance_left = DANCE_TIME_LONG if _perk(id, 0) else DANCE_TIME
 			_dance_acc = DANCE_EVERY
-			_whirl_fx.visible = true
-			_whirl_fx.scale = Vector2.ONE * (G_LENGTH + 10.0) / WHIRL_FX_RADIUS
 			_set_state("dance")
 	hero.play_gesture(_orbit_center() + Vector2.from_angle(_aim) * 20.0 + Vector2(0, ORBIT_HEIGHT))
 	skill_used.emit(id)
@@ -293,24 +309,29 @@ func _sweep_fx() -> void:
 	fx.rotation = _aim
 
 
-## Płonący ślad: postać doskakuje z wysuniętą glewią, rani wszystkich na drodze (każdego raz), a za nią zostaje pas ognia.
+## Płonąca bruzda: glewia wbija się ostrzem w ziemię przed postacią, ryje do przodu (pas ognia za nią), a na końcu
+## wypuszcza wachlarz szybkich cięć ognia. Postać stoi w miejscu.
 func _process_trail() -> void:
-	var k := clampf(_t / TRAIL_TIME, 0.0, 1.0)
-	var spot := hero.teleport(_dash_from.lerp(_dash_to, ease(k, 0.6)))
-	_place_line(_aim, 6.0)
-	for t in _live_targets():
-		if _hit_set.has(t):
-			continue
-		var to := t.global_position - spot
-		if to.length() <= TRAIL_WIDTH + 10.0 or (t.center() - _orbit_center()).length() <= G_LENGTH:
-			_hit_set.append(t)
-			_hit(t, _power("g_trail"), _dash_from, "g_trail")
-	if _t >= TRAIL_TIME:
-		var end := hero.global_position
-		_add_zone(_dash_from, end, TRAIL_WIDTH * _area("g_trail"),
+	var dig := Vector2(0, -G_LENGTH + 8.0)  # chwyt nad ziemią, czubek w ziemi
+	if _t < FURROW_PLUNGE:
+		var k := ease(clampf(_t / FURROW_PLUNGE, 0.0, 1.0), -2.0)
+		position = _from_pos.lerp(_furrow_from, k)
+		_sprite.position = _from_sprite.lerp(dig, k)
+		_sprite.rotation = lerp_angle(_from_rot, PI / 2.0, k)
+		return
+	var k := clampf((_t - FURROW_PLUNGE) / FURROW_DRAG, 0.0, 1.0)
+	position = _furrow_from.lerp(_furrow_to, ease(k, 0.6))
+	_sprite.position = dig
+	_sprite.rotation = PI / 2.0 - 0.35 * signf(cos(_aim) + 0.001)  # przechylona do tyłu - ciągnięta
+	if k >= 1.0:
+		_add_zone(_furrow_from, _furrow_to, TRAIL_WIDTH * _area("g_trail"),
 				TRAIL_BURN_LONG if _perk("g_trail", 0) else TRAIL_BURN, "g_trail")
-		if _perk("g_trail", 1):
-			_blast(end, TRAIL_BLAST_RADIUS * _area("g_trail"), _power("g_trail"), "g_trail")
+		var n := FURROW_CUTS_PERK if _perk("g_trail", 1) else FURROW_CUTS
+		for i in n:
+			var a := _aim + (i - (n - 1) / 2.0) * FURROW_SPREAD
+			_spawn_cut(a, "g_trail", _furrow_to, FURROW_CUT_SPEED, FURROW_CUT_DISTANCE)
+		Fx.once(get_parent(), FIRE_HIT_FX, 12, 16.0, _furrow_to.round(), FIRE_HIT_ANCHOR, 6)
+		Input.vibrate_handheld(30)
 		_end_skill()
 
 
@@ -360,16 +381,25 @@ func _blast(at: Vector2, radius: float, power: float, skill: String) -> void:
 	Input.vibrate_handheld(35)
 
 
-## Taniec płomieni: glewia krąży wokół postaci, co DANCE_EVERY wypuszcza cięcie w kierunku, w którym akurat wskazuje.
+## Taniec płomieni: seria cięć dookoła postaci - co DANCE_EVERY glewia przeskakuje pod nowy kąt (obrót o DANCE_TURN
+## w losową stronę) i tnie łukiem DANCE_SWING na przemian w obie strony; w połowie cięcia wylatuje sierp ognia.
 func _process_dance(delta: float) -> void:
-	_spin += TAU * DANCE_SPIN * delta
-	_place_line(_spin, 4.0)
-	_whirl_fx.position = _orbit_center() - global_position
-	_whirl_fx.frame = int(_clock * WHIRL_FX_FPS) % WHIRL_FX_FRAMES
 	_dance_left -= delta
 	_dance_acc += delta
 	if _dance_acc >= DANCE_EVERY:
 		_dance_acc -= DANCE_EVERY
+		_spin += randf_range(DANCE_TURN.x, DANCE_TURN.y) * (1.0 if randf() < 0.5 else -1.0)
+		_dance_sign = -_dance_sign
+		_hit_done = false
+		var fx := Fx.once(get_parent(), DANCE_SLASH_FX, 12, 28.0, _orbit_center().round(), DANCE_SLASH_ANCHOR, 6)
+		var size := DANCE_SLASH_SIZE * _area("g_dance")
+		fx.scale = Vector2(size * _dance_sign, size)
+		fx.rotation = _spin + PI / 2.0
+		hero.play_gesture(_orbit_center() + Vector2.from_angle(_spin) * 20.0 + Vector2(0, ORBIT_HEIGHT))
+	var k := clampf(_dance_acc / (DANCE_EVERY * 0.7), 0.0, 1.0)
+	_place_line(_spin + lerpf(-DANCE_SWING / 2.0, DANCE_SWING / 2.0, ease(k, 0.5)) * _dance_sign, 4.0)
+	if not _hit_done and k >= 0.5:
+		_hit_done = true
 		_spawn_cut(_spin)
 		if _perk("g_dance", 1):
 			_spawn_cut(_spin + PI)
@@ -377,8 +407,9 @@ func _process_dance(delta: float) -> void:
 		_end_skill()
 
 
-## Zamaszyste cięcie Tańca płomieni: sierp ognia leci powoli od postaci pod kątem `a`.
-func _spawn_cut(a: float) -> void:
+## Sierp ognia leci od `from` (domyślnie środek postaci) pod kątem `a` z prędkością `speed` na `distance` pikseli
+## i przebija wrogów; rani siłą umiejętności `skill` (Taniec płomieni - wolno, Płonąca bruzda - szybko).
+func _spawn_cut(a: float, skill := "g_dance", from := Vector2.INF, speed := CUT_SPEED, distance := CUT_DISTANCE) -> void:
 	var fx := Sprite2D.new()
 	fx.texture = CUT_FX
 	fx.hframes = CUT_FX_FRAMES
@@ -387,26 +418,27 @@ func _spawn_cut(a: float) -> void:
 	fx.offset = -CUT_FX_ANCHOR
 	fx.z_index = 20
 	fx.rotation = a
-	fx.scale = Vector2.ONE * _area("g_dance")
+	fx.scale = Vector2.ONE * _area(skill)
 	get_parent().add_child(fx)
-	fx.global_position = _orbit_center()
-	_cuts.append({"fx": fx, "dir": Vector2.from_angle(a), "left": CUT_DISTANCE * _area("g_dance"), "hits": []})
+	fx.global_position = _orbit_center() if from == Vector2.INF else from + Vector2(0, -ORBIT_HEIGHT)
+	_cuts.append({"fx": fx, "dir": Vector2.from_angle(a), "left": distance * _area(skill), "hits": [], "skill": skill,
+			"speed": speed})
 
 
 func _process_cuts(delta: float) -> void:
 	for i in range(_cuts.size() - 1, -1, -1):
 		var c: Dictionary = _cuts[i]
 		var fx: Sprite2D = c.fx
-		var step := CUT_SPEED * delta
+		var step: float = c.speed * delta
 		fx.global_position += c.dir * step
 		fx.frame = CUT_FX_LOOP.x + int(_clock * 16.0 + i) % (CUT_FX_LOOP.y - CUT_FX_LOOP.x)
 		c.left -= step
 		fx.modulate.a = clampf(c.left / 30.0, 0.0, 1.0)
-		var reach := CUT_RADIUS * _area("g_dance")
+		var reach := CUT_RADIUS * _area(c.skill)
 		for t in _live_targets():
 			if not c.hits.has(t) and t.center().distance_to(fx.global_position) <= reach:
 				c.hits.append(t)
-				_hit(t, _power("g_dance"), fx.global_position - c.dir * 10.0, "g_dance")
+				_hit(t, _power(c.skill), fx.global_position - c.dir * 10.0, c.skill)
 				_fire_hit(t)
 		if c.left <= 0.0:
 			fx.queue_free()
