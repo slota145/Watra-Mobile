@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://y6rjhbe2mpdt"
-path="res://.godot/imported/blink.png-7f4000941ee0b5ca2b42bf6c5d8193ab.ctex"
+uid="uid://dlcpu78ctlbuv"
+path="res://.godot/imported/steel_ring.png-e291c67b46ae6b7b6f421fbb901e608a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/unique_gems/blink.png"
-dest_files=["res://.godot/imported/blink.png-7f4000941ee0b5ca2b42bf6c5d8193ab.ctex"]
+source_file="res://assets/skills/sword/steel_ring.png"
+dest_files=["res://.godot/imported/steel_ring.png-e291c67b46ae6b7b6f421fbb901e608a.ctex"]
 
 [params]
 

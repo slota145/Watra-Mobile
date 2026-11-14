@@ -244,9 +244,19 @@ func load_game() -> void:
 					skill_levels[id] = clampi(int(raw_levels[id]), 1, Skills.MAX_LEVEL)
 		var raw_gems = data.get("gems", {})
 		if raw_gems is Dictionary:
-			for id in raw_gems:
-				if Gems.valid(id) and int(raw_gems[id]) > 0:
-					gems[id] = int(raw_gems[id])
+			for raw_id in raw_gems:
+				var id: String = Gems.LEGACY.get(raw_id, raw_id)
+				if Gems.valid(id) and int(raw_gems[raw_id]) > 0:
+					gems[id] = gems.get(id, 0) + int(raw_gems[raw_id])
+		# kamienie z umiejętności, których już nie ma (Mgnienie miecza - 15.11.2026), wracają do sakwy
+		var raw_old_sg = data.get("skill_gems", {})
+		if raw_old_sg is Dictionary:
+			for skill in raw_old_sg:
+				if not Skills.has(skill) and raw_old_sg[skill] is Array:
+					for g in raw_old_sg[skill]:
+						var gid: String = Gems.LEGACY.get(g, g) if g is String else ""
+						if Gems.valid(gid):
+							gems[gid] = gems.get(gid, 0) + 1
 		var raw_open = data.get("skill_open", {})
 		if raw_open is Dictionary:
 			for id in raw_open:

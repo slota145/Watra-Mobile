@@ -49,6 +49,20 @@ func _test_unlock(game: Node) -> void:
 	_check(game.set_weapon("katana") and game.main_skill() == "k_slash" and game.skill_slots[0] == "k_slash",
 			"po 20. poziomie katana w ręku, cięcie pod „Atak”")
 	_check(Weapons.make("katana") is ProtoKatana, "węzeł broni - ProtoKatana")
+	# stary zapis: kamienie z Mgnienia miecza wracają do sakwy, jego kamień unikalny przechodzi na Błysk Peruna
+	game.save_game()
+	var f := FileAccess.open(game.save_path, FileAccess.READ)
+	var data: Dictionary = JSON.parse_string(f.get_as_text())
+	f.close()
+	data["gems"] = {"unique:blink": 1}
+	data["skill_gems"] = {"blink": ["unique:blink", "multi:2", ""]}
+	data["skills_owned"] = ["strike", "blink"]
+	f = FileAccess.open(game.save_path, FileAccess.WRITE)
+	f.store_string(JSON.stringify(data))
+	f.close()
+	game.load_game()
+	_check(game.gems.get("unique:k_flash", 0) == 2 and game.gems.get("multi:2", 0) == 1
+			and not game.skills_owned.has("blink"), "stary zapis: kamienie Mgnienia w sakwie, unikalny dla Błysku Peruna")
 	_check(is_equal_approx(Elements.soak_bonus(Elements.LIGHTNING, true), Elements.SOAK_BONUS)
 			and is_equal_approx(Elements.soak_bonus(Elements.COLD, true), Elements.SOAK_BONUS)
 			and Elements.soak_bonus(Elements.FIRE, true) == 1.0 and Elements.soak_bonus(Elements.LIGHTNING, false) == 1.0,
@@ -181,6 +195,48 @@ func _test_combat(game: Node) -> void:
 	_check(weapon.blink_skill == "k_flash" and weapon.cast("k_flash"), "Błysk Peruna skacze")
 	await process_frame
 	_check(far.hp < hp and far.is_shocked(), "Błysk Peruna rani i poraża")
+	_check(not Skills.can_be_main("k_flash") and not game.assign_skill("k_flash", 0), "Błysk Peruna nie może stać pod „Atak”")
+	# Błysk Peruna jak dawne Mgnienie miecza: na wylot, mana, stuknięcie - jeden skok, trzymanie - seria bez odnowienia
+	await _wait(0.4)
+	_fresh(weapon, hero)
+	hero.position = far.position + Vector2(-200, 0)
+	await process_frame
+	for g in get_nodes_in_group(ProtoWeapon.TARGETS):
+		if g != far:
+			g.queue_free()
+	await process_frame
+	_check(not weapon.cast("k_flash"), "Błysk bez wroga w zasięgu się nie uda")
+	hero.position = far.position + Vector2(-60, 0)
+	await process_frame
+	var mana := hero.mana
+	_check(weapon.cast("k_flash"), "Błysk rusza")
+	_check(hero.position.x > far.position.x + 10.0 and absf(hero.position.y - far.position.y) < 2.0,
+			"postać ląduje za wrogiem, na wylot")
+	_check(hero.mana == mana - weapon.mana_cost("k_flash"), "skok kosztuje manę")
+	var jumps := weapon._blink_jumps
+	await _wait(0.5)
+	_check(weapon._blink_jumps == jumps, "samo stuknięcie - jeden skok")
+	weapon.flicker_held = true
+	await _wait(1.8)
+	weapon.flicker_held = false
+	_check(weapon._blink_jumps - jumps > 3 and weapon.cooldown_full("k_flash") == 0.0,
+			"trzymanie - skoki bez odnowienia (%d)" % (weapon._blink_jumps - jumps))
+	weapon.flicker_held = true
+	hero.mana = 3
+	jumps = weapon._blink_jumps
+	await _wait(0.4)
+	weapon.flicker_held = false
+	_check(weapon._blink_jumps == jumps and hero.mana >= 3, "bez many nie skacze")
+	game.add_gem(Gems.unique_of("k_flash"), 1, false)
+	game.socket_skill("k_flash", 0, Gems.unique_of("k_flash"))
+	weapon.skill_gems = game.skill_gems
+	_check(weapon.mana_cost("k_flash") == roundi(Skills.mana_of("k_flash") * 0.5), "Kamień Nieskończonej Mgły: skoki za pół many")
+	# 5. i 10. poziom: zabicie skokiem zwraca 2x więcej many, co 5. skok wyładowanie
+	weapon.skill_levels = {"k_flash": 10}
+	hero.mana = 30
+	far.hp = 1
+	weapon._flicker_jump(far)
+	_check(not far.alive() and hero.mana == 30 + Skills.BLINK_MANA_ON_KILL * 2, "5. poziom: zabicie skokiem zwraca 4 many")
 	game.dev_immortal = false
 	arena.queue_free()
 	await process_frame

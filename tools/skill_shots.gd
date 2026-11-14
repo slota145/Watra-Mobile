@@ -1,8 +1,8 @@
 extends SceneTree
 ## Zrzuty umiejętności: baza z kamieniem run, okno umiejętności, a w lochu walka - Młynek, Rzut mieczem,
-## Rozłupanie Ziemi i Mgnienie z odliczaniem odnowienia na przyciskach.
+## Rozłupanie Ziemi i Krąg stali z odliczaniem odnowienia na przyciskach.
 ## Użycie: SCRIPT=tools/skill_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
-## Pliki: <prefiks>_1_baza.png, _2_okno.png, _3_mlynek.png, _4_rzut.png, _5_rozlupanie.png, _6_mgnienie.png, _7_pauza.png
+## Pliki: <prefiks>_1_baza.png, _2_okno.png, _3_mlynek.png, _4_rzut.png, _5_rozlupanie.png, _6_krag.png, _7_pauza.png
 
 var _prefix := "/tmp/umiejetnosci"
 
@@ -62,11 +62,11 @@ func _run() -> void:
 	await _shot("5_rozlupanie")
 	await create_timer(0.6).timeout
 	arena.hero.mana = arena.hero.max_mana
-	weapon.cast("blink")
-	weapon.flicker_held = true  # trzymany przycisk - skoki przez kolejne gobliny
-	await create_timer(0.38).timeout
-	await _shot("6_mgnienie")
-	weapon.flicker_held = false
+	weapon.cast("steel_ring")
+	weapon.attack_held = true  # krąg krąży, a miecz w ręku tnie dalej
+	await create_timer(0.6).timeout
+	await _shot("6_krag")
+	weapon.attack_held = false
 	await create_timer(0.3).timeout
 	arena._open_menu()
 	await create_timer(0.2).timeout

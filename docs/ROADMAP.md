@@ -73,8 +73,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   ładowany Sąd Peruna, Błysk Peruna). Do oceny na telefonie: tempo i siła cięcia katany wobec miecza, czy porażenie
   (+15%) i przeskok pioruna są odczuwalne, czy Taniec ostrza nie wrzuca w tłum, czas gardy Riposty (3 s), ładowanie
   Sądu Peruna (1,5 s, 60-200 px), czy krople przemoczenia widać w tłumie, siła combo (+30%, zamrożenie Szronem).
-  Później: nowa umiejętność miecza w miejsce Mgnienia (autor: „zaraz wymyślimy”), kamienie unikalne katany, dźwięk
-  pioruna.
+  Później: kamienie unikalne katany, dźwięk pioruna.
+  Krąg stali (nowa umiejętność miecza zamiast Mgnienia) zrobiony 15.11.2026 - do oceny na telefonie: siła i czas
+  kręgu (3 miecze, 6 s, 0,6 siły), czy widmowe miecze widać w tłumie. Później: kamień unikalny Kręgu stali.
 
 - **Hydrosfera: Wodny Strażnik i kamienie unikalne (14.11.2026):** zrobione (szczegóły w `docs/historia.md`). Ocenione
   przez autora 15.11.2026: Strażnik, kamienie i liczba fal na ekranie w sam raz.

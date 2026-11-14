@@ -3,7 +3,8 @@
 Każda ikona: ramka z ikony Watry (assets/watra/skills/lunge.png - zaokrąglony kwadrat), w środku ciemne tło w barwie
 żywiołu broni (ogień - żar od dołu, woda - turkusowa poświata), a na nim broń (assets/weapons/) i klatki jej efektów
 z kreatora (assets/effects/). Glewia ognia -> assets/skills/glaive/g_*.png, hydrosfera -> assets/skills/hydro/h_*.png,
-elektryczna katana (tło burzowe - fiolet z błękitną poświatą) -> assets/skills/katana/k_*.png.
+elektryczna katana (tło burzowe - fiolet z błękitną poświatą) -> assets/skills/katana/k_*.png, nowe umiejętności miecza
+(tło stalowe) -> assets/skills/sword/*.png.
 Uruchom: python tools/weapon_icons.py
 """
 import math
@@ -76,7 +77,11 @@ def base(theme="fire"):
         inside.append((x, y))
         t = y / SIZE  # od góry ciemny granat, ku dołowi bordowy żar
         glow = max(0.0, 1.0 - math.hypot(x - 32, y - 60) / 42.0)
-        if theme == "storm":  # burzowy fiolet z błękitną poświatą od dołu
+        if theme == "steel":  # stalowy granat z chłodną, szarą poświatą od dołu
+            r = int(22 + 10 * t + 44 * glow)
+            g = int(26 + 12 * t + 50 * glow)
+            b = int(36 + 16 * t + 62 * glow)
+        elif theme == "storm":  # burzowy fiolet z błękitną poświatą od dołu
             r = int(18 + 10 * t + 30 * glow)
             g = int(16 + 14 * t + 56 * glow)
             b = int(42 + 26 * t + 100 * glow)
@@ -262,7 +267,28 @@ def icon_flash():
     return clip(img, inside, "storm")
 
 
+SWORD = load("assets/watra/iron_sword.png")
+
+
+def icon_steel_ring():
+    img, inside = base("steel")
+    d = ImageDraw.Draw(img)
+    d.ellipse((10, 20, 54, 46), outline=(150, 190, 230, 255), width=1)
+    ghost = scaled(SWORD, 0.55)
+    px = ghost.load()
+    for y in range(ghost.height):
+        for x in range(ghost.width):
+            r, g, b, a = px[x, y]
+            if a:
+                px[x, y] = (min(255, int(r * 0.8 + 40)), min(255, int(g * 0.9 + 50)), min(255, b + 70), a)
+    for deg in (90, 210, 330):
+        rad = math.radians(deg)
+        paste(img, rotated(ghost, deg), (32 + 13 * math.cos(rad), 33 - 9 * math.sin(rad)))
+    return clip(img, inside, "steel")
+
+
 ICONS = {
+    "sword": (("steel_ring", icon_steel_ring),),
     "glaive": (("g_thrust", icon_thrust), ("g_sweep", icon_sweep), ("g_trail", icon_trail), ("g_pillar", icon_pillar),
                ("g_dance", icon_dance)),
     "hydro": (("h_bolt", icon_bolt), ("h_wave", icon_wave), ("h_vortex", icon_vortex), ("h_geyser", icon_geyser),

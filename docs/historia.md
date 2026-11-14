@@ -2,6 +2,19 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - Krąg stali zamiast Mgnienia miecza
+
+- Pomysł autora (ten sam co propozycja Claude): Krąg stali (`steel_ring`, miecz, mistrz. 15, 30 many, 12 s) zamiast
+  Mgnienia - przez 6 s wokół postaci krążą 3 widmowe miecze (świecące, mieszanie addytywne, delikatny ślad orbity),
+  0,9 obrotu/s po spłaszczonej orbicie, każdy tnie wroga, przez którego przechodzi ostrze (ten sam wróg co 0,45 s,
+  siła 0,6). Prośba autora: miecz w ręku walczy w tym czasie normalnie - krąg nie zmienia stanu broni
+  (`ProtoWeapon._start_ring`, `_process_ring`, stałe `STEEL_*`). 5. poziom - 8 s, 10. - 5 mieczy, kamień Mnożenie -
+  jeden miecz więcej. Może stać pod „Atak”. Ikona `assets/skills/sword/steel_ring.png` (`tools/weapon_icons.py`, tło stalowe).
+- Mgnienie zostało tylko jako Błysk Peruna katany; jego kamień unikalny (Kamień Nieskończonej Mgły, skoki za pół
+  many) przeszedł na Błysk Peruna (`Gems.UNIQUE["k_flash"]`, ikona `unique_gems/k_flash.png`). Stary zapis:
+  `Gems.LEGACY` zamienia `unique:blink`, a kamienie włożone w Mgnienie wracają do sakwy (`Game.load_game`).
+- Testy: Krąg stali w `test_skills.gd`, testy skoków przeniesione do `test_katana.gd` (Błysk Peruna, zapis).
+
 ## 15.11.2026 - katana przebudowana: szermierka zamiast czarów
 
 - Uwaga autora: katana miała za dużo umiejętności maga. Nowy zestaw (pomysły autora, szczegóły wybrane w ankiecie):
