@@ -169,17 +169,14 @@ def icon_bolt():
 
 def icon_wave():
     img, inside = base("water")
-    paste(img, scaled(trim(frame("hydro_wave", 6)), 0.95), (40, 32))
-    paste(img, scaled(ORB, 0.75), (18, 34))
+    paste(img, scaled(trim(frame("hydro_wave", 3)), 0.9), (38, 32))
+    paste(img, scaled(ORB, 0.75), (16, 34))
     return clip(img, inside, "water")
 
 
 def icon_vortex():
     img, inside = base("water")
-    paste(img, scaled(trim(frame("hydro_vortex", 3)), 0.8), (32, 40))
-    swirl = trim(frame("hydro_swirl", 4))
-    paste(img, scaled(swirl, 0.75), (32, 30))
-    paste(img, rotated(scaled(swirl, 0.75), 180), (32, 44))
+    paste(img, scaled(trim(frame("hydro_vortex", 2)), 0.62), (32, 34))
     return clip(img, inside, "water")
 
 

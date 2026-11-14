@@ -360,32 +360,32 @@
     "columns": 4
   },
   "hydro_wave": {
-    "effect": "3b1ed68e-f003-4e14-b672-c8f653423ebd",
-    "name": "Hydrosfera - fala (klatki 3-12 w pętli)",
+    "effect": "c3be76b6-c1bf-40da-bb14-4b4023b9410c",
+    "name": "Hydrosfera - fala wody (pętla: grzywa piany, kilwater, krople; własne warstwy)",
     "frame": [
-      48,
-      55
+      50,
+      67
     ],
-    "frames": 14,
-    "fps": 16,
+    "frames": 12,
+    "fps": 12,
     "anchor": [
-      28,
-      27
+      17,
+      32
     ],
     "columns": 4
   },
   "hydro_vortex": {
-    "effect": "fed064b2-0b97-49c7-9595-7c168131baf6",
-    "name": "Hydrosfera - wir (pętla)",
+    "effect": "74aef41b-bea1-4bae-a55b-572a7c04aa15",
+    "name": "Hydrosfera - wir wodny (pętla: spirale wody na ziemi, piana; własne warstwy)",
     "frame": [
-      68,
-      52
+      96,
+      64
     ],
-    "frames": 16,
-    "fps": 10,
+    "frames": 12,
+    "fps": 12,
     "anchor": [
-      34,
-      37
+      48,
+      34
     ],
     "columns": 4
   },
@@ -418,23 +418,5 @@
       6
     ],
     "columns": 3
-  },
-  "hydro_swirl": {
-    "effect": "bbe70619-b7f8-4d22-94bd-2b2a8874edbf",
-    "name": "Hydrosfera - łuk wiru (przebarwione cięcie tańca glewii)",
-    "frame": [
-      65,
-      40
-    ],
-    "frames": 12,
-    "fps": 28,
-    "anchor": [
-      30,
-      36
-    ],
-    "columns": 4,
-    "source": "glaive_dance_slash",
-    "hue": "#3a9ae8",
-    "boost": 1.1
   }
 }

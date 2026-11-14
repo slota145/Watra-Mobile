@@ -2,6 +2,16 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 14.11.2026 - hydrosfera: nowe efekty Fali i Wiru (bardziej jak woda)
+
+- Prośba autora: Fala wyglądała jak niebieskie cięcie, a Wir jak niebieska magia z latającym cięciem. Kreator nie ma
+  gotowych części wody na fale i wiry, więc oba efekty złożone z własnych warstw kreatora: Fala (`hydro_wave`,
+  „Hydrosfera - fala wody (pętla)”) - sierp wody (shape, wypełnienie edge), falująca grzywa piany i wewnętrzna linia
+  piany (krzywe z formułami, ruch w pętli), krople pryskające do przodu i smugi kilwateru z tyłu; Wir (`hydro_vortex`,
+  „Hydrosfera - wir wodny (pętla)”) - ciemna toń (glow na ziemi), dwie spirale wody na ziemi (jasna i ciemna, obrót
+  w pętli), obręcz piany i krople krążące po brzegu. Usunięty łuk wiru `hydro_swirl` (przebarwione cięcie tańca)
+  i obracany węzeł. Ikony Fali i Wiru odświeżone (`tools/weapon_icons.py`).
+
 ## 14.11.2026 - hydrosfera (trzecia broń, woda)
 
 - Decyzje autora (ankiety 14.11.2026): hydrosfera - woda, walka na dystans, kula wody nad ręką; Wódz 15. poziomu albo
