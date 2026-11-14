@@ -12,6 +12,7 @@ extends Control
 ## potwierdza) i sakwa z kamieniami umiejętności. Pod każdym gniazdem krótko, co robi jego kamień (Gems.short_text).
 ## Wkładanie (13.11.2026): stuknięcie otwartego gniazda otwiera GemPicker z pasującymi kamieniami i ich działaniem
 ## w tej umiejętności („Włóż”, „Wymień”, „Wyjmij”), stuknięcie kamienia w sakwie - GemPicker z listą umiejętności,
+## (sakwa pokazuje tylko kamienie pasujące do wybranej umiejętności; jej kamień unikalny za złotą kreską „Unikalny”),
 ## gdzie pasuje; można też przeciągnąć kamień na gniazdo (GemSlot), a z gniazda do sakwy (wyjęcie za darmo).
 ## W każdym wierszu listy małe ikony kamieni z gniazd tej umiejętności.
 ## Poziomy umiejętności (13.11.2026): przy nazwie „poz. X/10”, mana i odnowienie już z premią poziomu, pod opisem
@@ -638,13 +639,23 @@ func _refresh_gems() -> void:
 	for c in pouch_row.get_children():
 		pouch_row.remove_child(c)
 		c.queue_free()
-	var list: Array = _game.gem_list("support")
+	# tylko kamienie, które pasują do wybranej umiejętności (prośba autora 15.11.2026): klucz, zwykłe kamienie wsparcia,
+	# a za złotą kreską jej kamień unikalny (unikalne innych umiejętności są ukryte)
+	var list: Array = []
+	var uniques: Array = []
+	for id in _game.gem_list("support"):
+		if not Gems.is_unique(id):
+			list.append(id)
+		elif Gems.unique_skill(id) == gem_skill:
+			uniques.append(id)
 	if _game.gem_count(Gems.KEY) > 0:
 		list.push_front(Gems.KEY)
-	if not list.has(selected_gem):
+	if not list.has(selected_gem) and not uniques.has(selected_gem):
 		selected_gem = ""
-	for k in list.size():
-		var id: String = list[k]
+	for k in list.size() + uniques.size():
+		var id: String = list[k] if k < list.size() else uniques[k - list.size()]
+		if k == list.size():
+			pouch_row.add_child(_unique_divider())
 		var slot := GemSlot.new(44.0)
 		slot.area = "pouch"
 		slot.index = k
@@ -652,7 +663,7 @@ func _refresh_gems() -> void:
 		slot.pressed.connect(_on_pouch_pressed.bind(id))
 		slot.dropped.connect(_on_dropped_to_pouch)
 		pouch_row.add_child(slot)
-	pouch_empty.visible = list.is_empty()
+	pouch_empty.visible = list.is_empty() and uniques.is_empty()
 	clear_button.text = tr("Wyjmij")
 	clear_button.disabled = selected_socket < 0
 	var skill_name := Skills.name_of(gem_skill)
@@ -669,6 +680,23 @@ func _refresh_gems() -> void:
 		hint.text = tr("%s: %s „Wyjmij” odkłada kamień do sakwy.") % [Gems.name_of(id), Gems.support_text(id, gem_skill)]
 	else:
 		hint.text = tr("Kamienie w: %s. Stuknij gniazdo, żeby włożyć kamień, albo kamień, żeby zobaczyć, gdzie pasuje.") % skill_name
+
+
+## Złota kreska z napisem „Unikalny” oddzielająca kamień unikalny umiejętności od zwykłych kamieni w sakwie.
+func _unique_divider() -> Control:
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 3)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var line := ColorRect.new()
+	line.color = GOLD
+	line.custom_minimum_size = Vector2(2, 40)
+	line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(line)
+	var text := _label(box, tr("Unikalny"), 9, GOLD)
+	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text.size_flags_vertical = Control.SIZE_FILL
+	return box
 
 
 ## Kamień w sakwie: GemPicker z listą umiejętności, gdzie pasuje (klucz - gdzie otworzyć gniazdo).

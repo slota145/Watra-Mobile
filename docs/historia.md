@@ -2,6 +2,13 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - sakwa w zakładce „Kamienie”: tylko pasujące kamienie
+
+- Prośba autora: po wyborze umiejętności sakwa w zakładce „Kamienie” okna umiejętności pokazuje tylko kamienie, które
+  da się do niej włożyć - klucz, zwykłe kamienie wsparcia i kamień unikalny tej umiejętności (unikalne innych umiejętności
+  ukryte). Kamień unikalny stoi osobno, za złotą kreską z napisem „Unikalny” (`SkillsWindow._unique_divider`).
+  Test w `test_gems.gd`.
+
 ## 14.11.2026 - hydrosfera: Wodny Strażnik zamiast Ulewy, kamienie unikalne
 
 - Pomysły autora (warianty wybrane w ankiecie): Ulewa zastąpiona „Wodnym Strażnikiem” (`h_guardian`, mistrz. 15,

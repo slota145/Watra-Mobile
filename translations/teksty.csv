@@ -466,6 +466,7 @@ void fragment() {
 "Stuknij miejsce na dole dla: %s","Tap a slot below for: %s","skills_window.gd"
 "Stuknij umiejętność, potem miejsce - albo przeciągnij ją na miejsce. Pod „Atak” działa auto atak.","Tap a skill, then a slot - or drag it onto a slot. Auto attack uses the skill under “Attack”.","skills_window.gd"
 "Ulepsz","","skills_window.gd"
+"Unikalny","","skills_window.gd"
 "W miejscu %d","In slot %d","skills_window.gd"
 "najwyższy poziom","","skills_window.gd"
 "od mistrz. %d","","skills_window.gd"
