@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bgxywyl0ba7ml"
-path="res://.godot/imported/k_iaido.png-4a6ef9ebed4f5c74b4d61b9682c3a0ba.ctex"
+uid="uid://llrk6cr05puq"
+path="res://.godot/imported/katana_line.png-fcc36d3b15b3fcc34c7bf37ff1e0b9e0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/katana/k_iaido.png"
-dest_files=["res://.godot/imported/k_iaido.png-4a6ef9ebed4f5c74b4d61b9682c3a0ba.ctex"]
+source_file="res://pixellab_src/vfx/katana_line.png"
+dest_files=["res://.godot/imported/katana_line.png-fcc36d3b15b3fcc34c7bf37ff1e0b9e0.ctex"]
 
 [params]
 

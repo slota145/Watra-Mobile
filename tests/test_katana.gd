@@ -1,8 +1,8 @@
 extends SceneTree
 ## Test elektrycznej katany i combo z przemoczeniem (15.11.2026): dostępność (Wódz 20. poziomu albo 6000 zł), zmiana
 ## broni (węzeł ProtoKatana), porażenie (+15% obrażeń, przeskok na sąsiada), przemoczenie (krople, +30% od Gromu,
-## dłuższy przeskok, zamrożenie lodem z odpornością), a w walce: cięcie, Iaido, Łańcuch piorunów, Sąd Peruna,
-## Burza ostrzy.
+## dłuższy przeskok, zamrożenie lodem z odpornością), a w walce: cięcie, Taniec ostrza, Riposta (garda, kontra),
+## ładowany Sąd Peruna, Błysk Peruna.
 
 var _failed := 0
 
@@ -110,69 +110,86 @@ func _test_combat(game: Node) -> void:
 	weapon._attack()
 	await _wait(0.3)
 	_check(a.hp < hp, "błyskawiczne cięcie trafia wroga obok")
-	# Iaido
-	weapon.reset_cooldowns()
-	hero.mana = hero.max_mana
-	hero.position = Vector2(-60, 0)
-	await process_frame
-	hp = a.hp
-	var from := hero.global_position
-	_check(weapon.cast("k_iaido"), "Iaido rusza")
-	await process_frame
-	_check(hero.global_position.x > a.global_position.x and a.hp < hp, "Iaido: postać przemyka na wylot przez wroga i go rani")
-	_check(hero.global_position.distance_to(from) >= 60.0, "Iaido: zryw co najmniej 60 px")
-	# Łańcuch piorunów
-	hero.position = Vector2.ZERO
-	var line: Array = [a]  # a stoi najbliżej - łańcuch zaczyna od niego
-	for i in 6:
-		var g := _goblin(arena, Vector2(30 + i * 40, 40))
-		line.append(g)
+	_check(weapon._cut_t < 0.0 and not weapon._slash.visible, "efekt cięcia zagrał do końca i znikł")
+	# Taniec ostrza
+	var line: Array = [a]
+	for i in 4:
+		line.append(_goblin(arena, Vector2(50 + i * 25, (i % 2) * 14 - 7)))
 	await process_frame
 	for g in line:
 		g._stunned = 60.0
 	var hps: Array = line.map(func(g: ProtoGoblin) -> int: return g.hp)
-	weapon.reset_cooldowns()
-	hero.mana = hero.max_mana
-	weapon._state = "follow"
-	weapon.cast("k_chain")
-	await _wait(0.6)
+	_fresh(weapon, hero)
+	hero.position = Vector2.ZERO
+	var from := hero.global_position
+	_check(weapon.cast("k_dance") and weapon._state == "dance", "Taniec ostrza rusza")
+	await _wait(0.9)
 	var struck := 0
 	for i in line.size():
 		if line[i].hp < hps[i]:
 			struck += 1
-	_check(struck >= ProtoKatana.CHAIN_JUMPS, "Łańcuch piorunów trafia po kolei co najmniej 5 wrogów (%d)" % struck)
+	_check(hero.global_position.x - from.x >= 60.0, "Taniec: postać idzie naprzód (%.0f px)" % (hero.global_position.x - from.x))
+	_check(struck >= 3 and weapon._state == "follow", "Taniec: cięcia i piorun ranią kilku wrogów (%d)" % struck)
+	# Riposta
+	_fresh(weapon, hero)
+	hero.position = Vector2.ZERO
+	await process_frame
+	_check(weapon.cast("k_riposte") and weapon._state == "guard" and hero.parry_left > 0.0, "Riposta: garda")
+	var hero_hp := hero.hp
+	hps = line.map(func(g: ProtoGoblin) -> int: return g.hp)
+	hero._invulnerable = 0.0
+	hero.take_damage(10)
+	_check(hero.hp == hero_hp and weapon._state == "riposte", "garda blokuje cios i rusza kontrę")
+	hero.take_damage(10)
+	_check(hero.hp == hero_hp and hero._invulnerable >= ProtoKatana.RIPOSTE_SAFE - 0.05, "w trakcie kontry postać jest nietykalna")
+	await _wait(0.6)
+	struck = 0
+	for i in line.size():
+		if line[i].hp < hps[i]:
+			struck += 1
+	_check(struck >= 2 and weapon._state == "follow", "kontra rani wrogów wokół (%d)" % struck)
+	_check(hero.global_position.length() > 10.0, "kontra: wyskok ku wrogowi")
+	_fresh(weapon, hero)
+	weapon.cast("k_riposte")
+	await _wait(ProtoKatana.RIPOSTE_WAIT + 0.2)
+	_check(weapon._state == "follow" and hero.parry_left <= 0.0, "bez ciosu garda mija po 3 s")
 	# Sąd Peruna
-	hps = line.map(func(g: ProtoGoblin) -> int: return g.hp)
-	weapon.reset_cooldowns()
-	hero.mana = hero.max_mana
-	weapon._state = "follow"
+	_fresh(weapon, hero)
+	hero.position = Vector2(-150, 0)
+	var far := _goblin(arena, Vector2(30, 0))
+	await process_frame
+	far._stunned = 60.0
+	hp = far.hp
+	_check(weapon.cast("k_perun") and weapon._state == "charge", "Sąd Peruna: ładowanie")
+	weapon.charge_held = true
+	await _wait(0.2)
+	weapon.charge_held = false
+	await _wait(0.1)
+	_check(weapon._state == "follow" and far.hp == hp, "krótkie ładowanie - krótkie cięcie nie sięga daleko")
+	_fresh(weapon, hero)
 	weapon.cast("k_perun")
-	_check(weapon._strikes.size() == ProtoKatana.PERUN_BOLTS, "Sąd Peruna: 3 pioruny")
-	await _wait(0.7)
-	struck = 0
-	for i in line.size():
-		if line[i].hp < hps[i]:
-			struck += 1
-	_check(weapon._strikes.is_empty() and struck >= 3, "pioruny uderzyły (%d trafionych)" % struck)
-	# Burza ostrzy
-	hps = line.map(func(g: ProtoGoblin) -> int: return g.hp)
-	weapon.reset_cooldowns()
-	hero.mana = hero.max_mana
-	weapon._state = "follow"
-	weapon.cast("k_storm")
-	_check(weapon._state == "storm", "Burza ostrzy rusza")
-	await _wait(1.0)
-	_check(weapon.global_position.distance_to(hero.global_position) > 20.0, "katana skacze między wrogami z dala od postaci")
-	struck = 0
-	for i in line.size():
-		if line[i].hp < hps[i]:
-			struck += 1
-	_check(struck >= 3, "Burza rani kilku wrogów (%d)" % struck)
-	await _wait(2.5)
-	_check(weapon._state == "follow", "po 3 s Burza się kończy")
+	weapon.charge_held = true
+	await _wait(ProtoKatana.PERUN_CHARGE + 0.1)
+	weapon.charge_held = false
+	await _wait(0.1)
+	_check(far.hp < hp, "pełne ładowanie - cięcie sięga 180 px dalej")
+	_check(not Skills.can_be_main("k_perun") and Skills.is_charged("k_perun"), "Sąd Peruna ładowany, nie pod „Atak”")
+	# Błysk Peruna
+	_fresh(weapon, hero)
+	hero.position = Vector2.ZERO
+	hp = far.hp
+	_check(weapon.blink_skill == "k_flash" and weapon.cast("k_flash"), "Błysk Peruna skacze")
+	await process_frame
+	_check(far.hp < hp and far.is_shocked(), "Błysk Peruna rani i poraża")
 	game.dev_immortal = false
 	arena.queue_free()
 	await process_frame
+
+
+func _fresh(weapon: ProtoKatana, hero: ProtoHero) -> void:
+	weapon.reset_cooldowns()
+	weapon._end_skill()
+	hero.mana = hero.max_mana
 
 
 func _goblin(arena: Node, at: Vector2) -> ProtoGoblin:

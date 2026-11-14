@@ -2,6 +2,31 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - katana przebudowana: szermierka zamiast czarów
+
+- Uwaga autora: katana miała za dużo umiejętności maga. Nowy zestaw (pomysły autora, szczegóły wybrane w ankiecie):
+  - Błyskawiczne cięcie: nowy cienki efekt z kreatora (`katana_cut`, część `swing_slash`, środek łuku `CUT_MID`,
+    klatki z własnym fps - `_process_cut`, odbicie ujemną skalą), przez cięcie przelatuje błękitny piorun
+    (`ProtoKatana._ArcBolt`, rysowany w grze).
+  - Taniec ostrza (`k_dance`, zamiast Iaido, mistrz. 3): postać idzie 80 px naprzód (`ProtoHero.leap`) i tnie 4 razy
+    w kierunku marszu, potem błękitny piorun przeskakuje po kolei między trafionymi (5. - 6 cięć, 10. - piorun skacze
+    też na 3 wrogów obok).
+  - Riposta (`k_riposte`, zamiast Łańcucha piorunów, mistrz. 6): 3 s gardy (`ProtoHero.parry_left`, sygnał
+    `parried`, napis „Riposta!”) - następny cios nie rani; kontra: cięcie dookoła z kreatora (`katana_riposte`,
+    `spin_slash`), wyskok ku najbliższemu wrogowi z podskokiem i cienkie, równe cięcie po okręgu (`_Ring`, rysowane
+    w grze); 0,7 s nietykalności (`ProtoHero.protect`) - propozycja Claude przyjęta (5. - garda 5 s, 10. - pioruny
+    z okręgu).
+  - Sąd Peruna (`k_perun`, mistrz. 10): przytrzymanie ładuje (do 1,5 s, `Skills.is_charged`, `ProtoWeapon.charge_held`,
+    `Arena._on_skill_released`), puszczenie - cięcie w linii ku najbliższemu wrogowi, 60-200 px długości, 10-28 px
+    szerokości, siła x0,8-1,5; na ziemi rośnie półprzezroczysty pas; efekt `katana_line` (`dash_slash`) rozciągnięty
+    do długości; nie pod „Atak” (5. - ładuje się w 1 s, 10. - piorun na końcu cięcia).
+  - Błysk Peruna (`k_flash`, zamiast Burzy ostrzy, mistrz. 15): Mgnienie miecza (w `ProtoWeapon` umiejętność skoków
+    to teraz `blink_skill`, smuga `flicker_trail`, kolor piorunów `bolt_color`) z dwoma błękitnymi piorunami wzdłuż
+    skoku; każde trafienie katany poraża (`ProtoKatana._deal`). Mgnienie zostaje też przy mieczu.
+- Usunięte: efekty `katana_slash` i `katana_perun`, ikony Iaido, Łańcucha i Burzy. Ikony nowych umiejętności
+  z `tools/weapon_icons.py`. Zapis gry pomija stare umiejętności i sam dopisuje nowe (`Game._unlock_skills`).
+- Testy: `test_katana.gd` (taniec, garda i kontra, ładowanie, Błysk). Zrzuty `tools/katana_shots.gd`.
+
 ## 15.11.2026 - elektryczna katana, znak przemoczenia i combo wody z Gromem i lodem
 
 - Ocena autora: balans glewii i hydrosfery (siła, zasięg, kamienie unikalne, efekty, ceny i progi) w sam raz - bez zmian.

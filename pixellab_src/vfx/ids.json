@@ -464,38 +464,6 @@
     ],
     "columns": 4
   },
-  "katana_perun": {
-    "effect": "1ea7347c-ed64-4853-8a69-f03501778412",
-    "name": "Katana - Sąd Peruna (piorun z nieba; zaczepienie = punkt uderzenia)",
-    "frame": [
-      99,
-      144
-    ],
-    "frames": 14,
-    "fps": 20,
-    "anchor": [
-      49,
-      138
-    ],
-    "columns": 4
-  },
-  "katana_slash": {
-    "effect": "8d742d10-ae44-454e-ac89-e54ed6f1b5eb",
-    "name": "Katana - cięcie (cięcie miecza przebarwione na błękit)",
-    "frame": [
-      64,
-      64
-    ],
-    "frames": 5,
-    "fps": 24,
-    "anchor": [
-      32,
-      32
-    ],
-    "source": "sword_slash",
-    "hue": "#5cc4ff",
-    "boost": 4.0
-  },
   "katana_trail": {
     "effect": "f655299b-2754-4093-881d-a5b827bdee3b",
     "name": "Katana - smuga Iaido (smuga Mgnienia przebarwiona na błękit)",
@@ -512,5 +480,50 @@
     "source": "flicker_trail",
     "hue": "#5cc4ff",
     "boost": 2.0
+  },
+  "katana_cut": {
+    "effect": "c4da4d60-adc2-4bf2-8ed8-04faba222b48",
+    "name": "Katana - cienkie cięcie (zwykły cios; łuk od góry-lewej zgodnie z zegarem, zaczepienie = środek łuku)",
+    "frame": [
+      85,
+      79
+    ],
+    "frames": 9,
+    "fps": 16,
+    "anchor": [
+      39,
+      46
+    ],
+    "columns": 3
+  },
+  "katana_riposte": {
+    "effect": "0bb0cde6-ee96-41bb-96c4-3fcf9e20cb0b",
+    "name": "Katana - Riposta (cięcie dookoła)",
+    "frame": [
+      100,
+      48
+    ],
+    "frames": 11,
+    "fps": 16,
+    "anchor": [
+      48,
+      23
+    ],
+    "columns": 4
+  },
+  "katana_line": {
+    "effect": "2b286c11-c700-450d-9804-02b0c1c4e11a",
+    "name": "Katana - Sąd Peruna (długie cięcie w prawo, zaczepienie = środek)",
+    "frame": [
+      123,
+      37
+    ],
+    "frames": 9,
+    "fps": 16,
+    "anchor": [
+      54,
+      21
+    ],
+    "columns": 3
   }
 }

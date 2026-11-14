@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ci65j3cf8q5tt"
-path="res://.godot/imported/katana_perun.png-2760dc9a93c76343872255009c24f858.ctex"
+uid="uid://bpxc263e0gd06"
+path="res://.godot/imported/k_dance.png-d8d5af9389bdd74c82d107d27f3de1e8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/katana_perun.png"
-dest_files=["res://.godot/imported/katana_perun.png-2760dc9a93c76343872255009c24f858.ctex"]
+source_file="res://assets/skills/katana/k_dance.png"
+dest_files=["res://.godot/imported/k_dance.png-d8d5af9389bdd74c82d107d27f3de1e8.ctex"]
 
 [params]
 

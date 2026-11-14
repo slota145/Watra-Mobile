@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://hqstk53m46xf"
-path="res://.godot/imported/katana_slash.png-97b7c17b875d662edc0e52e3c6da7f66.ctex"
+uid="uid://b6beb2khbpxtt"
+path="res://.godot/imported/katana_riposte.png-b38b2825a840937f8e8d214fb8758193.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/katana_slash.png"
-dest_files=["res://.godot/imported/katana_slash.png-97b7c17b875d662edc0e52e3c6da7f66.ctex"]
+source_file="res://pixellab_src/vfx/katana_riposte.png"
+dest_files=["res://.godot/imported/katana_riposte.png-b38b2825a840937f8e8d214fb8758193.ctex"]
 
 [params]
 

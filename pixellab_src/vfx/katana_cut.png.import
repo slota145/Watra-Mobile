@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnsoo2tej28fx"
-path="res://.godot/imported/katana_perun.png-8503cb798697578c946abc1fe0d3e248.ctex"
+uid="uid://dyjvjnhvumok0"
+path="res://.godot/imported/katana_cut.png-56a62ba04d89c2472e414799c434eb45.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://pixellab_src/vfx/katana_perun.png"
-dest_files=["res://.godot/imported/katana_perun.png-8503cb798697578c946abc1fe0d3e248.ctex"]
+source_file="res://pixellab_src/vfx/katana_cut.png"
+dest_files=["res://.godot/imported/katana_cut.png-56a62ba04d89c2472e414799c434eb45.ctex"]
 
 [params]
 
