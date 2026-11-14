@@ -3,7 +3,7 @@ extends ProtoWeapon
 ## Hydrosfera (ustalone z autorem 14.11.2026) - trzecia broń, żywioł woda (Elements.WATER), walka na dystans.
 ## Kula wody lewituje obok postaci (dziedziczy po ProtoWeapon: mana, odnowienia, kamienie, krytyki, kolejka umiejętności),
 ## przy zwykłym ciosie podlatuje odrobinę ku celowi i wypluwa pocisk. Każde trafienie PRZEMACZA (`_hit`): wróg wolniejszy
-## o SOAK_SLOW na SOAK_TIME (ProtoTarget.slow; combo z Gromem i lodem - później).
+## o SOAK_SLOW na SOAK_TIME, kapią z niego krople (ProtoTarget.soak; combo z Gromem i lodem - Elements.soak_bonus).
 ## - „Wodny pocisk” (`h_bolt`, zwykły cios): bańka leci w najbliższego wroga do 140 px, rozprysk rani pobliskich
 ##   (5. poziom - większy i silniejszy rozprysk, 10. - co trzeci strzał to trzy bańki w wachlarzu);
 ## - „Fala” (`h_wave`): sierp wody toczy się ok. 110 px przed postacią, rani i odpycha (5. - o połowę dalej, 10. - druga fala);
@@ -158,7 +158,7 @@ func _follow(delta: float) -> void:
 func _hit(t: ProtoTarget, power: float, from: Vector2, skill: String) -> void:
 	_deal(t, _roll(power), from, skill)
 	if t.alive():
-		t.slow(SOAK_SLOW, SOAK_TIME)
+		t.soak(SOAK_SLOW, SOAK_TIME)
 
 
 ## Pionowe pluśnięcie (gejzery, kule z gejzerów, znikający Strażnik, pocisk, który nikogo nie trafił).

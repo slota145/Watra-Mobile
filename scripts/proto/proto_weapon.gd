@@ -153,9 +153,11 @@ const WHIRL_DRAIN := 1.0 / 3.0
 const TARGETS := &"proto_targets"
 ## Stany zwykłego ciosu (szybkość ataku i Pośpiech go przyspieszają); glewia i hydrosfera dokładają swoje.
 const STRIKE_STATES := ["follow", "windup", "swing", "recover", "thrust_windup", "thrust", "thrust_recover",
-		"orb_windup", "orb_shot"]
+		"orb_windup", "orb_shot", "k_windup", "k_swing", "k_recover"]
 
 var hero: ProtoHero
+## Żywioł obrażeń broni (Weapons.element_of; combo z przemoczeniem - Elements.soak_bonus). Ustawia podklasa.
+var element := Elements.PHYSICAL
 ## Czy gracz trzyma przycisk ataku.
 var attack_held := false
 ## Auto atak: tnie sam, gdy jakiś cel jest bliżej niż REACH.
@@ -539,12 +541,14 @@ func _cooldown_base(id: String) -> float:
 			* (1.0 - cooldown_cut)
 
 
-## Trafienie umiejętnością `skill` - premia przeciw elitom i bossom, trafienie krytyczne (złota liczba), obrażenia
-## i działanie jej kamieni (podpalenie, spowolnienie, leczenie, mana,
+## Trafienie umiejętnością `skill` - premia przeciw elitom i bossom, combo żywiołów (porażony wróg dostaje więcej
+## od wszystkiego, przemoczony - od Gromu i lodu), trafienie krytyczne (złota liczba), obrażenia
+## i działanie jej kamieni (podpalenie, spowolnienie - na przemoczonym zamrożenie, leczenie, mana,
 ## piorun).
 func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
 		amount = roundi(amount * elite_mult)
+	amount = roundi(amount * _combo_mult(t))
 	if randf() < crit_chance:
 		amount = roundi(amount * crit_mult)
 		t.crit_next = true
@@ -558,6 +562,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		t.burn(amount * p / 100.0, BURN_TIME)
 	p = Gems.skill_power(sockets, "rime")
 	if p > 0.0:
+		if t.is_soaked():
+			t.freeze(Elements.SOAK_FREEZE)  # lód na przemoczonym - krótkie zamrożenie
 		t.slow(p / 100.0, SLOW_TIME)
 	p = Gems.skill_power(sockets, "leech")
 	if p > 0.0:
@@ -576,19 +582,35 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		_chain_from(t, maxi(1, roundi(amount * p / 100.0)))
 
 
+## Mnożnik combo żywiołów na celu `t`: porażony - +Elements.SHOCK_BONUS od wszystkiego, przemoczony - Grom i lód
+## mocniej (Elements.soak_bonus).
+func _combo_mult(t: ProtoTarget) -> float:
+	var mult := Elements.soak_bonus(element, t.is_soaked())
+	if t.is_shocked():
+		mult *= 1.0 + Elements.SHOCK_BONUS
+	return mult
+
+
 ## Piorun (kamień): z celu `src` przeskakuje na CHAIN_TARGETS najbliższych wrogów w zasięgu - zygzak światła.
-func _chain_from(src: ProtoTarget, amount: int) -> void:
+## Z przemoczonego celu (combo z wodą) przeskakuje na Elements.SOAK_CHAIN_EXTRA wrogów więcej i rani mocniej.
+func _chain_from(src: ProtoTarget, amount: int, count := CHAIN_TARGETS, range_px := CHAIN_RANGE) -> Array:
+	if src.is_soaked():
+		count += Elements.SOAK_CHAIN_EXTRA
+		amount = roundi(amount * Elements.SOAK_BONUS)
 	var near: Array = []
 	for t in _live_targets():
 		var d := t.global_position.distance_to(src.global_position)
-		if t != src and d <= CHAIN_RANGE:
+		if t != src and d <= range_px:
 			near.append([d, t])
 	near.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	var from := src.center()
-	for pair in near.slice(0, CHAIN_TARGETS):
+	var hit: Array = []
+	for pair in near.slice(0, count):
 		var t: ProtoTarget = pair[1]
 		_bolt(from, t.center())
-		t.take_damage(amount, src.global_position)
+		t.take_damage(maxi(1, amount), src.global_position)
+		hit.append(t)
+	return hit
 
 
 ## Zygzak pioruna między dwoma punktami (świat), gaśnie w 0,2 s.

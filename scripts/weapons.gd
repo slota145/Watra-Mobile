@@ -7,11 +7,12 @@ class_name Weapons
 ## Nowe rodzaje broni (łuk, hydrosfera, mroczna kosa…) odblokowuje postęp: pokonanie Wodza na poziomie `unlock`
 ## (za darmo), a wcześniej można je kupić za `price` złota (decyzja autora 13.11.2026). Zmiana broni w oknie
 ## umiejętności przy kamieniu run (Game.set_weapon, Game.buy_weapon). Węzeł broni w lochu: miecz - ProtoWeapon,
-## glewia ognia - ProtoGlaive, hydrosfera - ProtoHydrosphere (`make`).
+## glewia ognia - ProtoGlaive, hydrosfera - ProtoHydrosphere, elektryczna katana - ProtoKatana (`make`).
 
 const SWORD := "sword"
 const GLAIVE := "glaive"
 const HYDROSPHERE := "hydrosphere"
+const KATANA := "katana"
 ## name - nazwa, element - żywioł obrażeń (Elements), unlock - poziom lochu, po którego przebiciu broń jest za darmo
 ## (0 - od początku), price - złoto za wcześniejsze odblokowanie.
 const DATA := {
@@ -21,8 +22,10 @@ const DATA := {
 		"icon": preload("res://assets/skills/glaive/g_thrust.png")},
 	"hydrosphere": {"name": "Hydrosfera", "element": Elements.WATER, "unlock": 15, "price": 4500,
 		"icon": preload("res://assets/skills/hydro/h_bolt.png")},
+	"katana": {"name": "Elektryczna katana", "short": "Katana", "element": Elements.LIGHTNING, "unlock": 20, "price": 6000,
+		"icon": preload("res://assets/skills/katana/k_slash.png")},
 }
-const ORDER := ["sword", "glaive", "hydrosphere"]
+const ORDER := ["sword", "glaive", "hydrosphere", "katana"]
 ## Najwyższy poziom mistrzostwa (jak poziom postaci).
 const MAX_MASTERY := 50
 
@@ -58,13 +61,16 @@ static func unlock_level(id: String) -> int:
 	return DATA[id].unlock if DATA.has(id) else 0
 
 
-## Skrypt węzła broni do walki (miecz - ProtoWeapon, glewia - ProtoGlaive, hydrosfera - ProtoHydrosphere).
+## Skrypt węzła broni do walki (miecz - ProtoWeapon, glewia - ProtoGlaive, hydrosfera - ProtoHydrosphere,
+## katana - ProtoKatana).
 static func script_of(id: String) -> Script:
 	match id:
 		GLAIVE:
 			return ProtoGlaive
 		HYDROSPHERE:
 			return ProtoHydrosphere
+		KATANA:
+			return ProtoKatana
 	return ProtoWeapon
 
 

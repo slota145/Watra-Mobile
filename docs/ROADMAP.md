@@ -68,16 +68,21 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   zbierania, więcej żaru (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy unik 2-4% na przedmiot jest
   odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
-- **Hydrosfera: Wodny Strażnik i kamienie unikalne (14.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na
-  telefonie: siła Strażnika (strzał co 0,5 s przez 6 s), Kamień Echa z Przypływem (12 fal naraz - może za dużo na ekranie),
-  Wodna Orbita zamiast strzelania, liczby kamieni (60%, 50%, 3 kule).
+- **Elektryczna katana, znak przemoczenia, combo wody z Gromem i lodem (15.11.2026):** zrobione (szczegóły
+  w `docs/historia.md`). Do oceny na telefonie: tempo i siła cięcia katany wobec miecza, czy porażenie (+15%) i przeskok
+  pioruna są odczuwalne, Iaido (czy zryw nie wrzuca w tłum), Burza ostrzy, czy krople przemoczenia widać w tłumie,
+  siła combo (+30%, zamrożenie Szronem). Później: kamienie unikalne katany, dźwięk pioruna.
 
-- **Hydrosfera (14.11.2026):** zrobiona (szczegóły w `docs/historia.md`). Do oceny na telefonie: siła pocisku na dystans
-  wobec broni wręcz, czy przemoczenie (20% wolniej) jest odczuwalne, Wir i Gejzery, płynność Ulewy z Wirem (w chmurze
-  61-68 klatek/s), cena 4500 zł. Później: kamienie unikalne hydrosfery, combo przemoczenia z Gromem i lodem, widoczny
-  znak przemoczenia na potworze (np. krople z kreatora - część water_drips).
+- **Hydrosfera: Wodny Strażnik i kamienie unikalne (14.11.2026):** zrobione (szczegóły w `docs/historia.md`). Ocenione
+  przez autora 15.11.2026: Strażnik, kamienie i liczba fal na ekranie w sam raz.
 
-- **Glewia ognia i kolczyk z kłem (13.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie:
+- **Hydrosfera (14.11.2026):** zrobiona (szczegóły w `docs/historia.md`). Balans (siła, Wir, Gejzery, Strażnik,
+  kamienie unikalne, cena 4500 zł) oceniony przez autora 15.11.2026: w sam raz. Znak przemoczenia i combo z Gromem
+  i lodem zrobione 15.11.2026.
+
+- **Glewia ognia i kolczyk z kłem (13.11.2026):** zrobione (szczegóły w `docs/historia.md`). Balans glewii (siła,
+  zasięg, podpalenie, kamienie unikalne, efekty, cena 3000 zł i próg Wodza 10) oceniony przez autora 15.11.2026: w sam
+  raz. Wcześniej do oceny na telefonie:
   siła i zasięg umiejętności glewii wobec miecza, czy podpalenie jest odczuwalne, nowe działania 5. i 10. poziomu
   (propozycje Claude), cena 3000 zł i próg Wodza 10, czy płonący krąg i pas ognia nie zasłaniają wrogów, liczba klatek
   w Tańcu płomieni z ogniem na ziemi. Po poprawkach 14.11.2026 (Płonąca bruzda zamiast doskoku, nowy Taniec, zwężona
@@ -89,9 +94,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   umiejętności, żar ulepsza umiejętności, złoto - ulepszenia lochów (szczegóły i decyzje w `docs/historia.md`).
   Do oceny na telefonie (balans): ceny ulepszeń umiejętności w żarze (te same liczby co dawniej w złocie) i ulepszeń
   lochów w złocie (te same co dawniej w żarze), czy złota i żaru starcza; czy napis „Nowa umiejętność” jest widoczny.
-  Dalej: kolejne bronie po jednej, każda dopracowana, z działaniem swojego żywiołu (Elements.EFFECTS): łuk, hydrosfera,
-  mroczna kosa, ostrza na łańcuchach, księgi żywiołów, sztylety powietrza, glewia ognia, lodowy rapier, elektryczna
-  katana, kostur nekromancji; zmiana broni w bazie i kupno za złoto przed progiem (`Weapons.unlock`, `price`);
+  Dalej: kolejne bronie po jednej, każda dopracowana, z działaniem swojego żywiołu (Elements.EFFECTS): łuk, hydrosfera (zrobiona),
+  mroczna kosa, ostrza na łańcuchach, księgi żywiołów, sztylety powietrza, glewia ognia (zrobiona), lodowy rapier,
+  elektryczna katana (zrobiona 15.11.2026), kostur nekromancji; zmiana broni w bazie i kupno za złoto przed progiem (`Weapons.unlock`, `price`);
   kamienie dodające mieczowi żywioł; później odporności bohatera i potwory bijące żywiołami. Do decyzji: światło.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)

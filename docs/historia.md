@@ -2,6 +2,38 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - elektryczna katana, znak przemoczenia i combo wody z Gromem i lodem
+
+- Ocena autora: balans glewii i hydrosfery (siła, zasięg, kamienie unikalne, efekty, ceny i progi) w sam raz - bez zmian.
+- Znak przemoczenia (wybór autora: kapiące krople): `ProtoTarget.soak` (spowolnienie + `soak_left`), `is_soaked`;
+  krople z kreatora efektów („Przemoczenie - kapiące krople (pętla)”, część `water_drips`) - `assets/effects/soak_drips.png`,
+  zapętlone w `_Status` (skala 0,6 przy goblinie). Przy przemoczeniu nie rysuje się szronowy krąg spowolnienia.
+  Hydrosfera przemacza przez `soak`.
+- Combo (wybór autora: „oba”, `Elements.SOAK_BONUS`, `SOAK_CHAIN_EXTRA`, `SOAK_FREEZE`, `soak_bonus`): przemoczony
+  dostaje od Gromu i lodu +30% (`ProtoWeapon._combo_mult`, żywioł broni w `ProtoWeapon.element`), piorun
+  z przemoczonego (`_chain_from` - też kamień Wyładowanie) przeskakuje na 2 wrogów więcej i rani +30%, lód (kamień Szron)
+  zamraża przemoczonego na 0,6 s (`ProtoTarget.freeze`, potem 2 s odporności - `FREEZE_IMMUNE`, żeby woda + Szron
+  nie trzymały wroga w miejscu bez końca). Porażony (Grom) dostaje od wszystkiego +15% (`Elements.SHOCK_BONUS`,
+  `ProtoTarget.shock`, żółte iskry wokół celu). Prawdziwa broń lodu dostanie +30% sama (`soak_bonus` dla `COLD`).
+- Elektryczna katana (`Weapons.KATANA`, Grom, Wódz 20 albo 6000 zł - wybór autora; `scripts/proto/proto_katana.gd`),
+  umiejętności zaproponowane przez Claude i przyjęte bez zmian: Błyskawiczne cięcie (`k_slash`, ok. 1,4 raza szybciej
+  niż miecz, siła 0,75; 5. poz. - co 4. cięcie piorun w najbliższego, 10. - przeskok na 2 wrogów), Iaido (`k_iaido`,
+  mistrz. 3, zryw 70 px na wylot przez wroga, rani pas drogi; 5. - 100 px, 10. - wyładowanie na końcu), Łańcuch piorunów
+  (`k_chain`, mistrz. 6, 5 skoków co 0,07 s; 5. - 7, 10. - iskry na ziemi 2 s), Sąd Peruna (`k_perun`, mistrz. 10,
+  3 pioruny z nieba, obszar 22 px, ogłuszenie 0,6 s; 5. - 5, 10. - druga seria po 0,5 s), Burza ostrzy (`k_storm`,
+  mistrz. 15, katana sama skacze co 0,22 s między wrogami do 120 px od postaci przez 3 s; 5. - 4 s, 10. - rozgałęzienia
+  na 2 wrogów). Każde trafienie poraża i 25% obrażeń przeskakuje na sąsiada (`ProtoKatana._hit`). Kamienie unikalne
+  katany - później.
+- Grafika (wybór autora: stal + niebieskie iskry): `assets/weapons/katana.png` (76x16, skala 0,5) rysowana skryptem
+  `tools/katana_art.py`. Efekty z kreatora (My effects autora, `pixellab_src/vfx/ids.json`): `katana_hit` (trafienie
+  piorunem, część `zap_hit`), `katana_perun` (piorun z nieba, `bolt_strike`), a `katana_slash` i `katana_trail` to
+  przebarwione na błękit cięcie miecza i smuga Mgnienia (`hue`, `boost`). Ikony umiejętności `assets/skills/katana/`
+  z `tools/weapon_icons.py` (tło burzowe).
+- Okno umiejętności: przyciski broni z ikoną nad nazwą (4 bronie w rzędzie), zawijane mistrzostwo i nazwy umiejętności
+  (wcześniej „Błyskawiczne cięcie poz. 1/10” rozpychało okno poza ekran).
+- Testy: `tests/test_katana.gd` (dopisany do `run_tests.ps1`), zrzuty `tools/katana_shots.gd` (Burza ostrzy w chmurze
+  ok. 75 klatek/s).
+
 ## 15.11.2026 - tryb deweloperski: więcej żaru
 
 - Prośba autora: przycisk żaru w oknie deweloperskim daje 5000 zamiast 100 (`DevWindow.DEV_EMBERS`) - w lochu do paska

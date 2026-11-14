@@ -40,6 +40,14 @@ const MIN_RESISTANCE := -1.0
 ## Combo żywiołów (np. woda + Grom) i wrażliwości nie mogą razem pomnożyć obrażeń bardziej niż tyle razy
 ## (pilnowanie balansu - żeby dwa połączone żywioły nie mnożyły obrażeń bez końca).
 const MAX_MULT := 2.0
+## Combo z przemoczeniem (ustalone z autorem 15.11.2026, wariant „oba”): przemoczony wróg dostaje od Gromu i lodu
+## o SOAK_BONUS więcej, piorun z przemoczonego przeskakuje na SOAK_CHAIN_EXTRA wrogów więcej, a lód (kamień Szron)
+## zamraża przemoczonego na SOAK_FREEZE s. Porażony wróg (Grom) dostaje od wszystkiego o SHOCK_BONUS więcej.
+const SOAK_BONUS := 1.3
+const SOAK_CHAIN_EXTRA := 2
+const SOAK_FREEZE := 0.6
+const SHOCK_BONUS := 0.15
+const SOAKED_BY := [LIGHTNING, COLD]
 ## Odporności potworów (nazwa potwora -> {żywioł: ułamek}). Gobliny Hordy nie mają żadnych; wpisy dojdą
 ## z nowymi rodzajami lochów i potworów (np. utopce odporne na wodę, wrażliwe na Grom).
 const MONSTER_RESIST := {}
@@ -74,3 +82,8 @@ static func reduce(amount: int, resist: float, bonus := 1.0) -> int:
 		return 0
 	var mult := (1.0 - clampf(resist, MIN_RESISTANCE, MAX_RESISTANCE)) * maxf(bonus, 0.0)
 	return maxi(1, roundi(amount * minf(mult, MAX_MULT)))
+
+
+## Mnożnik combo z przemoczeniem: Grom i lód na przemoczonym wrogu - SOAK_BONUS, inaczej 1.
+static func soak_bonus(element: String, soaked: bool) -> float:
+	return SOAK_BONUS if soaked and element in SOAKED_BY else 1.0
