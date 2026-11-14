@@ -29,6 +29,7 @@ func _run() -> void:
 	_test_unlock(game)
 	await _test_base(game)
 	await _test_combat(game)
+	await _test_unique(game)
 	game.reset_hero()
 	game.best_level = 0
 	game.save_game()
@@ -200,3 +201,78 @@ func _test_combat(game: Node) -> void:
 	game.dev_immortal = false
 	arena.queue_free()
 	await process_frame
+
+
+## Kamienie unikalne glewii (14.11.2026): 3 pchnięcia w stożku, płonąca ziemia zamachu, powrót cięć bruzdy,
+## 3 upadki Słupa ognia, odbicia sierpów tańca.
+func _test_unique(game: Node) -> void:
+	game.dev_set_level(20)
+	game.dev_skills()
+	for id in Skills.of_weapon("glaive"):
+		game.add_gem(Gems.unique_of(id), 1, false)
+		game.socket_skill(id, 0, Gems.unique_of(id))
+	game.dev_immortal = true
+	game.save_game()
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	arena.horde_spawner.set_process(false)
+	var hero: ProtoHero = arena.hero
+	var weapon: ProtoGlaive = arena.weapon
+	_check(weapon._unique("g_thrust") and weapon._unique("g_dance"), "kamienie unikalne glewii w gniazdach")
+	hero.position = Vector2.ZERO
+	var front := _goblin(arena, Vector2(40, 0))
+	var up := _goblin(arena, Vector2(40, -9))
+	var down := _goblin(arena, Vector2(40, 9))
+	await _wait(0.2)
+	for g in [front, up, down]:
+		g._stunned = 60.0
+	var hp := [front.hp, up.hp, down.hp]
+	weapon._aim = 0.0
+	weapon._thrust_hit()
+	_check(front.hp < hp[0] and up.hp < hp[1] and down.hp < hp[2], "Trójząb: trzy pchnięcia w stożku")
+	# Pogorzelisko: płonąca ziemia po zamachu
+	weapon.reset_cooldowns()
+	hero.mana = hero.max_mana
+	weapon.cast("g_sweep")
+	await _wait(0.5)
+	_check(weapon._zones.any(func(z: Dictionary) -> bool: return z.skill == "g_sweep" and z.has("circles")), "Pogorzelisko: płonąca ziemia wzdłuż łuku")
+	# Bumerang: cięcia bruzdy wracają
+	await _wait(0.3)
+	weapon.reset_cooldowns()
+	hero.mana = hero.max_mana
+	weapon.cast("g_trail")
+	await _wait(0.9)
+	_check(weapon._cuts.any(func(c: Dictionary) -> bool: return c.skill == "g_trail" and c.get("returning", false)), "Bumerang: cięcia zawracają")
+	await _wait(1.0)
+	_check(not weapon._cuts.any(func(c: Dictionary) -> bool: return c.skill == "g_trail"), "cięcia wróciły i zniknęły")
+	# Ognisty Deszcz: 3 upadki w 3 wrogów
+	up.queue_free()
+	down.queue_free()
+	var far := _goblin(arena, Vector2(-70, 40))
+	var far2 := _goblin(arena, Vector2(0, -80))
+	await _wait(0.2)
+	far2._stunned = 60.0
+	far._stunned = 60.0
+	weapon.reset_cooldowns()
+	hero.mana = hero.max_mana
+	var far_hp: int = far.hp
+	weapon.cast("g_pillar")
+	_check(weapon._pillar_queue.size() == 2, "Ognisty Deszcz: jeszcze 2 cele w kolejce")
+	await _wait(2.0)
+	_check(far.hp < far_hp and weapon._state == "follow", "glewia spadła też na dalszego wroga")
+	# Rykoszet Płomieni: sierp odbija się w kolejnego wroga
+	weapon.reset_cooldowns()
+	hero.mana = hero.max_mana
+	weapon._spin = 0.0
+	weapon._spawn_cut(0.0)
+	var cut: Dictionary = weapon._cuts.back()
+	var side := _goblin(arena, Vector2(70, 50))
+	await _wait(0.05)
+	side._stunned = 60.0
+	await _wait(1.0)
+	_check(cut.bounces < ProtoGlaive.DANCE_GEM_BOUNCES, "Rykoszet: sierp odbił się (zostało %d)" % cut.bounces)
+	game.dev_immortal = false
+	arena.queue_free()
+	await process_frame
+

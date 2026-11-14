@@ -98,6 +98,17 @@ const UNIQUE := {
 		"text": "Każdy trafiony wróg wywołuje wokół siebie falę uderzeniową, która rani pobliskich (50% obrażeń)."},
 	"blink": {"name": "Kamień Nieskończonej Mgły", "short": "Skoki za pół many",
 		"text": "Każdy skok Mgnienia kosztuje o połowę mniej many."},
+	# glewia ognia (ustalone z autorem 14.11.2026)
+	"g_thrust": {"name": "Kamień Trójzęba", "short": "3 pchnięcia",
+		"text": "Glewia dźga trzy razy naraz w wąskim stożku przed sobą - każdy wróg obrywa raz."},
+	"g_sweep": {"name": "Kamień Pogorzeliska", "short": "Płonąca ziemia",
+		"text": "Zamach zostawia wzdłuż łuku płonącą ziemię, która przez 3 s rani i podpala wrogów."},
+	"g_trail": {"name": "Kamień Bumerangu", "short": "Cięcia wracają",
+		"text": "Cięcia bruzdy po dolocie zawracają do ciebie i ranią wrogów drugi raz."},
+	"g_pillar": {"name": "Kamień Ognistego Deszczu", "short": "3 upadki",
+		"text": "Glewia spada po kolei w 3 różnych wrogów w pobliżu (wybuchy 60% siły, mniejsze płonące kręgi)."},
+	"g_dance": {"name": "Kamień Rykoszetu Płomieni", "short": "Odbicia sierpów",
+		"text": "Sierpy ognia odbijają się od trafionego wroga w kolejnego w pobliżu - do 3 odbić."},
 }
 const UNIQUE_COLOR := Color(1.0, 0.82, 0.35)
 const SUPPORT_ORDER := ["multi", "area", "ember", "rime", "discharge", "haste", "thrift", "leech"]

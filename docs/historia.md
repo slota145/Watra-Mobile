@@ -2,6 +2,18 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 14.11.2026 - kamienie unikalne glewii
+
+- Pomysły autora (Słup ognia - wybór z propozycji Claude): Kamień Trójzęba (pchnięcie: 3 pchnięcia w stożku ±12°,
+  każdy wróg obrywa raz), Kamień Pogorzeliska (zamach: płonąca ziemia wzdłuż łuku na 70% zasięgu, 3 s - strefa
+  z kół `"circles"`, `_add_arc_zone`), Kamień Bumerangu (bruzda: cięcia po dolocie zawracają do postaci, 220 px/s,
+  ranią drugi raz), Kamień Ognistego Deszczu (Słup ognia: glewia spada po kolei w 3 wrogów w promieniu 120 px,
+  wybuchy 60%, kręgi 60%, szybsze wznoszenie - `_pillar_queue`), Kamień Rykoszetu Płomieni (taniec: sierp po
+  trafieniu odbija się w najbliższego nietrafionego wroga do 90 px, do 3 odbić - `_bounce_target`).
+- Dane w `Gems.UNIQUE` (klucze `g_*`), ikony `tools/unique_gem_art.py` (split, ember, echo, area, discharge; szary
+  kamień „split” złocony po jasności - `FORCE`). Testy: `test_glaive.gd` (`_test_unique`), `test_gems.gd` - wszystkie
+  umiejętności mają kamień unikalny.
+
 ## 14.11.2026 - glewia: Płonąca bruzda zamiast doskoku, nowy Taniec płomieni, zwężona smuga pchnięcia
 
 - Prośby autora po teście: smuga pchnięcia miała płaski tył od strony postaci - `tools/vfx_art.py` dostał opcję
