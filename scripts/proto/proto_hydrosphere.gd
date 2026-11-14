@@ -66,14 +66,13 @@ const BOLT_FX_ANCHOR := Vector2(22, 8)
 const SPLASH_FX := preload("res://assets/effects/hydro_splash.png")
 const SPLASH_FX_ANCHOR := Vector2(21, 18)
 const TIDE_FX := preload("res://assets/effects/hydro_wave.png")
-const TIDE_FX_ANCHOR := Vector2(28, 27)
-const TIDE_FX_LOOP := Vector2i(2, 12)
+const TIDE_FX_ANCHOR := Vector2(17, 32)
+const TIDE_FX_FRAMES := 12
 const VORTEX_FX := preload("res://assets/effects/hydro_vortex.png")
-const VORTEX_FX_ANCHOR := Vector2(34, 37)
-## Ripple wiru ma promień ok. 30 px (skalowany do VORTEX_RADIUS), łuk wiru (przebarwione cięcie tańca glewii) - ok. 27 px.
-const VORTEX_FX_RADIUS := 30.0
-const SWIRL_FX := preload("res://assets/effects/hydro_swirl.png")
-const SWIRL_FX_ANCHOR := Vector2(30, 36)
+const VORTEX_FX_ANCHOR := Vector2(48, 34)
+const VORTEX_FX_FRAMES := 12
+## Promień wiru w efekcie (spirale wody na ziemi, piana na brzegu) - skalowany do VORTEX_RADIUS.
+const VORTEX_FX_RADIUS := 34.0
 const GEYSER_FX := preload("res://assets/effects/hydro_geyser.png")
 const GEYSER_FX_ANCHOR := Vector2(49, 39)
 const DROP_FX := preload("res://assets/effects/hydro_drop.png")
@@ -81,7 +80,7 @@ const DROP_FX_ANCHOR := Vector2(29, 6)
 
 ## Pociski i fale w locie: {"fx", "dir", "left", "speed", "radius", "hits", "skill", "kind" ("bolt"/"wave"), "target"}.
 var _shots: Array = []
-## Wiry: {"node", "swirl", "at", "left", "tick", "radius"}.
+## Wiry: {"node", "at", "left", "tick", "radius"}.
 var _vortexes: Array = []
 ## Sople Ulewy: {"fx", "at", "t"}.
 var _drops: Array = []
@@ -211,7 +210,7 @@ func _process_shots(delta: float) -> void:
 		if s.kind == "bolt":
 			fx.frame = int(_clock * 12.0 + i) % 8
 		else:
-			fx.frame = TIDE_FX_LOOP.x + int(_clock * 16.0 + i) % (TIDE_FX_LOOP.y - TIDE_FX_LOOP.x)
+			fx.frame = int(_clock * 12.0 + i) % TIDE_FX_FRAMES
 			fx.modulate.a = clampf(s.left / 30.0, 0.0, 1.0)
 		var reach: float = s.radius * _area(s.skill)
 		var popped := false
@@ -277,7 +276,7 @@ func _spawn_tide() -> void:
 		return
 	var best := _nearest(Skills.DATA.h_wave.range)
 	var a := (best.center() - _orbit_center()).angle() if best else _aim
-	var fx := _shot_sprite(TIDE_FX, 14, TIDE_FX_ANCHOR, a)
+	var fx := _shot_sprite(TIDE_FX, TIDE_FX_FRAMES, TIDE_FX_ANCHOR, a)
 	fx.global_position = _orbit_center()
 	fx.scale = Vector2.ONE * _area("h_wave")
 	var dist := WAVE_DISTANCE * _area("h_wave") * (1.5 if _perk("h_wave", 0) else 1.0)
@@ -285,32 +284,19 @@ func _spawn_tide() -> void:
 			"hits": [], "skill": "h_wave", "kind": "wave"})
 
 
-## Wir w punkcie `at` (stopy wroga): kręgi wody z bąbelkami (pętla) i obracający się łuk wody.
+## Wir w punkcie `at` (stopy wroga): zapętlony wir wody na ziemi (spirale wciągające do środka, piana na brzegu).
 func _add_vortex(at: Vector2) -> void:
 	var r := VORTEX_RADIUS * _area("h_vortex")
 	var node := Sprite2D.new()
 	node.texture = VORTEX_FX
-	node.hframes = 16
+	node.hframes = VORTEX_FX_FRAMES
 	node.centered = false
 	node.offset = -VORTEX_FX_ANCHOR
 	node.scale = Vector2.ONE * r / VORTEX_FX_RADIUS
 	node.z_index = -1
 	get_parent().add_child(node)
 	node.global_position = at.round()
-	var holder := Node2D.new()  # spłaszcza obracający się łuk jak na ziemi (rzut z góry)
-	holder.scale = Vector2(1.0, 0.55)
-	holder.z_index = 6
-	get_parent().add_child(holder)
-	holder.global_position = (at + Vector2(0, -4)).round()
-	var swirl := Sprite2D.new()
-	swirl.texture = SWIRL_FX
-	swirl.hframes = 12
-	swirl.frame = 4
-	swirl.centered = false
-	swirl.offset = -SWIRL_FX_ANCHOR + Vector2(0, 18)  # łuk krąży wokół środka wiru
-	swirl.scale = Vector2.ONE * r / 27.0
-	holder.add_child(swirl)
-	_vortexes.append({"node": node, "swirl": swirl, "holder": holder, "at": at, "radius": r, "tick": VORTEX_TICK,
+	_vortexes.append({"node": node, "at": at, "radius": r, "tick": VORTEX_TICK,
 			"left": VORTEX_TIME_LONG if _perk("h_vortex", 0) else VORTEX_TIME})
 
 
@@ -320,11 +306,8 @@ func _process_vortexes(delta: float) -> void:
 		v.left -= delta
 		v.tick -= delta
 		var node: Sprite2D = v.node
-		var swirl: Sprite2D = v.swirl
-		node.frame = int(_clock * 10.0) % 16
-		swirl.rotation = _clock * TAU * 1.5  # łuk wody krąży wokół środka
+		node.frame = int(_clock * 12.0) % VORTEX_FX_FRAMES
 		node.modulate.a = clampf(v.left / 0.4, 0.0, 1.0)
-		v.holder.modulate.a = node.modulate.a
 		for t in _live_targets():
 			var d: Vector2 = t.global_position - v.at
 			if Vector2(d.x, d.y * 1.6).length() > v.radius:
@@ -339,7 +322,6 @@ func _process_vortexes(delta: float) -> void:
 			if _perk("h_vortex", 1):
 				_water_blast(v.at, VORTEX_BLAST_RADIUS * _area("h_vortex"), _power("h_vortex") * VORTEX_BLAST_POWER)
 			node.queue_free()
-			v.holder.queue_free()
 			_vortexes.remove_at(i)
 
 
