@@ -68,12 +68,10 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   zbierania, więcej żaru (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy unik 2-4% na przedmiot jest
   odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
-- **Hydrosfera - trzecia broń (14.11.2026, w trakcie):** ustalenia autora (ankiety 14.11.2026): woda, walka na dystans,
-  lewitująca kula wody obok postaci (rysunek w narzędziu pikseli, efekty nowe z kreatora); za darmo po Wodzu 15. poziomu,
-  wcześniej 4500 zł. Każde trafienie przemacza (wróg wolniejszy o 20% na 3 s; później combo z Gromem i lodem).
-  Umiejętności (mistrzostwo 1, 3, 6, 10, 15): Wodny pocisk (zwykły cios - bańka w najbliższego wroga do ok. 140 px,
-  mały rozprysk), Fala (łuk wody ok. 110 px, odpycha), Wir (3 s w miejscu wroga, wciąga i rani), Gejzery (pod 5
-  najbliższymi wrogami, ogłuszenie 1 s), Ulewa (4 s krople/sople spadają na wrogów wokół postaci).
+- **Hydrosfera (14.11.2026):** zrobiona (szczegóły w `docs/historia.md`). Do oceny na telefonie: siła pocisku na dystans
+  wobec broni wręcz, czy przemoczenie (20% wolniej) jest odczuwalne, Wir i Gejzery, płynność Ulewy z Wirem (w chmurze
+  61-68 klatek/s), cena 4500 zł. Później: kamienie unikalne hydrosfery, combo przemoczenia z Gromem i lodem, widoczny
+  znak przemoczenia na potworze (np. krople z kreatora - część water_drips).
 
 - **Glewia ognia i kolczyk z kłem (13.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie:
   siła i zasięg umiejętności glewii wobec miecza, czy podpalenie jest odczuwalne, nowe działania 5. i 10. poziomu

@@ -80,6 +80,32 @@ const DATA := {
 		"mana": 30, "cooldown": 10.0, "weapon": "glaive", "mastery": 15, "main": true, "range": 60.0, "power": 0.7, "burn": 0.3,
 		"description": "Przez 3 s glewia tnie zamaszyście dookoła ciebie pod różnymi kątami, a każde cięcie wypuszcza sierp ognia, który powoli leci na zewnątrz i przebija wrogów.",
 	},
+	# Hydrosfera (ustalone z autorem 14.11.2026): walka na dystans, każde trafienie przemacza (ProtoHydrosphere).
+	"h_bolt": {
+		"name": "Wodny pocisk", "icon": preload("res://assets/skills/hydro/h_bolt.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "hydrosphere", "mastery": 1, "main": true, "range": 140.0, "power": 0.9,
+		"description": "Kula wypluwa bańkę wody w najbliższego wroga; rozprysk rani też tych obok. Trafieni są przemoczeni.",
+	},
+	"h_wave": {
+		"name": "Fala", "icon": preload("res://assets/skills/hydro/h_wave.png"),
+		"mana": 15, "cooldown": 5.0, "weapon": "hydrosphere", "mastery": 3, "main": true, "range": 90.0, "power": 1.2,
+		"description": "Fala wody toczy się łukiem przed tobą, rani i odpycha wrogów.",
+	},
+	"h_vortex": {
+		"name": "Wir", "icon": preload("res://assets/skills/hydro/h_vortex.png"),
+		"mana": 20, "cooldown": 8.0, "weapon": "hydrosphere", "mastery": 6, "main": true, "range": 140.0, "power": 0.35,
+		"description": "Wodny wir w miejscu wroga przez 3 s wciąga wrogów do środka i co chwilę ich rani.",
+	},
+	"h_geyser": {
+		"name": "Gejzery", "icon": preload("res://assets/skills/hydro/h_geyser.png"),
+		"mana": 25, "cooldown": 8.0, "weapon": "hydrosphere", "mastery": 10, "main": true, "range": 120.0, "power": 1.8,
+		"description": "Pod pięcioma najbliższymi wrogami tryskają gejzery: ranią i ogłuszają na 1 s.",
+	},
+	"h_rain": {
+		"name": "Ulewa", "icon": preload("res://assets/skills/hydro/h_rain.png"),
+		"mana": 30, "cooldown": 12.0, "weapon": "hydrosphere", "mastery": 15, "main": true, "range": 110.0, "power": 0.8,
+		"description": "Przez 4 s z nieba spadają sople wody na wrogów wokół ciebie.",
+	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
 ## (o COST_STEP każdy), z większym obszarem (o AREA_STEP każdy) i z nowym działaniem.
@@ -93,7 +119,8 @@ const PERK_LEVELS := [5, 10]
 ## Cena ulepszenia z poziomu n na n+1 (żar): UPGRADE_PRICE[umiejętność] * n (zwykły cios najtańszy, Mgnienie
 ## najdroższe; liczby jak dawne ceny w złocie - do oceny na telefonie).
 const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "blink": 200,
-		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200}
+		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200,
+		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_rain": 200}
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
@@ -106,11 +133,17 @@ const PERKS := {
 	"g_trail": ["Bruzda płonie 5 s zamiast 3.", "5 cięć zamiast 3."],
 	"g_pillar": ["Płonący krąg o połowę większy.", "Po pół sekundy drugi wybuch."],
 	"g_dance": ["Tańczy 4 s zamiast 3.", "Sierpy lecą po dwa naraz, w przeciwne strony."],
+	"h_bolt": ["Rozprysk większy i silniejszy.", "Co trzeci pocisk to trzy bańki w wachlarzu."],
+	"h_wave": ["Fala toczy się o połowę dalej.", "Za pierwszą falą idzie druga."],
+	"h_vortex": ["Wir kręci się 4 s zamiast 3.", "Na koniec wir wybucha falą wody."],
+	"h_geyser": ["Ogłuszenie 1,5 s zamiast 1.", "Osiem gejzerów zamiast pięciu."],
+	"h_rain": ["Ulewa trwa 6 s zamiast 4.", "Sople padają dwa razy częściej."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 ## Kolejność w oknie umiejętności.
-const ORDER := ["strike", "whirl", "throw", "slam", "blink", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance"]
+const ORDER := ["strike", "whirl", "throw", "slam", "blink", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
+		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_rain"]
 
 
 static func has(id: String) -> bool:

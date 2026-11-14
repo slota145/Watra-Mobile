@@ -151,8 +151,9 @@ const WHIRL_DRAIN := 1.0 / 3.0
 
 ## Grupa węzłów, które miecz sam znajduje jako cele (potwory Hordy).
 const TARGETS := &"proto_targets"
-## Stany zwykłego ciosu (szybkość ataku i Pośpiech go przyspieszają); glewia dokłada swoje pchnięcie.
-const STRIKE_STATES := ["follow", "windup", "swing", "recover", "thrust_windup", "thrust", "thrust_recover"]
+## Stany zwykłego ciosu (szybkość ataku i Pośpiech go przyspieszają); glewia i hydrosfera dokładają swoje.
+const STRIKE_STATES := ["follow", "windup", "swing", "recover", "thrust_windup", "thrust", "thrust_recover",
+		"orb_windup", "orb_shot"]
 
 var hero: ProtoHero
 ## Czy gracz trzyma przycisk ataku.
