@@ -13,6 +13,9 @@ extends ProtoWeapon
 ## - „Taniec płomieni” (`g_dance`, pomysł autora): seria zamaszystych cięć dookoła postaci pod różnymi kątami (14.11.2026:
 ##   bez wiru) - każde cięcie wypuszcza sierp ognia, który powoli leci na zewnątrz i przebija wrogów
 ##   (5. poziom - dłużej, 10. - po dwa sierpy naraz w przeciwne strony).
+## Kamienie unikalne (Gems.UNIQUE, ustalone z autorem 14.11.2026; `_unique`): pchnięcie - 3 pchnięcia w wąskim stożku;
+## zamach - płonąca ziemia wzdłuż łuku; bruzda - cięcia wracają do postaci (ranią drugi raz); Słup ognia - glewia spada
+## 3 razy w 3 różnych wrogów (słabsze wybuchy, mniejsze kręgi); Taniec płomieni - sierpy odbijają się między wrogami.
 ## Każde trafienie podpala (`_hit`): Skills.burn_of - ile obrażeń trafienia dopala się przez BURN_TIME (silniejsze
 ## podpalenie zastępuje słabsze - ProtoTarget.burn). Ogień na ziemi (`_zones`) co ZONE_TICK rani i podpala stojących
 ## w nim wrogów. Grafika glewii: assets/weapons/glaive.png (ostrze w prawo, rękojeść po lewej; narysowana w narzędziu
@@ -70,6 +73,20 @@ const DANCE_TURN := Vector2(deg_to_rad(100.0), deg_to_rad(200.0))
 const CUT_SPEED := 70.0
 const CUT_DISTANCE := 150.0
 const CUT_RADIUS := 15.0
+## Kamienie unikalne: rozstaw pchnięć w stożku, łuk płonącej ziemi zamachu (promień jako część zasięgu, połowa
+## szerokości, czas), powrót cięć bruzdy (prędkość), Słup ognia (liczba upadków, zasięg szukania celów, siła i krąg
+## kolejnych), odbicia sierpów tańca (najwięcej, zasięg szukania).
+const THRUST_GEM_SPREAD := deg_to_rad(12.0)
+const SWEEP_GEM_RADIUS := 0.7
+const SWEEP_GEM_WIDTH := 12.0
+const SWEEP_GEM_TIME := 3.0
+const FURROW_RETURN_SPEED := 220.0
+const PILLAR_GEM_FALLS := 3
+const PILLAR_GEM_RANGE := 120.0
+const PILLAR_GEM_POWER := 0.6
+const PILLAR_GEM_ZONE := 0.6
+const DANCE_GEM_BOUNCES := 3
+const DANCE_GEM_RANGE := 90.0
 ## Ogień na ziemi: co ile rani i jaką częścią obrażeń umiejętności.
 const ZONE_TICK := 0.5
 const ZONE_POWER := 0.25
@@ -113,6 +130,9 @@ var _sweep_again := false
 var _furrow_from := Vector2.ZERO
 var _furrow_to := Vector2.ZERO
 var _dance_sign := 1.0
+## Słup ognia z kamieniem unikalnym: kolejne cele (węzły wrogów) i mnożnik siły bieżącego upadku.
+var _pillar_queue: Array = []
+var _pillar_mult := 1.0
 
 
 func _init() -> void:
@@ -217,18 +237,22 @@ func _process_thrust() -> void:
 ## Pchnięcie trafia wszystkich na linii od postaci do czubka (5. poziom - podpalenie x2).
 func _thrust_hit() -> void:
 	var reach := THRUST_REACH * _area(basic)
-	var dir := Vector2.from_angle(_aim)
 	var any := false
-	for t in _live_targets():
-		var to := t.center() - _orbit_center()
-		var along := to.dot(dir)
-		if along >= 0.0 and along <= reach + 6.0 and absf(to.cross(dir)) <= THRUST_WIDTH:
-			_hit(t, _swing_power * _power(basic), hero.global_position, basic, 2.0 if _perk(basic, 0) else 1.0)
-			_fire_hit(t)
-			any = true
-	var fx := Fx.once(get_parent(), THRUST_FX, 7, 16.0, (_orbit_center() + dir * 8.0).round(), THRUST_FX_ANCHOR, 6,
-			(reach - 8.0) / THRUST_FX_LENGTH)
-	fx.rotation = _aim
+	var angles := [_aim, _aim - THRUST_GEM_SPREAD, _aim + THRUST_GEM_SPREAD] if _unique(basic) else [_aim]
+	var hit: Array = []  # w stożku każdy wróg obrywa raz na pchnięcie
+	for a in angles:
+		var dir := Vector2.from_angle(a)
+		for t in _live_targets():
+			var to := t.center() - _orbit_center()
+			var along := to.dot(dir)
+			if not hit.has(t) and along >= 0.0 and along <= reach + 6.0 and absf(to.cross(dir)) <= THRUST_WIDTH:
+				hit.append(t)
+				_hit(t, _swing_power * _power(basic), hero.global_position, basic, 2.0 if _perk(basic, 0) else 1.0)
+				_fire_hit(t)
+				any = true
+		var fx := Fx.once(get_parent(), THRUST_FX, 7, 16.0, (_orbit_center() + dir * 8.0).round(), THRUST_FX_ANCHOR, 6,
+				(reach - 8.0) / THRUST_FX_LENGTH)
+		fx.rotation = a
 	if any:
 		Input.vibrate_handheld(15)
 
@@ -261,6 +285,18 @@ func _start(id: String) -> void:
 			_set_state("trail")
 		"g_pillar":
 			_goal = best.position if best else hero.position + hero.facing.normalized() * 30.0
+			_pillar_queue = []
+			_pillar_mult = 1.0
+			if _unique(id):
+				_pillar_mult = PILLAR_GEM_POWER
+				var near: Array = []
+				for t in _live_targets():
+					var d := hero.global_position.distance_to(t.global_position)
+					if t != best and d <= PILLAR_GEM_RANGE * _area(id):
+						near.append([d, t])
+				near.sort_custom(func(x: Array, y: Array) -> bool: return x[0] < y[0])
+				for pair in near.slice(0, PILLAR_GEM_FALLS - 1):
+					_pillar_queue.append(pair[1])
 			_from_pos = position
 			_from_sprite = _sprite.position
 			_from_rot = _sprite.rotation
@@ -291,6 +327,9 @@ func _process_sweep() -> void:
 				_fire_hit(t)
 		Input.vibrate_handheld(20)
 	if _t >= SWEEP_TIME:
+		if _unique("g_sweep"):
+			_add_arc_zone(_orbit_center() + Vector2(0, ORBIT_HEIGHT), _aim, SWEEP_RADIUS * _area("g_sweep") * SWEEP_GEM_RADIUS,
+					SWEEP_ARC, SWEEP_GEM_WIDTH * _area("g_sweep"), SWEEP_GEM_TIME, "g_sweep")
 		if _sweep_again and not hero.dead:
 			_sweep_again = false
 			_hit_done = false
@@ -339,11 +378,11 @@ func _process_trail() -> void:
 func _process_pillar() -> void:
 	match _state:
 		"pillar_rise":
-			var k := ease(clampf(_t / PILLAR_RISE, 0.0, 1.0), -2.0)
+			var k := ease(clampf(_t / (PILLAR_RISE * (0.6 if _pillar_mult < 1.0 else 1.0)), 0.0, 1.0), -2.0)
 			position = _from_pos.lerp(_goal, k)
 			_sprite.position = _from_sprite.lerp(Vector2(0, -PILLAR_HEIGHT), k)
 			_sprite.rotation = lerp_angle(_from_rot, PI / 2.0, k)
-			if _t >= PILLAR_RISE:
+			if k >= 1.0:
 				_set_state("pillar_fall")
 		"pillar_fall":
 			var k := clampf(_t / PILLAR_FALL, 0.0, 1.0)
@@ -352,16 +391,29 @@ func _process_pillar() -> void:
 				_pillar_hit(global_position)
 				if _perk("g_pillar", 1):
 					get_tree().create_timer(PILLAR_ECHO, false).timeout.connect(
-							_blast.bind(global_position, PILLAR_RADIUS * _area("g_pillar"), _power("g_pillar"), "g_pillar"))
+							_blast.bind(global_position, PILLAR_RADIUS * _area("g_pillar"), _power("g_pillar") * _pillar_mult,
+							"g_pillar"))
 				_set_state("pillar_stuck")
 		"pillar_stuck":
-			if _t >= PILLAR_STUCK:
-				_end_skill()
+			if _t >= PILLAR_STUCK * (0.4 if _unique("g_pillar") else 1.0):
+				var next: ProtoTarget = null
+				while not _pillar_queue.is_empty() and next == null:
+					var t = _pillar_queue.pop_front()
+					next = t if is_instance_valid(t) and t.alive() else null
+				if next and not hero.dead:  # kamień unikalny: kolejny upadek w następnego wroga
+					_goal = next.position
+					_from_pos = position
+					_from_sprite = _sprite.position
+					_from_rot = _sprite.rotation
+					_set_state("pillar_rise")
+				else:
+					_end_skill()
 
 
 func _pillar_hit(at: Vector2) -> void:
-	_blast(at, PILLAR_RADIUS * _area("g_pillar"), _power("g_pillar"), "g_pillar")
-	var r := PILLAR_ZONE_RADIUS * _area("g_pillar") * (PILLAR_ZONE_BIG if _perk("g_pillar", 0) else 1.0)
+	_blast(at, PILLAR_RADIUS * _area("g_pillar"), _power("g_pillar") * _pillar_mult, "g_pillar")
+	var r := PILLAR_ZONE_RADIUS * _area("g_pillar") * (PILLAR_ZONE_BIG if _perk("g_pillar", 0) else 1.0) \
+			* (PILLAR_GEM_ZONE if _unique("g_pillar") else 1.0)
 	_add_zone(at, at, r, PILLAR_ZONE_TIME, "g_pillar")
 	var cam := hero.get_viewport().get_camera_2d()
 	if cam:
@@ -422,7 +474,8 @@ func _spawn_cut(a: float, skill := "g_dance", from := Vector2.INF, speed := CUT_
 	get_parent().add_child(fx)
 	fx.global_position = _orbit_center() if from == Vector2.INF else from + Vector2(0, -ORBIT_HEIGHT)
 	_cuts.append({"fx": fx, "dir": Vector2.from_angle(a), "left": distance * _area(skill), "hits": [], "skill": skill,
-			"speed": speed})
+			"speed": speed, "back": skill == "g_trail" and _unique(skill), "bounces": DANCE_GEM_BOUNCES
+			if skill == "g_dance" and _unique(skill) else 0})
 
 
 func _process_cuts(delta: float) -> void:
@@ -430,19 +483,50 @@ func _process_cuts(delta: float) -> void:
 		var c: Dictionary = _cuts[i]
 		var fx: Sprite2D = c.fx
 		var step: float = c.speed * delta
+		if c.get("returning", false):  # kamień unikalny bruzdy: wraca do postaci (goni ją)
+			var to := _orbit_center() - fx.global_position
+			c.dir = to.normalized() if to.length() > 0.1 else c.dir
+			fx.rotation = c.dir.angle()
+			c.left = to.length()
 		fx.global_position += c.dir * step
 		fx.frame = CUT_FX_LOOP.x + int(_clock * 16.0 + i) % (CUT_FX_LOOP.y - CUT_FX_LOOP.x)
 		c.left -= step
-		fx.modulate.a = clampf(c.left / 30.0, 0.0, 1.0)
+		fx.modulate.a = 1.0 if c.get("returning", false) else clampf(c.left / 30.0, 0.0, 1.0)
 		var reach := CUT_RADIUS * _area(c.skill)
 		for t in _live_targets():
 			if not c.hits.has(t) and t.center().distance_to(fx.global_position) <= reach:
 				c.hits.append(t)
 				_hit(t, _power(c.skill), fx.global_position - c.dir * 10.0, c.skill)
 				_fire_hit(t)
+				if c.bounces > 0:  # kamień unikalny tańca: odbicie w najbliższego nietrafionego wroga
+					var next := _bounce_target(fx.global_position, c.hits)
+					if next:
+						c.bounces -= 1
+						c.dir = (next.center() - fx.global_position).normalized()
+						fx.rotation = c.dir.angle()
+						c.left = maxf(c.left, fx.global_position.distance_to(next.center()) + 20.0)
 		if c.left <= 0.0:
+			if c.back:
+				c.back = false
+				c.returning = true
+				c.hits = []
+				c.speed = FURROW_RETURN_SPEED
+				c.left = 1.0
+				continue
 			fx.queue_free()
 			_cuts.remove_at(i)
+
+
+## Najbliższy wróg w zasięgu DANCE_GEM_RANGE od `at`, którego sierp jeszcze nie trafił (null - brak).
+func _bounce_target(at: Vector2, hits: Array) -> ProtoTarget:
+	var best: ProtoTarget = null
+	var best_d := DANCE_GEM_RANGE * _area("g_dance")
+	for t in _live_targets():
+		var d := t.center().distance_to(at)
+		if not hits.has(t) and d <= best_d:
+			best = t
+			best_d = d
+	return best
 
 
 # --- Ogień na ziemi ---
@@ -484,6 +568,33 @@ func _add_zone(a: Vector2, b: Vector2, radius: float, time: float, skill: String
 			"skill": skill})
 
 
+## Płonąca ziemia wzdłuż łuku (kamień unikalny zamachu): środek `c`, kierunek `aim`, promień `r`, kąt `span`, połowa
+## szerokości `width`. Strefa to płomyki w kołach co GROUND_FX_SPACING (wróg w którymkolwiek - w ogniu).
+func _add_arc_zone(c: Vector2, aim: float, r: float, span: float, width: float, time: float, skill: String) -> void:
+	var node := Node2D.new()
+	node.z_index = -1
+	get_parent().add_child(node)
+	node.global_position = Vector2.ZERO
+	var n := maxi(2, int(span * r / GROUND_FX_SPACING))
+	var circles: Array = []
+	var flames: Array = []
+	for i in n + 1:
+		var a := aim + lerpf(-span / 2.0, span / 2.0, float(i) / n)
+		var p := c + Vector2(cos(a), sin(a) / 1.6) * r
+		circles.append(p)
+		var f := Sprite2D.new()
+		f.texture = GROUND_FX
+		f.hframes = GROUND_FX_FRAMES
+		f.centered = false
+		f.offset = -GROUND_FX_ANCHOR
+		f.position = p.round()
+		f.frame = randi() % GROUND_FX_FRAMES
+		node.add_child(f)
+		flames.append(f)
+	_zones.append({"node": node, "flames": flames, "a": c, "b": c, "circles": circles, "radius": width, "left": time,
+			"tick": ZONE_TICK, "skill": skill})
+
+
 func _process_zones(delta: float) -> void:
 	for i in range(_zones.size() - 1, -1, -1):
 		var z: Dictionary = _zones[i]
@@ -505,6 +616,12 @@ func _process_zones(delta: float) -> void:
 
 ## Czy punkt `p` (stopy wroga) stoi w ogniu strefy `z` (odległość od odcinka, rzut z góry - spłaszczony pion).
 static func _in_zone(z: Dictionary, p: Vector2) -> bool:
+	if z.has("circles"):
+		for c in z.circles:
+			var dc: Vector2 = p - c
+			if Vector2(dc.x, dc.y * 1.6).length() <= z.radius:
+				return true
+		return false
 	var a: Vector2 = z.a
 	var b: Vector2 = z.b
 	var ab := b - a

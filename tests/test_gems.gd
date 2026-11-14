@@ -67,7 +67,7 @@ func _test_data() -> void:
 	_check(gems > 200 and grades_ok, "skrzynia Wodza zwykle daje kamień, stopień z poziomu lochu (%d)" % gems)
 	# kamienie unikalne
 	var ok := true
-	for skill in Skills.of_weapon("sword"):  # glewia - kamienie unikalne później
+	for skill in Skills.ORDER:
 		var u := Gems.unique_of(skill)
 		ok = ok and Gems.is_unique(u) and Gems.is_support(u) and Gems.valid(u) and Gems.icon_of(u) != null \
 				and Gems.unique_skill(u) == skill and Gems.name_of(u) != "" and Gems.short_text(u, skill) != ""
