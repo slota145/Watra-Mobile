@@ -2,6 +2,11 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - tryb deweloperski: więcej żaru
+
+- Prośba autora: przycisk żaru w oknie deweloperskim daje 5000 zamiast 100 (`DevWindow.DEV_EMBERS`) - w lochu do paska
+  wyprawy, w bazie do Watry.
+
 ## 15.11.2026 - sakwa w zakładce „Kamienie”: tylko pasujące kamienie
 
 - Prośba autora: po wyborze umiejętności sakwa w zakładce „Kamienie” okna umiejętności pokazuje tylko kamienie, które
