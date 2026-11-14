@@ -69,9 +69,12 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
 - **Elektryczna katana, znak przemoczenia, combo wody z Gromem i lodem (15.11.2026):** zrobione (szczegóły
-  w `docs/historia.md`). Do oceny na telefonie: tempo i siła cięcia katany wobec miecza, czy porażenie (+15%) i przeskok
-  pioruna są odczuwalne, Iaido (czy zryw nie wrzuca w tłum), Burza ostrzy, czy krople przemoczenia widać w tłumie,
-  siła combo (+30%, zamrożenie Szronem). Później: kamienie unikalne katany, dźwięk pioruna.
+  w `docs/historia.md`). Katana przebudowana tego samego dnia (szermierka zamiast czarów: Taniec ostrza, Riposta,
+  ładowany Sąd Peruna, Błysk Peruna). Do oceny na telefonie: tempo i siła cięcia katany wobec miecza, czy porażenie
+  (+15%) i przeskok pioruna są odczuwalne, czy Taniec ostrza nie wrzuca w tłum, czas gardy Riposty (3 s), ładowanie
+  Sądu Peruna (1,5 s, 60-200 px), czy krople przemoczenia widać w tłumie, siła combo (+30%, zamrożenie Szronem).
+  Później: nowa umiejętność miecza w miejsce Mgnienia (autor: „zaraz wymyślimy”), kamienie unikalne katany, dźwięk
+  pioruna.
 
 - **Hydrosfera: Wodny Strażnik i kamienie unikalne (14.11.2026):** zrobione (szczegóły w `docs/historia.md`). Ocenione
   przez autora 15.11.2026: Strażnik, kamienie i liczba fal na ekranie w sam raz.

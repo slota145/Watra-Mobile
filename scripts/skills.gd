@@ -113,25 +113,26 @@ const DATA := {
 		"mana": 0, "cooldown": 0.0, "weapon": "katana", "mastery": 1, "main": true, "range": 46.0, "power": 0.75,
 		"description": "Katana tnie błyskawicznie po łuku najbliższego wroga. Trafieni są porażeni.",
 	},
-	"k_iaido": {
-		"name": "Iaido", "icon": preload("res://assets/skills/katana/k_iaido.png"),
-		"mana": 12, "cooldown": 4.0, "weapon": "katana", "mastery": 3, "main": true, "range": 90.0, "power": 1.6,
-		"description": "Cięcie z pochwy: przemykasz przez wroga w linii prostej i ranisz wszystkich po drodze.",
+	"k_dance": {
+		"name": "Taniec ostrza", "icon": preload("res://assets/skills/katana/k_dance.png"),
+		"mana": 15, "cooldown": 5.0, "weapon": "katana", "mastery": 3, "main": true, "range": 60.0, "power": 0.6,
+		"description": "Idziesz naprzód, tnąc precyzyjnie cztery razy, a potem między wszystkimi trafionymi przeskakuje błękitny piorun.",
 	},
-	"k_chain": {
-		"name": "Łańcuch piorunów", "icon": preload("res://assets/skills/katana/k_chain.png"),
-		"mana": 18, "cooldown": 6.0, "weapon": "katana", "mastery": 6, "main": true, "range": 130.0, "power": 1.1,
-		"description": "Piorun z katany skacze po kolei po pięciu wrogach.",
+	"k_riposte": {
+		"name": "Riposta", "icon": preload("res://assets/skills/katana/k_riposte.png"),
+		"mana": 15, "cooldown": 6.0, "weapon": "katana", "mastery": 6, "main": true, "range": 50.0, "power": 1.3,
+		"description": "Przez 3 s katana czeka w gardzie: następny cios cię nie rani, a ty odpowiadasz cięciem dookoła, wyskokiem ku napastnikowi i precyzyjnym cięciem po okręgu.",
 	},
 	"k_perun": {
 		"name": "Sąd Peruna", "icon": preload("res://assets/skills/katana/k_perun.png"),
-		"mana": 25, "cooldown": 8.0, "weapon": "katana", "mastery": 10, "main": true, "range": 140.0, "power": 2.0,
-		"description": "Trzy pioruny z nieba uderzają w najbliższych wrogów, ranią wszystkich obok i na chwilę ogłuszają.",
+		"mana": 25, "cooldown": 8.0, "weapon": "katana", "mastery": 10, "main": false, "range": 200.0, "power": 2.2,
+		"charge": true,
+		"description": "Przytrzymaj, żeby naładować, i puść: katana tnie w linii prostej ku wrogowi - tym dłużej i szerzej, im dłużej trwało ładowanie. Nie może stać pod dużym przyciskiem.",
 	},
-	"k_storm": {
-		"name": "Burza ostrzy", "icon": preload("res://assets/skills/katana/k_storm.png"),
-		"mana": 30, "cooldown": 12.0, "weapon": "katana", "mastery": 15, "main": true, "range": 120.0, "power": 0.8,
-		"description": "Przez 3 s katana sama skacze od wroga do wroga i tnie każdego piorunem, a ty możesz chodzić bezpiecznie z boku.",
+	"k_flash": {
+		"name": "Błysk Peruna", "icon": preload("res://assets/skills/katana/k_flash.png"),
+		"mana": 7, "cooldown": 0.0, "weapon": "katana", "mastery": 15, "main": false, "range": 0.0, "power": 1.2,
+		"description": "Przytrzymaj - przeskakujesz piorunem na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego, dopóki starcza many. Każdy wróg zabity skokiem zwraca 2 many. Nie może stać pod dużym przyciskiem.",
 	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
@@ -148,7 +149,7 @@ const PERK_LEVELS := [5, 10]
 const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "blink": 200,
 		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200,
 		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200,
-		"k_slash": 40, "k_iaido": 60, "k_chain": 90, "k_perun": 140, "k_storm": 200}
+		"k_slash": 40, "k_dance": 60, "k_riposte": 90, "k_perun": 140, "k_flash": 200}
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
@@ -167,16 +168,16 @@ const PERKS := {
 	"h_geyser": ["Ogłuszenie 1,5 s zamiast 1.", "Osiem gejzerów zamiast pięciu."],
 	"h_guardian": ["Strażnik zostaje 8 s zamiast 6.", "Pojawiają się dwie kule naraz."],
 	"k_slash": ["Co czwarte cięcie - piorun w najbliższego wroga.", "Cięcie przeskakuje piorunem na dwóch wrogów obok."],
-	"k_iaido": ["Dłuższy zryw.", "Na końcu zrywu wyładowanie rani wszystkich wokół."],
-	"k_chain": ["7 skoków zamiast 5.", "Każdy skok zostawia na ziemi iskrę, która rani wrogów."],
-	"k_perun": ["5 piorunów zamiast 3.", "Po pół sekundy uderza druga seria."],
-	"k_storm": ["Burza trwa 4 s zamiast 3.", "Z każdego skoku piorun rozgałęzia się na dwóch wrogów obok."],
+	"k_dance": ["6 cięć zamiast 4.", "Na końcu piorun przeskakuje też na 3 wrogów obok."],
+	"k_riposte": ["Garda czeka 5 s zamiast 3.", "Z precyzyjnego cięcia po okręgu piorun przeskakuje na wrogów obok."],
+	"k_perun": ["Ładuje się o 1/3 szybciej.", "Na końcu cięcia uderza piorun, który rani wszystkich wokół."],
+	"k_flash": ["Zabicie skokiem zwraca dwa razy więcej many.", "Co 5. skok wyładowanie wokół postaci."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 ## Kolejność w oknie umiejętności.
 const ORDER := ["strike", "whirl", "throw", "slam", "blink", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
-		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_iaido", "k_chain", "k_perun", "k_storm"]
+		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash"]
 
 
 static func has(id: String) -> bool:
@@ -241,6 +242,11 @@ static func unlocked_at(weapon: String, mastery: int) -> Array[String]:
 		if weapon_of(id) == weapon and mastery >= mastery_of(id):
 			list.append(id)
 	return list
+
+
+## Czy umiejętność ładuje się przytrzymaniem przycisku (Sąd Peruna katany - działa po puszczeniu).
+static func is_charged(id: String) -> bool:
+	return DATA.has(id) and DATA[id].get("charge", false)
 
 
 ## Czy umiejętność może stać pod dużym przyciskiem (Mgnienie - nie: auto atak wrzucałby postać w hordę).

@@ -1,28 +1,34 @@
 class_name ProtoKatana
 extends ProtoWeapon
 ## Elektryczna katana (ustalone z autorem 15.11.2026) - czwarta broń, żywioł Grom (Elements.LIGHTNING), najszybsza
-## broń wręcz. Lewituje obok postaci jak miecz (dziedziczy po ProtoWeapon: podążanie, orbita cięcia, mana, odnowienia,
-## kamienie, krytyki). Każde trafienie PORAŻA (`_hit`): wróg przez SHOCK_TIME dostaje od wszystkiego o
-## Elements.SHOCK_BONUS więcej (ProtoWeapon._combo_mult), a ARC_POWER obrażeń przeskakuje piorunem na najbliższego
-## sąsiada (`_chain_from`; z przemoczonego - combo z hydrosferą - na Elements.SOAK_CHAIN_EXTRA wrogów więcej i mocniej,
-## a cała katana bije przemoczonych o Elements.SOAK_BONUS mocniej).
-## - „Błyskawiczne cięcie” (`k_slash`, zwykły cios): szybkie cięcie po łuku (5. poziom - co 4. cięcie piorun
-##   w najbliższego wroga, 10. - cięcie przeskakuje na dwóch wrogów obok);
-## - „Iaido” (`k_iaido`): zryw postaci na wylot przez wroga, rani wszystkich na drodze (5. - dłuższy zryw,
-##   10. - wyładowanie na końcu);
-## - „Łańcuch piorunów” (`k_chain`): piorun z katany skacze po kolei po CHAIN_JUMPS wrogach (5. - więcej skoków,
-##   10. - każdy skok zostawia iskrę na ziemi, która rani);
-## - „Sąd Peruna” (`k_perun`): pioruny z nieba w najbliższych wrogów, ranią obszarem i ogłuszają (5. - 5 piorunów,
-##   10. - druga seria po pół sekundy);
-## - „Burza ostrzy” (`k_storm`): katana sama skacze od wroga do wroga przez STORM_TIME, postać chodzi swobodnie z boku
-##   (5. - dłużej, 10. - z każdego skoku piorun rozgałęzia się na dwóch wrogów).
+## broń wręcz, szermierka wzmocniona piorunem (przebudowa z pomysłów autora: same cięcia zamiast czarów). Lewituje
+## obok postaci jak miecz (dziedziczy po ProtoWeapon: podążanie, orbita cięcia, mana, odnowienia, kamienie, krytyki,
+## skoki Mgnienia). Każde trafienie PORAŻA (`_deal`): wróg przez SHOCK_TIME dostaje od wszystkiego o
+## Elements.SHOCK_BONUS więcej (ProtoWeapon._combo_mult), a ARC_POWER obrażeń przeskakuje błękitnym piorunem na
+## najbliższego sąsiada (`_chain_from`; z przemoczonego - combo z hydrosferą - na Elements.SOAK_CHAIN_EXTRA wrogów
+## więcej i mocniej, a cała katana bije przemoczonych o Elements.SOAK_BONUS mocniej).
+## - „Błyskawiczne cięcie” (`k_slash`, zwykły cios): szybkie cienkie cięcie po łuku, przez które przelatuje piorun
+##   (`_ArcBolt`); 5. poziom - co 4. cięcie piorun w najbliższego wroga, 10. - przeskok na dwóch wrogów obok;
+## - „Taniec ostrza” (`k_dance`): postać idzie naprzód (ProtoHero.leap) i tnie DANCE_CUTS razy, na końcu błękitny
+##   piorun przeskakuje po kolei między wszystkimi trafionymi (5. - 6 cięć, 10. - piorun skacze też na 3 wrogów obok);
+## - „Riposta” (`k_riposte`): katana w gardzie przez RIPOSTE_WAIT - następny cios nie rani (ProtoHero.parry_left,
+##   sygnał `parried`), a postać odpowiada: cięcie dookoła, wyskok ku napastnikowi (najbliższemu wrogowi) i cienkie,
+##   idealnie równe cięcie po okręgu (`_Ring`), cały czas nietykalna (5. - garda 5 s, 10. - z okręgu przeskakują pioruny);
+## - „Sąd Peruna” (`k_perun`, ładowany - Skills.is_charged): dopóki palec trzyma przycisk, katana się ładuje, po
+##   puszczeniu tnie w linii prostej ku najbliższemu wrogowi - dłużej i szerzej im dłuższe ładowanie (do PERUN_CHARGE)
+##   (5. - szybsze ładowanie, 10. - piorun na końcu cięcia);
+## - „Błysk Peruna” (`k_flash`): Mgnienie miecza (ProtoWeapon - `blink_skill`) z błękitnymi piorunami wzdłuż skoku;
+##   trafieni są porażeni jak przy każdym cięciu (5. - więcej many za zabicie, 10. - co 5. skok wyładowanie).
 ## Kamienie unikalne katany - później. Grafika: assets/weapons/katana.png (tools/katana_art.py), efekty z kreatora
-## (assets/effects/katana_*.png, pixellab_src/vfx/ids.json): cięcie i smuga Iaido (przebarwione cięcie miecza i smuga
-## Mgnienia), trafienie piorunem, piorun z nieba.
+## (assets/effects/katana_*.png, pixellab_src/vfx/ids.json): cienkie cięcie, cięcie dookoła, długie cięcie, trafienie
+## piorunem, smuga skoku (przebarwiona smuga Mgnienia); pioruny i okrąg Riposty rysowane w grze.
 
 const KATANA_TEXTURE := preload("res://assets/weapons/katana.png")
 ## Punkt chwytu na obrazku (przy tsubie - ostrze ma od niego 26 px w grze, jak miecz).
 const K_GRIP := Vector2(20.0, 8.0)
+## Kolor piorunów katany (błękit) i jaśniejszy rdzeń.
+const BOLT := Color(0.55, 0.85, 1.0)
+const BOLT_CORE := Color(0.92, 0.98, 1.0)
 ## Porażenie: czas, część obrażeń trafienia przeskakująca na sąsiada, ilu sąsiadów, zasięg przeskoku.
 const SHOCK_TIME := 3.0
 const ARC_POWER := 0.25
@@ -39,72 +45,97 @@ const SLASH_BOLT_RANGE := 100.0
 const SLASH_BOLT_POWER := 0.8
 const SLASH_ARC_TARGETS := 2
 const SLASH_ARC_POWER := 0.5
-## Iaido: długość zrywu (5. poziom - dłuższy), o ile za wroga, połowa szerokości pasa, wyładowanie z 10. (promień, siła).
-const IAIDO_DISTANCE := 70.0
-const IAIDO_DISTANCE_LONG := 100.0
-const IAIDO_OVERSHOOT := 18.0
-const IAIDO_WIDTH := 12.0
-const IAIDO_BLAST_RADIUS := 40.0
-const IAIDO_BLAST_POWER := 0.8
-## Łańcuch piorunów: liczba skoków (5. poziom - więcej), zasięg skoku, co ile kolejny skok, iskry z 10. (czas, co ile
-## ranią, promień, siła).
-const CHAIN_JUMPS := 5
-const CHAIN_JUMPS_PERK := 7
-const CHAIN_JUMP_RANGE := 80.0
-const CHAIN_STEP := 0.07
-const SPARK_TIME := 2.0
-const SPARK_TICK := 0.5
-const SPARK_RADIUS := 14.0
-const SPARK_POWER := 0.25
-## Sąd Peruna: liczba piorunów (5. poziom - więcej), odstęp między nimi, czas od pojawienia do uderzenia (klatki
-## spadania pioruna), promień, ogłuszenie, druga seria z 10. (po ilu sekundach).
-const PERUN_BOLTS := 3
-const PERUN_BOLTS_PERK := 5
-const PERUN_STAGGER := 0.08
-const PERUN_DELAY := 0.2
-const PERUN_RADIUS := 22.0
-const PERUN_STUN := 0.6
-const PERUN_ECHO := 0.5
-## Burza ostrzy: czas (5. poziom - dłużej), co ile skok, zasięg szukania wrogów od postaci, promień cięcia, rozgałęzienie
-## z 10. (ilu, siła).
-const STORM_TIME := 3.0
-const STORM_TIME_LONG := 4.0
-const STORM_EVERY := 0.22
-const STORM_RANGE := 120.0
-const STORM_HIT := 18.0
-const STORM_BRANCH_TARGETS := 2
-const STORM_BRANCH_POWER := 0.4
+## Taniec ostrza: liczba cięć (5. poziom - więcej), co ile cięcie, droga naprzód, promień i łuk cięcia, siła pioruna
+## między trafionymi, przeskok z 10. (ilu).
+const DANCE_CUTS := 4
+const DANCE_CUTS_PERK := 6
+const DANCE_EVERY := 0.14
+const DANCE_DISTANCE := 80.0
+const DANCE_RADIUS := 40.0
+const DANCE_ARC := deg_to_rad(150.0)
+const DANCE_BOLT_POWER := 0.5
+const DANCE_EXTRA := 3
+## Riposta: czas gardy (5. poziom - dłużej), nietykalność kontry, cięcie dookoła (promień), wyskok (odległość, czas,
+## wysokość podskoku, opóźnienie), precyzyjny okrąg (promień, spłaszczenie jak efekt cięcia dookoła, czas rysowania
+## i gaśnięcia, siła).
+const RIPOSTE_WAIT := 3.0
+const RIPOSTE_WAIT_LONG := 5.0
+const RIPOSTE_SAFE := 0.7
+const RIPOSTE_RADIUS := 44.0
+const RIPOSTE_LEAP := 48.0
+const RIPOSTE_LEAP_TIME := 0.16
+const RIPOSTE_HOP := 8.0
+const RIPOSTE_LEAP_DELAY := 0.14
+const RING_RADIUS := 50.0
+const RING_SQUASH := 0.46
+const RING_DRAW := 0.1
+const RING_FADE := 0.3
+const RING_POWER := 1.3
+## Sąd Peruna: pełne ładowanie (5. poziom - krócej), samo puszczenie po tylu sekundach trzymania naładowanej,
+## długość i szerokość cięcia (od-do), siła (mnożnik od-do), piorun z 10. (promień, siła).
+const PERUN_CHARGE := 1.5
+const PERUN_CHARGE_FAST := 1.0
+const PERUN_HOLD_MAX := 1.0
+const PERUN_LENGTH := Vector2(60.0, 200.0)
+const PERUN_WIDTH := Vector2(10.0, 28.0)
+const PERUN_POWER := Vector2(0.8, 1.5)
+const PERUN_BLAST_RADIUS := 36.0
+const PERUN_BLAST_POWER := 0.8
+## Błysk Peruna: siła wyładowania co 5. skok (10. poziom) i jego promień.
+const FLASH_SPIN_POWER := 0.8
+const FLASH_SPIN_RADIUS := 44.0
 ## Efekty (klatki, fps, zaczepienie, wielkość).
-const K_SLASH_FX := preload("res://assets/effects/katana_slash.png")
+const CUT_FX := preload("res://assets/effects/katana_cut.png")
+const CUT_FRAMES := 9
+const CUT_FPS := 40.0
+const CUT_ANCHOR := Vector2(39, 46)
+## Kąt środka łuku cięcia na arkuszu (łuk biegnie zgodnie z zegarem od -140 do +48 stopni) i jego promień.
+const CUT_MID := deg_to_rad(-46.0)
+const CUT_RADIUS := 39.0
 const K_HIT_FX := preload("res://assets/effects/katana_hit.png")
 const K_HIT_FRAMES := 10
 const K_HIT_FPS := 18.0
 const K_HIT_ANCHOR := Vector2(28, 22)
 const K_HIT_SIZE := 0.45
 const K_TRAIL_FX := preload("res://assets/effects/katana_trail.png")
-const K_TRAIL_ANCHOR := Vector2(8, 10)
-const K_TRAIL_LENGTH := 64.0
-const PERUN_FX := preload("res://assets/effects/katana_perun.png")
-const PERUN_FX_FRAMES := 14
-const PERUN_FX_FPS := 20.0
-const PERUN_FX_ANCHOR := Vector2(49, 138)
-const PERUN_FX_SIZE := 0.6
+const RIPOSTE_FX := preload("res://assets/effects/katana_riposte.png")
+const RIPOSTE_FX_FRAMES := 11
+const RIPOSTE_FX_ANCHOR := Vector2(48, 23)
+## Promień cięcia dookoła na arkuszu (połowa szerokości).
+const RIPOSTE_FX_RADIUS := 46.0
+const LINE_FX := preload("res://assets/effects/katana_line.png")
+const LINE_FX_FRAMES := 9
+## Środek długiego cięcia na arkuszu, jego długość i grubość oraz nachylenie (cięcie lekko wznosi się w prawo).
+const LINE_FX_CENTER := Vector2(60, 20)
+const LINE_FX_LENGTH := 102.0
+const LINE_FX_THICK := 10.0
+const LINE_FX_TILT := deg_to_rad(7.85)
 
-## Łańcuch piorunów w drodze: {"cur": cel, "from": punkt, "hits": [], "left": skoki, "t": do skoku, "power"}.
-var _chains: Array = []
-## Iskry na ziemi (10. poziom łańcucha): {"at", "left", "tick", "fx"}.
-var _sparks: Array = []
-## Pioruny Peruna czekające na uderzenie: {"at", "t", "mult"}.
-var _strikes: Array = []
-var _storm_left := 0.0
-var _storm_acc := 0.0
-var _storm_last: Object
+## Przeskoki pioruna: ilu sąsiadów i jaka część obrażeń (ustawiane na czas jednego trafienia; 0 - bez przeskoku).
+var _arcs := ARC_TARGETS
+var _arc_power := ARC_POWER
+## Upływ czasu bieżącego cięcia (klatki arkusza grają z własnym fps; ujemny - brak cięcia).
+var _cut_t := -1.0
+## Taniec ostrza: ile cięć zostało, czas do następnego, kierunek, trafieni.
+var _dance_left := 0
+var _dance_t := 0.0
+var _dance_dir := Vector2.RIGHT
+var _dance_hits: Array = []
+## Riposta: czas do wyskoku i do okręgu po kontrze (ujemny - brak).
+var _leap_wait := -1.0
+var _ring_wait := -1.0
+## Sąd Peruna: ładowanie (s) i znacznik linii na ziemi.
+var _charge := 0.0
+var _charge_line: Line2D
 
 
 func _init() -> void:
 	basic = "k_slash"
 	main_skill = "k_slash"
 	element = Elements.LIGHTNING
+	blink_skill = "k_flash"
+	flicker_trail = K_TRAIL_FX
+	bolt_color = BOLT
 
 
 func _ready() -> void:
@@ -112,7 +143,16 @@ func _ready() -> void:
 	for s in [_sprite] + _ghosts:
 		s.texture = KATANA_TEXTURE
 		s.offset = -K_GRIP
-	_slash.texture = K_SLASH_FX
+	_slash.texture = CUT_FX
+	_slash.hframes = CUT_FRAMES
+	_slash.centered = false
+	_slash.offset = -CUT_ANCHOR
+	_connect_parry()
+
+
+func _connect_parry() -> void:
+	if hero and not hero.parried.is_connected(_on_parried):
+		hero.parried.connect(_on_parried)
 
 
 func _process(delta: float) -> void:
@@ -120,11 +160,15 @@ func _process(delta: float) -> void:
 	match _state:
 		"k_windup", "k_swing", "k_recover":
 			_process_slash()
-		"storm":
-			_process_storm(delta)
-	_process_chains(delta)
-	_process_sparks(delta)
-	_process_strikes(delta)
+		"dance":
+			_process_dance(delta)
+		"guard":
+			_process_guard()
+		"riposte":
+			_process_riposte(delta)
+		"charge":
+			_process_charge(delta)
+	_process_cut(delta)
 
 
 ## Błysk pioruna na celu.
@@ -132,17 +176,69 @@ func _zap_fx(at: Vector2, size := K_HIT_SIZE) -> void:
 	Fx.once(get_parent(), K_HIT_FX, K_HIT_FRAMES, K_HIT_FPS, at.round(), K_HIT_ANCHOR, 21, size)
 
 
-## Trafienie kataną: obrażenia jak każdej broni (`_deal` - krytyk, elity, kamienie, combo), porażenie i przeskok
-## pioruna na `arcs` sąsiadów (`arc_power` obrażeń trafienia; 0 - bez przeskoku). Zwraca zadane obrażenia (przed krytykiem).
-func _hit(t: ProtoTarget, power: float, from: Vector2, skill: String, arcs := ARC_TARGETS, arc_power := ARC_POWER) -> int:
-	var amount := _roll(power)
-	_deal(t, amount, from, skill)
+## Każde trafienie kataną (też skoki Błysku Peruna): obrażenia jak każdej broni, porażenie i przeskok pioruna
+## na `_arcs` sąsiadów (część `_arc_power` obrażeń).
+func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
+	super._deal(t, amount, from, skill)
 	if t.alive():
 		t.shock(SHOCK_TIME)
-	if arcs > 0 and arc_power > 0.0:
-		for n in _chain_from(t, maxi(1, roundi(amount * arc_power)), arcs, ARC_RANGE):
+	if _arcs > 0 and _arc_power > 0.0:
+		for n in _chain_from(t, maxi(1, roundi(amount * _arc_power)), _arcs, ARC_RANGE):
 			n.shock(SHOCK_TIME)
-	return amount
+
+
+## Trafienie umiejętnością z wybraną liczbą przeskoków (`arcs`, `arc_power`).
+func _hit(t: ProtoTarget, power: float, from: Vector2, skill: String, arcs := ARC_TARGETS, arc_power := ARC_POWER) -> void:
+	_arcs = arcs
+	_arc_power = arc_power
+	_deal(t, _roll(power), from, skill)
+	_arcs = ARC_TARGETS
+	_arc_power = ARC_POWER
+
+
+# --- Cienkie cięcie (zwykły cios, Taniec ostrza, cięcie po skoku) ---
+
+## Ustawia katanę na orbicie jak miecz; efekt cięcia: środek łuku w stronę `_aim`, odbity w drugą stronę cięcia
+## (ujemna skala - odbicie wokół punktu zaczepienia).
+func _place(a: float) -> void:
+	super._place(a)
+	_slash.flip_v = false
+	_slash.rotation = _aim - CUT_MID * _sign
+	var k := absf(_slash.scale.x)
+	_slash.scale = Vector2(k, k * _sign)
+
+
+## Rusza efekt cienkiego cięcia i piorun przelatujący przez nie (`_ArcBolt`).
+func _start_cut(area := 1.0) -> void:
+	_slash.scale = Vector2.ONE * (HILT_RADIUS + BLADE) * area / CUT_RADIUS
+	_slash.rotation = _aim - CUT_MID * _sign
+	_slash.scale.y *= _sign
+	_slash.flip_v = false
+	_slash.position = _orbit_center() - global_position
+	_slash.frame = 0
+	_slash.visible = true
+	_cut_t = 0.0
+	var bolt := _ArcBolt.new()
+	bolt.from = _aim - ARC / 2.0 * _sign
+	bolt.sweep = ARC * _sign
+	bolt.radius = (HILT_RADIUS + BLADE - 3.0) * area
+	add_child(bolt)
+	bolt.position = _orbit_center() - global_position
+
+
+## Klatki cięcia lecą własnym tempem (CUT_FPS), także po zakończeniu ruchu katany.
+func _process_cut(delta: float) -> void:
+	if _cut_t < 0.0:
+		return
+	_cut_t += delta
+	var f := int(_cut_t * CUT_FPS)
+	if f >= CUT_FRAMES:
+		_cut_t = -1.0
+		_slash.visible = false
+		return
+	_slash.visible = true
+	_slash.frame = f
+	_slash.position = _orbit_center() - global_position
 
 
 # --- Zwykły cios: błyskawiczne cięcie ---
@@ -152,7 +248,6 @@ func _attack(second := false, full := false) -> void:
 	if not second:
 		_strike_count += 1
 	_swing_power = (1.0 if full else gem_power(basic, "multi") / 100.0) if second else 1.0
-	_slash.scale = Vector2.ONE * (HILT_RADIUS + BLADE) * _area(basic) / SLASH_FX_RADIUS
 	var best := _nearest(Skills.DATA[basic].range * _area(basic))
 	_aim = (best.center() - _orbit_center()).angle() if best else hero.facing.angle()
 	_sign = -_sign
@@ -175,16 +270,14 @@ func _process_slash() -> void:
 			_sprite.rotation = lerp_angle(_from_rot, a, k)
 			if _t >= K_WINDUP:
 				_set_state("k_swing")
-				_slash.visible = true
+				_start_cut(_area(basic))
 		"k_swing":
 			var progress := clampf(_t / K_SWING, 0.0, 1.0)
 			_place(_angle_at(ease(progress, 0.5)))
-			_slash.frame = mini(int(progress * SLASH_FRAMES), SLASH_FRAMES - 1)
 			if not _hit_done and progress >= 0.5:
 				_hit_done = true
 				_slash_hit()
 			if _t >= K_SWING:
-				_slash.visible = false
 				_set_state("k_recover")
 		"k_recover":
 			_place(_angle_at(1.0))
@@ -202,254 +295,344 @@ func _process_slash() -> void:
 ## 10. - przeskok na SLASH_ARC_TARGETS wrogów (zamiast jednego).
 func _slash_hit() -> void:
 	var power := _swing_power * _power(basic)
-	var reach := (HILT_RADIUS + BLADE + 6.0) * _area(basic)
 	var arcs := SLASH_ARC_TARGETS if _perk(basic, 1) else ARC_TARGETS
 	var arc_power := SLASH_ARC_POWER if _perk(basic, 1) else ARC_POWER
-	var any := false
-	for t in _live_targets():
-		var to := t.center() - _orbit_center()
-		if to.length() <= reach and absf(angle_difference(_aim, to.angle())) <= ARC / 2.0:
-			_hit(t, power, hero.global_position, basic, arcs, arc_power)
-			_zap_fx(_orbit_center() + to.limit_length(HILT_RADIUS + BLADE * 0.8))
-			any = true
+	var hit := _arc_hits(_aim, (HILT_RADIUS + BLADE + 6.0) * _area(basic), ARC, power, basic, arcs, arc_power)
 	if _perk(basic, 0) and not _second and _strike_count % SLASH_BOLT_EVERY == 0:
 		var near := _nearest(SLASH_BOLT_RANGE * _area(basic))
 		if near:
 			_bolt(_sprite.global_position, near.center())
 			_hit(near, power * SLASH_BOLT_POWER, hero.global_position, basic, 0)
 			_zap_fx(near.center(), 0.6)
-	if any:
+	if not hit.is_empty():
 		Input.vibrate_handheld(12)
+
+
+## Trafia wszystkich w łuku `arc` wokół kierunku `aim` do `reach` od środka postaci; zwraca trafionych.
+func _arc_hits(aim: float, reach: float, arc: float, power: float, skill: String, arcs := ARC_TARGETS,
+		arc_power := ARC_POWER) -> Array:
+	var hit: Array = []
+	for t in _live_targets():
+		var to := t.center() - _orbit_center()
+		if to.length() <= reach and absf(angle_difference(aim, to.angle())) <= arc / 2.0:
+			_hit(t, power, hero.global_position, skill, arcs, arc_power)
+			_zap_fx(_orbit_center() + to.limit_length(reach - 6.0))
+			hit.append(t)
+	return hit
 
 
 # --- Umiejętności ---
 
 func _start(id: String) -> void:
-	if id == basic or not id in ["k_iaido", "k_chain", "k_perun", "k_storm"]:
+	if id == basic or not id in ["k_dance", "k_riposte", "k_perun"]:
 		super._start(id)
 		return
 	if not can_use(id) or not hero.spend_mana(mana_cost(id)):
 		return
 	_cd[id] = cooldown_full(id)
 	_hit_done = false
-	_slash.visible = false
 	var best := _nearest(Skills.DATA[id].range * _area(id))
 	_aim = (best.center() - _orbit_center()).angle() if best else hero.facing.angle()
 	match id:
-		"k_iaido":
-			_iaido(best)
-		"k_chain":
-			if best:
-				_chains.append({"cur": best, "from": _sprite.global_position, "hits": [], "left": _chain_jumps(),
-						"t": 0.0, "power": _power(id)})
-			else:
-				_zap_fx(_orbit_center() + Vector2.from_angle(_aim) * 30.0, 0.6)
+		"k_dance":
+			_dance_left = DANCE_CUTS_PERK if _perk(id, 0) else DANCE_CUTS
+			_dance_t = 0.0
+			_dance_dir = Vector2.from_angle(_aim)
+			_dance_hits = []
+			hero.leap(hero.global_position + _dance_dir * DANCE_DISTANCE * _area(id), DANCE_EVERY * _dance_left)
+			_set_state("dance")
+		"k_riposte":
+			_connect_parry()
+			hero.parry_left = RIPOSTE_WAIT_LONG if _perk(id, 0) else RIPOSTE_WAIT
+			_set_state("guard")
 		"k_perun":
-			_perun(best)
-		"k_storm":
-			_storm_left = STORM_TIME_LONG if _perk(id, 0) else STORM_TIME
-			_storm_acc = STORM_EVERY
-			_storm_last = null
-			_set_state("storm")
+			_charge = 0.0
+			_charge_line = Line2D.new()
+			_charge_line.default_color = Color(BOLT, 0.35)
+			_charge_line.z_index = -1
+			_charge_line.add_point(Vector2.ZERO)
+			_charge_line.add_point(Vector2.ZERO)
+			get_parent().add_child(_charge_line)
+			_set_state("charge")
 	hero.play_gesture(_orbit_center() + Vector2.from_angle(_aim) * 20.0 + Vector2(0, ORBIT_HEIGHT))
 	skill_used.emit(id)
 
 
-## Iaido: postać przemyka w stronę wroga (na wylot, co najmniej IAIDO_OVERSHOOT za nim), błękitna smuga od miejsca
-## startu, cięcie trafia wszystkich w pasie wzdłuż drogi; 10. poziom - wyładowanie w miejscu lądowania.
-func _iaido(best: ProtoTarget) -> void:
-	var from := hero.global_position
-	var dir := Vector2.from_angle(_aim)
-	var distance := (IAIDO_DISTANCE_LONG if _perk("k_iaido", 0) else IAIDO_DISTANCE) * _area("k_iaido")
-	if best:
-		distance = maxf(distance, from.distance_to(best.global_position) + IAIDO_OVERSHOOT)
-	var spot := hero.teleport(from + dir * distance)
-	var travel := spot - from
-	var body := Vector2(0, -ORBIT_HEIGHT)
-	var trail := Fx.once(get_parent(), K_TRAIL_FX, 7, 16.0, from + body, K_TRAIL_ANCHOR)
-	trail.rotation = travel.angle()
-	trail.scale = Vector2.ONE * maxf(0.5, (travel.length() - 8.0) / K_TRAIL_LENGTH)
-	var width := IAIDO_WIDTH * _area("k_iaido")
-	for t in _live_targets():
-		var c := t.center()
-		if Geometry2D.get_closest_point_to_segment(c, from + body, spot + body).distance_to(c) \
-				<= width + t.center_height * 0.5:
-			_hit(t, _power("k_iaido"), from, "k_iaido")
-			_zap_fx(c)
-	if _perk("k_iaido", 1):
-		_discharge(spot + body, IAIDO_BLAST_RADIUS * _area("k_iaido"), _power("k_iaido") * IAIDO_BLAST_POWER, "k_iaido")
-	Input.vibrate_handheld(20)
-	# katana tnie po łuku w stronę zrywu (bez drugiego trafienia - cięcie już zadane wzdłuż drogi)
-	_aim = travel.angle() if travel != Vector2.ZERO else _aim
-	_sign = -_sign
-	_hit_done = true
-	_second = true
-	_slash.scale = Vector2.ONE * (HILT_RADIUS + BLADE) / SLASH_FX_RADIUS
-	_set_state("k_swing")
-	_slash.visible = true
-
-
-## Wyładowanie: rani i poraża wszystkich w promieniu `radius` od punktu `at` (bez przeskoków).
-func _discharge(at: Vector2, radius: float, power: float, skill: String) -> void:
-	for t in _live_targets():
-		if t.center().distance_to(at) <= radius:
-			_hit(t, power, at, skill, 0)
-	_zap_fx(at, radius / 32.0)
-
-
-func _chain_jumps() -> int:
-	return CHAIN_JUMPS_PERK if _perk("k_chain", 0) else CHAIN_JUMPS
-
-
-## Łańcuch piorunów: co CHAIN_STEP piorun skacze na kolejnego wroga (najbliższego nietrafionego w zasięgu skoku).
-func _process_chains(delta: float) -> void:
-	for c in _chains.duplicate():
-		c.t -= delta
-		if c.t > 0.0:
-			continue
-		if not is_instance_valid(c.cur) or not (c.cur as ProtoTarget).alive():
-			_chains.erase(c)
-			continue
-		var cur: ProtoTarget = c.cur
-		_bolt(c.from, cur.center())
-		_hit(cur, c.power, c.from, "k_chain", 0)
-		_zap_fx(cur.center())
-		c.hits.append(cur)
-		if _perk("k_chain", 1):
-			_add_spark(cur.global_position)
-		c.left -= 1
-		c.from = cur.center()
-		c.t = CHAIN_STEP
-		var next: ProtoTarget = null
-		var best_d := CHAIN_JUMP_RANGE * _area("k_chain")
-		for t in _live_targets():
-			var d := t.global_position.distance_to(cur.global_position)
-			if not c.hits.has(t) and d <= best_d:
-				next = t
-				best_d = d
-		c.cur = next
-		if c.left <= 0 or next == null:
-			_chains.erase(c)
-
-
-## Iskra na ziemi (10. poziom łańcucha): migocze SPARK_TIME, co SPARK_TICK rani wrogów obok.
-func _add_spark(at: Vector2) -> void:
-	var fx := Sprite2D.new()
-	fx.texture = K_HIT_FX
-	fx.hframes = K_HIT_FRAMES
-	fx.centered = false
-	fx.offset = -K_HIT_ANCHOR
-	fx.scale = Vector2.ONE * 0.3
-	fx.z_index = 2
-	get_parent().add_child(fx)
-	fx.global_position = at.round()
-	_sparks.append({"at": at, "left": SPARK_TIME, "tick": SPARK_TICK, "fx": fx})
-
-
-func _process_sparks(delta: float) -> void:
-	for s in _sparks.duplicate():
-		s.left -= delta
-		s.tick -= delta
-		var fx: Sprite2D = s.fx
-		fx.frame = 4 + int(_clock * K_HIT_FPS) % 4
-		fx.modulate.a = clampf(s.left / 0.3, 0.0, 1.0)
-		if s.tick <= 0.0:
-			s.tick = SPARK_TICK
-			for t in _live_targets():
-				if t.global_position.distance_to(s.at) <= SPARK_RADIUS:
-					_hit(t, _power("k_chain") * SPARK_POWER, s.at, "k_chain", 0)
-		if s.left <= 0.0:
-			fx.queue_free()
-			_sparks.erase(s)
-
-
-## Sąd Peruna: pioruny w najbliższych wrogów (bez wrogów - jeden przed postacią); 10. poziom - druga seria.
-func _perun(best: ProtoTarget) -> void:
-	var count := PERUN_BOLTS_PERK if _perk("k_perun", 0) else PERUN_BOLTS
-	var near: Array = []
-	for t in _live_targets():
-		var d := hero.global_position.distance_to(t.global_position)
-		if d <= Skills.DATA.k_perun.range * _area("k_perun"):
-			near.append([d, t])
-	near.sort_custom(func(x: Array, y: Array) -> bool: return x[0] < y[0])
-	var spots: Array = []
-	for pair in near.slice(0, count):
-		spots.append((pair[1] as ProtoTarget).global_position)
-	if spots.is_empty():
-		spots.append(hero.global_position + Vector2.from_angle(_aim) * 40.0)
-	for i in spots.size():
-		_add_strike(spots[i], i * PERUN_STAGGER)
-		if _perk("k_perun", 1):
-			_add_strike(spots[i], i * PERUN_STAGGER + PERUN_ECHO)
-
-
-## Piorun Peruna w punkcie `at` za `wait` s: najpierw pojawia się efekt, po PERUN_DELAY uderza.
-func _add_strike(at: Vector2, wait: float) -> void:
-	_strikes.append({"at": at, "t": wait, "shown": false})
-
-
-func _process_strikes(delta: float) -> void:
-	for s in _strikes.duplicate():
-		s.t -= delta
-		if not s.shown and s.t <= 0.0:
-			s.shown = true
-			Fx.once(get_parent(), PERUN_FX, PERUN_FX_FRAMES, PERUN_FX_FPS, (s.at as Vector2).round(), PERUN_FX_ANCHOR, 21,
-					PERUN_FX_SIZE)
-		if s.t <= -PERUN_DELAY:
-			_strikes.erase(s)
-			var radius := PERUN_RADIUS * _area("k_perun")
-			for t in _live_targets():
-				if t.global_position.distance_to(s.at) <= radius + t.center_height * 0.3:
-					_hit(t, _power("k_perun"), s.at, "k_perun")
-					t.stun(PERUN_STUN)
-			Input.vibrate_handheld(25)
-
-
-## Burza ostrzy: katana co STORM_EVERY przeskakuje (zygzak pioruna) do najbliższego wroga w zasięgu postaci i tnie go
-## oraz wrogów tuż obok; bez wrogów wraca do postaci. Postać w tym czasie chodzi swobodnie.
-func _process_storm(delta: float) -> void:
-	_storm_left -= delta
-	_storm_acc += delta
-	if _storm_left <= 0.0:
+## Taniec ostrza: co DANCE_EVERY cięcie przed postacią w kierunku marszu (na przemian w obie strony), na końcu piorun
+## między trafionymi.
+func _process_dance(delta: float) -> void:
+	_place(_angle_at(clampf(_t / DANCE_EVERY, 0.0, 1.0)))
+	_dance_t -= delta
+	if _dance_t > 0.0:
+		return
+	if _dance_left <= 0:
+		_dance_finish()
 		_end_skill()
 		return
-	var on_target: bool = is_instance_valid(_storm_last) and (_storm_last as ProtoTarget).alive()
-	if not on_target:
-		_follow(delta)  # bez wroga katana wraca do postaci
-	if _storm_acc < STORM_EVERY:
-		return
-	_storm_acc = 0.0
-	var range_px := STORM_RANGE * _area("k_storm")
-	var here := _sprite.global_position
-	var best: ProtoTarget = null
-	var best_d := INF
-	for t in _live_targets():
-		if hero.global_position.distance_to(t.global_position) > range_px:
-			continue
-		var d := here.distance_to(t.center()) + (1000.0 if on_target and t == _storm_last else 0.0)
-		if d < best_d:
-			best = t
-			best_d = d
-	if best == null:
-		_storm_last = null
-		return
-	_storm_last = best
-	global_position = best.global_position + Vector2(0, 1)
-	_sprite.position = Vector2(0, -best.center_height - 1.0)
-	_sprite.rotation = randf() * TAU
-	_bolt(here, _sprite.global_position)
-	var fx := Fx.once(get_parent(), K_SLASH_FX, SLASH_FRAMES, 24.0, best.center().round(), Vector2(32, 32), 21, 0.6)
-	fx.rotation = randf() * TAU
-	var branch := _perk("k_storm", 1)
-	for t in _live_targets():
-		if t.center().distance_to(best.center()) <= STORM_HIT * _area("k_storm"):
-			_hit(t, _power("k_storm"), here, "k_storm", STORM_BRANCH_TARGETS if branch and t == best else ARC_TARGETS,
-					STORM_BRANCH_POWER if branch and t == best else ARC_POWER)
-	_zap_fx(best.center())
+	_dance_left -= 1
+	_dance_t = DANCE_EVERY
+	_set_state("dance")  # _t od zera - katana przechodzi łuk cięcia
+	_sign = -_sign
+	_aim = _dance_dir.angle()  # cięcia zawsze w kierunku marszu
+	_start_cut(_area("k_dance"))
+	for t in _arc_hits(_aim, DANCE_RADIUS * _area("k_dance"), DANCE_ARC, _power("k_dance"), "k_dance", 0):
+		if not _dance_hits.has(t):
+			_dance_hits.append(t)
 	Input.vibrate_handheld(10)
 
 
+## Koniec Tańca: błękitny piorun skacze po kolei między trafionymi (zawsze do najbliższego), rani każdego;
+## 10. poziom - z ostatniego przeskakuje jeszcze na DANCE_EXTRA wrogów obok.
+func _dance_finish() -> void:
+	var left: Array = _dance_hits.filter(func(t: Variant) -> bool: return is_instance_valid(t) and t.alive())
+	if left.is_empty():
+		return
+	var from := _sprite.global_position
+	var last: ProtoTarget = null
+	while not left.is_empty():
+		var next: ProtoTarget = left[0]
+		for t in left:
+			if t.center().distance_to(from) < next.center().distance_to(from):
+				next = t
+		left.erase(next)
+		_bolt(from, next.center())
+		_hit(next, _power("k_dance") * DANCE_BOLT_POWER, from, "k_dance", 0)
+		_zap_fx(next.center())
+		from = next.center()
+		last = next
+	if _perk("k_dance", 1) and last:
+		for n in _chain_from(last, maxi(1, _roll(_power("k_dance") * DANCE_BOLT_POWER)), DANCE_EXTRA, ARC_RANGE * 1.5):
+			n.shock(SHOCK_TIME)
+	Input.vibrate_handheld(20)
+
+
+## Garda: katana poziomo przed postacią, lekko drży; gdy minie czas gardy bez ciosu - wraca.
+func _process_guard() -> void:
+	var a := hero.facing.angle()
+	position = hero.position + Vector2(0, 1)
+	_sprite.position = _orbit_center() - global_position + Vector2.from_angle(a) * 6.0 + Vector2(0, -4)
+	_sprite.rotation = a + PI / 2.0 + 0.04 * sin(_clock * 40.0)
+	if hero.parry_left <= 0.0:
+		_end_skill()
+
+
+## Cios zablokowany gardą: nietykalność, cięcie dookoła, po chwili wyskok ku najbliższemu wrogowi.
+func _on_parried() -> void:
+	if _state != "guard":
+		return
+	hero.protect(RIPOSTE_SAFE)
+	var c := _orbit_center()
+	var radius := RIPOSTE_RADIUS * _area("k_riposte")
+	var fx := Fx.once(get_parent(), RIPOSTE_FX, RIPOSTE_FX_FRAMES, 32.0, (c + Vector2(0, ORBIT_HEIGHT * 0.5)).round(),
+			RIPOSTE_FX_ANCHOR, 21, radius / RIPOSTE_FX_RADIUS)
+	fx.modulate.a = 0.95
+	for t in _live_targets():
+		var to := t.global_position - hero.global_position
+		if Vector2(to.x, to.y / RING_SQUASH).length() <= radius + 6.0 or t.center().distance_to(c) <= radius * 0.6:
+			_hit(t, _power("k_riposte"), c, "k_riposte")
+			_zap_fx(t.center())
+	_spin = hero.facing.angle()
+	_leap_wait = RIPOSTE_LEAP_DELAY
+	_ring_wait = -1.0
+	_set_state("riposte")
+	Input.vibrate_handheld(30)
+
+
+## Kontra: katana wiruje wokół postaci; wyskok ku najbliższemu wrogowi, po wylądowaniu cienkie cięcie po okręgu.
+func _process_riposte(delta: float) -> void:
+	_spin += TAU * 3.0 * delta
+	_place(_spin)
+	if _leap_wait >= 0.0:
+		_leap_wait -= delta
+		if _leap_wait < 0.0:
+			var near := _nearest(RIPOSTE_LEAP * 3.0)
+			var dir := (near.global_position - hero.global_position).normalized() if near else hero.facing.normalized()
+			var dist := minf(RIPOSTE_LEAP, near.global_position.distance_to(hero.global_position)) if near else RIPOSTE_LEAP
+			hero.leap(hero.global_position + dir * dist, RIPOSTE_LEAP_TIME, RIPOSTE_HOP)
+			hero.protect(RIPOSTE_SAFE)
+			_ring_wait = RIPOSTE_LEAP_TIME
+		return
+	if _ring_wait >= 0.0:
+		_ring_wait -= delta
+		if _ring_wait < 0.0:
+			_precise_ring()
+			_end_skill()
+
+
+## Cienkie, idealnie równe cięcie po okręgu wokół postaci (`_Ring` rysuje je w RING_DRAW s) - rani wszystkich w okręgu;
+## 10. poziom - z każdego trafionego przeskakują pioruny na dwóch wrogów obok.
+func _precise_ring() -> void:
+	var radius := RING_RADIUS * _area("k_riposte")
+	var ring := _Ring.new()
+	ring.radius = radius
+	ring.start = hero.facing.angle()
+	get_parent().add_child(ring)
+	ring.global_position = hero.global_position + Vector2(0, -ORBIT_HEIGHT * 0.5)
+	var arcs := 2 if _perk("k_riposte", 1) else ARC_TARGETS
+	for t in _live_targets():
+		var to := t.global_position - hero.global_position
+		if Vector2(to.x, to.y / RING_SQUASH).length() <= radius + 6.0:
+			_hit(t, _power("k_riposte") * RING_POWER, hero.global_position, "k_riposte", arcs, ARC_POWER * 2.0)
+			_zap_fx(t.center())
+	Input.vibrate_handheld(25)
+
+
+## Sąd Peruna: ładowanie, dopóki palec trzyma przycisk (najwyżej do pełna + PERUN_HOLD_MAX); katana uniesiona drży
+## coraz mocniej, na ziemi rośnie błękitna linia - długość i szerokość cięcia ku najbliższemu wrogowi.
+func _process_charge(delta: float) -> void:
+	var full := PERUN_CHARGE_FAST if _perk("k_perun", 0) else PERUN_CHARGE
+	_charge += delta
+	var k := clampf(_charge / full, 0.0, 1.0)
+	var near := _nearest(PERUN_LENGTH.y * _area("k_perun"))
+	if near:
+		_aim = (near.global_position - hero.global_position).angle()
+	elif hero.velocity.length() > 1.0:
+		_aim = hero.facing.angle()
+	var dir := Vector2.from_angle(_aim)
+	var length := lerpf(PERUN_LENGTH.x, PERUN_LENGTH.y, k) * _area("k_perun")
+	_charge_line.width = lerpf(PERUN_WIDTH.x, PERUN_WIDTH.y, k) * _area("k_perun")
+	_charge_line.set_point_position(0, _charge_line.to_local(hero.global_position))
+	_charge_line.set_point_position(1, _charge_line.to_local(hero.global_position + dir * length))
+	_charge_line.default_color = Color(BOLT, 0.15 + 0.15 * k + (0.1 * sin(_clock * 20.0) if k >= 1.0 else 0.0))
+	position = hero.position + Vector2(0, -1)
+	_sprite.position = _orbit_center() - global_position + Vector2(-dir.x * 6.0, -14.0) \
+			+ Vector2(randf_range(-1, 1), randf_range(-1, 1)) * k
+	_sprite.rotation = -PI / 2.0 + 0.3 * signf(dir.x)
+	if k >= 1.0 and fmod(_clock, 0.12) < delta:
+		_bolt(_sprite.global_position + Vector2(0, -6), _sprite.global_position + Vector2(randf_range(-10, 10), -20))
+	if not charge_held or _charge >= full + PERUN_HOLD_MAX:
+		_perun_cut(k)
+
+
+## Cięcie Sądu Peruna: wszyscy w pasie od postaci na długość (od-do wg naładowania `k`) obrywają; efekt długiego
+## cięcia rozciągnięty do długości i szerokości pasa, katana ląduje na końcu cięcia.
+func _perun_cut(k: float) -> void:
+	var dir := Vector2.from_angle(_aim)
+	var length := lerpf(PERUN_LENGTH.x, PERUN_LENGTH.y, k) * _area("k_perun")
+	var width := lerpf(PERUN_WIDTH.x, PERUN_WIDTH.y, k) * _area("k_perun")
+	var a := hero.global_position + Vector2(0, -ORBIT_HEIGHT * 0.5)
+	var b := a + dir * length
+	for t in _live_targets():
+		var c := t.center()
+		if Geometry2D.get_closest_point_to_segment(c, a, b).distance_to(c) <= width * 0.5 + t.center_height * 0.5:
+			_hit(t, _power("k_perun") * lerpf(PERUN_POWER.x, PERUN_POWER.y, k), a, "k_perun")
+			_zap_fx(c)
+	var fx := Fx.once(get_parent(), LINE_FX, LINE_FX_FRAMES, 24.0, a.lerp(b, 0.5).round(), LINE_FX_CENTER, 21)
+	fx.rotation = _aim + LINE_FX_TILT
+	fx.scale = Vector2(length / LINE_FX_LENGTH, clampf(width / (LINE_FX_THICK * 1.8), 0.8, 1.5))  # grubsze - kanciaste
+	if _perk("k_perun", 1):
+		_bolt(b + Vector2(0, -40), b)
+		for t in _live_targets():
+			if t.center().distance_to(b) <= PERUN_BLAST_RADIUS * _area("k_perun"):
+				_hit(t, _power("k_perun") * PERUN_BLAST_POWER, b, "k_perun", 0)
+		_zap_fx(b, 0.9)
+	_bolt(a, b)
+	Input.vibrate_handheld(35)
+	_end_skill()
+	# katana ląduje na końcu cięcia i stamtąd wraca za ramię
+	global_position = b + Vector2(0, ORBIT_HEIGHT * 0.5)
+	_sprite.position = Vector2(0, -ORBIT_HEIGHT)
+	_sprite.rotation = _aim
+
+
+# --- Błysk Peruna (Mgnienie katany) ---
+
+## Skok jak Mgnienie miecza, a wzdłuż drogi skoku dwa błękitne pioruny; po skoku cienkie cięcie katany.
+func _flicker_jump(best: ProtoTarget) -> void:
+	var from := hero.global_position + Vector2(0, -ORBIT_HEIGHT)
+	super._flicker_jump(best)
+	var to := hero.global_position + Vector2(0, -ORBIT_HEIGHT)
+	_bolt(from, to)
+	_bolt(from, to)
+	_set_state("k_swing")
+	_hit_done = true
+	_start_cut()
+
+
+## 10. poziom Błysku: co 5. skok wyładowanie wokół postaci (zamiast wiru miecza).
+func _flicker_spin() -> void:
+	_blink_spins += 1
+	var radius := FLASH_SPIN_RADIUS * _area(blink_skill)
+	for t in _live_targets():
+		if t.center().distance_to(_orbit_center()) <= radius:
+			_deal(t, _roll(_power(blink_skill) * FLASH_SPIN_POWER), hero.global_position, blink_skill)
+			_blink_kill(t)
+	_zap_fx(_orbit_center(), radius / 30.0)
+
+
 func _end_skill() -> void:
-	_storm_left = 0.0
-	_storm_last = null
+	_dance_left = 0
+	_leap_wait = -1.0
+	_ring_wait = -1.0
+	if hero:
+		hero.parry_left = 0.0
+	if _charge_line:
+		_charge_line.queue_free()
+		_charge_line = null
+	var cutting := _cut_t >= 0.0
 	super._end_skill()
+	_slash.visible = cutting  # cięcie dogrywa się do końca
+
+
+## Piorun przelatujący przez cięcie: krótki odcinek zygzaka biegnie po łuku cięcia (od `from` o `sweep` radianów,
+## promień `radius`) w TRAVEL s i gaśnie. Zygzak losuje się co klatkę - trzaska.
+class _ArcBolt extends Node2D:
+	const TRAVEL := 0.12
+	const FADE := 0.08
+	const TAIL := 0.45
+	var from := 0.0
+	var sweep := PI
+	var radius := 36.0
+	var _t := 0.0
+
+	func _ready() -> void:
+		z_index = 6
+
+	func _process(delta: float) -> void:
+		_t += delta
+		if _t >= TRAVEL + FADE:
+			queue_free()
+			return
+		queue_redraw()
+
+	func _draw() -> void:
+		var head := clampf(_t / TRAVEL, 0.0, 1.0)
+		var tail := clampf(head - TAIL, 0.0, 1.0)
+		var alpha := 1.0 - clampf((_t - TRAVEL) / FADE, 0.0, 1.0)
+		var pts := PackedVector2Array()
+		var steps := 8
+		for i in steps + 1:
+			var k := lerpf(tail, head, float(i) / steps)
+			var jitter := 0.0 if i == 0 or i == steps else randf_range(-3.0, 3.0)
+			pts.append(Vector2.from_angle(from + sweep * k) * (radius + jitter))
+		draw_polyline(pts, Color(ProtoKatana.BOLT, 0.9 * alpha), 3.0)
+		draw_polyline(pts, Color(ProtoKatana.BOLT_CORE, alpha), 1.0)
+
+
+## Precyzyjne cięcie Riposty: cienka linia biegnie po idealnym (spłaszczonym jak ziemia) okręgu w RING_DRAW s,
+## potem gaśnie w RING_FADE s.
+class _Ring extends Node2D:
+	var radius := 50.0
+	var start := 0.0
+	var _t := 0.0
+
+	func _ready() -> void:
+		z_index = 21
+
+	func _process(delta: float) -> void:
+		_t += delta
+		if _t >= ProtoKatana.RING_DRAW + ProtoKatana.RING_FADE:
+			queue_free()
+			return
+		queue_redraw()
+
+	func _draw() -> void:
+		var k := clampf(_t / ProtoKatana.RING_DRAW, 0.0, 1.0)
+		var fade := 1.0 - clampf((_t - ProtoKatana.RING_DRAW) / ProtoKatana.RING_FADE, 0.0, 1.0)
+		var pts := PackedVector2Array()
+		var steps := 48
+		for i in steps + 1:
+			var a := start + TAU * k * float(i) / steps
+			pts.append(Vector2(cos(a) * radius, sin(a) * radius * ProtoKatana.RING_SQUASH))
+		draw_polyline(pts, Color(ProtoKatana.BOLT, 0.8 * fade), 2.0)
+		draw_polyline(pts, Color(ProtoKatana.BOLT_CORE, fade), 1.0)

@@ -220,44 +220,45 @@ def zigzag(img, a, b, seed, colour=(150, 220, 255, 255), core=(245, 252, 255, 25
 
 def icon_slash():
     img, inside = base("storm")
-    paste(img, scaled(trim(frame("katana_slash", 2)), 0.95), (38, 30))
+    paste(img, scaled(trim(frame("katana_cut", 3)), 0.7), (34, 30))
+    zigzag(img, (16, 22), (50, 40), 3)
     paste(img, rotated(KATANA, 40), (30, 34))
-    paste(img, scaled(trim(frame("katana_hit", 2)), 0.45), (50, 16))
     return clip(img, inside, "storm")
 
 
-def icon_iaido():
+def icon_dance():
     img, inside = base("storm")
-    paste(img, rotated(trim(frame("katana_trail", 1)), 25), (24, 42))
-    paste(img, rotated(scaled(KATANA, 0.8), 25), (44, 24))
+    cut = trim(frame("katana_cut", 3))
+    for deg, at in ((0, (22, 42)), (-60, (34, 30)), (0, (46, 18))):
+        paste(img, rotated(scaled(cut, 0.42), deg), at)
+    zigzag(img, (16, 48), (30, 30), 4)
+    zigzag(img, (30, 30), (50, 16), 5)
     return clip(img, inside, "storm")
 
 
-def icon_chain():
+def icon_riposte():
     img, inside = base("storm")
-    pts = [(12, 46), (28, 20), (40, 44), (54, 18)]
-    for i in range(3):
-        zigzag(img, pts[i], pts[i + 1], i)
-    spark = scaled(trim(frame("katana_hit", 1)), 0.35)
-    for p in pts[1:]:
-        paste(img, spark, p)
-    paste(img, rotated(scaled(KATANA, 0.7), 45), (16, 48))
+    paste(img, scaled(trim(frame("katana_riposte", 6)), 0.55), (32, 40))
+    d = ImageDraw.Draw(img)
+    d.ellipse((8, 26, 56, 48), outline=(245, 252, 255, 255), width=1)
+    paste(img, rotated(scaled(KATANA, 0.8), 0), (32, 24))
     return clip(img, inside, "storm")
 
 
 def icon_perun():
     img, inside = base("storm")
-    paste(img, scaled(trim(frame("katana_perun", 5)), 0.42), (32, 32))
+    paste(img, rotated(scaled(trim(frame("katana_line", 3)), 0.5), 37), (32, 34))
+    paste(img, rotated(scaled(KATANA, 0.7), 37), (18, 48))
+    zigzag(img, (44, 8), (48, 22), 9)
     return clip(img, inside, "storm")
 
 
-def icon_storm():
+def icon_flash():
     img, inside = base("storm")
-    zigzag(img, (14, 44), (32, 18), 7)
-    zigzag(img, (32, 18), (50, 46), 8)
-    for deg, at in ((60, (14, 40)), (-60, (50, 40)), (0, (32, 18))):
-        paste(img, rotated(scaled(KATANA, 0.6), deg), at)
-    paste(img, scaled(trim(frame("katana_hit", 3)), 0.4), (32, 44))
+    paste(img, rotated(trim(frame("katana_trail", 1)), 25), (28, 40))
+    zigzag(img, (10, 50), (50, 22), 11)
+    zigzag(img, (12, 46), (52, 26), 12)
+    paste(img, rotated(scaled(KATANA, 0.7), 25), (44, 22))
     return clip(img, inside, "storm")
 
 
@@ -266,8 +267,8 @@ ICONS = {
                ("g_dance", icon_dance)),
     "hydro": (("h_bolt", icon_bolt), ("h_wave", icon_wave), ("h_vortex", icon_vortex), ("h_geyser", icon_geyser),
               ("h_guardian", icon_guardian)),
-    "katana": (("k_slash", icon_slash), ("k_iaido", icon_iaido), ("k_chain", icon_chain), ("k_perun", icon_perun),
-               ("k_storm", icon_storm)),
+    "katana": (("k_slash", icon_slash), ("k_dance", icon_dance), ("k_riposte", icon_riposte), ("k_perun", icon_perun),
+               ("k_flash", icon_flash)),
 }
 
 

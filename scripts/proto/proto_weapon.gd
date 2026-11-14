@@ -158,6 +158,13 @@ const STRIKE_STATES := ["follow", "windup", "swing", "recover", "thrust_windup",
 var hero: ProtoHero
 ## Żywioł obrażeń broni (Weapons.element_of; combo z przemoczeniem - Elements.soak_bonus). Ustawia podklasa.
 var element := Elements.PHYSICAL
+## Umiejętność skoków jak Mgnienie (miecz - „blink”, katana - Błysk Peruna), smuga skoku i kolor piorunów
+## (zygzaki `_bolt`) - ustawia podklasa.
+var blink_skill := "blink"
+var flicker_trail: Texture2D = FLICKER_TRAIL
+var bolt_color := Color(1.0, 0.97, 0.6)
+## Palec trzyma przycisk umiejętności ładowanej (Skills.is_charged - Sąd Peruna katany).
+var charge_held := false
 ## Czy gracz trzyma przycisk ataku.
 var attack_held := false
 ## Auto atak: tnie sam, gdy jakiś cel jest bliżej niż REACH.
@@ -524,7 +531,7 @@ func mana_cost(id: String) -> int:
 
 ## Koszt skoku Mgnienia.
 func _blink_cost() -> int:
-	return mana_cost("blink")
+	return mana_cost(blink_skill)
 
 
 ## Pełne odnowienie umiejętności z kamieniem Pośpiech i poziomem.
@@ -617,7 +624,7 @@ func _chain_from(src: ProtoTarget, amount: int, count := CHAIN_TARGETS, range_px
 func _bolt(a: Vector2, b: Vector2) -> void:
 	var line := Line2D.new()
 	line.width = 1.5
-	line.default_color = Color(1.0, 0.97, 0.6)
+	line.default_color = bolt_color
 	line.z_index = 21
 	var steps := 5
 	var side := (b - a).orthogonal().normalized()
@@ -638,7 +645,7 @@ func cooldown_left(id: String) -> float:
 
 ## Czy umiejętność da się teraz użyć (odnowiona i starcza many).
 func can_use(id: String) -> bool:
-	var cost := _blink_cost() if id == "blink" else mana_cost(id)
+	var cost := _blink_cost() if id == blink_skill else mana_cost(id)
 	return Skills.has(id) and cooldown_left(id) <= 0.0 and hero.mana >= cost and not hero.dead
 
 
@@ -653,10 +660,10 @@ func cast(id: String) -> bool:
 	if cooldown_left(id) > 0.0:
 		cast_failed.emit(id, "cooldown")
 		return false
-	if hero.mana < (_blink_cost() if id == "blink" else mana_cost(id)):
+	if hero.mana < (_blink_cost() if id == blink_skill else mana_cost(id)):
 		cast_failed.emit(id, "mana")
 		return false
-	if id == "blink":
+	if id == blink_skill:
 		if _flicker_target() == null:
 			cast_failed.emit(id, "target")
 			return false
@@ -976,20 +983,20 @@ func _process_flicker(delta: float) -> void:
 	_flicker_timer -= delta
 	if not (flicker_held or _flicker_once) or _flicker_timer > 0.0 or hero.dead:
 		return
-	if cooldown_left("blink") > 0.0:
+	if cooldown_left(blink_skill) > 0.0:
 		_flicker_once = false
 		return
-	if not _state in ["follow", "windup", "swing", "recover"]:
+	if not _state in ["follow", "windup", "swing", "recover", "k_windup", "k_swing", "k_recover"]:
 		return
 	_flicker_once = false
 	var cost := _blink_cost()
 	if hero.mana < cost:
-		cast_failed.emit("blink", "mana")
+		cast_failed.emit(blink_skill, "mana")
 		_flicker_timer = 0.3
 		return
 	var best := _flicker_target()
 	if best == null:
-		cast_failed.emit("blink", "target")
+		cast_failed.emit(blink_skill, "target")
 		_flicker_timer = 0.3
 		return
 	if cost > 0:
@@ -997,10 +1004,10 @@ func _process_flicker(delta: float) -> void:
 	_flicker_jump(best)
 	_last_jump = _clock
 	_blink_jumps += 1
-	if _perk("blink", 1) and _blink_jumps % Skills.BLINK_SPIN_EVERY == 0:
+	if _perk(blink_skill, 1) and _blink_jumps % Skills.BLINK_SPIN_EVERY == 0:
 		_flicker_spin()
-	_flicker_timer = FLICKER_INTERVAL / (speed_mult * (1.0 + gem_power("blink", "haste") / 100.0))
-	skill_used.emit("blink")
+	_flicker_timer = FLICKER_INTERVAL / (speed_mult * (1.0 + gem_power(blink_skill, "haste") / 100.0))
+	skill_used.emit(blink_skill)
 
 
 ## Najbliższy wróg w zasięgu Mgnienia; poprzedni cel tylko wtedy, gdy nie ma innego (null - nikogo).
@@ -1030,12 +1037,12 @@ func _flicker_jump(best: ProtoTarget) -> void:
 	_last_target = best
 	var travel := spot - from
 	var body := Vector2(0, -ORBIT_HEIGHT)
-	var trail := Fx.once(get_parent(), FLICKER_TRAIL, 7, FLICKER_FX_FPS, from + body, FLICKER_TRAIL_ANCHOR)
+	var trail := Fx.once(get_parent(), flicker_trail, 7, FLICKER_FX_FPS, from + body, FLICKER_TRAIL_ANCHOR)
 	trail.rotation = travel.angle()
 	trail.scale = Vector2.ONE * maxf(0.5, (travel.length() - 8.0) / FLICKER_TRAIL_LENGTH)
 	var cut := Fx.once(get_parent(), FLICKER_SLASH, 8, FLICKER_FX_FPS, best.center(), FLICKER_SLASH_ANCHOR)
 	cut.rotation = travel.angle() + FLICKER_SLASH_TILT * (1.0 if randf() < 0.5 else -1.0)
-	var area := _area("blink")
+	var area := _area(blink_skill)
 	var hit: Array = []
 	for t in _live_targets():
 		var c := t.center()
@@ -1043,9 +1050,9 @@ func _flicker_jump(best: ProtoTarget) -> void:
 				<= FLICKER_PATH_WIDTH * area + t.center_height * 0.5
 		if on_path or c.distance_to(best.center()) <= FLICKER_HIT_RADIUS * area:
 			hit.append(t)
-			_deal(t, _roll(_power("blink")), spot, "blink")
+			_deal(t, _roll(_power(blink_skill)), spot, blink_skill)
 			_blink_kill(t)
-	var extra := gem_power("blink", "multi") / 100.0
+	var extra := gem_power(blink_skill, "multi") / 100.0
 	if extra > 0.0:
 		# Mnożenie: dodatkowe cięcie najbliższego wroga, którego skok nie trafił
 		var near: ProtoTarget = null
@@ -1058,7 +1065,7 @@ func _flicker_jump(best: ProtoTarget) -> void:
 		if near:
 			var cut2 := Fx.once(get_parent(), FLICKER_SLASH, 8, FLICKER_FX_FPS, near.center(), FLICKER_SLASH_ANCHOR)
 			cut2.rotation = randf() * TAU
-			_deal(near, _roll(_power("blink") * extra), spot, "blink")
+			_deal(near, _roll(_power(blink_skill) * extra), spot, blink_skill)
 			_blink_kill(near)
 	Input.vibrate_handheld(20)
 	if _state != "follow":
@@ -1075,16 +1082,16 @@ func _flicker_jump(best: ProtoTarget) -> void:
 ## Wróg zabity Mgnieniem zwraca manę (5. poziom - dwa razy więcej). Kukły nie giną, więc nic nie dają.
 func _blink_kill(t: ProtoTarget) -> void:
 	if not t.alive():
-		hero.add_mana(Skills.BLINK_MANA_ON_KILL * (2 if _perk("blink", 0) else 1))
+		hero.add_mana(Skills.BLINK_MANA_ON_KILL * (2 if _perk(blink_skill, 0) else 1))
 
 
 ## 10. poziom Mgnienia: co Skills.BLINK_SPIN_EVERY skoków krótki wir - trafia wszystkich wokół postaci.
 func _flicker_spin() -> void:
 	_blink_spins += 1
-	var radius := WHIRL_RADIUS * _area("blink")
+	var radius := WHIRL_RADIUS * _area(blink_skill)
 	for t in _live_targets():
 		if t.center().distance_to(_orbit_center()) <= radius:
-			_deal(t, _roll(_power("blink") * FLICKER_SPIN_POWER), hero.global_position, "blink")
+			_deal(t, _roll(_power(blink_skill) * FLICKER_SPIN_POWER), hero.global_position, blink_skill)
 			_blink_kill(t)
 	var fx := Fx.once(get_parent(), WHIRL_FX, WHIRL_FX_FRAMES, WHIRL_FX_FPS, _orbit_center(),
 			Vector2(WHIRL_FX.get_width() / WHIRL_FX_FRAMES / 2.0, WHIRL_FX.get_height() / 2.0), 6,

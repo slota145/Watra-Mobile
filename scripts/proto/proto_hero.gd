@@ -18,6 +18,8 @@ signal mana_changed(mana: int, max_mana: int)
 signal died
 ## Cios potwora chybił dzięki unikowi.
 signal dodged
+## Garda Riposty (katana) zablokowała cios - broń odpowiada kontrą.
+signal parried
 ## Nieśmiertelność uratowała postać od śmierci (`count` - ile razy w tym lochu).
 signal death_avoided(count: int)
 
@@ -68,6 +70,14 @@ var _anim := "idle"
 var _time := 0.0
 var _sprite: Sprite2D
 var _invulnerable := 0.0
+## Garda Riposty: ile sekund następny cios zostanie zablokowany (0 - brak gardy).
+var parry_left := 0.0
+## Ruch wymuszony przez broń (wyskok Riposty, krok Tańca ostrza): skąd, dokąd, czas, upływ, wysokość podskoku.
+var _leap_from := Vector2.ZERO
+var _leap_to := Vector2.ZERO
+var _leap_time := 0.0
+var _leap_t := 0.0
+var _leap_hop := 0.0
 
 
 func _ready() -> void:
@@ -84,8 +94,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_invulnerable -= delta
+	parry_left -= delta
 	if dead:
 		velocity = Vector2.ZERO
+		_leap_time = 0.0
 		return
 	if regen > 0.0 and hp < max_hp:
 		_regen_acc += regen * delta
@@ -103,6 +115,9 @@ func _process(delta: float) -> void:
 			mana_changed.emit(mana, max_mana)
 	else:
 		_mana_acc = 0.0
+	if _leap_time > 0.0:
+		_process_leap(delta)
+		return
 	var input := joystick.vector if joystick else Vector2.ZERO
 	velocity = input * SPEED * move_mult
 	position = _push_out((position + velocity * delta).clamp(bounds.position, bounds.end))
@@ -118,9 +133,53 @@ func _process(delta: float) -> void:
 	_update_frame()
 
 
+## Ruch wymuszony: postać przesuwa się z `_leap_from` do `_leap_to` (wyskok - z podskokiem), gałka nie steruje.
+func _process_leap(delta: float) -> void:
+	_leap_t += delta
+	var k := clampf(_leap_t / _leap_time, 0.0, 1.0)
+	position = _push_out(_leap_from.lerp(_leap_to, ease(k, 0.6)).clamp(bounds.position, bounds.end))
+	_sprite.position.y = -sin(k * PI) * _leap_hop
+	velocity = Vector2.ZERO
+	if k >= 1.0:
+		_leap_time = 0.0
+		_sprite.position.y = 0.0
+	_time += delta
+	_update_frame()
+
+
+## Ruch wymuszony przez broń do punktu `to` (świat) w `time` s; `hop` - wysokość podskoku (0 - krok po ziemi).
+func leap(to: Vector2, time: float, hop := 0.0) -> void:
+	var parent := get_parent() as Node2D
+	_leap_from = position
+	_leap_to = parent.to_local(to) if parent else to
+	_leap_time = maxf(time, 0.01)
+	_leap_t = 0.0
+	_leap_hop = hop
+	var dir := _leap_to - _leap_from
+	if dir.length() > 0.5:
+		facing = dir.normalized()
+
+
+## Czy postać jest w trakcie ruchu wymuszonego (wyskok, krok).
+func leaping() -> bool:
+	return _leap_time > 0.0
+
+
+## Nietykalność na `time` s (kontra Riposty).
+func protect(time: float) -> void:
+	_invulnerable = maxf(_invulnerable, time)
+
+
 ## Trafienie przez potwora: czerwony błysk, liczba nad głową, krótka nietykalność; przy zerze - śmierć.
+## Garda Riposty (`parry_left`) blokuje cios i wysyła `parried`.
 func take_damage(amount: int) -> void:
 	if dead or _invulnerable > 0.0:
+		return
+	if parry_left > 0.0:
+		parry_left = 0.0
+		_invulnerable = INVULNERABLE
+		_spawn_text(tr("Riposta!"), Color(0.6, 0.88, 1.0))
+		parried.emit()
 		return
 	_invulnerable = INVULNERABLE
 	if dodge > 0.0 and randf() < dodge:

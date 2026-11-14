@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dt5fye2ur8tdj"
-path="res://.godot/imported/k_storm.png-c2fd95699f4940959a1e4431b5240850.ctex"
+uid="uid://bvw5gxf71uaju"
+path="res://.godot/imported/k_flash.png-3bbbdc2093d1583c2e85f42164fdea76.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/katana/k_storm.png"
-dest_files=["res://.godot/imported/k_storm.png-c2fd95699f4940959a1e4431b5240850.ctex"]
+source_file="res://assets/skills/katana/k_flash.png"
+dest_files=["res://.godot/imported/k_flash.png-3bbbdc2093d1583c2e85f42164fdea76.ctex"]
 
 [params]
 

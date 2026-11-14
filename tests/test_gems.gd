@@ -214,6 +214,7 @@ func _test_combat(game: Node) -> void:
 	hero.mana = 0
 	var hp2 := g2.hp
 	weapon._chained = false
+	weapon.crit_chance = 0.0  # bez trafienia krytycznego - leczenie liczy się od równych 100 obrażeń
 	weapon._deal(g1, 100, hero.global_position, "strike")
 	_check(g2.hp < hp2, "Piorun przeskakuje na pobliskiego goblina")
 	_check(hero.hp == 17 and hero.mana == Gems.THRIFT_STRIKE[4], "Krwiopijca leczy 7%, Oszczędność oddaje manę")

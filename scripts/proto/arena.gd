@@ -245,7 +245,7 @@ func _ready() -> void:
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
 	for i in actions.skills.size():
 		actions.skills[i].pressed.connect(_on_skill_pressed.bind(i + 1))
-		actions.skills[i].released.connect(func() -> void: weapon.flicker_held = false)
+		actions.skills[i].released.connect(_on_skill_released)
 	_apply_skills()
 	Game.skills_changed.connect(_apply_skills)
 	Game.weapon_changed.connect(_swap_weapon)
@@ -671,15 +671,24 @@ func _apply_skills() -> void:
 
 
 ## Stuknięcie małego przycisku: umiejętność z tego miejsca; gdy się odnawia albo brakuje many - drgnięcie przycisku.
-## Mgnienie skacze, dopóki palec trzyma przycisk (puszczenie - `released` wyłącza `flicker_held`).
+## Mgnienie (i Błysk Peruna katany) skacze, dopóki palec trzyma przycisk, a umiejętność ładowana (Sąd Peruna) ładuje
+## się, dopóki go trzyma (puszczenie - `_on_skill_released`).
 func _on_skill_pressed(slot: int) -> void:
 	var id: String = Game.skill_slots[slot]
 	if id == "" or not Game.slot_open(slot) or hero.dead:
 		return
 	if not weapon.cast(id):
 		actions.button(slot).deny()
-	elif id == "blink":
+	elif id == weapon.blink_skill:
 		weapon.flicker_held = true
+	elif Skills.is_charged(id):
+		weapon.charge_held = true
+
+
+## Puszczenie małego przycisku: koniec skoków Mgnienia i wyzwolenie ładowanej umiejętności.
+func _on_skill_released() -> void:
+	weapon.flicker_held = false
+	weapon.charge_held = false
 
 
 ## Odnowienie i brak many na przyciskach walki (co klatkę; przycisk przerysowuje się tylko przy zmianie).
