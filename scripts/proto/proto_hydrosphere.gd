@@ -69,7 +69,7 @@ const GUARD_SPREAD := 26.0
 ## Kamienie unikalne: krążące bańki (promień, obroty na sekundę, czas, najwięcej naraz, co ile ten sam wróg), fale dookoła
 ## (liczba, siła), wędrujący wir (prędkość, dłużej o), kule z gejzerów (liczba, odległość, czas lotu, wysokość, promień,
 ## siła), echo Strażnika (siła).
-const ORBIT_RADIUS := 28.0
+const ORBIT_RADIUS := 40.0
 const ORBIT_TURNS := 0.9
 const ORBIT_TIME := 3.0
 const ORBIT_MAX := 4
@@ -101,6 +101,10 @@ const VORTEX_FX_ANCHOR := Vector2(48, 34)
 const VORTEX_FX_FRAMES := 12
 ## Promień wiru w efekcie (spirale wody na ziemi, piana na brzegu) - skalowany do VORTEX_RADIUS.
 const VORTEX_FX_RADIUS := 34.0
+## Krążąca bańka z wygiętym ogonem (kamień unikalny pocisku): zaczepienie w środku orbity, bańka ORBIT_FX_RADIUS w prawo.
+const ORBIT_FX := preload("res://assets/effects/hydro_orbit.png")
+const ORBIT_FX_ANCHOR := Vector2(52, 52)
+const ORBIT_FX_RADIUS := 40.0
 const GEYSER_FX := preload("res://assets/effects/hydro_geyser.png")
 const GEYSER_FX_ANCHOR := Vector2(49, 39)
 
@@ -536,10 +540,22 @@ func _echo(id: String) -> void:
 ## Bańka krążąca wokół postaci zaczyna pod kątem `a`; najwięcej ORBIT_MAX naraz (najstarsza znika).
 func _add_orbit(a: float) -> void:
 	if _orbits.size() >= ORBIT_MAX:
-		_orbits[0].fx.queue_free()
+		_orbits[0].holder.queue_free()
 		_orbits.remove_at(0)
-	var fx := _shot_sprite(BOLT_FX, 8, BOLT_FX_ANCHOR, a)
-	_orbits.append({"fx": fx, "angle": a, "left": ORBIT_TIME, "hits": {}})
+	var holder := Node2D.new()  # spłaszcza okrąg orbity jak na ziemi (rzut z góry)
+	holder.scale = Vector2(1.0, 0.7)
+	holder.z_index = 20
+	get_parent().add_child(holder)
+	holder.global_position = _orbit_center()
+	var fx := Sprite2D.new()
+	fx.texture = ORBIT_FX
+	fx.hframes = 8
+	fx.centered = false
+	fx.offset = -ORBIT_FX_ANCHOR
+	fx.rotation = a
+	fx.scale = Vector2.ONE * ORBIT_RADIUS * _area(basic) / ORBIT_FX_RADIUS
+	holder.add_child(fx)
+	_orbits.append({"fx": fx, "holder": holder, "angle": a, "left": ORBIT_TIME, "hits": {}})
 
 
 ## Bańki krążą wokół postaci (rozłożone równo), przebijają wrogów - ten sam wróg najwyżej co ORBIT_REHIT.
@@ -551,10 +567,10 @@ func _process_orbits(delta: float) -> void:
 		o.left -= delta
 		o.angle += TAU * ORBIT_TURNS * delta
 		var at := _orbit_center() + Vector2(cos(o.angle), sin(o.angle) * 0.7) * r
-		fx.global_position = at
-		fx.rotation = o.angle + PI / 2.0  # leci po okręgu
+		o.holder.global_position = _orbit_center()
+		fx.rotation = o.angle  # bańka na czele, ogon wygięty po łuku za nią
 		fx.frame = int(_clock * 12.0 + i) % 8
-		fx.modulate.a = clampf(o.left / 0.3, 0.0, 1.0)
+		o.holder.modulate.a = clampf(o.left / 0.3, 0.0, 1.0)
 		for t in o.hits.keys():
 			o.hits[t] -= delta
 		for t in _live_targets():
@@ -563,7 +579,7 @@ func _process_orbits(delta: float) -> void:
 				_hit(t, _power(basic) * _swing_power, at, basic)
 				_spray_fx(t.center(), Vector2.from_angle(o.angle + PI / 2.0), 0.6)
 		if o.left <= 0.0 or hero.dead:
-			fx.queue_free()
+			o.holder.queue_free()
 			_orbits.remove_at(i)
 
 

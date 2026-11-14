@@ -418,5 +418,20 @@
       13
     ],
     "columns": 3
+  },
+  "hydro_orbit": {
+    "effect": "b179659f-4768-4c8a-9c10-f623b5b5315e",
+    "name": "Hydrosfera - krążąca bańka z ogonem (pętla; zaczepienie = środek orbity, bańka 40 px w prawo, ogon po łuku)",
+    "frame": [
+      104,
+      104
+    ],
+    "frames": 8,
+    "fps": 12,
+    "anchor": [
+      52,
+      52
+    ],
+    "columns": 3
   }
 }

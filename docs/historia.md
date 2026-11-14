@@ -9,8 +9,9 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   przed postacią) z wybuchem wody (34 px, x1,2 siły, odpycha), zostaje 6 s i co 0,5 s strzela pociskiem (bez rozprysku)
   w najbliższego wroga do 120 px; 5. poziom - 8 s, 10. - dwie kule po bokach. Usunięte sople Ulewy (`hydro_drop`).
 - Kamienie unikalne (`Gems.UNIQUE`, ikony `unique_gem_art.py`: pierce, rime, frost_edge, brutal, warlord):
-  Kamień Wodnej Orbity (pocisk: bańka zamiast lotu krąży 3 s wokół postaci, promień 28, 0,9 obrotu/s, przebija -
-  ten sam wróg co 0,5 s, najwyżej 4 naraz - `_orbits`), Kamień Przypływu (6 fal dookoła, 60% siły), Kamień Wędrownego
+  Kamień Wodnej Orbity (pocisk: bańka zamiast lotu krąży 3 s wokół postaci, promień 40 (prośba autora: dalej od postaci; było 28), 0,9 obrotu/s, przebija -
+  ten sam wróg co 0,5 s, najwyżej 4 naraz - `_orbits`; własny efekt z kreatora „Hydrosfera - krążąca bańka z ogonem” - `hydro_orbit`: bańka
+  z ogonem wygiętym po łuku orbity, obracany w spłaszczonym węźle wokół postaci), Kamień Przypływu (6 fal dookoła, 60% siły), Kamień Wędrownego
   Wiru (wir płynie 32 px/s ku najbliższemu wrogowi, +1 s), Kamień Erupcji (każdy gejzer wypluwa 3 kule wody łukiem na
   40 px, po upadku obszar 18 px, 60% siły - `_lobs`), Kamień Echa (Strażnik powtarza Falę, Wir i Gejzery gracza ze
   swojego miejsca, za darmo, 50% siły - `_echo`). Funkcje umiejętności przyjmują punkt startu i mnożnik siły

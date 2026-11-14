@@ -54,7 +54,7 @@ func _test_unique(game: Node) -> void:
 	var hero: ProtoHero = arena.hero
 	var weapon: ProtoHydrosphere = arena.weapon
 	hero.position = Vector2.ZERO
-	var a := _goblin(arena, Vector2(25, 10))
+	var a := _goblin(arena, Vector2(40, 6))  # na orbicie krążących baniek (promień 40)
 	var b := _goblin(arena, Vector2(-80, 50))
 	await _wait(0.2)
 	for g in [a, b]:
