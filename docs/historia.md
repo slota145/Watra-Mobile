@@ -2,6 +2,14 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 14.11.2026 - hydrosfera: rozbryzg w kierunku trafienia
+
+- Prośba autora: trafienie wodnym pociskiem było pionowym pluśnięciem. Nowy efekt z własnych warstw kreatora
+  „Hydrosfera - rozbryzg w kierunku trafienia” (`hydro_spray`: błysk, łuk wody, krople i strugi w stożku w prawo,
+  kilka kropel do tyłu), w grze obracany w kierunku uderzenia (`ProtoHydrosphere._spray_fx`): pocisk (kierunek lotu),
+  rozprysk na sąsiadach (od trafionego ku sąsiadowi), Fala (kierunek fali, na każdym trafionym), wybuch wiru
+  z 10. poziomu (od środka). Pionowe pluśnięcie zostaje dla Ulewy, gejzerów i pocisku, który nikogo nie trafił.
+
 ## 14.11.2026 - hydrosfera: nowe efekty Fali i Wiru (bardziej jak woda)
 
 - Prośba autora: Fala wyglądała jak niebieskie cięcie, a Wir jak niebieska magia z latającym cięciem. Kreator nie ma
