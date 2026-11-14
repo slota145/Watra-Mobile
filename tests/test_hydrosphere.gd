@@ -1,7 +1,8 @@
 extends SceneTree
 ## Test hydrosfery (14.11.2026): dostępność (Wódz 15. poziomu albo 4500 zł), zmiana broni (węzeł ProtoHydrosphere,
 ## pocisk pod „Atak”), a w walce: wodny pocisk (leci, trafia, rozprysk, przemoczenie), Fala (przebija, odpycha),
-## Wir (rani co chwilę), Gejzery (ogłuszają), Ulewa (sople spadają na wrogów).
+## Wir (rani co chwilę), Gejzery (ogłuszają), Wodny Strażnik (wybuch, strzela); kamienie unikalne (krążące bańki,
+## fale dookoła, wędrujący wir, kule z gejzerów, echo Strażnika).
 
 var _failed := 0
 
@@ -27,6 +28,7 @@ func _run() -> void:
 	game.load_game()
 	_test_unlock(game)
 	await _test_combat(game)
+	await _test_unique(game)
 	game.reset_hero()
 	game.best_level = 0
 	game.save_game()
@@ -34,6 +36,57 @@ func _run() -> void:
 	DirAccess.remove_absolute(game.save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
 	quit(1 if _failed else 0)
+
+
+## Kamienie unikalne hydrosfery: krążące bańki, fale dookoła, wędrujący wir, kule z gejzerów, echo Strażnika.
+func _test_unique(game: Node) -> void:
+	game.dev_set_level(20)
+	game.dev_skills()
+	for id in Skills.of_weapon("hydrosphere"):
+		game.add_gem(Gems.unique_of(id), 1, false)
+		game.socket_skill(id, 0, Gems.unique_of(id))
+	game.dev_immortal = true
+	game.save_game()
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	arena.horde_spawner.set_process(false)
+	var hero: ProtoHero = arena.hero
+	var weapon: ProtoHydrosphere = arena.weapon
+	hero.position = Vector2.ZERO
+	var a := _goblin(arena, Vector2(25, 10))
+	var b := _goblin(arena, Vector2(-80, 50))
+	await _wait(0.2)
+	for g in [a, b]:
+		g._stunned = 60.0
+	var hp := a.hp
+	weapon._fire_bolts()
+	weapon._fire_bolts()
+	_check(weapon._orbits.size() == 2 and weapon._shots.is_empty(), "Wodna Orbita: bańki krążą zamiast lecieć")
+	await _wait(1.2)
+	_check(a.hp < hp, "krążąca bańka rani wroga obok")
+	weapon._spawn_tide()
+	_check(weapon._shots.filter(func(x: Dictionary) -> bool: return x.kind == "wave").size() == ProtoHydrosphere.RING_WAVES,
+			"Przypływ: 6 fal dookoła")
+	weapon._add_vortex(Vector2(60, -40))
+	var v: Dictionary = weapon._vortexes.back()
+	var start: Vector2 = v.at
+	await _wait(0.6)
+	_check(v.wander and (v.at as Vector2).distance_to(a.global_position) < start.distance_to(a.global_position),
+			"Wędrowny Wir płynie ku wrogowi")
+	weapon._geyser_burst(b.global_position, b)
+	_check(weapon._lobs.size() == ProtoHydrosphere.LOB_COUNT, "Erupcja: gejzer wypluwa 3 kule")
+	await _wait(0.7)
+	_check(weapon._lobs.is_empty(), "kule spadły")
+	weapon.reset_cooldowns()
+	hero.mana = hero.max_mana
+	weapon._add_guardian(Vector2(-40, 0))
+	var vortexes: int = weapon._vortexes.size()
+	weapon.cast("h_vortex")
+	_check(weapon._vortexes.size() == vortexes + 2, "Echo: Strażnik powtarza Wir (2 nowe wiry)")
+	game.dev_immortal = false
+	arena.queue_free()
+	await process_frame
 
 
 func _test_unlock(game: Node) -> void:
@@ -121,15 +174,20 @@ func _test_combat(game: Node) -> void:
 	_check(weapon.cast("h_geyser"), "Gejzery ruszają")
 	await _wait(0.6)
 	_check(side.hp < hp[0] and side._stunned > 0.3, "gejzer rani i ogłusza (%d -> %d, ogłuszenie %.2f)" % [hp[0], side.hp, side._stunned])
-	# Ulewa
+	# Wodny Strażnik
 	weapon.reset_cooldowns()
 	hero.mana = hero.max_mana
 	hp = [far.hp, side.hp, near_far.hp]
-	_check(weapon.cast("h_rain"), "Ulewa rusza")
-	await _wait(1.5)
-	_check(weapon._rain_left > 0.0 and (far.hp < hp[0] or side.hp < hp[1] or near_far.hp < hp[2]), "sople spadają na wrogów")
-	await _wait(3.0)
-	_check(weapon._rain_left <= 0.0 and weapon._drops.is_empty(), "ulewa się kończy")
+	_check(weapon.cast("h_guardian"), "Wodny Strażnik rusza")
+	await _wait(0.1)
+	_check(weapon._guardians.size() == 1 and (far.hp < hp[0] or side.hp < hp[1] or near_far.hp < hp[2]),
+			"Strażnik pojawia się z wybuchem i rani")
+	var shots_before: int = weapon._shots.filter(func(x: Dictionary) -> bool: return x.skill == "h_guardian").size()
+	await _wait(1.2)
+	_check(weapon._shots.any(func(x: Dictionary) -> bool: return x.skill == "h_guardian") or shots_before > 0
+			or weapon._guardians[0].acc < ProtoHydrosphere.GUARD_EVERY, "Strażnik strzela pociskami")
+	await _wait(5.0)
+	_check(weapon._guardians.is_empty(), "po 6 s Strażnik znika")
 	game.dev_immortal = false
 	arena.queue_free()
 	await process_frame

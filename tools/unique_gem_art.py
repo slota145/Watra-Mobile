@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parent.parent
 WATRA = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT.parent / "Watra"
 # umiejętność -> ikona z Watry (symbol pasuje do działania kamienia)
 SOURCES = {"strike": "fury", "whirl": "momentum", "throw": "chain", "slam": "herald", "blink": "storm_edge",
-           "g_thrust": "split", "g_sweep": "ember", "g_trail": "echo", "g_pillar": "area", "g_dance": "discharge"}
+           "g_thrust": "split", "g_sweep": "ember", "g_trail": "echo", "g_pillar": "area", "g_dance": "discharge",
+           "h_bolt": "pierce", "h_wave": "rime", "h_vortex": "frost_edge", "h_geyser": "brutal", "h_guardian": "warlord"}
 HUE = 42 / 360.0  # złoto
 # ikony z prawie bezbarwnym kamieniem (szary) - złocone po jasności, nie po nasyceniu
 FORCE = {"g_thrust"}

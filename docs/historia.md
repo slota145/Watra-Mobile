@@ -2,6 +2,21 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 14.11.2026 - hydrosfera: Wodny Strażnik zamiast Ulewy, kamienie unikalne
+
+- Pomysły autora (warianty wybrane w ankiecie): Ulewa zastąpiona „Wodnym Strażnikiem” (`h_guardian`, mistrz. 15,
+  30 many, 12 s): kula wody (tekstura hydrosfery 1:1, unosi się 16 px) pojawia się 10 px przed wrogiem (albo 50 px
+  przed postacią) z wybuchem wody (34 px, x1,2 siły, odpycha), zostaje 6 s i co 0,5 s strzela pociskiem (bez rozprysku)
+  w najbliższego wroga do 120 px; 5. poziom - 8 s, 10. - dwie kule po bokach. Usunięte sople Ulewy (`hydro_drop`).
+- Kamienie unikalne (`Gems.UNIQUE`, ikony `unique_gem_art.py`: pierce, rime, frost_edge, brutal, warlord):
+  Kamień Wodnej Orbity (pocisk: bańka zamiast lotu krąży 3 s wokół postaci, promień 28, 0,9 obrotu/s, przebija -
+  ten sam wróg co 0,5 s, najwyżej 4 naraz - `_orbits`), Kamień Przypływu (6 fal dookoła, 60% siły), Kamień Wędrownego
+  Wiru (wir płynie 32 px/s ku najbliższemu wrogowi, +1 s), Kamień Erupcji (każdy gejzer wypluwa 3 kule wody łukiem na
+  40 px, po upadku obszar 18 px, 60% siły - `_lobs`), Kamień Echa (Strażnik powtarza Falę, Wir i Gejzery gracza ze
+  swojego miejsca, za darmo, 50% siły - `_echo`). Funkcje umiejętności przyjmują punkt startu i mnożnik siły
+  (`_spawn_tide(from, mult)`, `_add_vortex(at, mult)`, `_geysers(origin, mult)`, `_spawn_bolt`).
+- Testy: `test_hydrosphere.gd` (`_test_unique`, Strażnik zamiast Ulewy).
+
 ## 14.11.2026 - hydrosfera: rozbryzg w kierunku trafienia
 
 - Prośba autora: trafienie wodnym pociskiem było pionowym pluśnięciem. Nowy efekt z własnych warstw kreatora

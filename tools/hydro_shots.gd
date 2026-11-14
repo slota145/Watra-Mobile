@@ -1,8 +1,8 @@
 extends SceneTree
 ## Zrzuty hydrosfery: okno umiejętności z trzema broniami (baza) i walka w lochu - wodny pocisk, Fala, Wir, Gejzery
-## i Ulewa. Mierzy też klatki na sekundę w Ulewie z wirem.
+## i Wodny Strażnik. Mierzy też klatki na sekundę ze Strażnikiem i wirem.
 ## Użycie: SCRIPT=tools/hydro_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
-## Pliki: <prefiks>_1_okno.png, _2_pocisk.png, _3_fala.png, _4_wir.png, _5_gejzery.png, _6_ulewa.png
+## Pliki: <prefiks>_1_okno.png, _2_pocisk.png, _3_fala.png, _4_wir.png, _5_gejzery.png, _6_straznik.png
 
 var _prefix := "/tmp/hydrosfera"
 
@@ -27,7 +27,7 @@ func _run() -> void:
 	game.set_weapon("hydrosphere")
 	game.dev_set_level(20)
 	game.dev_skills()
-	game.skill_slots = ["h_bolt", "h_wave", "h_vortex", "h_geyser", "h_rain"]
+	game.skill_slots = ["h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian"]
 	game.dev_immortal = true
 	game.save_game()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
@@ -65,11 +65,11 @@ func _run() -> void:
 	weapon.reset_cooldowns()
 	hero.mana = hero.max_mana
 	weapon.cast("h_vortex")
-	weapon.cast("h_rain")
+	weapon.cast("h_guardian")
 	var frames := Engine.get_frames_drawn()
 	await create_timer(1.5).timeout
-	print("klatki/s w ulewie z wirem: %.0f" % ((Engine.get_frames_drawn() - frames) / 1.5))
-	await _shot("6_ulewa")
+	print("klatki/s ze Strażnikiem i wirem: %.0f" % ((Engine.get_frames_drawn() - frames) / 1.5))
+	await _shot("6_straznik")
 	game.dev_immortal = false
 	game.reset_hero()
 	game.best_level = 0

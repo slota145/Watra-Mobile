@@ -68,12 +68,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   zbierania, więcej żaru (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy unik 2-4% na przedmiot jest
   odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
-- **Hydrosfera: Wodny Strażnik i kamienie unikalne (14.11.2026, w trakcie):** ustalenia autora: Ulewa zastąpiona
-  „Wodnym Strażnikiem” (kula wody pojawia się z wybuchem przy wrogu albo przed postacią, zostaje 6 s i co 0,5 s strzela
-  pociskami w najbliższych wrogów do 120 px; 5. poziom - 8 s, 10. - dwie kule). Kamienie unikalne (pomysły autora):
-  pocisk - bańki krążą wokół postaci i przebijają; Fala - fale dookoła postaci; Wir - wędruje ku wrogom; Gejzery - każdy
-  wypluwa 3 kule wody spadające dookoła (obrażenia obszarowe); Strażnik - powtarza umiejętności gracza ze swojego
-  miejsca, za darmo, siłą 50%.
+- **Hydrosfera: Wodny Strażnik i kamienie unikalne (14.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na
+  telefonie: siła Strażnika (strzał co 0,5 s przez 6 s), Kamień Echa z Przypływem (12 fal naraz - może za dużo na ekranie),
+  Wodna Orbita zamiast strzelania, liczby kamieni (60%, 50%, 3 kule).
 
 - **Hydrosfera (14.11.2026):** zrobiona (szczegóły w `docs/historia.md`). Do oceny na telefonie: siła pocisku na dystans
   wobec broni wręcz, czy przemoczenie (20% wolniej) jest odczuwalne, Wir i Gejzery, płynność Ulewy z Wirem (w chmurze

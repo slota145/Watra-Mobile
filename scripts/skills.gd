@@ -101,10 +101,10 @@ const DATA := {
 		"mana": 25, "cooldown": 8.0, "weapon": "hydrosphere", "mastery": 10, "main": true, "range": 120.0, "power": 1.8,
 		"description": "Pod pięcioma najbliższymi wrogami tryskają gejzery: ranią i ogłuszają na 1 s.",
 	},
-	"h_rain": {
-		"name": "Ulewa", "icon": preload("res://assets/skills/hydro/h_rain.png"),
+	"h_guardian": {
+		"name": "Wodny Strażnik", "icon": preload("res://assets/skills/hydro/h_guardian.png"),
 		"mana": 30, "cooldown": 12.0, "weapon": "hydrosphere", "mastery": 15, "main": true, "range": 110.0, "power": 0.8,
-		"description": "Przez 4 s z nieba spadają sople wody na wrogów wokół ciebie.",
+		"description": "Kula wody pojawia się z wybuchem przy wrogu, zostaje 6 s i strzela wodnymi pociskami w najbliższych wrogów.",
 	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
@@ -120,7 +120,7 @@ const PERK_LEVELS := [5, 10]
 ## najdroższe; liczby jak dawne ceny w złocie - do oceny na telefonie).
 const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "blink": 200,
 		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200,
-		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_rain": 200}
+		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200}
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
@@ -137,13 +137,13 @@ const PERKS := {
 	"h_wave": ["Fala toczy się o połowę dalej.", "Za pierwszą falą idzie druga."],
 	"h_vortex": ["Wir kręci się 4 s zamiast 3.", "Na koniec wir wybucha falą wody."],
 	"h_geyser": ["Ogłuszenie 1,5 s zamiast 1.", "Osiem gejzerów zamiast pięciu."],
-	"h_rain": ["Ulewa trwa 6 s zamiast 4.", "Sople padają dwa razy częściej."],
+	"h_guardian": ["Strażnik zostaje 8 s zamiast 6.", "Pojawiają się dwie kule naraz."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 ## Kolejność w oknie umiejętności.
 const ORDER := ["strike", "whirl", "throw", "slam", "blink", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
-		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_rain"]
+		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian"]
 
 
 static func has(id: String) -> bool:

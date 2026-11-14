@@ -404,21 +404,6 @@
     ],
     "columns": 4
   },
-  "hydro_drop": {
-    "effect": "40c5ebe7-cfbd-42c5-a24d-4e64d57dce45",
-    "name": "Hydrosfera - sopel ulewy (pętla, w prawo)",
-    "frame": [
-      37,
-      16
-    ],
-    "frames": 8,
-    "fps": 12,
-    "anchor": [
-      29,
-      6
-    ],
-    "columns": 3
-  },
   "hydro_spray": {
     "effect": "fedc7b88-6ac5-4b01-8cf8-a578eedf9510",
     "name": "Hydrosfera - rozbryzg w kierunku trafienia (w prawo, gra obraca)",
