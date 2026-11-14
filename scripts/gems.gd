@@ -53,7 +53,8 @@ const SUPPORT := {
 			"whirl": "Wiruje drugi, widmowy miecz (%d%% obrażeń).",
 			"throw": "Lecą 3 miecze wachlarzem (boczne - %d%% obrażeń).",
 			"slam": "Po uderzeniu idzie druga, szersza fala (%d%% obrażeń).",
-			"blink": "Każdy skok tnie też pobliskiego wroga (%d%% obrażeń).",
+			"steel_ring": "Krąży o jeden widmowy miecz więcej (%d%% obrażeń).",
+			"k_flash": "Każdy skok tnie też pobliskiego wroga (%d%% obrażeń).",
 		}},
 	"area": {"name": "Szerokość", "icon": "area", "color": Color(0.88, 0.75, 0.44), "unit": "pct",
 		"values": [15, 22, 30, 38, 50],
@@ -72,7 +73,7 @@ const SUPPORT := {
 		"text": "Odnowienie krótsze o %d%%.",
 		"skills": {
 			"strike": "Cios szybszy o %d%%.",
-			"blink": "Skoki częstsze o %d%%.",
+			"k_flash": "Skoki częstsze o %d%%.",
 		}},
 	"thrift": {"name": "Oszczędność", "icon": "echo", "color": Color(0.75, 0.55, 1.0), "unit": "pct",
 		"values": [15, 20, 25, 32, 40],
@@ -96,8 +97,8 @@ const UNIQUE := {
 		"text": "Miecz (i widmowe miecze) odbija się od trafionego wroga w kolejnego - do 3 odbić."},
 	"slam": {"name": "Kamień Drżącej Ziemi", "short": "Fale z trafionych",
 		"text": "Każdy trafiony wróg wywołuje wokół siebie falę uderzeniową, która rani pobliskich (50% obrażeń)."},
-	"blink": {"name": "Kamień Nieskończonej Mgły", "short": "Skoki za pół many",
-		"text": "Każdy skok Mgnienia kosztuje o połowę mniej many."},
+	"k_flash": {"name": "Kamień Nieskończonej Mgły", "short": "Skoki za pół many",
+		"text": "Każdy skok Błysku Peruna kosztuje o połowę mniej many."},
 	# glewia ognia (ustalone z autorem 14.11.2026)
 	"g_thrust": {"name": "Kamień Trójzęba", "short": "3 pchnięcia",
 		"text": "Glewia dźga trzy razy naraz w wąskim stożku przed sobą - każdy wróg obrywa raz."},
@@ -122,6 +123,9 @@ const UNIQUE := {
 		"text": "Strażnik powtarza ze swojego miejsca twoją Falę, Wir i Gejzery - za darmo, z połową siły."},
 }
 const UNIQUE_COLOR := Color(1.0, 0.82, 0.35)
+## Dawne identyfikatory kamieni -> obecne (wczytanie starego zapisu): kamień unikalny Mgnienia miecza przeszedł
+## na Błysk Peruna katany (15.11.2026).
+const LEGACY := {"unique:blink": "unique:k_flash"}
 const SUPPORT_ORDER := ["multi", "area", "ember", "rime", "discharge", "haste", "thrift", "leech"]
 ## Oszczędność w zwykłym ciosie: many za trafienie na stopniach 0-4.
 const THRIFT_STRIKE := [1, 1, 2, 2, 3]

@@ -63,18 +63,18 @@ func _test_game(game: Node) -> void:
 	game.mastery["sword"] = 14
 	game.mastery_xp["sword"] = 0
 	game.add_mastery(Weapons.xp_to_next(14))
-	_check(unlocked == ["whirl", "throw", "slam", "blink"] and game.skill_slots == ["whirl", "strike", "throw", "slam", "blink"],
+	_check(unlocked == ["whirl", "throw", "slam", "steel_ring"] and game.skill_slots == ["whirl", "strike", "throw", "slam", "steel_ring"],
 			"skok na mistrzostwo 15: reszta umiejętności w wolnych miejscach")
-	game.skill_slots = ["whirl", "strike", "blink", "", ""]
-	game.skills_owned = ["strike", "whirl", "blink"]
+	game.skill_slots = ["whirl", "strike", "steel_ring", "", ""]
+	game.skills_owned = ["strike", "whirl", "steel_ring"]
 	game.mastery["sword"] = 2
-	_check(not game.assign_skill("blink", 0) and game.skill_slots[0] == "whirl", "Mgnienie nie może stać pod „Atak”")
-	_check(game.assign_skill("whirl", 2) and game.skill_slots[0] == "" and game.skill_slots[2] == "whirl",
-			"zamiana z Mgnieniem zostawia „Atak” pusty")
-	_check(game.main_skill() == "strike", "pusty „Atak” to zwykły cios")
+	_check(game.assign_skill("steel_ring", 0) and game.skill_slots[0] == "steel_ring" and game.skill_slots[2] == "whirl",
+			"Krąg stali może stać pod „Atak” (zamiana z Młynkiem)")
+	game.clear_skill_slot(0)
+	_check(game.skill_slots[0] == "" and game.main_skill() == "strike", "pusty „Atak” to zwykły cios")
 	game.save_game()
 	game.load_game()
-	_check(game.skills_owned == ["strike", "whirl", "blink"] and game.skill_slots == ["", "strike", "whirl", "", ""]
+	_check(game.skills_owned == ["strike", "whirl", "steel_ring"] and game.skill_slots == ["", "strike", "whirl", "", ""]
 			and game.mastery_level() == 2, "umiejętności, miejsca i mistrzostwo w zapisie")
 	game.clear_skill_slot(1)
 	_check(game.skill_slots[1] == "", "zdjęcie z miejsca")
@@ -116,7 +116,7 @@ func _test_levels(game: Node) -> void:
 	game.gold = 0
 	_check(game.upgrade_skill("strike") and game.skill_level("strike") == 2 and game.embers == 960, "zwykły cios na 2. poziom za 40 żaru")
 	_check(game.skill_upgrade_problem("strike") == "mastery" and not game.upgrade_skill("strike"), "3. poziom dopiero od 5. mistrzostwa")
-	_check(Skills.upgrade_price("strike", 2) == 80 and Skills.upgrade_price("blink", 9) == 1800 and Skills.upgrade_price("blink", 10) == 0,
+	_check(Skills.upgrade_price("strike", 2) == 80 and Skills.upgrade_price("steel_ring", 9) == 1800 and Skills.upgrade_price("steel_ring", 10) == 0,
 			"cena rośnie z poziomem, na 10. koniec")
 	game.load_game()
 	_check(game.skill_level("strike") == 2, "poziom w zapisie")
@@ -188,33 +188,24 @@ func _test_levels(game: Node) -> void:
 	await _wait(2.5)
 	weapon.attack_held = false
 	_check(weapon._strike_count - swings >= 3, "zwykły cios tnie dalej z poziomem (%d)" % (weapon._strike_count - swings))
-	# Mgnienie 10. poziomu: każdy skok za manę, co 5. skok wir; zabicie skokiem zwraca 2x więcej many (5. poziom)
+	# Krąg stali 10. poziomu: 5 widmowych mieczy przez 8 s (5. poziom), miecz w ręku tnie w tym czasie normalnie
 	await _wait(0.6)
 	weapon.reset_cooldowns()
 	hero.mana = hero.max_mana
-	hero.position = dummy.position + Vector2(-60, 0)
-	await _wait(0.8)
-	var mana := hero.mana
-	_check(weapon.cast("blink"), "Mgnienie 10. poziomu rusza")
-	_check(hero.mana == mana - weapon.mana_cost("blink"), "każdy skok kosztuje manę")
-	await _wait(0.1)
-	weapon.flicker_held = true
+	hero.position = dummy.position + Vector2(0, 26)
+	await _wait(0.3)
+	var hits0 := dummy._count
+	var swings0 := weapon._strike_count
+	_check(weapon.cast("steel_ring") and weapon._ring.size() == ProtoWeapon.STEEL_SWORDS_PERK, "Krąg stali 10. poziomu: 5 mieczy")
+	_check(weapon._state == "follow", "miecz w ręku zostaje wolny")
+	weapon.attack_held = true
 	await _wait(2.0)
-	weapon.flicker_held = false
-	_check(weapon._blink_jumps >= Skills.BLINK_SPIN_EVERY and weapon._blink_spins == weapon._blink_jumps / Skills.BLINK_SPIN_EVERY,
-			"10. poziom: wir co 5. skok (%d skoków, %d wirów)" % [weapon._blink_jumps, weapon._blink_spins])
-	var victim := ProtoGoblin.new()
-	victim.hero = hero
-	victim.bounds = Rect2(-400, -600, 800, 1200)
-	victim.position = hero.position + Vector2(50, 0)
-	arena.get_node("World").add_child(victim)
-	await _wait(0.4)
-	victim.hp = 1
-	hero.mana = 30
-	weapon.crit_chance = 0.0
-	weapon._flicker_jump(victim)
-	_check(not victim.alive() and hero.mana == 30 + Skills.BLINK_MANA_ON_KILL * 2,
-			"5. poziom: zabicie skokiem zwraca %d many" % (hero.mana - 30))
+	weapon.attack_held = false
+	_check(weapon._strike_count - swings0 >= 2, "w trakcie kręgu miecz tnie normalnie (%d)" % (weapon._strike_count - swings0))
+	_check(dummy._count - hits0 > weapon._strike_count - swings0, "widmowe miecze też tną kukłę")
+	_check(weapon.ring_left() > ProtoWeapon.STEEL_TIME - 2.5, "5. poziom: krąg trwa 8 s")
+	await _wait(ProtoWeapon.STEEL_TIME_LONG - 1.8)
+	_check(weapon.ring_left() == 0.0 and weapon._ring.is_empty(), "krąg znika po czasie")
 	arena.queue_free()
 	await process_frame
 	game.reset_hero()
@@ -236,8 +227,7 @@ func _test_unique(game: Node) -> void:
 	var weapon: ProtoWeapon = arena.weapon
 	var dummy: ProtoDummy = weapon.targets[0]
 	_check(weapon._unique("whirl") and not weapon._unique("x") and weapon.cooldown_full("whirl") == 0.0
-			and weapon.mana_cost("blink") == roundi(Skills.mana_of("blink") * 0.5) and weapon.cooldown_full("throw") > 0.0,
-			"miecz widzi kamienie unikalne (Mgnienie za pół many: %d)" % weapon.mana_cost("blink"))
+			and weapon.cooldown_full("throw") > 0.0, "miecz widzi kamienie unikalne")
 	# fala cięcia: kukła 90 px dalej, poza zasięgiem ciosu
 	hero.position = dummy.position + Vector2(-90, 0)
 	hero.facing = Vector2.RIGHT
@@ -368,44 +358,7 @@ func _test_combat(game: Node) -> void:
 	await _wait(0.4)
 	_check(goblin.position.distance_to(at) < 3.0, "ogłuszony goblin stoi")
 	goblin.queue_free()
-	# Mgnienie jak w Watrze: skok na wylot przez najbliższego wroga, przy trzymaniu kolejne skoki za manę
-	await _wait(0.4)
-	weapon.reset_cooldowns()
-	hero.mana = hero.max_mana
-	hero.position = dummy.position + Vector2(-200, 0)
-	await _wait(0.1)
-	_check(not weapon.cast("blink"), "Mgnienie bez wroga w zasięgu się nie uda")
-	hero.position = dummy.position + Vector2(-60, 0)
-	await _wait(0.1)
 	total = dummy._count
-	mana = hero.mana
-	_check(weapon.cast("blink"), "Mgnienie rusza")
-	_check(hero.position.x > dummy.position.x + 10.0 and absf(hero.position.y - dummy.position.y) < 2.0,
-			"postać ląduje za kukłą, na wylot")
-	_check(dummy._count == total + 1 and hero.mana == mana - 7, "skok tnie kukłę i kosztuje 7 many")
-	await _wait(0.5)
-	_check(dummy._count == total + 1, "samo stuknięcie - jeden skok")
-	var jumps := weapon._blink_jumps
-	weapon.flicker_held = true
-	await _wait(1.8)
-	weapon.flicker_held = false
-	_check(weapon._blink_jumps - jumps > 3 and weapon.cooldown_left("blink") == 0.0 and weapon.cooldown_full("blink") == 0.0,
-			"trzymanie - skoki bez limitu i bez odnowienia (%d)" % (weapon._blink_jumps - jumps))
-	_check(weapon._blink_spins == 0, "bez 10. poziomu nie ma wiru")
-	await _wait(0.4)
-	_check(weapon.cast("blink"), "zaraz po serii znów skacze")
-	var hp0 := hero.hp
-	hero._invulnerable = 0.0
-	weapon._flicker_jump(dummy)
-	hero.take_damage(5)
-	_check(hero.hp < hp0, "skok nie daje nietykalności")
-	await _wait(0.5)
-	var after := dummy._count
-	weapon.flicker_held = true
-	hero.mana = 3
-	await _wait(0.4)
-	weapon.flicker_held = false
-	_check(dummy._count == after and hero.mana >= 3, "bez many nie skacze")
 	# brak many
 	await _wait(0.3)
 	weapon.reset_cooldowns()
@@ -418,7 +371,7 @@ func _test_combat(game: Node) -> void:
 	weapon.auto_attack = true
 	hero.mana = 0
 	await _wait(0.8)
-	_check(weapon._state != "whirl" and dummy._count > total + 1, "bez many auto atak tnie zwykłym ciosem")
+	_check(weapon._state != "whirl" and dummy._count > total, "bez many auto atak tnie zwykłym ciosem")
 	hero.mana = hero.max_mana
 	await _wait(0.8)
 	_check(weapon._state == "whirl" or weapon.cooldown_left("whirl") > 0.0, "z maną auto atak sam rusza Młynek")

@@ -149,6 +149,21 @@ const SHOCK_FX_ANCHOR := Vector2(52, 40)
 const SHOCK_FX_RADIUS := 44.0
 const WHIRL_DRAIN := 1.0 / 3.0
 
+## Krąg stali: czas (5. poziom - dłużej), liczba widmowych mieczy (10. poziom - więcej), odległość rękojeści od środka
+## postaci, spłaszczenie orbity (ziemia z góry pod kątem), obroty na sekundę, co ile ten sam miecz może ciąć tego samego
+## wroga, połowa grubości ostrza do trafienia, wygląd (barwa, przezroczystość) i gaśnięcie na końcu.
+const STEEL_TIME := 6.0
+const STEEL_TIME_LONG := 8.0
+const STEEL_SWORDS := 3
+const STEEL_SWORDS_PERK := 5
+const STEEL_INNER := 20.0
+const STEEL_FLAT := 0.6
+const STEEL_TURNS := 0.9
+const STEEL_REHIT := 0.45
+const STEEL_HIT_WIDTH := 8.0
+const STEEL_TINT := Color(0.8, 0.95, 1.0, 1.0)
+const STEEL_FADE := 0.4
+
 ## Grupa węzłów, które miecz sam znajduje jako cele (potwory Hordy).
 const TARGETS := &"proto_targets"
 ## Stany zwykłego ciosu (szybkość ataku i Pośpiech go przyspieszają); glewia i hydrosfera dokładają swoje.
@@ -160,7 +175,7 @@ var hero: ProtoHero
 var element := Elements.PHYSICAL
 ## Umiejętność skoków jak Mgnienie (miecz - „blink”, katana - Błysk Peruna), smuga skoku i kolor piorunów
 ## (zygzaki `_bolt`) - ustawia podklasa.
-var blink_skill := "blink"
+var blink_skill := ""
 var flicker_trail: Texture2D = FLICKER_TRAIL
 var bolt_color := Color(1.0, 0.97, 0.6)
 ## Palec trzyma przycisk umiejętności ładowanej (Skills.is_charged - Sąd Peruna katany).
@@ -249,6 +264,11 @@ var _whirl_drain_acc := 0.0
 var _whirl_blast_t := 0.0
 var _bounces_left := 0
 var _waves: Array = []
+## Krąg stali: widmowe miecze ({"sprite", "power", "hits": {wróg: czas}}), ile jeszcze trwa, kąt obrotu.
+var _ring: Array = []
+var _ring_left := 0.0
+var _ring_spin := 0.0
+var _ring_trail: Line2D
 
 
 func _ready() -> void:
@@ -305,6 +325,7 @@ func _process(delta: float) -> void:
 	if hero.dead and _state != "follow":
 		_end_skill()
 	_process_waves(delta)
+	_process_ring(delta)
 	_process_flicker(delta)
 	match _state:
 		"follow":
@@ -524,7 +545,7 @@ func _strike_speed() -> float:
 ## Koszt many umiejętności z kamieniem Oszczędność i poziomem (Mgnienie z kamieniem unikalnym - o połowę mniej).
 func mana_cost(id: String) -> int:
 	var cost := Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0) * Skills.level_cost(level_of(id))
-	if id == "blink" and _unique(id):
+	if id == blink_skill and _unique(id):
 		cost *= 0.5
 	return roundi(cost)
 
@@ -725,7 +746,94 @@ func _start(id: String) -> void:
 			_from_rot = _sprite.rotation
 			hero.play_gesture(_goal)
 			_set_state("slam_rise")
+		"steel_ring":
+			_start_ring()
 	skill_used.emit(id)
+
+
+## Krąg stali (pomysł autora, 15.11.2026): wokół postaci zaczynają krążyć widmowe miecze; miecz w ręku nie zmienia
+## stanu, więc walczy dalej normalnie. Ponowne użycie w trakcie - krąg od nowa (z pełnym czasem).
+## Kamień Mnożenie - jeden miecz więcej (z siłą kamienia).
+func _start_ring() -> void:
+	_clear_ring()
+	var glow := CanvasItemMaterial.new()  # widmowe miecze świecą (mieszanie addytywne)
+	glow.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	var count := STEEL_SWORDS_PERK if _perk("steel_ring", 1) else STEEL_SWORDS
+	var extra := gem_power("steel_ring", "multi") / 100.0
+	for i in count + (1 if extra > 0.0 else 0):
+		var s := Sprite2D.new()
+		s.texture = _sprite.texture
+		s.centered = false
+		s.offset = _sprite.offset
+		s.scale = Vector2.ONE * SCALE
+		s.modulate = STEEL_TINT
+		s.material = glow
+		s.top_level = true
+		add_child(s)
+		_ring.append({"sprite": s, "power": extra if i >= count else 1.0, "hits": {}})
+	_ring_trail = Line2D.new()  # delikatny ślad orbity - widać, dokąd sięga krąg
+	_ring_trail.width = 1.0
+	_ring_trail.top_level = true
+	_ring_trail.z_index = -1
+	_ring_trail.material = glow
+	for i in 33:
+		var a := TAU * i / 32.0
+		_ring_trail.add_point(Vector2(cos(a), sin(a) * STEEL_FLAT) * (STEEL_INNER + BLADE * 0.8) * _area("steel_ring"))
+	add_child(_ring_trail)
+	_ring_left = STEEL_TIME_LONG if _perk("steel_ring", 0) else STEEL_TIME
+	_ring_spin = hero.facing.angle()
+	hero.play_gesture(_orbit_center() + Vector2(0, ORBIT_HEIGHT + 10.0))
+
+
+## Krąg stali: miecze krążą po spłaszczonej orbicie (ostrzem na zewnątrz, z tyłu - za postacią), każdy tnie
+## wroga, przez którego przechodzi jego ostrze, ale tego samego najwyżej co STEEL_REHIT.
+func _process_ring(delta: float) -> void:
+	if _ring.is_empty():
+		return
+	_ring_left -= delta
+	if _ring_left <= 0.0 or hero.dead:
+		_clear_ring()
+		return
+	_ring_spin += TAU * STEEL_TURNS * delta
+	var area := _area("steel_ring")
+	var center := _orbit_center()
+	var targets_now := _live_targets()
+	_ring_trail.global_position = center
+	_ring_trail.default_color = Color(STEEL_TINT, 0.25 * clampf(_ring_left / STEEL_FADE, 0.0, 1.0))
+	for i in _ring.size():
+		var r: Dictionary = _ring[i]
+		var s: Sprite2D = r.sprite
+		var a := _ring_spin + TAU * i / _ring.size()
+		var dir := Vector2(cos(a), sin(a) * STEEL_FLAT)
+		var at := center + dir * STEEL_INNER * area
+		s.global_position = at
+		s.rotation = dir.angle()
+		s.z_index = -1 if sin(a) < -0.2 else 1
+		s.modulate.a = STEEL_TINT.a * clampf(_ring_left / STEEL_FADE, 0.0, 1.0)
+		var tip := at + dir.normalized() * BLADE * area
+		for t in targets_now:
+			var c := t.center()
+			if Geometry2D.get_closest_point_to_segment(c, at, tip).distance_to(c) > STEEL_HIT_WIDTH + t.center_height * 0.4:
+				continue
+			if _clock - float(r.hits.get(t.get_instance_id(), -INF)) < STEEL_REHIT:
+				continue
+			r.hits[t.get_instance_id()] = _clock
+			_deal(t, _roll(_power("steel_ring") * r.power), center, "steel_ring")
+			Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, c.round(), HIT_FX_ANCHOR, 21, 0.7)
+
+
+func _clear_ring() -> void:
+	for r in _ring:
+		(r.sprite as Sprite2D).queue_free()
+	_ring.clear()
+	if _ring_trail:
+		_ring_trail.queue_free()
+		_ring_trail = null
+
+
+## Ile jeszcze krąży Krąg stali (0 - nie krąży).
+func ring_left() -> float:
+	return _ring_left if not _ring.is_empty() else 0.0
 
 
 ## Młynek: miecz krąży wokół postaci (rękojeścią do niej), co WHIRL_TICK rani wszystkich w promieniu.

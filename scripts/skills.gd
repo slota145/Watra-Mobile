@@ -20,7 +20,8 @@ const STRIKE := "strike"
 ## Miejsca: 0 - duży przycisk (atak), 1-4 - małe miejsca wokół niego (odblokowane z poziomem - HeroLevels).
 const SLOTS := 5
 const MAIN := 0
-## Mgnienie: tyle many wraca za każdego wroga zabitego skokiem (5. poziom - x2) i co który skok wir z 10. poziomu.
+## Skoki jak Mgnienie (Błysk Peruna katany): tyle many wraca za każdego wroga zabitego skokiem (5. poziom - x2) i co który
+## skok wyładowanie z 10. poziomu.
 const BLINK_MANA_ON_KILL := 2
 const BLINK_SPIN_EVERY := 5
 
@@ -50,10 +51,12 @@ const DATA := {
 		"mana": 25, "cooldown": 7.0, "weapon": "sword", "mastery": 10, "main": true, "range": 70.0, "power": 2.2,
 		"description": "Miecz spada z góry na wrogów: fala pęknięć rani wszystkich wokół i na chwilę ich ogłusza.",
 	},
-	"blink": {
-		"name": "Mgnienie", "icon": preload("res://assets/watra/skills/flicker.png"),
-		"mana": 7, "cooldown": 0.0, "weapon": "sword", "mastery": 15, "main": false, "range": 0.0, "power": 1.2,
-		"description": "Przytrzymaj - przeskakujesz na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego, dopóki starcza many. Każdy wróg zabity skokiem zwraca 2 many. Nie może stać pod dużym przyciskiem.",
+	# Krąg stali (pomysł autora i Claude 15.11.2026, zamiast Mgnienia - to zostało przy katanie jako Błysk Peruna):
+	# widmowe miecze krążą wokół postaci, a miecz w ręku walczy normalnie (ProtoWeapon._process_ring).
+	"steel_ring": {
+		"name": "Krąg stali", "icon": preload("res://assets/skills/sword/steel_ring.png"),
+		"mana": 30, "cooldown": 12.0, "weapon": "sword", "mastery": 15, "main": true, "range": 50.0, "power": 0.6,
+		"description": "Przez 6 s wokół ciebie krążą trzy widmowe miecze i tną każdego, kto podejdzie. Twój miecz walczy w tym czasie normalnie.",
 	},	# Glewia ognia (ustalone z autorem 13.11.2026): każde trafienie podpala (ProtoGlaive), "burn" - ile obrażeń
 	# trafienia dopala się przez 3 s.
 	"g_thrust": {
@@ -146,7 +149,7 @@ const AREA_STEP := 0.1
 const PERK_LEVELS := [5, 10]
 ## Cena ulepszenia z poziomu n na n+1 (żar): UPGRADE_PRICE[umiejętność] * n (zwykły cios najtańszy, Mgnienie
 ## najdroższe; liczby jak dawne ceny w złocie - do oceny na telefonie).
-const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "blink": 200,
+const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "steel_ring": 200,
 		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200,
 		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200,
 		"k_slash": 40, "k_dance": 60, "k_riposte": 90, "k_perun": 140, "k_flash": 200}
@@ -156,7 +159,7 @@ const PERKS := {
 	"whirl": ["Wiruje 4 s zamiast 3.", "Na koniec wybuch odpycha wrogów."],
 	"throw": ["Na końcu lotu miecz odbija się w kolejnego wroga.", "Rzuca dwa miecze naraz."],
 	"slam": ["Dłuższe ogłuszenie.", "Po pół sekundy uderza druga fala pęknięć."],
-	"blink": ["Zabicie skokiem zwraca dwa razy więcej many.", "Co 5. skok krótki wir wokół postaci."],
+	"steel_ring": ["Krąg trwa 8 s zamiast 6.", "Pięć mieczy zamiast trzech."],
 	"g_thrust": ["Podpalenie dwa razy silniejsze.", "Co trzecie pchnięcie dźga dwa razy."],
 	"g_sweep": ["Zamach odpycha wrogów.", "Zaraz po nim drugi zamach w drugą stronę."],
 	"g_trail": ["Bruzda płonie 5 s zamiast 3.", "5 cięć zamiast 3."],
@@ -176,7 +179,7 @@ const PERKS := {
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 ## Kolejność w oknie umiejętności.
-const ORDER := ["strike", "whirl", "throw", "slam", "blink", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
+const ORDER := ["strike", "whirl", "throw", "slam", "steel_ring", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
 		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash"]
 
 

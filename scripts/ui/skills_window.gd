@@ -513,8 +513,8 @@ func _show_level(i: int, id: String, lvl: int, owned: bool) -> void:
 	var k := Skills.level_cost(lvl)
 	var mana := roundi(Skills.mana_of(id) * k)
 	var cd := Skills.cooldown_of(id) * k
-	var unique: bool = id in ["whirl", "blink"] and Gems.has_unique(_game.skill_sockets(id), id)
-	if unique and id == "blink":
+	var unique: bool = id in ["whirl", "k_flash"] and Gems.has_unique(_game.skill_sockets(id), id)
+	if unique and id == "k_flash":
 		mana = roundi(Skills.mana_of(id) * k * 0.5)  # kamień unikalny: skoki za pół many
 	elif unique:
 		cd = 0.0  # kamień unikalny: bez odnowienia
@@ -525,7 +525,7 @@ func _show_level(i: int, id: String, lvl: int, owned: bool) -> void:
 		return
 	info_labels[i].text = tr("Bez many i odnowienia") if mana == 0 and cd == 0.0 \
 			else tr("%d many za skok, bez odnowienia") % mana if cd == 0.0 \
-			else tr("%d many za skok · odnowienie %s s") % [mana, String.num(cd, 1).trim_suffix(".0")] if id == "blink" \
+			else tr("%d many za skok · odnowienie %s s") % [mana, String.num(cd, 1).trim_suffix(".0")] if id == "k_flash" \
 			else tr("%d many · odnowienie %s s") % [mana, String.num(cd, 1).trim_suffix(".0")]
 	_show_perks(i, id, lvl, owned)
 
