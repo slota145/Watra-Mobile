@@ -109,6 +109,17 @@ const UNIQUE := {
 		"text": "Glewia spada po kolei w 3 różnych wrogów w pobliżu (wybuchy 60% siły, mniejsze płonące kręgi)."},
 	"g_dance": {"name": "Kamień Rykoszetu Płomieni", "short": "Odbicia sierpów",
 		"text": "Sierpy ognia odbijają się od trafionego wroga w kolejnego w pobliżu - do 3 odbić."},
+	# hydrosfera (pomysły autora 14.11.2026)
+	"h_bolt": {"name": "Kamień Wodnej Orbity", "short": "Krążące bańki",
+		"text": "Bańki nie lecą w wroga, tylko przez 3 s krążą wokół ciebie i przebijają wrogów (najwyżej 4 naraz)."},
+	"h_wave": {"name": "Kamień Przypływu", "short": "Fale dookoła",
+		"text": "Fala wylatuje na wszystkie strony: 6 fal dookoła ciebie, każda o 40% słabsza."},
+	"h_vortex": {"name": "Kamień Wędrownego Wiru", "short": "Wir wędruje",
+		"text": "Wir sam płynie ku najbliższym wrogom i wciąga ich po drodze; kręci się o 1 s dłużej."},
+	"h_geyser": {"name": "Kamień Erupcji", "short": "Kule z gejzerów",
+		"text": "Każdy gejzer wypluwa 3 kule wody, które spadają dookoła i ranią obszarem (60% siły gejzera)."},
+	"h_guardian": {"name": "Kamień Echa", "short": "Strażnik powtarza",
+		"text": "Strażnik powtarza ze swojego miejsca twoją Falę, Wir i Gejzery - za darmo, z połową siły."},
 }
 const UNIQUE_COLOR := Color(1.0, 0.82, 0.35)
 const SUPPORT_ORDER := ["multi", "area", "ember", "rime", "discharge", "haste", "thrift", "leech"]

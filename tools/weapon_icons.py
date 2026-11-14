@@ -186,12 +186,13 @@ def icon_geyser():
     return clip(img, inside, "water")
 
 
-def icon_rain():
+def icon_guardian():
     img, inside = base("water")
-    drop = rotated(trim(frame("hydro_drop", 2)), -90)  # ostrzem w dół
-    for x, y in ((18, 20), (34, 14), (48, 24), (26, 36)):
-        paste(img, drop, (x, y))
-    paste(img, scaled(trim(frame("hydro_splash", 5)), 0.7), (40, 50))
+    paste(img, scaled(trim(frame("hydro_geyser", 3)), 0.55), (32, 46))
+    paste(img, scaled(load("assets/weapons/hydrosphere.png"), 1.6), (32, 28))
+    bolt = trim(frame("hydro_bolt", 2))
+    paste(img, rotated(bolt, 20), (50, 16))
+    paste(img, rotated(bolt, 160), (14, 16))
     return clip(img, inside, "water")
 
 
@@ -199,7 +200,7 @@ ICONS = {
     "glaive": (("g_thrust", icon_thrust), ("g_sweep", icon_sweep), ("g_trail", icon_trail), ("g_pillar", icon_pillar),
                ("g_dance", icon_dance)),
     "hydro": (("h_bolt", icon_bolt), ("h_wave", icon_wave), ("h_vortex", icon_vortex), ("h_geyser", icon_geyser),
-              ("h_rain", icon_rain)),
+              ("h_guardian", icon_guardian)),
 }
 
 

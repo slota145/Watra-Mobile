@@ -68,6 +68,10 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   zbierania, więcej żaru (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy unik 2-4% na przedmiot jest
   odczuwalny, czy +żar nie skraca za bardzo drogi do Wodza. Na później: nowe premie w kamieniach.
 
+- **Hydrosfera: Wodny Strażnik i kamienie unikalne (14.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na
+  telefonie: siła Strażnika (strzał co 0,5 s przez 6 s), Kamień Echa z Przypływem (12 fal naraz - może za dużo na ekranie),
+  Wodna Orbita zamiast strzelania, liczby kamieni (60%, 50%, 3 kule).
+
 - **Hydrosfera (14.11.2026):** zrobiona (szczegóły w `docs/historia.md`). Do oceny na telefonie: siła pocisku na dystans
   wobec broni wręcz, czy przemoczenie (20% wolniej) jest odczuwalne, Wir i Gejzery, płynność Ulewy z Wirem (w chmurze
   61-68 klatek/s), cena 4500 zł. Później: kamienie unikalne hydrosfery, combo przemoczenia z Gromem i lodem, widoczny

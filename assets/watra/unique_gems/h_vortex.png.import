@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://7054pevjitbs"
-path="res://.godot/imported/h_rain.png-c6c242854aa347ff9b20c2d80723429c.ctex"
+uid="uid://blhq2rjv7prn2"
+path="res://.godot/imported/h_vortex.png-1e524940cf49940ae8dd72ad3d206705.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/hydro/h_rain.png"
-dest_files=["res://.godot/imported/h_rain.png-c6c242854aa347ff9b20c2d80723429c.ctex"]
+source_file="res://assets/watra/unique_gems/h_vortex.png"
+dest_files=["res://.godot/imported/h_vortex.png-1e524940cf49940ae8dd72ad3d206705.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://djknptc4xiuhx"
-path="res://.godot/imported/hydro_drop.png-36099730c1323371e06cb71d05902355.ctex"
+uid="uid://dv3drnms7twvl"
+path="res://.godot/imported/hydro_orbit.png-9d3237d11e848fd30b7bdea8f5d58cf4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/hydro_drop.png"
-dest_files=["res://.godot/imported/hydro_drop.png-36099730c1323371e06cb71d05902355.ctex"]
+source_file="res://assets/effects/hydro_orbit.png"
+dest_files=["res://.godot/imported/hydro_orbit.png-9d3237d11e848fd30b7bdea8f5d58cf4.ctex"]
 
 [params]
 
