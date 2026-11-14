@@ -8,6 +8,8 @@ Przebarwiony efekt z innego źródła: "source": "<nazwa pliku źródła>", "hue
 podanego koloru, a "boost": 1.5 mnoży nasycenie i jasność (blady fioletowy ryk Biesa -> żywy pomarańczowy okrzyk Wodza).
 Źródło: pixellab_src/vfx/<nazwa>.png - wynik `pixelart_workbench join <image id> --as sheet --columns <klatki>`
 zapisany bez zmian (pasek podpisu u góry ucina ten skrypt, ciemne tło (31, 37, 44) zamienia na przezroczyste).
+Zwężenie tyłu smugi: "taper": n - w każdej klatce pierwsze n kolumn od lewej krawędzi efektu przycina się w szpic
+ku wysokości zaczepienia (anchor) i obrysowuje ciemnym konturem (smuga pchnięcia glewii miała płaski tył).
 Wynik: assets/effects/<nazwa>.png - zawsze jeden rząd klatek. Uruchom: python tools/vfx_art.py"""
 import colorsys
 import json
@@ -46,6 +48,29 @@ def recolor(sheet, colour, boost=1.0):
     return sheet
 
 
+def taper_left(frame, n, cy):
+    """Przycina pierwsze `n` kolumn efektu (od pierwszej niepustej) w szpic ku wierszowi `cy` i obrysowuje go."""
+    px = frame.load()
+    w, h = frame.size
+    cols = [x for x in range(w) if any(px[x, y][3] for y in range(h))]
+    if not cols:
+        return frame
+    left = cols[0]
+    dark = min((px[x, y] for x in range(w) for y in range(h) if px[x, y][3]), key=lambda c: sum(c[:3]))
+    half = max(abs(y - cy) for x in cols for y in range(h) if px[x, y][3])
+    for x in range(left, min(left + n, w)):
+        allow = half * (x - left + 1) / n
+        for y in range(h):
+            if px[x, y][3] and abs(y - cy) > allow:
+                px[x, y] = (0, 0, 0, 0)
+    for x in range(left, min(left + n, w)):
+        ys = [y for y in range(h) if px[x, y][3]]
+        if ys:
+            px[x, ys[0]] = dark
+            px[x, ys[-1]] = dark
+    return frame
+
+
 def main():
     out = os.path.join(ROOT, "assets", "effects")
     os.makedirs(out, exist_ok=True)
@@ -64,6 +89,10 @@ def main():
                 x, y = (i % columns) * w, (i // columns) * h
                 row.alpha_composite(sheet.crop((x, y, x + w, y + h)), (i * w, 0))
             sheet = row
+        if "taper" in info:
+            for i in range(info["frames"]):
+                part = taper_left(sheet.crop((i * w, 0, i * w + w, h)), info["taper"], info["anchor"][1])
+                sheet.paste(part, (i * w, 0))
         if "hue" in info:
             sheet = recolor(sheet, info["hue"], info.get("boost", 1.0))
         assert sheet.size == (w * info["frames"], h), (name, sheet.size)

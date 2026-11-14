@@ -2,6 +2,19 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 14.11.2026 - glewia: Płonąca bruzda zamiast doskoku, nowy Taniec płomieni, zwężona smuga pchnięcia
+
+- Prośby autora po teście: smuga pchnięcia miała płaski tył od strony postaci - `tools/vfx_art.py` dostał opcję
+  `"taper": n` (pierwsze n kolumn klatki przycięte w szpic ku wysokości zaczepienia i obrysowane), dla `glaive_thrust` 14.
+- Taniec płomieni bez wiru (Młynek miecza): co 0,3 s glewia przeskakuje pod nowy kąt (obrót 100-200° w losową stronę)
+  i tnie łukiem 140° na przemian w obie strony; każde cięcie gra nowy efekt z kreatora `glaive_dance_slash`
+  („Glewia - cięcie tańca”, łuk ognia, 28 fps) i w połowie wypuszcza sierp ognia jak wcześniej.
+- Płonąca bruzda (`g_trail`, pomysł autora, decyzje z ankiety: krótki pas ognia, cięcia szybkie ok. 130 px):
+  glewia wbija się w ziemię 12 px przed postacią i ryje do 40 px (0,1 s wbicie, 0,22 s ciągnięcie), postać stoi;
+  zostaje pas ognia (3 s, 5. poziom - 5 s), a w wachlarzu ±20° wylatują 3 cięcia (10. poziom - 5) - sierpy
+  `glaive_cut` 260 px/s na 130 px, przebijają i podpalają. Zasięg auto ataku 120. `_spawn_cut` ma teraz umiejętność,
+  punkt startu, prędkość i zasięg.
+
 ## 13.11.2026 - glewia ognia (pierwsza nowa broń) i kolczyk z kłem
 
 - Decyzje autora (ankiety 13.11.2026): pierwsza broń po mieczu - glewia ognia; za darmo po pokonaniu Wodza na 10.

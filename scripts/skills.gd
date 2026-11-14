@@ -66,9 +66,9 @@ const DATA := {
 		"description": "Glewia zatacza szeroki półokrąg przed tobą i mocno podpala trafionych.",
 	},
 	"g_trail": {
-		"name": "Płonący ślad", "icon": preload("res://assets/watra/skills/fire_wall.png"),
-		"mana": 20, "cooldown": 7.0, "weapon": "glaive", "mastery": 6, "main": true, "range": 110.0, "power": 1.2, "burn": 0.5,
-		"description": "Doskakujesz z pchnięciem w stronę wroga, a za tobą zostaje pas ognia, który pali wrogów przez 3 s.",
+		"name": "Płonąca bruzda", "icon": preload("res://assets/watra/skills/fire_wall.png"),
+		"mana": 20, "cooldown": 7.0, "weapon": "glaive", "mastery": 6, "main": true, "range": 120.0, "power": 1.2, "burn": 0.5,
+		"description": "Glewia wbija się w ziemię i ryje bruzdę do przodu: zostaje pas ognia, który pali wrogów przez 3 s, a w wachlarzu wylatują 3 szybkie cięcia ognia, które przebijają wrogów.",
 	},
 	"g_pillar": {
 		"name": "Słup ognia", "icon": preload("res://assets/watra/skills/aura_swarog_ember.png"),
@@ -78,7 +78,7 @@ const DATA := {
 	"g_dance": {
 		"name": "Taniec płomieni", "icon": preload("res://assets/watra/skills/ks_blade_dance.png"),
 		"mana": 30, "cooldown": 10.0, "weapon": "glaive", "mastery": 15, "main": true, "range": 60.0, "power": 0.7, "burn": 0.3,
-		"description": "Glewia wiruje wokół ciebie przez 3 s i co chwilę wypuszcza zamaszyste cięcia, które powoli lecą na wszystkie strony i przebijają wrogów.",
+		"description": "Przez 3 s glewia tnie zamaszyście dookoła ciebie pod różnymi kątami, a każde cięcie wypuszcza sierp ognia, który powoli leci na zewnątrz i przebija wrogów.",
 	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
@@ -103,9 +103,9 @@ const PERKS := {
 	"blink": ["Zabicie skokiem zwraca dwa razy więcej many.", "Co 5. skok krótki wir wokół postaci."],
 	"g_thrust": ["Podpalenie dwa razy silniejsze.", "Co trzecie pchnięcie dźga dwa razy."],
 	"g_sweep": ["Zamach odpycha wrogów.", "Zaraz po nim drugi zamach w drugą stronę."],
-	"g_trail": ["Pas ognia płonie 5 s zamiast 3.", "Na końcu doskoku wybuch ognia."],
+	"g_trail": ["Bruzda płonie 5 s zamiast 3.", "5 cięć zamiast 3."],
 	"g_pillar": ["Płonący krąg o połowę większy.", "Po pół sekundy drugi wybuch."],
-	"g_dance": ["Tańczy 4 s zamiast 3.", "Cięcia lecą po dwa naraz, w przeciwne strony."],
+	"g_dance": ["Tańczy 4 s zamiast 3.", "Sierpy lecą po dwa naraz, w przeciwne strony."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
