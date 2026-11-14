@@ -2,7 +2,7 @@ class_name DevWindow
 extends Control
 ## Okno trybu deweloperskiego (z pauzy, przycisk „Tryb deweloperski”) - do testów balansu (prośba autora 13.11.2026):
 ## nieśmiertelność, wszystkie poziomy lochu bez przebijania poprzednich (`Game.dev_all_levels`), skróty (+1 poziom,
-## +100 żaru, +5 łupu, wszystkie umiejętności, kamienie, postać od nowa), poziom postaci ustawiany wprost
+## +5000 żaru (prośba autora 15.11.2026; było 100), +5 łupu, wszystkie umiejętności, kamienie, postać od nowa), poziom postaci ustawiany wprost
 ## (`Game.dev_set_level`) i każda statystyka przedmiotów ustawiana suwakiem do sufitu (`Game.dev_stats` - zastępuje
 ## sumę z założonych przedmiotów, ↺ przywraca przedmioty). Wszystko zapisuje się w ustawieniach (`user://settings.cfg`).
 ## Leży nad pauzą i działa przy zatrzymanej grze; przewija się palcem, gdy nie mieści się na ekranie.
@@ -11,7 +11,7 @@ extends Control
 signal dev_embers(amount: int)
 signal closed
 
-const DEV_EMBERS := 100
+const DEV_EMBERS := 5000
 const DEV_ITEMS := 5
 const ACCENT := Color(1, 0.7, 0.5)
 const CHANGED := Color(0.55, 0.95, 0.5)

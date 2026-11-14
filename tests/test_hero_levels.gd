@@ -3,7 +3,7 @@ extends SceneTree
 ## i zapis (Game), doświadczenie za gobliny i Wodza w lochu, awans leczy i zwiększa zdrowie, pasek doświadczenia,
 ## miejsca na umiejętności zablokowane do swoich poziomów, podsumowanie w oknie wyniku, auto atak (sam tnie kukłę
 ## w zasięgu, bez celu - nie), liczby na paskach zdrowia, many i doświadczenia, okno „Postać” ze statystykami
-## oraz skróty deweloperskie w oknie pauzy (+1 poziom, +100 żaru, postać od nowa).
+## oraz skróty deweloperskie w oknie pauzy (+1 poziom, +5000 żaru, postać od nowa).
 
 var _failed := 0
 
@@ -99,7 +99,7 @@ func _test_dungeon(game: Node) -> void:
 	for c in hero.get_children():
 		effect = effect or (c is Label and c.text == "Poziom 2!")
 	_check(effect, "napis awansu nad postacią")
-	# skróty deweloperskie: +1 poziom odblokowuje miejsce na 3. poziomie, +100 żaru do paska wyprawy
+	# skróty deweloperskie: +1 poziom odblokowuje miejsce na 3. poziomie, żar do paska wyprawy
 	arena._open_menu()
 	var menu: PauseMenu = arena.pause_menu
 	menu.dev_button.pressed.emit()
@@ -122,7 +122,7 @@ func _test_dungeon(game: Node) -> void:
 	arena._open_menu()
 	var before: int = horde.embers
 	menu.dev.embers_button.pressed.emit()
-	_check(horde.embers == before + DevWindow.DEV_EMBERS, "+100 żaru do paska wyprawy")
+	_check(horde.embers == before + DevWindow.DEV_EMBERS, "+5000 żaru do paska wyprawy")
 	menu.close()
 	# Wódz daje dużo doświadczenia; okno zwycięstwa je pokazuje
 	arena.summon_chief()

@@ -66,7 +66,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
   `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania i auto atakiem (zapis w `Game`, `user://settings.cfg`)
   i przyciskiem trybu deweloperskiego - okno `scripts/ui/dev_window.gd` (nieśmiertelność, wszystkie poziomy lochu bez przebijania
-  - `Game.dev_all_levels`, skróty: +1 poziom, +100 żaru, +5 przedmiotów, +umiejętności, +kamienie, postać od nowa, poziom postaci
+  - `Game.dev_all_levels`, skróty: +1 poziom, +5000 żaru, +5 przedmiotów, +umiejętności, +kamienie, postać od nowa, poziom postaci
   wprost, każda statystyka suwakiem do sufitu - `Game.dev_stats`), `scripts/ui/hero_stats.gd` -
   okno „Postać” z zakładkami Ekwipunek / Statystyki / Sakwa (ikonka portretu w górnym rzędzie, obok niej ikonka umiejętności).
 - `scripts/updater.gd`: autoload `Updater` (pierwszy na liście) - aktualizacja wersji testowej z menu bez całego apk
