@@ -4,7 +4,7 @@
 "Menu","Menu","arena.gd"
 "Podniesiono: %s","Picked up: %s","arena.gd"
 "Pokonane: %d","Slain: %d","arena.gd"
-"Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.","Drag your finger to walk. Hold the sword to attack.","arena.gd"
+"Przeciągnij palcem, żeby iść. Trzymaj przycisk ataku, żeby atakować.","Drag your finger to walk. Hold the attack button to attack.","arena.gd"
 "Przyzwij Wodza","Summon the Chieftain","arena.gd"
 "Sprzedano: %s (+%d złota)","Sold: %s (+%d gold)","arena.gd"
 "Torba pełna - sprzedano: %s (+%d złota)","Bag full - sold: %s (+%d gold)","arena.gd"

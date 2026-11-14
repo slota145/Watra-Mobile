@@ -73,7 +73,7 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   (propozycje Claude), cena 3000 zł i próg Wodza 10, czy płonący krąg i pas ognia nie zasłaniają wrogów, liczba klatek
   w Tańcu płomieni z ogniem na ziemi. Po poprawkach 14.11.2026 (Płonąca bruzda zamiast doskoku, nowy Taniec, zwężona
   smuga pchnięcia): czy wachlarz bruzdy trafia, czy seria cięć tańca czyta się na telefonie. Kamienie unikalne glewii zrobione 14.11.2026 - do oceny ich siła (Ognisty Deszcz 3x60%,
-  Rykoszet 3 odbicia). Później: własne ikony umiejętności glewii (teraz z Watry),
+  Rykoszet 3 odbicia). Własne ikony glewii zrobione 14.11.2026 (do oceny na telefonie). Później:
   kolor liczb obrażeń od ognia.
 
 - **Żywioły i wiele broni (13.11.2026):** etap 1 zrobiony - fundament żywiołów, mistrzostwo broni odblokowuje
