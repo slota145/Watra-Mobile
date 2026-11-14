@@ -1,5 +1,6 @@
 class_name Skills
-## Umiejętności broni (Weapons): miecza (ustalone z autorem 12.11.2026) i glewii ognia (13.11.2026). Każda broń
+## Umiejętności broni (Weapons): miecza (ustalone z autorem 12.11.2026), glewii ognia (13.11.2026), hydrosfery
+## (14.11.2026) i elektrycznej katany (15.11.2026). Każda broń
 ## ma własny zwykły cios (`basic_of`) i własne umiejętności (pole "weapon", `of_weapon`); w oknie i na przyciskach
 ## są tylko umiejętności broni w ręku. Miecz: Zwykły cios też jest umiejętnością: można go przestawić,
 ## a na jego miejsce pod dużym przyciskiem dać inną - wtedy ta podlega auto atakowi. Gdy umiejętności pod dużym
@@ -106,6 +107,32 @@ const DATA := {
 		"mana": 30, "cooldown": 12.0, "weapon": "hydrosphere", "mastery": 15, "main": true, "range": 110.0, "power": 0.8,
 		"description": "Kula wody pojawia się z wybuchem przy wrogu, zostaje 6 s i strzela wodnymi pociskami w najbliższych wrogów.",
 	},
+	# Elektryczna katana (ustalone z autorem 15.11.2026): najszybsza broń, każde trafienie poraża (ProtoKatana).
+	"k_slash": {
+		"name": "Błyskawiczne cięcie", "icon": preload("res://assets/skills/katana/k_slash.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "katana", "mastery": 1, "main": true, "range": 46.0, "power": 0.75,
+		"description": "Katana tnie błyskawicznie po łuku najbliższego wroga. Trafieni są porażeni.",
+	},
+	"k_iaido": {
+		"name": "Iaido", "icon": preload("res://assets/skills/katana/k_iaido.png"),
+		"mana": 12, "cooldown": 4.0, "weapon": "katana", "mastery": 3, "main": true, "range": 90.0, "power": 1.6,
+		"description": "Cięcie z pochwy: przemykasz przez wroga w linii prostej i ranisz wszystkich po drodze.",
+	},
+	"k_chain": {
+		"name": "Łańcuch piorunów", "icon": preload("res://assets/skills/katana/k_chain.png"),
+		"mana": 18, "cooldown": 6.0, "weapon": "katana", "mastery": 6, "main": true, "range": 130.0, "power": 1.1,
+		"description": "Piorun z katany skacze po kolei po pięciu wrogach.",
+	},
+	"k_perun": {
+		"name": "Sąd Peruna", "icon": preload("res://assets/skills/katana/k_perun.png"),
+		"mana": 25, "cooldown": 8.0, "weapon": "katana", "mastery": 10, "main": true, "range": 140.0, "power": 2.0,
+		"description": "Trzy pioruny z nieba uderzają w najbliższych wrogów, ranią wszystkich obok i na chwilę ogłuszają.",
+	},
+	"k_storm": {
+		"name": "Burza ostrzy", "icon": preload("res://assets/skills/katana/k_storm.png"),
+		"mana": 30, "cooldown": 12.0, "weapon": "katana", "mastery": 15, "main": true, "range": 120.0, "power": 0.8,
+		"description": "Przez 3 s katana sama skacze od wroga do wroga i tnie każdego piorunem, a ty możesz chodzić bezpiecznie z boku.",
+	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
 ## (o COST_STEP każdy), z większym obszarem (o AREA_STEP każdy) i z nowym działaniem.
@@ -120,7 +147,8 @@ const PERK_LEVELS := [5, 10]
 ## najdroższe; liczby jak dawne ceny w złocie - do oceny na telefonie).
 const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "blink": 200,
 		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200,
-		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200}
+		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200,
+		"k_slash": 40, "k_iaido": 60, "k_chain": 90, "k_perun": 140, "k_storm": 200}
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
@@ -138,12 +166,17 @@ const PERKS := {
 	"h_vortex": ["Wir kręci się 4 s zamiast 3.", "Na koniec wir wybucha falą wody."],
 	"h_geyser": ["Ogłuszenie 1,5 s zamiast 1.", "Osiem gejzerów zamiast pięciu."],
 	"h_guardian": ["Strażnik zostaje 8 s zamiast 6.", "Pojawiają się dwie kule naraz."],
+	"k_slash": ["Co czwarte cięcie - piorun w najbliższego wroga.", "Cięcie przeskakuje piorunem na dwóch wrogów obok."],
+	"k_iaido": ["Dłuższy zryw.", "Na końcu zrywu wyładowanie rani wszystkich wokół."],
+	"k_chain": ["7 skoków zamiast 5.", "Każdy skok zostawia na ziemi iskrę, która rani wrogów."],
+	"k_perun": ["5 piorunów zamiast 3.", "Po pół sekundy uderza druga seria."],
+	"k_storm": ["Burza trwa 4 s zamiast 3.", "Z każdego skoku piorun rozgałęzia się na dwóch wrogów obok."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 ## Kolejność w oknie umiejętności.
 const ORDER := ["strike", "whirl", "throw", "slam", "blink", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
-		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian"]
+		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_iaido", "k_chain", "k_perun", "k_storm"]
 
 
 static func has(id: String) -> bool:

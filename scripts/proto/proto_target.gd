@@ -5,7 +5,8 @@ extends Node2D
 ## Kamienie umiejętności (Gems): podpalenie (`burn` - obrażenia co BURN_TICK przez `burn_tick`, pomarańczowe liczby)
 ## i spowolnienie (`slow` - potwory mnożą prędkość przez `speed_factor()`); znaczki rysuje węzeł _Status pod celem.
 ## Podpalony cel płonie (14.11.2026): zapętlone płomienie z kreatora efektów (assets/effects/burning.png) za nim,
-## skalowane do jego wysokości (`center_height`), gasną pod koniec podpalenia.
+## skalowane do jego wysokości (`center_height`), gasną pod koniec podpalenia. Przemoczony (`soak`, 15.11.2026) - kapią
+## z niego krople z kreatora (assets/effects/soak_drips.png); porażony (`shock`) - wokół przeskakują iskry.
 
 ## Kolor i wielkość liczby trafienia krytycznego.
 const CRIT_COLOR := Color(1.0, 0.82, 0.25)
@@ -13,8 +14,12 @@ const CRIT_SIZE := 15
 
 ## Wysokość środka celu nad ziemią (tam celuje broń i wyskakują liczby).
 var center_height := 18.0
+## Po zamrożeniu (freeze) tyle sekund odporności na kolejne.
+const FREEZE_IMMUNE := 2.0
+
 ## Następna liczba obrażeń to trafienie krytyczne (ustawia miecz tuż przed take_damage; liczba złota, większa, z „!”).
 var crit_next := false
+var _freeze_ready := -INF
 
 
 ## Punkt, w który celuje broń.
@@ -61,6 +66,48 @@ func slow(amount: float, time: float) -> void:
 	if amount >= st.slow or st.slow_left <= 0.0:
 		st.slow = amount
 	st.slow_left = maxf(st.slow_left, time)
+
+
+## Przemoczenie (hydrosfera): spowolnienie o `amount` na `time` s i znak - kapiące krople (combo z Gromem i lodem -
+## Elements.soak_bonus).
+func soak(amount: float, time: float) -> void:
+	if not alive() or time <= 0.0:
+		return
+	slow(amount, time)
+	var st := _status()
+	st.soak_left = maxf(st.soak_left, time)
+
+
+## Czy wróg jest przemoczony.
+func is_soaked() -> bool:
+	var st := get_node_or_null(^"_Status") as _Status
+	return st != null and st.soak_left > 0.0
+
+
+## Porażenie (elektryczna katana): przez `time` s wróg dostaje od wszystkiego o Elements.SHOCK_BONUS więcej
+## (ProtoWeapon._deal), wokół niego przeskakują iskry.
+func shock(time: float) -> void:
+	if not alive() or time <= 0.0:
+		return
+	var st := _status()
+	st.shock_left = maxf(st.shock_left, time)
+
+
+## Zamrożenie przemoczonego lodem (combo, Elements.SOAK_FREEZE): ogłusza na `time` s, potem przez FREEZE_IMMUNE s
+## nie da się zamrozić znowu (żeby woda z lodem nie trzymały wroga w miejscu bez końca). Zwraca, czy zamroziło.
+func freeze(time: float) -> bool:
+	var now := Time.get_ticks_msec() / 1000.0
+	if not alive() or now < _freeze_ready:
+		return false
+	_freeze_ready = now + time + FREEZE_IMMUNE
+	stun(time)
+	return true
+
+
+## Czy wróg jest porażony.
+func is_shocked() -> bool:
+	var st := get_node_or_null(^"_Status") as _Status
+	return st != null and st.shock_left > 0.0
 
 
 ## Mnożnik prędkości potwora (spowolnienie Szronem; 1.0 - bez).
@@ -110,8 +157,8 @@ func spawn_number(amount: int, color := Color(1.0, 0.95, 0.8)) -> void:
 	tween.tween_callback(num.queue_free)
 
 
-## Podpalenie i spowolnienie celu: odlicza czas, zadaje obrażenia podpalenia, pokazuje płomienie (za celem)
-## i szronowy krąg u stóp. Znika, gdy oba efekty wygasną.
+## Podpalenie, spowolnienie, przemoczenie i porażenie celu: odlicza czas, zadaje obrażenia podpalenia, pokazuje
+## płomienie (za celem), kapiące krople, iskry i szronowy krąg u stóp. Znika, gdy wszystkie efekty wygasną.
 class _Status extends Node2D:
 	const BURN_TICK := 0.5
 	const FLAMES := preload("res://assets/effects/burning.png")
@@ -124,16 +171,30 @@ class _Status extends Node2D:
 	const BACK_SCALE := 1.6
 	const FRONT_SCALE := 0.8
 	const FRONT_ALPHA := 0.75
+	## Krople przemoczenia: arkusz, klatki, fps, zaczepienie (środek celu), skala przy goblinie.
+	const DRIPS := preload("res://assets/effects/soak_drips.png")
+	const DRIPS_FRAMES := 12
+	const DRIPS_FPS := 12.0
+	const DRIPS_ANCHOR := Vector2(17, 10)
+	const DRIPS_SCALE := 0.6
+	## Iskry porażenia: kolor, co ile nowy zygzak.
+	const SPARK := Color(1.0, 0.95, 0.55)  # kolor Gromu (Elements.COLORS) - odróżnia się od niebieskich kropli
+	const SPARK_EVERY := 0.12
 	var target: ProtoTarget
 	var burn_dps := 0.0
 	var burn_left := 0.0
 	var slow := 0.0
 	var slow_left := 0.0
+	var soak_left := 0.0
+	var shock_left := 0.0
 	var _acc := 0.0
 	var _tick := BURN_TICK
 	var _t := 0.0
 	var _flames: Sprite2D
 	var _front: Sprite2D
+	var _drips: Sprite2D
+	var _spark_t := 0.0
+	var _spark_seed := 0
 
 	func _ready() -> void:
 		z_index = 1
@@ -145,6 +206,16 @@ class _Status extends Node2D:
 		glow.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 		_flames.material = glow
 		_front.material = glow
+		_drips = Sprite2D.new()
+		_drips.texture = DRIPS
+		_drips.hframes = DRIPS_FRAMES
+		_drips.centered = false
+		_drips.offset = -DRIPS_ANCHOR
+		_drips.position = Vector2(0, -target.center_height)
+		_drips.scale = Vector2.ONE * DRIPS_SCALE * clampf(target.center_height / FLAMES_HEIGHT, 0.8, 1.6)
+		_drips.z_index = 1
+		_drips.visible = false
+		add_child(_drips)
 
 	func _flame_sprite(size: float, z: int) -> Sprite2D:
 		var s := Sprite2D.new()
@@ -161,6 +232,8 @@ class _Status extends Node2D:
 	func _process(delta: float) -> void:
 		_t += delta
 		slow_left -= delta
+		soak_left -= delta
+		shock_left -= delta
 		if burn_left > 0.0:
 			burn_left -= delta
 			_acc += burn_dps * delta
@@ -171,7 +244,7 @@ class _Status extends Node2D:
 				if dmg > 0 and target.alive():
 					_acc -= dmg
 					target.burn_tick(dmg)
-		if not target.alive() or (burn_left <= 0.0 and slow_left <= 0.0):
+		if not target.alive() or (burn_left <= 0.0 and slow_left <= 0.0 and soak_left <= 0.0 and shock_left <= 0.0):
 			queue_free()
 			return
 		var on := burn_left > 0.0
@@ -181,10 +254,31 @@ class _Status extends Node2D:
 				var first := get_instance_id() % FLAMES_FRAMES + (3 if f == _front else 0)
 				f.frame = int(_t * FLAMES_FPS + first) % FLAMES_FRAMES
 				f.modulate.a = clampf(burn_left / 0.4, 0.0, 1.0)
+		_drips.visible = soak_left > 0.0
+		if _drips.visible:
+			_drips.frame = int(_t * DRIPS_FPS + get_instance_id() % DRIPS_FRAMES) % DRIPS_FRAMES
+			_drips.modulate.a = clampf(soak_left / 0.4, 0.0, 1.0)
+		if shock_left > 0.0:
+			_spark_t -= delta
+			if _spark_t <= 0.0:
+				_spark_t = SPARK_EVERY
+				_spark_seed += 1
 		queue_redraw()
 
 	func _draw() -> void:
-		if slow_left > 0.0:
+		if shock_left > 0.0:
+			# dwa małe zygzaki iskier przy celu, co SPARK_EVERY w innym miejscu
+			var rng := RandomNumberGenerator.new()
+			rng.seed = get_instance_id() + _spark_seed
+			var h := target.center_height
+			for i in 2:
+				var p := Vector2(rng.randf_range(-8.0, 8.0), -h + rng.randf_range(-h * 0.6, h * 0.5))
+				var pts := PackedVector2Array([p])
+				for j in 3:
+					p += Vector2(rng.randf_range(-3.0, 3.0), rng.randf_range(-4.0, 4.0))
+					pts.append(p)
+				draw_polyline(pts, SPARK, 1.0)
+		if slow_left > 0.0 and soak_left <= 0.0:  # przemoczenie pokazują krople, szronowy krąg - samo spowolnienie
 			var a := clampf(slow_left * 2.0, 0.0, 1.0)
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.45))
 			draw_arc(Vector2.ZERO, 9.0, 0.0, TAU, 20, Color(0.6, 0.9, 1.0, 0.75 * a), 1.5)

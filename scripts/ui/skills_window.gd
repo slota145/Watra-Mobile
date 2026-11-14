@@ -116,16 +116,22 @@ func _ready() -> void:
 	head.add_child(ember)
 	embers_label = _label(head, "0", 15, GOLD)
 	mastery_label = _label(column, "", 12, BLUE)
+	mastery_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # długie nazwy broni nie rozpychają okna
 	var weapons_row := HBoxContainer.new()
-	weapons_row.add_theme_constant_override("separation", 6)
+	weapons_row.add_theme_constant_override("separation", 4)
 	column.add_child(weapons_row)
-	for w in Weapons.ORDER:
+	for w in Weapons.ORDER:  # ikona nad nazwą - cztery bronie i więcej mieszczą się w jednym rzędzie
 		var wb := _button(weapons_row, Weapons.short_name_of(w))
-		wb.custom_minimum_size.y = 44
+		wb.custom_minimum_size = Vector2(0, 44)
+		wb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		wb.icon = Weapons.icon_of(w)
 		wb.expand_icon = true
-		wb.add_theme_constant_override("icon_max_width", 24)
-		wb.add_theme_font_size_override("font_size", 12)
+		wb.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		wb.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		wb.add_theme_constant_override("icon_max_width", 18)
+		wb.add_theme_constant_override("h_separation", 0)
+		wb.add_theme_font_size_override("font_size", 11)
+		wb.clip_text = true
 		wb.pressed.connect(_on_weapon.bind(w))
 		weapon_buttons[w] = wb
 	var tabs := HBoxContainer.new()
@@ -201,6 +207,7 @@ func _make_row(list: VBoxContainer, i: int) -> void:
 	texts.add_theme_constant_override("separation", 1)
 	row.add_child(texts)
 	name_labels.append(_label(texts, Skills.name_of(id), 14, GOLD))
+	name_labels.back().autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # długa nazwa z poziomem nie rozpycha okna
 	info_labels.append(_label(texts, "", 11, BLUE))
 	var desc := _label(texts, Lang.t(Skills.DATA[id].description), 11, TEXT)
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

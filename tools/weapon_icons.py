@@ -2,7 +2,8 @@
 
 Każda ikona: ramka z ikony Watry (assets/watra/skills/lunge.png - zaokrąglony kwadrat), w środku ciemne tło w barwie
 żywiołu broni (ogień - żar od dołu, woda - turkusowa poświata), a na nim broń (assets/weapons/) i klatki jej efektów
-z kreatora (assets/effects/). Glewia ognia -> assets/skills/glaive/g_*.png, hydrosfera -> assets/skills/hydro/h_*.png.
+z kreatora (assets/effects/). Glewia ognia -> assets/skills/glaive/g_*.png, hydrosfera -> assets/skills/hydro/h_*.png,
+elektryczna katana (tło burzowe - fiolet z błękitną poświatą) -> assets/skills/katana/k_*.png.
 Uruchom: python tools/weapon_icons.py
 """
 import math
@@ -75,7 +76,11 @@ def base(theme="fire"):
         inside.append((x, y))
         t = y / SIZE  # od góry ciemny granat, ku dołowi bordowy żar
         glow = max(0.0, 1.0 - math.hypot(x - 32, y - 60) / 42.0)
-        if theme == "water":  # granat z turkusową poświatą od dołu
+        if theme == "storm":  # burzowy fiolet z błękitną poświatą od dołu
+            r = int(18 + 10 * t + 30 * glow)
+            g = int(16 + 14 * t + 56 * glow)
+            b = int(42 + 26 * t + 100 * glow)
+        elif theme == "water":  # granat z turkusową poświatą od dołu
             r = int(10 + 6 * t + 20 * glow)
             g = int(20 + 20 * t + 70 * glow)
             b = int(40 + 30 * t + 90 * glow)
@@ -196,11 +201,73 @@ def icon_guardian():
     return clip(img, inside, "water")
 
 
+KATANA = load("assets/weapons/katana.png")
+
+
+def zigzag(img, a, b, seed, colour=(150, 220, 255, 255), core=(245, 252, 255, 255)):
+    """Zygzak pioruna od a do b (dwie linie: jasny rdzeń na błękitnej poświacie)."""
+    import random
+    rnd = random.Random(seed)
+    pts = [a]
+    for i in range(1, 5):
+        k = i / 5
+        pts.append((a[0] + (b[0] - a[0]) * k + rnd.randint(-3, 3), a[1] + (b[1] - a[1]) * k + rnd.randint(-3, 3)))
+    pts.append(b)
+    d = ImageDraw.Draw(img)
+    d.line(pts, fill=colour, width=3)
+    d.line(pts, fill=core, width=1)
+
+
+def icon_slash():
+    img, inside = base("storm")
+    paste(img, scaled(trim(frame("katana_slash", 2)), 0.95), (38, 30))
+    paste(img, rotated(KATANA, 40), (30, 34))
+    paste(img, scaled(trim(frame("katana_hit", 2)), 0.45), (50, 16))
+    return clip(img, inside, "storm")
+
+
+def icon_iaido():
+    img, inside = base("storm")
+    paste(img, rotated(trim(frame("katana_trail", 1)), 25), (24, 42))
+    paste(img, rotated(scaled(KATANA, 0.8), 25), (44, 24))
+    return clip(img, inside, "storm")
+
+
+def icon_chain():
+    img, inside = base("storm")
+    pts = [(12, 46), (28, 20), (40, 44), (54, 18)]
+    for i in range(3):
+        zigzag(img, pts[i], pts[i + 1], i)
+    spark = scaled(trim(frame("katana_hit", 1)), 0.35)
+    for p in pts[1:]:
+        paste(img, spark, p)
+    paste(img, rotated(scaled(KATANA, 0.7), 45), (16, 48))
+    return clip(img, inside, "storm")
+
+
+def icon_perun():
+    img, inside = base("storm")
+    paste(img, scaled(trim(frame("katana_perun", 5)), 0.42), (32, 32))
+    return clip(img, inside, "storm")
+
+
+def icon_storm():
+    img, inside = base("storm")
+    zigzag(img, (14, 44), (32, 18), 7)
+    zigzag(img, (32, 18), (50, 46), 8)
+    for deg, at in ((60, (14, 40)), (-60, (50, 40)), (0, (32, 18))):
+        paste(img, rotated(scaled(KATANA, 0.6), deg), at)
+    paste(img, scaled(trim(frame("katana_hit", 3)), 0.4), (32, 44))
+    return clip(img, inside, "storm")
+
+
 ICONS = {
     "glaive": (("g_thrust", icon_thrust), ("g_sweep", icon_sweep), ("g_trail", icon_trail), ("g_pillar", icon_pillar),
                ("g_dance", icon_dance)),
     "hydro": (("h_bolt", icon_bolt), ("h_wave", icon_wave), ("h_vortex", icon_vortex), ("h_geyser", icon_geyser),
               ("h_guardian", icon_guardian)),
+    "katana": (("k_slash", icon_slash), ("k_iaido", icon_iaido), ("k_chain", icon_chain), ("k_perun", icon_perun),
+               ("k_storm", icon_storm)),
 }
 
 

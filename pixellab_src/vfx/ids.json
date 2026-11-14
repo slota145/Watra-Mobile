@@ -433,5 +433,84 @@
       52
     ],
     "columns": 3
+  },
+  "soak_drips": {
+    "effect": "d94a1df9-d637-4936-b179-c619da50278e",
+    "name": "Przemoczenie - kapiące krople (pętla; zaczepienie = środek celu)",
+    "frame": [
+      29,
+      49
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      17,
+      10
+    ],
+    "columns": 4
+  },
+  "katana_hit": {
+    "effect": "0816140f-df31-4b90-aa8f-82e3e8f7002b",
+    "name": "Katana - trafienie piorunem",
+    "frame": [
+      70,
+      52
+    ],
+    "frames": 10,
+    "fps": 18,
+    "anchor": [
+      28,
+      22
+    ],
+    "columns": 4
+  },
+  "katana_perun": {
+    "effect": "1ea7347c-ed64-4853-8a69-f03501778412",
+    "name": "Katana - Sąd Peruna (piorun z nieba; zaczepienie = punkt uderzenia)",
+    "frame": [
+      99,
+      144
+    ],
+    "frames": 14,
+    "fps": 20,
+    "anchor": [
+      49,
+      138
+    ],
+    "columns": 4
+  },
+  "katana_slash": {
+    "effect": "8d742d10-ae44-454e-ac89-e54ed6f1b5eb",
+    "name": "Katana - cięcie (cięcie miecza przebarwione na błękit)",
+    "frame": [
+      64,
+      64
+    ],
+    "frames": 5,
+    "fps": 24,
+    "anchor": [
+      32,
+      32
+    ],
+    "source": "sword_slash",
+    "hue": "#5cc4ff",
+    "boost": 4.0
+  },
+  "katana_trail": {
+    "effect": "f655299b-2754-4093-881d-a5b827bdee3b",
+    "name": "Katana - smuga Iaido (smuga Mgnienia przebarwiona na błękit)",
+    "frame": [
+      74,
+      19
+    ],
+    "frames": 7,
+    "fps": 16,
+    "anchor": [
+      8,
+      10
+    ],
+    "source": "flicker_trail",
+    "hue": "#5cc4ff",
+    "boost": 2.0
   }
 }
