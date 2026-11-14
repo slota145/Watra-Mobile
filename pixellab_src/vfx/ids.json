@@ -313,5 +313,20 @@
       36
     ],
     "columns": 4
+  },
+  "burning": {
+    "effect": "7facc932-3b08-4fd7-913e-ca51b68bd6c3",
+    "name": "Podpalenie potwora (pętla, płomienie za potworem)",
+    "frame": [
+      32,
+      37
+    ],
+    "frames": 8,
+    "fps": 12,
+    "anchor": [
+      16,
+      28
+    ],
+    "columns": 3
   }
 }

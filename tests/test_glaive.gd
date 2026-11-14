@@ -151,6 +151,10 @@ func _test_combat(game: Node) -> void:
 	await _wait(0.4)
 	_check(near.hp < hp[0] and far.hp < hp[1] and side.hp == hp[2], "pchnięcie rani wszystkich na linii, nie z boku")
 	_check(_burning(near) and _burning(far), "pchnięcie podpala")
+	await _wait(0.05)
+	var st := near.get_node(^"_Status")
+	_check(st._flames.visible and st._front.visible and st._flames.material is CanvasItemMaterial,
+			"podpalony goblin płonie (płomienie za nim i przed nim, świecące)")
 	# Ognisty zamach
 	await _wait(0.5)
 	weapon.reset_cooldowns()

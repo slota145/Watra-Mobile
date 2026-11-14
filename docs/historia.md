@@ -2,6 +2,15 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 14.11.2026 - efekt podpalenia na potworach
+
+- Prośba autora: podpalony potwór płonie. Nowy zapętlony efekt z kreatora „Podpalenie potwora (pętla)”
+  (`burning`, część flame_aura bez kręgu u stóp, 8 klatek, 12 fps, `assets/effects/burning.png`) zamiast trzech
+  kropek nad głową. `ProtoTarget._Status`: dwie kopie płomieni - za celem (x1,6) i przed nim (x0,8, 75%), obie
+  z mieszaniem addytywnym (`CanvasItemMaterial.BLEND_MODE_ADD` - ciemny kontur efektu znika, cel prześwituje),
+  skala od `center_height` (goblin 18), klatki przesunięte między celami, gasną w ostatnich 0,4 s podpalenia.
+  Działa dla każdego podpalenia (glewia, kamień Żar). W Tańcu płomieni z płonącymi goblinami 81 klatek/s w chmurze.
+
 ## 14.11.2026 - własne ikony umiejętności glewii
 
 - Decyzja autora: ikony złożone z grafik gry zamiast PixelLab AI (limit autora: 9 generacji do 27.11).
