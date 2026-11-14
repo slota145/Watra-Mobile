@@ -305,6 +305,18 @@ func _test_windows(game: Node) -> void:
 	var pouch: Array = win.pouch_row.get_children()
 	_check(pouch.size() == 3 and pouch[0].gem == Gems.KEY, "sakwa: klucz i 2 kamienie umiejętności")
 	_check(win.socket_labels[0].text == "puste" and win.socket_labels[2].text == "zamknięte", "pod gniazdami: puste / zamknięte")
+	# sakwa: tylko kamienie pasujące do umiejętności, jej kamień unikalny za złotą kreską (15.11.2026)
+	game.add_gem(Gems.unique_of("throw"), 1, false)
+	game.add_gem(Gems.unique_of("whirl"), 1, false)
+	win.refresh()
+	pouch = win.pouch_row.get_children()
+	var gems_shown: Array = pouch.filter(func(c: Node) -> bool: return c is GemSlot).map(func(c: GemSlot) -> String: return c.gem)
+	_check(gems_shown.has(Gems.unique_of("throw")) and not gems_shown.has(Gems.unique_of("whirl")) and pouch.size() == 5
+			and not (pouch[3] is GemSlot) and pouch[4].gem == Gems.unique_of("throw"),
+			"sakwa: tylko unikalny tej umiejętności, za kreską „Unikalny”")
+	game.gems.erase(Gems.unique_of("throw"))
+	game.gems.erase(Gems.unique_of("whirl"))
+	win.refresh()
 	# najpierw gniazdo: lista pasujących kamieni z działaniem w tej umiejętności
 	win.socket_slots[0].pressed.emit()
 	var picker: GemPicker = win.picker
