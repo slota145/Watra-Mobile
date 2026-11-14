@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cg7l7274rge0x"
-path="res://.godot/imported/fire_wall.png-291fd2f379e77ba94383304766512bb8.ctex"
+uid="uid://bsqpkd7elsqh4"
+path="res://.godot/imported/g_dance.png-cfeb2c33c3d136a7576769d9498b9bc8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/skills/fire_wall.png"
-dest_files=["res://.godot/imported/fire_wall.png-291fd2f379e77ba94383304766512bb8.ctex"]
+source_file="res://assets/skills/glaive/g_dance.png"
+dest_files=["res://.godot/imported/g_dance.png-cfeb2c33c3d136a7576769d9498b9bc8.ctex"]
 
 [params]
 

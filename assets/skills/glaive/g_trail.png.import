@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d0w7pdcqfwxc1"
-path="res://.godot/imported/ks_blade_dance.png-d585adea9c15b22222254fe681598067.ctex"
+uid="uid://b84ya47nrksha"
+path="res://.godot/imported/g_trail.png-52643f0d46400bf9bbf1f515f032f9c5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/skills/ks_blade_dance.png"
-dest_files=["res://.godot/imported/ks_blade_dance.png-d585adea9c15b22222254fe681598067.ctex"]
+source_file="res://assets/skills/glaive/g_trail.png"
+dest_files=["res://.godot/imported/g_trail.png-52643f0d46400bf9bbf1f515f032f9c5.ctex"]
 
 [params]
 

@@ -372,7 +372,7 @@ func _make_hud() -> void:
 		column.add_child(loot_feed)
 	else:
 		var hint := Label.new()
-		hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.")
+		hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj przycisk ataku, żeby atakować.")
 		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		hint.add_theme_font_size_override("font_size", 11)

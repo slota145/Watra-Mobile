@@ -2,6 +2,16 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 14.11.2026 - własne ikony umiejętności glewii
+
+- Decyzja autora: ikony złożone z grafik gry zamiast PixelLab AI (limit autora: 9 generacji do 27.11).
+  `tools/glaive_icons.py` składa 64x64: ramka w kształcie ikon Watry (kontur, łupkowy pas, jaśniejsza krawędź - `RING`),
+  ciemne tło z żarem od dołu, głowica glewii w pełnej rozdzielczości (`HEAD`, cała pomniejszona miała drzewce jak nitka)
+  i klatki efektów z kreatora: pchnięcie - smuga i trafienie, zamach - ognisty łuk, bruzda - płomyki i wachlarz sierpów,
+  Słup ognia - wybuch z glewią ostrzem w dół, taniec - trzy łuki cięć. Wynik: `assets/skills/glaive/g_*.png`
+  (ikona glewii na przycisku broni - `g_thrust`). Usunięte tymczasowe ikony z Watry (enchanted_blade, crescent,
+  fire_wall, aura_swarog_ember, ks_blade_dance). Podpowiedź na polanie: „Trzymaj przycisk ataku” zamiast „miecz”.
+
 ## 14.11.2026 - kamienie unikalne glewii
 
 - Pomysły autora (Słup ognia - wybór z propozycji Claude): Kamień Trójzęba (pchnięcie: 3 pchnięcia w stożku ±12°,

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bkg77d0ijdseq"
-path="res://.godot/imported/aura_swarog_ember.png-2de45124d351f8af42612c6158315da5.ctex"
+uid="uid://cbikwb4olnwnu"
+path="res://.godot/imported/g_thrust.png-626437403bdf888114284a7b4a1e8278.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/skills/aura_swarog_ember.png"
-dest_files=["res://.godot/imported/aura_swarog_ember.png-2de45124d351f8af42612c6158315da5.ctex"]
+source_file="res://assets/skills/glaive/g_thrust.png"
+dest_files=["res://.godot/imported/g_thrust.png-626437403bdf888114284a7b4a1e8278.ctex"]
 
 [params]
 

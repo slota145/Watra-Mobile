@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ds8f5pjfogsih"
-path="res://.godot/imported/enchanted_blade.png-cb56878e8db4c91d08c8d808b3ca08ba.ctex"
+uid="uid://dq4k4rmejouwq"
+path="res://.godot/imported/g_pillar.png-86da67f97ea9e09080d4cf46bc84950b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/skills/enchanted_blade.png"
-dest_files=["res://.godot/imported/enchanted_blade.png-cb56878e8db4c91d08c8d808b3ca08ba.ctex"]
+source_file="res://assets/skills/glaive/g_pillar.png"
+dest_files=["res://.godot/imported/g_pillar.png-86da67f97ea9e09080d4cf46bc84950b.ctex"]
 
 [params]
 

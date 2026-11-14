@@ -56,27 +56,27 @@ const DATA := {
 	},	# Glewia ognia (ustalone z autorem 13.11.2026): każde trafienie podpala (ProtoGlaive), "burn" - ile obrażeń
 	# trafienia dopala się przez 3 s.
 	"g_thrust": {
-		"name": "Pchnięcie glewii", "icon": preload("res://assets/watra/skills/enchanted_blade.png"),
+		"name": "Pchnięcie glewii", "icon": preload("res://assets/skills/glaive/g_thrust.png"),
 		"mana": 0, "cooldown": 0.0, "weapon": "glaive", "mastery": 1, "main": true, "range": 64.0, "power": 1.0, "burn": 0.3,
 		"description": "Glewia dźga daleko przed siebie, rani wszystkich na linii i słabo ich podpala.",
 	},
 	"g_sweep": {
-		"name": "Ognisty zamach", "icon": preload("res://assets/watra/skills/crescent.png"),
+		"name": "Ognisty zamach", "icon": preload("res://assets/skills/glaive/g_sweep.png"),
 		"mana": 15, "cooldown": 5.0, "weapon": "glaive", "mastery": 3, "main": true, "range": 56.0, "power": 1.3, "burn": 1.0,
 		"description": "Glewia zatacza szeroki półokrąg przed tobą i mocno podpala trafionych.",
 	},
 	"g_trail": {
-		"name": "Płonąca bruzda", "icon": preload("res://assets/watra/skills/fire_wall.png"),
+		"name": "Płonąca bruzda", "icon": preload("res://assets/skills/glaive/g_trail.png"),
 		"mana": 20, "cooldown": 7.0, "weapon": "glaive", "mastery": 6, "main": true, "range": 120.0, "power": 1.2, "burn": 0.5,
 		"description": "Glewia wbija się w ziemię i ryje bruzdę do przodu: zostaje pas ognia, który pali wrogów przez 3 s, a w wachlarzu wylatują 3 szybkie cięcia ognia, które przebijają wrogów.",
 	},
 	"g_pillar": {
-		"name": "Słup ognia", "icon": preload("res://assets/watra/skills/aura_swarog_ember.png"),
+		"name": "Słup ognia", "icon": preload("res://assets/skills/glaive/g_pillar.png"),
 		"mana": 25, "cooldown": 8.0, "weapon": "glaive", "mastery": 10, "main": true, "range": 80.0, "power": 2.2, "burn": 0.5,
 		"description": "Glewia spada z góry i wbija się w ziemię: wybuch ognia rani wszystkich wokół, a ziemia płonie przez 3 s.",
 	},
 	"g_dance": {
-		"name": "Taniec płomieni", "icon": preload("res://assets/watra/skills/ks_blade_dance.png"),
+		"name": "Taniec płomieni", "icon": preload("res://assets/skills/glaive/g_dance.png"),
 		"mana": 30, "cooldown": 10.0, "weapon": "glaive", "mastery": 15, "main": true, "range": 60.0, "power": 0.7, "burn": 0.3,
 		"description": "Przez 3 s glewia tnie zamaszyście dookoła ciebie pod różnymi kątami, a każde cięcie wypuszcza sierp ognia, który powoli leci na zewnątrz i przebija wrogów.",
 	},

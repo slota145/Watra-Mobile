@@ -17,7 +17,7 @@ const DATA := {
 	"sword": {"name": "Miecz", "element": Elements.PHYSICAL, "unlock": 0, "price": 0,
 		"icon": preload("res://assets/watra/iron_sword_icon.png")},
 	"glaive": {"name": "Glewia ognia", "element": Elements.FIRE, "unlock": 10, "price": 3000,
-		"icon": preload("res://assets/watra/skills/enchanted_blade.png")},
+		"icon": preload("res://assets/skills/glaive/g_thrust.png")},
 }
 const ORDER := ["sword", "glaive"]
 ## Najwyższy poziom mistrzostwa (jak poziom postaci).

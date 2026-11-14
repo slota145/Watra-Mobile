@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cum5s85eyxwe"
-path="res://.godot/imported/crescent.png-b0c1e6fe4ee48c79600677a5d6fe9b90.ctex"
+uid="uid://o0ja2khaqhe1"
+path="res://.godot/imported/g_sweep.png-6a2d5fc3255b58b5d3e6ceb62f3eea00.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/skills/crescent.png"
-dest_files=["res://.godot/imported/crescent.png-b0c1e6fe4ee48c79600677a5d6fe9b90.ctex"]
+source_file="res://assets/skills/glaive/g_sweep.png"
+dest_files=["res://.godot/imported/g_sweep.png-6a2d5fc3255b58b5d3e6ceb62f3eea00.ctex"]
 
 [params]
 
