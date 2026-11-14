@@ -65,6 +65,9 @@ const BOLT_FX := preload("res://assets/effects/hydro_bolt.png")
 const BOLT_FX_ANCHOR := Vector2(22, 8)
 const SPLASH_FX := preload("res://assets/effects/hydro_splash.png")
 const SPLASH_FX_ANCHOR := Vector2(21, 18)
+## Rozbryzg w kierunku trafienia (narysowany w prawo - gra obraca go w stronę lotu pocisku, fali, od środka wybuchu).
+const SPRAY_FX := preload("res://assets/effects/hydro_spray.png")
+const SPRAY_FX_ANCHOR := Vector2(10, 13)
 const TIDE_FX := preload("res://assets/effects/hydro_wave.png")
 const TIDE_FX_ANCHOR := Vector2(17, 32)
 const TIDE_FX_FRAMES := 12
@@ -127,8 +130,15 @@ func _hit(t: ProtoTarget, power: float, from: Vector2, skill: String) -> void:
 		t.slow(SOAK_SLOW, SOAK_TIME)
 
 
+## Pionowe pluśnięcie (Ulewa, gejzery, pocisk, który nikogo nie trafił).
 func _splash_fx(at: Vector2, size := 1.0) -> void:
 	Fx.once(get_parent(), SPLASH_FX, 10, 14.0, at.round(), SPLASH_FX_ANCHOR, 21, size)
+
+
+## Rozbryzg w kierunku `dir` (pocisk, rozprysk, fala, wybuch wiru): krople i strugi tryskają dalej, w stronę uderzenia.
+func _spray_fx(at: Vector2, dir: Vector2, size := 1.0) -> void:
+	var fx := Fx.once(get_parent(), SPRAY_FX, 9, 16.0, at.round(), SPRAY_FX_ANCHOR, 21, size)
+	fx.rotation = dir.angle()
 
 
 # --- Zwykły cios: wodny pocisk ---
@@ -220,11 +230,12 @@ func _process_shots(delta: float) -> void:
 			s.hits.append(t)
 			if s.kind == "bolt":
 				_hit(t, _power(basic) * s.power, fx.global_position - s.dir * 10.0, basic)
-				_bolt_splash(fx.global_position, t)
+				_bolt_splash(fx.global_position, t, s.dir)
 				popped = true
 				break
 			_hit(t, _power(s.skill), fx.global_position - s.dir * 20.0, s.skill)
 			t.push_away(fx.global_position - s.dir * 20.0, WAVE_PUSH)
+			_spray_fx(t.center(), s.dir, 0.9)
 		if popped or s.left <= 0.0:
 			if s.kind == "bolt" and not popped:
 				_splash_fx(fx.global_position, 0.6)
@@ -232,13 +243,15 @@ func _process_shots(delta: float) -> void:
 			_shots.remove_at(i)
 
 
-## Rozprysk bańki: rani i przemacza pobliskich (bez trafionego), 5. poziom - większy i silniejszy.
-func _bolt_splash(at: Vector2, hit: ProtoTarget) -> void:
+## Rozprysk bańki: rani i przemacza pobliskich (bez trafionego), 5. poziom - większy i silniejszy; rozbryzg leci
+## w kierunku lotu pocisku (`dir`).
+func _bolt_splash(at: Vector2, hit: ProtoTarget, dir: Vector2) -> void:
 	var k := SPLASH_PERK if _perk(basic, 0) else 1.0
 	for t in _live_targets():
 		if t != hit and t.center().distance_to(at) <= SPLASH_RADIUS * k * _area(basic):
 			_hit(t, _power(basic) * SPLASH_POWER * k, at, basic)
-	_splash_fx(at, 0.7 * k)
+			_spray_fx(t.center(), t.center() - at, 0.5)  # mały rozbryzg od trafionego na sąsiada
+	_spray_fx(at, dir, 0.8 * k)
 	Input.vibrate_handheld(10)
 
 
@@ -332,6 +345,7 @@ func _water_blast(at: Vector2, radius: float, power: float) -> void:
 		if Vector2(d.x, d.y * 1.6).length() <= radius:
 			_hit(t, power, at, "h_vortex")
 			t.push_away(at, WAVE_PUSH)
+			_spray_fx(t.center(), t.global_position - at, 0.7)
 	Fx.once(get_parent(), GEYSER_FX, 12, 14.0, at.round(), GEYSER_FX_ANCHOR, 6, radius / 45.0)
 	Input.vibrate_handheld(30)
 
