@@ -1,0 +1,339 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: birdman_thrower
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.84, 0]}
+palette: "watra"
+size: 48
+extends: humanoid   # its skeleton, IK and smear; here only what differs (sword, hair and head kits removed)
+# Ptakoczłek miotacz (birdman thrower): the ranged enemy of the "Górskie równiny" (mountain plains) dungeon; it
+# throws javelins. Reference: docs/referencje/turnie/birdman_thrower.png (Watra's sprite, 6x). About 33 px tall
+# (a little under the 36 px human, same camera.scale). Told apart from the brown hawk warrior by its pale
+# grey-white plumage (a gull / pale falcon).
+brief:
+  summary: >
+    bird-man javelin thrower of the mountain plains: a stocky upright bird body with grey-white plumage like a
+    gull or a pale falcon, a pale chest, grey wing-arms with darker feather edges hanging under the forearms,
+    a short dark-grey tail fan, feathered grey thighs over orange scaled shins and talons, a dark leather belt,
+    a bundle of three short javelins strapped across the back, one javelin in the right fist
+  head: >
+    a round white-grey bird head (no head kit) with a short curved orange hooked beak in front, a dark round
+    eye on each side with a grey streak behind it (the falcon's mask, kept to 1-2 px), a small swept-back
+    grey crest; no mouth, no ears; face minimal
+  must_keep:
+    - pale grey-white plumage: the read against the brown hawk warrior
+    - the orange beak and the orange legs (the only warm accents besides the belt)
+    - the javelin in the hand and the javelin points over the shoulder from the back bundle
+    - the wing-arm feather fringe (the bird read from n and the diagonals)
+  simplify:
+    - wing feathers are a few flat blades under each forearm, no separate primaries
+    - talons are three short orange cones forward and one back, no claws
+    - the bundle's strap is painted on the chest
+  decisions:
+    - the plumage is a cool light grey (white on the head and chest, mid grey on the wings and back, a darker
+      slate on the wing and tail edges) so it still shades on the light Watra floors
+    - the javelins are short (about 15 px) with steel leaf points, the shafts the palette's wood
+    - the attack lifts the javelin over the right shoulder, holds the aim (telegraph), throws forward with a
+      lunge; the hand's javelin is hidden from the release frame (the projectile leaves from socket `javelin`)
+      and comes back in the recovery as if drawn from the bundle
+    - death falls backwards to the ground, the wings splaying, the javelin dropped beside it
+ramps:
+  # light gull grey to white (head, chest)
+  plume:   ["#141519", "#4a4e57", "#7c818c", "#a9aeb7", "#d0d4da", "#f0f2f4"]
+  # mid grey (wings, back, thighs)
+  wing:    ["#121318", "#3d4049", "#60646f", "#858a95", "#a9aeb7", "#c9cdd3"]
+  # slate feather edges, tail, crest
+  slate:   ["#0b0b10", "#22242c", "#363944", "#4c505c", "#636875"]
+  # orange beak and scaled legs
+  beak:    ["#1e0b05", "#6a2a0c", "#b0501a", "#e07d2a", "#f2a54a", "#f9cf86"]
+  # the dark leather belt and straps
+  strap:   ["#0a0807", "#211813", "#33251c", "#473427", "#5a4434"]
+  eye_ink: ["#07070a", "#121218", "#1e1e26"]
+
+materials:
+  plume:   {ramp: plume, gamma: 0.85, finish: soft}
+  chest:   {ramp: plume, gamma: 0.7, finish: soft, bands: [3, 5]}
+  wing:    {ramp: wing, finish: soft}
+  slate:   {ramp: slate, finish: matte}
+  beak:    {ramp: beak, finish: soft}
+  legs:    {ramp: beak, finish: matte, bands: [1, 4]}
+  strap:   {ramp: strap}
+  ink:     {ramp: eye_ink, emissive: true, band: 0, outline: false}
+  wood:    {ramp: wood, finish: matte, bands: [1, 4]}
+  steel:   {ramp: steel, finish: metal}
+  skin:    {ramp: plume}
+
+remove: [use.hair, use.sword, use.head, parts.coat]
+
+shadow: {rx: 8.5, ry: 3, alpha: 120}
+
+channels:
+  lean: 0.06
+  hand_L: [0.27, 0.06, 0.08]
+  hand_R: [0.26, 0.06, 0.12]
+  foot_L: [0.11, 0, 0.02]
+  foot_R: [0.11, 0, 0.02]
+  jav_x: -1.3      # javelin pitch (-1.57 upright, 0 level with the point forward)
+  jav_y: 0         # javelin yaw (positive turns the point to the left side)
+  held: 1           # 0: the hand's javelin is gone (thrown)
+  tail: 0           # tail fan sway
+  wingflap: 0       # wing fringe lift (-1..1)
+  fallen: 0         # 1: the javelin lies on the ground (death)
+
+bones:
+  # hip height 0.66 (human 0.84): a stocky bird body on short legs
+  torso_rot: {parent: root, pos: "[0, 0.74 + bob, 0]", rot: "[lean, twist, roll]"}
+  headbase:  {parent: pelvis, pos: [0, 0.64, 0.05], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.4, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.3}
+  shoulder_L: {parent: pelvis, pos: [0.20, 0.47, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.09, 0.0, 0.0]}
+  tailbase:   {parent: pelvis, pos: [0, 0.04, -0.13], rot: "[-0.5 + tail*0.15, tail*0.2, 0]"}
+  # the javelin bundle on the back, slanting so the points stand over the right shoulder (x < 0 is the right)
+  # the javelin grip: at the right fist, turned with the torso; jav_x = -1.57 upright, 0 level forward
+  javgrip:    {parent: torso_rot, at: wrist_R, rot: "[jav_x, jav_y, 0]"}
+  bundle:     {parent: pelvis, pos: [-0.02, 0.32, -0.17], rot: [-0.15, 0, 0.55]}
+
+ik:
+  arm_L: {lengths: [0.24, 0.23]}
+  leg_L: {lengths: [0.34, 0.34], pole: [0.1, 0, -1.0]}
+
+parts:
+  torso:           # a stocky pear-shaped bird body: grey back, pale chest
+    material: wing
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.12, 0.0], r: [0.17, 0.16, 0.15]}
+      - ellipsoid: {c: [0, 0.37, 0.02], r: [0.18, 0.17, 0.15]}
+    paint:
+      - material: chest   # the pale chest and belly
+        prims:
+          - ellipsoid: {c: [0, 0.28, 0.12], r: [0.14, 0.26, 0.11]}
+      - material: strap   # the bundle strap: a short band over the right shoulder
+        prims:
+          - box: {c: [-0.11, 0.47, 0.0], half: [0.03, 0.06, 0.3], rot: [0, 0, 0.5]}
+  belt:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.07, 0.0], b: [0, 0.12, 0.0], r: 0.168}
+  neck:
+    material: plume
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.46, 0.01], b: [0, 0.62, 0.05], r: [0.085, 0.07]}
+  skull:           # the round bird head
+    material: plume
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.10, 0.0], r: [0.125, 0.12, 0.135]}
+  crest:           # small swept-back crest
+    material: wing
+    space: head
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0.17, -0.06], b: [0, 0.19, -0.22], r: [0.07, 0.02]}
+  beak:            # a short hooked orange beak
+    material: beak
+    space: head
+    priority: 2
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0, 0.11, 0.09], [0, 0.11, 0.20], [0, 0.07, 0.25]], r: [0.05, 0.014]}
+  eye_L:           # dark round eye on the head's side
+    material: ink
+    space: head
+    priority: 3
+    min_cover: 1
+    prims:
+      - sphere: {c: "[0.098, 0.13, 0.06 + 0.02*pulse(yaw*sx, 90, 45)]", r: 0.033}
+  arm_L:           # grey wing-arm
+    material: wing
+    blend: 0.03
+    min_cover: 2
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.07}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.065, 0.05]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.05, 0.04]}
+  wingfringe_L:    # slate feather blades hanging under and behind the arm
+    material: slate
+    blend: 0.02
+    min_cover: 2
+    prims:
+      - cone: {a: "@shoulder_L", b: {between: ["@shoulder_L", "@elbow_L"], t: 0.9}, r: [0.02, 0.02]}
+      - tube: {pts: ["@shoulder_L", {at: elbow_L, off: [0, "-0.09 + 0.04*wingflap", -0.05]}, {at: wrist_L, off: [0, "-0.05 + 0.03*wingflap", -0.07]}], r: [0.06, 0.03]}
+  hand_L:          # a small grey-orange grasping hand
+    material: legs
+    space: wrist_L
+    prims:
+      - ellipsoid: {c: [0, 0, 0.025], r: [0.035, 0.03, 0.04]}
+  thigh_L:         # feathered thigh ("trousers")
+    material: wing
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.085, 0.06]}
+  leg_L:           # orange scaled shin
+    material: legs
+    min_cover: 2
+    prims:
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.032, 0.028]}
+  boot_L:          # talons: three toes forward, one back
+    material: legs
+    space: sole_L
+    blend: 0.02
+    prims:
+      - sphere: {c: [0, -0.01, 0.0], r: 0.035}
+      - cone: {a: [0, -0.02, 0.0], b: [0.0, -0.04, 0.12], r: [0.025, 0.012]}
+      - cone: {a: [0, -0.02, 0.0], b: [0.06, -0.04, 0.10], r: [0.022, 0.011]}
+      - cone: {a: [0, -0.02, 0.0], b: [-0.06, -0.04, 0.10], r: [0.022, 0.011]}
+      - cone: {a: [0, -0.02, 0.0], b: [0.0, -0.04, -0.07], r: [0.02, 0.01]}
+  tail:            # short slate tail fan
+    material: slate
+    space: tailbase
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, -0.14, 0], r: [0.14, 0.17, 0.03]}
+  bundle_shafts:   # three javelins strapped on the back
+    material: wood
+    space: bundle
+    min_cover: 2
+    prims:
+      - cylinder: {a: [0.0, -0.24, 0.0], b: [0.0, 0.26, 0.0], r: 0.016}
+      - cylinder: {a: [0.035, -0.22, -0.01], b: [0.04, 0.22, -0.015], r: 0.016}
+      - cylinder: {a: [-0.035, -0.23, 0.01], b: [-0.04, 0.23, 0.015], r: 0.016}
+  bundle_points:
+    material: steel
+    space: bundle
+    priority: 2
+    min_cover: 2
+    prims:
+      - cone: {a: [0.0, 0.25, 0.0], b: [0.0, 0.36, 0.0], r: [0.03, 0.006]}
+      - cone: {a: [0.04, 0.21, -0.015], b: [0.045, 0.31, -0.02], r: [0.028, 0.006]}
+      - cone: {a: [-0.04, 0.22, 0.015], b: [-0.045, 0.32, 0.02], r: [0.028, 0.006]}
+  bundle_strap:
+    material: strap
+    space: bundle
+    prims:
+      - cylinder: {a: [0, -0.02, 0], b: [0, 0.03, 0], r: 0.06}
+  javelin_shaft:   # the javelin in the right fist: along javgrip's z (the point forward), a third of the way up
+    material: wood
+    space: javgrip
+    when: "held > 0.5"
+    priority: 2
+    min_cover: 2
+    prims:
+      - cylinder: {a: [0, 0, -0.16], b: [0, 0, 0.52], r: 0.017}
+  javelin_head:
+    material: steel
+    space: javgrip
+    when: "held > 0.5"
+    priority: 3
+    min_cover: 2
+    prims:
+      - cone: {a: [0, 0, 0.51], b: [0, 0, 0.65], r: [0.034, 0.006]}
+  dropped_javelin:  # the javelin lying beside the body (death)
+    material: wood
+    when: "fallen > 0.5"
+    priority: 2
+    min_cover: 2
+    prims:
+      - cylinder: {a: [0.30, 0.03, -0.38], b: [0.35, 0.03, 0.18], r: 0.018}
+  dropped_point:
+    material: steel
+    when: "fallen > 0.5"
+    priority: 2
+    min_cover: 2
+    prims:
+      - cone: {a: [0.35, 0.03, 0.18], b: [0.36, 0.03, 0.30], r: [0.03, 0.006]}
+
+sockets:
+  javelin: {bone: javgrip, offset: [0, 0, 0.3]}   # the throwing fist: where the javelin projectile spawns
+
+timing: {attack: {release: 450ms, total: 700ms}}
+
+animations:
+  idle:
+    frames: 6
+    ms: 160
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.05*sin(p - 0.5)"
+      head_yaw: "0.08*pulse(sin(p), 1, 0.3)"
+      hand_L: "[0.27, 0.06 + 0.015*sin(p - 0.6), 0.08]"
+      hand_R: [0.26, 0.06, 0.12]
+      tail: "0.4*sin(p - 1.0)"
+      wingflap: "0.2*sin(p - 0.8)"
+  walk:
+    frames: 8
+    ms: 90
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.12
+      bob: "-0.03*cos(2*p) + 0.008"
+      squash: "1 - 0.015*cos(2*p)"
+      twist: "0.10*cos(p)"
+      roll: "0.04*sin(p)"
+      head_yaw: "-0.07*cos(p)"
+      head_pitch: "0.07*cos(2*p - 0.6)"
+      foot_L: "[0.11, 0.09*pos(-sin(p)), 0.03 + 0.20*cos(p)]"
+      foot_R: "[0.11, 0.09*pos(sin(p)), 0.03 - 0.20*cos(p)]"
+      pitch_foot_L: "0.4*pos(-sin(p))"
+      pitch_foot_R: "0.4*pos(sin(p))"
+      hand_L: "[0.27, 0.08 + 0.03*pos(cos(p)), 0.08 - 0.12*cos(p)]"
+      hand_R: "[0.26, 0.07 + 0.02*pos(-cos(p)), 0.12 + 0.08*cos(p)]"
+      tail: "0.6*sin(2*p - 0.8)"
+      wingflap: "0.4*sin(2*p - 1.0)"
+  # throw: the javelin comes up over the right shoulder, the left wing points at the target, a held aim (the
+  # telegraph), then a lunging throw; the hand is empty from the release frame and draws a new one at the end
+  attack:
+    loop: false
+    keys:
+      - {ms: 100, event: windup, set: {twist: -0.15, lean: 0.02, bob: -0.02, squash: 0.97, head_pitch: -0.04, wingflap: -0.3,
+          hand_R: [0.26, 0.42, -0.06], jav_x: -1.6, hand_L: [0.26, 0.22, 0.16], tail: -0.3}}
+      - {ms: 120, set: {twist: -0.38, lean: -0.08, bob: -0.03, squash: 0.97, head_pitch: 0.02, wingflap: 0.5,
+          hand_R: [0.22, 0.66, -0.24], jav_x: "-0.25 - 0.55*pulse(abs(yaw), 0, 60)", jav_y: "0.5*pulse(abs(yaw), 0, 60)", hand_L: [0.22, 0.42, 0.34], tail: -0.5,
+          foot_L: [0.12, 0, 0.12], foot_R: [0.12, 0, -0.06]}}
+      - {ms: 230, set: {twist: -0.42, lean: -0.10, bob: -0.035, squash: 0.96, head_pitch: 0.03, wingflap: 0.6,
+          hand_R: [0.22, 0.68, -0.28], jav_x: "-0.2 - 0.55*pulse(abs(yaw), 0, 60)", jav_y: "0.5*pulse(abs(yaw), 0, 60)", hand_L: [0.22, 0.44, 0.36], tail: -0.6,
+          foot_L: [0.12, 0, 0.12], foot_R: [0.12, 0, -0.06]}}
+      - {ms: 60, event: release, set: {held: 0, root: [0, 0, 0.06], twist: 0.30, lean: 0.22, squash: 1.04, head_pitch: 0.05, wingflap: -0.4,
+          hand_R: [0.10, 0.48, 0.42], jav_x: 0.1, hand_L: [0.30, 0.14, -0.06], tail: 0.6,
+          foot_L: [0.12, 0, 0.16], foot_R: [0.12, 0, -0.10]}}
+      - {ms: 90, set: {held: 0, root: [0, 0, 0.05], twist: 0.35, lean: 0.25, squash: 1.0, head_pitch: 0.04, wingflap: -0.2,
+          hand_R: [0.12, 0.20, 0.36], jav_x: 0.45, hand_L: [0.30, 0.10, -0.02], tail: 0.4,
+          foot_L: [0.12, 0, 0.14], foot_R: [0.12, 0, -0.08]}}
+      - {ms: 100, set: {held: 1, root: [0, 0, 0.02], twist: 0.05, lean: 0.08, wingflap: 0,
+          hand_R: [0.26, 0.08, 0.12], jav_x: -1.3, hand_L: [0.27, 0.07, 0.08], tail: 0.1}}
+  # hit: the body snaps back, the head jerks, the wings flare
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.3, bob: -0.02, squash: 0.95, head_pitch: -0.35, head_yaw: 0.15, wingflap: 1,
+          hand_L: [0.36, 0.16, -0.04], hand_R: [0.36, 0.18, 0.04], tail: 0.8, jav_x: -1.5}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.15, bob: -0.01, squash: 0.98, head_pitch: -0.15, head_yaw: -0.08, wingflap: 0.5,
+          hand_L: [0.32, 0.12, 0.03], hand_R: [0.32, 0.13, 0.08], tail: 0.3, jav_x: -1.4}}
+      - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.08, head_pitch: 0.02, wingflap: 0,
+          hand_L: [0.27, 0.07, 0.08], hand_R: [0.26, 0.06, 0.12]}}
+  # death: a flinch, the legs give, the bird topples backwards onto the ground, wings splayed, javelin dropped
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.05], lean: -0.35, bob: -0.02, squash: 0.95, head_pitch: -0.4, wingflap: 1,
+          hand_L: [0.36, 0.18, -0.04], hand_R: [0.36, 0.2, 0.04], tail: 0.8}}
+      - {ms: 110, set: {root: [0, 0, -0.02], lean: -0.55, bob: -0.14, squash: 0.95, head_pitch: -0.3, wingflap: 0.8, fallen: 1, held: 0,
+          hand_L: [0.38, 0.22, -0.08], hand_R: [0.38, 0.22, -0.06], tail: 0.6,
+          foot_L: [0.12, 0.02, 0.10], foot_R: [0.12, 0, 0.06]}}
+      - {ms: 110, set: {root: [0, 0, 0.08], lean: -0.95, bob: -0.32, squash: 0.95, head_pitch: -0.2, wingflap: 0.6, fallen: 1, held: 0,
+          hand_L: [0.42, 0.20, -0.12], hand_R: [0.42, 0.20, -0.12], tail: 0.4,
+          foot_L: [0.12, 0.06, 0.18], foot_R: [0.12, 0.03, 0.14]}}
+      - {ms: 110, set: {root: [0, 0, 0.17], lean: -1.25, bob: -0.48, squash: 0.95, head_pitch: -0.1, wingflap: 0.9, fallen: 1, held: 0,
+          hand_L: [0.46, 0.12, -0.16], hand_R: [0.46, 0.12, -0.16], tail: 0.2,
+          foot_L: [0.12, 0.10, 0.24], foot_R: [0.12, 0.06, 0.20]}}
+      - {ms: 120, set: {root: [0, 0, 0.2], lean: -1.38, bob: -0.56, squash: 0.95, head_pitch: 0.05, wingflap: 1, fallen: 1, held: 0,
+          hand_L: [0.48, 0.06, -0.14], hand_R: [0.48, 0.06, -0.14], tail: 0,
+          foot_L: [0.12, 0.05, 0.26], foot_R: [0.12, 0.03, 0.22]}}
+      - {ms: 500, set: {root: [0, 0, 0.2], lean: -1.42, bob: -0.58, squash: 0.95, head_pitch: 0.1, wingflap: 1, fallen: 1, held: 0,
+          hand_L: [0.48, 0.04, -0.14], hand_R: [0.48, 0.04, -0.14], tail: 0,
+          foot_L: [0.12, 0.0, 0.26], foot_R: [0.12, 0.0, 0.22]}}

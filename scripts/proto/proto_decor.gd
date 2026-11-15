@@ -40,6 +40,13 @@ const DATA := {
 		{"f": "statue_0", "r": 8.0, "w": 1.0},
 		{"f": "torch_stand", "r": 4.0, "w": 2.0, "frames": 2, "fps": 7.0, "light": Color(1.0, 0.6, 0.25), "glow": 50.0},
 	],
+	Dungeons.PLAINS: [
+		{"f": "bone_pile", "w": 2.0, "flat": true}, {"f": "cairn", "w": 4.0}, {"f": "dead_tree_0", "r": 8.0, "w": 2.0},
+		{"f": "dead_tree_1", "r": 7.0, "w": 2.0}, {"f": "eagle_totem", "w": 1.0}, {"f": "egg_nest", "w": 2.5, "flat": true},
+		{"f": "iron_ore_0", "w": 3.0}, {"f": "perch_pole", "r": 6.0, "w": 1.0}, {"f": "pillar_nest_0", "r": 10.0, "w": 1.0},
+		{"f": "stilt_hut_0", "r": 14.0, "w": 0.5},
+		{"f": "storm_rod", "r": 5.0, "w": 1.5, "light": Color(0.6, 0.85, 1.0), "glow": 30.0}, {"f": "wind_chime", "w": 1.0},
+	],
 }
 ## Ile ozdób na polanie, najmniejsza odległość między nimi i wolne koło wokół startu postaci.
 const COUNT := 45

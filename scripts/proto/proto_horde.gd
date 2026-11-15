@@ -14,7 +14,7 @@ extends Node
 ## zasięgu przyciągania, `ember_mult` - mnożnik żaru z iskier (ułamki zbierają się w `_ember_rest`).
 ## Rodzaj lochu (`climate`, Dungeons) wybiera potwory na trzech rolach strumienia (`make_monster`): w Leżu goblinów
 ## goblin / łucznik / osiłek, w Zatopionych podziemiach topielec / żabołak / topielica, w Katakumbach szkielet /
-## szkielet łucznik / rycerz-szkielet.
+## szkielet łucznik / rycerz-szkielet, na Górskich równinach ptakoczłek wojownik / miotacz / szaman burzy.
 
 signal kills_changed(kills: int)
 signal embers_changed(embers: int)
@@ -154,6 +154,14 @@ func spawn_at(pos: Vector2, kind := "goblin", elite_traits: Array[String] = []) 
 
 ## Potwór lochu `climate` w roli `kind` (goblin - zwykły, archer - strzelający, brute - silny).
 static func make_monster(climate_id: String, kind: String) -> ProtoGoblin:
+	if climate_id == Dungeons.PLAINS:
+		match kind:
+			"archer":
+				return ProtoBirdmanThrower.new()
+			"brute":
+				return ProtoBirdmanShaman.new()
+			_:
+				return ProtoBirdman.new()
 	if climate_id == Dungeons.CATACOMBS:
 		match kind:
 			"archer":

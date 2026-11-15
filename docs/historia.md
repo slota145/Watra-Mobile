@@ -2,6 +2,34 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - czwarty loch: Górskie równiny, Gromoskrzydły
+
+Decyzje autora: Górskie równiny od 31 (pomysł autora: ptakoludzie i elektryczny orzeł), ptakoludzie jak w Wietrznych
+Turniach Watry (wojownik z doskokiem, miotacz oszczepów, szaman burzy), orzeł: Burza, Nurkowanie, Podmuch; piorun
+poraża (więcej obrażeń przez chwilę). Podłoże z gotowych przejść Wang PixelLaba (uwaga autora: obrócona trawa
+wyglądała źle, ucięte przejścia).
+- `Dungeons.PLAINS` (od 31, żywioł Grom, „Przyzwij Gromoskrzydłego”). Drabinka: 1-10 gobliny, 11-20 podziemia,
+  21-30 Katakumby, 31-100 równiny, od 101 losowo.
+- Porażenie: `ProtoHero.shock(czas)` - przez ten czas obrażenia x`SHOCK_MULT` (1,25), postać miga na żółto.
+- Ptakoczłek wojownik `proto_birdman.gd` (po goblinie): 44 zdrowia, 40 px/s, pchnięcie 11; z 45-110 px doskok -
+  czerwony pas (0,55 s) do miejsca postaci, skok 0,3 s, 14 przy lądowaniu w pasie, odnowienie 4 s; trafienie
+  przerywa zapowiedź. Miotacz `proto_birdman_thrower.gd` (po łuczniku): 32 zdrowia, oszczep 12 (`arrow_scale`,
+  `arrow_tint` łucznika). Szaman burzy `proto_birdman_shaman.gd` (po osiłku): 120 zdrowia, z 100 px koło 22 pod
+  postacią, piorun 22 Gromem + porażenie 2 s (efekt `katana_hit`).
+- Gromoskrzydły `proto_storm_eagle.gd` (po `ProtoChief`; grafika z Watry `assets/watra/bosses/storm_eagle.png` -
+  12 klatek machania, odbijana, unosi się 34 px i kołysze; `ProtoChief._make_sprite`, `move_speed`, `grounded` -
+  orzeł lata, ozdoby go nie zatrzymują): 1000 zdrowia; Burza (5 kół pod postacią co 0,4 s, piorun po 0,85 s, 18
+  + porażenie), Nurkowanie (pas 240x30, 1 s, przelot 0,35 s, 28 + porażenie), Podmuch (koło 52, 1 s, 16, odrzut
+  70 px `ProtoHero.leap`, 10 piór Gromu dookoła).
+- Podłoże `assets/watra/plains_floor.png` - generator `tools/plains_floor.py`: autotiling Wang z dwóch zestawów
+  PixelLab Wietrznych Turni (łąka -> piarg, łąka -> kwiaty; `tools/data/plains/wang_*`), rogi siatki z szumu, róg
+  kwiatów przy piargu zamieniany na łąkę (bez uciętych przejść), bez obracania kafelków.
+- Wystrój gór (`ProtoDecor.DATA[PLAINS]`): kopczyki, suche drzewa, totem orła, gniazda, ruda, żerdzie, słup z
+  gniazdem, chata na palach, piorunochron (poświata), dzwonki wietrzne.
+- Grafika SpriteKiln ptakoludzi (wzory w `docs/referencje/turnie/`): `birdman` (z animacją `leap`),
+  `birdman_thrower`, `birdman_shaman`.
+- Test `tests/test_plains.gd`, zrzuty `tools/plains_shots.gd`.
+
 ## 15.11.2026 - wystrój lochów
 
 Decyzje autora: same ozdoby (bez kolizji), losowy układ przy każdym wejściu, proste poświaty zamiast świateł Godota.
