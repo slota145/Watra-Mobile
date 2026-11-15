@@ -9,7 +9,7 @@ extends ProtoGoblin
 
 const BIRDMAN_SCENE := "res://assets/spritekiln/birdman/birdman.tscn"
 const BIRDMAN_HP := 44
-const BIRDMAN_SPEED := 40.0
+const BIRDMAN_SPEED := 32.0
 const BIRDMAN_DAMAGE := 11
 const LEAP_MIN := 45.0
 const LEAP_MAX := 110.0
