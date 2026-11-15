@@ -135,6 +135,7 @@ func _init() -> void:
 	element = Elements.LIGHTNING
 	blink_skill = "k_flash"
 	flicker_trail = K_TRAIL_FX
+	flicker_cut = false
 	bolt_color = BOLT
 
 
@@ -222,8 +223,9 @@ func _start_cut(area := 1.0) -> void:
 	bolt.from = _aim - ARC / 2.0 * _sign
 	bolt.sweep = ARC * _sign
 	bolt.radius = (HILT_RADIUS + BLADE - 3.0) * area
+	bolt.top_level = true  # nie jedzie z kataną (po skoku dolatuje ona do postaci i ciągnęłaby piorun przed nią)
 	add_child(bolt)
-	bolt.position = _orbit_center() - global_position
+	bolt.global_position = _orbit_center()
 
 
 ## Klatki cięcia lecą własnym tempem (CUT_FPS), także po zakończeniu ruchu katany.
@@ -537,13 +539,16 @@ func _perun_cut(k: float) -> void:
 
 # --- Błysk Peruna (Mgnienie katany) ---
 
-## Skok jak Mgnienie miecza, a wzdłuż drogi skoku dwa błękitne pioruny; po skoku cienkie cięcie katany.
+## Skok jak Mgnienie miecza, a wzdłuż drogi skoku dwa błękitne pioruny; po skoku jedno cienkie cięcie katany
+## zwrócone za siebie - w przebitego wroga (tuż za plecami), a nie w pustkę przed postacią.
 func _flicker_jump(best: ProtoTarget) -> void:
 	var from := hero.global_position + Vector2(0, -ORBIT_HEIGHT)
 	super._flicker_jump(best)
 	var to := hero.global_position + Vector2(0, -ORBIT_HEIGHT)
 	_bolt(from, to)
 	_bolt(from, to)
+	if is_instance_valid(best):
+		_aim = (best.center() - _orbit_center()).angle()
 	_set_state("k_swing")
 	_hit_done = true
 	_start_cut()

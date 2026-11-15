@@ -177,6 +177,8 @@ var element := Elements.PHYSICAL
 ## (zygzaki `_bolt`) - ustawia podklasa.
 var blink_skill := ""
 var flicker_trail: Texture2D = FLICKER_TRAIL
+## Czy skok pokazuje na celu cięcie Mgnienia miecza (katana ma własne cięcie - bez podwójnego efektu).
+var flicker_cut := true
 var bolt_color := Color(1.0, 0.97, 0.6)
 ## Palec trzyma przycisk umiejętności ładowanej (Skills.is_charged - Sąd Peruna katany).
 var charge_held := false
@@ -1147,9 +1149,11 @@ func _flicker_jump(best: ProtoTarget) -> void:
 	var body := Vector2(0, -ORBIT_HEIGHT)
 	var trail := Fx.once(get_parent(), flicker_trail, 7, FLICKER_FX_FPS, from + body, FLICKER_TRAIL_ANCHOR)
 	trail.rotation = travel.angle()
-	trail.scale = Vector2.ONE * maxf(0.5, (travel.length() - 8.0) / FLICKER_TRAIL_LENGTH)
-	var cut := Fx.once(get_parent(), FLICKER_SLASH, 8, FLICKER_FX_FPS, best.center(), FLICKER_SLASH_ANCHOR)
-	cut.rotation = travel.angle() + FLICKER_SLASH_TILT * (1.0 if randf() < 0.5 else -1.0)
+	var stretch := maxf(0.5, (travel.length() - 8.0) / FLICKER_TRAIL_LENGTH)
+	trail.scale = Vector2(stretch, minf(stretch, 1.2))  # długi skok - dłuższa smuga, ale nie grubsza
+	if flicker_cut:
+		var cut := Fx.once(get_parent(), FLICKER_SLASH, 8, FLICKER_FX_FPS, best.center(), FLICKER_SLASH_ANCHOR)
+		cut.rotation = travel.angle() + FLICKER_SLASH_TILT * (1.0 if randf() < 0.5 else -1.0)
 	var area := _area(blink_skill)
 	var hit: Array = []
 	for t in _live_targets():
