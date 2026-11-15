@@ -2,6 +2,11 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - Krąg stali nie pod „Atak”
+
+- Decyzja autora: Krąg stali nie może stać pod dużym przyciskiem (`main: false`) - odpala się go osobno, np. razem
+  z Młynkiem pod „Atak”. Zapis gry zdejmuje go z „Atak” sam (`Game._read_slots`). Test w `test_skills.gd`.
+
 ## 15.11.2026 - przyciski nad Watrą i skrzynią
 
 - Zgłoszenie autora: gdy za przyciskiem interfejsu („Postać”, „Umiejętności”) stała Watra albo skrzynia, stuknięcie
