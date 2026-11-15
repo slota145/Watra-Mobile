@@ -63,7 +63,10 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 - **Drugi loch - Zatopione podziemia (15.11.2026):** zrobiony (szczegóły w `docs/historia.md`). Do oceny na telefonie:
   siła topielców, żabołaków i topielic wobec goblinów 11+, czy przemoczenie i lód nie spowalniają za mocno, ataki
   Wodnika (czy fala/wir/krople są czytelne i do uniknięcia), podłoże (płycizna z liliami - czy potwory dobrze widać).
-  Dalej: trzeci loch od 21 (Katakumby? Pajęcze korzenie?), wystrój podziemi (trzciny, kamienie, łodzie z Watry).
+  Dalej: wystrój podziemi (trzciny, kamienie, łodzie z Watry).
+- **Trzeci loch - Katakumby (15.11.2026):** zrobiony (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy
+  wstawanie szkieletów jest czytelne i nie irytujące, siła rycerzy, ataki Nekromanty (krąg z luką, wiązka).
+  Dalej: czwarty loch od 31 (Pajęcze korzenie? Oblężony gród?).
 
 - **Baza: żar i złoto (12.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: ceny ulepszeń
   i ich odczuwalność (czy +10% potworów widać), ceny kowala i kupca (przedmioty u kupca tanie wobec klucza),

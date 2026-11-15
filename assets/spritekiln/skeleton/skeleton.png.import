@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bswi16704ppv1"
-path="res://.godot/imported/swamp_shallow_src.png-b576f4f6c6f163a53baf609a96bcafd3.ctex"
+uid="uid://dxmrd25e76ewk"
+path="res://.godot/imported/skeleton.png-61c4c04fd6147e58b49a0df18a487654.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://tools/data/swamp_shallow_src.png"
-dest_files=["res://.godot/imported/swamp_shallow_src.png-b576f4f6c6f163a53baf609a96bcafd3.ctex"]
+source_file="res://assets/spritekiln/skeleton/skeleton.png"
+dest_files=["res://.godot/imported/skeleton.png-61c4c04fd6147e58b49a0df18a487654.ctex"]
 
 [params]
 

@@ -1,0 +1,421 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: skeleton_archer
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.84, 0]}
+palette: "watra"
+size: 48
+extends: humanoid   # its skeleton, IK and smear; here only what differs (sword and hair kits removed)
+
+# Szkielet łucznik (skeleton archer): the ranged enemy of the "Katakumby" (catacombs) dungeon; it shoots violet
+# arrows of Nawia. Reference: docs/referencje/katakumby/skeleton_archer.png (Watra's sprite, 6x). About 33 px
+# tall (a little under the 36 px human, same camera.scale). Told apart from the plain skeleton warrior (helmet,
+# sword, round shield) by the dark hood with its capelet and the bow.
+brief:
+  summary: >
+    skeleton archer of the catacombs: a thin, slightly stooped skeleton of pale ivory bone, a dark worn hood
+    with a short ragged capelet over the shoulders, a scrap of dark leather jerkin open at the chest over the
+    ribs, a ragged leather skirt with a strap belt, bare bone arms and legs, a worn dark recurve bow in the
+    left hand, a dark leather quiver on the back with violet-grey fletchings over the right shoulder
+  head: >
+    the head kit as a skull (ivory bone, narrow jaw, no nose, no ears) inside a dark hood open at the face;
+    two dark eye sockets with a small glowing Nawia-violet point in each, a 1 px dark nose hole; straggly
+    pale-blond hair remnants hang from under the hood's edge beside the face (as the reference); face minimal
+  must_keep:
+    - the dark hood framing a pale skull - the read against the helmeted skeleton warrior
+    - the bow in the left hand and the fletchings over the right shoulder
+    - the violet points in the eye sockets and the violet glow of the arrow tip while drawn (Nawia)
+    - thin bone limbs (the skeleton read) against the dark leather scraps
+  simplify:
+    - ribs are painted dark gaps on one ribcage volume, seen through the jerkin's open front
+    - hands are small bone knobs, feet a bone wedge; no finger or toe bones
+    - the quiver strap is painted on the jerkin
+    - the drawn string is two straight segments to the right fist (as the goblin archer)
+  decisions:
+    - the hood and capelet are a cold near-black brown (Horde / Nawia), the jerkin a warmer dark leather, so the
+      two dark materials still separate; the bone is a cool ivory, lighter than Watra's warm `bone` ramp
+    - the fletchings are a dusty Nawia violet (the archer's accent, readable from n against the dark hood)
+    - the attack copies the goblin archer's contract, scaled to the taller body; the nocked arrow's head is an
+      emissive violet point (with a glow) while the bow is drawn; socket `arrow` at the bow grip
+    - death collapses straight down into a heap - the knees give, the body squashes flat onto the folded legs,
+      the skull tumbles off forward beside the pile, the eye lights go out
+
+ramps:
+  # cool ivory bone (lighter and less orange than Watra's `bone`)
+  ivory:    ["#17120f", "#4b4237", "#7a6f5d", "#a69a80", "#cfc4a6", "#ece6cf"]
+  # the dark worn hood and capelet: near-black, cold brown
+  hood:     ["#0a080a", "#231c1e", "#372d2e", "#4b3f3e", "#615250"]
+  # a scrap of dark leather (jerkin, skirt, quiver), warmer than the hood
+  jerkin:   ["#0c0807", "#2b1c15", "#45301f", "#5f442b", "#785a3a"]
+  strap:    ["#0a0807", "#211813", "#33251c", "#473427", "#5a4434"]
+  # the hollow of the sockets and the nose hole
+  socket:   ["#060508", "#0e0b12", "#16121c"]
+  # pale-blond hair remnants
+  dry_hair: ["#15100a", "#5b4c2f", "#8e7a4c", "#b8a26b", "#d6c592"]
+  # worn dark bow wood, greyed
+  bow_wood: ["#100b09", "#3a2c22", "#584330", "#755a40", "#8f7352", "#a88c68"]
+  # dusty Nawia violet feathers
+  fletch:   ["#0f0b16", "#2f2848", "#4a3f6e", "#6b5c94", "#8f80b4", "#b2a6cc"]
+  # glowing Nawia violet: eyes and the arrow tip
+  nawia_eye: ["#1d1035", "#9b6bff", "#d0b6ff", "#f6efff"]
+
+materials:
+  skin:     {ramp: ivory, gamma: 0.85, finish: soft}   # the bone (the head kit's material is `skin`)
+  hood:     {ramp: hood, finish: matte}
+  jerkin:   {ramp: jerkin, finish: soft}
+  strap:    {ramp: strap}
+  socket:   {ramp: socket, emissive: true, band: 1, outline: false}
+  hair:     {ramp: dry_hair, finish: matte}
+  bow_wood: {ramp: bow_wood, finish: matte, bands: [2, 5]}
+  fletch:   {ramp: fletch, finish: matte, bands: [2, 5]}
+  eye:      {ramp: nawia_eye, emissive: true, band: 2, outline: false, glow: {color: "#a77bff", mix: 0.15, radius: 1}}
+  arrow_tip: {ramp: nawia_eye, emissive: true, band: 2, outline: false, glow: {color: "#b48cff", mix: 0.45, radius: 1}}
+
+remove: [use.hair, use.sword]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 0.85, jaw: 0.35, chin: 0.55, nose: 0, ears: 0}}
+  # a worn recurve bow (about 17 px tip to tip) in the left fist; lean, turn and cheat are channels for the draw
+  - {kit: bow, as: bow, at: wrist_L,
+     with: {length: 0.9, depth: 0.13, thick: 0.06, tilt: bow_tilt, roll: bow_roll, pitch: 0, cheat: bow_cheat},
+     materials: {wood: bow_wood, leather: strap}}
+
+shadow: {rx: 8.5, ry: 3, alpha: 120}
+
+channels:
+  lean: 0.08
+  hand_L: [0.30, 0.12, 0.10]
+  hand_R: [0.24, 0.08, 0.12]
+  foot_L: [0.10, 0, 0.02]
+  foot_R: [0.10, 0, 0.02]
+  bow_tilt: -0.9    # bow lean about the hand's x (kit param)
+  bow_roll: 0.8     # bow turn about its grip
+  bow_cheat: 1      # the kit's per-direction profile cheat (0 in the draw)
+  arm_up: [0, 0, 1] # the arm IK's up vector: [0, 1, 0]-ish when the forearm points forward (the draw)
+  draw: 0           # 1: the string is pulled to the right fist, the kit's string hidden
+  nocked: 0         # 1: an arrow lies on the bow from the right fist through the grip
+  eyes_lit: 1       # 0 puts the eye lights out (the end of death)
+  skull: [0, 0, 0]  # the skull tumbling off the heap in death (offset of headbase, pelvis space)
+  skull_rot: 0      # its roll while it tumbles
+  dropped: 0        # 1: the bow has fallen out of the hand and lies on the ground beside the heap (death)
+
+bones:
+  # hip height 0.745 (human 0.84): a thin, slightly stooped skeleton
+  torso_rot: {parent: root, pos: "[0, 0.745 + bob, 0]", rot: "[lean + 0.06, twist, roll]"}
+  headbase:  {parent: pelvis, pos: "[0, 0.74, 0.05] + skull", inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.3 - 0.18 + skull_rot*0.5, twist, roll + skull_rot]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.18}
+  shoulder_L: {parent: pelvis, pos: [0.19, 0.50, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  coatbase:   {parent: pelvis, rot: "[-coat*0.25 - 0.06, 0, 0]"}
+  # the quiver: on the back, leaning so its mouth sits behind the right shoulder (x < 0 is the right side)
+  quiver:     {parent: pelvis, pos: [-0.04, 0.32, -0.17], rot: [-0.3, 0, 0.6]}
+
+ik:
+  arm_L: {lengths: [0.26, 0.24], up: arm_up}
+  leg_L: {lengths: [0.36, 0.34]}
+
+parts:
+  torso:           # the ribcage (bone) under a dark leather jerkin open in a V at the front over the ribs
+    material: jerkin
+    space: pelvis
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.37, -0.01], r: [0.165, 0.145, 0.125]}
+      - ellipsoid: {c: [0, 0.15, 0.0], r: [0.115, 0.10, 0.095]}
+    paint:
+      - material: jerkin  # the jerkin over everything...
+        prims:
+          - box: {c: [0, 0.3, 0], half: [1, 1, 1]}
+      - material: skin    # ...but the open V at the chest: the ribs show
+        prims:
+          - box: {c: [0, 0.43, 0.16], half: [0.085, 0.09, 0.1]}
+          - box: {c: [0, 0.31, 0.16], half: [0.05, 0.06, 0.1]}
+      - material: socket  # dark gaps between the ribs
+        prims:
+          - box: {c: [0, 0.42, 0.16], half: [0.07, 0.022, 0.1]}
+          - box: {c: [0, 0.33, 0.16], half: [0.05, 0.022, 0.1]}
+      - material: strap   # the quiver strap: from the right shoulder across the chest to the left hip
+        prims:
+          - box: {c: [0.0, 0.30, -0.02], half: [0.028, 0.25, 0.3], rot: [0, 0, 0.7]}
+  coat:            # ragged leather skirt with a torn hem
+    material: jerkin
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.08, 0.0], b: [0, -0.06, -0.01], r: [0.125, 0.155]}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.18}
+      - box: {c: [0.06, -0.19, 0.16], half: [0.03, 0.07, 0.08], rot: [0, 0, 0.3]}
+      - box: {c: [-0.09, -0.19, 0.13], half: [0.03, 0.08, 0.08], rot: [0, 0, -0.3]}
+      - box: {c: [0.16, -0.20, -0.04], half: [0.08, 0.06, 0.03], rot: [0.3, 0, 0]}
+      - box: {c: [-0.03, -0.19, -0.17], half: [0.03, 0.07, 0.08], rot: [0, 0, 0.3]}
+      - box: {c: [-0.16, -0.20, -0.07], half: [0.08, 0.05, 0.03], rot: [-0.3, 0, 0]}
+  belt:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.07, 0.0], b: [0, 0.12, 0.0], r: 0.13}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.50, -0.01], b: [0, 0.72, 0.05], r: [0.035, 0.03]}
+  capelet:         # the hood's short ragged cape over the shoulders
+    material: hood
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.64, -0.04], b: [0, 0.46, -0.05], r: [0.10, 0.225]}
+    cut:
+      - plane: {n: [0, -1, 0], at: -0.42}
+      - plane: {n: [0, 0, 1], at: 0.04}   # only over the shoulders and the back
+      - box: {c: [0.10, 0.42, 0.19], half: [0.03, 0.05, 0.07], rot: [0, 0, 0.35]}
+      - box: {c: [-0.13, 0.42, 0.17], half: [0.03, 0.06, 0.07], rot: [0, 0, -0.35]}
+      - box: {c: [0.21, 0.42, -0.08], half: [0.07, 0.05, 0.03], rot: [0.3, 0, 0]}
+      - box: {c: [-0.04, 0.42, -0.22], half: [0.03, 0.06, 0.07], rot: [0, 0, 0.3]}
+      - extrude: {c: [0, 0.52, 0.2], depth: 0.2, profile: {polygon: [[-0.07, 0.16], [0.07, 0.16], [0.19, -0.16], [-0.19, -0.16]]}}   # open at the front
+  hood:            # a deep hood over the skull, open at the face, a soft point drooping at the back
+    material: hood
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.195, -0.095], r: [0.158, 0.155, 0.165], shell: 0.045}
+      - cone: {a: [0, 0.24, -0.15], b: [0, 0.20, -0.27], r: [0.07, 0.025]}
+      - cone: {a: [0, 0.12, -0.12], b: [0, -0.04, -0.12], r: [0.12, 0.10]}   # the cowl behind the neck
+    cut:
+      - ellipsoid: {c: "[0, 0.10, 0.15 - 0.03*pulse(abs(yaw), 90, 45)]", r: "[0.13 + 0.05*pulse(abs(yaw), 90, 45), 0.19, 0.19]"}   # the face opening (wider in profile: the eye shows)
+      - plane: {n: [0, -1, 0], at: 0.02}
+  eyesocket_L:     # a dark hollow on the face plane's side slope
+    material: socket
+    space: head
+    min_cover: 2
+    prims:
+      - extrude: {c: [0.05, 0.155, 0.105], rot: [0, 0.45, 0], depth: 0.045, profile: {rect: [0.036, 0.032], round: 0.012}}
+  eye_L:           # a small glowing Nawia-violet point inside the socket
+    material: eye
+    space: head
+    when: "eyes_lit > 0.5"
+    priority: 3
+    min_cover: 1
+    prims:
+      - sphere: {c: "[0.052, 0.15, 0.124 + 0.02*pulse(yaw*sx, 90, 45)]", r: 0.015}
+  nosehole:
+    material: socket
+    space: head
+    line: false
+    prims:
+      - extrude: {c: [0, 0.075, 0.13], depth: 0.045, profile: {polygon: [[-0.016, 0], [0.016, 0], [0, 0.03]]}}
+  hairlock_L:      # straggly pale-blond hair hanging from under the hood beside the face
+    material: hair
+    space: head
+    priority: 2
+    min_cover: 2
+    line: false
+    prims:
+      - tube: {pts: ["[0.11, 0.24, 0.05 - 0.09*pulse(yaw*sx, 90, 45)]", "[0.15, 0.10, 0.06 - 0.10*pulse(yaw*sx, 90, 45)]", "[0.14, -0.06, 0.03 - 0.10*pulse(yaw*sx, 90, 45)]"], r: [0.026, 0.016]}
+      - tube: {pts: ["[0.06, 0.24, 0.07 - 0.09*pulse(yaw*sx, 90, 45)]", "[0.11, 0.23, 0.10 - 0.10*pulse(yaw*sx, 90, 45)]", "[0.12, 0.15, 0.10 - 0.10*pulse(yaw*sx, 90, 45)]"], r: [0.022, 0.016]}
+  arm_L:           # bare bone: humerus, elbow knob, forearm
+    material: skin
+    blend: 0.02
+    min_cover: 2
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.05}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.034, 0.028]}
+      - sphere: {c: "@elbow_L", r: 0.036}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.03, 0.026]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - ellipsoid: {c: [0, 0, 0.03], r: [0.042, 0.03, 0.045]}
+  leg_L:           # bare bone: femur, knee knob, shin
+    material: skin
+    blend: 0.02
+    min_cover: 2
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.042, 0.032]}
+      - sphere: {c: "@knee_L", r: 0.042}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.032, 0.028]}
+  boot_L:          # a bony foot: heel knob and a flat wedge
+    material: skin
+    space: sole_L
+    blend: 0.03
+    prims:
+      - sphere: {c: [0, 0.0, -0.01], r: 0.035}
+      - ellipsoid: {c: [0, -0.04, 0.06], r: [0.045, 0.028, 0.085]}
+  quiver:          # a dark leather tube on the back, open at the top
+    material: strap
+    space: quiver
+    blend: 0.02
+    prims:
+      - cone: {a: [0, -0.18, 0], b: [0, 0.20, 0], r: [0.05, 0.062]}
+  quiver_arrows:   # three shafts sticking out of the quiver
+    material: bow_wood
+    space: quiver
+    min_cover: 2
+    prims:
+      - cylinder: {a: [0.0, 0.12, 0.0], b: [0.0, 0.33, 0.01], r: 0.015}
+      - cylinder: {a: [0.028, 0.12, 0.0], b: [0.045, 0.30, -0.015], r: 0.015}
+      - cylinder: {a: [-0.028, 0.12, 0.0], b: [-0.05, 0.31, 0.02], r: 0.015}
+  fletchings:      # violet feather blobs at the shaft ends: the archer's read from n and the diagonals
+    material: fletch
+    space: quiver
+    priority: 2
+    min_cover: 2
+    prims:
+      - ellipsoid: {c: [0.0, 0.35, 0.01], r: [0.036, 0.06, 0.028]}
+      - ellipsoid: {c: [0.05, 0.32, -0.015], r: [0.034, 0.055, 0.026], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [-0.055, 0.33, 0.02], r: [0.034, 0.055, 0.026], rot: [0, 0, 0.3]}
+  bow_string: {when: "max(draw, dropped) < 0.5"}
+  bow_limbs: {when: "dropped < 0.5"}
+  bow_riser: {when: "dropped < 0.5"}
+  dropped_bow:     # the bow fallen beside the heap (death): the limbs flat on the ground, curving outwards
+    material: bow_wood
+    when: "dropped > 0.5"
+    priority: 2
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0.16, 0.03, -0.36], [0.50, 0.03, -0.02], [0.16, 0.03, 0.34]], r: 0.03}
+  dropped_string:
+    material: string
+    when: "dropped > 0.5"
+    min_cover: 1
+    line: false
+    prims:
+      - cylinder: {a: [0.17, 0.02, -0.33], b: [0.17, 0.02, 0.31], r: 0.014}
+  drawn_string:    # the string pulled to the right fist: two straight segments from the bow tips
+    material: string
+    when: "draw > 0.5"
+    priority: 2
+    min_cover: 1
+    line: false
+    prims:
+      - cylinder: {a: {at: bow_stave, off: [-0.13, 0.44, 0]}, b: "@wrist_R", r: 0.014}
+      - cylinder: {a: {at: bow_stave, off: [-0.13, -0.44, 0]}, b: "@wrist_R", r: 0.014}
+  arrow_shaft:     # the nocked arrow: from the right fist through the bow grip and beyond
+    material: bow_wood
+    when: "nocked > 0.5"
+    priority: 2
+    min_cover: 1
+    prims:
+      - cylinder: {a: {between: ["@wrist_R", "@bow"], t: -0.05}, b: {between: ["@wrist_R", "@bow"], t: 1.25}, r: 0.016}
+  arrow_head:      # the Nawia point: glowing violet while drawn
+    material: arrow_tip
+    when: "nocked > 0.5"
+    priority: 3
+    min_cover: 1
+    prims:
+      - cone: {a: {between: ["@wrist_R", "@bow"], t: 1.22}, b: {between: ["@wrist_R", "@bow"], t: 1.38}, r: [0.032, 0.008]}
+  arrow_fletch:
+    material: fletch
+    when: "nocked > 0.5"
+    priority: 2
+    min_cover: 1
+    prims:
+      - cone: {a: {between: ["@wrist_R", "@bow"], t: 0.02}, b: {between: ["@wrist_R", "@bow"], t: 0.18}, r: [0.026, 0.018]}
+
+sockets:
+  arrow: {bone: bow, offset: [0, 0, 0.03]}   # the bow grip: where the shot arrow (projectile) spawns
+
+# the game's contract: the arrow leaves 490 ms into the 730 ms shot (after a 200 ms held full draw)
+timing: {attack: {release: 490ms, total: 730ms}}
+
+animations:
+  idle:
+    frames: 6
+    ms: 160
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.012*sin(p)"
+      head_pitch: "-0.05*sin(p - 0.5)"
+      hand_L: [0.30, 0.12, 0.10]   # still in the torso: the thin bow blinks if the fist bobs on its own
+      hand_R: "[0.24, 0.08 + 0.015*sin(p - 0.6), 0.12]"
+      coat: "0.15*sin(p - 1.0)"
+  # a stiff, slightly jerky shamble: the head nods on each step, the bow arm swings less than the free right arm
+  walk:
+    frames: 8
+    ms: 76
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.12
+      bob: "-0.03*cos(2*p) + 0.008"
+      squash: "1 - 0.015*cos(2*p)"
+      twist: "0.10*cos(p)"
+      roll: "0.03*sin(p)"
+      head_yaw: "-0.07*cos(p)"
+      head_pitch: "0.06*cos(2*p - 0.6)"
+      foot_L: "[0.10, 0.10*pos(-sin(p)), 0.03 + 0.27*cos(p)]"
+      foot_R: "[0.10, 0.10*pos(sin(p)), 0.03 - 0.27*cos(p)]"
+      pitch_foot_L: "0.4*pos(-sin(p))"
+      pitch_foot_R: "0.4*pos(sin(p))"
+      hand_L: "[0.29, 0.12 + 0.02*pos(cos(p)), 0.10 - 0.08*cos(p)]"
+      hand_R: "[0.25, 0.09 + 0.03*pos(-cos(p)), 0.12 + 0.15*cos(p)]"
+      bow_tilt: "-0.9 + 0.12*cos(p - 0.5)"
+      coat: "0.45*sin(2*p - 0.6)"
+  # draw and shoot forward: the bow comes up, nock, draw to the cheek, hold the full draw (the aiming telegraph,
+  # the arrow tip glowing violet), release with a small recoil, recover
+  attack:
+    loop: false
+    keys:
+      # reach: the bow comes up, the right hand goes back over the shoulder to the quiver
+      - {ms: 100, event: windup, set: {twist: -0.15, lean: 0.05, bob: -0.01, squash: 0.98, coat: -0.1, head_pitch: -0.05,
+          hand_L: [0.27, 0.30, 0.24], bow_tilt: -0.45, bow_roll: -0.5, bow_cheat: 0.5, arm_up: [0, 0.6, 0.8],
+          hand_R: [0.15, 0.62, -0.14]}}
+      # nock: the bow up in front, canted outwards; in s the bow moves out to the side so the bow and the
+      # string triangle show
+      - {ms: 90, set: {twist: "-0.3 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.02, coat: -0.15, head_pitch: 0.02,
+          hand_L: "[0.25 + 0.12*pulse(yaw, -15, 80), 0.53 - 0.08*pulse(abs(yaw), 160, 50), 0.36 - 0.06*pulse(yaw, -15, 80)]", bow_tilt: 0, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60) + 0.5*pulse(yaw, -45, 30)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [-0.12, 0.52, 0.22], nocked: 1, draw: 1}}
+      # drawing
+      - {ms: 100, set: {twist: "-0.35 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.04, squash: 1.01, coat: -0.2, head_pitch: 0.04,
+          hand_L: "[0.25 + 0.12*pulse(yaw, -15, 80), 0.55 - 0.08*pulse(abs(yaw), 160, 50), 0.38 - 0.06*pulse(yaw, -15, 80)]", bow_tilt: 0, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60) + 0.5*pulse(yaw, -45, 30)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [-0.03, 0.57, 0.10], nocked: 1, draw: 1}}
+      # full draw held: the aiming telegraph (string at the cheek)
+      - {ms: 200, set: {twist: "-0.38 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.05, squash: 1.02, coat: -0.2, head_pitch: 0.05,
+          hand_L: "[0.25 + 0.12*pulse(yaw, -15, 80), 0.56 - 0.08*pulse(abs(yaw), 160, 50), 0.40 - 0.06*pulse(yaw, -15, 80)]", bow_tilt: 0, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60) + 0.5*pulse(yaw, -45, 30)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [0.05, 0.61, -0.06], nocked: 1, draw: 1}}
+      # release: the arrow is gone, the string snaps straight, the drawing hand flies back, the bow kicks
+      - {ms: 60, event: release, set: {root: [0, 0, -0.03], twist: "-0.4 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.1, squash: 0.98, coat: 0.1, head_pitch: 0.02,
+          hand_L: "[0.25 + 0.12*pulse(yaw, -15, 80), 0.58 - 0.08*pulse(abs(yaw), 160, 50), 0.35 - 0.06*pulse(yaw, -15, 80)]", bow_tilt: -0.2, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60) + 0.5*pulse(yaw, -45, 30)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [0.19, 0.63, -0.17]}}
+      - {ms: 80, set: {root: [0, 0, -0.02], twist: -0.25, lean: 0.0, coat: 0.2,
+          hand_L: [0.27, 0.40, 0.32], bow_tilt: -0.3, bow_roll: -1.2, bow_cheat: 0, arm_up: [0, 1, 0],
+          hand_R: [0.26, 0.38, -0.08]}}
+      - {ms: 100, set: {twist: -0.05, lean: 0.03, coat: 0.05,
+          hand_L: [0.29, 0.14, 0.12], bow_tilt: -0.75, bow_roll: 0.4,
+          hand_R: [0.25, 0.10, 0.13]}}
+  # hit reaction: the body and the skull snap back, the bones rattle, then return
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.3, bob: -0.02, squash: 0.95, head_pitch: -0.3, head_yaw: 0.15, coat: -0.5,
+          hand_L: [0.34, 0.15, -0.04], hand_R: [0.36, 0.20, 0.04], bow_tilt: -1.0}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.15, bob: -0.01, squash: 0.98, head_pitch: -0.12, head_yaw: -0.08, coat: -0.2,
+          hand_L: [0.31, 0.14, 0.03], hand_R: [0.32, 0.16, 0.10], bow_tilt: -1.05}}
+      - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.08, head_pitch: 0.02, coat: 0.1,
+          hand_L: [0.30, 0.11, 0.08], hand_R: [0.25, 0.08, 0.13]}}
+  # death: a flinch, the knees give way, the bones collapse straight down into a flat heap, the skull (still in
+  # its hood) tumbles off forward beside the pile, the eye lights go out
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: -0.3, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5,
+          hand_L: [0.34, 0.15, -0.02], hand_R: [0.36, 0.20, 0.04], bow_tilt: -1.0}}
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: 0.05, roll: 0.06, bob: -0.14, squash: 0.95, head_pitch: 0.1, coat: 0.1,
+          hand_L: [0.32, 0.02, 0.12], hand_R: [0.32, 0.0, 0.14], bow_tilt: -0.8,
+          foot_L: [0.12, 0, 0.05], foot_R: [0.12, 0, -0.02]}}
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: 0.25, roll: 0.05, bob: -0.34, squash: 0.85, head_pitch: 0.25, coat: 0.3,
+          skull: [0, -0.04, 0.02], hand_L: [0.36, -0.12, 0.16], hand_R: [0.36, -0.14, 0.18], bow_tilt: -0.5,
+          foot_L: [0.16, 0, 0.08], foot_R: [0.16, 0, -0.04]}}
+      - {ms: 100, set: {dropped: 1, root: [0, 0, -0.04], lean: 0.35, roll: 0.04, bob: -0.52, squash: 0.62, head_pitch: 0.3, coat: 0.3,
+          skull: [0.04, -0.22, 0.05], skull_rot: 0.5, hand_L: [0.40, -0.18, 0.16], hand_R: [0.40, -0.18, 0.18], bow_tilt: -0.2, bow_roll: 1.2,
+          foot_L: [0.22, 0, 0.12], foot_R: [0.22, 0, -0.06]}}
+      - {ms: 100, set: {dropped: 1, root: [0, 0, -0.04], lean: 0.4, roll: 0.04, bob: -0.60, squash: 0.48, head_pitch: 0.4, coat: 0.2,
+          skull: [0.10, -0.60, 0.02], skull_rot: 1.1, hand_L: [0.38, -0.14, 0.14], hand_R: [0.37, -0.14, 0.16], bow_tilt: 0.3, bow_roll: 1.5,
+          foot_L: [0.26, 0, 0.14], foot_R: [0.26, 0, -0.08]}}
+      - {ms: 130, set: {dropped: 1, root: [0, 0, -0.04], lean: 0.4, roll: 0.04, bob: -0.62, squash: 0.45, head_pitch: 0.45, coat: 0.2,
+          skull: [0.13, -0.76, 0.0], skull_rot: 1.5, hand_L: [0.38, -0.13, 0.13], hand_R: [0.37, -0.13, 0.15], bow_tilt: 0.5, bow_roll: 1.57,
+          foot_L: [0.27, 0, 0.15], foot_R: [0.27, 0, -0.08]}}
+      - {ms: 500, set: {dropped: 1, eyes_lit: 0, root: [0, 0, -0.04], lean: 0.42, roll: 0.04, bob: -0.63, squash: 0.44, head_pitch: 0.45, coat: 0.2,
+          skull: [0.13, -0.76, 0.0], skull_rot: 1.5, hand_L: [0.38, -0.13, 0.13], hand_R: [0.37, -0.13, 0.15], bow_tilt: 0.5, bow_roll: 1.57,
+          foot_L: [0.27, 0, 0.15], foot_R: [0.27, 0, -0.08]}}

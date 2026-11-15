@@ -2,6 +2,32 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - trzeci loch: Katakumby, Nekromanta
+
+Decyzje autora: Katakumby od 21. poziomu (drabinka: 1-10 gobliny, 11-20 Zatopione podziemia, 21+ Katakumby, od 101
+losowo), ten sam schemat ról (zwykły / strzelający / silny + boss z 4 atakami); szkielet rozpada się i wstaje,
+rycerz-szkielet z zamachem w wachlarzu, Nekromanta: kule Nawii, kościany krąg, wyssanie życia, przywołanie szkieletów.
+- `Dungeons.CATACOMBS` (od 21, żywioł Nawii, „Przyzwij Nekromantę”), `ProtoHorde.make_monster`, arena wybiera bossa.
+- Szkielet `proto_skeleton.gd` (po goblinie): 34 zdrowia, 40 px/s, cios 10; pierwsza śmierć - kupka kości (`is_pile`,
+  bez sygnału `died`, iskry i łupu), po 3 s wstaje (`rise`, 0,8 s, bez trafień) z połową zdrowia; kupkę niszczy każde
+  trafienie (cięcie, obszar, podpalenie); drugi raz nie wstaje. Elita wybucha raz, przy ostatecznej śmierci.
+- Szkielet łucznik `proto_skeleton_archer.gd` (po łuczniku): 28 zdrowia, strzała Nawii 10 (`ProtoArrow.element`,
+  `tint`; pocisk ma też `bubble`, `speed`, `fly_range`).
+- Rycerz-szkielet `proto_skeleton_knight.gd` (po osiłku): 170 zdrowia, 26 px/s, zamach 24 w wachlarzu 120 stopni
+  o promieniu 44 przed sobą (`ProtoTelegraph.arc` / `angle`, `ground_angle`; efekt cięcia miecza), z tyłu bezpiecznie.
+- Nekromanta `proto_necromancer.gd` (po `ProtoChief`): 900 zdrowia, trzyma się 85 px od postaci; Kule Nawii (5 kul
+  wachlarzem po 0,7 s, wolne 80 px/s, 16), Kościany krąg (12 kolców w pierścieniu wokół postaci z luką 3 kolców po
+  stronie z dala od niego - 0,8 s, potem środek - 1,6 s, 22), Wyssanie życia (gdy postać w spłaszczonym kole o promieniu 110 - `in_drain_range`:
+  po 0,4 s wiązka przez 2 s co 0,4 s 6 Nawią i +12 zdrowia Nekromancie; wyjście z koła przerywa), Przywołanie (4
+  szkielety co 12 s). `passive` - testy i zrzuty (sam nie atakuje; też w `ProtoWodnik`).
+- Podłoga `assets/watra/catacombs_floor.png` - generator `tools/catacombs_floor.py`: płyty o losowej szerokości
+  i wysokości rzędów (przesunięte jak posadzka), ziarno z kolorów kafelka podłogi katakumb Watry, przygaszone
+  pęknięcia, gruz, rzadko czaszki i krew (`tools/data/catacombs_decals/`), szum - pole 768 px bez szwów.
+  `tools/data/.gdignore` - Godot pomija materiały generatorów.
+- Grafika SpriteKiln (wzory w `docs/referencje/katakumby/`): `skeleton` (z animacją `rise`), `skeleton_archer`,
+  `skeleton_knight`, `necromancer`.
+- Test `tests/test_catacombs.gd`, zrzuty `tools/catacombs_shots.gd`.
+
 ## 15.11.2026 - drugi loch: Zatopione podziemia, Wodnik, odporność na żywioły
 
 Decyzje autora: klimat Zatopionych podziemi (z Watry), wspólna drabinka poziomów - 1-10 gobliny, od 11 na stałe

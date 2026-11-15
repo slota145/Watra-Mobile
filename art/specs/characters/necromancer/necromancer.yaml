@@ -1,0 +1,433 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: necromancer
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.45, 0]}
+palette: "watra"
+size: 96
+extends: humanoid   # the template's skeleton and channels; the body, head and staff below are the Necromancer's own
+
+# Nekromanta (boss Katakumb): wysoki, wychudzony nieumarły czarownik, ok. 47 px (człowiek 36 px, ta sama camera.scale).
+# Trupia czaszka zamiast twarzy ze świecącymi zielonymi oczami, ciemny kaptur z koroną kościanych kolców, długie
+# postrzępione ciemne szaty z purpurowo-magentowym obszyciem, kościste dłonie, wysoki kostur z zieloną czaszką
+# w ramce na szczycie (w lewej dłoni - na referencji po prawej stronie ekranu). Unosi się nad ziemią (nóg nie widać).
+# Klatka 96 px (nie 112): kostur jest krótszy i bardziej pionowy, żeby atlas 9 animacji x 8 kierunków był < 8192 px.
+brief:
+  summary: >
+    boss of the catacombs, the Necromancer: a tall gaunt undead sorcerer, about 47 px tall with the crown spikes
+    (the human is 36 px, same density), floating a little over the ground in long tattered dark robes with deep
+    purple-magenta trim, a dark hood crowned with pale bone spikes, a skull face with glowing green eyes, bony
+    hands in wide sleeves, a tall dark staff with a glowing green skull in a wooden frame at its top
+  reference: docs/referencje/katakumby/necromancer.png (6x upscale of the Watra sprite, seen from s / a touch of se)
+  proportions: "spiked hood about 1/5 of the height, robes 3/5 down to the ground, narrow shoulders under a mantle; tall and thin"
+  head: >
+    no hair, no head kit: a pale skull (cranium and a narrower jaw, dark sockets) deep in a dark pointed hood; two
+    glowing green eyes 1 px each in the sockets; a crown of five pale bone spikes round the top of the hood (the
+    silhouette's mark from every direction); face minimal
+  must_keep:
+    - the green skull lantern on the staff (the key accent), on the screen's right in s
+    - the spiked hood / crown silhouette
+    - the dark robes with magenta trim down the front and round the hem
+    - the skull face with glowing eyes
+  simplify:
+    - the reference's frame around the staff skull is a wooden ring round it
+    - the rags on the robe are V notches in the hem, no loose strips
+    - no legs: he floats; the robe hem hangs just over the ground
+  decisions:
+    - the staff is in the left hand so that it stands on the screen's right in s, as on the reference
+    - eyes green (like the staff skull); his own Nawia magic (hand glow in bolts, drain, summon) is cold violet
+    - the staff stays short (top a little over the crown) and upright, so the boss fits a 96 px frame
+
+ramps:
+  # robes and hood: almost black cold violet-grey (the Horda/Nawia side of the palette)
+  robe:    ["#07060a", "#15121c", "#221d2c", "#30293d", "#41374f", "#554763"]
+  # deep purple-magenta trim
+  trim:    ["#13040f", "#3b0a2d", "#661348", "#8f1f66", "#b53784", "#cf5f9f"]
+  # skull and bones: cool pale bone
+  skull:   ["#141216", "#3d3940", "#6b6670", "#9a9496", "#c6c0b6", "#e9e3d4"]
+  # dark old wood of the staff
+  darkwood: ["#0e0907", "#2a1b14", "#45301f", "#634630", "#82603f", "#9c7a52"]
+  # the green ghost-light of the staff skull and the eyes
+  ghost:   ["#0a2a10", "#2f8a32", "#6fd44c", "#b5f58a", "#ecffd6"]
+  # cold violet Nawia magic
+  nawiafx: ["#1a0f33", "#5a3aa8", "#9a78e8", "#d2c2ff", "#f6f1ff"]
+  fx_core: ["#f6f1ff"]
+  fx_mid:  ["#b49af0"]
+  fx_tail: ["#5a3aa8"]
+
+materials:
+  robe:     {ramp: robe, finish: matte}
+  trim:     {ramp: trim, finish: matte}
+  skull:    {ramp: skull, finish: soft, gamma: 0.8}
+  socket:   {ramp: robe, bands: [0, 1], line: false}
+  bone:     {ramp: skull, finish: soft, bands: [2, 5]}
+  wood:     {ramp: darkwood, finish: matte, bands: [1, 4]}
+  ghost:    {ramp: ghost, emissive: true, band: 3, outline: false, glow: {color: "#8ef06a", mix: 0.35, radius: 1}}
+  ghostdark: {ramp: ghost, emissive: true, band: 0, outline: false}
+  eye:      {ramp: ghost, emissive: true, band: 4, outline: false}
+  magic:    {ramp: nawiafx, emissive: true, band: 3, outline: false, glow: {color: "#9a78e8", mix: 0.4, radius: 1}}
+
+remove: [use.hair, use.sword, use.head, animations.attack]
+
+shadow: {rx: 15, ry: 5, alpha: 110}
+snap: [root, torso_rot]   # the slow floating bob moves in whole pixels (less boiling)
+
+channels:
+  bob: 0.10         # he floats: the rest height is 2 px over the ground
+  hand_L: [0.34, 0.10, 0.12]     # the staff hand (left, screen right in s)
+  hand_R: [0.26, 0.02, 0.10]     # the free hand
+  staff_pitch: 0    # extra lean of the staff (+: top forward/down)
+  staff_splay: 0    # staff leaned outwards (+) or across the body (-)
+  staff_yaw: 0      # staff turned about the vertical
+  glow: 0           # 0..1 violet Nawia light in the free (right) hand
+  sglow: 0          # 0..1 a violet ring of Nawia light flaring round the staff skull
+  crumble: 0        # 0..1 death: >0.6 the eyes and the staff skull go dark, >0.7 loose bones lie by the robes
+
+bones:
+  # the whole body x1.3 (about 47 px with the spikes); hip height 0.84 as the template, he floats (bob > 0)
+  big:        {parent: root, scale: 1.3}
+  torso_rot:  {parent: big, pos: "[0, 0.84 + bob, 0]", rot: "[lean, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  headbase:   {parent: pelvis, pos: [0, 0.66, 0.04], inherit_rot: false, inherit_scale: false, scale: 1.25,
+               rot: "[lean*0.5 + 0.05, twist, roll]"}
+  head:       {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.0}
+  shoulder_L: {parent: pelvis, pos: [0.25, 0.54, -0.02]}
+  hip_L:      {parent: pelvis, pos: [0.12, -0.02, 0.0]}
+  fxspace:    {parent: big, rot: "[0, twist*0.3, 0]"}
+  # the staff keeps its own world lean (the wrist only carries it): upright, a little outwards (left hand: -z),
+  # following the torso's twist and lean
+  staff:      {parent: wrist_L, pos: [0, 0, 0.035], inherit_rot: false,
+               rot: "[-0.06 + staff_pitch + lean*0.5, twist + staff_yaw, -0.12 - staff_splay]"}
+  stafftop:   {parent: staff, pos: [0, 1.02, 0]}
+
+ik:
+  arm_L: {lengths: [0.42, 0.40]}   # long thin arms (world units)
+  leg_L: {space: big, lengths: [0.525, 0.50]}
+
+parts:
+  torso:           # a thin chest under the robe
+    material: robe
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.20, 0], r: [0.16, 0.22, 0.12]}
+      - ellipsoid: {c: [0, 0.46, -0.01], r: [0.24, 0.13, 0.14]}
+  coat:            # the long robe: a cone from the chest to just over the ground, a ragged hem
+    material: robe
+    space: coatbase
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0.48, -0.01], b: [0, -0.70, -0.05], r: [0.17, 0.33]}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.76}
+      - box: {c: [0.0, -0.80, 0.42], half: [0.07, 0.07, 0.2], rot: [0, 0, 0.785]}
+      - box: {c: [0.30, -0.80, 0.30], half: [0.06, 0.06, 0.2], rot: [0, 0.8, 0.785]}
+      - box: {c: [-0.30, -0.80, 0.30], half: [0.06, 0.06, 0.2], rot: [0, -0.8, 0.785]}
+      - box: {c: [0.42, -0.80, 0.0], half: [0.2, 0.07, 0.07], rot: [0.785, 0, 0]}
+      - box: {c: [-0.42, -0.80, 0.0], half: [0.2, 0.07, 0.07], rot: [0.785, 0, 0]}
+      - box: {c: [0.28, -0.80, -0.32], half: [0.06, 0.06, 0.2], rot: [0, -0.8, 0.785]}
+      - box: {c: [-0.28, -0.80, -0.32], half: [0.06, 0.06, 0.2], rot: [0, 0.8, 0.785]}
+      - box: {c: [0.0, -0.80, -0.44], half: [0.07, 0.07, 0.2], rot: [0, 0, 0.785]}
+    paint:
+      - material: trim        # the magenta panel down the front
+        prims:
+          - box: {c: [0, -0.15, 0.4], half: [0.06, 0.65, 0.3]}
+      - material: trim        # the hem band
+        stripes: {axis: y, at: [-0.62], width: 0.07}
+  belt:            # a magenta sash round the waist
+    material: trim
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.06, -0.01], b: [0, 0.12, -0.01], r: 0.205}
+  neck: {when: "0"}
+  leg_L: {when: "0"}
+  boot_L: {when: "0"}
+  mantle:          # a short spiky shoulder cape over the robe
+    material: robe
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.62, -0.02], b: [0, 0.34, -0.03], r: [0.15, 0.29], shell: 0.05}
+    cut:
+      - plane: {n: [0, 1, 0], at: 0.63}
+      - box: {c: [0.36, 0.33, 0.0], half: [0.08, 0.08, 0.2], rot: [0, 1.5708, 0.785]}
+      - box: {c: [-0.36, 0.33, 0.0], half: [0.08, 0.08, 0.2], rot: [0, 1.5708, 0.785]}
+      - box: {c: [0.0, 0.33, -0.36], half: [0.08, 0.08, 0.2], rot: [0, 0, 0.785]}
+      - box: {c: [0.0, 0.33, 0.36], half: [0.08, 0.08, 0.2], rot: [0, 0, 0.785]}
+    paint:
+      - material: trim
+        stripes: {axis: y, at: [0.38], width: 0.05}
+  hood:            # a dark pointed hood, the face cut open by a tilted plane
+    material: robe
+    space: head
+    prims:
+      - revolve: {c: [0, 0.0, -0.04], rot: [-0.2, 0, 0], shell: 0.045,
+                  profile: {bezier: [[0.17, -0.14], [0.23, 0.02], [0.215, 0.16], [0.19, 0.27], [0.11, 0.33],
+                                     [0.05, 0.37], [0, 0.42], [-0.05, 0.37], [-0.11, 0.33], [-0.19, 0.27],
+                                     [-0.215, 0.16], [-0.23, 0.02], [-0.17, -0.14], [0, -0.14]]}}
+    cut:
+      - plane: {n: [0, 0.15, 1], c: [0, 0.04, 0.05]}
+  crown:           # five pale bone spikes round the top of the hood
+    material: bone
+    space: head
+    min_cover: 2
+    prims:
+      - cone: {a: [0, 0.34, -0.02], b: [0, 0.60, -0.02], r: [0.045, 0.012]}
+      - cone: {a: [0.11, 0.30, -0.02], b: [0.22, 0.52, -0.05], r: [0.04, 0.012]}
+      - cone: {a: [-0.11, 0.30, -0.02], b: [-0.22, 0.52, -0.05], r: [0.04, 0.012]}
+      - cone: {a: [0.15, 0.22, -0.13], b: [0.28, 0.40, -0.21], r: [0.035, 0.012]}
+      - cone: {a: [-0.15, 0.22, -0.13], b: [-0.28, 0.40, -0.21], r: [0.035, 0.012]}
+  head:            # the skull: a cranium and a narrower jaw
+    material: skull
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.08, 0.03], r: [0.14, 0.13, 0.15]}
+      - ellipsoid: {c: [0, -0.04, 0.08], r: [0.085, 0.06, 0.09]}
+    paint:
+      - material: socket
+        prims:
+          - sphere: {c: [0.058, 0.11, 0.17], r: 0.05}
+          - sphere: {c: [-0.058, 0.11, 0.17], r: 0.05}
+  eye_L:           # a glowing green eye in the socket
+    material: eye
+    space: head
+    when: "crumble < 0.6"
+    prims:
+      - sphere: {c: [0.056, 0.11, 0.175], r: 0.032}
+  arm_L:           # thin arms in wide sleeves that flare at the wrist
+    material: robe
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.09}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.08, 0.08]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.08, 0.13]}
+  cuff_L:          # the sleeve's magenta cuff
+    material: trim
+    space: wrist_L
+    prims:
+      - cylinder: {a: [0, 0, -0.06], b: [0, 0, -0.01], r: 0.135}
+  hand_L:          # a bony hand: palm and three long fingers
+    material: bone
+    space: wrist_L
+    blend: 0.02
+    min_cover: 2
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.06}
+      - cone: {a: [0, 0, 0.06], b: [0.05, -0.03, 0.17], r: [0.028, 0.02]}
+      - cone: {a: [0, 0, 0.06], b: [0.0, -0.04, 0.19], r: [0.028, 0.02]}
+      - cone: {a: [0, 0, 0.06], b: [-0.05, -0.03, 0.17], r: [0.028, 0.02]}
+  staff_shaft:     # a tall dark staff
+    material: wood
+    space: staff
+    priority: 2
+    min_cover: 2
+    prims:
+      - cone: {a: [0, -0.95, 0], b: [0, 0.86, 0], r: [0.028, 0.036]}
+      - sphere: {c: [0, 0.88, 0], r: 0.05}
+  staff_frame:     # a wooden ring round the skull, with a small spike on top
+    material: wood
+    space: stafftop
+    priority: 2
+    min_cover: 2
+    prims:
+      - torus: {c: [0, 0.10, 0], R: 0.17, r: 0.03, rot: "[1.5708, -radians(yaw), 0]"}
+      - cone: {a: [0, 0.27, 0], b: [0, 0.38, 0], r: [0.03, 0.01]}
+  staff_skull:     # the glowing green skull in the frame
+    material: ghost
+    space: stafftop
+    when: "crumble < 0.6"
+    priority: 3
+    blend: 0.02
+    prims:
+      - sphere: {c: [0, 0.12, 0], r: 0.11}
+      - ellipsoid: {c: [0, 0.03, 0.03], r: [0.07, 0.05, 0.07]}
+    paint:
+      - material: ghostdark
+        prims:
+          - sphere: {c: "[0.045*cos(radians(yaw)), 0.12, 0.10]", r: 0.03}
+          - sphere: {c: "[-0.045*cos(radians(yaw)), 0.12, 0.10]", r: 0.03}
+  staff_skull_dead:   # death: the skull's light goes out, plain bone
+    material: bone
+    space: stafftop
+    when: "crumble >= 0.6"
+    priority: 3
+    blend: 0.02
+    prims:
+      - sphere: {c: [0, 0.12, 0], r: 0.11}
+      - ellipsoid: {c: [0, 0.03, 0.03], r: [0.07, 0.05, 0.07]}
+  staff_flare:     # a violet ring of Nawia light flaring round the skull (casts)
+    material: magic
+    space: stafftop
+    when: "sglow > 0.05"
+    priority: 3
+    min_cover: 2
+    prims:
+      - torus: {c: [0, 0.10, 0], R: "0.21 + 0.05*sglow", r: "0.018 + 0.012*sglow", rot: "[1.5708, -radians(yaw), 0]"}
+  bones_pile:      # death: loose bones fallen out of the empty robes
+    material: bone
+    space: big
+    when: "crumble > 0.7"
+    min_cover: 2
+    blend: 0.02
+    prims:
+      - cone: {a: [-0.30, 0.03, 0.36], b: [0.02, 0.03, 0.50], r: [0.035, 0.03]}
+      - sphere: {c: [-0.31, 0.04, 0.35], r: 0.045}
+      - sphere: {c: [0.03, 0.04, 0.51], r: 0.045}
+      - cone: {a: [0.20, 0.03, 0.42], b: [0.36, 0.03, 0.22], r: [0.03, 0.03]}
+      - sphere: {c: [0.36, 0.04, 0.21], r: 0.04}
+  glow:            # violet Nawia light in the free (right) hand
+    material: magic
+    space: wrist_R
+    when: "glow > 0.05"
+    prims:
+      - sphere: {c: [0, 0.02, 0.11], r: "0.12*glow"}
+
+sockets:
+  staff_skull: {bone: stafftop, offset: [0, 0.11, 0]}   # the green skull: bolts leave from here
+  cast: {bone: wrist_R, offset: [0, 0.02, 0.12]}         # the free hand's violet light: the drain beam starts here
+
+animations:
+  # floating: the whole body bobs a pixel up and down over the ground, the robe hem sways late
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      bob: "0.10 + 0.05*sin(p)"
+      squash: "1 + 0.01*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.6)"
+      hand_L: "[0.34, 0.10 + 0.03*sin(p - 0.6), 0.12]"
+      hand_R: "[0.26, 0.02 + 0.03*sin(p - 0.8), 0.10]"
+      staff_pitch: "0.02*sin(p - 1.0)"
+      coat: "0.15*sin(p - 1.2)"
+  walk:
+    frames: 8
+    ms: 110
+    channels:
+      lean: 0.14
+      bob: "0.10 + 0.04*sin(p)"
+      twist: "0.05*cos(p)"
+      head_pitch: "-0.03*sin(p - 0.6)"
+      hand_L: "[0.34, 0.12 + 0.02*sin(p), 0.16]"
+      hand_R: "[0.26, 0.04 + 0.03*sin(p - 0.5), 0.02 - 0.06*cos(p)]"
+      staff_pitch: "0.10 + 0.03*sin(p - 0.8)"
+      coat: "-0.35 + 0.15*sin(2*p - 1.0)"
+  # entrance: a hunched gathering, then he rises, flings his arms wide and the staff high (`roar` at the peak),
+  # trembling with Nawia light in the free hand and round the skull, then settles
+  roar:
+    loop: false
+    keys:
+      - {ms: 140, set: {bob: 0.04, lean: 0.18, squash: 0.95, head_pitch: 0.18, coat: 0.2,
+          hand_L: [0.32, 0.02, 0.22], hand_R: [0.22, -0.02, 0.24]}}
+      - {ms: 150, set: {bob: 0.14, lean: -0.06, squash: 1.02, head_pitch: -0.12, coat: -0.15,
+          hand_L: [0.40, 0.36, 0.12], hand_R: [0.44, 0.24, 0.12], staff_splay: 0.08, sglow: 0.5, glow: 0.4}}
+      - {ms: 130, event: roar, set: {bob: 0.20, lean: -0.20, squash: 1.05, head_pitch: -0.32, coat: -0.3,
+          hand_L: [0.44, 0.62, 0.06], hand_R: [0.58, 0.42, 0.08], staff_splay: 0.16, sglow: 1.0, glow: 1.0}}
+      - {ms: 100, set: {root: [0.03, 0, 0], roll: 0.03, bob: 0.19, lean: -0.19, squash: 1.05, head_pitch: -0.30, coat: -0.28,
+          hand_L: [0.45, 0.61, 0.06], hand_R: [0.59, 0.40, 0.08], staff_splay: 0.18, sglow: 0.8, glow: 0.9}}
+      - {ms: 100, set: {root: [-0.03, 0, 0], roll: -0.03, bob: 0.20, lean: -0.20, squash: 1.05, head_pitch: -0.32, coat: -0.3,
+          hand_L: [0.43, 0.63, 0.06], hand_R: [0.57, 0.43, 0.08], staff_splay: 0.15, sglow: 1.0, glow: 1.0}}
+      - {ms: 100, set: {root: [0.02, 0, 0], roll: 0.02, bob: 0.18, lean: -0.17, squash: 1.04, head_pitch: -0.26, coat: -0.25,
+          hand_L: [0.43, 0.56, 0.07], hand_R: [0.56, 0.38, 0.09], staff_splay: 0.15, sglow: 0.7, glow: 0.8}}
+      - {ms: 140, set: {bob: 0.12, lean: -0.02, coat: 0.05, head_pitch: -0.05,
+          hand_L: [0.38, 0.26, 0.12], hand_R: [0.36, 0.14, 0.12], staff_splay: 0.05, glow: 0.3}}
+      - {ms: 130, set: {coat: 0.08}}
+  # bolts: the staff drawn back and up over the shoulder, the skull flaring violet, then thrust forward at the
+  # hero (`release` on the thrust: the orbs leave the skull, socket `staff_skull`), a held beat, recovery
+  bolts:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {lean: -0.06, twist: 0.12, bob: 0.12, coat: -0.1, head_pitch: -0.05,
+          hand_L: [0.36, 0.26, -0.06], hand_R: [0.24, 0.06, 0.16], staff_pitch: -0.22, sglow: 0.4}}
+      - {ms: 180, set: {lean: -0.12, twist: 0.20, bob: 0.14, squash: 1.02, coat: -0.2, head_pitch: -0.10,
+          hand_L: [0.36, 0.34, -0.14], hand_R: [0.22, 0.08, 0.20], staff_pitch: -0.32, sglow: 0.9}}
+      - {ms: 60, event: release, set: {root: [0, 0, 0.06], lean: 0.20, twist: -0.12, bob: 0.08, squash: 0.97, coat: 0.35, head_pitch: 0.08,
+          hand_L: [0.20, 0.36, 0.44], hand_R: [0.30, 0.02, -0.02], staff_pitch: 0.95, sglow: 1.0}}
+      - {ms: 140, set: {root: [0, 0, 0.07], lean: 0.22, twist: -0.15, bob: 0.08, squash: 0.97, coat: 0.4, head_pitch: 0.10,
+          hand_L: [0.20, 0.35, 0.46], hand_R: [0.30, 0.02, -0.04], staff_pitch: 1.0, sglow: 0.6}}
+      - {ms: 140, set: {root: [0, 0, 0.04], lean: 0.10, twist: -0.05, bob: 0.10, coat: 0.15,
+          hand_L: [0.30, 0.22, 0.26], hand_R: [0.27, 0.02, 0.06], staff_pitch: 0.45, sglow: 0.2}}
+      - {ms: 160, set: {root: [0, 0, 0.01], lean: 0.06, coat: 0.0, hand_L: [0.34, 0.11, 0.13], staff_pitch: 0.05}}
+  # ring: the staff lifted high in both hands, he rises, then slams its butt into the ground (`hit` on the slam:
+  # bone spikes erupt round the hero), a held crouch, recovery
+  ring:
+    loop: false
+    keys:
+      - {ms: 130, event: windup, set: {bob: 0.13, lean: -0.04, coat: -0.1, head_pitch: -0.05,
+          hand_L: [0.30, 0.36, 0.16], hand_R: [0.06, 0.26, 0.26], sglow: 0.4}}
+      - {ms: 220, set: {bob: 0.22, lean: -0.14, squash: 1.04, coat: -0.25, head_pitch: -0.20,
+          hand_L: [0.22, 0.62, 0.14], hand_R: [-0.02, 0.56, 0.18], staff_splay: -0.06, sglow: 1.0}}
+      - {ms: 70, event: hit, set: {root: [0, 0, 0.05], bob: -0.02, lean: 0.24, squash: 0.92, coat: 0.45, head_pitch: 0.14,
+          hand_L: [0.22, -0.10, 0.30], hand_R: [-0.02, -0.04, 0.30], staff_pitch: 0.12, staff_splay: -0.06, sglow: 1.0}}
+      - {ms: 160, set: {root: [0, 0, 0.05], bob: -0.01, lean: 0.26, squash: 0.93, coat: 0.5, head_pitch: 0.16,
+          hand_L: [0.22, -0.09, 0.31], hand_R: [-0.02, -0.03, 0.31], staff_pitch: 0.12, staff_splay: -0.06, sglow: 0.5}}
+      - {ms: 150, set: {root: [0, 0, 0.03], bob: 0.06, lean: 0.12, coat: 0.15,
+          hand_L: [0.30, 0.04, 0.20], hand_R: [0.16, 0.0, 0.18], staff_pitch: 0.06}}
+      - {ms: 150, set: {root: [0, 0, 0.01], lean: 0.06, hand_L: [0.34, 0.10, 0.13], hand_R: [0.25, 0.02, 0.11]}}
+  # drain: the free (right) hand drawn back, then reaching out at the hero, the fingers spread, a violet light in
+  # the palm (`start` when the arm is out: the beam starts at socket `cast`); the last frame is the held pose
+  # the game keeps while the beam drains (about 2 s)
+  drain:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {twist: -0.12, lean: -0.04, coat: -0.1, head_pitch: -0.04,
+          hand_R: [0.32, 0.18, -0.08], glow: 0.3}}
+      - {ms: 140, set: {twist: 0.10, lean: 0.08, coat: 0.15, head_pitch: 0.04,
+          hand_R: [0.18, 0.34, 0.30], glow: 0.6}}
+      - {ms: 140, event: start, set: {twist: 0.22, lean: 0.14, coat: 0.25, head_pitch: 0.06, root: [0, 0, 0.03],
+          hand_R: [0.10, 0.38, 0.52], glow: 1.0, staff_pitch: -0.05}}
+      - {ms: 200, set: {twist: 0.22, lean: 0.15, coat: 0.22, head_pitch: 0.06, root: [0, 0, 0.03],
+          hand_R: [0.10, 0.37, 0.53], glow: 0.9, staff_pitch: -0.05}}
+  # summon: hunched over, gathering, then he rises with both arms and the staff raised to the sky (`hit`: the
+  # skeletons rise), a trembling held beat, then lowers them
+  summon:
+    loop: false
+    keys:
+      - {ms: 150, event: windup, set: {bob: 0.05, lean: 0.16, squash: 0.95, coat: 0.2, head_pitch: 0.16,
+          hand_L: [0.32, 0.0, 0.22], hand_R: [0.22, -0.04, 0.24], glow: 0.3}}
+      - {ms: 200, set: {bob: 0.16, lean: -0.06, squash: 1.02, coat: -0.15, head_pitch: -0.12,
+          hand_L: [0.38, 0.42, 0.14], hand_R: [0.36, 0.38, 0.16], glow: 0.6, sglow: 0.5}}
+      - {ms: 100, event: hit, set: {bob: 0.24, lean: -0.18, squash: 1.05, coat: -0.3, head_pitch: -0.32,
+          hand_L: [0.32, 0.74, 0.06], hand_R: [0.34, 0.76, 0.06], staff_splay: 0.10, glow: 1.0, sglow: 1.0}}
+      - {ms: 125, set: {root: [0.02, 0, 0], bob: 0.23, lean: -0.17, squash: 1.05, coat: -0.28, head_pitch: -0.30,
+          hand_L: [0.33, 0.73, 0.06], hand_R: [0.35, 0.74, 0.06], staff_splay: 0.12, glow: 0.8, sglow: 0.8}}
+      - {ms: 125, set: {root: [-0.02, 0, 0], bob: 0.24, lean: -0.18, squash: 1.05, coat: -0.3, head_pitch: -0.32,
+          hand_L: [0.31, 0.75, 0.06], hand_R: [0.33, 0.77, 0.06], staff_splay: 0.09, glow: 1.0, sglow: 1.0}}
+      - {ms: 160, set: {bob: 0.14, lean: -0.04, coat: 0.0, head_pitch: -0.06,
+          hand_L: [0.36, 0.30, 0.12], hand_R: [0.32, 0.22, 0.12], glow: 0.3}}
+      - {ms: 140, set: {coat: 0.08}}
+  # hit: a short flinch (the boss does not stop): jolted back and up a pixel, the robe flaps, back again
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.05], bob: 0.13, lean: -0.15, squash: 0.95, head_pitch: -0.2, coat: -0.35,
+          hand_L: [0.36, 0.14, 0.04], hand_R: [0.30, 0.08, 0.02], staff_pitch: -0.1}}
+      - {ms: 70, set: {root: [0, 0, -0.02], bob: 0.11, lean: -0.05, squash: 0.98, head_pitch: -0.08, coat: -0.12,
+          hand_L: [0.35, 0.12, 0.08], hand_R: [0.28, 0.04, 0.06], staff_pitch: -0.05}}
+      - {ms: 70, set: {lean: 0.06, head_pitch: 0.02, coat: 0.05}}
+  # death: struck back, the light leaves him, he sags and the body crumbles down into a heap of empty robes with
+  # the skull on top and loose bones by it; the staff tips over and falls beside him; the last frame held
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.04], bob: 0.14, lean: -0.28, squash: 1.03, head_pitch: -0.35, coat: -0.45,
+          hand_L: [0.42, 0.24, 0.02], hand_R: [0.40, 0.20, 0.0], staff_splay: 0.1, sglow: 0.6}}
+      - {ms: 140, set: {root: [0, 0, -0.05], bob: 0.02, lean: 0.20, squash: 0.92, head_pitch: 0.35, coat: 0.3,
+          hand_L: [0.34, -0.04, 0.16], hand_R: [0.28, -0.08, 0.16], staff_splay: 0.35}}
+      - {ms: 130, set: {root: [0, 0, -0.05], bob: -0.16, lean: 0.25, squash: 0.72, head_pitch: 0.35, coat: 0.3, crumble: 0.65,
+          hand_L: [0.38, -0.20, 0.18], hand_R: [0.32, -0.24, 0.18], staff_splay: 0.75, staff_pitch: "-0.45*pulse(yaw, -90, 70)"}}
+      - {ms: 120, set: {root: [0, 0, -0.05], bob: -0.32, lean: 0.20, squash: 0.52, head_pitch: 0.30, coat: 0.2, crumble: 0.8,
+          hand_L: [0.42, -0.34, 0.16], hand_R: [0.34, -0.38, 0.18], staff_splay: 1.20, staff_pitch: "-0.72*pulse(yaw, -90, 70)"}}
+      - {ms: 110, set: {root: [0, 0, -0.05], bob: -0.42, lean: 0.12, roll: 0.15, squash: 0.40, head_pitch: 0.45, coat: 0.1, crumble: 0.9,
+          hand_L: [0.46, -0.42, 0.14], hand_R: [0.36, -0.44, 0.18], staff_splay: 1.50, staff_pitch: "-0.9*pulse(yaw, -90, 70)"}}
+      - {ms: 120, set: {root: [0, 0, -0.05], bob: -0.40, lean: 0.12, roll: 0.22, squash: 0.43, head_pitch: 0.55, coat: 0.12, crumble: 0.9,
+          hand_L: [0.46, -0.41, 0.14], hand_R: [0.36, -0.43, 0.18], staff_splay: 1.45, staff_pitch: "-0.87*pulse(yaw, -90, 70)"}}
+      - {ms: 600, set: {root: [0, 0, -0.05], bob: -0.44, lean: 0.12, roll: 0.25, squash: 0.38, head_pitch: 0.6, coat: 0.1, crumble: 1.0,
+          hand_L: [0.46, -0.42, 0.14], hand_R: [0.36, -0.44, 0.18], staff_splay: 1.50, staff_pitch: "-0.9*pulse(yaw, -90, 70)"}}
+
+timing:
+  roar: {roar: 290ms, total: 990ms}
+  bolts: {release: 300ms, total: 800ms}
+  ring: {hit: 350ms, total: 880ms}
+  drain: {start: 260ms, total: 600ms}
+  summon: {hit: 350ms, total: 1000ms}

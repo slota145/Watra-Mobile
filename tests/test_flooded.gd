@@ -38,8 +38,9 @@ func _run() -> void:
 
 func _test_levels() -> void:
 	_check(Dungeons.for_level(1) == Dungeons.GOBLINS and Dungeons.for_level(10) == Dungeons.GOBLINS
-			and Dungeons.for_level(11) == Dungeons.FLOODED and Dungeons.for_level(100) == Dungeons.FLOODED,
-			"1-10 gobliny, od 11 Zatopione podziemia")
+			and Dungeons.for_level(11) == Dungeons.FLOODED and Dungeons.for_level(20) == Dungeons.FLOODED
+			and Dungeons.for_level(21) == Dungeons.CATACOMBS and Dungeons.for_level(100) == Dungeons.CATACOMBS,
+			"1-10 gobliny, 11-20 Zatopione podziemia, od 21 Katakumby")
 	var seen := {}
 	for i in 200:
 		seen[Dungeons.for_level(101 + i % 50)] = true

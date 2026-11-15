@@ -866,7 +866,13 @@ func summon_chief() -> void:
 	summon_button.visible = false
 	ember_bar.visible = false
 	horde_spawner.call_boss()
-	chief = ProtoWodnik.new() if climate == Dungeons.FLOODED else ProtoChief.new()
+	match climate:
+		Dungeons.FLOODED:
+			chief = ProtoWodnik.new()
+		Dungeons.CATACOMBS:
+			chief = ProtoNecromancer.new()
+		_:
+			chief = ProtoChief.new()
 	chief.name = "Chief"
 	chief.hero = hero
 	chief.bounds = ARENA.grow(-24)
