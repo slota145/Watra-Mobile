@@ -8,14 +8,14 @@ extends ProtoGoblinBrute
 
 const KNIGHT_SCENE := "res://assets/spritekiln/skeleton_knight/skeleton_knight.tscn"
 const KNIGHT_HP := 170
-const KNIGHT_SPEED := 26.0
+const KNIGHT_SPEED := 25.0
 const SWEEP_DAMAGE := 24
 const SWEEP_RADIUS := 44.0
 const SWEEP_ARC := deg_to_rad(120.0)
 ## Zaczyna zamach z tej odległości.
 const SWEEP_RANGE := 34.0
 ## Miecz przechodzi przez środek wachlarza tyle sekund po początku animacji `attack` (zdarzenie `hit`).
-const KNIGHT_HIT_AT := 0.7
+const KNIGHT_HIT_AT := 0.72
 
 
 func _init() -> void:

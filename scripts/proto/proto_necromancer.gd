@@ -6,7 +6,7 @@ extends ProtoChief
 ## - Kościany krąg: pierścień kół wokół postaci z luką (RING_GAP kół brakuje, od strony z dala od Nekromanty);
 ##   najpierw z pierścienia wyrastają kolce (RING_WARN s), potem środek (RING_CENTER_WARN s) - trzeba wybiec
 ##   z kręgu przez lukę, zanim wypełni się środek;
-## - Wyssanie życia: gdy postać jest bliżej niż DRAIN_RANGE - koło zasięgu wokół Nekromanty i fioletowa wiązka;
+## - Wyssanie życia: gdy postać jest w kole DRAIN_RANGE (`in_drain_range`) - koło zasięgu wokół Nekromanty i fioletowa wiązka;
 ##   przez DRAIN_TIME s co DRAIN_TICK s rani Nawią i leczy Nekromantę; wyjście poza koło przerywa wiązkę;
 ## - Przywołanie szkieletów: z ziemi wstaje SUMMON_COUNT szkieletów (co SUMMON_COOLDOWN s).
 ## Grafika: model SpriteKiln assets/spritekiln/necromancer/ (idle, walk, roar, bolts, ring, drain, summon, hit,
@@ -23,14 +23,15 @@ const BOLT_DAMAGE := 16
 const BOLT_SPEED := 80.0
 const BOLT_RANGE := 320.0
 const RING_COUNT := 12
-const RING_GAP := 2
+const RING_GAP := 3
 const RING_RADIUS := 50.0
 const RING_SPIKE := 13.0
 const RING_WARN := 0.8
 const RING_CENTER := 42.0
 const RING_CENTER_WARN := 1.6
 const RING_DAMAGE := 22
-const DRAIN_RANGE := 95.0
+## Zasięg wiązki: promień koła wokół Nekromanty (spłaszczonego jak wszystkie koła na ziemi).
+const DRAIN_RANGE := 110.0
 const DRAIN_TIME := 2.0
 ## Co tyle sekund wiązka rani (dłużej niż ProtoHero.INVULNERABLE, więc każdy cios wchodzi).
 const DRAIN_TICK := 0.4
@@ -97,7 +98,8 @@ func _choose_attack(distance: float) -> void:
 	if _summon_cooldown <= 0.0:
 		start_attack("summon")
 		return
-	var pool := ATTACKS.filter(func(a: String) -> bool: return a != _last_attack and (a != "drain" or distance < DRAIN_RANGE))
+	var near := in_drain_range(hero.global_position)
+	var pool := ATTACKS.filter(func(a: String) -> bool: return a != _last_attack and (a != "drain" or near))
 	start_attack(pool.pick_random())
 
 
@@ -145,7 +147,7 @@ func _start_ring() -> void:
 	var center := hero.global_position
 	var away := (center - global_position).angle()
 	for i in RING_COUNT:
-		var a := away + TAU * (i + 0.5) / RING_COUNT
+		var a := away + TAU * (i + (0.5 if RING_GAP % 2 == 0 else 0.0)) / RING_COUNT  # luka symetryczna wokół `away`
 		if absf(angle_difference(a, away)) < TAU * RING_GAP / RING_COUNT / 2.0:
 			continue  # luka - droga ucieczki
 		_add_drop(center + Vector2.from_angle(a) * RING_RADIUS * Vector2(1, ProtoTelegraph.SQUASH), RING_SPIKE, RING_WARN)
@@ -206,6 +208,12 @@ func _update_drain(delta: float) -> void:
 		health_changed.emit(hp, max_hp)
 
 
+## Czy punkt leży w kole wyssania (koło spłaszczone jak ostrzeżenia na ziemi).
+func in_drain_range(point: Vector2) -> bool:
+	var d := point - global_position
+	return Vector2(d.x, d.y / ProtoTelegraph.SQUASH).length() <= DRAIN_RANGE
+
+
 ## Czy wiązka właśnie wysysa (testy).
 func draining() -> bool:
 	return _beam != null
@@ -229,7 +237,7 @@ func _start_summon() -> void:
 		var p := global_position + Vector2.from_angle(start + TAU * i / SUMMON_COUNT) * SUMMON_RING * Vector2(1, 0.7)
 		p = p.clamp(bounds.position, bounds.end)
 		_summon_points.append(p)
-		Fx.once(get_parent(), FX_ROAR, 10, 14.0, p, Vector2(73, 42), -1, 0.35).modulate = NAWIA_TINT
+		Fx.once(get_parent(), FX_ROAR, 10, 12.0, p, Vector2(73, 42), 6, 0.6).modulate = NAWIA_TINT
 	_sound(ROAR_SOUND, -6.0, randf_range(0.6, 0.7))
 
 

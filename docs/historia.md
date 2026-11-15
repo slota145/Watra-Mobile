@@ -16,8 +16,8 @@ rycerz-szkielet z zamachem w wachlarzu, Nekromanta: kule Nawii, kościany krąg,
 - Rycerz-szkielet `proto_skeleton_knight.gd` (po osiłku): 170 zdrowia, 26 px/s, zamach 24 w wachlarzu 120 stopni
   o promieniu 44 przed sobą (`ProtoTelegraph.arc` / `angle`, `ground_angle`; efekt cięcia miecza), z tyłu bezpiecznie.
 - Nekromanta `proto_necromancer.gd` (po `ProtoChief`): 900 zdrowia, trzyma się 85 px od postaci; Kule Nawii (5 kul
-  wachlarzem po 0,7 s, wolne 80 px/s, 16), Kościany krąg (12 kolców w pierścieniu wokół postaci z luką 2 kolców po
-  stronie z dala od niego - 0,8 s, potem środek - 1,6 s, 22), Wyssanie życia (gdy postać bliżej niż 95: koło zasięgu,
+  wachlarzem po 0,7 s, wolne 80 px/s, 16), Kościany krąg (12 kolców w pierścieniu wokół postaci z luką 3 kolców po
+  stronie z dala od niego - 0,8 s, potem środek - 1,6 s, 22), Wyssanie życia (gdy postać w spłaszczonym kole o promieniu 110 - `in_drain_range`:
   po 0,4 s wiązka przez 2 s co 0,4 s 6 Nawią i +12 zdrowia Nekromancie; wyjście z koła przerywa), Przywołanie (4
   szkielety co 12 s). `passive` - testy i zrzuty (sam nie atakuje; też w `ProtoWodnik`).
 - Podłoga `assets/watra/catacombs_floor.png` - generator `tools/catacombs_floor.py`: płyty o losowej szerokości

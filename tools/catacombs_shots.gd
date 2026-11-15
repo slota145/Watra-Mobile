@@ -61,7 +61,7 @@ func _run() -> void:
 	await create_timer(0.6).timeout
 	await _shot("4_krag")
 	await create_timer(1.6).timeout
-	hero.position = nec.position + Vector2(10, 60)
+	hero.position = nec.position + Vector2(10, 45)
 	nec.start_attack("drain")
 	await create_timer(ProtoNecromancer.DRAIN_START + 0.5).timeout
 	await _shot("5_wyssanie")
