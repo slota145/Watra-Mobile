@@ -149,11 +149,11 @@ func _wave_hit() -> void:
 		hero.take_damage(roundi(WAVE_DAMAGE * power), Elements.FIRE)
 		hero.ignite(roundi(BURN * power), BURN_TIME)
 	_remove_telegraph()
-	for ring: float in [WAVE_INNER + 14.0, (WAVE_INNER + WAVE_RADIUS) / 2.0, WAVE_RADIUS - 10.0]:
-		var count := int(TAU * ring / 22.0)
+	for ring: float in [(WAVE_INNER + WAVE_RADIUS) / 2.0 - 8.0, WAVE_RADIUS - 10.0]:
+		var count := int(TAU * ring / 34.0)
 		for i in count:
 			var p := global_position + Vector2.from_angle(TAU * (i + randf() * 0.5) / count) * ring * Vector2(1, 0.6)
-			Fx.once(get_parent(), FIRE_FX, FIRE_FX_FRAMES, 14.0, p, FIRE_FX_ANCHOR, 20, randf_range(0.9, 1.3))
+			Fx.once(get_parent(), FIRE_FX, FIRE_FX_FRAMES, 14.0, p, FIRE_FX_ANCHOR, 20, randf_range(0.75, 1.0))
 	_shake(4.0, 0.3)
 	_sound(SLAM_SOUND, -2.0, randf_range(0.9, 1.0))
 	_set_state("recover")
