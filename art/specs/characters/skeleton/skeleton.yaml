@@ -1,0 +1,417 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: skeleton
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.80, 0]}
+palette: "watra"
+size: 48
+extends: humanoid   # its skeleton, IK and smear; here only what differs (sword, head and hair kits removed)
+
+# Szkielet: the basic melee enemy of the "Katakumby" (catacombs) dungeon. Reference:
+# docs/referencje/katakumby/skeleton.png (Watra's sprite, 6x). A human skeleton warrior, about 33 px tall
+# (the human is 36 px, same camera.scale): bone-white skull, ribcage, spine and thin limb bones, dark eye
+# sockets with small cold violet points (Nawia), a dented rusty iron half-helm, a rusty short sword in the
+# right hand, a small round wooden shield on the left forearm, a rotten dark-red loincloth.
+#
+# Two models of the same bones: the rig (parts without `x_`, `apart: 0`) and loose pieces (`x_*` parts on
+# their own bones in root space, `apart: 1`) that fall from the standing pose (fall_* = 0) into a heap of
+# bones on the ground (fall_* = 1). Shared geometry uses YAML anchors (&name / *name), so both stay alike.
+brief:
+  summary: >
+    skeleton warrior of the catacombs (Watra's skeleton): about 33 px tall, upright, lanky; pale ivory bones
+    with a dark outline (reads on grey stone), a ribcage with dark gaps between the ribs, a thin spine at the
+    waist, a skull under a dented rusty iron half-helm, a rusty short sword held low in the right hand, a small
+    round rotten-wood shield with an iron rim and boss on the left forearm, a ragged dark-red loincloth
+  head: >
+    own skull (head kit removed): round cranium, a narrower face, a separate jaw on a hinge (jaw_open);
+    two big dark eye sockets (paint) with a single cold violet glowing point in each (emissive, Nawia),
+    a 1 px dark nose hole; a rusty iron half-helm over the crown and the back of the skull, its brim just above
+    the sockets, a dent on the left side; face minimal (style): no other features
+  must_keep:
+    - the pale bones against the dark outline, the ribcage with its rib gaps and the thin waist (spine only)
+    - the violet eye points (Nawia, the dungeon's element)
+    - the sword in the right hand and the round shield on the left arm
+    - death falls apart into a heap of bones (skull on crossed leg bones), rise reassembles it from the same heap
+  simplify:
+    - ribs are two 1 px dark stripes painted on the ribcage, a bone sternum and spine painted over them
+    - hands and feet are bone knobs, no fingers or toes
+    - vertebrae are not modelled: the spine is one thin tube
+  decisions:
+    - the reference shows a fully armoured skeleton in rusty plate; per the brief the bones show, the armour
+      becomes only the half-helm, the shield and the loincloth in the reference's rusty maroon
+    - eyes are lit violet in every direction except n, ne, nw (inside the skull, hidden by the helm's back)
+    - the heap is the ribcage on its back, the pelvis in front of it, the leg bones crossed under the skull,
+      the arms at the sides, the sword on the right and the shield on the left; the eyes go out in the heap
+      and light up again at the start of rise
+
+ramps:
+  # pale ivory bone, the shadows cooled toward grey-violet (Nawia), a very dark outline for the stone floor
+  bonewhite: ["#110d14", "#3c3540", "#6b635f", "#a29983", "#d0c8ab", "#efe9d4"]
+  # the dark hollows of the eye sockets, the nose and between the ribs
+  hollow:    ["#07050a", "#110c16", "#1b1522"]
+  # cold violet glowing eye points (Nawia)
+  nawia_eye: ["#24103f", "#9a6cff", "#d9c2ff", "#ffffff"]
+  # dull dark iron and rust
+  iron:      ["#0c0b0e", "#302e34", "#514e56", "#76737b", "#9c99a0", "#c2c0c4"]
+  rust:      ["#140805", "#4a210f", "#7a3a16", "#9c5622", "#b4743a"]
+  # rotten dark-red cloth (the reference's maroon)
+  rag:       ["#0c0608", "#2a1014", "#47191d", "#652826", "#7e3a30"]
+  # old dark wood of the shield
+  oldwood:   ["#100a08", "#2b1c14", "#45301f", "#5f4429", "#7a5a36", "#93744a"]
+  # the sword's smear: cold violet-white (Nawia) instead of the template's warm fire
+  fx_tail:   ["#5a4a8a"]
+  fx_mid:    ["#b9a8e0"]
+  fx_core:   ["#f4f0ff"]
+
+materials:
+  bone:    {ramp: bonewhite, finish: soft, gamma: 0.85}
+  hollow:  {ramp: hollow, bands: [0, 1], line: false, outline: false}
+  eye:     {ramp: nawia_eye, emissive: true, band: 2, outline: false, glow: {color: "#a070ff", mix: 0.2, radius: 1}}
+  iron:    {ramp: iron, finish: metal}
+  rust:    {ramp: rust, finish: matte}
+  rag:     {ramp: rag, finish: matte}
+  wood:    {ramp: oldwood, finish: matte, bands: [2, 5]}
+  grip:    {ramp: leather, finish: soft}
+
+remove: [use.hair, use.sword, use.head]
+
+shadow: {rx: 8.5, ry: 3, alpha: 120}
+
+channels:
+  lean: 0
+  hand_L: [0.24, 0.12, 0.12]     # the shield arm: forearm across the front a little
+  hand_R: [0.26, 0.10, 0.16]     # the sword arm: low, the blade forward and down
+  foot_L: [0.10, 0, 0.02]
+  jaw_open: 0                    # the jaw drops (+)
+  sword_pitch: 0                 # the blade leans forward/down (+) from its rest at the wrist
+  sword_splay: 0                 # the blade turned outwards (+) or across the body (-)
+  eyes_lit: 1                    # 0 puts the eyes out (the heap)
+  apart: 0                       # 1: the loose pieces (x_*) instead of the rig
+  fall_a: 0                      # 0 standing .. 1 in the heap: the ribcage, pelvis and legs
+  fall_b: 0                      #   the skull and arms (a little behind)
+  fall_c: 0                      #   the sword and shield
+  bounce: 0                      # the skull hops up off the heap (+)
+  rattle: 0                      # small shake of the heap's pieces (rise)
+  # the attack's smear is a vertical arc (overhead chop) centred on fxspace
+  smear_y: 0
+  smear_z: 0.05
+  smear_r: 0.55
+
+bones:
+  # hip height 0.78 (human 0.84), upright
+  torso_rot: {parent: root, pos: "[0, 0.78 + bob, 0]", rot: "[lean, twist, roll]"}
+  headbase:  {parent: pelvis, pos: [0, 0.48, 0.03], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch - 0.2, head_yaw, 0]", scale: 1.25}
+  jaw:       {parent: head, pos: [0, 0.075, 0.0], rot: "[jaw_open, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.17, 0.43, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  coatbase:   {parent: pelvis, rot: "[-coat*0.25, 0, 0]"}
+  # the sword: from the fist along the hand frame's y (forward when the arm hangs), tilted down; its flat
+  # turned half to the camera
+  sword:      {parent: wrist_R, pos: [0, 0, 0.035], rot: "[0.45 + sword_pitch, 0, 0.35 + sword_splay]"}
+  sword_edge: {parent: sword, rot: [0, 0.9, 0]}
+  # the round shield on the outside of the left forearm (as the shield kit), its face turned to the camera
+  # further in se and back in nw where it would go edge-on
+  shield:     {parent: wrist_L, pos: [0.07, 0, -0.07], rot: [0, 1.5708, -1.03]}
+  shield_face: {parent: shield, rot: "[0, -(0.6 + 0.9*(pulse(yaw, 45, 40) - pulse(yaw, -135, 40))), 0]"}
+  # smear frame of the overhead chop: at the right shoulder, rolled so the arc runs in the vertical
+  # front-back plane (t = 0 forward, pi/2 up); it follows the lunge (root)
+  fxspace:    {parent: root, pos: [-0.17, 0.80, 0], rot: "[0, twist*0.3, 1.5708]"}
+
+  # --- loose pieces: rest (standing) position A + (heap position B - A) * fall, y with fall^2 (gravity) ---
+  x_chest:    {parent: root, pos: "[0, 1.08, 0] + ([0.0, 0.13, -0.14] - [0, 1.08, 0])*[fall_a, fall_a*fall_a, fall_a] + [0, 0.02*rattle, 0]",
+               rot: "[-1.35*fall_a, 0.45*fall_a + 0.05*rattle, 0.15*fall_a]"}
+  x_chest_g:  {parent: x_chest, pos: [0, -0.30, 0]}
+  x_pelvis:   {parent: root, pos: "[0, 0.78, 0] + ([0.03, 0.08, 0.10] - [0, 0.78, 0])*[fall_a, fall_a*fall_a, fall_a] - [0, 0.02*rattle, 0]",
+               rot: "[-1.25*fall_a, -0.5*fall_a, 0.2*fall_a - 0.05*rattle]"}
+  x_skull:    {parent: root, scale: 1.25,
+               pos: "[0, 1.42, 0.03] + ([-0.02, 0.17, 0.20] - [0, 1.42, 0.03])*[fall_b, fall_b*fall_b, fall_b] + [0, 0.10*bounce + 0.025*rattle, 0]",
+               rot: "[0.3*fall_b - 0.08*rattle, 0.45*fall_b + 0.1*rattle, -0.35*fall_b]"}
+  x_skull_g:  {parent: x_skull, pos: [0, -0.13, 0]}
+  x_jaw:      {parent: x_skull_g, pos: [0, 0.075, 0.0], rot: "[jaw_open, 0, 0]"}
+  x_arm_L:    {parent: root, pos: "[0.17, 1.21, 0] + ([0.30, 0.05, -0.06] - [0.17, 1.21, 0])*[fall_b, fall_b*fall_b, fall_b]",
+               rot: "[-1.5708*fall_b, 2.5*fall_b, 0.1*fall_b]"}
+  x_leg_L:    {parent: root, pos: "[0.08, 0.76, 0] + ([0.20, 0.05, -0.02] - [0.08, 0.76, 0])*[fall_a, fall_a*fall_a, fall_a]",
+               rot: "[-1.5708*fall_a, -0.95*fall_a, 0]"}
+  x_sword:    {parent: root, pos: "[-0.24, 0.95, 0.30] + ([-0.42, 0.03, 0.10] - [-0.24, 0.95, 0.30])*[fall_c, fall_c*fall_c, fall_c]",
+               rot: "[1.6 - 3.17*fall_c, 0.2 - 0.8*fall_c, 0]"}
+  x_sword_g:  {parent: x_sword, pos: [0, -0.20, 0]}
+  x_shield:   {parent: root, pos: "[0.30, 0.95, 0.08] + ([0.40, 0.12, -0.28] - [0.30, 0.95, 0.08])*[fall_c, fall_c*fall_c, fall_c]",
+               rot: "[-1.2*fall_c, 1.2 - 0.4*fall_c, 0]"}
+
+ik:
+  arm_L: {lengths: [0.23, 0.22], pole: [0.3, 0.0, -1.0]}
+  leg_L: {lengths: [0.36, 0.34]}
+
+parts:
+  # ------------------------------------------------------------------ the rig (standing)
+  torso:             # the ribcage, the collarbones; rib gaps painted dark, the sternum and spine over them
+    material: bone
+    space: pelvis
+    when: "apart < 0.5"
+    blend: 0.03
+    prims: &chest_prims
+      - ellipsoid: {c: [0, 0.33, 0.0], r: [0.145, 0.13, 0.105]}
+      - cone: {a: [-0.17, 0.43, -0.01], b: [0.17, 0.43, -0.01], r: [0.03, 0.03]}
+    cut: &chest_cut
+      - ellipsoid: {c: [0, 0.18, 0.08], r: [0.09, 0.10, 0.10]}    # the arch under the sternum
+    paint: &chest_paint
+      - material: hollow
+        stripes: {axis: y, at: [0.27, 0.335, 0.40], width: 0.042}
+      - material: bone
+        prims:
+          - box: {c: [0, 0.35, 0.12], half: [0.022, 0.10, 0.06]}    # sternum
+          - box: {c: [0, 0.33, -0.12], half: [0.03, 0.14, 0.06]}    # spine at the back
+  spine:             # the bare spine at the waist, between the pelvis and the ribcage
+    material: bone
+    space: pelvis
+    when: "apart < 0.5"
+    prims: &spine_prims
+      - tube: {pts: [[0, 0.0, -0.04], [0, 0.12, -0.07], [0, 0.26, -0.05]], r: 0.036}
+  neck:
+    material: bone
+    space: pelvis
+    when: "apart < 0.5"
+    prims: &neck_prims
+      - cone: {a: [0, 0.42, -0.03], b: [0, 0.50, 0.0], r: [0.03, 0.028]}
+  belt:              # the pelvis bone
+    material: bone
+    space: pelvis
+    when: "apart < 0.5"
+    prims: &pelvis_prims
+      - ellipsoid: {c: [0, 0.0, -0.01], r: [0.12, 0.06, 0.075]}
+  coat:              # rotten loincloth: a cord round the hips, a ragged flap in front and one behind
+    material: rag
+    space: coatbase
+    when: "apart < 0.5"
+    blend: 0.02
+    prims: &rag_prims
+      - torus: {c: [0, 0.035, -0.01], R: 0.12, r: 0.022}
+      - box: {c: [0, -0.10, 0.075], half: [0.075, 0.12, 0.018], rot: [-0.12, 0, 0]}
+      - box: {c: [0, -0.09, -0.09], half: [0.07, 0.11, 0.018], rot: [0.12, 0, 0]}
+    cut: &rag_cut
+      - box: {c: [0.04, -0.21, 0.08], half: [0.02, 0.05, 0.06], rot: [0, 0, 0.35]}
+      - box: {c: [-0.05, -0.20, 0.08], half: [0.018, 0.04, 0.06], rot: [0, 0, -0.3]}
+      - box: {c: [0.02, -0.19, -0.09], half: [0.02, 0.05, 0.06], rot: [0, 0, -0.3]}
+  head:              # the skull: cranium, a narrower face; sockets and the nose hole painted dark
+    material: bone
+    space: head
+    when: "apart < 0.5"
+    blend: 0.035
+    prims: &skull_prims
+      - ellipsoid: {c: [0, 0.18, -0.03], r: [0.115, 0.11, 0.12]}
+      - ellipsoid: {c: [0, 0.12, 0.05], r: [0.098, 0.088, 0.08]}
+    paint: &skull_paint
+      - material: hollow
+        prims:
+          - sphere: {c: [0.054, 0.148, 0.115], r: 0.036}
+          - sphere: {c: [-0.054, 0.148, 0.115], r: 0.036}
+          - sphere: {c: [0, 0.088, 0.135], r: 0.018}
+  jaw:               # the mandible on its hinge
+    material: bone
+    space: jaw
+    when: "apart < 0.5"
+    blend: 0.02
+    prims: &jaw_prims
+      - ellipsoid: {c: [0, -0.035, 0.06], r: [0.07, 0.032, 0.06]}
+  eye_L:             # a cold violet point in the socket; hidden inside the skull from behind
+    material: eye
+    space: head
+    when: "apart < 0.5 and eyes_lit > 0.5"
+    min_cover: 2
+    prims: &eye_prims
+      - extrude: {c: "[0.054, 0.148, 0.112 - 0.09*(abs(yaw) > 100)]", rot: [0, 0.4, 0], depth: 0.04, profile: {rect: [0.016, 0.016], round: 0.004}}
+  arm_L:             # thin arm bones with knobbly joints
+    material: bone
+    when: "apart < 0.5"
+    blend: 0.02
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.045}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.036, 0.03]}
+      - sphere: {c: "@elbow_L", r: 0.038}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.03, 0.03]}
+  hand_L:
+    material: bone
+    space: wrist_L
+    when: "apart < 0.5"
+    prims: &hand_prims
+      - ellipsoid: {c: [0, 0, 0.035], r: [0.045, 0.032, 0.05]}
+  leg_L:
+    material: bone
+    when: "apart < 0.5"
+    blend: 0.02
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.045, 0.036]}
+      - sphere: {c: "@knee_L", r: 0.045}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.036, 0.032]}
+  boot_L:            # a bony foot: heel knob and a flat foot
+    material: bone
+    space: sole_L
+    when: "apart < 0.5"
+    blend: 0.02
+    prims: &foot_prims
+      - sphere: {c: [0, 0.0, -0.01], r: 0.04}
+      - ellipsoid: {c: [0, -0.045, 0.055], r: [0.045, 0.028, 0.085]}
+  # the rusty short sword (blade along the sword frame's y)
+  blade:
+    material: iron
+    space: sword_edge
+    when: "apart < 0.5"
+    priority: 2
+    prims: &blade_prims
+      - extrude: {c: [0, 0, 0], depth: 0.05, round: 0.006,
+                  profile: {polygon: [[-0.036, 0.08], [0.036, 0.08], [0.032, 0.42], [0, 0.50], [-0.032, 0.42]]}}
+    paint: &blade_paint
+      - material: rust
+        spots: {scale: 0.045, density: 0.3, seed: 3}
+  guard:
+    material: rust
+    space: sword_edge
+    when: "apart < 0.5"
+    prims: &guard_prims
+      - extrude: {c: [0, 0.07, 0], depth: 0.05, profile: {rect: [0.065, 0.025], chamfer: 0.008}}
+  grip:
+    material: grip
+    space: sword_edge
+    when: "apart < 0.5"
+    prims: &grip_prims
+      - cylinder: {a: [0, -0.04, 0], b: [0, 0.06, 0], r: 0.02}
+      - sphere: {c: [0, -0.055, 0], r: 0.026}
+  # the round shield: a domed disc of old wood in an iron rim, an iron boss
+  shield:
+    material: iron
+    space: shield_face
+    when: "apart < 0.5"
+    prims: &shield_prims
+      - revolve: {c: [0, 0, 0], rot: [1.5708, 0, 0],
+                  profile: {bezier: [[0.18, -0.022], [0.18, 0], [0.18, 0.022], [0.09, 0.055], [0, 0.055],
+                                     [-0.09, 0.055], [-0.18, 0.022], [-0.18, 0], [-0.18, -0.022], [0, -0.022]], round: 0.008}}
+    paint: &shield_paint
+      - material: wood
+        prims:
+          - extrude: {c: [0, 0, 0], depth: 0.4, profile: {circle: 0.145}}
+  shield_boss:
+    material: iron
+    space: shield_face
+    when: "apart < 0.5"
+    prims: &boss_prims
+      - sphere: {c: [0, 0, 0.04], r: 0.045}
+
+  # ------------------------------------------------------------------ loose pieces (death heap, rise)
+  x_chest:
+    material: bone
+    space: x_chest_g
+    when: "apart > 0.5"
+    blend: 0.03
+    prims: *chest_prims
+    cut: *chest_cut
+    paint: *chest_paint
+  x_spine:
+    material: bone
+    space: x_chest_g
+    when: "apart > 0.5"
+    prims: *spine_prims
+  x_neck:
+    material: bone
+    space: x_chest_g
+    when: "apart > 0.5"
+    prims: *neck_prims
+  x_pelvis:
+    material: bone
+    space: x_pelvis
+    when: "apart > 0.5"
+    prims: *pelvis_prims
+  x_rag:
+    material: rag
+    space: x_pelvis
+    when: "apart > 0.5"
+    blend: 0.02
+    prims: *rag_prims
+    cut: *rag_cut
+  x_skull:
+    material: bone
+    space: x_skull_g
+    when: "apart > 0.5"
+    blend: 0.035
+    prims: *skull_prims
+    paint: *skull_paint
+  x_jaw:
+    material: bone
+    space: x_jaw
+    when: "apart > 0.5"
+    blend: 0.02
+    prims: *jaw_prims
+  x_eye_L:
+    material: eye
+    space: x_skull_g
+    when: "apart > 0.5 and eyes_lit > 0.5"
+    min_cover: 2
+    prims:
+      - extrude: {c: [0.054, 0.148, 0.112], rot: [0, 0.4, 0], depth: 0.04, profile: {rect: [0.016, 0.016], round: 0.004}}
+  x_arm_L:           # a loose arm from the shoulder knob down, the elbow a little bent, the hand knob
+    material: bone
+    space: x_arm_L
+    when: "apart > 0.5"
+    blend: 0.02
+    prims:
+      - sphere: {c: [0, 0, 0], r: 0.045}
+      - cone: {a: [0, 0, 0], b: [0, -0.23, -0.02], r: [0.036, 0.03]}
+      - sphere: {c: [0, -0.23, -0.02], r: 0.038}
+      - cone: {a: [0, -0.23, -0.02], b: [0, -0.40, 0.10], r: [0.03, 0.03]}
+      - ellipsoid: {c: [0, -0.44, 0.13], r: [0.045, 0.05, 0.035], rot: [0.6, 0, 0]}
+  x_leg_L:           # a loose leg from the hip: femur, knee knob, shin, foot
+    material: bone
+    space: x_leg_L
+    when: "apart > 0.5"
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0], b: [0, -0.355, 0.06], r: [0.045, 0.036]}
+      - sphere: {c: [0, -0.355, 0.06], r: 0.045}
+      - cone: {a: [0, -0.355, 0.06], b: [0, -0.68, 0.0], r: [0.036, 0.032]}
+      - sphere: {c: [0, -0.68, -0.01], r: 0.04}
+      - ellipsoid: {c: [0, -0.725, 0.055], r: [0.045, 0.028, 0.085]}
+  x_blade:
+    material: iron
+    space: x_sword_g
+    when: "apart > 0.5"
+    priority: 2
+    prims: *blade_prims
+    paint: *blade_paint
+  x_guard:
+    material: rust
+    space: x_sword_g
+    when: "apart > 0.5"
+    prims: *guard_prims
+  x_grip:
+    material: grip
+    space: x_sword_g
+    when: "apart > 0.5"
+    prims: *grip_prims
+  x_shield:
+    material: iron
+    space: x_shield
+    when: "apart > 0.5"
+    prims: *shield_prims
+    paint: *shield_paint
+  x_shield_boss:
+    material: iron
+    space: x_shield
+    when: "apart > 0.5"
+    prims: *boss_prims
+
+sockets:
+  hit: {bone: sword_edge, offset: [0, 0.36, 0], when: "apart < 0.5"}   # where a chop lands
+  tip: {bone: sword_edge, offset: [0, 0.50, 0], when: "apart < 0.5"}
+
+animations:
+  idle:
+    frames: 6
+    ms: 160
+    channels:
+      bob: "0.02*sin(p)"
+      head_pitch: "-0.05*sin(p - 0.5)"
+      jaw_open: "0.08*pos(sin(p - 1.0))"
+      hand_L: "[0.24, 0.12 + 0.015*sin(p - 0.6), 0.12]"
+      hand_R: "[0.26, 0.10 + 0.015*sin(p - 0.9), 0.16]"
+      sword_pitch: "0.05*sin(p - 0.9)"
+      coat: "0.12*sin(p - 1.0)"
