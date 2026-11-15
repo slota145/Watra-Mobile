@@ -36,6 +36,7 @@ func _run() -> void:
 	_test_upgrade_sell(game)
 	await _test_combat(game)
 	await _test_windows(game)
+	await _test_window_width(game)
 	game.reset_hero()
 	DirAccess.remove_absolute(game.settings_path)
 	DirAccess.remove_absolute(game.save_path)
@@ -352,6 +353,43 @@ func _test_combat(game: Node) -> void:
 	arena.get_node("World").add_child(loot)
 	await _wait(1.0)
 	_check(game.gem_count(ONYX) == have + 1, "kamień z ziemi trafia do sakwy")
+	arena.queue_free()
+	await process_frame
+	game.reset_hero()
+
+
+## Okno umiejętności mieści się na ekranie przy najdłuższych napisach: wszystkie bronie, umiejętności na 10. poziomie,
+## w każdej umiejętności jej kamień unikalny (Młynek i Krąg stali mają wtedy długą linię many - zgłoszenie autora).
+func _test_window_width(game: Node) -> void:
+	game.reset_hero()
+	game.hero_level = HeroLevels.MAX_LEVEL
+	game.weapons_bought = Weapons.ORDER.duplicate()
+	game.skills_owned = Skills.ORDER.duplicate()
+	for id in Skills.ORDER:
+		game.skill_levels[id] = Skills.MAX_LEVEL
+		game.skill_open[id] = Gems.SKILL_SOCKETS
+		game.skill_gems[id] = [Gems.unique_of(id) if Gems.UNIQUE.has(id) else "", "", "", "", ""]
+	game.save_game()
+	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var win: SkillsWindow = arena.skills_window
+	arena.open_skills()
+	var limit := float(ProjectSettings.get_setting("display/window/size/viewport_width"))  # 360 px obrazu gry
+	var widest := 0.0
+	var where := ""
+	for w in Weapons.ORDER:
+		game.weapon = w
+		for gems_mode in [false, true]:
+			win.set_gems_mode(gems_mode)
+			win.refresh()
+			await process_frame
+			for c in win.get_children():
+				if c is Control and c.visible and c.get_combined_minimum_size().x > widest:
+					widest = c.get_combined_minimum_size().x
+					where = "%s%s" % [w, " (kamienie)" if gems_mode else ""]
+	_check(widest <= limit, "okno umiejętności mieści się na ekranie przy każdej broni i kamieniach unikalnych (%.0f / %.0f px, %s)" % [widest, limit, where])
+	win.close()
 	arena.queue_free()
 	await process_frame
 	game.reset_hero()
