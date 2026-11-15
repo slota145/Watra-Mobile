@@ -154,6 +154,7 @@ func _test_wodnik(game: Node) -> void:
 	_check(w is ProtoWodnik and arena.boss_box.get_child(0).text == "Wodnik", "przyzwany Wodnik z paskiem zdrowia")
 	await _wait(ProtoChief.ENTER_TIME + 0.2)
 	var wod := w as ProtoWodnik
+	wod.passive = true
 	wod._cooldown = 99.0
 	wod._summon_cooldown = 99.0
 	# fala: pas od Wodnika w stronę postaci
@@ -198,7 +199,7 @@ func _test_wodnik(game: Node) -> void:
 	hero.hp = hero.max_hp
 	hero._invulnerable = 0.0
 	wod.start_attack("cast")
-	_check(wod._drops.size() == ProtoWodnik.DROPS and wod._drops[0].contains(hero.global_position), "lodowe krople: koła, jedno pod postacią")
+	_check(wod._drops.size() == ProtoWodnik.DROPS and wod._drops[0].contains(hero.global_position), "lodowe krople: koła, jedno pod postacią (%d, %s, %s)" % [wod._drops.size(), wod._drops[0].global_position, hero.global_position])
 	await _wait(ProtoWodnik.DROP_WARN + 0.1)
 	_check(hero.hp < hero.max_hp and hero.chill >= ProtoWodnik.ICE_SLOW - 0.01, "sopel rani i spowalnia")
 	await _wait(1.2)

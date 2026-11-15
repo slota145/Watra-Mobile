@@ -1,9 +1,9 @@
 spritekiln: 1
 # yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
 name: wodnik
-camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.27, 0]}
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.52, 0]}
 palette: "watra"
-size: 96
+size: 112
 extends: humanoid   # the template's skeleton and channels; the body, head and weapon below are the Wodnik's own
 
 # Wodnik (boss "Zatopionych podziemi"): stary wodny duch o żabiej twarzy. Ok. 48 px wysokości (człowiek 36 px,
@@ -79,10 +79,10 @@ remove: [use.hair, use.sword, use.head, animations.attack]
 
 use:
   # the trident: the spear kit's shaft, bones and socket (trident_tip), its leaf head replaced by three prongs below
-  - {kit: spear, as: trident, at: wrist_R, with: {length: 1.55, butt: 0.55, head: 0.34, width: 0.1, tilt: -1.0,
+  - {kit: spear, as: trident, at: wrist_R, with: {length: 1.75, butt: 0.62, head: 0.38, width: 0.1, tilt: -1.0,
      roll: "-radians(yaw)", cheat: 0}, materials: {steel: bronze}}
 
-shadow: {rx: 17, ry: 6, alpha: 120}
+shadow: {rx: 20, ry: 7, alpha: 120}
 snap: [root, torso_rot]   # the slow idle breathing moves in whole pixels (less boiling)
 
 channels:
@@ -101,15 +101,20 @@ channels:
 
 bones:
   # hip height 0.70 (human 0.84): short bowed legs under a heavy body; the +0.08 is a permanent stoop
-  torso_rot:  {parent: root, pos: "[0, 0.70 + bob, 0]", rot: "[lean + 0.08, twist, roll]"}
+  # the whole body x1.2 (about 48 px with the hat): everything hangs from `big`, as on the Goblin Chief; the
+  # wrist frames are not scaled (hands and trident in world units, sized for it)
+  big:        {parent: root, scale: 1.2}
+  torso_rot:  {parent: big, pos: "[0, 0.70 + bob, 0]", rot: "[lean + 0.08, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
   # the frog head sits low and forward on the shoulders, no neck
-  headbase:   {parent: pelvis, pos: [0, 0.76, 0.17], inherit_rot: false, inherit_scale: false,
+  headbase:   {parent: pelvis, pos: [0, 0.76, 0.17], inherit_rot: false, inherit_scale: false, scale: 1.2,
                rot: "[lean*0.5 - 0.05, twist, roll]"}
   head:       {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.0}
   hat:        {parent: head, pos: "[0, 0.21, -0.12] + hat_off", rot: "[-0.22 + hat_rot[0], hat_rot[1], 0.06 + hat_rot[2]]"}
   shoulder_L: {parent: pelvis, pos: [0.38, 0.56, -0.02]}
   hip_L:      {parent: pelvis, pos: [0.17, -0.02, 0.0]}
-  fxspace:    {parent: root, rot: "[0, twist*0.3, 0]"}
+  fxspace:    {parent: big, rot: "[0, twist*0.3, 0]"}
   # the trident keeps its own world lean (the wrist only carries it): upright, a little outwards, it follows the
   # torso's twist and lean; `trident_pitch` tips it forward, `trident_splay` outwards (+) or across the body (-);
   # cheat: in e / ne / se (the trident on the near side) it leans back a little so the prongs clear the face
@@ -117,8 +122,8 @@ bones:
                rot: "[-0.12 - 0.25*pulse(yaw, 90, 60) + trident_pitch + lean*0.5, twist + trident_yaw, 0.14 + trident_splay]"}
 
 ik:
-  arm_L: {lengths: [0.34, 0.32]}
-  leg_L: {lengths: [0.36, 0.34]}
+  arm_L: {lengths: [0.408, 0.384]}   # x1.2 (IK lengths are world units)
+  leg_L: {space: big, lengths: [0.432, 0.408]}
 
 parts:
   torso:           # a round belly under a broad chest and humped shoulders (the coat covers all but the belly)
@@ -221,10 +226,10 @@ parts:
     space: wrist_L
     blend: 0.03
     prims:
-      - sphere: {c: [0, 0, 0.04], r: 0.07}
-      - cone: {a: [0, 0, 0.06], b: [0.06, -0.02, 0.15], r: [0.035, 0.028]}
-      - cone: {a: [0, 0, 0.06], b: [0.0, -0.03, 0.17], r: [0.035, 0.028]}
-      - cone: {a: [0, 0, 0.06], b: [-0.06, -0.02, 0.15], r: [0.035, 0.028]}
+      - sphere: {c: [0, 0, 0.05], r: 0.084}
+      - cone: {a: [0, 0, 0.07], b: [0.072, -0.024, 0.18], r: [0.042, 0.034]}
+      - cone: {a: [0, 0, 0.07], b: [0.0, -0.036, 0.204], r: [0.042, 0.034]}
+      - cone: {a: [0, 0, 0.07], b: [-0.072, -0.024, 0.18], r: [0.042, 0.034]}
   leg_L:           # short thick bowed frog legs
     material: skin
     blend: 0.04
@@ -245,11 +250,11 @@ parts:
     min_cover: 2
     blend: 0.02
     prims:
-      - box: {c: "[0, 1.21 + 0.02, 0]", half: [0.15, 0.028, 0.03], round: 0.01}
-      - cylinder: {a: [0, 1.15, 0], b: [0, 1.24, 0], r: 0.035}
-      - tube: {pts: ["[0.14, 1.23, 0]", "[0.17, 1.40, 0]", "[0.11, 1.53, 0]"], r: [0.03, 0.012]}
-      - tube: {pts: ["[-0.14, 1.23, 0]", "[-0.17, 1.40, 0]", "[-0.11, 1.53, 0]"], r: [0.03, 0.012]}
-      - cone: {a: [0, 1.23, 0], b: [0, 1.60, 0], r: [0.035, 0.012]}
+      - box: {c: [0, 1.39, 0], half: [0.17, 0.03, 0.032], round: 0.01}
+      - cylinder: {a: [0, 1.31, 0], b: [0, 1.40, 0], r: 0.038}
+      - tube: {pts: ["[0.16, 1.39, 0]", "[0.19, 1.58, 0]", "[0.125, 1.73, 0]"], r: [0.033, 0.013]}
+      - tube: {pts: ["[-0.16, 1.39, 0]", "[-0.19, 1.58, 0]", "[-0.125, 1.73, 0]"], r: [0.033, 0.013]}
+      - cone: {a: [0, 1.39, 0], b: [0, 1.81, 0], r: [0.038, 0.013]}
   trident_ferrule:
     material: bronze
   glow:            # the cast: a pale water-light gathered in the raised left hand
@@ -266,8 +271,8 @@ animations:
     frames: 8
     ms: 160
     channels:
-      bob: "0.03*sin(p)"
-      squash: "1 + 0.03*sin(p)"
+      bob: "0.045*sin(p)"
+      squash: "1 + 0.015*sin(p)"
       head_pitch: "-0.04*sin(p - 0.6)"
       hand_L: "[0.40, 0.02 + 0.03*sin(p - 0.6), 0.10]"
       hand_R: "[0.48, 0.22 + 0.02*sin(p - 0.6), -0.04]"
@@ -464,11 +469,11 @@ animations:
           foot_L: [0.20, 0.06, 0.44], foot_R: [0.21, 0.03, 0.40]}}
       - {ms: 130, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.60, bob: -0.40, squash: 0.98, head_pitch: -0.55, coat: -0.5,
           hand_L: [0.51, 0.08, -0.05], hand_R: [0.54, 0.08, -0.06], trident_pitch: 1.2, trident_splay: 1.25,
-          hat_off: [0.08, 0.55, -0.18], hat_rot: [-1.5, 0, 1.5],
+          hat_off: [0.08, 0.50, -0.18], hat_rot: [-1.5, 0, 1.5],
           foot_L: [0.20, 0.04, 0.45], foot_R: [0.21, 0.02, 0.42]}}
       - {ms: 600, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.68, bob: -0.44, head_pitch: -0.6, coat: -0.6,
           hand_L: [0.51, 0.06, -0.08], hand_R: [0.54, 0.06, -0.08], trident_pitch: 1.2, trident_splay: 1.25,
-          hat_off: [0.10, 0.62, -0.16], hat_rot: [-1.57, 0, 1.6],
+          hat_off: [0.10, 0.54, -0.16], hat_rot: [-1.57, 0, 1.6],
           foot_L: [0.20, 0, 0.46], foot_R: [0.21, 0, 0.44]}}
 
 timing:

@@ -70,6 +70,8 @@ var _drops: Array[ProtoTelegraph] = []
 var _summon_cooldown := 5.0
 var _summon_points: Array = []
 var _last_attack := ""
+## Testy i zrzuty: Wodnik sam nie wybiera ataków (tylko `start_attack`).
+var passive := false
 
 
 func _init() -> void:
@@ -77,7 +79,7 @@ func _init() -> void:
 	base_hp = WODNIK_HP
 	fallback_tint = Color(0.55, 0.8, 1.0)
 	keep_distance = KEEP_DISTANCE
-	anim_hit_at = {&"wave": 0.5, &"vortex": 0.6, &"cast": 0.5, &"summon": 0.6}
+	anim_hit_at = {&"wave": 0.44, &"vortex": 0.55, &"cast": 0.43, &"summon": 0.45}
 	anim_fallback = {&"wave": &"attack", &"vortex": &"attack", &"cast": &"attack", &"summon": &"attack",
 		&"roar": &"idle", &"slam": &"attack", &"throw": &"attack"}
 
@@ -111,7 +113,7 @@ func _process(delta: float) -> void:
 
 ## Wybór ataku: wezwanie topielców, gdy gotowe; inaczej fala, wir albo krople (nie dwa razy to samo).
 func _choose_attack(distance: float) -> void:
-	if distance > ATTACK_RANGE:
+	if passive or distance > ATTACK_RANGE:
 		_cooldown = 0.4
 		return
 	if _summon_cooldown <= 0.0:
@@ -252,7 +254,7 @@ func _start_cast() -> void:
 		t.radius = DROP_RADIUS
 		t.duration = DROP_WARN + DROP_STEP * i
 		get_parent().add_child(t)
-		t.global_position = at.clamp(bounds.position, bounds.end)
+		t.global_position = at if i == 0 else at.clamp(bounds.position, bounds.end)  # pierwsza zawsze pod postacią
 		_drops.append(t)
 
 

@@ -49,6 +49,7 @@ func _run() -> void:
 	arena.summon_chief()
 	var w := arena.chief as ProtoWodnik
 	w._summon_cooldown = 99.0
+	w.passive = true
 	await create_timer(ProtoChief.ENTER_TIME + 0.2).timeout
 	w._cooldown = 99.0
 	hero.position = w.position + Vector2(10, 70)
