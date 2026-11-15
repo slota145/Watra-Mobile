@@ -9,7 +9,7 @@ extends: humanoid   # its skeleton, IK and smear; here only what differs (sword,
 # Szkielet: the basic melee enemy of the "Katakumby" (catacombs) dungeon. Reference:
 # docs/referencje/katakumby/skeleton.png (Watra's sprite, 6x). A human skeleton warrior, about 33 px tall
 # (the human is 36 px, same camera.scale): bone-white skull, ribcage, spine and thin limb bones, dark eye
-# sockets with small cold violet points (Nawia), a dented rusty iron half-helm, a rusty short sword in the
+# sockets with small cold violet points (Nawia), a bare skull (no helm), a rusty short sword in the
 # right hand, a small round wooden shield on the left forearm, a rotten dark-red loincloth.
 #
 # Two models of the same bones: the rig (parts without `x_`, `apart: 0`) and loose pieces (`x_*` parts on
@@ -19,13 +19,13 @@ brief:
   summary: >
     skeleton warrior of the catacombs (Watra's skeleton): about 33 px tall, upright, lanky; pale ivory bones
     with a dark outline (reads on grey stone), a ribcage with dark gaps between the ribs, a thin spine at the
-    waist, a skull under a dented rusty iron half-helm, a rusty short sword held low in the right hand, a small
+    waist, a bare skull, a rusty short sword held low in the right hand, a small
     round rotten-wood shield with an iron rim and boss on the left forearm, a ragged dark-red loincloth
   head: >
     own skull (head kit removed): round cranium, a narrower face, a separate jaw on a hinge (jaw_open);
     two big dark eye sockets (paint) with a single cold violet glowing point in each (emissive, Nawia),
-    a 1 px dark nose hole; a rusty iron half-helm over the crown and the back of the skull, its brim just above
-    the sockets, a dent on the left side; face minimal (style): no other features
+    a 1 px dark nose hole; the skull tilted a little up (baked into the head bone) so the sockets show from
+    the top-down camera; no helm; face minimal (style): no other features
   must_keep:
     - the pale bones against the dark outline, the ribcage with its rib gaps and the thin waist (spine only)
     - the violet eye points (Nawia, the dungeon's element)
@@ -37,8 +37,10 @@ brief:
     - vertebrae are not modelled: the spine is one thin tube
   decisions:
     - the reference shows a fully armoured skeleton in rusty plate; per the brief the bones show, the armour
-      becomes only the half-helm, the shield and the loincloth in the reference's rusty maroon
-    - eyes are lit violet in every direction except n, ne, nw (inside the skull, hidden by the helm's back)
+      becomes only the shield and the loincloth in the reference's rusty maroon
+    - no helmet - a half-helm was tried, but from the 38 degree camera it covered the whole skull and hid the
+      sockets; the bare skull reads instantly in a crowd (the helmeted look is left to the skeleton knight)
+    - eyes are lit violet in every direction except n, ne, nw (pulled inside the skull there)
     - the heap is the ribcage on its back, the pelvis in front of it, the leg bones crossed under the skull,
       the arms at the sides, the sword on the right and the shield on the left; the eyes go out in the heap
       and light up again at the start of rise
@@ -65,14 +67,14 @@ ramps:
 materials:
   bone:    {ramp: bonewhite, finish: soft, gamma: 0.85}
   hollow:  {ramp: hollow, bands: [0, 1], line: false, outline: false}
-  eye:     {ramp: nawia_eye, emissive: true, band: 2, outline: false, glow: {color: "#a070ff", mix: 0.2, radius: 1}}
+  eye:     {ramp: nawia_eye, emissive: true, band: 2, outline: false, glow: {color: "#a070ff", mix: 0.1, radius: 1}}
   iron:    {ramp: iron, finish: metal}
   rust:    {ramp: rust, finish: matte}
   rag:     {ramp: rag, finish: matte}
   wood:    {ramp: oldwood, finish: matte, bands: [2, 5]}
   grip:    {ramp: leather, finish: soft}
 
-remove: [use.hair, use.sword, use.head]
+remove: [use.hair, use.sword, use.head, animations.walk, animations.attack]
 
 shadow: {rx: 8.5, ry: 3, alpha: 120}
 
@@ -108,7 +110,7 @@ bones:
   coatbase:   {parent: pelvis, rot: "[-coat*0.25, 0, 0]"}
   # the sword: from the fist along the hand frame's y (forward when the arm hangs), tilted down; its flat
   # turned half to the camera
-  sword:      {parent: wrist_R, pos: [0, 0, 0.035], rot: "[0.45 + sword_pitch, 0, 0.35 + sword_splay]"}
+  sword:      {parent: wrist_R, pos: [0, 0, 0.035], rot: "[0.65 + sword_pitch, 0, 0.35 + sword_splay]"}
   sword_edge: {parent: sword, rot: [0, 0.9, 0]}
   # the round shield on the outside of the left forearm (as the shield kit), its face turned to the camera
   # further in se and back in nw where it would go edge-on
@@ -119,20 +121,20 @@ bones:
   fxspace:    {parent: root, pos: [-0.17, 0.80, 0], rot: "[0, twist*0.3, 1.5708]"}
 
   # --- loose pieces: rest (standing) position A + (heap position B - A) * fall, y with fall^2 (gravity) ---
-  x_chest:    {parent: root, pos: "[0, 1.08, 0] + ([0.0, 0.13, -0.14] - [0, 1.08, 0])*[fall_a, fall_a*fall_a, fall_a] + [0, 0.02*rattle, 0]",
+  x_chest:    {parent: root, pos: "[0, 1.08, 0] + ([0.0, 0.13, -0.14] - [0, 1.08, 0])*[fall_a, fall_a*fall_a, fall_a] + [0, 0.05*rattle, 0.02*rattle]",
                rot: "[-1.35*fall_a, 0.45*fall_a + 0.05*rattle, 0.15*fall_a]"}
   x_chest_g:  {parent: x_chest, pos: [0, -0.30, 0]}
-  x_pelvis:   {parent: root, pos: "[0, 0.78, 0] + ([0.03, 0.08, 0.10] - [0, 0.78, 0])*[fall_a, fall_a*fall_a, fall_a] - [0, 0.02*rattle, 0]",
+  x_pelvis:   {parent: root, pos: "[0, 0.78, 0] + ([0.03, 0.08, 0.10] - [0, 0.78, 0])*[fall_a, fall_a*fall_a, fall_a] - [0, 0.03*rattle, 0]",
                rot: "[-1.25*fall_a, -0.5*fall_a, 0.2*fall_a - 0.05*rattle]"}
   x_skull:    {parent: root, scale: 1.25,
-               pos: "[0, 1.42, 0.03] + ([-0.02, 0.17, 0.20] - [0, 1.42, 0.03])*[fall_b, fall_b*fall_b, fall_b] + [0, 0.10*bounce + 0.025*rattle, 0]",
-               rot: "[0.3*fall_b - 0.08*rattle, 0.45*fall_b + 0.1*rattle, -0.35*fall_b]"}
+               pos: "[0, 1.42, 0.03] + ([0.0, 0.19, 0.14] - [0, 1.42, 0.03])*[fall_b, fall_b*fall_b, fall_b] + [0, 0.10*bounce + 0.05*abs(rattle), 0]",
+               rot: "[-0.75*fall_b - 0.08*rattle, 0.3*fall_b + 0.1*rattle, -0.25*fall_b]"}
   x_skull_g:  {parent: x_skull, pos: [0, -0.13, 0]}
   x_jaw:      {parent: x_skull_g, pos: [0, 0.075, 0.0], rot: "[jaw_open, 0, 0]"}
-  x_arm_L:    {parent: root, pos: "[0.17, 1.21, 0] + ([0.30, 0.05, -0.06] - [0.17, 1.21, 0])*[fall_b, fall_b*fall_b, fall_b]",
-               rot: "[-1.5708*fall_b, 2.5*fall_b, 0.1*fall_b]"}
-  x_leg_L:    {parent: root, pos: "[0.08, 0.76, 0] + ([0.20, 0.05, -0.02] - [0.08, 0.76, 0])*[fall_a, fall_a*fall_a, fall_a]",
-               rot: "[-1.5708*fall_a, -0.95*fall_a, 0]"}
+  x_arm_L:    {parent: root, pos: "[0.17, 1.21, 0] + ([0.24, 0.05, -0.10] - [0.17, 1.21, 0])*[fall_b, fall_b*fall_b, fall_b]",
+               rot: "[-1.5708*fall_b, 2.5*fall_b + 0.15*rattle, 0.1*fall_b]"}
+  x_leg_L:    {parent: root, pos: "[0.08, 0.76, 0] + ([0.15, 0.05, -0.08] - [0.08, 0.76, 0])*[fall_a, fall_a*fall_a, fall_a]",
+               rot: "[-1.5708*fall_a, -0.75*fall_a, 0]"}
   x_sword:    {parent: root, pos: "[-0.24, 0.95, 0.30] + ([-0.42, 0.03, 0.10] - [-0.24, 0.95, 0.30])*[fall_c, fall_c*fall_c, fall_c]",
                rot: "[1.6 - 3.17*fall_c, 0.2 - 0.8*fall_c, 0]"}
   x_sword_g:  {parent: x_sword, pos: [0, -0.20, 0]}
@@ -157,7 +159,7 @@ parts:
       - ellipsoid: {c: [0, 0.18, 0.08], r: [0.09, 0.10, 0.10]}    # the arch under the sternum
     paint: &chest_paint
       - material: hollow
-        stripes: {axis: y, at: [0.27, 0.335, 0.40], width: 0.042}
+        stripes: {axis: y, at: [0.27, 0.335, 0.40], width: 0.05}
       - material: bone
         prims:
           - box: {c: [0, 0.35, 0.12], half: [0.022, 0.10, 0.06]}    # sternum
@@ -204,8 +206,8 @@ parts:
     paint: &skull_paint
       - material: hollow
         prims:
-          - sphere: {c: [0.054, 0.148, 0.115], r: 0.036}
-          - sphere: {c: [-0.054, 0.148, 0.115], r: 0.036}
+          - sphere: {c: [0.056, 0.15, 0.115], r: 0.044}
+          - sphere: {c: [-0.056, 0.15, 0.115], r: 0.044}
           - sphere: {c: [0, 0.088, 0.135], r: 0.018}
   jaw:               # the mandible on its hinge
     material: bone
@@ -220,7 +222,7 @@ parts:
     when: "apart < 0.5 and eyes_lit > 0.5"
     min_cover: 2
     prims: &eye_prims
-      - extrude: {c: "[0.054, 0.148, 0.112 - 0.09*(abs(yaw) > 100)]", rot: [0, 0.4, 0], depth: 0.04, profile: {rect: [0.016, 0.016], round: 0.004}}
+      - extrude: {c: "[0.054, 0.148, 0.103 - 0.09*(abs(yaw) > 100) - 0.02*pulse(abs(yaw), 90, 30)]", rot: [0, 0.4, 0], depth: 0.03, profile: {rect: [0.016, 0.016], round: 0.004}}
   arm_L:             # thin arm bones with knobbly joints
     material: bone
     when: "apart < 0.5"
@@ -347,7 +349,7 @@ parts:
     when: "apart > 0.5 and eyes_lit > 0.5"
     min_cover: 2
     prims:
-      - extrude: {c: [0.054, 0.148, 0.112], rot: [0, 0.4, 0], depth: 0.04, profile: {rect: [0.016, 0.016], round: 0.004}}
+      - extrude: {c: [0.054, 0.148, 0.103], rot: [0, 0.4, 0], depth: 0.03, profile: {rect: [0.016, 0.016], round: 0.004}}
   x_arm_L:           # a loose arm from the shoulder knob down, the elbow a little bent, the hand knob
     material: bone
     space: x_arm_L
@@ -415,3 +417,94 @@ animations:
       hand_R: "[0.26, 0.10 + 0.015*sin(p - 0.9), 0.16]"
       sword_pitch: "0.05*sin(p - 0.9)"
       coat: "0.12*sin(p - 1.0)"
+  # stiff march: legs nearly straight, each foot planted half the cycle and sliding back at a constant speed,
+  # then swung forward low; a small side rattle, the jaw clacking on each step, stiff arm swing
+  walk:
+    frames: 8
+    ms: 100
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.04
+      bob: "-0.022*cos(2*p) + 0.005"
+      roll: "0.035*sin(p)"
+      twist: "0.07*cos(p)"
+      head_yaw: "-0.06*cos(p)"
+      head_pitch: "0.05*cos(2*p - 0.6)"
+      jaw_open: "0.10*pos(sin(2*p - 0.5))"
+      foot_L: "[0.10, 0.07*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.02 + 0.27 - 0.54*clamp(p/tau/0.5, 0, 1) + 0.54*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.10, 0.07*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.02 + 0.27 - 0.54*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.54*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      pitch_foot_L: "0.3*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
+      pitch_foot_R: "0.3*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
+      hand_L: "[0.24, 0.12 + 0.02*pos(cos(p)), 0.12 - 0.08*cos(p)]"
+      hand_R: "[0.26, 0.10 + 0.025*pos(-cos(p)), 0.16 + 0.12*cos(p)]"
+      sword_pitch: "-0.12*cos(p - 0.5)"
+      coat: "0.4*sin(2*p - 0.6)"
+  # overhead chop with the right hand: the sword raised high over the skull (held, the jaw gaping), one fast
+  # strike down with a vertical smear, the blade lands (hit) low in front, follow-through, recovery. 610 ms.
+  attack:
+    loop: false
+    keys:
+      - {ms: 80, event: windup, set: {twist: -0.15, lean: -0.05, bob: -0.02, squash: 0.97, coat: -0.2, jaw_open: 0.1,
+          hand_R: [0.28, 0.40, 0.06], sword_pitch: 0.2, sword_splay: -0.2, hand_L: [0.24, 0.16, 0.16], head_pitch: -0.05}}
+      - {ms: 100, set: {twist: -0.3, lean: -0.18, bob: -0.01, squash: 1.02, coat: -0.3, jaw_open: 0.25,
+          hand_R: "[0.30, 0.56, -0.10*pulse(yaw, 90, 70)]", sword_pitch: 1.2, sword_splay: -0.4, hand_L: [0.26, 0.22, 0.20], head_pitch: -0.12,
+          foot_L: [0.10, 0, 0.10], foot_R: [0.10, 0, -0.06]}}
+      - {ms: 140, set: {twist: -0.35, lean: -0.25, bob: 0, squash: 1.04, coat: -0.35, jaw_open: 0.4,
+          hand_R: "[0.30, 0.58, -0.08 - 0.12*pulse(yaw, 90, 70)]", sword_pitch: "1.95 + 0.25*pulse(yaw, 90, 70) + 0.55*pulse(yaw, -20, 50)", sword_splay: -0.6, hand_L: [0.27, 0.24, 0.22], head_pitch: -0.15,
+          foot_L: [0.10, 0, 0.10], foot_R: [0.10, 0, -0.06]}}
+      - {ms: 50, set: {root: [0, 0, 0.10], twist: 0.15, lean: 0.3, bob: -0.05, squash: 0.96, coat: 0.5, jaw_open: 0.3,
+          hand_R: [0.10, 0.16, 0.40], sword_pitch: 0.3, hand_L: [0.26, 0.04, 0.0], head_pitch: 0.08,
+          foot_L: [0.10, 0, 0.20], foot_R: [0.10, 0, -0.08],
+          smear_w: 0.09, smear_a0: 1.9, smear_a1: -0.5}}
+      - {ms: 70, event: hit, set: {root: [0, 0, 0.13], twist: 0.2, lean: 0.38, bob: -0.07, squash: 0.94, coat: 0.6, jaw_open: 0.2,
+          hand_R: [0.08, 0.0, 0.36], sword_pitch: 0.75, hand_L: [0.26, 0.02, -0.02], head_pitch: 0.12,
+          foot_L: [0.10, 0, 0.20], foot_R: [0.10, 0, -0.08],
+          smear_w: 0.07, smear_a0: 0.9, smear_a1: -0.7, smear_fade: 0.6}}
+      - {ms: 80, set: {root: [0, 0, 0.08], twist: 0.1, lean: 0.2, bob: -0.03, coat: 0.2, jaw_open: 0.1,
+          hand_R: [0.18, 0.04, 0.26], sword_pitch: 0.4, hand_L: [0.25, 0.08, 0.06],
+          foot_L: [0.10, 0, 0.14], foot_R: [0.10, 0, -0.05]}}
+      - {ms: 90, set: {root: [0, 0, 0.02], lean: 0.06, coat: -0.05, hand_R: [0.25, 0.09, 0.17], sword_pitch: 0.05,
+          foot_L: [0.10, 0, 0.05]}}
+  # hit: the skull snaps back with the jaw knocked open, the bones rattle, then settle
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.28, roll: 0.06, bob: -0.02, squash: 0.95, head_pitch: -0.35, jaw_open: 0.35,
+          coat: -0.5, hand_L: [0.30, 0.18, 0.06], hand_R: [0.32, 0.18, 0.08], sword_pitch: -0.3}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.12, roll: -0.04, bob: -0.01, squash: 0.98, head_pitch: -0.12, jaw_open: 0.15,
+          coat: -0.2, hand_L: [0.27, 0.14, 0.10], hand_R: [0.29, 0.13, 0.13], sword_pitch: -0.15}}
+      - {ms: 70, set: {root: [0, 0, -0.01], lean: 0.0, head_pitch: 0.03, coat: 0.1,
+          hand_L: [0.24, 0.12, 0.12], hand_R: [0.26, 0.10, 0.16]}}
+  # death: struck, the knees buckle, then every bone lets go at once and the skeleton falls apart straight
+  # down into a heap (loose pieces); the skull lands last and hops once; the eyes go out. 900 ms, the last
+  # frame (the heap) is held - rise starts from the same heap.
+  death:
+    loop: false
+    keys:
+      - {ms: 100, set: {root: [0, 0, -0.05], lean: -0.3, roll: 0.05, bob: -0.02, squash: 0.95, head_pitch: -0.35, jaw_open: 0.35,
+          coat: -0.5, hand_L: [0.30, 0.18, 0.06], hand_R: [0.32, 0.18, 0.08], sword_pitch: -0.3}}
+      - {ms: 90, set: {root: [0, 0, -0.04], lean: 0.08, roll: -0.04, bob: -0.10, squash: 0.95, head_pitch: 0.15, jaw_open: 0.3,
+          coat: 0.2, hand_L: [0.26, 0.06, 0.12], hand_R: [0.28, 0.04, 0.14], sword_pitch: 0.4,
+          foot_L: [0.12, 0, 0.04], foot_R: [0.12, 0, 0.0]}}
+      - {ms: 80, set: {apart: 1, fall_a: 0.25, fall_b: 0.12, fall_c: 0.2, jaw_open: 0.3}}
+      - {ms: 80, set: {apart: 1, fall_a: 0.5, fall_b: 0.38, fall_c: 0.45, jaw_open: 0.25}}
+      - {ms: 80, set: {apart: 1, fall_a: 0.78, fall_b: 0.66, fall_c: 0.75, jaw_open: 0.2}}
+      - {ms: 80, set: {apart: 1, fall_a: 1, fall_b: 0.92, fall_c: 1, jaw_open: 0.15}}
+      - {ms: 90, set: {apart: 1, fall_a: 1, fall_b: 1, fall_c: 1, bounce: 0.5, jaw_open: 0.25}}
+      - {ms: 80, set: {apart: 1, fall_a: 1, fall_b: 1, fall_c: 1, bounce: 0.15, jaw_open: 0.1, eyes_lit: 0}}
+      - {ms: 220, set: {apart: 1, fall_a: 1, fall_b: 1, fall_c: 1, eyes_lit: 0}}
+  # rise: the reverse - the heap lies still (the same frame as the end of death), the eyes light up, the bones
+  # rattle, then fly up and click back into the standing skeleton, which settles into the idle pose. 800 ms.
+  rise:
+    loop: false
+    keys:
+      - {ms: 150, set: {apart: 1, fall_a: 1, fall_b: 1, fall_c: 1, eyes_lit: 0}}
+      - {ms: 80, event: wake, set: {apart: 1, fall_a: 1, fall_b: 1, fall_c: 1, rattle: 1}}
+      - {ms: 70, set: {apart: 1, fall_a: 1, fall_b: 1, fall_c: 1, rattle: -1, bounce: 0.2}}
+      - {ms: 80, set: {apart: 1, fall_a: 0.72, fall_b: 0.8, fall_c: 0.78, jaw_open: 0.3}}
+      - {ms: 80, set: {apart: 1, fall_a: 0.46, fall_b: 0.55, fall_c: 0.5, jaw_open: 0.35}}
+      - {ms: 80, set: {apart: 1, fall_a: 0.22, fall_b: 0.3, fall_c: 0.25, jaw_open: 0.25}}
+      - {ms: 80, set: {apart: 1, fall_a: 0.05, fall_b: 0.08, fall_c: 0.06, jaw_open: 0.15}}
+      - {ms: 90, set: {bob: -0.06, squash: 0.95, lean: 0.06, head_pitch: 0.1, jaw_open: 0.1, coat: 0.3,
+          hand_L: [0.25, 0.09, 0.12], hand_R: [0.27, 0.07, 0.16], foot_L: [0.12, 0, 0.02], foot_R: [0.12, 0, 0.02]}}
+      - {ms: 90, set: {head_pitch: 0.024, hand_L: [0.24, 0.1115, 0.12], hand_R: [0.26, 0.0882, 0.16], sword_pitch: -0.039, coat: -0.1}}

@@ -10,7 +10,7 @@ extends ProtoGoblin
 
 const SKELETON_SCENE := "res://assets/spritekiln/skeleton/skeleton.tscn"
 const SKELETON_HP := 34
-const SKELETON_SPEED := 40.0
+const SKELETON_SPEED := 34.0
 const SKELETON_DAMAGE := 10
 ## Tyle sekund leży kupka kości, zanim szkielet wstanie; tyle trwa wstawanie (bez grafiki - zegar).
 const PILE_TIME := 3.0

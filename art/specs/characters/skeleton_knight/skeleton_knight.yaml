@@ -1,7 +1,7 @@
 spritekiln: 1
 # yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
 name: skeleton_knight
-camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.05, 0]}
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.22, 0]}
 palette: "watra"
 size: 80
 extends: humanoid   # the template's skeleton; head, hair and sword kits replaced by the knight's own helm and sword
@@ -10,7 +10,7 @@ extends: humanoid   # the template's skeleton; head, hair and sword kits replace
 # człowieka, ta sama camera.scale): ciężka ciemna zbroja płytowa z rdzawymi krawędziami i nitami, zamknięty
 # hełm garnczkowy z ciemną szczeliną, w której świecą dwa fioletowe punkty oczu, postrzępiona ciemna peleryna,
 # rdzawa tunika (tabard), kościste dłonie w szparach rękawic, długi ciężki miecz w prawej ręce. Wolny czołg.
-# Cała postać rośnie przez kość `big` (1.22) pod `root`, jak goblin osiłek.
+# Cała postać rośnie przez kość `big` (1.45) pod `root`, jak goblin osiłek.
 brief:
   summary: >
     skeleton knight of the catacombs: a big, slow, armoured undead tank. About 45 px tall against a 36 px
@@ -41,7 +41,7 @@ brief:
       (sword straight in front), total 1100 ms
     - death - the knees fold and the armour sinks into a heap; the helm comes off, drops and rolls away to
       the knight's left, the eyes go out (`glow` channel); the sword falls flat beside the heap
-    - frame 80 px (camera.center y 1.05)
+    - frame 80 px (camera.center y 1.22); the body grows through the bone `big` (1.45): about 44 px tall
 
 ramps:
   # dark iron plates, cool and nearly black in shadow, a cold grey highlight
@@ -75,7 +75,7 @@ use:
   - {kit: cape, as: cape, at: pelvis, with: {length: 0.98, width: 0.44, flare: 0.22, drape: 0.14, flat: 0.08,
       dip: 0.15, top: 0.60, thick: 0.05, collar: false, clasp: false}}
 
-shadow: {rx: 15, ry: 5, alpha: 120}
+shadow: {rx: 18, ry: 6, alpha: 120}
 snap: [root, torso_rot]   # whole-pixel body motion: the slow idle sway does not boil
 
 channels:
@@ -88,22 +88,22 @@ channels:
   glow: 1          # the eyes glow (death puts them out)
   helm_off: [0, 0, 0]   # the helm knocked off (death), in the pelvis's space
   helm_roll: 0     # the helm rolling over (death)
-  smear_r: 1.05
+  smear_r: 0.92
   smear_y: 1.25
   smear_z: 0
 
 bones:
-  big:        {parent: root, scale: 1.22}
+  big:        {parent: root, scale: 1.45}
   torso_rot:  {parent: big, pos: "[0, 0.84 + bob, 0]", rot: "[lean, twist, roll]"}
   legyaw:     {parent: big, rot: "[0, twist*0.5, 0]"}
   footyaw:    {parent: big, rot: "[0, twist*0.4, 0]"}
   fxspace:    {parent: big, rot: [0, 0, 0]}
-  headbase:   {pos: "[0, 0.60, 0.04] + helm_off", scale: 1.22, rot: "[lean*0.5, twist, roll + helm_roll]"}
+  headbase:   {pos: "[0, 0.60, 0.04] + helm_off", scale: 1.45, rot: "[lean*0.5, twist, roll + helm_roll]"}
   head:       {scale: 0.95}
   shoulder_L: {pos: [0.31, 0.53, 0.0]}
   hip_L:      {pos: [0.13, -0.02, 0.0]}
   # the sword: along the bone's y from the fist, oriented in the torso's space
-  sword:      {parent: torso_rot, at: wrist_R, inherit_scale: false, rot: "[sw_pitch, sw_yaw, sw_roll]"}
+  sword:      {parent: torso_rot, at: wrist_R, inherit_scale: false, scale: 1.05, rot: "[sw_pitch, sw_yaw, sw_roll]"}
 
 ik:
   arm_L: {lengths: [0.31, 0.29]}
@@ -210,7 +210,7 @@ parts:
     material: plate
     space: wrist_L
     prims:
-      - cylinder: {a: [0, 0, -0.06], b: [0, 0, 0.02], r: 0.085}
+      - cylinder: {a: [0, 0, -0.07], b: [0, 0, 0.025], r: 0.10}
     paint:
       - material: rust
         stripes: {axis: z, at: [0.0], width: 0.045}
@@ -219,9 +219,9 @@ parts:
     space: wrist_L
     blend: 0.02
     prims:
-      - ellipsoid: {c: [0, 0, 0.06], r: [0.055, 0.05, 0.05]}
-      - cone: {a: [0.02, 0, 0.08], b: [0.03, -0.02, 0.13], r: [0.022, 0.016]}
-      - cone: {a: [-0.02, 0, 0.08], b: [-0.03, -0.02, 0.13], r: [0.022, 0.016]}
+      - ellipsoid: {c: [0, 0, 0.07], r: [0.065, 0.06, 0.06]}
+      - cone: {a: [0.025, 0, 0.10], b: [0.035, -0.025, 0.155], r: [0.026, 0.019]}
+      - cone: {a: [-0.025, 0, 0.10], b: [-0.035, -0.025, 0.155], r: [0.026, 0.019]}
   leg_L:           # plate legs: cuisse and greave, a rust knee cop
     material: plate
     space: big
@@ -294,7 +294,7 @@ animations:
       sw_pitch: "2.45 + 0.04*sin(p - 1.0)"
       coat: "0.12*sin(p - 1.0)"
       cape_sway: "0.06*sin(p - 1.3)"
-  # slow, heavy stomp: each foot planted for 4 of the 8 frames (560 ms), sliding back 0.54 (in `big`, x1.22)
+  # slow, heavy stomp: each foot planted for 4 of the 8 frames (560 ms), sliding back 0.46 (in `big`, x1.45)
   # at a constant speed (about 24 px/s on screen), then swung forward with an eased lift; the body drops
   # hard at each contact and rolls onto the planted leg, the free arm swings, the sword sways at the side
   walk:
@@ -309,8 +309,8 @@ animations:
       roll: "0.05*sin(p)"
       head_yaw: "-0.06*cos(p)"
       head_pitch: "0.05*cos(2*p - 0.6)"
-      foot_L: "[0.15, 0.08*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.27 - 0.54*clamp(p/tau/0.5, 0, 1) + 0.54*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
-      foot_R: "[0.15, 0.08*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.27 - 0.54*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.54*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      foot_L: "[0.15, 0.08*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.23 - 0.46*clamp(p/tau/0.5, 0, 1) + 0.46*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.15, 0.08*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.23 - 0.46*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.46*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
       pitch_foot_L: "0.3*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
       pitch_foot_R: "0.3*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
       hand_L: "[0.34, 0.05 + 0.04*pos(cos(p)), 0.06 - 0.14*cos(p)]"
@@ -327,16 +327,16 @@ animations:
       - {ms: 100, event: windup, set: {lean: 0.04, bob: -0.03, squash: 0.97, twist: -0.10, head_yaw: 0.08,
           hand_R: [0.38, 0.22, 0.10], hand_L: [0.30, 0.10, 0.14], sw_pitch: 2.0, sw_yaw: -0.4, sw_roll: -0.3, coat: -0.1}}
       - {ms: 150, set: {lean: -0.02, bob: -0.01, twist: -0.30, head_yaw: 0.25,
-          hand_R: [0.48, 0.42, -0.04], hand_L: [0.22, 0.24, 0.24], sw_pitch: 1.3, sw_yaw: -1.5, sw_roll: 0,
+          hand_R: [0.44, 0.40, -0.02], hand_L: [0.22, 0.24, 0.24], sw_pitch: 1.3, sw_yaw: -1.5, sw_roll: 0,
           foot_L: [0.15, 0, 0.12], foot_R: [0.16, 0, -0.08], coat: -0.2, cape_sway: 0.1}}
       - {ms: 180, set: {lean: -0.06, bob: 0.01, squash: 1.02, twist: -0.45, head_yaw: 0.38,
-          hand_R: [0.50, 0.58, -0.14], hand_L: [0.18, 0.30, 0.26], sw_pitch: 1.4, sw_yaw: -1.9, sw_roll: 0,
+          hand_R: [0.46, 0.50, -0.10], hand_L: [0.18, 0.30, 0.26], sw_pitch: 1.5, sw_yaw: -1.9, sw_roll: 0,
           foot_L: [0.15, 0, 0.14], foot_R: [0.16, 0, -0.10], coat: -0.3, cape_sway: 0.15}}
       - {ms: 230, set: {lean: -0.08, bob: 0.015, squash: 1.03, twist: -0.50, head_yaw: 0.42,
-          hand_R: [0.50, 0.62, -0.18], hand_L: [0.17, 0.32, 0.27], sw_pitch: 1.35, sw_yaw: -2.0, sw_roll: 0,
+          hand_R: [0.46, 0.54, -0.13], hand_L: [0.17, 0.32, 0.27], sw_pitch: 1.45, sw_yaw: -2.0, sw_roll: 0,
           foot_L: [0.15, 0, 0.14], foot_R: [0.16, 0, -0.10], coat: -0.35, cape_sway: 0.18}}
       - {ms: 60, set: {lean: 0.10, bob: -0.01, twist: -0.20, head_yaw: 0.15,
-          hand_R: [0.40, 0.46, 0.32], hand_L: [0.24, 0.16, 0.20], sw_pitch: 1.5, sw_yaw: -0.85, sw_roll: 0,
+          hand_R: [0.36, 0.44, 0.27], hand_L: [0.24, 0.16, 0.20], sw_pitch: 1.5, sw_yaw: -0.85, sw_roll: 0,
           foot_L: [0.15, 0, 0.18], foot_R: [0.16, 0, -0.10], coat: 0.2, cape_sway: 0.2,
           smear_w: 0.13, smear_a0: -1.6, smear_a1: -0.95}}
       - {ms: 70, event: hit, set: {root: [0, 0, 0.04], lean: 0.20, bob: -0.04, squash: 0.96, twist: 0.15, head_yaw: -0.05,
@@ -377,19 +377,19 @@ animations:
           hand_L: [0.42, -0.18, 0.16], hand_R: [0.44, -0.18, 0.18], sw_pitch: 2.9, sw_roll: -0.9,
           foot_L: [0.22, 0, 0.10], foot_R: [0.22, 0, 0.0], coat: 0.2}}
       - {ms: 120, set: {root: [0, 0, -0.03], lean: 0.22, bob: -0.50, squash: 0.84, head_pitch: 0.2, roll: 0.04,
-          helm_off: [0.22, -0.30, 0.12], helm_roll: -0.9,
+          helm_off: [0.18, -0.26, 0.08], helm_roll: -0.9,
           hand_L: [0.46, -0.26, 0.20], hand_R: [0.48, -0.26, 0.22], sw_pitch: 1.5, sw_yaw: -0.9, sw_roll: 0,
           foot_L: [0.26, 0, 0.14], foot_R: [0.26, 0, 0.04], coat: 0.3, cape_sway: -0.1}}
       - {ms: 110, set: {root: [0, 0, -0.03], lean: 0.25, bob: -0.60, squash: 0.80, roll: 0.03, glow: 0,
-          helm_off: [0.42, -0.58, 0.22], helm_roll: -1.57, head_yaw: 0.8,
+          helm_off: [0.34, -0.50, 0.12], helm_roll: -1.57, head_yaw: 0.8,
           hand_L: [0.48, -0.30, 0.22], hand_R: [0.50, -0.30, 0.24], sw_pitch: 1.5, sw_yaw: -0.9, sw_roll: 0,
           foot_L: [0.28, 0, 0.16], foot_R: [0.28, 0, 0.06], coat: 0.2, cape_sway: -0.15}}
       - {ms: 130, set: {root: [0, 0, -0.03], lean: 0.25, bob: -0.62, squash: 0.80, roll: 0.03, glow: 0,
-          helm_off: [0.56, -0.60, 0.30], helm_roll: -1.57, head_yaw: 1.9,
+          helm_off: [0.44, -0.52, 0.16], helm_roll: -1.57, head_yaw: 1.9,
           hand_L: [0.48, -0.31, 0.22], hand_R: [0.50, -0.31, 0.24], sw_pitch: 1.5, sw_yaw: -0.9, sw_roll: 0,
           foot_L: [0.28, 0, 0.16], foot_R: [0.28, 0, 0.06], coat: 0.15, cape_sway: -0.15}}
       - {ms: 600, set: {root: [0, 0, -0.03], lean: 0.25, bob: -0.62, squash: 0.80, roll: 0.03, glow: 0,
-          helm_off: [0.62, -0.60, 0.33], helm_roll: -1.57, head_yaw: 2.5,
+          helm_off: [0.48, -0.52, 0.17], helm_roll: -1.57, head_yaw: 2.5,
           hand_L: [0.48, -0.31, 0.22], hand_R: [0.50, -0.31, 0.24], sw_pitch: 1.5, sw_yaw: -0.9, sw_roll: 0,
           foot_L: [0.28, 0, 0.16], foot_R: [0.28, 0, 0.06], coat: 0.15, cape_sway: -0.15}}
 
