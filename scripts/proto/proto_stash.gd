@@ -84,7 +84,8 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch and event.pressed and not get_tree().paused:
+	if event is InputEventScreenTouch and event.pressed and not get_tree().paused \
+			and not TouchUi.covers(get_tree(), event.position):
 		var local: Vector2 = get_global_transform_with_canvas().affine_inverse() * event.position
 		var h := texture.get_height() / rows * sprite_scale  # wyższa grafika (kamień run) - wyższy obszar
 		var rect := TAP_RECT.merge(Rect2(-28, -h - 4.0, 56, h + 14.0))

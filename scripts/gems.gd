@@ -97,6 +97,8 @@ const UNIQUE := {
 		"text": "Miecz (i widmowe miecze) odbija się od trafionego wroga w kolejnego - do 3 odbić."},
 	"slam": {"name": "Kamień Drżącej Ziemi", "short": "Fale z trafionych",
 		"text": "Każdy trafiony wróg wywołuje wokół siebie falę uderzeniową, która rani pobliskich (50% obrażeń)."},
+	"steel_ring": {"name": "Kamień Wiecznej Stali", "short": "Krąg bez końca",
+		"text": "Krąg stali nie znika po czasie i nie ma odnowienia: krąży, dopóki go nie wyłączysz (drugie stuknięcie) albo nie skończy się mana - zużywa ją co sekundę."},
 	"k_flash": {"name": "Kamień Nieskończonej Mgły", "short": "Skoki za pół many",
 		"text": "Każdy skok Błysku Peruna kosztuje o połowę mniej many."},
 	# glewia ognia (ustalone z autorem 14.11.2026)

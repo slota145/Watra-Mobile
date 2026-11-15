@@ -513,14 +513,14 @@ func _show_level(i: int, id: String, lvl: int, owned: bool) -> void:
 	var k := Skills.level_cost(lvl)
 	var mana := roundi(Skills.mana_of(id) * k)
 	var cd := Skills.cooldown_of(id) * k
-	var unique: bool = id in ["whirl", "k_flash"] and Gems.has_unique(_game.skill_sockets(id), id)
+	var unique: bool = id in ["whirl", "steel_ring", "k_flash"] and Gems.has_unique(_game.skill_sockets(id), id)
 	if unique and id == "k_flash":
 		mana = roundi(Skills.mana_of(id) * k * 0.5)  # kamień unikalny: skoki za pół many
 	elif unique:
 		cd = 0.0  # kamień unikalny: bez odnowienia
-	if unique and id == "whirl":
+	if unique and id in ["whirl", "steel_ring"]:
 		info_labels[i].text = tr("%d many, potem %d na sekundę, bez odnowienia") \
-				% [mana, roundi(mana * ProtoWeapon.WHIRL_DRAIN)]
+				% [mana, roundi(mana * (ProtoWeapon.WHIRL_DRAIN if id == "whirl" else ProtoWeapon.STEEL_DRAIN))]
 		_show_perks(i, id, lvl, owned)
 		return
 	info_labels[i].text = tr("Bez many i odnowienia") if mana == 0 and cd == 0.0 \

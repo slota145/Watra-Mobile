@@ -333,6 +333,7 @@ func _make_ground() -> void:
 
 func _make_hud() -> void:
 	var layer := CanvasLayer.new()
+	layer.add_to_group(TouchUi.GROUP)  # stuknięcie w przycisk nie otwiera Watry ani skrzyni pod nim
 	add_child(layer)
 	joystick = Joystick.new()  # pierwsze dziecko: pod przyciskami
 	layer.add_child(joystick)
