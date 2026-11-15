@@ -66,7 +66,8 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   Wystrój lochów (ozdoby z Watry, poświaty) zrobiony 15.11.2026 - do oceny: gęstość ozdób, czy nie zasłaniają potworów.
 - **Trzeci loch - Katakumby (15.11.2026):** zrobiony (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy
   wstawanie szkieletów jest czytelne i nie irytujące, siła rycerzy, ataki Nekromanty (krąg z luką, wiązka).
-  Dalej: czwarty loch od 31 (Pajęcze korzenie? Oblężony gród?).
+- **Czwarty loch - Górskie równiny (15.11.2026):** zrobiony (szczegóły w `docs/historia.md`). Do oceny: doskoki
+  wojowników, porażenie, ataki Gromoskrzydłego. Dalej: piąty loch od 41 (Pajęcze korzenie? Oblężony gród?).
 
 - **Baza: żar i złoto (12.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: ceny ulepszeń
   i ich odczuwalność (czy +10% potworów widać), ceny kowala i kupca (przedmioty u kupca tanie wobec klucza),
