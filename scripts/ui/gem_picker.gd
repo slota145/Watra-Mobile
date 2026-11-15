@@ -74,8 +74,8 @@ func _ready() -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 5)
 	_panel.add_child(col)
-	title_label = _label(col, "", 16, GOLD)
-	sub_label = _label(col, "", 11, DIM)
+	title_label = _label(col, "", 16, GOLD, true)  # zawijane - długa nazwa nie rozpycha okna poza ekran
+	sub_label = _label(col, "", 11, DIM, true)
 	scroll = ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	col.add_child(scroll)
@@ -167,7 +167,8 @@ func _build_skill_socket() -> void:
 		var problem: String = _game.skill_socket_problem(skill, index, id)
 		var reason := tr("%s ma już kamień tego rodzaju.") % Skills.name_of(skill) if problem == "same" \
 				else tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(id)) if problem == "skill" else ""
-		var b := _row(id, Gems.icon_of(id), Gems.name_of(id), Gems.color_of(id), Gems.support_text(id, skill),
+		var effect := "" if problem == "skill" else Gems.support_text(id, skill)  # powód już mówi, gdzie pasuje
+		var b := _row(id, Gems.icon_of(id), Gems.name_of(id), Gems.color_of(id), effect,
 				reason, tr("Wymień") if current != "" else tr("Włóż"))
 		b.disabled = problem != ""
 		b.pressed.connect(func() -> void:
