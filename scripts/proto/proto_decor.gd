@@ -1,8 +1,12 @@
 class_name ProtoDecor
 extends Node
 ## Wystrój lochu (ustalone z autorem 15.11.2026): ozdoby z grafik Watry (assets/watra/decor/<loch>/) rozrzucone losowo
-## przy każdym wejściu po polanie - bez kolizji (postać i potwory przechodzą przez nie). Wysokie ozdoby stoją w świecie
-## sortowanym po Y (postać chowa się za kolumną), płaskie (`flat` - lilie, kości, świece) leżą pod postaciami.
+## przy każdym wejściu po polanie. Wysokie ozdoby stoją w świecie sortowanym po Y (postać chowa się za kolumną) i mają
+## przeszkodę u podstawy (prośba autora po pierwszej wersji bez kolizji): koło spłaszczone w pionie jak u postaci
+## (`obstacles`, Vector3(x, y, promień); promień z szerokości grafiki albo `r`), z którego `push_out` wypycha postać
+## (ProtoHero.obstacles), potwory (ProtoGoblin) i bossów (ProtoChief) - obchodzą ozdobę bokiem. Płaskie (`flat` -
+## lilie, kości, świece) leżą pod postaciami i nie przeszkadzają. `TINT` - rozjaśnienie ozdób lochu (gobliny: grafiki
+## lasu Watry były za ciemne na trawie).
 ## Część ozdób to kilka wariantów w jednym pliku (`frames` - losowa klatka), część jest animowana (`fps` - ogniska,
 ## pochodnie, misy z ogniem). Ozdoby ze światłem (`light`) dostają prostą poświatę: miękką plamę dodaną do obrazu
 ## (bez prawdziwych świateł Godota - tanio dla słabych telefonów), lekko migoczącą. Dane ozdób - DATA.
@@ -11,37 +15,48 @@ extends Node
 ## `flat` - leży na ziemi, `light` - kolor poświaty, `glow` - jej promień (px).
 const DATA := {
 	Dungeons.GOBLINS: [
-		{"f": "banner", "w": 2.0}, {"f": "bones", "w": 4.0, "flat": true}, {"f": "boulders", "w": 4.0},
-		{"f": "campfire", "w": 1.5, "frames": 4, "fps": 8.0, "light": Color(1.0, 0.6, 0.25), "glow": 46.0},
-		{"f": "carcass", "w": 2.0, "flat": true}, {"f": "dead_stump", "w": 3.0}, {"f": "flat_rock", "w": 3.0},
-		{"f": "hollow_log", "w": 3.0}, {"f": "pots", "w": 2.0}, {"f": "shields", "w": 1.5}, {"f": "skull_pole", "w": 2.0},
-		{"f": "skull_totem", "w": 1.5}, {"f": "thorns", "w": 3.0}, {"f": "weapon_rack", "w": 1.0},
+		{"f": "banner", "r": 5.0, "w": 2.0}, {"f": "barrel", "w": 2.0}, {"f": "bedroll", "w": 2.0, "flat": true},
+		{"f": "bone_pile", "w": 2.0, "flat": true}, {"f": "bones", "w": 3.0, "flat": true},
+		{"f": "campfire", "w": 2.0, "frames": 4, "fps": 8.0, "light": Color(1.0, 0.6, 0.25), "glow": 46.0},
+		{"f": "goblin_tent_1", "w": 0.6, "r": 20.0}, {"f": "hide_rack", "w": 2.0}, {"f": "hide_tent", "w": 1.0},
+		{"f": "log_seat", "w": 2.5}, {"f": "loot", "w": 1.5}, {"f": "palisade", "w": 1.0}, {"f": "pots", "w": 2.0},
+		{"f": "shields", "w": 1.5}, {"f": "skull_pole", "r": 4.0, "w": 2.0}, {"f": "skull_totem", "w": 1.5},
+		{"f": "tent", "w": 1.0}, {"f": "weapon_rack", "w": 1.0},
 	],
 	Dungeons.FLOODED: [
 		{"f": "brazier", "w": 1.2, "frames": 2, "fps": 6.0, "light": Color(0.35, 1.0, 0.45), "glow": 40.0},
-		{"f": "cattails", "w": 5.0, "frames": 3}, {"f": "clay_pots", "w": 2.0}, {"f": "drowned_tree_0", "w": 1.5},
+		{"f": "cattails", "w": 5.0, "frames": 3}, {"f": "clay_pots", "w": 2.0}, {"f": "drowned_tree_0", "r": 8.0, "w": 1.5},
 		{"f": "fish_net", "w": 1.0}, {"f": "lilies", "w": 6.0, "frames": 3, "flat": true}, {"f": "mossy_rocks", "w": 3.0},
 		{"f": "reeds", "w": 5.0, "frames": 2}, {"f": "rocks", "w": 4.0, "frames": 2, "flat": true},
 		{"f": "rotten_stump", "w": 2.0}, {"f": "soul_jars", "w": 1.5, "light": Color(0.4, 0.95, 1.0), "glow": 22.0},
-		{"f": "sunken_boat", "w": 1.0}, {"f": "sunken_cross", "w": 1.5},
+		{"f": "sunken_boat", "w": 1.0}, {"f": "sunken_cross", "r": 5.0, "w": 1.5},
 	],
 	Dungeons.CATACOMBS: [
-		{"f": "bone_pile", "w": 3.0, "flat": true}, {"f": "candelabra", "w": 1.5, "light": Color(1.0, 0.7, 0.35), "glow": 44.0},
+		{"f": "bone_pile", "w": 3.0, "flat": true}, {"f": "candelabra", "r": 6.0, "w": 1.5, "light": Color(1.0, 0.7, 0.35), "glow": 44.0},
 		{"f": "candle", "w": 3.0, "flat": true, "light": Color(1.0, 0.7, 0.35), "glow": 20.0}, {"f": "coffin", "w": 1.5},
 		{"f": "corpses", "w": 1.5, "flat": true}, {"f": "fallen_stone", "w": 3.0}, {"f": "open_grave", "w": 1.0, "flat": true},
-		{"f": "pillar_0", "w": 2.5}, {"f": "ribcage", "w": 2.5, "flat": true}, {"f": "sarcophagus", "w": 2.0},
+		{"f": "pillar_0", "r": 8.0, "w": 2.5}, {"f": "ribcage", "w": 2.5, "flat": true}, {"f": "sarcophagus", "w": 2.0},
 		{"f": "skull_bones", "w": 4.0, "flat": true}, {"f": "skull_pile", "w": 1.5}, {"f": "skulls", "w": 4.0, "flat": true},
-		{"f": "statue_0", "w": 1.0},
-		{"f": "torch_stand", "w": 2.0, "frames": 2, "fps": 7.0, "light": Color(1.0, 0.6, 0.25), "glow": 50.0},
+		{"f": "statue_0", "r": 8.0, "w": 1.0},
+		{"f": "torch_stand", "r": 4.0, "w": 2.0, "frames": 2, "fps": 7.0, "light": Color(1.0, 0.6, 0.25), "glow": 50.0},
 	],
 }
 ## Ile ozdób na polanie, najmniejsza odległość między nimi i wolne koło wokół startu postaci.
-const COUNT := 85
-const SPACING := 30.0
+const COUNT := 45
+const SPACING := 40.0
 const CLEAR_RADIUS := 70.0
 ## Ozdoby leżące na ziemi - pod postaciami, nad podłogą.
 const FLAT_Z := -5
 const GLOW_Z := -4
+## Przeszkoda: promień = szerokość grafiki x OBSTACLE_SHARE, w granicach OBSTACLE_MIN-OBSTACLE_MAX (albo `r` z DATA).
+const OBSTACLE_SHARE := 0.32
+const OBSTACLE_MIN := 5.0
+const OBSTACLE_MAX := 15.0
+## Rozjaśnienie ozdób lochu (mnożnik koloru; brak wpisu - bez zmian).
+const TINT := {Dungeons.GOBLINS: Color(1.25, 1.22, 1.18)}
+
+## Przeszkody ozdób obecnego lochu (wspólne dla postaci, potworów i bossa).
+static var obstacles: Array[Vector3] = []
 
 static var _glow_texture: Texture2D
 
@@ -54,6 +69,7 @@ var _glows: Array = []
 ## i dodaje je do świata `world` (sortowanego po Y). Zwraca liczbę postawionych ozdób.
 func scatter(world: Node2D, climate: String, area: Rect2, clear: Vector2) -> int:
 	var list: Array = DATA.get(climate, [])
+	obstacles.clear()
 	if list.is_empty():
 		return 0
 	var weights: Array = list.map(func(d: Dictionary) -> float: return d.w)
@@ -90,8 +106,12 @@ func _place(world: Node2D, climate: String, data: Dictionary, at: Vector2) -> vo
 	s.offset = Vector2(-tex.get_width() / float(frames) / 2.0, -tex.get_height()).round()
 	s.flip_h = randf() < 0.5
 	s.position = at
+	s.modulate = TINT.get(climate, Color.WHITE)
 	if data.get("flat", false):
 		s.z_index = FLAT_Z
+	else:
+		var w := tex.get_width() / float(frames)
+		obstacles.append(Vector3(at.x, at.y, data.get("r", clampf(w * OBSTACLE_SHARE, OBSTACLE_MIN, OBSTACLE_MAX))))
 	world.add_child(s)
 	if data.get("fps", 0.0) > 0.0:
 		_animated.append({"node": s, "frames": frames, "fps": data.fps, "t": randf() * 10.0})
@@ -124,6 +144,22 @@ static func _glow() -> Texture2D:
 		t.height = 64
 		_glow_texture = t
 	return _glow_texture
+
+
+## Punkt wypchnięty poza przeszkody ozdób (koła spłaszczone o połowę w pionie, jak ProtoHero._push_out);
+## `margin` - dodatkowy odstęp (szerszy potwór, boss).
+static func push_out(p: Vector2, margin := 0.0) -> Vector2:
+	for o in obstacles:
+		var r := o.z + margin
+		var d := Vector2(p.x - o.x, (p.y - o.y) * 2.0)
+		if d.length() < r:
+			d = (d if d.length() > 0.01 else Vector2.DOWN).normalized() * r
+			p = Vector2(o.x + d.x, o.y + d.y / 2.0)
+	return p
+
+
+func _exit_tree() -> void:
+	obstacles.clear()
 
 
 ## Ile ozdób ma poświatę (testy).

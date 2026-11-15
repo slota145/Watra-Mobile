@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c1e8xbik1m7yi"
-path="res://.godot/imported/flat_rock.png-684d8166ea47c5db3e580f87ae0f2a7a.ctex"
+uid="uid://dc21e8pd1qe66"
+path="res://.godot/imported/goblin_tent_1.png-d01cde5bbd15c124a3c537b358dbced2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/decor/goblins/flat_rock.png"
-dest_files=["res://.godot/imported/flat_rock.png-684d8166ea47c5db3e580f87ae0f2a7a.ctex"]
+source_file="res://assets/watra/decor/goblins/goblin_tent_1.png"
+dest_files=["res://.godot/imported/goblin_tent_1.png-d01cde5bbd15c124a3c537b358dbced2.ctex"]
 
 [params]
 

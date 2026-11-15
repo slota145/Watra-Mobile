@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://oi1mw1t31y1s"
-path="res://.godot/imported/dead_stump.png-3ca9c6ca1a854926afdf3fe0a66ca5a9.ctex"
+uid="uid://cfuuxmk2ixmq"
+path="res://.godot/imported/hide_tent.png-141271128ed7b1ec1d199606d96c4845.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/decor/goblins/dead_stump.png"
-dest_files=["res://.godot/imported/dead_stump.png-3ca9c6ca1a854926afdf3fe0a66ca5a9.ctex"]
+source_file="res://assets/watra/decor/goblins/hide_tent.png"
+dest_files=["res://.godot/imported/hide_tent.png-141271128ed7b1ec1d199606d96c4845.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bdarsyis5aebk"
-path="res://.godot/imported/carcass.png-0ba985625035cdb17b9201230d2be4e1.ctex"
+uid="uid://bwv2tms88vhon"
+path="res://.godot/imported/bone_pile.png-2f6694cae05095d75c8864a680782fe7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/decor/goblins/carcass.png"
-dest_files=["res://.godot/imported/carcass.png-0ba985625035cdb17b9201230d2be4e1.ctex"]
+source_file="res://assets/watra/decor/goblins/bone_pile.png"
+dest_files=["res://.godot/imported/bone_pile.png-2f6694cae05095d75c8864a680782fe7.ctex"]
 
 [params]
 

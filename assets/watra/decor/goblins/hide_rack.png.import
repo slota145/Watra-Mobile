@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3hrjen5d07ux"
-path="res://.godot/imported/thorns.png-ec83006f0cd796977fd4ef983d6e341d.ctex"
+uid="uid://b3310xu6lolwb"
+path="res://.godot/imported/hide_rack.png-940268e799462673c3bf9075380e166b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/decor/goblins/thorns.png"
-dest_files=["res://.godot/imported/thorns.png-ec83006f0cd796977fd4ef983d6e341d.ctex"]
+source_file="res://assets/watra/decor/goblins/hide_rack.png"
+dest_files=["res://.godot/imported/hide_rack.png-940268e799462673c3bf9075380e166b.ctex"]
 
 [params]
 
