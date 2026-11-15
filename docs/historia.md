@@ -2,6 +2,31 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - piąty loch: Wulkaniczne równiny, Żywiołak ognia
+
+Decyzje autora: najpierw po jednej krainie na każdy żywioł broni - brakowało ognia; Wulkaniczne równiny od 41, nowe
+ogniste stwory (salamandra, ognik, żużlowy golem), boss Żywiołak ognia (Żmij Gorynycz zostaje na bossa szczytowego -
+ROADMAP), ataki: Fala ognia, Deszcz lawy, Ognisty taran; ogień podpala; podłoże z generatora za darmo.
+- `Dungeons.VOLCANO` (od 41, żywioł ognia, „Przyzwij Żywiołaka”). Drabinka: 1-10 gobliny, 11-20 podziemia, 21-30
+  Katakumby, 31-40 Górskie równiny, 41-100 Wulkaniczne równiny, od 101 losowo.
+- Podpalenie: `ProtoHero.ignite(obrażenia, czas)` - płomień co 0,5 s (`_burn_hit`: mniej o odporność, bez nietykalności,
+  błysku i wibracji); `_check_death` wydzielone z `take_damage`.
+- Płonąca ziemia `proto_fire_patch.gd` (`ProtoFirePatch.spawn`): koło płomyków `glaive_ground_fire`, co 0,5 s podpala
+  stojącą w nim postać, gaśnie po czasie.
+- Salamandra `proto_salamander.gd` (po goblinie): 32 zdrowia, 40 px/s, 8 ogniem + podpalenie. Ognik `proto_fire_wisp.gd`
+  (po łuczniku): 24 zdrowia, żar 9 - ognista bańka (`ProtoArrow.ignite`), plucie zgrane z linią celu. Żużlowy golem
+  `proto_slag_golem.gd` (po osiłku): 180 zdrowia, 24 px/s, uderzenie 24 ogniem, w kole płonąca ziemia na 3 s.
+- Żywiołak ognia `proto_fire_elemental.gd` (po `ProtoChief`): 1100 zdrowia; Fala ognia (pierścień 26-100 -
+  `ProtoTelegraph.inner`, 1,2 s, 26 + podpalenie; bezpiecznie przy nim i daleko), Deszcz lawy (7 kół wokół postaci,
+  po kolei od 1 s, 18 + płonąca ziemia), Ognisty taran (pas 220x30, 0,9 s, szarża 0,4 s, 28 + ślad płonącej ziemi).
+  Płomienie wybuchów - `burning.png`.
+- Podłoże `assets/watra/volcano_floor.png` - generator `tools/volcano_floor.py`: płyty bazaltu (Woronoj, pofalowane
+  krawędzie), płyty popiołu, szczeliny lawy z poświatą w skupiskach (szum), bez szwów.
+- Wystrój (`ProtoDecor.DATA[VOLCANO]`): głazy, zwęglone pnie i drzewa, kamienie, gruz, kości, ogniska (poświata).
+- Grafika SpriteKiln: `salamander` (czworonożna, własny szkielet), `fire_wisp` (bez szkieletu człowieka),
+  `slag_golem`, `fire_elemental`.
+- Test `tests/test_volcano.gd`, zrzuty `tools/volcano_shots.gd`.
+
 ## 15.11.2026 - czwarty loch: Górskie równiny, Gromoskrzydły
 
 Decyzje autora: Górskie równiny od 31 (pomysł autora: ptakoludzie i elektryczny orzeł), ptakoludzie jak w Wietrznych
