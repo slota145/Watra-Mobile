@@ -93,6 +93,7 @@ func _strike() -> void:
 	arrow.hero = hero
 	arrow.direction = aim
 	arrow.damage = hit_damage()
+	arrow.water = element == Elements.WATER
 	arrow.position = position + aim * 6.0
 	get_parent().add_child(arrow)
 

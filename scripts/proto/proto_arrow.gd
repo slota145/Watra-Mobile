@@ -5,6 +5,8 @@ extends Node2D
 ## i drzazgami; po przeleceniu `RANGE` pikseli opada i gaśnie. Grafika z kreatora efektów PixelLab:
 ## `assets/effects/arrow_fly.png` (lot w pętli, grot w prawo - obracany w kierunku lotu) i `arrow_hit.png` (trafienie).
 ## Węzeł stoi w punkcie na ziemi pod strzałą, więc sortowanie po Y działa jak u postaci.
+## Kula wody żabołaka (`water`): ta sama strzała z grafiką bańki hydrosfery (`hydro_bolt`, rozprysk `hydro_splash`),
+## żywioł wody i przemoczenie postaci (spowolnienie SOAK_SLOW na SOAK_TIME s).
 
 ## Prędkość (Wojciech: 70 px/s) - strzała z odległości 120 px leci ok. 1 s, w tym czasie da się zejść z linii.
 const SPEED := 115.0
@@ -22,9 +24,20 @@ const HIT_FRAMES := 8
 const HIT_FPS := 16.0
 const HIT_ANCHOR := Vector2(16, 14)
 
+const WATER_FLY := preload("res://assets/effects/hydro_bolt.png")
+const WATER_FLY_FRAMES := 8
+const WATER_FLY_ANCHOR := Vector2(22, 8)
+const WATER_HIT := preload("res://assets/effects/hydro_splash.png")
+const WATER_HIT_FRAMES := 10
+const WATER_HIT_ANCHOR := Vector2(21, 18)
+const SOAK_SLOW := 0.25
+const SOAK_TIME := 2.0
+
 var hero: ProtoHero
 var direction := Vector2.RIGHT
 var damage := 8
+## Kula wody zamiast strzały (żabołak).
+var water := false
 
 var _flown := 0.0
 var _done := false
@@ -35,10 +48,10 @@ var _sprite: Sprite2D
 
 func _ready() -> void:
 	_sprite = Sprite2D.new()
-	_sprite.texture = FLY
-	_sprite.hframes = FLY_FRAMES
+	_sprite.texture = WATER_FLY if water else FLY
+	_sprite.hframes = WATER_FLY_FRAMES if water else FLY_FRAMES
 	_sprite.centered = false
-	_sprite.offset = -FLY_ANCHOR
+	_sprite.offset = -(WATER_FLY_ANCHOR if water else FLY_ANCHOR)
 	_sprite.position = Vector2(0, -_height)
 	_sprite.rotation = direction.angle()
 	add_child(_sprite)
@@ -46,14 +59,18 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
-	_sprite.frame = int(_time * FLY_FPS) % FLY_FRAMES
+	_sprite.frame = int(_time * FLY_FPS) % _sprite.hframes
 	if _done:
 		return
 	var step := SPEED * delta
 	position += direction * step
 	_flown += step
 	if hero and not hero.dead and global_position.distance_to(hero.global_position) <= HIT_RADIUS:
-		hero.take_damage(damage)
+		if water:
+			hero.take_damage(damage, Elements.WATER)
+			hero.slow(SOAK_SLOW, SOAK_TIME, Elements.COLORS[Elements.WATER].lerp(Color.WHITE, 0.4))
+		else:
+			hero.take_damage(damage)
 		_finish(true)
 		return
 	if _flown >= RANGE:
@@ -64,7 +81,10 @@ func _process(delta: float) -> void:
 func _finish(hit: bool) -> void:
 	_done = true
 	if hit:
-		Fx.once(get_parent(), HIT, HIT_FRAMES, HIT_FPS, global_position + Vector2(0, -_height), HIT_ANCHOR)
+		if water:
+			Fx.once(get_parent(), WATER_HIT, WATER_HIT_FRAMES, 14.0, global_position + Vector2(0, -_height), WATER_HIT_ANCHOR, 20, 0.6)
+		else:
+			Fx.once(get_parent(), HIT, HIT_FRAMES, HIT_FPS, global_position + Vector2(0, -_height), HIT_ANCHOR)
 		queue_free()
 		return
 	var tween := create_tween()

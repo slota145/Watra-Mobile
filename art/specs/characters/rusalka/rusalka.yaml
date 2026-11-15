@@ -1,0 +1,305 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: rusalka
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.05, 0]}
+palette: "watra"
+size: 80
+extends: humanoid   # the template's skeleton, head kit and hair kit; legs hidden under the gown
+
+# Topielica (rusalka): silny wróg lochu „Zatopione podziemia”. Utopiona dziewczyna - duch wody: wysoka i smukła
+# (ok. 40 px wobec 36 px człowieka, ta sama camera.scale), bardzo długie zielone włosy do kolan, blada
+# niebiesko-biała skóra, długa poszarpana biało-błękitna suknia, której dół rozwiewa się w mgłę (unosi się,
+# stóp nie widać), świecące jasnocyjanowe oczy. Atak: unosi ręce nad głowę i opuszcza je na boki - zamraża
+# ziemię w kręgu wokół siebie (event `hit`).
+brief:
+  summary: >
+    rusalka / topielica, the strong enemy of the flooded ruins (reference docs/referencje/zatopione/rusalka.png,
+    a 6x upscale of the Watra sprite): a drowned maiden water spirit, tall and slim (about 40 px against the
+    36 px human, same density), very long flowing green hair down to the knees, pale ghostly blue-white skin,
+    a long tattered white / pale-blue gown whose hem dissolves into icy mist (she glides, feet hidden),
+    glowing pale cyan eyes, an icy cyan accent (frost in her hands when she casts)
+  head: >
+    the head kit with a soft narrow jaw and a slightly pointed chin (a young woman's face); the hair kit with a
+    middle parting, a light fringe, temple locks to the collarbone and long back; over it, own long locks:
+    two front locks over the shoulders down to the waist and a heavy back mass down to the knees, flowing out
+    to her right (the screen's left in s, as in the reference); face minimal (style): two glowing pale cyan
+    eyes, no nose, no mouth
+  must_keep:
+    - clearly NOT the drowner (pale-blue man with dark hair) - green long hair, a white gown, taller, feminine
+    - the hair - the biggest coloured mass of the silhouette, green, down to the knees, in every direction
+    - the gown - long, flaring, tattered at the hem, the hem fading into pale icy mist (no feet)
+    - the glowing cyan eyes and the icy accent
+  simplify:
+    - no feet or legs (hidden under the gown, the parts are switched off)
+    - the gown's tatters are V notches cut into the hem plus a few mist wisps hanging below it
+    - bare slim arms, no sleeves or jewellery
+  decisions:
+    - she floats: the hem hangs about 2 px above the ground and the whole body bobs; a light shadow under her
+    - the whole body grows through the bone `big` (scale 1.1) under `root`, as on the brute (the template's
+      human proportions, a slimmer torso)
+    - the long hair hangs from its own bone `hairfall` under the head base (not the head), so head turns do
+      not swing it; `hair_sway` (side) and `hair_flow` (lift back) are its channels for the animator
+    - one extra wave of hair streams out to her right (asymmetric, from the reference) and gives the
+      silhouette its striking shape; the back (n) is almost all green hair down to the knees
+    - the gown's neckline is painted (bare skin above the chest), not a separate part
+    - the cold accent - emissive frost orbs in the hands, shown only while `frost` > 0 (the attack), and a
+      ring of frost on the ground (the smear arc, laid flat around her) on the `hit` frame
+    - frame 80 px: room for the arms raised above the head and the frost ring
+    - game contract - `attack` event `windup` at 0 ms, `hit` at 680 ms (arms swept down and out), total
+      1000 ms; sockets `hand_L` / `hand_R` (frost orbs) and `ground` (centre of the frozen ring)
+
+ramps:
+  # pale ghostly blue-white skin (cold, drowned)
+  rus_skin:  ["#0a0d16", "#3d5372", "#6787aa", "#97b5d0", "#c4daea", "#e8f2f8"]
+  # long green hair, water-weed green, cooled in the shadows
+  rus_hair:  ["#06100e", "#14352b", "#245a3d", "#387f4a", "#5a9f58", "#86bd74"]
+  # the white / pale-blue gown
+  gown:      ["#0c111a", "#4d6079", "#8296ae", "#b3c4d6", "#d9e5ef", "#f4f9fc"]
+  # the hem dissolving into icy mist
+  mist:      ["#123345", "#4e8ea8", "#82c0d4", "#b6e3ee", "#e2f8fc"]
+  # glowing cyan eyes and the frost in her hands
+  rus_eye:   ["#0c3a4a", "#3fd2e8", "#9af4ff", "#e8ffff"]
+  # the frost ring on the ground (the smear arc)
+  fx_tail:   ["#3fb6d6"]
+  fx_mid:    ["#a6efff"]
+  fx_core:   ["#ffffff"]
+
+materials:
+  skin:  {ramp: rus_skin, gamma: 0.7, finish: soft}
+  hair:  {ramp: rus_hair, finish: matte}
+  gown:  {ramp: gown, finish: matte}
+  mist:  {ramp: mist, finish: matte, outline: false, line: false}
+  eye:   {ramp: rus_eye, emissive: true, band: 2, outline: false, glow: {color: "#7fe9ff", mix: 0.25, radius: 1}}
+  frost: {ramp: rus_eye, emissive: true, band: 2, outline: false, glow: {color: "#7fe9ff", mix: 0.35, radius: 1}}
+
+remove: [use.sword, parts.belt, parts.coat, animations.idle, animations.walk, animations.attack]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 0.9, jaw: 0.1, chin: 0.65, nose: 0, ears: 0}}
+  - {kit: hair, as: hair, at: head, with: {fringe: 0.3, part: 0.0, locks: 2, length: 2, volume: 1.0}}
+
+shadow: {rx: 10, ry: 3.5, alpha: 90}
+
+channels:
+  hand_L: [0.29, 0.04, 0.07]
+  hand_R: [0.29, 0.04, 0.07]
+  hair_sway: 0     # the long hair swings side to side (+: toward her left, +x)
+  hair_flow: 0     # the long hair lifts back (+) as she moves
+  frost: 0         # 0..1: frost orbs glowing in the hands (attack)
+  spread: 0        # 0..1: the gown flattens and spreads on the ground (death)
+  smear_y: 0.06    # the frost ring: flat on the ground around her
+  smear_z: 0
+  smear_r: 0.72
+
+bones:
+  big:        {parent: root, scale: 1.1}
+  # the template's hip height 0.84 lowered to 0.80: no legs, the gown hangs from here to just above the ground
+  torso_rot:  {parent: big, pos: "[0, 0.80 + bob, 0]", rot: "[lean, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  headbase:   {pos: [0, 0.68, 0.02], scale: 1.1}
+  head:       {scale: 1.25}
+  shoulder_L: {pos: [0.20, 0.54, 0.0]}
+  # the skirt: from the waist (placed at the pelvis, upright: a lean or a fall does not tip it), swaying with `coat` (front-back) and `hair_sway` (a little, side to side)
+  skirtbase:  {parent: big, at: torso_rot, rot: "[lean*0.4*(1 - spread) - coat*0.12, twist, (roll + hair_sway*0.12)*(1 - spread)]", scale: "[1 + 0.8*spread, 1 - 0.7*spread, 1 + 0.8*spread]"}
+  # the long hair: from the back of the head base (no head_pitch), swinging with its channels
+  hairfall:   {parent: headbase, pos: [0, 0.14, -0.04], rot: "[hair_flow - lean*0.5, 0, hair_sway]"}
+  # the frost ring lies on the ground and follows the root
+  fxspace:    {parent: root, rot: [0, 0, 0]}
+
+ik:
+  arm_L: {lengths: [0.27, 0.26]}
+
+parts:
+  torso:           # a slim bodice of the gown; bare skin painted above the neckline
+    material: gown
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.15, 0.12, 0.12]}
+      - ellipsoid: {c: [0, 0.25, 0.0], r: [0.13, 0.14, 0.10]}
+      - ellipsoid: {c: [0, 0.43, 0.0], r: [0.19, 0.13, 0.11]}
+    paint:
+      - material: skin
+        prims:
+          - ellipsoid: {c: [0, 0.58, 0.02], r: [0.24, 0.17, 0.2]}
+  skirt:           # the long gown flaring to the hem, V notches cut into it (tatters)
+    material: gown
+    space: skirtbase
+    blend: 0.03
+    prims:
+      # the bone's scale reaches a revolve only as one uniform factor: the profile undoes it and applies the
+      # spread itself (wider, flatter), so the death's pool works
+      - revolve: {c: [0, 0, -0.01], profile: {polygon: [
+          "[-0.15*(1 + 0.8*spread), 0.1*(1 - 0.7*spread)] / ((1 + 0.8*spread)**2*(1 - 0.7*spread))**(1/3)",
+          "[0.15*(1 + 0.8*spread), 0.1*(1 - 0.7*spread)] / ((1 + 0.8*spread)**2*(1 - 0.7*spread))**(1/3)",
+          "[0.18*(1 + 0.8*spread), -0.12*(1 - 0.7*spread)] / ((1 + 0.8*spread)**2*(1 - 0.7*spread))**(1/3)",
+          "[0.24*(1 + 0.8*spread), -0.4*(1 - 0.7*spread)] / ((1 + 0.8*spread)**2*(1 - 0.7*spread))**(1/3)",
+          "[0.33*(1 + 0.8*spread), -0.7*(1 - 0.7*spread)] / ((1 + 0.8*spread)**2*(1 - 0.7*spread))**(1/3)",
+          "[-0.33*(1 + 0.8*spread), -0.7*(1 - 0.7*spread)] / ((1 + 0.8*spread)**2*(1 - 0.7*spread))**(1/3)",
+          "[-0.24*(1 + 0.8*spread), -0.4*(1 - 0.7*spread)] / ((1 + 0.8*spread)**2*(1 - 0.7*spread))**(1/3)",
+          "[-0.18*(1 + 0.8*spread), -0.12*(1 - 0.7*spread)] / ((1 + 0.8*spread)**2*(1 - 0.7*spread))**(1/3)"], round: 0.02}}
+    cut:
+      - cone: {a: [0.05, -0.80, 0.33], b: [0.04, -0.56, 0.26], r: [0.07, 0.005]}
+      - cone: {a: [0.27, -0.80, 0.20], b: [0.22, -0.60, 0.16], r: [0.06, 0.005]}
+      - cone: {a: [0.33, -0.80, -0.10], b: [0.26, -0.55, -0.08], r: [0.07, 0.005]}
+      - cone: {a: [0.12, -0.80, -0.32], b: [0.10, -0.60, -0.26], r: [0.06, 0.005]}
+      - cone: {a: [-0.20, -0.80, -0.28], b: [-0.16, -0.57, -0.22], r: [0.07, 0.005]}
+      - cone: {a: [-0.33, -0.80, 0.05], b: [-0.26, -0.60, 0.04], r: [0.06, 0.005]}
+      - cone: {a: [-0.22, -0.80, 0.27], b: [-0.17, -0.56, 0.21], r: [0.07, 0.005]}
+    paint:
+      - material: mist
+        prims:
+          - cylinder: {a: [0, -0.80, 0], b: [0, -0.60, 0], r: 0.5}
+  wisp_L:          # mist strands hanging below the hem: the gown dissolving
+    material: mist
+    space: skirtbase
+    prims:
+      - tube: {pts: [[0.16, -0.62, 0.26], [0.18, -0.72, 0.29], "[0.16 + 0.03*sin(coat*3), -0.80, 0.27]"], r: [0.04, 0.01]}
+      - tube: {pts: [[0.29, -0.62, -0.02], [0.32, -0.72, -0.03], [0.30, -0.79, -0.06]], r: [0.04, 0.01]}
+  wisp_back:
+    material: mist
+    space: skirtbase
+    prims:
+      - tube: {pts: [[-0.05, -0.62, -0.30], [-0.06, -0.73, -0.34], [-0.04, -0.80, -0.36]], r: [0.045, 0.01]}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.54, 0], b: [0, 0.68, 0.02], r: [0.055, 0.05]}
+  eye_L:           # a glowing cyan eye on the face's side slope
+    material: eye
+    space: head
+    prims:
+      - extrude: {c: [0.075, 0.115, 0.095], rot: [0, 0.7, 0], depth: 0.04, profile: {rect: [0.018, 0.03], round: 0.007}}
+  arm_L:           # slim bare arms
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.055}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.048, 0.038]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.038, 0.032]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - ellipsoid: {c: [0, 0, 0.04], r: [0.035, 0.045, 0.055]}
+  orb_L:           # frost in the hand while casting
+    material: frost
+    space: wrist_L
+    when: "frost > 0.05"
+    prims:
+      - sphere: {c: [0, 0, 0.08], r: "0.03 + 0.05*frost"}
+  leg_L: {when: "0"}
+  boot_L: {when: "0"}
+  # the long hair: a heavy back mass from the nape down to the knees, in strands (inner lines between parts)
+  mane:
+    material: hair
+    space: hairfall
+    blend: 0.03
+    prims:
+      - tube: {pts: [[0, -0.10, -0.12], [0, -0.50, -0.24], [0, -0.95, -0.20]], r: [0.12, 0.05]}
+  mane_L:
+    material: hair
+    space: hairfall
+    blend: 0.03
+    prims:
+      - tube: {pts: [[0.09, -0.12, -0.09], [0.17, -0.48, -0.18], [0.14, -0.90, -0.14]], r: [0.085, 0.03]}
+  wave:            # an extra wave streaming out to her right (the screen's left in s), as in the reference
+    material: hair
+    space: hairfall
+    blend: 0.03
+    prims:
+      - tube: {pts: [[-0.13, -0.14, -0.06], [-0.36, -0.42, -0.10], [-0.30, -0.80, -0.06], [-0.40, -1.0, -0.1]], r: [0.10, 0.03]}
+  frontlock_L:     # a lock over the shoulder, down the front to the waist
+    material: hair
+    space: headbase
+    prims:
+      - tube: {pts: [[0.16, 0.0, -0.01], [0.19, -0.26, 0.10], [0.12, -0.56, 0.12]], r: [0.042, 0.015]}
+
+sockets:
+  hand_L: {bone: wrist_L, offset: [0, 0, 0.08]}
+  ground: {bone: root}
+
+animations:
+  # floating: the whole body bobs about 1.5 px, the gown and the long hair sway late (overlap)
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      bob: "0.05*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.29, 0.04 + 0.035*sin(p - 0.6), 0.07]"
+      hand_R: "[0.29, 0.04 + 0.035*sin(p - 0.6), 0.07]"
+      coat: "0.3*sin(p - 1.0)"
+      hair_sway: "0.07*sin(p - 1.2)"
+      hair_flow: "0.05 + 0.05*sin(p - 1.5)"
+  # gliding: no steps; leaning into the motion, the gown and the hair trail back and ripple, a slow bob,
+  # the arms trail a little behind
+  walk:
+    frames: 8
+    ms: 110
+    channels:
+      lean: 0.14
+      bob: "0.035*sin(p)"
+      roll: "0.03*sin(p)"
+      head_pitch: "-0.06 + 0.03*sin(p - 0.5)"
+      hand_L: "[0.30, 0.08 + 0.03*sin(p - 0.6), -0.06 + 0.02*sin(p - 1.0)]"
+      hand_R: "[0.30, 0.08 + 0.03*sin(p - 0.6), -0.06 + 0.02*sin(p - 1.0)]"
+      coat: "-0.7 + 0.25*sin(2*p - 1.0)"
+      hair_sway: "0.06*sin(p - 1.2)"
+      hair_flow: "0.30 + 0.07*sin(2*p - 1.4)"
+  # the frost spell: the arms rise slowly above the head while frost gathers in the hands (windup, held top
+  # pose: the game's warning circle shows meanwhile), then they sweep down and out (hit: the ring of frost
+  # flashes on the ground around her), the ring fades, she settles back
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {bob: 0.01, lean: 0.02, head_pitch: 0.06, coat: 0.1, frost: 0.15,
+          hand_L: [0.26, 0.24, 0.20], hand_R: [0.26, 0.24, 0.20], hair_flow: 0.05}}
+      - {ms: 180, set: {bob: 0.05, lean: -0.04, head_pitch: -0.05, coat: -0.1, frost: 0.45,
+          hand_L: [0.34, 0.58, 0.12], hand_R: [0.34, 0.58, 0.12], hair_flow: 0.08, hair_sway: 0.04}}
+      - {ms: 200, set: {bob: 0.09, lean: -0.12, head_pitch: -0.2, coat: -0.25, frost: 0.8, squash: 1.03,
+          hand_L: [0.26, 0.96, 0.05], hand_R: [0.26, 0.96, 0.05], hair_flow: 0.12, hair_sway: 0.06}}
+      - {ms: 180, set: {bob: 0.11, lean: -0.15, head_pitch: -0.25, coat: -0.3, frost: 1.0, squash: 1.04,
+          hand_L: [0.24, 1.01, 0.02], hand_R: [0.24, 1.01, 0.02], hair_flow: 0.14, hair_sway: 0.03}}
+      - {ms: 70, event: hit, set: {bob: -0.05, lean: 0.14, head_pitch: 0.12, coat: 0.5, frost: 0.6, squash: 0.94,
+          hand_L: [0.50, 0.12, 0.15], hand_R: [0.50, 0.12, 0.15], hair_flow: -0.08, hair_sway: -0.04,
+          smear_w: 0.09, smear_a0: -3.1, smear_a1: 3.1, smear_r: 0.62}}
+      - {ms: 120, set: {bob: -0.04, lean: 0.12, head_pitch: 0.10, coat: 0.35, frost: 0.25, squash: 0.96,
+          hand_L: [0.50, 0.08, 0.13], hand_R: [0.50, 0.08, 0.13], hair_flow: 0.0, hair_sway: -0.03,
+          smear_w: 0.07, smear_a0: -3.1, smear_a1: 3.1, smear_r: 0.80, smear_fade: 0.6}}
+      - {ms: 130, set: {bob: 0.0, lean: 0.04, head_pitch: 0.02, coat: 0.1,
+          hand_L: [0.36, 0.05, 0.10], hand_R: [0.36, 0.05, 0.10], hair_flow: 0.04}}
+  # hit: a ghostly flinch back, the hair and gown whip forward, then she drifts back
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.25, bob: 0.02, squash: 0.96, head_pitch: -0.3, coat: 0.5,
+          hand_L: [0.34, 0.16, -0.06], hand_R: [0.34, 0.16, -0.06], hair_flow: -0.12, hair_sway: 0.05}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.12, bob: 0.01, squash: 0.98, head_pitch: -0.12, coat: 0.25,
+          hand_L: [0.31, 0.10, 0.0], hand_R: [0.31, 0.10, 0.0], hair_flow: -0.04, hair_sway: 0.02}}
+      - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.02, head_pitch: 0.02, coat: -0.05,
+          hand_L: [0.29, 0.05, 0.06], hand_R: [0.29, 0.05, 0.06], hair_flow: 0.06}}
+  # death: struck back with the arms thrown up, then she sinks into the water: the body drops through the
+  # gown, which flattens and spreads into a pale pool on the ground, the head and the hair fall forward over it
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.05], lean: -0.35, bob: 0.04, head_pitch: -0.4, coat: 0.5,
+          hand_L: [0.38, 0.40, -0.04], hand_R: [0.38, 0.40, -0.04], hair_flow: -0.15}}
+      - {ms: 130, set: {root: [0, 0, -0.06], lean: -0.25, bob: 0.02, head_pitch: -0.3, coat: 0.3, roll: 0.06,
+          hand_L: [0.40, 0.30, 0.0], hand_R: [0.40, 0.30, 0.0], hair_flow: -0.05}}
+      - {ms: 130, set: {root: [0, 0, -0.06], lean: 0.05, bob: -0.12, head_pitch: 0.0, coat: 0.1, roll: 0.05, spread: 0.2,
+          hand_L: [0.34, 0.12, 0.08], hand_R: [0.34, 0.12, 0.08], hair_flow: 0.0}}
+      - {ms: 130, set: {root: [0, 0, -0.06], lean: 0.22, bob: -0.25, head_pitch: 0.2, coat: 0.0, roll: 0.03, spread: 0.45, squash: 0.94,
+          hand_L: [0.36, 0.02, 0.14], hand_R: [0.36, 0.02, 0.14], hair_flow: 0.05}}
+      - {ms: 140, set: {root: [0, 0, -0.06], lean: 0.45, bob: -0.38, head_pitch: 0.35, spread: 0.7, squash: 0.9,
+          hand_L: [0.42, -0.06, 0.20], hand_R: [0.42, -0.06, 0.20], hair_flow: 0.25}}
+      - {ms: 150, set: {root: [0, 0, -0.06], lean: 0.75, bob: -0.52, head_pitch: 0.45, spread: 0.92, squash: 0.88,
+          hand_L: [0.36, -0.06, 0.30], hand_R: [0.36, -0.06, 0.30], hair_flow: 0.55}}
+      - {ms: 600, set: {root: [0, 0, -0.06], lean: 0.85, bob: -0.56, head_pitch: 0.5, spread: 1.0, squash: 0.88,
+          hand_L: [0.36, -0.08, 0.32], hand_R: [0.36, -0.08, 0.32], hair_flow: 0.7}}
+
+timing:
+  attack: {hit: 680ms, total: 1000ms}

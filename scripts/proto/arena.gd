@@ -123,8 +123,9 @@ var base_bar: BaseBar
 var stats_icon: Button
 var skills_icon: Button
 var stats_window: HeroStats
-## Poziom lochu tej wyprawy (Game.dungeon_level).
+## Poziom lochu tej wyprawy (Game.dungeon_level) i jego rodzaj (Dungeons - od RANDOM_FROM losowany przy wejściu).
 var level := 1
+var climate := Dungeons.GOBLINS
 var chief: ProtoChief
 var chest: ProtoChest
 ## Etap wyprawy: horde (zbieranie żaru), boss (walka z Wodzem), loot (skrzynia), won (po zwycięstwie).
@@ -136,6 +137,7 @@ var _time := 0.0
 func _ready() -> void:
 	if horde:
 		level = Game.dungeon_level
+		climate = Dungeons.for_level(level)
 	_make_ground()
 	var world := Node2D.new()
 	world.name = "World"
@@ -172,6 +174,7 @@ func _ready() -> void:
 		horde_spawner.bounds = ARENA.grow(-8)
 		horde_spawner.power = DungeonLevels.power(level)
 		horde_spawner.level = level
+		horde_spawner.climate = climate
 		_apply_upgrades()
 		horde_spawner.loot_spawned.connect(_track_loot)
 		horde_spawner.kills_changed.connect(func(k: int) -> void:
@@ -289,7 +292,7 @@ func _make_ground() -> void:
 	edge.z_index = GROUND_Z
 	add_child(edge)
 	var grass := Sprite2D.new()
-	grass.texture = preload("res://assets/watra/grass.png")
+	grass.texture = load(Dungeons.get_data(climate).ground) if horde else preload("res://assets/watra/grass.png")
 	grass.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	grass.region_enabled = true
 	grass.region_rect = Rect2(Vector2.ZERO, ARENA.size)
@@ -297,7 +300,7 @@ func _make_ground() -> void:
 	grass.position = ARENA.position
 	grass.z_index = GROUND_Z
 	if horde:
-		grass.modulate = Color(0.72, 0.68, 0.8)  # loch: ta sama trawa, chłodniej i ciemniej (Horda)
+		grass.modulate = Dungeons.get_data(climate).tint  # loch: chłodniej i ciemniej (Horda)
 	add_child(grass)
 	# miękki cień wzdłuż brzegu polany: trawa ciemnieje w stronę ciemnego tła (cztery paski z gradientem)
 	for side in 4:
@@ -780,7 +783,7 @@ func _make_boss_bar(column: VBoxContainer) -> void:
 	boss_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	boss_box.visible = false
 	column.add_child(boss_box)
-	var name_label := _hud_label(tr("Wódz Goblinów"))
+	var name_label := _hud_label(Dungeons.boss_of(climate))
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_color_override("font_color", Color(1, 0.6, 0.45))
 	boss_box.add_child(name_label)
@@ -805,7 +808,7 @@ func _make_boss_bar(column: VBoxContainer) -> void:
 ## Wodza przypadkiem w ferworze walki), widoczny przy pełnym pasku żaru.
 func _make_summon_button(column: VBoxContainer) -> void:
 	summon_button = Button.new()
-	summon_button.text = tr("Przyzwij Wodza")
+	summon_button.text = Lang.t(Dungeons.get_data(climate).summon)
 	summon_button.icon = preload("res://assets/watra/ember_icon.png")
 	summon_button.add_theme_constant_override("icon_max_width", 22)
 	summon_button.custom_minimum_size = Vector2(200, 52)
@@ -863,7 +866,7 @@ func summon_chief() -> void:
 	summon_button.visible = false
 	ember_bar.visible = false
 	horde_spawner.call_boss()
-	chief = ProtoChief.new()
+	chief = ProtoWodnik.new() if climate == Dungeons.FLOODED else ProtoChief.new()
 	chief.name = "Chief"
 	chief.hero = hero
 	chief.bounds = ARENA.grow(-24)

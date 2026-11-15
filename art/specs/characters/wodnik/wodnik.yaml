@@ -1,0 +1,484 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: wodnik
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.52, 0]}
+palette: "watra"
+size: 112
+extends: humanoid   # the template's skeleton and channels; the body, head and weapon below are the Wodnik's own
+
+# Wodnik (boss "Zatopionych podziemi"): stary wodny duch o żabiej twarzy. Ok. 48 px wysokości (człowiek 36 px,
+# ta sama camera.scale): ciężki, z okrągłym brzuchem, zielona brodawkowata skóra, szeroka żabia głowa z wyłupiastymi
+# świecącymi bladożółtymi oczami, wysoki sfatygowany cylinder z czerwoną wstążką, długi postrzępiony czerwonobrązowy
+# surdut, płetwiaste dłonie, długi trójząb (drewniane drzewce, zielonkawobrązowe zęby) w prawej dłoni.
+# Klatka 96 px (nie 80): uniesiony trójząb w roar / vortex / summon musi się zmieścić.
+brief:
+  summary: >
+    boss of the flooded ruins, the Wodnik (Slavic water spirit): a big frog-faced old water man, about 48 px tall
+    with the hat (the human is 36 px, same density), heavy and round-bellied on short bowed frog legs, green warty
+    skin, a battered tall dark top hat with a red band, a long tattered red-brown coat open over the pale belly,
+    webbed hands, a long trident (wooden shaft, greenish-bronze prongs) upright in the right hand
+  reference: splash.png (6x upscale of the Watra sprite, seen from s / a touch of se)
+  proportions: "hat about 1/5 of the height, head 1/5 (wide, sits low with no neck), belly and coat 2/5, short legs 1/5; shoulders as wide as the belly"
+  head: >
+    no hair (the hair kit removed), no head kit: a wide, flat frog head (an ellipsoid wider than tall) sitting low on
+    the shoulders, with a broad mouth line round the front (a dark painted lip line: the frog's identity, 1 px) and
+    two bulging eye domes on top of the head's front corners, each with a glowing pale yellow eye; face minimal
+    otherwise (no nose); the top hat sits on the crown between and behind the eye domes, so the domes break the
+    head's outline under the brim in every front view
+  must_keep:
+    - the tall top hat with its red band (the highest shape, readable in every direction)
+    - the trident in the right hand (a long shaft with three greenish-bronze prongs above the head)
+    - the wide round belly and the heavy squat mass
+    - the frog face - wide flat head, bulging glowing pale yellow eyes
+    - the long red-brown coat (the boss's colour against the green skin)
+  simplify:
+    - the pipe in the reference is dropped (a 1 px stick at this size)
+    - warts are darker painted spots on the skin, no geometry
+    - water dripping from the coat is a few darker wet streaks painted on the coat, no drops
+    - the coat's tatters are V notches cut in the hem
+  decisions:
+    - the reference shows no trident, so it is held upright on the right like a staff, the shaft's butt near the
+      ground, the prongs above the hat; greenish bronze so it stays apart from the green skin (lighter, yellower)
+    - the coat is a cone shell open at the front, so the pale belly shows from s and the diagonals; from n it is
+      a solid red-brown back with the hat on top
+    - the hat is on its own bone `hat` (channels hat_off / hat_rot) so that in the death it rolls off the head
+    - a mouth line is drawn despite face minimal, because without it the head reads as a green ball, not a frog
+
+ramps:
+  # green warty frog skin, the deep tones cooled toward blue-green (water)
+  frog:    ["#0b120e", "#22392a", "#3a5a34", "#58793a", "#7b9a45", "#a3b866"]
+  # paler yellow-green belly
+  belly:   ["#10130a", "#323d1f", "#4f6130", "#6e8240", "#8fa052", "#aeb873"]
+  # long red-brown coat (the reference's coat, a little warmer)
+  coat:    ["#12070a", "#40141a", "#6a2220", "#8c3526", "#a8512f", "#bd6c42"]
+  # battered top hat: dark slate blue, cold like the water
+  hat:     ["#0a0c12", "#1b2230", "#2c3848", "#3f5062", "#566a7c", "#71879a"]
+  # greenish bronze of the trident's prongs
+  bronze:  ["#0e100a", "#2f3a24", "#4f6035", "#738546", "#9aa95c", "#c3c98a"]
+  # glowing pale yellow eyes
+  frogeye: ["#3d360a", "#c9c25a", "#ede9a0", "#fffbe0"]
+  # smears are water, not fire: pale foam core, light blue, deep blue tail
+  fx_core: ["#eefcff"]
+  fx_mid:  ["#9fd6e6"]
+  fx_tail: ["#4a86a8"]
+
+materials:
+  skin:     {ramp: frog, gamma: 0.8, finish: soft}
+  wart:     {ramp: frog, finish: soft, bands: [1, 3]}
+  belly:    {ramp: belly, finish: soft}
+  lip:      {ramp: frog, bands: [0, 1], line: false}
+  coat:     {ramp: coat, finish: matte}
+  coat_wet: {ramp: coat, finish: matte, bands: [1, 2]}
+  hat:      {ramp: hat, finish: soft}
+  hatband:  {ramp: blood, finish: matte, bands: [2, 4]}
+  bronze:   {ramp: bronze, finish: metal}
+  wood:     {ramp: wood, finish: matte, bands: [1, 4]}
+  eye:      {ramp: frogeye, emissive: true, band: 3, outline: false, glow: {color: "#f3eea0", mix: 0.2, radius: 1}}
+
+remove: [use.hair, use.sword, use.head, animations.attack]
+
+use:
+  # the trident: the spear kit's shaft, bones and socket (trident_tip), its leaf head replaced by three prongs below
+  - {kit: spear, as: trident, at: wrist_R, with: {length: 1.75, butt: 0.62, head: 0.38, width: 0.1, tilt: -1.0,
+     roll: "-radians(yaw)", cheat: 0}, materials: {steel: bronze}}
+
+shadow: {rx: 20, ry: 7, alpha: 120}
+snap: [root, torso_rot]   # the slow idle breathing moves in whole pixels (less boiling)
+
+channels:
+  hand_L: [0.40, 0.02, 0.10]
+  hand_R: [0.48, 0.22, -0.04]
+  foot_L: [0.20, 0, 0.04]
+  trident_pitch: 0    # extra lean of the trident at the wrist (+: tip forward/down)
+  trident_splay: 0    # trident leaned outwards (+) or across the body (-)
+  trident_yaw: 0      # trident turned about the vertical: + towards his left (a sweep, the overhead twirl)
+  glow: 0             # 0..1 a pale water-light in the free (left) hand: the cast
+  hat_off: [0, 0, 0]  # the hat's offset from its seat (head space): the death rolls it off
+  hat_rot: [0, 0, 0]  # the hat's extra rotation (death)
+  smear_y: 1.0
+  smear_z: 0.2
+  smear_r: 1.1
+
+bones:
+  # hip height 0.70 (human 0.84): short bowed legs under a heavy body; the +0.08 is a permanent stoop
+  # the whole body x1.2 (about 48 px with the hat): everything hangs from `big`, as on the Goblin Chief; the
+  # wrist frames are not scaled (hands and trident in world units, sized for it)
+  big:        {parent: root, scale: 1.2}
+  torso_rot:  {parent: big, pos: "[0, 0.70 + bob, 0]", rot: "[lean + 0.08, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  # the frog head sits low and forward on the shoulders, no neck
+  headbase:   {parent: pelvis, pos: [0, 0.76, 0.17], inherit_rot: false, inherit_scale: false, scale: 1.2,
+               rot: "[lean*0.5 - 0.05, twist, roll]"}
+  head:       {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.0}
+  hat:        {parent: head, pos: "[0, 0.21, -0.12] + hat_off", rot: "[-0.22 + hat_rot[0], hat_rot[1], 0.06 + hat_rot[2]]"}
+  shoulder_L: {parent: pelvis, pos: [0.38, 0.56, -0.02]}
+  hip_L:      {parent: pelvis, pos: [0.17, -0.02, 0.0]}
+  fxspace:    {parent: big, rot: "[0, twist*0.3, 0]"}
+  # the trident keeps its own world lean (the wrist only carries it): upright, a little outwards, it follows the
+  # torso's twist and lean; `trident_pitch` tips it forward, `trident_splay` outwards (+) or across the body (-);
+  # cheat: in e / ne / se (the trident on the near side) it leans back a little so the prongs clear the face
+  trident:    {parent: wrist_R, pos: [0, 0, 0.035], inherit_rot: false,
+               rot: "[-0.12 - 0.25*pulse(yaw, 90, 60) + trident_pitch + lean*0.5, twist + trident_yaw, 0.14 + trident_splay]"}
+
+ik:
+  arm_L: {lengths: [0.408, 0.384]}   # x1.2 (IK lengths are world units)
+  leg_L: {space: big, lengths: [0.432, 0.408]}
+
+parts:
+  torso:           # a round belly under a broad chest and humped shoulders (the coat covers all but the belly)
+    material: belly
+    space: pelvis
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: [0, 0.20, 0.04], r: [0.36, 0.34, 0.34]}
+      - ellipsoid: {c: [0, 0.50, -0.03], r: [0.42, 0.19, 0.25]}
+  coat:            # the long coat: a cone shell from the shoulders to the shins, open at the front, tattered hem
+    material: coat
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.62, -0.06], b: [0, -0.32, -0.12], r: [0.33, 0.43], shell: 0.05}
+    cut:
+      - plane: {n: [0, 1, 0], at: 0.64}
+      - extrude: {c: [0, 0.0, 0.5], depth: 1.0,
+                  profile: {polygon: [[-0.10, 0.70], [0.10, 0.70], [0.24, -0.6], [-0.24, -0.6]]}}
+      - box: {c: [0.0, -0.33, -0.55], half: [0.08, 0.08, 0.2], rot: [0, 0, 0.785]}
+      - box: {c: [0.22, -0.33, -0.50], half: [0.07, 0.07, 0.2], rot: [0, 0.5, 0.785]}
+      - box: {c: [-0.22, -0.33, -0.50], half: [0.07, 0.07, 0.2], rot: [0, -0.5, 0.785]}
+      - box: {c: [0.45, -0.33, -0.25], half: [0.2, 0.07, 0.07], rot: [0.785, 0, 0]}
+      - box: {c: [-0.45, -0.33, -0.25], half: [0.2, 0.07, 0.07], rot: [0.785, 0, 0]}
+      - box: {c: [0.45, -0.33, 0.12], half: [0.2, 0.06, 0.06], rot: [0.785, 0, 0]}
+      - box: {c: [-0.45, -0.33, 0.12], half: [0.2, 0.06, 0.06], rot: [0.785, 0, 0]}
+    paint:         # darker wet streaks running down from the shoulders
+      - material: coat_wet
+        prims:
+          - box: {c: [0.14, -0.1, -0.3], half: [0.025, 0.5, 0.5]}
+          - box: {c: [-0.22, -0.2, -0.3], half: [0.025, 0.4, 0.5]}
+          - box: {c: [0.36, -0.25, 0.0], half: [0.5, 0.35, 0.025]}
+      - material: coat_wet       # the soaked hem
+        stripes: {axis: y, at: [-0.30], width: 0.08}
+      - material: coat_wet       # a back vent
+        prims:
+          - box: {c: [0, -0.25, -0.5], half: [0.02, 0.25, 0.2]}
+  coat_collar:     # a turned-up collar round the back of the neck: it frames the low head
+    material: coat
+    space: pelvis
+    prims:
+      - torus: {c: [0, 0.62, -0.04], R: 0.22, r: 0.06, rot: [0.25, 0, 0]}
+    cut:
+      - plane: {n: [0, 0.2, 1], at: 0.12}
+  belt:
+    material: coat_wet
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, -0.06, 0.03], b: [0, -0.01, 0.03], r: 0.30}
+    cut:
+      - plane: {n: [0, 0, -1], at: 0.0}
+  neck: {when: "0"}
+  head:            # a wide, flat frog head: broad cranium, a wide jaw, warts, a dark lip line round the front
+    material: skin
+    space: head
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.07, -0.02], r: [0.28, 0.18, 0.24]}
+      - ellipsoid: {c: [0, -0.03, 0.06], r: [0.32, 0.14, 0.23]}
+    paint:
+      - material: wart
+        spots: {scale: 0.05, density: 0.18, seed: 4}
+  mouth:           # the frog's wide mouth: a thin dark line round the front of the jaw
+    material: lip
+    space: head
+    prims:
+      - torus: {c: [0, -0.03, 0.03], R: 0.285, r: 0.016, rot: [0.1, 0, 0]}
+    cut:
+      - plane: {n: [0, 0, -1], at: 0.02}
+  eyedome_L:       # a bulging eye dome on the front corner of the head
+    material: skin
+    space: head
+    prims:
+      - sphere: {c: [0.17, 0.17, 0.12], r: 0.095}
+  eye_L:           # the glowing pale yellow eye, out of the dome's front
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.185, 0.18, 0.18], r: 0.06}
+  hat:             # a tall battered top hat: a flat brim and a slightly flared crown, crushed a little
+    material: hat
+    space: hat
+    prims:
+      - revolve: {c: [0, 0, 0], profile: {polygon: [[-0.26, -0.02], [0.26, -0.02], [0.26, 0.01], [0.15, 0.04], [0.17, 0.46],
+                                                   [-0.17, 0.46], [-0.15, 0.04], [-0.26, 0.01]], round: 0.008}}
+    cut:
+      - box: {c: [0.14, 0.46, 0.05], half: [0.1, 0.05, 0.3], rot: [0, 0, 0.35]}   # a dent in the crown
+    paint:
+      - material: hatband
+        stripes: {axis: y, at: [0.10], width: 0.08}
+  arm_L:           # thick arms in the coat's sleeves
+    material: coat
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.12}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.11, 0.09]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.09, 0.10]}
+  hand_L:          # a webbed frog hand: palm and three splayed fingers with round tips, blended into a web
+    material: skin
+    space: wrist_L
+    blend: 0.03
+    prims:
+      - sphere: {c: [0, 0, 0.05], r: 0.084}
+      - cone: {a: [0, 0, 0.07], b: [0.072, -0.024, 0.18], r: [0.042, 0.034]}
+      - cone: {a: [0, 0, 0.07], b: [0.0, -0.036, 0.204], r: [0.042, 0.034]}
+      - cone: {a: [0, 0, 0.07], b: [-0.072, -0.024, 0.18], r: [0.042, 0.034]}
+  leg_L:           # short thick bowed frog legs
+    material: skin
+    blend: 0.04
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.13, 0.09]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.09, 0.07]}
+  boot_L:          # a long flat webbed frog foot, toes splayed
+    material: skin
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.08, 0], b: [0, -0.02, 0.02], r: [0.07, 0.07]}
+      - ellipsoid: {c: [0, -0.045, 0.10], r: [0.11, 0.035, 0.14]}
+  trident_head:    # three prongs on a crossbar: the side ones curve up and in, the middle one is longest
+    material: bronze
+    space: trident_shaft
+    priority: 2
+    min_cover: 2
+    blend: 0.02
+    prims:
+      - box: {c: [0, 1.39, 0], half: [0.17, 0.03, 0.032], round: 0.01}
+      - cylinder: {a: [0, 1.31, 0], b: [0, 1.40, 0], r: 0.038}
+      - tube: {pts: ["[0.16, 1.39, 0]", "[0.19, 1.58, 0]", "[0.125, 1.73, 0]"], r: [0.033, 0.013]}
+      - tube: {pts: ["[-0.16, 1.39, 0]", "[-0.19, 1.58, 0]", "[-0.125, 1.73, 0]"], r: [0.033, 0.013]}
+      - cone: {a: [0, 1.39, 0], b: [0, 1.81, 0], r: [0.038, 0.013]}
+  trident_ferrule:
+    material: bronze
+  glow:            # the cast: a pale water-light gathered in the raised left hand
+    material: eye
+    space: wrist_L
+    when: "glow > 0.05"
+    prims:
+      - sphere: {c: [0, 0.03, 0.11], r: "0.13*glow"}
+
+animations:
+  # slow, heavy breathing: the belly heaves (squash), the free hand and the trident rise and fall with it, the
+  # head sinks a little late, the coat follows later still
+  idle:
+    frames: 8
+    ms: 160
+    channels:
+      bob: "0.045*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.6)"
+      hand_L: "[0.40, 0.02 + 0.03*sin(p - 0.6), 0.10]"
+      hand_R: "[0.48, 0.22 + 0.02*sin(p - 0.6), -0.04]"
+      trident_pitch: "0.03*sin(p - 1.0)"
+      coat: "0.12*sin(p - 1.0)"
+  # a heavy waddle: short bowed legs, the whole mass rolling from one planted foot to the other, the body
+  # lowest at each contact, the trident planted like a staff and swaying with the roll, the free arm swinging
+  walk:
+    frames: 8
+    ms: 125
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.06
+      bob: "-0.045*cos(2*p) - 0.01"
+      squash: "1 - 0.03*cos(2*p)"
+      roll: "0.08*sin(p)"
+      twist: "0.07*cos(p)"
+      head_yaw: "-0.05*cos(p)"
+      head_pitch: "0.04*cos(2*p - 0.6)"
+      foot_L: "[0.21, 0.09*pos(-sin(p)), 0.04 + 0.17*cos(p)]"
+      foot_R: "[0.21, 0.09*pos(sin(p)), 0.04 - 0.17*cos(p)]"
+      pitch_foot_L: "0.35*pos(-sin(p))"
+      pitch_foot_R: "0.35*pos(sin(p))"
+      hand_L: "[0.42, 0.04 + 0.04*pos(cos(p)), 0.10 - 0.14*cos(p)]"
+      hand_R: "[0.48, 0.24 + 0.03*pos(-cos(p)), -0.02 + 0.08*cos(p)]"
+      trident_pitch: "0.08*cos(p - 0.5)"
+      trident_splay: "-0.05*sin(p)"
+      coat: "0.35*sin(2*p - 0.8)"
+  # entrance roar: a crouched inhale, then he rears back with both arms and the trident flung up, head thrown
+  # back (`roar` at the peak), trembling while he roars, then settles
+  roar:
+    loop: false
+    keys:
+      - {ms: 140, set: {lean: 0.22, bob: -0.06, squash: 0.94, coat: 0.2, head_pitch: 0.15,
+          hand_L: [0.36, -0.02, 0.22], hand_R: [0.40, 0.10, 0.10], trident_pitch: 0.15}}
+      - {ms: 150, set: {lean: -0.10, bob: 0.0, squash: 1.03, coat: -0.2, head_pitch: -0.15,
+          hand_L: [0.50, 0.40, 0.10], hand_R: [0.46, 0.50, 0.05], trident_pitch: -0.05, trident_splay: 0.1}}
+      - {ms: 120, event: roar, set: {lean: -0.30, bob: 0.03, squash: 1.07, coat: -0.35, head_pitch: -0.40,
+          hand_L: [0.52, 0.78, 0.05], hand_R: [0.44, 0.86, 0.02], trident_pitch: -0.10, trident_splay: 0.18}}
+      - {ms: 100, set: {root: [0.03, 0, 0], roll: 0.04, lean: -0.28, bob: 0.02, squash: 1.06, coat: -0.3, head_pitch: -0.38,
+          hand_L: [0.53, 0.76, 0.05], hand_R: [0.45, 0.84, 0.02], trident_pitch: -0.08, trident_splay: 0.2}}
+      - {ms: 100, set: {root: [-0.03, 0, 0], roll: -0.04, lean: -0.30, bob: 0.03, squash: 1.07, coat: -0.35, head_pitch: -0.40,
+          hand_L: [0.51, 0.79, 0.05], hand_R: [0.43, 0.87, 0.02], trident_pitch: -0.12, trident_splay: 0.16}}
+      - {ms: 100, set: {root: [0.03, 0, 0], roll: 0.04, lean: -0.28, bob: 0.02, squash: 1.06, coat: -0.3, head_pitch: -0.38,
+          hand_L: [0.53, 0.76, 0.05], hand_R: [0.45, 0.84, 0.02], trident_pitch: -0.08, trident_splay: 0.2}}
+      - {ms: 100, set: {root: [-0.02, 0, 0], roll: -0.03, lean: -0.25, bob: 0.02, squash: 1.05, coat: -0.25, head_pitch: -0.33,
+          hand_L: [0.50, 0.68, 0.06], hand_R: [0.44, 0.78, 0.03], trident_pitch: -0.08, trident_splay: 0.15}}
+      - {ms: 140, set: {lean: -0.02, bob: -0.02, squash: 0.98, coat: 0.1, head_pitch: -0.05,
+          hand_L: [0.44, 0.22, 0.10], hand_R: [0.47, 0.36, 0.0], trident_pitch: 0.02}}
+      - {ms: 130, set: {lean: 0.05, coat: 0.05, hand_L: [0.40, 0.03, 0.10], hand_R: [0.48, 0.22, -0.04]}}
+  # wave: the trident cocked out to his right and back, held low (the wind-up), then one wide low sweep
+  # across the front from right to left with a smear along the ground; `hit` at the end of the sweep, when
+  # the wave leaves; follow-through and a heavy recovery
+  wave:
+    loop: false
+    keys:
+      - {ms: 130, event: windup, set: {twist: -0.30, lean: 0.0, bob: -0.03, squash: 0.97, coat: -0.15,
+          hand_R: [0.56, 0.28, -0.06], hand_L: [0.32, 0.12, 0.26], trident_pitch: 1.2, trident_yaw: -0.8, head_pitch: 0.05,
+          foot_L: [0.21, 0, 0.14], foot_R: [0.21, 0, -0.04]}}
+      - {ms: 240, set: {twist: -0.50, lean: 0.08, bob: -0.06, squash: 0.94, coat: -0.25,
+          hand_R: [0.60, 0.20, -0.14], hand_L: [0.30, 0.16, 0.30], trident_pitch: 1.95, trident_yaw: -1.25, head_pitch: 0.1,
+          foot_L: [0.21, 0, 0.16], foot_R: [0.21, 0, -0.06]}}
+      - {ms: 70, set: {root: [0, 0, 0.06], twist: -0.05, lean: 0.22, bob: -0.07, squash: 0.95, coat: 0.3,
+          hand_R: [0.24, 0.12, 0.40], hand_L: [0.36, 0.10, 0.06], trident_pitch: 1.85, trident_yaw: -0.15, head_pitch: 0.12,
+          foot_L: [0.21, 0, 0.20], foot_R: [0.21, 0, -0.08],
+          smear_y: 0.30, smear_z: 0.1, smear_r: 1.3, smear_w: 0.14, smear_a0: -1.5, smear_a1: -0.1}}
+      - {ms: 80, event: hit, set: {root: [0, 0, 0.10], twist: 0.45, lean: 0.30, bob: -0.08, squash: 0.94, coat: 0.5,
+          hand_R: [-0.12, 0.08, 0.42], hand_L: [0.40, 0.08, -0.06], trident_pitch: 2.0, trident_yaw: 1.05, head_pitch: 0.12,
+          foot_L: [0.21, 0, 0.22], foot_R: [0.21, 0, -0.08],
+          smear_y: 0.30, smear_z: 0.1, smear_r: 1.3, smear_w: 0.15, smear_a0: -0.9, smear_a1: 1.1}}
+      - {ms: 130, set: {root: [0, 0, 0.10], twist: 0.55, lean: 0.28, bob: -0.07, squash: 0.95, coat: 0.4,
+          hand_R: [-0.18, 0.10, 0.36], hand_L: [0.40, 0.08, -0.08], trident_pitch: 1.9, trident_yaw: 1.3, head_pitch: 0.1,
+          foot_L: [0.21, 0, 0.22], foot_R: [0.21, 0, -0.08],
+          smear_y: 0.30, smear_z: 0.1, smear_r: 1.3, smear_w: 0.10, smear_a0: 0.3, smear_a1: 1.35, smear_fade: 0.6}}
+      - {ms: 140, set: {root: [0, 0, 0.06], twist: 0.25, lean: 0.15, bob: -0.03, coat: 0.1,
+          hand_R: [0.20, 0.16, 0.24], hand_L: [0.40, 0.05, 0.04], trident_pitch: 0.9, trident_yaw: 0.5,
+          foot_L: [0.21, 0, 0.14], foot_R: [0.21, 0, -0.04]}}
+      - {ms: 140, set: {root: [0, 0, 0.02], twist: 0.05, lean: 0.06, coat: -0.05,
+          hand_R: [0.44, 0.21, 0.0], hand_L: [0.40, 0.03, 0.10], trident_pitch: 0.15, trident_yaw: 0.1, foot_L: [0.21, 0, 0.07]}}
+  # vortex: the trident raised over the head and twirled flat in a full circle (a ring smear above the hat),
+  # then thrust forward and pointed at the target; `hit` on the point
+  vortex:
+    loop: false
+    keys:
+      - {ms: 100, event: windup, set: {lean: -0.08, bob: -0.02, squash: 0.97, coat: -0.1, head_pitch: -0.1,
+          hand_R: [0.32, 0.62, 0.10], hand_L: [0.40, 0.30, 0.20], trident_pitch: 0.7, trident_yaw: -0.8}}
+      - {ms: 75, set: {lean: -0.15, bob: 0.02, squash: 1.04, coat: -0.2, head_pitch: -0.25, twist: -0.1,
+          hand_R: [0.14, 1.10, 0.02], hand_L: [0.45, 0.50, 0.15], trident_pitch: 1.12, trident_yaw: -1.57,
+          smear_y: 2.55, smear_z: 0.0, smear_r: 1.15, smear_w: 0.10, smear_a0: -3.0, smear_a1: -1.6, smear_fade: 0.7}}
+      - {ms: 75, set: {lean: -0.15, bob: 0.02, squash: 1.04, coat: -0.2, head_pitch: -0.25,
+          hand_R: [0.14, 1.10, 0.02], hand_L: [0.45, 0.50, 0.15], trident_pitch: 1.12, trident_yaw: 0.0,
+          smear_y: 2.55, smear_z: 0.0, smear_r: 1.15, smear_w: 0.10, smear_a0: -1.6, smear_a1: 0.0, smear_fade: 0.7}}
+      - {ms: 75, set: {lean: -0.15, bob: 0.02, squash: 1.04, coat: -0.2, head_pitch: -0.25, twist: 0.1,
+          hand_R: [0.14, 1.10, 0.02], hand_L: [0.45, 0.50, 0.15], trident_pitch: 1.12, trident_yaw: 1.57,
+          smear_y: 2.55, smear_z: 0.0, smear_r: 1.15, smear_w: 0.10, smear_a0: 0.0, smear_a1: 1.6, smear_fade: 0.7}}
+      - {ms: 75, set: {lean: -0.15, bob: 0.02, squash: 1.04, coat: -0.2, head_pitch: -0.25,
+          hand_R: [0.14, 1.10, 0.02], hand_L: [0.45, 0.50, 0.15], trident_pitch: 1.12, trident_yaw: 3.14,
+          smear_y: 2.55, smear_z: 0.0, smear_r: 1.15, smear_w: 0.10, smear_a0: 1.6, smear_a1: 3.1, smear_fade: 0.7}}
+      - {ms: 75, set: {lean: -0.15, bob: 0.02, squash: 1.04, coat: -0.2, head_pitch: -0.25, twist: -0.1,
+          hand_R: [0.14, 1.10, 0.02], hand_L: [0.45, 0.50, 0.15], trident_pitch: 1.12, trident_yaw: 4.71,
+          smear_y: 2.55, smear_z: 0.0, smear_r: 1.15, smear_w: 0.10, smear_a0: 3.1, smear_a1: 4.7, smear_fade: 0.7}}
+      - {ms: 75, set: {lean: -0.12, bob: 0.02, squash: 1.04, coat: -0.2, head_pitch: -0.2,
+          hand_R: [0.16, 1.02, 0.04], hand_L: [0.45, 0.45, 0.15], trident_pitch: 1.2, trident_yaw: 6.0,
+          smear_y: 2.55, smear_z: 0.0, smear_r: 1.15, smear_w: 0.08, smear_a0: 4.7, smear_a1: 6.0, smear_fade: 0.6}}
+      - {ms: 70, event: hit, set: {root: [0, 0, 0.05], lean: 0.25, bob: -0.04, squash: 0.95, coat: 0.4, head_pitch: 0.05,
+          hand_R: [0.14, 0.42, 0.38], hand_L: [0.42, 0.10, -0.04], trident_pitch: 1.45, trident_yaw: 0.0,
+          foot_L: [0.21, 0, 0.20], foot_R: [0.21, 0, -0.08]}}
+      - {ms: 150, set: {root: [0, 0, 0.06], lean: 0.28, bob: -0.05, squash: 0.94, coat: 0.45, head_pitch: 0.06,
+          hand_R: [0.13, 0.40, 0.40], hand_L: [0.42, 0.08, -0.06], trident_pitch: 1.5, trident_yaw: 0.0,
+          foot_L: [0.21, 0, 0.20], foot_R: [0.21, 0, -0.08]}}
+      - {ms: 130, set: {root: [0, 0, 0.05], lean: 0.12, bob: -0.02, coat: 0.1,
+          hand_R: [0.32, 0.28, 0.22], hand_L: [0.40, 0.05, 0.06], trident_pitch: 0.6,
+          foot_L: [0.21, 0, 0.12], foot_R: [0.21, 0, -0.03]}}
+      - {ms: 110, set: {root: [0, 0, 0.01], lean: 0.05, hand_R: [0.47, 0.22, -0.03], hand_L: [0.40, 0.03, 0.10],
+          trident_pitch: 0.05, foot_L: [0.21, 0, 0.06]}}
+  # cast: the free (left) hand raised to the sky, a pale water-light gathering in it, the head tipped up (held),
+  # then the hand thrust down to the ground in front; `hit` on the thrust (the icicles fall)
+  cast:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {lean: -0.05, bob: -0.02, squash: 0.97, head_pitch: -0.12, coat: -0.1,
+          hand_L: [0.38, 0.50, 0.20], glow: 0.4}}
+      - {ms: 220, set: {lean: -0.20, bob: 0.03, squash: 1.05, head_pitch: -0.38, coat: -0.2, roll: -0.04,
+          hand_L: [0.28, 1.16, 0.02], hand_R: [0.50, 0.26, -0.06], trident_splay: 0.08, glow: 1.0}}
+      - {ms: 90, set: {lean: -0.05, bob: 0.0, squash: 1.0, head_pitch: -0.1, coat: 0.0,
+          hand_L: [0.32, 0.72, 0.36], glow: 1.0}}
+      - {ms: 70, event: hit, set: {root: [0, 0, 0.06], lean: 0.30, bob: -0.07, squash: 0.93, head_pitch: 0.15, coat: 0.4,
+          hand_L: [0.26, -0.08, 0.48], hand_R: [0.50, 0.18, -0.02], glow: 0.7,
+          foot_L: [0.21, 0, 0.18], foot_R: [0.21, 0, -0.06]}}
+      - {ms: 150, set: {root: [0, 0, 0.07], lean: 0.32, bob: -0.08, squash: 0.92, head_pitch: 0.16, coat: 0.45,
+          hand_L: [0.26, -0.10, 0.48], hand_R: [0.50, 0.17, -0.02], glow: 0.3,
+          foot_L: [0.21, 0, 0.18], foot_R: [0.21, 0, -0.06]}}
+      - {ms: 130, set: {root: [0, 0, 0.04], lean: 0.15, bob: -0.03, coat: 0.15,
+          hand_L: [0.36, 0.02, 0.26], hand_R: [0.49, 0.20, -0.03],
+          foot_L: [0.21, 0, 0.12], foot_R: [0.21, 0, -0.03]}}
+      - {ms: 120, set: {root: [0, 0, 0.01], lean: 0.06, hand_L: [0.40, 0.02, 0.12], foot_L: [0.21, 0, 0.06]}}
+  # summon: the trident swung up and turned prongs-down, held high in both hands, then driven into the ground in
+  # front; `hit` at the stab; a held beat with the prongs in the ground, then he pulls it out
+  summon:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {lean: -0.05, bob: -0.02, squash: 0.97, coat: -0.1, head_pitch: -0.05,
+          hand_R: [0.38, 0.60, 0.08], hand_L: [0.30, 0.40, 0.25], trident_pitch: -0.15}}
+      - {ms: 250, set: {lean: -0.18, bob: 0.03, squash: 1.05, coat: -0.25, head_pitch: -0.25,
+          hand_R: [0.26, 1.10, 0.02], hand_L: [0.06, 0.98, 0.10], trident_pitch: -0.30, trident_splay: -0.05}}
+      - {ms: 80, set: {lean: 0.10, bob: -0.02, squash: 1.0, coat: 0.1, head_pitch: 0.0,
+          hand_R: [0.18, 0.80, 0.36], hand_L: [-0.02, 0.74, 0.36], trident_pitch: 1.3, trident_splay: -0.1}}
+      - {ms: 70, event: hit, set: {root: [0, 0, 0.08], lean: 0.35, bob: -0.09, squash: 0.92, coat: 0.45, head_pitch: 0.12,
+          hand_R: [0.12, 0.58, 0.32], hand_L: [-0.04, 0.56, 0.30], trident_pitch: 2.42, trident_splay: -0.1,
+          foot_L: [0.21, 0, 0.18], foot_R: [0.21, 0, -0.06]}}
+      - {ms: 200, set: {root: [0, 0, 0.07], lean: 0.33, bob: -0.08, squash: 0.92, coat: 0.5, head_pitch: 0.14,
+          hand_R: [0.12, 0.57, 0.30], hand_L: [-0.04, 0.55, 0.28], trident_pitch: 2.48, trident_splay: -0.1,
+          foot_L: [0.21, 0, 0.18], foot_R: [0.21, 0, -0.06]}}
+      - {ms: 150, set: {root: [0, 0, 0.04], lean: 0.10, bob: -0.02, coat: 0.1,
+          hand_R: [0.32, 0.45, 0.25], hand_L: [0.34, 0.10, 0.18], trident_pitch: 1.0,
+          foot_L: [0.21, 0, 0.10], foot_R: [0.21, 0, -0.03]}}
+      - {ms: 130, set: {root: [0, 0, 0.01], lean: 0.05, hand_R: [0.47, 0.23, -0.03], hand_L: [0.40, 0.03, 0.10],
+          trident_pitch: 0.05, foot_L: [0.21, 0, 0.06]}}
+  # hit: a short flinch (the boss does not stop): the body and head jolt back a pixel or two and return
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.05], lean: -0.15, bob: -0.02, squash: 0.95, head_pitch: -0.2, coat: -0.3,
+          hand_L: [0.44, 0.10, 0.04], hand_R: [0.50, 0.26, -0.08], trident_pitch: -0.1}}
+      - {ms: 70, set: {root: [0, 0, -0.02], lean: -0.05, bob: -0.01, squash: 0.98, head_pitch: -0.08, coat: -0.1,
+          hand_L: [0.42, 0.06, 0.07], hand_R: [0.49, 0.24, -0.06], trident_pitch: -0.05}}
+      - {ms: 70, set: {lean: 0.06, head_pitch: 0.02, coat: 0.05, hand_L: [0.40, 0.02, 0.10], hand_R: [0.48, 0.22, -0.04]}}
+  # death: struck back, staggers, the knees buckle, then the heavy body topples on its back with a bounce; the
+  # trident drops beside him and the top hat tumbles off the head and rolls away behind; the last frame held
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.05], lean: -0.30, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5,
+          hand_L: [0.46, 0.18, 0.0], hand_R: [0.52, 0.30, -0.06], trident_pitch: -0.2, hat_off: [0, 0.03, -0.02], hat_rot: [-0.2, 0, 0]}}
+      - {ms: 140, set: {root: [0, 0, -0.10], twist: 0.2, roll: 0.08, lean: -0.22, bob: -0.05, head_pitch: -0.15, coat: -0.3,
+          hand_L: [0.46, 0.12, 0.02], hand_R: [0.52, 0.22, -0.02], trident_pitch: 0.2, trident_splay: 0.3,
+          hat_off: [0, 0.06, -0.04], hat_rot: [-0.3, 0, 0.1],
+          foot_L: [0.20, 0, 0.06], foot_R: [0.21, 0.05, -0.16]}}
+      - {ms: 170, set: {root: [0, 0, -0.10], twist: 0.12, roll: 0.06, lean: 0.20, bob: -0.20, squash: 0.93, head_pitch: 0.25, coat: 0.3,
+          hand_L: [0.40, -0.08, 0.16], hand_R: [0.46, -0.04, 0.12], trident_pitch: 0.5, trident_splay: 0.7,
+          hat_off: [0, 0.10, 0.04], hat_rot: [0.3, 0, 0.2],
+          foot_L: [0.20, 0, 0.04], foot_R: [0.21, 0, -0.12]}}
+      - {ms: 130, set: {root: [0, 0, -0.10], twist: 0.1, roll: 0.05, lean: -0.5, bob: -0.24, head_pitch: -0.2, coat: -0.4,
+          hand_L: [0.48, 0.15, 0.10], hand_R: [0.50, 0.15, 0.10], trident_pitch: 0.7, trident_splay: 1.1,
+          hat_off: [0, 0.16, -0.10], hat_rot: [-0.6, 0, 0.4],
+          foot_L: [0.20, 0.04, 0.16], foot_R: [0.21, 0.02, 0.08]}}
+      - {ms: 100, set: {root: [0, 0, 0.0], twist: "0.3*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.25, bob: -0.36, head_pitch: -0.45, coat: -0.5,
+          hand_L: [0.50, 0.12, 0.12], hand_R: [0.52, 0.14, 0.12], trident_pitch: 1.0, trident_splay: 1.2,
+          hat_off: [0, 0.28, -0.18], hat_rot: [-1.0, 0, 0.8],
+          foot_L: [0.20, 0.10, 0.36], foot_R: [0.21, 0.06, 0.30]}}
+      - {ms: 90, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.70, bob: -0.45, squash: 0.9, head_pitch: -0.6, coat: -0.6,
+          hand_L: [0.50, 0.06, -0.08], hand_R: [0.54, 0.06, -0.08], trident_pitch: 1.2, trident_splay: 1.25,
+          hat_off: [0.04, 0.42, -0.20], hat_rot: [-1.3, 0, 1.2],
+          foot_L: [0.20, 0.06, 0.44], foot_R: [0.21, 0.03, 0.40]}}
+      - {ms: 130, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.60, bob: -0.40, squash: 0.98, head_pitch: -0.55, coat: -0.5,
+          hand_L: [0.51, 0.08, -0.05], hand_R: [0.54, 0.08, -0.06], trident_pitch: 1.2, trident_splay: 1.25,
+          hat_off: [0.08, 0.50, -0.18], hat_rot: [-1.5, 0, 1.5],
+          foot_L: [0.20, 0.04, 0.45], foot_R: [0.21, 0.02, 0.42]}}
+      - {ms: 600, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.68, bob: -0.44, head_pitch: -0.6, coat: -0.6,
+          hand_L: [0.51, 0.06, -0.08], hand_R: [0.54, 0.06, -0.08], trident_pitch: 1.2, trident_splay: 1.25,
+          hat_off: [0.10, 0.54, -0.16], hat_rot: [-1.57, 0, 1.6],
+          foot_L: [0.20, 0, 0.46], foot_R: [0.21, 0, 0.44]}}
+
+timing:
+  wave: {hit: 440ms, total: 930ms}
+  vortex: {hit: 550ms, total: 1010ms}
+  cast: {hit: 430ms, total: 900ms}
+  summon: {hit: 450ms, total: 1000ms}
+  roar: {roar: 290ms, total: 1080ms}

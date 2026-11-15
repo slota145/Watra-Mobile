@@ -109,10 +109,17 @@ func set_level(value: int) -> void:
 	plus_button.disabled = level >= max_level
 	minus10_button.disabled = level <= 1
 	plus10_button.disabled = level >= max_level
-	var lines: Array[String] = [tr("Siła potworów: %d%%") % roundi(DungeonLevels.power(level) * 100.0),
-		tr("Skrzynia Wodza: %d żaru") % DungeonLevels.chest_embers(level)]
+	var lines: Array[String] = []
+	if Dungeons.is_random(level):
+		lines.append(tr("Loch losowy przy każdym wejściu"))
+	else:
+		var id := Dungeons.for_level(level)
+		lines.append(Dungeons.name_of(id))
+		lines.append(Lang.t(Dungeons.get_data(id).description))
+	lines.append(tr("Siła potworów: %d%%") % roundi(DungeonLevels.power(level) * 100.0))
+	lines.append(tr("Skrzynia bossa: %d żaru") % DungeonLevels.chest_embers(level))
 	if level == max_level:
-		lines.append(tr("Pokonaj Wodza, żeby odblokować poziom %d") % (level + 1))
+		lines.append(tr("Pokonaj bossa, żeby odblokować poziom %d") % (level + 1))
 	_info.text = "\n".join(lines)
 
 

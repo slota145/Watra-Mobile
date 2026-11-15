@@ -2,6 +2,37 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - drugi loch: Zatopione podziemia, Wodnik, odporność na żywioły
+
+Decyzje autora: klimat Zatopionych podziemi (z Watry), wspólna drabinka poziomów - 1-10 gobliny, od 11 na stałe
+podziemia, kolejne lochy w podobnym rytmie, od 101 przy każdym wejściu losowy loch (endgame); 3 potwory + boss
+(topielec, żabołak, topielica, Wodnik z falą, wirem, lodowymi kroplami i wezwaniem topielców); jedna premia
+„odporność na żywioły” zamiast osobnych.
+- `scripts/dungeons.gd` (`Dungeons`): rodzaje lochów (`DATA`: nazwa, `from`, boss, napis przyzwania, podłoże
+  i odcień, żywioł, opis), `for_level` (od `RANDOM_FROM`=101 losowo), `is_random`. Podłoże podziemi -
+  `assets/watra/swamp_shallow.png` (płycizna z liliami z Watry, `assets/swamp/ground/shallow.png`).
+- Arena: `climate` z poziomu przy wejściu, podłoże i odcień z `Dungeons`, nazwa bossa nad paskiem, „Przyzwij Wodnika”,
+  boss `ProtoWodnik`. Wybór poziomu pokazuje nazwę i opis lochu („Loch losowy” od 101); wynik - „Pokonane potwory”.
+- `ProtoHorde.climate` i `make_monster(loch, rola)`: role strumienia (zwykły / strzelający / silny) mają te same
+  udziały i limity co gobliny. Potwory dziedziczą po goblinach: `ProtoGoblin.element` (żywioł ciosu),
+  `_hit_hero` (co jeszcze robi trafienie), `squeaks` (podziemia nie piszczą przy ucieczce), `fallback_color`.
+  - Topielec `proto_drowner.gd`: 48 zdrowia, 30 px/s, cios 11 wodą, przemoczenie (25% wolniej na 2 s).
+  - Żabołak `proto_frogman.gd` (po łuczniku): 30 zdrowia, plucie 9 - kula wody (`ProtoArrow.water`: bańka hydrosfery,
+    rozprysk, przemoczenie); animacja plucia rusza z opóźnieniem (`SPIT_AT`), żeby zgrać się z linią celu.
+  - Topielica `proto_rusalka.gd` (po osiłku): 130 zdrowia, koło lodu wokół siebie (promień 34), cios 20 lodem
+    i 50% wolniej na 1,5 s; `ProtoGoblinBrute.anim_hit_at` - chwila ciosu w animacji podklasy.
+- Wodnik `proto_wodnik.gd` (po Wodzu - `ProtoChief` dostał `scene_path`, `base_hp`, `anim_hit_at`, `anim_fallback`,
+  `keep_distance`): 800 zdrowia, trzyma się 70 px od postaci; Fala (pas 230x30 - `ProtoTelegraph.length/width/angle`,
+  1,1 s, 24 wodą + przemoczenie, efekt `hydro_wave` przelatuje pasem), Wir (koło pod postacią 0,9 s, potem 2,5 s
+  wciąga 45 px/s w zasięgu 70 i rani 8 co 0,5 s, `hydro_vortex`), Lodowe krople (5 kół, jedno pod postacią,
+  spadają po kolei od 1 s, 18 lodem i 45% wolniej), Wezwanie (4 topielce z gejzerów co 11 s).
+- Odporność na żywioły: premia `element_res_pct` (przedmioty 5-10% + 0,3 na poziom, onyks zamiast uniku), sufit 75%
+  (`Elements.MAX_RESISTANCE`), `ProtoHero.element_res`, `take_damage(ile, żywioł)` - liczba w kolorze żywiołu;
+  `ProtoHero.slow` (spowolnienie i barwa postaci). Wiersz „Odporność na żywioły” w Statystykach (gdy przedmioty coś dają).
+- Grafika SpriteKiln (styl projektu, wzory z Watry w `docs/referencje/zatopione/`): `art/specs/characters/drowner`,
+  `frogman`, `rusalka`, `wodnik` -> `assets/spritekiln/<nazwa>/`.
+- Test `tests/test_flooded.gd`, zrzuty `tools/flooded_shots.gd`.
+
 ## 15.11.2026 - kamienie bez stopni: ulepszanie, sprzedaż, odpryski, nowa sakwa
 
 Decyzje autora: kamienie bez stopni; kamienie umiejętności ulepsza się złotem i odpryskami (10 poziomów), szlachetne

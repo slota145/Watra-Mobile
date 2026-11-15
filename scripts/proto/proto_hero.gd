@@ -59,6 +59,12 @@ var obstacles: Array[Vector3] = []
 var move_mult := 1.0
 var regen := 0.0
 var protection := 0.0
+## Odporność na żywioły (0-0,75, premia przedmiotów): o tyle mniej obrażeń od ciosów żywiołów (woda, lód...).
+var element_res := 0.0
+## Spowolnienie od potworów (przemoczenie, lód): ułamek szybkości mniej i ile sekund jeszcze; kolor postaci.
+var chill := 0.0
+var chill_left := 0.0
+var _chill_color := Color.WHITE
 ## Szansa na unik (0-1, premia przedmiotów): cios potwora nie zadaje obrażeń, nad głową napis „Unik!”.
 var dodge := 0.0
 var _regen_acc := 0.0
@@ -95,6 +101,11 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_invulnerable -= delta
 	parry_left -= delta
+	if chill_left > 0.0:
+		chill_left -= delta
+		if chill_left <= 0.0:
+			chill = 0.0
+			_sprite.self_modulate = Color.WHITE
 	if dead:
 		velocity = Vector2.ZERO
 		_leap_time = 0.0
@@ -119,7 +130,7 @@ func _process(delta: float) -> void:
 		_process_leap(delta)
 		return
 	var input := joystick.vector if joystick else Vector2.ZERO
-	velocity = input * SPEED * move_mult
+	velocity = input * SPEED * move_mult * (1.0 - chill)
 	position = _push_out((position + velocity * delta).clamp(bounds.position, bounds.end))
 	if input.length() > 0.05:
 		facing = input.normalized()
@@ -170,9 +181,21 @@ func protect(time: float) -> void:
 	_invulnerable = maxf(_invulnerable, time)
 
 
+## Spowolnienie od potwora (`fraction` szybkości mniej przez `time` s; mocniejsze wygrywa, czas się odnawia)
+## i barwa postaci (woda - niebieska, lód - jasnobłękitna) do końca spowolnienia.
+func slow(fraction: float, time: float, color := Color(0.6, 0.8, 1.2)) -> void:
+	if dead:
+		return
+	chill = maxf(chill if chill_left > 0.0 else 0.0, clampf(fraction, 0.0, 0.8))
+	chill_left = maxf(chill_left, time)
+	_chill_color = color
+	_sprite.self_modulate = color
+
+
 ## Trafienie przez potwora: czerwony błysk, liczba nad głową, krótka nietykalność; przy zerze - śmierć.
-## Garda Riposty (`parry_left`) blokuje cios i wysyła `parried`.
-func take_damage(amount: int) -> void:
+## Garda Riposty (`parry_left`) blokuje cios i wysyła `parried`. `element` - żywioł ciosu (Elements; nie fizyczny -
+## mniej o odporność na żywioły, liczba w kolorze żywiołu).
+func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 	if dead or _invulnerable > 0.0:
 		return
 	if parry_left > 0.0:
@@ -186,10 +209,12 @@ func take_damage(amount: int) -> void:
 		_spawn_text(tr("Unik!"), Color(0.75, 0.9, 1.0))
 		dodged.emit()
 		return
-	amount = maxi(1, roundi(amount * (1.0 - protection)))
+	var res := element_res if element != Elements.PHYSICAL else 0.0
+	amount = maxi(1, roundi(amount * (1.0 - protection) * (1.0 - res)))
 	hp = maxi(hp - amount, 0)
 	health_changed.emit(hp, max_hp)
-	_spawn_text("-%d" % amount, Color(1.0, 0.4, 0.35))
+	_spawn_text("-%d" % amount, Color(1.0, 0.4, 0.35) if element == Elements.PHYSICAL \
+			else Elements.COLORS.get(element, Color.WHITE).lerp(Color(1.0, 0.4, 0.35), 0.3))
 	Input.vibrate_handheld(30)
 	var tween := _sprite.create_tween()
 	_sprite.modulate = Color(2.2, 0.5, 0.45)
@@ -287,6 +312,7 @@ func apply_gear(level: int, items_gear: Dictionary) -> void:
 	move_mult = 1.0 + gear.get("move_pct", 0.0) / 100.0
 	regen = gear.get("regen", 0.0)
 	protection = gear.get("protection_pct", 0.0) / 100.0
+	element_res = minf(gear.get("element_res_pct", 0.0) / 100.0, Elements.MAX_RESISTANCE)
 	dodge = gear.get("dodge_pct", 0.0) / 100.0
 	health_changed.emit(hp, max_hp)
 	mana_changed.emit(mana, max_mana)

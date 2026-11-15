@@ -62,7 +62,7 @@ func _ready() -> void:
 ## Pokazuje wynik biegu; `lost_embers` - żar zebrany w lochu, który zgasł razem z postacią.
 func show_result(kills: int, seconds: float, lost_embers := 0) -> void:
 	var s := int(seconds)
-	_summary.text = tr("Pokonane gobliny: %d") % kills + "\n" + tr("Przetrwany czas: %d:%02d") % [s / 60, s % 60]
+	_summary.text = tr("Pokonane potwory: %d") % kills + "\n" + tr("Przetrwany czas: %d:%02d") % [s / 60, s % 60]
 	if lost_embers > 0:
 		_summary.text += "\n" + tr("Zgasło żaru: %d") % lost_embers
 	visible = true
@@ -73,12 +73,12 @@ func show_result(kills: int, seconds: float, lost_embers := 0) -> void:
 ## `deaths` - ile razy postać zginęłaby bez nieśmiertelności (tryb deweloperski; 0 - linia nie pokazuje się).
 func show_victory(level: int, banked: int, unlocked: int, kills: int, seconds: float, deaths := 0) -> void:
 	var s := int(seconds)
-	_title.text = tr("Wódz pokonany!")
+	_title.text = tr("Boss pokonany!")
 	_title.add_theme_color_override("font_color", Color(1, 0.82, 0.35))
 	var lines: Array[String] = [tr("Poziom lochu: %d") % level, tr("Żar do Watry: %d") % banked]
 	if unlocked > 0:
 		lines.append(tr("Odblokowano poziom %d") % unlocked)
-	lines.append(tr("Pokonane gobliny: %d") % kills)
+	lines.append(tr("Pokonane potwory: %d") % kills)
 	lines.append(tr("Czas wyprawy: %d:%02d") % [s / 60, s % 60])
 	if deaths > 0:
 		lines.append(tr("Zgony (nieśmiertelność): %d") % deaths)

@@ -4,6 +4,8 @@ extends Node2D
 ## Wypełnia się od środka przez `duration` sekund, w chwili pełnego wypełnienia atak uderza. W środku zbiegają się
 ## kręgi (coraz szybciej), tuż przed uderzeniem koło jasno błyska. Koło jest spłaszczone w pionie jak cienie
 ## (widok z góry pod kątem). Leży pod postaciami (z_index -1); sprząta je potwór albo samo po `LINGER` s.
+## Pas (`length` > 0, fala Wodnika): prostokąt od punktu startu w kierunku `angle`, szerokości `width`,
+## wypełnia się od początku do końca; bez spłaszczenia (kierunek liczy się już na ziemi).
 
 const FILL := Color(1.0, 0.12, 0.06, 0.2)
 const CHARGE := Color(1.0, 0.18, 0.08, 0.4)
@@ -19,6 +21,10 @@ const LINGER := 2.0
 
 var radius := 40.0
 var duration := 1.0
+## Pas zamiast koła: długość (0 - koło), szerokość i kierunek (radiany).
+var length := 0.0
+var width := 28.0
+var angle := 0.0
 var progress := 0.0
 
 var _time := 0.0
@@ -26,7 +32,10 @@ var _time := 0.0
 
 func _ready() -> void:
 	z_index = -1
-	scale = Vector2(1.0, SQUASH)
+	if length > 0.0:
+		rotation = angle
+	else:
+		scale = Vector2(1.0, SQUASH)
 
 
 func _process(delta: float) -> void:
@@ -40,11 +49,17 @@ func _process(delta: float) -> void:
 ## Czy punkt świata leży w kole (z uwzględnieniem spłaszczenia).
 func contains(point: Vector2) -> bool:
 	var local := point - global_position
+	if length > 0.0:
+		local = local.rotated(-angle)
+		return local.x >= 0.0 and local.x <= length and absf(local.y) <= width / 2.0
 	local.y /= SQUASH
 	return local.length() <= radius
 
 
 func _draw() -> void:
+	if length > 0.0:
+		_draw_line_shape()
+		return
 	var pulse := 0.75 + 0.25 * sin(_time * lerpf(8.0, 22.0, progress))
 	var edge := Color(EDGE, EDGE.a * pulse)
 	var phase := fposmod(_time * lerpf(1.2, 3.5, progress), 1.0)
@@ -57,3 +72,19 @@ func _draw() -> void:
 	if progress >= FLASH_FROM and int(_time * 20.0) % 2 == 0:
 		draw_circle(Vector2.ZERO, radius, FLASH)
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, edge, 2.0)
+
+
+## Pas: tło, wypełnienie od początku, przesuwające się kreski w kierunku fali, błysk i obramowanie.
+func _draw_line_shape() -> void:
+	var pulse := 0.75 + 0.25 * sin(_time * lerpf(8.0, 22.0, progress))
+	var half := width / 2.0
+	var rect := Rect2(0.0, -half, length, width)
+	draw_rect(rect, FILL)
+	draw_rect(Rect2(0.0, -half, length * progress, width), CHARGE)
+	var phase := fposmod(_time * lerpf(1.2, 3.5, progress), 1.0)
+	for k in 3:
+		var x := length * fposmod(phase + k / 3.0, 1.0)
+		draw_line(Vector2(x, -half + 2.0), Vector2(x, half - 2.0), MARK, 1.0)
+	if progress >= FLASH_FROM and int(_time * 20.0) % 2 == 0:
+		draw_rect(rect, FLASH)
+	draw_rect(rect, Color(EDGE, EDGE.a * pulse), false, 2.0)

@@ -8,6 +8,8 @@ extends ProtoTarget
 ## Elita (ProtoElite.promote, dziecko `elite`): tarcza pochłania trafienia (`_absorb`), Dowódczy wzmacnia sąsiadów
 ## (`empower` - szybsi i silniejsi), po śmierci elita może wybuchnąć (ProtoElite.on_death).
 ## Grafika: scena SpriteKiln assets/spritekiln/goblin/goblin.tscn (KilnSprite2D - animacje idle, walk, attack, hit, death).
+## Potwory innych lochów (Dungeons) dziedziczą po goblinie: `element` - żywioł ciosu (odporność bohatera),
+## `_hit_hero` - co jeszcze robi trafienie (np. przemoczenie topielca), `squeaks` - czy piszczy przy ucieczce.
 
 signal died(goblin: ProtoGoblin)
 
@@ -50,6 +52,11 @@ var damage := DAMAGE
 var attack_cooldown := ATTACK_COOLDOWN
 ## Wielkość cienia pod stopami (osiłek ma większy).
 var shadow_scale := 0.85
+## Żywioł ciosu (Elements) i czy piszczy przy ucieczce przed bossem (gobliny tak).
+var element := Elements.PHYSICAL
+var squeaks := true
+## Kolor zastępczego kształtu, dopóki nie ma grafiki.
+var fallback_color := Color(0.55, 0.65, 0.2)
 ## Elita (cechy, tarcza, napis) albo null; mnożnik obrażeń (elita - Elites.DAMAGE).
 var elite: ProtoElite
 var damage_mult := 1.0
@@ -91,7 +98,7 @@ func _ready() -> void:
 	else:
 		_sprite = Polygon2D.new()  # do czasu eksportu grafiki
 		_sprite.polygon = PackedVector2Array([Vector2(-6, 0), Vector2(6, 0), Vector2(5, -20), Vector2(-5, -20)])
-		_sprite.color = Color(0.55, 0.65, 0.2)
+		_sprite.color = fallback_color
 		add_child(_sprite)
 	_audio = AudioStreamPlayer2D.new()
 	_audio.volume_db = -12.0
@@ -251,7 +258,13 @@ func _start_attack(to_hero: Vector2) -> void:
 func _strike() -> void:
 	_struck = true
 	if hero and not hero.dead and global_position.distance_to(hero.global_position) <= HIT_RANGE:
-		hero.take_damage(hit_damage())
+		hero.take_damage(hit_damage(), element)
+		_hit_hero()
+
+
+## Co jeszcze robi trafienie postaci (podklasy: przemoczenie, zamrożenie); goblin - nic.
+func _hit_hero() -> void:
+	pass
 
 
 func _die() -> void:
@@ -276,7 +289,7 @@ func flee(squeak := true) -> void:
 	_play(&"walk", true)
 	if _scene:
 		_sprite.speed_scale = FLEE_SPEED / speed
-	if squeak:
+	if squeak and squeaks:
 		_audio.stream = SQUEAKS.pick_random()
 		_audio.pitch_scale = randf_range(0.9, 1.2)
 		_audio.volume_db = -10.0
