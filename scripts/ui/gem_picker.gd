@@ -3,7 +3,7 @@ extends Control
 ## Wybór kamienia wysuwany od dołu ekranu (ustalone z autorem 13.11.2026) - dwie drogi wkładania kamieni:
 ## - „najpierw gniazdo” (`open_skill_socket`, `open_item_socket`): lista tylko pasujących kamieni z sakwy, przy każdym
 ##   co zrobi w tej umiejętności albo w tym przedmiocie (Gems.support_text, Gems.jewel_text); kamień, którego nie da się
-##   włożyć, jest przygaszony z powodem; u góry kamień, który już siedzi w gnieździe, z przyciskiem „Wyjmij”;
+##   włożyć, jest przygaszony z powodem (kamienie unikalne innych umiejętności są ukryte - prośba autora 15.11.2026); u góry kamień, który już siedzi w gnieździe, z przyciskiem „Wyjmij”;
 ## - „najpierw kamień” (`open_gem` - stuknięcie kamienia w sakwie): opis kamienia i lista miejsc, gdzie pasuje (kamień
 ##   umiejętności - kupione umiejętności, szlachetny - założone przedmioty i torba), przy każdym działanie i „Włóż”
 ##   (w pierwsze wolne gniazdo). Klucz Runiczny - umiejętności z zamkniętymi gniazdami („Otwórz”), Dłuto Jubilera -
@@ -74,8 +74,8 @@ func _ready() -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 5)
 	_panel.add_child(col)
-	title_label = _label(col, "", 16, GOLD)
-	sub_label = _label(col, "", 11, DIM)
+	title_label = _label(col, "", 16, GOLD, true)  # zawijane - długa nazwa nie rozpycha okna poza ekran
+	sub_label = _label(col, "", 11, DIM, true)
 	scroll = ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	col.add_child(scroll)
@@ -165,6 +165,8 @@ func _build_skill_socket() -> void:
 		_label(list, tr("Brak kamieni umiejętności. Wypadają w lochach od poziomu %d.") % Gems.MIN_LEVEL, 12, DIM, true)
 	for id in gems:
 		var problem: String = _game.skill_socket_problem(skill, index, id)
+		if problem == "skill":
+			continue  # kamień unikalny innej umiejętności - nie pokazujemy (prośba autora 15.11.2026)
 		var reason := tr("%s ma już kamień tego rodzaju.") % Skills.name_of(skill) if problem == "same" \
 				else tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(id)) if problem == "skill" else ""
 		var b := _row(id, Gems.icon_of(id), Gems.name_of(id), Gems.color_of(id), Gems.support_text(id, skill),
@@ -233,6 +235,8 @@ func _build_gem() -> void:
 				continue
 			any = true
 			var free: int = _game.free_skill_socket(id)
+			if Gems.is_unique(gem) and Gems.unique_skill(gem) != id:
+				continue  # kamień unikalny pasuje tylko do swojej umiejętności - innych nie pokazujemy
 			var problem: String = _game.skill_socket_problem(id, free, gem) if free >= 0 else "full"
 			var reason := tr("Brak wolnego gniazda (otwiera je Klucz Runiczny).") if problem == "full" \
 					else tr("Ma już kamień tego rodzaju.") if problem == "same" \

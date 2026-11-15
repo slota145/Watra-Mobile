@@ -2,6 +2,14 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - poprawka: okno wyboru kamienia nie mieści się na ekranie
+
+- Zgłoszenie autora: okno kamieni dla miecza za szerokie. Przyczyna: tytuł i podtytuł `GemPicker` („Kamienie
+  umiejętności z sakwy - co zrobią w: Rozłupanie Ziemi”) nie zawijały się, więc długa nazwa umiejętności rozpychała
+  okno (351 px przy 344 px miejsca). Teraz oba się zawijają. Przy cudzych kamieniach unikalnych napis „Pasuje tylko
+  do: …” był dwa razy. Decyzja autora: kamienie unikalne innych umiejętności są w ogóle ukryte - w liście gniazda
+  i w „Gdzie włożyć” kamienia unikalnego z sakwy (tylko jego umiejętność).
+
 ## 15.11.2026 - trzeci loch: Katakumby, Nekromanta
 
 Decyzje autora: Katakumby od 21. poziomu (drabinka: 1-10 gobliny, 11-20 Zatopione podziemia, 21+ Katakumby, od 101
