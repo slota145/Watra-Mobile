@@ -105,9 +105,9 @@ bones:
   # the sword: along the bone's y from the fist, oriented in the torso's space
   sword:      {parent: torso_rot, at: wrist_R, inherit_scale: false, scale: 1.05, rot: "[sw_pitch, sw_yaw, sw_roll]"}
 
-ik:
-  arm_L: {lengths: [0.31, 0.29]}
-  leg_L: {space: big, lengths: [0.42, 0.40]}
+ik:   # IK lengths are world units (not scaled by `big`): the template's x1.45 or so
+  arm_L: {lengths: [0.40, 0.38]}
+  leg_L: {space: big, lengths: [0.57, 0.54]}
 
 parts:
   torso:           # breastplate: a barrel chest over a narrower waist, a rust band at the waist

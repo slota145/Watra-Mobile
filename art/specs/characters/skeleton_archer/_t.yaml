@@ -394,11 +394,11 @@ animations:
           skull: [0.04, -0.22, 0.05], skull_rot: 0.5, hand_L: [0.40, -0.18, 0.16], hand_R: [0.40, -0.18, 0.18], bow_tilt: -0.2, bow_roll: 1.2,
           foot_L: [0.22, 0, 0.12], foot_R: [0.22, 0, -0.06]}}
       - {ms: 100, set: {root: [0, 0, -0.04], lean: 0.4, roll: 0.04, bob: -0.60, squash: 0.48, head_pitch: 0.4, coat: 0.2,
-          skull: [0.10, -0.60, 0.02], skull_rot: 1.1, hand_L: [0.38, -0.14, 0.14], hand_R: [0.37, -0.14, 0.16], bow_tilt: -1.57, bow_roll: 0.0,
+          skull: [0.10, -0.60, 0.02], skull_rot: 1.1, hand_L: [0.38, -0.14, 0.14], hand_R: [0.37, -0.14, 0.16], bow_tilt: 1.57, bow_roll: 0.0,
           foot_L: [0.26, 0, 0.14], foot_R: [0.26, 0, -0.08]}}
       - {ms: 130, set: {root: [0, 0, -0.04], lean: 0.4, roll: 0.04, bob: -0.62, squash: 0.45, head_pitch: 0.45, coat: 0.2,
-          skull: [0.13, -0.76, 0.0], skull_rot: 1.5, hand_L: [0.38, -0.13, 0.13], hand_R: [0.37, -0.13, 0.15], bow_tilt: -1.57, bow_roll: 0.0,
+          skull: [0.13, -0.76, 0.0], skull_rot: 1.5, hand_L: [0.38, -0.13, 0.13], hand_R: [0.37, -0.13, 0.15], bow_tilt: 1.57, bow_roll: 0.0,
           foot_L: [0.27, 0, 0.15], foot_R: [0.27, 0, -0.08]}}
       - {ms: 500, set: {eyes_lit: 0, root: [0, 0, -0.04], lean: 0.42, roll: 0.04, bob: -0.63, squash: 0.44, head_pitch: 0.45, coat: 0.2,
-          skull: [0.13, -0.76, 0.0], skull_rot: 1.5, hand_L: [0.38, -0.13, 0.13], hand_R: [0.37, -0.13, 0.15], bow_tilt: -1.57, bow_roll: 0.0,
+          skull: [0.13, -0.76, 0.0], skull_rot: 1.5, hand_L: [0.38, -0.13, 0.13], hand_R: [0.37, -0.13, 0.15], bow_tilt: 1.57, bow_roll: 0.0,
           foot_L: [0.27, 0, 0.15], foot_R: [0.27, 0, -0.08]}}
