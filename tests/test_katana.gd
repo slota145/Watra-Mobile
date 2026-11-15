@@ -28,6 +28,7 @@ func _run() -> void:
 	game.load_game()
 	_test_unlock(game)
 	await _test_combat(game)
+	await _test_unique(game)
 	game.reset_hero()
 	game.best_level = 0
 	game.save_game()
@@ -260,6 +261,126 @@ func _test_combat(game: Node) -> void:
 	far.hp = 1
 	weapon._flicker_jump(far)
 	_check(not far.alive() and hero.mana == 30 + Skills.BLINK_MANA_ON_KILL * 2, "5. poziom: zabicie skokiem zwraca 4 many")
+	game.dev_immortal = false
+	arena.queue_free()
+	await process_frame
+
+
+## Kamienie unikalne katany: Gromowe Ostrze (łuk pioruna z cięcia), Wir Ostrza (taniec w miejscu dookoła), Łańcuch
+## Kontr (trafieni kontrą tną dookoła siebie), Wędrowne Gromy (pioruny pełzną do innych wrogów, więcej przy dłuższym
+## ładowaniu).
+func _test_unique(game: Node) -> void:
+	game.reset_hero()
+	game.best_level = 20
+	game.set_weapon("katana")
+	game.dev_set_level(20)
+	game.dev_skills()
+	for id in Skills.of_weapon("katana"):
+		game.add_gem(Gems.unique_of(id), 1, false)
+		game.socket_skill(id, 0, Gems.unique_of(id))
+	game.dev_immortal = true
+	game.save_game()
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	arena.horde_spawner.set_process(false)
+	var hero: ProtoHero = arena.hero
+	var weapon: ProtoKatana = arena.weapon
+	hero.position = Vector2.ZERO
+	await process_frame
+	_check(weapon._unique("k_slash") and weapon._unique("k_perun"), "katana widzi swoje kamienie unikalne")
+	# Gromowe Ostrze: wróg 100 px dalej, poza zasięgiem cięcia
+	var far := _goblin(arena, Vector2(100, 0))
+	await process_frame
+	far._stunned = 60.0
+	var hp := far.hp
+	weapon._aim = 0.0
+	weapon._slash_hit()
+	_check(weapon._sparks_fly.size() == 1, "Gromowe Ostrze: z cięcia leci łuk pioruna")
+	await _wait(0.6)
+	_check(far.hp < hp and weapon._sparks_fly.is_empty(), "łuk trafia wroga poza zasięgiem cięcia i gaśnie")
+	# Wir Ostrza: postać zostaje w miejscu, cięcia dookoła
+	var around: Array = []
+	for at in [Vector2(30, 0), Vector2(-30, 0), Vector2(0, 30), Vector2(0, -30)]:
+		around.append(_goblin(arena, at))
+	await process_frame
+	for g in around:
+		g._stunned = 60.0
+	var hps: Array = around.map(func(g: ProtoGoblin) -> int: return g.hp)
+	_fresh(weapon, hero)
+	hero.position = Vector2.ZERO
+	await process_frame
+	weapon.cast("k_dance")
+	await _wait(1.2)
+	var struck := 0
+	for i in around.size():
+		if around[i].hp < hps[i]:
+			struck += 1
+	_check(hero.position.length() < 2.0, "Wir Ostrza: postać zostaje w miejscu")
+	_check(struck == 4, "cięcia dookoła trafiają wrogów ze wszystkich stron (%d z 4)" % struck)
+	# Łańcuch Kontr: wróg obok postaci trafiony kontrą, a od niego dalszy wróg poza zasięgiem kontry
+	for g in around:
+		g.queue_free()
+	far.queue_free()
+	var near := _goblin(arena, Vector2(0, 200))
+	var chain := _goblin(arena, Vector2(25, 200))
+	var chain2 := _goblin(arena, Vector2(50, 200))
+	await process_frame
+	for g in [near, chain, chain2]:
+		g._stunned = 60.0
+	_fresh(weapon, hero)
+	hero.position = Vector2(0, -200)  # z dala - rani tylko łańcuch kontr
+	await process_frame
+	var hp_c := chain.hp
+	var hp_c2 := chain2.hp
+	weapon._echoed = []
+	weapon._echo_from(near)
+	await _wait(0.6)
+	_check(chain.hp < hp_c and chain2.hp < hp_c2 and weapon._echoed.size() == 3,
+			"Łańcuch Kontr: od trafionego kontra przechodzi łańcuchem dalej (%d kontr)" % weapon._echoed.size())
+	weapon._echo_from(near)
+	_check(weapon._echoes.is_empty(), "każdy wróg tnie najwyżej raz na Ripostę")
+	_fresh(weapon, hero)
+	hero.position = near.position + Vector2(-30, 0)
+	await process_frame
+	weapon.cast("k_riposte")
+	hero.take_damage(5)
+	_check(weapon._echoed.has(near), "prawdziwa kontra też odpala łańcuch")
+	# Wędrowne Gromy: krótkie ładowanie - 2 pioruny, pełne - 6
+	for g in [near, chain, chain2]:
+		g.queue_free()
+	await process_frame
+	var crowd: Array = []
+	for i in 7:
+		crowd.append(_goblin(arena, Vector2(-120 + i * 40, 120)))
+	await process_frame
+	for g in crowd:
+		g._stunned = 60.0
+		g.hp = 100000
+	_fresh(weapon, hero)
+	hero.position = Vector2.ZERO
+	await process_frame
+	weapon._aim = PI / 2.0
+	weapon._perun_cut(0.0)
+	_check(weapon._crawlers.size() == ProtoKatana.CRAWL_COUNT.x, "krótkie ładowanie - 2 pełzające pioruny")
+	await _wait(1.5)
+	weapon._crawlers.clear()
+	_fresh(weapon, hero)
+	weapon._aim = PI / 2.0
+	weapon._perun_cut(1.0)
+	var targets := {}
+	for c in weapon._crawlers:
+		if c.target != null:
+			targets[c.target] = true
+	_check(weapon._crawlers.size() == ProtoKatana.CRAWL_COUNT.y and targets.size() == weapon._crawlers.size(),
+			"pełne ładowanie - 6 piorunów, każdy do innego wroga")
+	hps = crowd.map(func(g: ProtoGoblin) -> int: return g.hp)
+	await _wait(2.0)
+	struck = 0
+	for i in crowd.size():
+		if crowd[i].hp < hps[i]:
+			struck += 1
+	_check(struck >= 5 and weapon._crawlers.is_empty(), "pioruny dopełzły do wrogów (%d)" % struck)
 	game.dev_immortal = false
 	arena.queue_free()
 	await process_frame

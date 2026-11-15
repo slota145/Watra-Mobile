@@ -2,6 +2,21 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - kamienie unikalne katany
+
+- Pomysły z ankiety (Riposta i Sąd Peruna - własne pomysły autora), `Gems.UNIQUE`, działanie w `ProtoKatana`:
+  - Kamień Gromowego Ostrza (`k_slash`): z każdego cięcia leci do przodu łuk pioruna (`_SparkArc`, 240 px/s, 130 px),
+    przebija wrogów, 50% siły cięcia (`_spawn_spark`, `_process_sparks_fly`).
+  - Kamień Wiru Ostrza (`k_dance`): Taniec w miejscu - 6 cięć, każde obrócone o 60 stopni dookoła postaci (`SPIN_*`).
+  - Kamień Łańcucha Kontr (`k_riposte`): każdy wróg trafiony kontrą (cięcie dookoła i okrąg) po 0,12 s sam tnie
+    dookoła siebie (promień 30, 50% siły), trafieni przez niego też - łańcuchem; każdy wróg raz na Ripostę, najwyżej
+    12 (`_echo_from`, `_process_echoes`, `ECHO_*`).
+  - Kamień Wędrownych Gromów (`k_perun`): z cięcia wyskakuje 2-6 piorunów (wg naładowania) pełzających po ziemi
+    (`_Crawler` ze śladem), każdy do innego wroga w pobliżu końca cięcia - najpierw nietrafionych cięciem; gdy cel
+    zginie, szukają wolnego (`_spawn_crawlers`, `_process_crawlers`, `CRAWL_*`), 60% siły.
+  - Błysk Peruna ma już Kamień Nieskończonej Mgły. Ikony z symboli Watry (`tools/unique_gem_art.py`: pierce, momentum,
+    echo, discharge). Test `_test_unique` w `test_katana.gd`.
+
 ## 15.11.2026 - Krąg stali nie pod „Atak”
 
 - Decyzja autora: Krąg stali nie może stać pod dużym przyciskiem (`main: false`) - odpala się go osobno, np. razem
