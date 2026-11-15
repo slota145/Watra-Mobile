@@ -228,6 +228,19 @@ func _test_unique(game: Node) -> void:
 	var dummy: ProtoDummy = weapon.targets[0]
 	_check(weapon._unique("whirl") and not weapon._unique("x") and weapon.cooldown_full("whirl") == 0.0
 			and weapon.cooldown_full("throw") > 0.0, "miecz widzi kamienie unikalne")
+	# Kamień Wiecznej Stali: krąg bez końca, płaci manę co sekundę, drugie stuknięcie albo brak many go wyłącza
+	hero.mana = hero.max_mana
+	_check(weapon.cooldown_full("steel_ring") == 0.0 and weapon.cast("steel_ring") and is_inf(weapon.ring_left()),
+			"Krąg stali z kamieniem unikalnym: bez końca i bez odnowienia")
+	_check(not weapon.can_use("steel_ring"), "krąży - auto atak nie rusza go od nowa (tnie zwykłym ciosem)")
+	var ring_mana := hero.mana
+	await _wait(1.6)
+	_check(hero.mana < ring_mana and not weapon._ring.is_empty(), "krąg zużywa manę co sekundę (%d)" % (ring_mana - hero.mana))
+	_check(weapon.cast("steel_ring") and weapon._ring.is_empty(), "drugie stuknięcie wyłącza krąg")
+	weapon.cast("steel_ring")
+	hero.mana = 0
+	await _wait(1.0)
+	_check(weapon._ring.is_empty(), "bez many krąg znika")
 	# fala cięcia: kukła 90 px dalej, poza zasięgiem ciosu
 	hero.position = dummy.position + Vector2(-90, 0)
 	hero.facing = Vector2.RIGHT

@@ -2,6 +2,15 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - Kamień Wiecznej Stali (kamień unikalny Kręgu stali)
+
+- Wybór autora z 4 propozycji Claude: krąg bez końca (wzór - Kamień Wiecznego Wiru Młynka). `Gems.UNIQUE["steel_ring"]`:
+  krąg nie znika po czasie i nie ma odnowienia (`ProtoWeapon.cooldown_full`), co sekundę płaci 1/5 kosztu many
+  (`STEEL_DRAIN`, ok. 6 many/s), drugie stuknięcie (`cast`) albo brak many go wyłącza; gdy krąży, `can_use` zwraca false,
+  więc spod „Atak” auto atak tnie wtedy zwykłym ciosem. Okno umiejętności: „30 many, potem 6 na sekundę, bez odnowienia”.
+  Ikona `assets/watra/unique_gems/steel_ring.png` z klepsydry Watry (`venom`, `tools/unique_gem_art.py`).
+  Test w `test_skills.gd`.
+
 ## 15.11.2026 - skoki: pamięć 3 ostatnich celów, zasięg 220 px
 
 - Prośba autora: w dużej grupie Błysk Peruna skakał w kółko po dwóch wrogach, a w bazie nie przeskakiwał między

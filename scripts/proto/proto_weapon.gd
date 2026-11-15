@@ -166,6 +166,8 @@ const STEEL_REHIT := 0.45
 const STEEL_HIT_WIDTH := 8.0
 const STEEL_TINT := Color(0.8, 0.95, 1.0, 1.0)
 const STEEL_FADE := 0.4
+## Krąg stali z kamieniem unikalnym (Kamień Wiecznej Stali): bez końca, co sekundę płaci taki ułamek kosztu many.
+const STEEL_DRAIN := 1.0 / 5.0
 
 ## Grupa węzłów, które miecz sam znajduje jako cele (potwory Hordy).
 const TARGETS := &"proto_targets"
@@ -275,6 +277,7 @@ var _ring: Array = []
 var _ring_left := 0.0
 var _ring_spin := 0.0
 var _ring_trail: Line2D
+var _ring_drain_acc := 0.0
 
 
 func _ready() -> void:
@@ -564,7 +567,7 @@ func _blink_cost() -> int:
 ## Pełne odnowienie umiejętności z kamieniem Pośpiech i poziomem.
 ## Młynek z kamieniem unikalnym - bez odnowienia (Mgnienie nie ma go wcale).
 func cooldown_full(id: String) -> float:
-	if id == "whirl" and _unique(id):
+	if id in ["whirl", "steel_ring"] and _unique(id):
 		return 0.0
 	return _cooldown_base(id)
 
@@ -672,6 +675,8 @@ func cooldown_left(id: String) -> float:
 
 ## Czy umiejętność da się teraz użyć (odnowiona i starcza many).
 func can_use(id: String) -> bool:
+	if id == "steel_ring" and _unique(id) and ring_left() > 0.0:
+		return false  # krąg bez końca już krąży - auto atak tnie zwykłym ciosem
 	var cost := _blink_cost() if id == blink_skill else mana_cost(id)
 	return Skills.has(id) and cooldown_left(id) <= 0.0 and hero.mana >= cost and not hero.dead
 
@@ -683,6 +688,9 @@ func cast(id: String) -> bool:
 		return false
 	if id == "whirl" and _state == "whirl" and _unique("whirl"):
 		_end_skill()  # kamień unikalny: drugie stuknięcie wyłącza Młynek
+		return true
+	if id == "steel_ring" and _unique(id) and ring_left() > 0.0:
+		_clear_ring()  # Kamień Wiecznej Stali: drugie stuknięcie wyłącza krąg
 		return true
 	if cooldown_left(id) > 0.0:
 		cast_failed.emit(id, "cooldown")
@@ -759,7 +767,8 @@ func _start(id: String) -> void:
 
 ## Krąg stali (pomysł autora, 15.11.2026): wokół postaci zaczynają krążyć widmowe miecze; miecz w ręku nie zmienia
 ## stanu, więc walczy dalej normalnie. Ponowne użycie w trakcie - krąg od nowa (z pełnym czasem).
-## Kamień Mnożenie - jeden miecz więcej (z siłą kamienia).
+## Kamień Mnożenie - jeden miecz więcej (z siłą kamienia). Kamień unikalny (Wiecznej Stali, pomysł autora 15.11.2026):
+## krąg bez końca i bez odnowienia, co sekundę STEEL_DRAIN kosztu many; drugie stuknięcie albo brak many go wyłącza.
 func _start_ring() -> void:
 	_clear_ring()
 	var glow := CanvasItemMaterial.new()  # widmowe miecze świecą (mieszanie addytywne)
@@ -787,6 +796,9 @@ func _start_ring() -> void:
 		_ring_trail.add_point(Vector2(cos(a), sin(a) * STEEL_FLAT) * (STEEL_INNER + BLADE * 0.8) * _area("steel_ring"))
 	add_child(_ring_trail)
 	_ring_left = STEEL_TIME_LONG if _perk("steel_ring", 0) else STEEL_TIME
+	if _unique("steel_ring"):
+		_ring_left = INF  # Kamień Wiecznej Stali: krąg trwa, dopóki starcza many
+		_ring_drain_acc = 0.0
 	_ring_spin = hero.facing.angle()
 	hero.play_gesture(_orbit_center() + Vector2(0, ORBIT_HEIGHT + 10.0))
 
@@ -800,6 +812,15 @@ func _process_ring(delta: float) -> void:
 	if _ring_left <= 0.0 or hero.dead:
 		_clear_ring()
 		return
+	if is_inf(_ring_left):
+		_ring_drain_acc += mana_cost("steel_ring") * STEEL_DRAIN * delta
+		var pay := int(_ring_drain_acc)
+		if pay > 0:
+			_ring_drain_acc -= pay
+			if not hero.spend_mana(pay):
+				cast_failed.emit("steel_ring", "mana")
+				_clear_ring()
+				return
 	_ring_spin += TAU * STEEL_TURNS * delta
 	var area := _area("steel_ring")
 	var center := _orbit_center()

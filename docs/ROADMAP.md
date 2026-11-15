@@ -75,7 +75,8 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   Sądu Peruna (1,5 s, 60-200 px), czy krople przemoczenia widać w tłumie, siła combo (+30%, zamrożenie Szronem).
   Później: kamienie unikalne katany, dźwięk pioruna.
   Krąg stali (nowa umiejętność miecza zamiast Mgnienia) zrobiony 15.11.2026 - do oceny na telefonie: siła i czas
-  kręgu (3 miecze, 6 s, 0,6 siły), czy widmowe miecze widać w tłumie. Później: kamień unikalny Kręgu stali.
+  kręgu (3 miecze, 6 s, 0,6 siły), czy widmowe miecze widać w tłumie. Kamień unikalny (Wiecznej Stali, krąg bez
+  końca za 6 many/s) zrobiony 15.11.2026 - do oceny koszt many na sekundę.
 
 - **Hydrosfera: Wodny Strażnik i kamienie unikalne (14.11.2026):** zrobione (szczegóły w `docs/historia.md`). Ocenione
   przez autora 15.11.2026: Strażnik, kamienie i liczba fal na ekranie w sam raz.
