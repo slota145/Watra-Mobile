@@ -199,7 +199,7 @@ func _test_combat(game: Node) -> void:
 	# Błysk Peruna jak dawne Mgnienie miecza: na wylot, mana, stuknięcie - jeden skok, trzymanie - seria bez odnowienia
 	await _wait(0.4)
 	_fresh(weapon, hero)
-	hero.position = far.position + Vector2(-200, 0)
+	hero.position = far.position + Vector2(-260, 0)  # dalej niż zasięg skoku (220)
 	await process_frame
 	for g in get_nodes_in_group(ProtoWeapon.TARGETS):
 		if g != far:
@@ -231,6 +231,29 @@ func _test_combat(game: Node) -> void:
 	game.socket_skill("k_flash", 0, Gems.unique_of("k_flash"))
 	weapon.skill_gems = game.skill_gems
 	_check(weapon.mana_cost("k_flash") == roundi(Skills.mana_of("k_flash") * 0.5), "Kamień Nieskończonej Mgły: skoki za pół many")
+	# skoki omijają 3 ostatnie cele: przy 4 wrogach w grupie każdy kolejny skok w innego
+	var group: Array = []
+	for at in [Vector2(0, 0), Vector2(30, 10), Vector2(10, 35), Vector2(-25, 20)]:
+		group.append(_goblin(arena, far.position + Vector2(0, 80) + at))
+	await process_frame
+	for g in group:
+		g._stunned = 60.0
+		g.hp = 100000
+	hero.position = far.position + Vector2(0, 40)
+	weapon._recent_targets.clear()
+	var order: Array = []
+	for i in 4:
+		var next: ProtoTarget = weapon._flicker_target()
+		order.append(next)
+		weapon._flicker_jump(next)
+	var distinct := {}
+	for t in order:
+		distinct[t] = true
+	_check(distinct.size() == 4, "4 skoki w grupie - 4 różne cele (pamięć 3 ostatnich)")
+	_check(ProtoWeapon.FLICKER_RANGE >= 220.0, "zasięg skoku 220 px - sięga między kukłami w bazie")
+	for g in group:
+		g.queue_free()
+	await process_frame
 	# 5. i 10. poziom: zabicie skokiem zwraca 2x więcej many, co 5. skok wyładowanie
 	weapon.skill_levels = {"k_flash": 10}
 	hero.mana = 30

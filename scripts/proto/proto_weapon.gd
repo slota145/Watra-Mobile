@@ -88,9 +88,12 @@ const SLAM_FX := preload("res://assets/effects/ground_slam.png")
 const SLAM_FX_FRAMES := 10
 const SLAM_FX_FPS := 15.0
 const SLAM_FX_ANCHOR := Vector2(26, 35)
-## Mgnienie (liczby z Watry, zasięg mniejszy - węższy ekran telefonu): zasięg skoku, odstęp między skokami
-## przy trzymaniu, jak daleko za celem ląduje postać, szerokość pasa cięcia wzdłuż drogi i promień cięcia wokół celu.
-const FLICKER_RANGE := 150.0
+## Mgnienie (liczby z Watry): zasięg skoku (prośba autora 15.11.2026: 220 zamiast 150 - skoki między kukłami w bazie),
+## ile ostatnich celów skoki omijają (prośba autora: 3 - w tłumie skoki rozchodzą się po grupie zamiast w kółko po dwóch
+## wrogach), odstęp między skokami przy trzymaniu, jak daleko za celem ląduje postać, szerokość pasa cięcia wzdłuż drogi
+## i promień cięcia wokół celu.
+const FLICKER_RANGE := 220.0
+const FLICKER_MEMORY := 3
 const FLICKER_INTERVAL := 0.32
 const FLICKER_OVERSHOOT := 18.0
 const FLICKER_PATH_WIDTH := 12.0
@@ -240,7 +243,8 @@ var _hit_set: Array = []
 ## Mgnienie: czas do następnego skoku, jeden skok po samym stuknięciu, poprzedni cel (skacze się przez innego).
 var _flicker_timer := 0.0
 var _flicker_once := false
-var _last_target: ProtoTarget
+## Ostatnie cele skoków (najnowszy na końcu, najwyżej FLICKER_MEMORY).
+var _recent_targets: Array = []
 ## Kamienie: siła bieżącego cięcia (drugie cięcie Mnożenia - słabsze), czy to już drugie cięcie, czy piorun przeskoczył
 ## w tej klatce, ułamek leczenia, widmowe miecze (Młynek, Rzut) i ich trafienia, początek lotu Rzutu.
 var _swing_power := 1.0
@@ -1120,7 +1124,8 @@ func _process_flicker(delta: float) -> void:
 	skill_used.emit(blink_skill)
 
 
-## Najbliższy wróg w zasięgu Mgnienia; poprzedni cel tylko wtedy, gdy nie ma innego (null - nikogo).
+## Najbliższy wróg w zasięgu Mgnienia, z pominięciem FLICKER_MEMORY ostatnich celów - do nich wraca tylko wtedy, gdy nie
+## ma nikogo innego, i to od najdawniejszego (null - nikogo).
 func _flicker_target() -> ProtoTarget:
 	var best: ProtoTarget = null
 	var best_d := INF
@@ -1128,8 +1133,9 @@ func _flicker_target() -> ProtoTarget:
 		var d := hero.global_position.distance_to(t.global_position)
 		if d > FLICKER_RANGE:
 			continue
-		if t == _last_target:
-			d += FLICKER_RANGE
+		var age := _recent_targets.find(t)
+		if age >= 0:
+			d += FLICKER_RANGE * (1 + age)  # niedawno przebity - tylko gdy nie ma nikogo nowego; najdawniejszy pierwszy
 		if d < best_d:
 			best = t
 			best_d = d
@@ -1144,7 +1150,10 @@ func _flicker_jump(best: ProtoTarget) -> void:
 	if through == Vector2.ZERO:
 		through = hero.facing.normalized()
 	var spot := hero.teleport(best.global_position + through * FLICKER_OVERSHOOT)
-	_last_target = best
+	_recent_targets.erase(best)
+	_recent_targets.append(best)
+	if _recent_targets.size() > FLICKER_MEMORY:
+		_recent_targets.pop_front()
 	var travel := spot - from
 	var body := Vector2(0, -ORBIT_HEIGHT)
 	var trail := Fx.once(get_parent(), flicker_trail, 7, FLICKER_FX_FPS, from + body, FLICKER_TRAIL_ANCHOR)

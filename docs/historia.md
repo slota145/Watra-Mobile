@@ -2,6 +2,13 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - skoki: pamięć 3 ostatnich celów, zasięg 220 px
+
+- Prośba autora: w dużej grupie Błysk Peruna skakał w kółko po dwóch wrogach, a w bazie nie przeskakiwał między
+  kukłami. Skoki (`ProtoWeapon._flicker_target`) omijają teraz 3 ostatnie cele (`FLICKER_MEMORY`, `_recent_targets`;
+  wcześniej tylko ostatni) - wracają do nich dopiero, gdy nikogo innego nie ma w zasięgu, od najdawniejszego. Zasięg
+  skoku 220 px zamiast 150 (`FLICKER_RANGE`; kukły stoją od siebie 160-220 px). Test w `test_katana.gd`.
+
 ## 15.11.2026 - Błysk Peruna: jedno cięcie, piorun przy postaci
 
 - Zgłoszenie autora: pioruny Błysku Peruna wychodziły daleko przed postać i czasem były dwa cięcia. Przyczyny: piorun
