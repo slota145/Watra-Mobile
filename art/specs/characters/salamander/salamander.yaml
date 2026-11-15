@@ -1,0 +1,339 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: salamander
+kind: character
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.22, 0]}
+palette: "watra"
+size: 48
+
+# Salamandra (salamander): the basic melee enemy of the "Wulkaniczne równiny" (volcanic plains) dungeon.
+# No reference: a fire salamander on four sprawled legs, low to the ground, about 33 px long and 12-14 px
+# tall, with its own quadruped skeleton (no humanoid template).
+brief:
+  summary: >
+    fire salamander lizard on four sprawled legs (elbows and knees out and up), low to the ground, about
+    33 px long from snout to the flame on its tail, 12-14 px tall; dark charcoal / obsidian skin with glowing
+    orange-yellow lava spots, a row of small emissive flame crests along the spine and neck, a long tapering
+    tail ending in a flickering flame, a flat wedge head with two small glowing yellow eyes, a jaw that opens
+    on a glowing ember-red maw
+  head: >
+    a flat lizard wedge: a broad skull ellipsoid, a narrower flattened snout and a separate lower jaw (its own
+    bone, opens for the bite); face minimal (style): only two small emissive yellow eyes on the top sides of
+    the skull, no nostrils, no teeth; the glowing maw shows only when the jaw opens
+  must_keep:
+    - the glowing orange markings (spots, crests, tail flame, eyes) on the near-black body - the read on a dark
+      ash / basalt floor
+    - a long, low silhouette with a long tail and sprawled legs - clearly a lizard, not a dog
+    - the flame at the tail tip
+  simplify:
+    - toes and claws are a flat splayed foot (claws would be under a pixel)
+    - lava cracks are noise spots painted on the skin (paint, no geometry), the crests are small cones
+  decisions:
+    - own skeleton - body (bob, lean, twist, roll), head and jaw, a four-bone tail (sway and lift per bone,
+      each lagging), four two-bone IK legs whose targets live in `feet` (a frame that rolls with the body, so
+      the death roll flips the legs to the sky)
+    - the glow dies in two steps - `lit` 1 bright emissive lava, 0.5 dim (non-emissive orange-red), 0 cold ash
+      (each glowing part has a lit and a cooled twin chosen by `when:`)
+    - from the back (n) the crests and the tail with its flame carry the read; the eyes are hidden by the skull
+
+ramps:
+  # obsidian / charcoal scales, a cold dark grey with a faint warm-violet tint, glossy top tone
+  obsidian: ["#060508", "#141117", "#211d25", "#302a33", "#433b45", "#5d5359"]
+  # glowing lava (emissive): deep red to white-yellow (the palette's flame)
+  lava:     ["#3a0a04", "#c2300e", "#ff7a1a", "#ffc23d", "#fff4b0"]
+  # cooling lava (death, non-emissive): dull orange-red
+  cooling:  ["#140605", "#3a120a", "#6b2210", "#9a3a14", "#b8541c"]
+  # dead ash: grey-brown
+  ash:      ["#0b0908", "#221c19", "#352b26", "#463a33", "#564a41"]
+  # eyes: yellow-white
+  sal_eye:  ["#3d1a07", "#ffb13b", "#ffe36a", "#fff8c8"]
+
+materials:
+  skin:    {ramp: obsidian, finish: glossy, gamma: 0.9}
+  lava:    {ramp: lava, emissive: true, band: 2, outline: false, glow: {color: "#ff7a1a", mix: 0.25, radius: 1}}
+  crest:   {ramp: lava, emissive: true, band: 3, outline: false, glow: {color: "#ffa030", mix: 0.3, radius: 1}}
+  flame:   {ramp: lava, emissive: true, band: 3, outline: false, glow: {color: "#ffb13b", mix: 0.4, radius: 1}}
+  core:    {ramp: lava, emissive: true, band: 4, outline: false}
+  maw:     {ramp: lava, emissive: true, band: 1, outline: false}
+  eye:     {ramp: sal_eye, emissive: true, band: 2, outline: false, glow: {color: "#ffd040", mix: 0.3, radius: 1}}
+  cooling: {ramp: cooling, finish: matte}
+  ash:     {ramp: ash, finish: matte}
+
+shadow: {rx: 12, ry: 5, alpha: 120}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0           # body height offset
+  lean: 0          # body pitch (+ nose down)
+  twist: 0         # body yaw (the spine wiggle of the walk)
+  roll: 0          # body roll (pi: on its back)
+  squash: 1        # breathing / anticipation squash of the torso
+  head_pitch: 0    # + head down
+  head_yaw: 0
+  jaw: 0           # lower jaw open (+)
+  tail_sway: 0     # tail yaw per segment (+ to its left)
+  tail_lag: 0      # extra sway that grows towards the tip (a wave)
+  tail_lift: 0     # tail pitch per segment (- up)
+  flick: 0         # tail flame flicker (-1..1)
+  lit: 1           # 1 glowing, 0.5 dimming, 0 dead ash
+  # feet targets in the `feet` frame (y -0.22 = the ground), x away from the body for both sides
+  ffoot_L: [0.25, -0.22, 0.38]
+  ffoot_R: [0.25, -0.22, 0.38]
+  hfoot_L: [0.25, -0.22, -0.12]
+  hfoot_R: [0.25, -0.22, -0.12]
+
+bones:
+  body:      {parent: root, pos: "[0, 0.22 + bob, 0.18]", rot: "[lean, twist, roll]"}
+  torso:     {parent: body, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  feet:      {parent: root, pos: [0, 0.22, 0.18], rot: "[0, twist*0.5, roll]"}
+  head:      {parent: body, pos: [0, 0.04, 0.30], rot: "[head_pitch, head_yaw, 0]", scale: 1.25}
+  jawbone:   {parent: head, pos: [0, -0.01, 0.0], rot: "[jaw, 0, 0]"}
+  tail0:     {parent: body, pos: [0, 0.0, -0.30], rot: "[tail_lift, tail_sway, 0]"}
+  tail1:     {parent: tail0, pos: [0, 0, -0.20], rot: "[tail_lift + 0.12, tail_sway + 0.5*tail_lag, 0]"}
+  tail2:     {parent: tail1, pos: [0, 0, -0.19], rot: "[tail_lift - 0.05, tail_sway + tail_lag, 0]"}
+  tail3:     {parent: tail2, pos: [0, 0, -0.17], rot: "[tail_lift - 0.25, tail_sway + 1.4*tail_lag, 0]"}
+  tail4:     {parent: tail3, pos: [0, 0, -0.14]}
+  flamebase: {parent: tail4, pos: [0, 0.01, 0.0], inherit_rot: false, rot: "[-0.5 + 0.25*flick - tail_lift, 0.2*flick, 0]"}
+  shoulder_L: {parent: body, pos: [0.12, -0.03, 0.17]}
+  hip_L:      {parent: body, pos: [0.12, -0.03, -0.20]}
+
+ik:
+  fleg_L: {start: shoulder_L, space: feet, target: ffoot_L, lengths: [0.15, 0.15],
+           pole: [1.0, 0.8, 0.0], pole_space: body, joint: felbow_L, end: fwrist_L}
+  hleg_L: {start: hip_L, space: feet, target: hfoot_L, lengths: [0.16, 0.16],
+           pole: [1.0, 0.8, -0.2], pole_space: body, joint: hknee_L, end: hwrist_L}
+
+parts:
+  torso:             # a long low body: a deep chest and a slimmer belly towards the hips
+    material: skin
+    space: torso
+    blend: 0.08
+    when: "lit > 0.75"
+    prims: &torso_prims
+      - ellipsoid: {c: [0, 0.01, 0.12], r: [0.165, 0.115, 0.22]}
+      - ellipsoid: {c: [0, 0.0, -0.15], r: [0.15, 0.105, 0.21]}
+      - ellipsoid: {c: [0, 0.03, 0.30], r: [0.08, 0.07, 0.09]}
+    paint:
+      - material: lava
+        spots: {scale: 0.09, density: 0.28, seed: 3}
+  torso_dim:
+    material: skin
+    space: torso
+    blend: 0.08
+    when: "lit <= 0.75"
+    prims: *torso_prims
+    paint:
+      - material: cooling
+        spots: {scale: 0.09, density: 0.28, seed: 3}
+  head:              # flat wedge skull and snout
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.04, 0.07], r: [0.115, 0.07, 0.11]}
+      - ellipsoid: {c: [0, 0.02, 0.18], r: [0.085, 0.045, 0.10]}
+  jaw:
+    material: skin
+    space: jawbone
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.12], r: [0.09, 0.03, 0.14]}
+  maw:               # the glowing inside of the mouth, seen when the jaw opens
+    material: maw
+    space: head
+    when: "jaw > 0.1 and lit > 0.75"
+    prims:
+      - ellipsoid: {c: [0, -0.035, 0.13], r: [0.07, 0.035, 0.11], rot: [0.25, 0, 0]}
+  eye_L:
+    material: eye
+    space: head
+    when: "lit > 0.75"
+    min_cover: 2
+    prims:
+      - sphere: {c: [0.088, 0.075, 0.09], r: 0.036}
+  eye_dead_L:
+    material: ash
+    space: head
+    when: "lit <= 0.75"
+    prims:
+      - sphere: {c: [0.088, 0.07, 0.09], r: 0.03}
+  crests:            # small flame crests along the neck and spine
+    material: crest
+    space: torso
+    when: "lit > 0.75"
+    min_cover: 2
+    line: false
+    prims: &crest_prims
+      - cone: {a: [0, 0.07, 0.30], b: [0, 0.17, 0.25], r: [0.04, 0.008]}
+      - cone: {a: [0, 0.10, 0.16], b: [0, 0.23, 0.09], r: [0.048, 0.008]}
+      - cone: {a: [0, 0.10, 0.01], b: [0, 0.23, -0.06], r: [0.048, 0.008]}
+      - cone: {a: [0, 0.09, -0.14], b: [0, 0.20, -0.21], r: [0.044, 0.008]}
+      - cone: {a: [0, 0.08, -0.28], b: [0, 0.17, -0.34], r: [0.038, 0.008]}
+  crests_dim:
+    material: cooling
+    space: torso
+    when: "lit > 0.25 and lit <= 0.75"
+    line: false
+    prims: *crest_prims
+  crests_dead:
+    material: ash
+    space: torso
+    when: "lit <= 0.25 and roll < 2.5"
+    line: false
+    prims: *crest_prims
+  tail:              # long tapering tail through the four tail bones
+    material: skin
+    line: false
+    prims:
+      - tube: {pts: ["@tail0", "@tail1", "@tail2", "@tail3", "@tail4"], r: [0.105, 0.035]}
+  tailspots:         # glowing lava blotches on top of the tail, riding its bones
+    material: lava
+    when: "lit > 0.75"
+    line: false
+    prims: &tailspot_prims
+      - ellipsoid: {c: {at: tail0, off: [0.03, 0.05, -0.10]}, r: [0.035, 0.03, 0.05]}
+      - ellipsoid: {c: {at: tail1, off: [-0.025, 0.045, -0.08]}, r: [0.03, 0.03, 0.045]}
+      - ellipsoid: {c: {at: tail2, off: [0.02, 0.035, -0.06]}, r: [0.026, 0.025, 0.04]}
+  tailspots_dim:
+    material: cooling
+    when: "lit <= 0.75"
+    line: false
+    prims: *tailspot_prims
+  flame:             # the flickering flame on the tail tip
+    material: flame
+    space: flamebase
+    when: "lit > 0.25"
+    min_cover: 2
+    line: false
+    blend: 0.03
+    prims:
+      - sphere: {c: [0, 0.01, 0], r: 0.065}
+      - cone: {a: [0, 0.0, 0.0], b: "[0.03*flick, 0.24 + 0.05*flick, -0.04]", r: [0.058, 0.008]}
+  flame_core:
+    material: core
+    space: flamebase
+    when: "lit > 0.75"
+    line: false
+    prims:
+      - sphere: {c: [0, 0.02, 0.01], r: 0.036}
+  fleg_L:            # sprawled front leg
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.065}
+      - cone: {a: "@shoulder_L", b: "@felbow_L", r: [0.062, 0.05]}
+      - cone: {a: "@felbow_L", b: "@fwrist_L", r: [0.05, 0.04]}
+  ffoot_L:           # flat splayed foot
+    material: skin
+    space: feet
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: "ffoot_L + [0.02, 0.015, 0.03]", r: [0.055, 0.02, 0.05], rot: [0, 0.4, 0]}
+  hleg_L:
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@hip_L", r: 0.072}
+      - cone: {a: "@hip_L", b: "@hknee_L", r: [0.07, 0.052]}
+      - cone: {a: "@hknee_L", b: "@hwrist_L", r: [0.052, 0.04]}
+  hfoot_L:
+    material: skin
+    space: feet
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: "hfoot_L + [0.02, 0.015, 0.02]", r: [0.055, 0.02, 0.055], rot: [0, 0.3, 0]}
+
+sockets:
+  bite: {bone: head, offset: [0, 0, 0.30]}
+  tail_flame: {bone: flamebase, offset: [0, 0.08, 0]}
+
+animations:
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      bob: "0.012*sin(p)"
+      squash: "1 + 0.04*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.6)"
+      tail_sway: "0.10*sin(p)"
+      tail_lag: "0.12*sin(p - 1.2)"
+      flick: "sin(3*p)"
+  # quick scuttle: a diagonal trot (front left with hind right, then the other pair), feet planted and
+  # sliding back, lifted low on the way forward; the spine wiggles, the head counters it, the tail whips late
+  walk:
+    frames: 8
+    ms: 70
+    events: {0: step_l, 4: step_r}
+    channels:
+      bob: "-0.015*cos(2*p)"
+      squash: "1 - 0.03*cos(2*p)"
+      twist: "0.12*cos(p)"
+      head_yaw: "-0.14*cos(p - 0.3)"
+      head_pitch: "0.04*cos(2*p - 0.6)"
+      tail_sway: "-0.14*cos(p - 0.7)"
+      tail_lag: "-0.22*cos(p - 1.5)"
+      tail_lift: "0.04*cos(2*p - 1.0)"
+      flick: "sin(2*p + 1.0)"
+      ffoot_L: "[0.25, -0.22 + 0.06*pos(-sin(p)), 0.38 + 0.14*cos(p)]"
+      hfoot_R: "[0.25, -0.22 + 0.06*pos(-sin(p)), -0.12 + 0.14*cos(p)]"
+      ffoot_R: "[0.25, -0.22 + 0.06*pos(sin(p)), 0.38 - 0.14*cos(p)]"
+      hfoot_L: "[0.25, -0.22 + 0.06*pos(sin(p)), -0.12 - 0.14*cos(p)]"
+  # lunge bite: it crouches back with the head raised and the glowing maw open (held), shoots forward on its
+  # front legs (hind feet planted), the jaw snaps shut at full reach (hit), then it draws back. 520 ms.
+  attack:
+    loop: false
+    keys:
+      - {ms: 90, event: windup, set: {root: [0, 0, -0.04], bob: -0.035, squash: 0.92, lean: -0.08, head_pitch: -0.25,
+          jaw: 0.5, tail_lift: -0.12, tail_lag: 0.15, flick: 0.5,
+          ffoot_L: [0.25, -0.22, 0.40], ffoot_R: [0.25, -0.22, 0.40], hfoot_L: [0.25, -0.22, -0.08], hfoot_R: [0.25, -0.22, -0.08]}}
+      - {ms: 130, set: {root: [0, 0, -0.07], bob: -0.05, squash: 0.88, lean: -0.14, head_pitch: -0.4,
+          jaw: 1.0, tail_lift: -0.22, tail_lag: 0.25, flick: -0.5,
+          ffoot_L: [0.25, -0.22, 0.43], ffoot_R: [0.25, -0.22, 0.43], hfoot_L: [0.25, -0.22, -0.05], hfoot_R: [0.25, -0.22, -0.05]}}
+      - {ms: 50, set: {root: [0, 0, 0.14], bob: 0.01, squash: 1.08, lean: 0.06, head_pitch: -0.05,
+          jaw: 1.0, tail_lift: 0.1, tail_lag: -0.2, flick: 1,
+          ffoot_L: [0.27, -0.20, 0.36], ffoot_R: [0.27, -0.20, 0.36], hfoot_L: [0.25, -0.22, -0.26], hfoot_R: [0.25, -0.22, -0.26]}}
+      - {ms: 70, event: hit, set: {root: [0, 0, 0.20], bob: -0.01, squash: 1.02, lean: 0.12, head_pitch: 0.15,
+          jaw: 0.0, tail_lift: 0.12, tail_lag: -0.3, flick: 0.2,
+          ffoot_L: [0.27, -0.22, 0.30], ffoot_R: [0.27, -0.22, 0.30], hfoot_L: [0.25, -0.22, -0.32], hfoot_R: [0.25, -0.22, -0.32]}}
+      - {ms: 80, set: {root: [0, 0, 0.14], bob: -0.01, squash: 0.98, lean: 0.06, head_pitch: 0.08,
+          jaw: 0.12, tail_lift: 0.05, tail_lag: -0.1, flick: -0.4,
+          ffoot_L: [0.26, -0.22, 0.32], ffoot_R: [0.26, -0.22, 0.32], hfoot_L: [0.25, -0.22, -0.26], hfoot_R: [0.25, -0.22, -0.26]}}
+      - {ms: 100, set: {root: [0, 0, 0.05], head_pitch: 0.0, tail_lag: 0.05, flick: 0.5,
+          ffoot_L: [0.25, -0.22, 0.36], ffoot_R: [0.25, -0.22, 0.36], hfoot_L: [0.25, -0.22, -0.17], hfoot_R: [0.25, -0.22, -0.17]}}
+  # hit: a short flinch - the head snaps up and back, the jaw gapes, the tail lashes
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.07], bob: -0.02, squash: 0.9, lean: -0.15, head_pitch: -0.35, head_yaw: 0.15,
+          jaw: 0.45, tail_sway: 0.25, tail_lag: 0.3, tail_lift: -0.2, flick: 1,
+          ffoot_L: [0.25, -0.22, 0.45], ffoot_R: [0.25, -0.22, 0.45], hfoot_L: [0.25, -0.22, -0.05], hfoot_R: [0.25, -0.22, -0.05]}}
+      - {ms: 80, set: {root: [0, 0, -0.04], bob: -0.01, squash: 0.96, lean: -0.06, head_pitch: -0.15, head_yaw: 0.05,
+          jaw: 0.2, tail_sway: -0.1, tail_lag: -0.2, tail_lift: -0.08, flick: -0.6,
+          ffoot_L: [0.25, -0.22, 0.42], ffoot_R: [0.25, -0.22, 0.42], hfoot_L: [0.25, -0.22, -0.08], hfoot_R: [0.25, -0.22, -0.08]}}
+      - {ms: 80, set: {root: [0, 0, -0.01], head_pitch: 0.02, tail_lag: 0.08, flick: 0.4,
+          ffoot_L: [0.25, -0.22, 0.39], hfoot_L: [0.25, -0.22, -0.11]}}
+  # death: a flinch, then it rolls over onto its back, the legs curl up to the sky, the glow dims (lit 0.5)
+  # and dies out to grey ash; the tail flame goes out last
+  death:
+    loop: false
+    keys:
+      - {ms: 100, set: {root: [0, 0, -0.06], bob: -0.02, squash: 0.9, lean: -0.15, head_pitch: -0.35, jaw: 0.5,
+          tail_sway: 0.25, tail_lag: 0.3, tail_lift: -0.2, flick: 1}}
+      - {ms: 110, set: {root: [0.03, 0, -0.06], roll: 0.7, bob: -0.02, squash: 0.95, head_pitch: -0.2, jaw: 0.6,
+          tail_sway: -0.2, tail_lag: -0.3, flick: -0.5,
+          ffoot_L: [0.22, -0.20, 0.40], ffoot_R: [0.28, -0.18, 0.40], hfoot_L: [0.22, -0.20, -0.12], hfoot_R: [0.28, -0.18, -0.12]}}
+      - {ms: 110, set: {lit: 0.5, root: [0.06, 0, -0.06], roll: 1.6, bob: -0.05, head_pitch: 0.0, jaw: 0.5,
+          tail_sway: 0.2, tail_lag: 0.2, flick: 0.6,
+          ffoot_L: [0.20, -0.17, 0.40], ffoot_R: [0.22, -0.17, 0.40], hfoot_L: [0.20, -0.17, -0.12], hfoot_R: [0.22, -0.17, -0.12]}}
+      - {ms: 120, set: {lit: 0.5, root: [0.08, 0, -0.06], roll: 2.6, bob: -0.08, head_pitch: 0.2, jaw: 0.4,
+          tail_sway: -0.1, tail_lag: -0.1, tail_lift: 0.1, flick: -0.6,
+          ffoot_L: [0.18, -0.14, 0.38], ffoot_R: [0.18, -0.14, 0.38], hfoot_L: [0.18, -0.14, -0.10], hfoot_R: [0.18, -0.14, -0.10]}}
+      - {ms: 130, set: {lit: 0.5, root: [0.09, 0, -0.06], roll: 3.14, bob: -0.10, head_pitch: 0.3, jaw: 0.3,
+          tail_sway: 0.05, tail_lift: 0.2, flick: 0.3,
+          ffoot_L: [0.17, -0.12, 0.36], ffoot_R: [0.17, -0.12, 0.36], hfoot_L: [0.17, -0.12, -0.10], hfoot_R: [0.17, -0.12, -0.10]}}
+      - {ms: 140, set: {lit: 0, root: [0.09, 0, -0.06], roll: 3.14, bob: -0.10, squash: 0.96, head_pitch: 0.35, jaw: 0.25,
+          tail_sway: 0.05, tail_lift: 0.25,
+          ffoot_L: [0.18, -0.13, 0.37], ffoot_R: [0.18, -0.13, 0.37], hfoot_L: [0.18, -0.13, -0.11], hfoot_R: [0.18, -0.13, -0.11]}}
+      - {ms: 500, set: {lit: 0, root: [0.09, 0, -0.06], roll: 3.14, bob: -0.10, squash: 0.96, head_pitch: 0.35, jaw: 0.25,
+          tail_sway: 0.05, tail_lift: 0.25,
+          ffoot_L: [0.19, -0.15, 0.38], ffoot_R: [0.19, -0.15, 0.38], hfoot_L: [0.19, -0.15, -0.12], hfoot_R: [0.19, -0.15, -0.12]}}

@@ -40,8 +40,9 @@ func _test_levels() -> void:
 	_check(Dungeons.for_level(1) == Dungeons.GOBLINS and Dungeons.for_level(10) == Dungeons.GOBLINS
 			and Dungeons.for_level(11) == Dungeons.FLOODED and Dungeons.for_level(20) == Dungeons.FLOODED
 			and Dungeons.for_level(21) == Dungeons.CATACOMBS and Dungeons.for_level(30) == Dungeons.CATACOMBS
-			and Dungeons.for_level(31) == Dungeons.PLAINS and Dungeons.for_level(100) == Dungeons.PLAINS,
-			"1-10 gobliny, 11-20 Zatopione podziemia, 21-30 Katakumby, od 31 Górskie równiny")
+			and Dungeons.for_level(31) == Dungeons.PLAINS and Dungeons.for_level(40) == Dungeons.PLAINS
+			and Dungeons.for_level(41) == Dungeons.VOLCANO and Dungeons.for_level(100) == Dungeons.VOLCANO,
+			"drabinka: gobliny, podziemia, Katakumby, Górskie równiny (31-40), od 41 Wulkaniczne równiny")
 	var seen := {}
 	for i in 200:
 		seen[Dungeons.for_level(101 + i % 50)] = true

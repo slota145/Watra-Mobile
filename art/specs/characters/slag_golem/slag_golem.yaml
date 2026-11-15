@@ -1,0 +1,303 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: slag_golem
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.35, 0]}
+palette: "watra"
+size: 80
+extends: humanoid   # the template's skeleton only; head, hair, sword, coat, belt and neck removed
+
+# Żużlowy golem: silny wróg lochu „Wulkaniczne równiny”. Ogromny golem z zastygłej lawy (ok. 46 px wobec 36 px
+# człowieka, ta sama camera.scale): ciemnoszare, prawie czarne płyty żużla, między nimi świecące pomarańczowo-
+# czerwone szczeliny magmy, roztopione jądro w piersi i oczy. Mała głowa zapadnięta między ogromne barki,
+# wielkie ręce z pięściami-głazami, krótkie grube nogi. Wolny czołg.
+# Cała postać rośnie przez kość `big` (1.75) pod `root`, jak goblin osiłek; przy śmierci zapada się w kupę głazów.
+brief:
+  summary: >
+    slag golem of the volcanic plains: a hulking, slow tank of cooled lava. About 46 px tall against a 36 px
+    human (same density) and very broad: dark grey-black slag rock plates with glowing orange-red magma seams
+    between them, a molten core glowing in the chest, a small head sunk between massive rock shoulders,
+    huge long arms ending in boulder fists that hang near the knees, short thick legs
+  head: >
+    no face but the eyes: a small rough rock block with a heavy brow ridge, sunk low and forward between the
+    shoulder boulders (no neck); two glowing yellow-orange eye slits under the brow (the face, minimal style)
+  must_keep:
+    - the glow - magma seams on the chest, belly, arms and legs, the molten core in the chest, the eyes
+    - the mass - the shoulders and the boulder fists are the widest shapes; dark rock reads at a glance
+    - the small head sunk between the shoulders
+    - death cools him down - the glow fades out as he crumbles into a pile of rocks
+  simplify:
+    - the plates are a few big rock masses (chest, shoulder boulders, belly, limbs); the seams between them are
+      painted magma stripes and cracks, not gaps in the geometry
+    - no fingers: each fist is one boulder with a knuckle ridge
+  decisions:
+    - the whole body grows through the bone `big` (1.75); IK lengths are world units, set by hand
+    - the glow is two paint layers on every seam - a dim one (magma_dim, width x `ember`) under a bright one
+      (width x `glow`); the idle breathing pulses `glow`, death drives `glow` and then `ember` to 0
+    - death - knees buckle, he sags forward, the torso squashes down onto the splayed legs while the `rubble`
+      mound and rocks grow over and round him - a low cooled pile of slag with a few dim embers
+    - attack - both fists high over the head (held, the game's red circle shows meanwhile), one fast smear frame,
+      then the fists hit the ground in front (`hit`, socket `impact` between the fists on the ground)
+    - frame 80 px, camera.center y 1.35 (raised fists fit)
+
+ramps:
+  # cooled slag: warm grey-black volcanic rock
+  slag:  ["#090606", "#191312", "#271f1d", "#382e2a", "#4c403a", "#655850"]
+  # molten seams: dark red to yellow-white
+  magma: ["#2a0603", "#6e1408", "#c2300e", "#ff6a1a", "#ffb13b", "#fff0a0"]
+  # the slam's smear: hot orange
+  fx_tail: ["#c2300e"]
+  fx_mid:  ["#ff8a2a"]
+  fx_core: ["#fff0a0"]
+
+materials:
+  slag:      {ramp: slag, finish: matte, crease: true, edge_highlight: true, gamma: 0.9}
+  magma:     {ramp: magma, emissive: true, band: 3, outline: false, glow: {color: "#ff6a1a", mix: 0.3, radius: 1}}
+  magma_dim: {ramp: magma, emissive: true, band: 2, outline: false}
+  core:      {ramp: magma, emissive: true, band: 5, outline: false, glow: {color: "#ffb13b", mix: 0.4, radius: 1}}
+  eye:       {ramp: magma, emissive: true, band: 4, outline: false, glow: {color: "#ffb13b", mix: 0.3, radius: 1}}
+
+remove: [use.sword, use.head, use.hair, parts.belt, parts.coat, parts.neck]
+
+shadow: {rx: 23, ry: 8, alpha: 130}
+snap: [root, torso_rot]   # whole-pixel body motion: the slow heavy breathing does not boil
+
+channels:
+  hand_L: [0.52, -0.16, 0.10]
+  hand_R: [0.52, -0.16, 0.10]
+  foot_L: [0.17, 0, 0.02]
+  glow: 1        # bright magma seams and core (idle pulses it, death puts it out)
+  ember: 1       # dim magma under the bright layer (death cools it last)
+  rubble: 0      # death: the rocks round his feet
+  smear_r: 0.55
+  smear_y: 0.55
+  smear_z: 0.35
+
+bones:
+  big:        {parent: root, scale: 1.75}
+  torso_rot:  {parent: big, pos: "[0, 0.68 + bob, 0]", rot: "[lean + 0.16, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  fxspace:    {parent: big}
+  headbase:   {pos: [0, 0.52, 0.17], scale: 1.75, rot: "[lean*0.5 - 0.16, twist, roll]"}
+  head:       {scale: 1.0}
+  shoulder_L: {pos: [0.38, 0.40, 0.0]}
+  hip_L:      {pos: [0.15, -0.02, 0.0]}
+
+ik:   # world units (not scaled by `big`)
+  arm_L: {lengths: [0.63, 0.60], pole: [0.4, 0.0, -1.0]}
+  leg_L: {space: big, lengths: [0.53, 0.51]}
+
+parts:
+  torso:           # rock masses: belly, chest block, shoulder ridge, hump behind the head
+    material: slag
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.02], r: [0.24, 0.15, 0.19]}
+      - box: {c: [0, 0.24, 0.04], half: [0.27, 0.14, 0.19], rot: [0.1, 0, 0], round: 0.09}
+      - ellipsoid: {c: [0, 0.40, -0.02], r: [0.38, 0.12, 0.22]}
+      - ellipsoid: {c: [0, 0.48, -0.12], r: [0.22, 0.10, 0.15]}
+    paint:
+      - material: magma_dim
+        prims:
+          - box: {c: [0, 0.135, 0.1], half: [0.4, "0.022*ember", 0.4]}
+          - box: {c: [0.11, 0.25, 0.2], half: ["0.018*ember", 0.12, 0.2], rot: [0, 0, 0.35]}
+          - box: {c: [-0.13, 0.22, 0.2], half: ["0.018*ember", 0.10, 0.2], rot: [0, 0, -0.4]}
+          - box: {c: [0, 0.33, -0.25], half: ["0.02*ember", 0.16, 0.1], rot: [0, 0, 0.2]}
+          - box: {c: [0.15, 0.40, -0.2], half: [0.12, "0.018*ember", 0.2], rot: [0, 0, -0.3]}
+          - sphere: {c: [0, 0.27, 0.22], r: "0.10*ember"}
+      - material: magma
+        prims:
+          - box: {c: [0, 0.135, 0.1], half: [0.4, "0.016*glow", 0.4]}
+          - box: {c: [0.11, 0.25, 0.2], half: ["0.012*glow", 0.12, 0.2], rot: [0, 0, 0.35]}
+          - box: {c: [-0.13, 0.22, 0.2], half: ["0.012*glow", 0.10, 0.2], rot: [0, 0, -0.4]}
+          - box: {c: [0, 0.33, -0.25], half: ["0.014*glow", 0.16, 0.1], rot: [0, 0, 0.2]}
+          - box: {c: [0.15, 0.40, -0.2], half: [0.12, "0.012*glow", 0.2], rot: [0, 0, -0.3]}
+          - sphere: {c: [0, 0.27, 0.22], r: "0.075*glow"}
+      - material: core
+        prims:
+          - sphere: {c: [0, 0.27, 0.23], r: "0.04*glow"}
+  pauldron_L:      # a big slag boulder on the shoulder, rising beside the head
+    material: slag
+    space: pelvis
+    blend: 0.03
+    prims:
+      - box: {c: [0.36, 0.47, 0.0], half: [0.15, 0.12, 0.17], rot: [0.15, 0.3, -0.35], round: 0.08}
+    paint:
+      - material: magma_dim
+        prims:
+          - box: {c: [0.36, 0.42, 0.0], half: [0.3, "0.02*ember", 0.3], rot: [0, 0, -0.35]}
+      - material: magma
+        prims:
+          - box: {c: [0.36, 0.42, 0.0], half: [0.3, "0.013*glow", 0.3], rot: [0, 0, -0.35]}
+  head:            # a small rough block with a heavy brow ridge
+    material: slag
+    space: head
+    blend: 0.03
+    prims:
+      - box: {c: [0, 0.08, 0.0], half: [0.10, 0.09, 0.10], round: 0.05}
+      - box: {c: [0, 0.14, 0.06], half: [0.11, 0.035, 0.06], rot: [-0.2, 0, 0], round: 0.02}
+  eye_L:           # a glowing slit under the brow
+    material: eye
+    space: head
+    when: "glow > 0.35"
+    prims:
+      - extrude: {c: [0.05, 0.09, 0.10], rot: [0, 0.3, 0], depth: 0.04, profile: {rect: [0.024, 0.022], round: 0.006}}
+  arm_L:           # huge arms (in `big` space, the radii grow with it); the forearm thickens to the fist
+    material: slag
+    space: big
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.11}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.11, 0.085]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.085, 0.09]}
+    paint:
+      - material: magma_dim
+        prims:
+          - cylinder: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.42}, b: {between: ["@elbow_L", "@wrist_L"], t: "0.42 + 0.07*ember"}, r: 0.2}
+          - cylinder: {a: {between: ["@shoulder_L", "@elbow_L"], t: 0.55}, b: {between: ["@shoulder_L", "@elbow_L"], t: "0.55 + 0.07*ember"}, r: 0.2}
+      - material: magma
+        prims:
+          - cylinder: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.43}, b: {between: ["@elbow_L", "@wrist_L"], t: "0.43 + 0.045*glow"}, r: 0.2}
+          - cylinder: {a: {between: ["@shoulder_L", "@elbow_L"], t: 0.56}, b: {between: ["@shoulder_L", "@elbow_L"], t: "0.56 + 0.045*glow"}, r: 0.2}
+  hand_L:          # a boulder fist (wrist frames are not scaled: world units)
+    material: slag
+    space: wrist_L
+    blend: {mode: chamfer, k: 0.04}
+    prims:
+      - box: {c: [0, 0, 0.20], half: [0.25, 0.23, 0.22], rot: [0.2, 0.3, 0.1], round: 0.09}
+      - box: {c: [0, -0.02, 0.38], half: [0.22, 0.17, 0.08], rot: [0, 0, 0.0], round: 0.05}
+    paint:
+      - material: magma_dim
+        prims:
+          - box: {c: [0, 0, 0.31], half: [0.4, 0.4, "0.018*ember"]}
+      - material: magma
+        prims:
+          - box: {c: [0, 0, 0.31], half: [0.4, 0.4, "0.011*glow"]}
+  leg_L:           # short thick legs
+    material: slag
+    space: big
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.14, 0.12]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.12, 0.13]}
+    paint:
+      - material: magma_dim
+        prims:
+          - cylinder: {a: {between: ["@knee_L", "@ankle_L"], t: 0.30}, b: {between: ["@knee_L", "@ankle_L"], t: "0.30 + 0.09*ember"}, r: 0.2}
+      - material: magma
+        prims:
+          - cylinder: {a: {between: ["@knee_L", "@ankle_L"], t: 0.31}, b: {between: ["@knee_L", "@ankle_L"], t: "0.31 + 0.055*glow"}, r: 0.2}
+  boot_L:          # a heavy flat rock foot
+    material: slag
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.05], r: [0.12, 0.06, 0.15]}
+  rubble:          # death: a mound of slag over the collapsed body and rocks round it (sizes grow with `rubble`)
+    material: slag
+    space: big
+    when: "rubble > 0.02"
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.08, 0.12], r: "[0.42, 0.20, 0.36]*rubble"}
+      - box: {c: [0.36, 0.07, 0.30], half: "[0.13, 0.09, 0.11]*rubble", rot: [0.2, 0.5, 0.1], round: 0.03}
+      - box: {c: [-0.40, 0.06, 0.18], half: "[0.12, 0.08, 0.12]*rubble", rot: [0.1, -0.4, 0.2], round: 0.03}
+      - box: {c: [0.08, 0.08, 0.50], half: "[0.13, 0.09, 0.10]*rubble", rot: [0.3, 0.8, 0.0], round: 0.03}
+      - box: {c: [-0.24, 0.07, 0.44], half: "[0.10, 0.08, 0.09]*rubble", rot: [0.0, 0.3, 0.3], round: 0.03}
+      - box: {c: [0.32, 0.07, -0.18], half: "[0.12, 0.08, 0.11]*rubble", rot: [0.2, 1.1, 0.0], round: 0.03}
+      - box: {c: [-0.30, 0.07, -0.16], half: "[0.11, 0.08, 0.10]*rubble", rot: [0.1, 0.6, 0.2], round: 0.03}
+    paint:
+      - material: magma_dim
+        prims:
+          - box: {c: [0, 0.12, 0.12], half: [0.6, "0.012*ember", 0.6], rot: [0.15, 0, 0.1]}
+          - box: {c: [0.1, 0.12, 0.3], half: ["0.012*ember", 0.3, 0.3], rot: [0, 0.6, 0]}
+
+sockets:
+  impact: {bone: big, offset: [0, 0.02, 0.62]}   # the ground in front where the fists land (the slam's dust)
+  fist_L: {bone: wrist_L, offset: [0, 0, 0.2]}
+
+animations:
+  # heavy breathing: the chest heaves, the shoulders rise, the magma pulses brighter on each breath
+  idle:
+    frames: 8
+    ms: 160
+    channels:
+      bob: "0.03*sin(p)"
+      squash: "1 + 0.025*sin(p)"
+      lean: "0.04 - 0.03*sin(p)"
+      head_pitch: "0.06*sin(p - 0.8)"
+      glow: "1.05 + 0.3*sin(p)"
+      hand_L: "[0.52, -0.16 + 0.03*sin(p - 0.6), 0.10]"
+      hand_R: "[0.52, -0.16 + 0.03*sin(p - 0.6), 0.10]"
+  walk:
+    frames: 8
+    ms: 140
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: "0.08 + 0.03*cos(2*p)"
+      bob: "-0.05*cos(2*p) - 0.01"
+      squash: "1 - 0.035*cos(2*p)"
+      twist: "0.10*cos(p)"
+      roll: "0.07*sin(p)"
+      head_yaw: "-0.06*cos(p)"
+      glow: "1.0 + 0.2*cos(2*p)"
+      foot_L: "[0.17, 0.08*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.22 - 0.44*clamp(p/tau/0.5, 0, 1) + 0.44*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.17, 0.08*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.22 - 0.44*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.44*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      pitch_foot_L: "0.25*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
+      pitch_foot_R: "0.25*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
+      hand_L: "[0.52, -0.15 + 0.04*pos(cos(p)), 0.10 - 0.16*cos(p)]"
+      hand_R: "[0.52, -0.15 + 0.04*pos(-cos(p)), 0.10 + 0.16*cos(p)]"
+  # both fists raised high over the head (held: the game's warning circle), one fast smear frame, the fists
+  # slam the ground in front (`hit`), a short hold, a slow recovery
+  attack:
+    loop: false
+    keys:
+      - {ms: 110, event: windup, set: {lean: 0.22, bob: -0.06, squash: 0.93, head_pitch: 0.08,
+          hand_L: [0.26, -0.12, 0.30], hand_R: [0.26, -0.12, 0.30]}}
+      - {ms: 140, set: {lean: 0.0, bob: 0.0, squash: 1.0, head_pitch: -0.05, glow: 1.2,
+          hand_L: [0.26, 0.40, 0.24], hand_R: [0.26, 0.40, 0.24], foot_L: [0.18, 0, 0.10], foot_R: [0.18, 0, -0.05]}}
+      - {ms: 200, set: {lean: -0.25, bob: 0.03, squash: 1.05, head_pitch: -0.12, glow: 1.4,
+          hand_L: [0.18, 0.88, 0.02], hand_R: [0.18, 0.88, 0.02], foot_L: [0.18, 0, 0.12], foot_R: [0.18, 0, -0.06]}}
+      - {ms: 190, set: {lean: -0.30, bob: 0.04, squash: 1.07, head_pitch: -0.15, glow: 1.5,
+          hand_L: [0.16, 0.94, -0.04], hand_R: [0.16, 0.94, -0.04], foot_L: [0.18, 0, 0.12], foot_R: [0.18, 0, -0.06]}}
+      - {ms: 60, set: {lean: 0.15, bob: -0.02, squash: 1.0, head_pitch: 0.05, glow: 1.4,
+          hand_L: [0.14, 0.45, 0.50], hand_R: [0.14, 0.45, 0.50], foot_L: [0.18, 0, 0.16], foot_R: [0.18, 0, -0.07],
+          smear_w: 0.12, smear_a0: 2.0, smear_a1: 0.7}}
+      - {ms: 90, event: hit, set: {root: [0, 0, 0.08], lean: 0.55, bob: -0.12, squash: 0.88, head_pitch: 0.12, glow: 1.6,
+          hand_L: [0.14, 0.0, 0.74], hand_R: [0.14, 0.0, 0.74], foot_L: [0.18, 0, 0.20], foot_R: [0.18, 0, -0.08],
+          smear_w: 0.10, smear_a0: 1.0, smear_a1: -0.6, smear_fade: 0.6}}
+      - {ms: 120, set: {root: [0, 0, 0.08], lean: 0.52, bob: -0.11, squash: 0.91, head_pitch: 0.10, glow: 1.3,
+          hand_L: [0.14, 0.01, 0.74], hand_R: [0.14, 0.01, 0.74], foot_L: [0.18, 0, 0.20], foot_R: [0.18, 0, -0.08]}}
+      - {ms: 110, set: {root: [0, 0, 0.03], lean: 0.25, bob: -0.04, squash: 0.97, glow: 1.1,
+          hand_L: [0.34, -0.28, 0.32], hand_R: [0.34, -0.28, 0.32], foot_L: [0.18, 0, 0.08]}}
+  # hit: barely flinches - the body jolts back about a pixel, the magma flares
+  hit:
+    loop: false
+    keys:
+      - {ms: 80, set: {root: [0, 0, -0.025], lean: -0.06, bob: -0.02, squash: 0.97, head_pitch: -0.12, glow: 1.6,
+          hand_L: [0.46, -0.27, 0.06], hand_R: [0.46, -0.27, 0.06]}}
+      - {ms: 80, set: {root: [0, 0, -0.015], lean: -0.02, bob: -0.01, squash: 0.99, head_pitch: -0.05, glow: 1.3,
+          hand_L: [0.45, -0.29, 0.08], hand_R: [0.45, -0.29, 0.08]}}
+      - {ms: 80, set: {lean: 0.05, head_pitch: 0.02}}
+  # death: struck back, the knees buckle, he sags forward and crumbles into a low pile of slag; the glow fades
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.03], lean: -0.18, bob: -0.02, squash: 0.96, head_pitch: -0.2, glow: 1.5,
+          hand_L: [0.56, -0.08, 0.0], hand_R: [0.56, -0.08, 0.0]}}
+      - {ms: 150, set: {root: [0, 0, -0.03], lean: 0.25, bob: -0.14, squash: 0.94, head_pitch: 0.25, glow: 0.8,
+          hand_L: [0.56, -0.16, 0.16], hand_R: [0.56, -0.16, 0.16], foot_L: [0.20, 0, 0.06], foot_R: [0.20, 0, 0.0]}}
+      - {ms: 150, set: {lean: 0.40, bob: -0.28, squash: 0.85, head_pitch: 0.35, glow: 0.5, rubble: 0.35,
+          hand_L: [0.62, -0.10, 0.25], hand_R: [0.62, -0.10, 0.25], foot_L: [0.28, 0, 0.14], foot_R: [0.28, 0, 0.10]}}
+      - {ms: 130, set: {lean: 0.45, bob: -0.40, squash: 0.70, head_pitch: 0.45, glow: 0.25, rubble: 0.7,
+          hand_L: [0.68, 0.0, 0.30], hand_R: [0.68, 0.0, 0.30], foot_L: [0.34, 0, 0.22], foot_R: [0.34, 0, 0.18]}}
+      - {ms: 130, set: {lean: 0.45, bob: -0.47, squash: 0.58, head_pitch: 0.5, glow: 0.0, ember: 0.8, rubble: 0.95,
+          hand_L: [0.70, 0.08, 0.32], hand_R: [0.70, 0.08, 0.32], foot_L: [0.36, 0, 0.26], foot_R: [0.36, 0, 0.22]}}
+      - {ms: 160, set: {lean: 0.45, bob: -0.48, squash: 0.56, head_pitch: 0.5, glow: 0.0, ember: 0.45, rubble: 1.0,
+          hand_L: [0.70, 0.08, 0.32], hand_R: [0.70, 0.08, 0.32], foot_L: [0.36, 0, 0.26], foot_R: [0.36, 0, 0.22]}}
+      - {ms: 700, set: {lean: 0.45, bob: -0.48, squash: 0.56, head_pitch: 0.5, glow: 0.0, ember: 0.0, rubble: 1.0,
+          hand_L: [0.70, 0.08, 0.32], hand_R: [0.70, 0.08, 0.32], foot_L: [0.36, 0, 0.26], foot_R: [0.36, 0, 0.22]}}
+
+timing:
+  attack: {hit: 700ms, total: 1020ms}

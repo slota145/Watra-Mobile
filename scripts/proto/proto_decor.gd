@@ -47,6 +47,13 @@ const DATA := {
 		{"f": "stilt_hut_0", "r": 14.0, "w": 0.5},
 		{"f": "storm_rod", "r": 5.0, "w": 1.5, "light": Color(0.6, 0.85, 1.0), "glow": 30.0}, {"f": "wind_chime", "w": 1.0},
 	],
+	Dungeons.VOLCANO: [
+		{"f": "bones", "w": 2.0, "flat": true}, {"f": "boulders", "w": 4.0},
+		{"f": "campfire", "w": 2.0, "frames": 4, "fps": 9.0, "light": Color(1.0, 0.5, 0.15), "glow": 48.0},
+		{"f": "dead_stump", "w": 3.0}, {"f": "dead_tree", "r": 8.0, "w": 2.0}, {"f": "fallen_stone", "w": 2.5},
+		{"f": "ribcage", "w": 1.5, "flat": true}, {"f": "rubble", "w": 3.0, "flat": true},
+		{"f": "skull_bones", "w": 2.0, "flat": true},
+	],
 }
 ## Ile ozdób na polanie, najmniejsza odległość między nimi i wolne koło wokół startu postaci.
 const COUNT := 45

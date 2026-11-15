@@ -1,7 +1,7 @@
 class_name Dungeons
 ## Rodzaje lochów (ustalone z autorem 15.11.2026). Wspólna drabinka poziomów: każdy loch zaczyna się od swojego
 ## poziomu (`from`) i trwa do początku następnego (1-10 gobliny, od 11 Zatopione podziemia; kolejne lochy dojdą
-## w podobnym rytmie; od 21 Katakumby, od 31 Górskie równiny), a od RANDOM_FROM (endgame) przy każdym wejściu losuje się loch spośród wszystkich.
+## w podobnym rytmie; od 21 Katakumby, od 31 Górskie równiny, od 41 Wulkaniczne równiny), a od RANDOM_FROM (endgame) przy każdym wejściu losuje się loch spośród wszystkich.
 ## Każdy loch: nazwa, boss, podłoże (tekstura z Watry powtarzana na polanie i jej odcień), żywioł potworów
 ## (Elements; odporność bohatera - `element_res_pct`) i potwory na trzech rolach strumienia ProtoHorde:
 ## `basic` - zwykły, `ranged` - strzelający z dystansu, `strong` - silny z ciosem w koło (udziały jak u goblinów -
@@ -12,9 +12,10 @@ const GOBLINS := "goblins"
 const FLOODED := "flooded"
 const CATACOMBS := "catacombs"
 const PLAINS := "plains"
+const VOLCANO := "volcano"
 ## Od tego poziomu (włącznie z nim) loch jest losowy przy każdym wejściu.
 const RANDOM_FROM := 101
-const ORDER: Array[String] = [GOBLINS, FLOODED, CATACOMBS, PLAINS]
+const ORDER: Array[String] = [GOBLINS, FLOODED, CATACOMBS, PLAINS, VOLCANO]
 const DATA := {
 	GOBLINS: {"name": "Leże goblinów", "from": 1, "boss": "Wódz Goblinów", "summon": "Przyzwij Wodza",
 		"ground": "res://assets/watra/grass.png", "tint": Color(0.72, 0.68, 0.8), "element": Elements.PHYSICAL,
@@ -27,7 +28,10 @@ const DATA := {
 		"description": "Kamienne krypty. Szkielety wstają z kości, łucznicy strzelają Nawią, rycerze tną szerokim zamachem; rządzi nimi Nekromanta."},
 	PLAINS: {"name": "Górskie równiny", "from": 31, "boss": "Gromoskrzydły", "summon": "Przyzwij Gromoskrzydłego",
 		"ground": "res://assets/watra/plains_floor.png", "tint": Color(0.86, 0.9, 0.94), "element": Elements.LIGHTNING,
-		"description": "Wietrzne hale pod szczytami. Ptakoludzie doskakują z oszczepami, miotacze rzucają, szamani ściągają pioruny; nad nimi krąży Gromoskrzydły."}
+		"description": "Wietrzne hale pod szczytami. Ptakoludzie doskakują z oszczepami, miotacze rzucają, szamani ściągają pioruny; nad nimi krąży Gromoskrzydły."},
+	VOLCANO: {"name": "Wulkaniczne równiny", "from": 41, "boss": "Żywiołak ognia", "summon": "Przyzwij Żywiołaka",
+		"ground": "res://assets/watra/volcano_floor.png", "tint": Color(1.0, 1.0, 1.0), "element": Elements.FIRE,
+		"description": "Popiół i stygnąca lawa. Salamandry gryzą i podpalają, ogniki plują żarem, żużlowe golemy zostawiają płonącą ziemię; w sercu wulkanu czeka Żywiołak ognia."}
 }
 
 

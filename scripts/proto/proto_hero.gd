@@ -67,6 +67,11 @@ var chill_left := 0.0
 ## Porażenie piorunem (żywioł Grom): przez `shock_left` s postać dostaje SHOCK_MULT obrażeń i miga na żółto.
 const SHOCK_MULT := 1.25
 var shock_left := 0.0
+## Podpalenie (żywioł ognia): co BURN_TICK s traci `burn_damage` zdrowia (mniej o odporność na żywioły), przez `burn_left` s.
+const BURN_TICK := 0.5
+var burn_damage := 0
+var burn_left := 0.0
+var _burn_next := 0.0
 var _chill_color := Color.WHITE
 ## Szansa na unik (0-1, premia przedmiotów): cios potwora nie zadaje obrażeń, nad głową napis „Unik!”.
 var dodge := 0.0
@@ -109,6 +114,12 @@ func _process(delta: float) -> void:
 		if chill_left <= 0.0:
 			chill = 0.0
 			_sprite.self_modulate = Color.WHITE
+	if burn_left > 0.0 and not dead:
+		burn_left -= delta
+		_burn_next -= delta
+		if _burn_next <= 0.0:
+			_burn_next = BURN_TICK
+			_burn_hit()
 	if shock_left > 0.0:
 		shock_left -= delta
 		if chill_left <= 0.0:  # spowolnienie ma pierwszeństwo w kolorze
@@ -200,6 +211,26 @@ func slow(fraction: float, time: float, color := Color(0.6, 0.8, 1.2)) -> void:
 	_sprite.self_modulate = color
 
 
+## Podpalenie: przez `time` s co BURN_TICK s traci `damage` zdrowia (silniejsze podpalenie wygrywa, czas się
+## odnawia). Pierwszy płomień po BURN_TICK s.
+func ignite(damage: int, time: float) -> void:
+	if dead or damage <= 0:
+		return
+	if burn_left <= 0.0:
+		_burn_next = BURN_TICK
+	burn_damage = maxi(burn_damage if burn_left > 0.0 else 0, damage)
+	burn_left = maxf(burn_left, time)
+
+
+## Płomień podpalenia: bez nietykalności, błysku i wibracji (żeby nie zasłaniać ciosów potworów), mała liczba.
+func _burn_hit() -> void:
+	var amount := maxi(1, roundi(burn_damage * (1.0 - element_res)))
+	hp = maxi(hp - amount, 0)
+	health_changed.emit(hp, max_hp)
+	_spawn_text("-%d" % amount, Color(1.0, 0.6, 0.25))
+	_check_death()
+
+
 ## Porażenie piorunem: przez `time` s postać dostaje więcej obrażeń (SHOCK_MULT) i miga na żółto.
 func shock(time: float) -> void:
 	if not dead:
@@ -233,6 +264,11 @@ func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 	var tween := _sprite.create_tween()
 	_sprite.modulate = Color(2.2, 0.5, 0.45)
 	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.25)
+	_check_death()
+
+
+## Zdrowie spadło do zera: śmierć (albo w trybie nieśmiertelności - złoty błysk i pełne zdrowie).
+func _check_death() -> void:
 	if hp == 0 and immortal:
 		deaths += 1
 		hp = max_hp
