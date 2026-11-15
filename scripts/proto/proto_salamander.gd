@@ -6,7 +6,7 @@ extends ProtoGoblin
 
 const SALAMANDER_SCENE := "res://assets/spritekiln/salamander/salamander.tscn"
 const SALAMANDER_HP := 32
-const SALAMANDER_SPEED := 50.0
+const SALAMANDER_SPEED := 40.0
 const SALAMANDER_DAMAGE := 8
 ## Obrażenia jednego płomienia podpalenia i czas.
 const BURN := 3

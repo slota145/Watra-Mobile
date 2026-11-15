@@ -197,7 +197,7 @@ parts:
       - sphere: {c: [-0.08, 0.03, 0.24], r: "0.03*smoke"}
 
 sockets:
-  mouth: {bone: body, offset: [0, -0.10, 0.50]}   # where the spat ember (projectile) spawns
+  mouth: {bone: face, offset: "[0.30*sin(radians(yaw)), -0.12, 0.50]"}   # where the spat ember (projectile) spawns: the drawn mouth
 
 # the game's contract: the ember leaves 400 ms into the 700 ms spit (after a 400 ms swelling telegraph)
 timing: {attack: {release: 400ms, total: 700ms}}
