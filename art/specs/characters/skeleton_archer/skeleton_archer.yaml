@@ -96,6 +96,7 @@ channels:
   eyes_lit: 1       # 0 puts the eye lights out (the end of death)
   skull: [0, 0, 0]  # the skull tumbling off the heap in death (offset of headbase, pelvis space)
   skull_rot: 0      # its roll while it tumbles
+  dropped: 0        # 1: the bow has fallen out of the hand and lies on the ground beside the heap (death)
 
 bones:
   # hip height 0.745 (human 0.84): a thin, slightly stooped skeleton
@@ -265,7 +266,23 @@ parts:
       - ellipsoid: {c: [0.0, 0.35, 0.01], r: [0.036, 0.06, 0.028]}
       - ellipsoid: {c: [0.05, 0.32, -0.015], r: [0.034, 0.055, 0.026], rot: [0, 0, -0.25]}
       - ellipsoid: {c: [-0.055, 0.33, 0.02], r: [0.034, 0.055, 0.026], rot: [0, 0, 0.3]}
-  bow_string: {when: "draw < 0.5"}
+  bow_string: {when: "max(draw, dropped) < 0.5"}
+  bow_limbs: {when: "dropped < 0.5"}
+  bow_riser: {when: "dropped < 0.5"}
+  dropped_bow:     # the bow fallen beside the heap (death): the limbs flat on the ground, curving outwards
+    material: bow_wood
+    when: "dropped > 0.5"
+    priority: 2
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0.16, 0.03, -0.36], [0.50, 0.03, -0.02], [0.16, 0.03, 0.34]], r: 0.03}
+  dropped_string:
+    material: string
+    when: "dropped > 0.5"
+    min_cover: 1
+    line: false
+    prims:
+      - cylinder: {a: [0.17, 0.02, -0.33], b: [0.17, 0.02, 0.31], r: 0.014}
   drawn_string:    # the string pulled to the right fist: two straight segments from the bow tips
     material: string
     when: "draw > 0.5"
@@ -390,15 +407,15 @@ animations:
       - {ms: 110, set: {root: [0, 0, -0.04], lean: 0.25, roll: 0.05, bob: -0.34, squash: 0.85, head_pitch: 0.25, coat: 0.3,
           skull: [0, -0.04, 0.02], hand_L: [0.36, -0.12, 0.16], hand_R: [0.36, -0.14, 0.18], bow_tilt: -0.5,
           foot_L: [0.16, 0, 0.08], foot_R: [0.16, 0, -0.04]}}
-      - {ms: 100, set: {root: [0, 0, -0.04], lean: 0.35, roll: 0.04, bob: -0.52, squash: 0.62, head_pitch: 0.3, coat: 0.3,
+      - {ms: 100, set: {dropped: 1, root: [0, 0, -0.04], lean: 0.35, roll: 0.04, bob: -0.52, squash: 0.62, head_pitch: 0.3, coat: 0.3,
           skull: [0.04, -0.22, 0.05], skull_rot: 0.5, hand_L: [0.40, -0.18, 0.16], hand_R: [0.40, -0.18, 0.18], bow_tilt: -0.2, bow_roll: 1.2,
           foot_L: [0.22, 0, 0.12], foot_R: [0.22, 0, -0.06]}}
-      - {ms: 100, set: {root: [0, 0, -0.04], lean: 0.4, roll: 0.04, bob: -0.60, squash: 0.48, head_pitch: 0.4, coat: 0.2,
+      - {ms: 100, set: {dropped: 1, root: [0, 0, -0.04], lean: 0.4, roll: 0.04, bob: -0.60, squash: 0.48, head_pitch: 0.4, coat: 0.2,
           skull: [0.10, -0.60, 0.02], skull_rot: 1.1, hand_L: [0.38, -0.14, 0.14], hand_R: [0.37, -0.14, 0.16], bow_tilt: 0.3, bow_roll: 1.5,
           foot_L: [0.26, 0, 0.14], foot_R: [0.26, 0, -0.08]}}
-      - {ms: 130, set: {root: [0, 0, -0.04], lean: 0.4, roll: 0.04, bob: -0.62, squash: 0.45, head_pitch: 0.45, coat: 0.2,
+      - {ms: 130, set: {dropped: 1, root: [0, 0, -0.04], lean: 0.4, roll: 0.04, bob: -0.62, squash: 0.45, head_pitch: 0.45, coat: 0.2,
           skull: [0.13, -0.76, 0.0], skull_rot: 1.5, hand_L: [0.38, -0.13, 0.13], hand_R: [0.37, -0.13, 0.15], bow_tilt: 0.5, bow_roll: 1.57,
           foot_L: [0.27, 0, 0.15], foot_R: [0.27, 0, -0.08]}}
-      - {ms: 500, set: {eyes_lit: 0, root: [0, 0, -0.04], lean: 0.42, roll: 0.04, bob: -0.63, squash: 0.44, head_pitch: 0.45, coat: 0.2,
+      - {ms: 500, set: {dropped: 1, eyes_lit: 0, root: [0, 0, -0.04], lean: 0.42, roll: 0.04, bob: -0.63, squash: 0.44, head_pitch: 0.45, coat: 0.2,
           skull: [0.13, -0.76, 0.0], skull_rot: 1.5, hand_L: [0.38, -0.13, 0.13], hand_R: [0.37, -0.13, 0.15], bow_tilt: 0.5, bow_roll: 1.57,
           foot_L: [0.27, 0, 0.15], foot_R: [0.27, 0, -0.08]}}
