@@ -52,7 +52,7 @@ materials:
 
 remove: [use.hair, use.sword, use.head, animations.attack]
 
-shadow: {rx: 16, ry: 5, alpha: 100}
+shadow: {rx: 17, ry: 5, alpha: 100}
 snap: [root, torso_rot]
 
 channels:
@@ -64,7 +64,7 @@ channels:
   cool: 0           # 0..1 death: >0.6 the cracks go dark, >0.5 loose rocks lie round him
 
 bones:
-  big:        {parent: root, scale: 1.3}
+  big:        {parent: root, scale: 1.4}
   torso_rot:  {parent: big, pos: "[0, 0.84 + bob, 0]", rot: "[lean, twist, roll]"}
   legyaw:     {parent: big}
   footyaw:    {parent: big}

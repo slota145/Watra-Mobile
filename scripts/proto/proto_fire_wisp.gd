@@ -11,8 +11,8 @@ const EMBER_DAMAGE := 9
 const BURN := 3
 const EMBER_TINT := Color(1.0, 0.55, 0.2)
 ## Plucie w animacji `attack` pada tyle sekund po jej początku (zdarzenie `release`) - animacja rusza tak, żeby
-## plucie zgrało się z RELEASE_TIME (linia celu); ustawiane po eksporcie modelu.
-var spit_at := RELEASE_TIME
+## plucie zgrało się z RELEASE_TIME (linia celu).
+var spit_at := 0.4
 var _spit_started := false
 
 

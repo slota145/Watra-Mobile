@@ -1,7 +1,7 @@
 spritekiln: 1
 # yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
 name: slag_golem
-camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.35, 0]}
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.25, 0]}
 palette: "watra"
 size: 80
 extends: humanoid   # the template's skeleton only; head, hair, sword, coat, belt and neck removed
@@ -37,7 +37,7 @@ brief:
       mound and rocks grow over and round him - a low cooled pile of slag with a few dim embers
     - attack - both fists high over the head (held, the game's red circle shows meanwhile), one fast smear frame,
       then the fists hit the ground in front (`hit`, socket `impact` between the fists on the ground)
-    - frame 80 px, camera.center y 1.35 (raised fists fit)
+    - frame 80 px, camera.center y 1.25 (raised fists fit)
 
 ramps:
   # cooled slag: warm grey-black volcanic rock
@@ -289,15 +289,15 @@ animations:
       - {ms: 150, set: {root: [0, 0, -0.03], lean: 0.25, bob: -0.14, squash: 0.94, head_pitch: 0.25, glow: 0.8,
           hand_L: [0.56, -0.16, 0.16], hand_R: [0.56, -0.16, 0.16], foot_L: [0.20, 0, 0.06], foot_R: [0.20, 0, 0.0]}}
       - {ms: 150, set: {lean: 0.40, bob: -0.28, squash: 0.85, head_pitch: 0.35, glow: 0.5, rubble: 0.35,
-          hand_L: [0.62, -0.10, 0.25], hand_R: [0.62, -0.10, 0.25], foot_L: [0.28, 0, 0.14], foot_R: [0.28, 0, 0.10]}}
-      - {ms: 130, set: {lean: 0.45, bob: -0.40, squash: 0.70, head_pitch: 0.45, glow: 0.25, rubble: 0.7,
-          hand_L: [0.68, 0.0, 0.30], hand_R: [0.68, 0.0, 0.30], foot_L: [0.34, 0, 0.22], foot_R: [0.34, 0, 0.18]}}
-      - {ms: 130, set: {lean: 0.45, bob: -0.47, squash: 0.58, head_pitch: 0.5, glow: 0.0, ember: 0.8, rubble: 0.95,
-          hand_L: [0.70, 0.08, 0.32], hand_R: [0.70, 0.08, 0.32], foot_L: [0.36, 0, 0.16], foot_R: [0.36, 0, 0.12]}}
-      - {ms: 160, set: {lean: 0.45, bob: -0.48, squash: 0.56, head_pitch: 0.5, glow: 0.0, ember: 0.45, rubble: 1.0,
-          hand_L: [0.70, 0.08, 0.32], hand_R: [0.70, 0.08, 0.32], foot_L: [0.36, 0, 0.16], foot_R: [0.36, 0, 0.12]}}
-      - {ms: 700, set: {lean: 0.45, bob: -0.48, squash: 0.56, head_pitch: 0.5, glow: 0.0, ember: 0.0, rubble: 1.0,
-          hand_L: [0.70, 0.08, 0.32], hand_R: [0.70, 0.08, 0.32], foot_L: [0.36, 0, 0.16], foot_R: [0.36, 0, 0.12]}}
+          hand_L: [0.62, -0.10, 0.25], hand_R: [0.62, -0.10, 0.25], foot_L: [0.24, 0, 0.10], foot_R: [0.24, 0, 0.06]}}
+      - {ms: 130, set: {lean: 0.45, bob: -0.32, squash: 0.70, head_pitch: 0.45, glow: 0.25, rubble: 0.7,
+          hand_L: [0.68, 0.0, 0.30], hand_R: [0.68, 0.0, 0.30], foot_L: [0.26, 0, 0.12], foot_R: [0.26, 0, 0.08]}}
+      - {ms: 130, set: {lean: 0.45, bob: -0.36, squash: 0.58, head_pitch: 0.5, glow: 0.0, ember: 0.8, rubble: 0.95,
+          hand_L: [0.70, 0.08, 0.32], hand_R: [0.70, 0.08, 0.32], foot_L: [0.26, 0, 0.10], foot_R: [0.26, 0, 0.06]}}
+      - {ms: 160, set: {lean: 0.45, bob: -0.37, squash: 0.56, head_pitch: 0.5, glow: 0.0, ember: 0.45, rubble: 1.0,
+          hand_L: [0.70, 0.08, 0.32], hand_R: [0.70, 0.08, 0.32], foot_L: [0.26, 0, 0.10], foot_R: [0.26, 0, 0.06]}}
+      - {ms: 700, set: {lean: 0.45, bob: -0.37, squash: 0.56, head_pitch: 0.5, glow: 0.0, ember: 0.0, rubble: 1.0,
+          hand_L: [0.70, 0.08, 0.32], hand_R: [0.70, 0.08, 0.32], foot_L: [0.26, 0, 0.10], foot_R: [0.26, 0, 0.06]}}
 
 timing:
   attack: {hit: 700ms, total: 1020ms}
