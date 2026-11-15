@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b05xdv3wv1ol3"
-path="res://.godot/imported/swamp_shallow.png-afbf0f893805323d2df65f8413820f78.ctex"
+uid="uid://curlhd8h2npkl"
+path="res://.godot/imported/swamp_floor.png-afa919d1a9e38e2ae7d403a8255ea4e3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/swamp_shallow.png"
-dest_files=["res://.godot/imported/swamp_shallow.png-afbf0f893805323d2df65f8413820f78.ctex"]
+source_file="res://assets/watra/swamp_floor.png"
+dest_files=["res://.godot/imported/swamp_floor.png-afa919d1a9e38e2ae7d403a8255ea4e3.ctex"]
 
 [params]
 

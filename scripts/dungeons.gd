@@ -18,7 +18,7 @@ const DATA := {
 		"ground": "res://assets/watra/grass.png", "tint": Color(0.72, 0.68, 0.8), "element": Elements.PHYSICAL,
 		"description": "Gobliny Hordy, łucznicy i osiłki; rządzi nimi Wódz."},
 	FLOODED: {"name": "Zatopione podziemia", "from": 11, "boss": "Wodnik", "summon": "Przyzwij Wodnika",
-		"ground": "res://assets/watra/swamp_shallow.png", "tint": Color(0.92, 0.95, 1.0), "element": Elements.WATER,
+		"ground": "res://assets/watra/swamp_floor.png", "tint": Color(0.92, 0.95, 1.0), "element": Elements.WATER,
 		"description": "Zalane ruiny. Topielce przemaczają, żabołaki plują wodą, topielice mrożą ziemię; w głębi czeka Wodnik."},
 }
 
