@@ -54,7 +54,7 @@ func _init() -> void:
 	base_hp = ELEMENTAL_HP
 	fallback_tint = Color(1.0, 0.55, 0.25)
 	keep_distance = KEEP_DISTANCE
-	anim_hit_at = {&"wave": 0.5, &"rain": 0.5, &"charge": 0.3}
+	anim_hit_at = {&"wave": 0.33, &"rain": 0.34, &"charge": 0.3}
 	anim_fallback = {&"wave": &"attack", &"rain": &"attack", &"charge": &"attack", &"roar": &"idle",
 		&"slam": &"attack", &"throw": &"attack"}
 

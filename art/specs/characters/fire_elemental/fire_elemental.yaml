@@ -12,7 +12,7 @@ extends: humanoid   # the template's skeleton and channels; the body, head and f
 # oczami i koroną wysokich płomieni. Klatka 96 px: 8 animacji x 8 kierunków = 64 rzędy (6144 px) < 8192 px.
 brief:
   summary: >
-    boss of the volcanic plains, the Fire Elemental: a towering humanoid of living fire and magma, about 50 px tall
+    boss of the volcanic plains, the Fire Elemental: a towering humanoid of living fire and magma, about 49 px tall
     with the flame crown (the human is 36 px, same density); a torso of dark charcoal rock plates split by glowing
     orange cracks with a white-hot core in the chest, no legs: the lower body dissolves into a column of flame (he
     floats and glides), broad rock shoulders with flame bursts, long rock arms ending in burning yellow claws
