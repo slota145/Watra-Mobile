@@ -160,6 +160,8 @@ func _ready() -> void:
 	hero.gesture = Game.gesture
 	hero.immortal = Game.dev_immortal
 	world.add_child(hero)
+	if decor:
+		hero.obstacles.append_array(ProtoDecor.obstacles)  # postać obchodzi ozdoby lochu
 	_start_hero_level = Game.hero_level
 	var camera := Camera2D.new()
 	camera.position_smoothing_enabled = true

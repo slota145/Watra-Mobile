@@ -150,7 +150,7 @@ func _process(delta: float) -> void:
 		"hurt":
 			if not _scene and _timer > 0.25:
 				_state = "walk"
-	position = (position + move * delta).clamp(bounds.position, bounds.end)
+	position = ProtoDecor.push_out((position + move * delta).clamp(bounds.position, bounds.end), 3.0)  # obchodzi ozdoby
 
 
 ## Ruch w stanie marszu (postać żyje): podejście i zamach z bliska. Łucznik nadpisuje (dystans i strzał).

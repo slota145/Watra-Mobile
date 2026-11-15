@@ -16,6 +16,10 @@ Decyzje autora: same ozdoby (bez kolizji), losowy układ przy każdym wejściu, 
   (poświata), łódź, krzyż; Katakumby - kości, kandelabr, świece, trumna, zwłoki, kamienie, otwarty grób, kolumna,
   żebra, sarkofag, czaszki, posąg, pochodnie (2 klatki).
 - Test w `tests/test_flooded.gd` (ozdoby, wolny start, poświaty), zrzuty `tools/decor_shots.gd`.
+- Poprawki po uwagach autora: ozdoby mają kolizje (wysokie - koło u podstawy, `ProtoDecor.obstacles`, `push_out`;
+  postać, potwory (+3 px) i bossowie (+8 px) obchodzą je bokiem; płaskie dalej bez kolizji), mniej ozdób (45, co
+  najmniej 40 px od siebie), w Leżu goblinów jaśniejsze grafiki (namioty, posłanie, stojak ze skórami, kłody do
+  siedzenia, łupy, beczka, palisada zamiast prawie czarnych głazów, pni i cierni) i lekkie rozjaśnienie (`TINT`).
 
 ## 15.11.2026 - poprawka: okno wyboru kamienia nie mieści się na ekranie
 

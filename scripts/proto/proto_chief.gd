@@ -177,7 +177,7 @@ func _process(delta: float) -> void:
 		"recover":
 			if _timer >= RECOVER:
 				_set_state("walk")
-	position = position.clamp(bounds.position, bounds.end)
+	position = ProtoDecor.push_out(position.clamp(bounds.position, bounds.end), 8.0)  # boss też obchodzi ozdoby
 
 
 ## Wybór ataku: z bliska cios w ziemię, z daleka rzut tasakiem, okrzyk co ROAR_COOLDOWN s (gdy jest miejsce).

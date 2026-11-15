@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ccroars84a0xq"
-path="res://.godot/imported/boulders.png-f1bff556fd04ddc09a56b9308f5ea45f.ctex"
+uid="uid://bk4sgureiwomu"
+path="res://.godot/imported/tent.png-720a049ec9c04d42fcacf3237f731982.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/decor/goblins/boulders.png"
-dest_files=["res://.godot/imported/boulders.png-f1bff556fd04ddc09a56b9308f5ea45f.ctex"]
+source_file="res://assets/watra/decor/goblins/tent.png"
+dest_files=["res://.godot/imported/tent.png-720a049ec9c04d42fcacf3237f731982.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://tn2krkllvjai"
-path="res://.godot/imported/hollow_log.png-6a236e3062f1f87a7fe3e72c2a72db90.ctex"
+uid="uid://dn4eb3n72qjjc"
+path="res://.godot/imported/barrel.png-c1cd4e811e48d05be329b2951cba33e6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/decor/goblins/hollow_log.png"
-dest_files=["res://.godot/imported/hollow_log.png-6a236e3062f1f87a7fe3e72c2a72db90.ctex"]
+source_file="res://assets/watra/decor/goblins/barrel.png"
+dest_files=["res://.godot/imported/barrel.png-c1cd4e811e48d05be329b2951cba33e6.ctex"]
 
 [params]
 

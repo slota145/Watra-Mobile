@@ -53,7 +53,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   topielec `proto_drowner.gd`, żabołak `proto_frogman.gd`, topielica `proto_rusalka.gd`, boss Wodnik `proto_wodnik.gd` (po `ProtoChief`);
   szkielet `proto_skeleton.gd` (wstaje z kupki kości), szkielet łucznik `proto_skeleton_archer.gd`, rycerz-szkielet `proto_skeleton_knight.gd`, boss Nekromanta `proto_necromancer.gd`;
   podłogi lochów z generatorów `tools/swamp_floor.py` i `tools/catacombs_floor.py` (duże pola bez powtarzalnego wzoru);
-  wystrój lochów `proto_decor.gd` (ozdoby z Watry w `assets/watra/decor/<loch>/`, losowo, bez kolizji, poświaty);
+  wystrój lochów `proto_decor.gd` (ozdoby z Watry w `assets/watra/decor/<loch>/`, losowo, wysokie z kolizjami - `ProtoDecor.push_out`, poświaty);
   odporność na żywioły - premia `element_res_pct`, `ProtoHero.take_damage(ile, żywioł)`, spowolnienie `ProtoHero.slow`;
   `scripts/hero_levels.gd` - poziomy postaci (doświadczenie, zdrowie, obrażenia, miejsca na umiejętności; stan w `Game`);
   `scripts/elements.gd` - żywioły (8 + fizyczne, odporności, `reduce`); `scripts/weapons.gd` - rodzaje broni (miecz, glewia ognia - `proto_glaive.gd`, hydrosfera - `proto_hydrosphere.gd`, elektryczna katana - `proto_katana.gd`; wszystkie dziedziczą po `proto_weapon.gd`; przemoczenie, porażenie i combo żywiołów - `ProtoTarget.soak`/`shock`, `ProtoWeapon._combo_mult`), kupno, zmiana i mistrzostwo broni (stan w `Game`);

@@ -84,8 +84,21 @@ func _test_monsters(game: Node) -> void:
 			props += 1
 			if c.position.distance_to(Vector2(0, 40)) < ProtoDecor.CLEAR_RADIUS:
 				near += 1
-	_check(arena.decor != null and props > 50 and near == 0 and arena.decor.glow_count() > 0,
+	_check(arena.decor != null and props == ProtoDecor.COUNT and near == 0 and arena.decor.glow_count() > 0,
 			"wystrój: %d ozdób podziemi, wolne miejsce startu, poświaty (%d)" % [props, arena.decor.glow_count()])
+	# kolizje: wysokie ozdoby to przeszkody dla postaci i potworów
+	_check(not ProtoDecor.obstacles.is_empty() and hero.obstacles.size() >= ProtoDecor.obstacles.size(),
+			"wysokie ozdoby mają przeszkody (%d), postać je zna" % ProtoDecor.obstacles.size())
+	var o: Vector3 = ProtoDecor.obstacles[0]
+	var inside := Vector2(o.x, o.y)
+	var out := ProtoDecor.push_out(inside)
+	_check(out.distance_to(inside) >= o.z * 0.49, "punkt w ozdobie zostaje z niej wypchnięty")
+	var g: ProtoGoblin = horde.spawn_at(inside + Vector2(1, 0), "goblin")
+	await process_frame
+	await process_frame
+	var gap := Vector2(g.position.x - o.x, (g.position.y - o.y) * 2.0).length()
+	_check(gap >= o.z, "potwór nie stoi w ozdobie (%.1f >= %.1f)" % [gap, o.z])
+	g.queue_free()
 	# odporność: tylko ciosy żywiołów
 	hero.element_res = 0.5
 	hero.protection = 0.0
