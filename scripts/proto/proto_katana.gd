@@ -84,6 +84,28 @@ const PERUN_BLAST_POWER := 0.8
 ## Błysk Peruna: siła wyładowania co 5. skok (10. poziom) i jego promień.
 const FLASH_SPIN_POWER := 0.8
 const FLASH_SPIN_RADIUS := 44.0
+## Kamienie unikalne (pomysły autora 15.11.2026):
+## Gromowe Ostrze (cięcie) - łuk pioruna leci do przodu z każdego cięcia: prędkość, zasięg, promień trafienia, siła;
+const SPARK_SPEED := 240.0
+const SPARK_DISTANCE := 130.0
+const SPARK_RADIUS := 16.0
+const SPARK_POWER := 0.5
+## Wir Ostrza (Taniec) - cięcia w miejscu dookoła postaci: liczba cięć, obrót między nimi;
+const SPIN_CUTS := 6
+const SPIN_TURN := TAU / 6.0
+## Łańcuch Kontr (Riposta) - każdy trafiony kontrą wróg sam tnie dookoła siebie: opóźnienie, promień, siła,
+## najwięcej takich kontr na jedną Ripostę (każdy wróg najwyżej raz);
+const ECHO_DELAY := 0.12
+const ECHO_RADIUS := 30.0
+const ECHO_POWER := 0.5
+const ECHO_MAX := 12
+## Wędrowne Gromy (Sąd Peruna) - z cięcia wyskakują pioruny pełzające po ziemi, każdy do innego wroga: liczba (od-do
+## wg naładowania), prędkość, zasięg szukania celów od końca cięcia, najdłuższy czas życia, siła.
+const CRAWL_COUNT := Vector2i(2, 6)
+const CRAWL_SPEED := 150.0
+const CRAWL_RANGE := 220.0
+const CRAWL_LIFE := 2.5
+const CRAWL_POWER := 0.6
 ## Efekty (klatki, fps, zaczepienie, wielkość).
 const CUT_FX := preload("res://assets/effects/katana_cut.png")
 const CUT_FRAMES := 9
@@ -127,6 +149,12 @@ var _ring_wait := -1.0
 ## Sąd Peruna: ładowanie (s) i znacznik linii na ziemi.
 var _charge := 0.0
 var _charge_line: Line2D
+## Kamienie unikalne: lecące łuki pioruna ({"node", "dir", "left", "hits"}), kontry z trafionych ({"at", "t", "src"})
+## i wrogowie, którzy już odpalili swoją kontrę w tej Ripoście, pioruny pełzające po ziemi ({"node", "target", "left"}).
+var _sparks_fly: Array = []
+var _echoes: Array = []
+var _echoed: Array = []
+var _crawlers: Array = []
 
 
 func _init() -> void:
@@ -151,6 +179,16 @@ func _ready() -> void:
 	_connect_parry()
 
 
+## Zmiana broni w trakcie: lecące łuki i pełzające pioruny (węzły w świecie) znikają razem z kataną.
+func _exit_tree() -> void:
+	for f in _sparks_fly + _crawlers:
+		if is_instance_valid(f.node):
+			(f.node as Node).queue_free()
+	_sparks_fly.clear()
+	_crawlers.clear()
+	_echoes.clear()
+
+
 func _connect_parry() -> void:
 	if hero and not hero.parried.is_connected(_on_parried):
 		hero.parried.connect(_on_parried)
@@ -170,6 +208,9 @@ func _process(delta: float) -> void:
 		"charge":
 			_process_charge(delta)
 	_process_cut(delta)
+	_process_sparks_fly(delta)
+	_process_echoes(delta)
+	_process_crawlers(delta)
 
 
 ## Błysk pioruna na celu.
@@ -306,8 +347,36 @@ func _slash_hit() -> void:
 			_bolt(_sprite.global_position, near.center())
 			_hit(near, power * SLASH_BOLT_POWER, hero.global_position, basic, 0)
 			_zap_fx(near.center(), 0.6)
+	if _unique(basic):
+		_spawn_spark(_aim, power * SPARK_POWER)
 	if not hit.is_empty():
 		Input.vibrate_handheld(12)
+
+
+## Kamień Gromowego Ostrza: łuk pioruna (`_SparkArc`) leci od postaci w kierunku `a` i przebija wrogów.
+func _spawn_spark(a: float, power: float) -> void:
+	var node := _SparkArc.new()
+	node.rotation = a
+	get_parent().add_child(node)
+	node.global_position = _orbit_center() + Vector2.from_angle(a) * (HILT_RADIUS + BLADE * 0.5)
+	_sparks_fly.append({"node": node, "dir": Vector2.from_angle(a), "left": SPARK_DISTANCE * _area(basic),
+			"hits": [], "power": power})
+
+
+func _process_sparks_fly(delta: float) -> void:
+	for f in _sparks_fly.duplicate():
+		var node: Node2D = f.node
+		var step: float = SPARK_SPEED * delta
+		node.global_position += f.dir * step
+		f.left -= step
+		for t in _live_targets():
+			if not f.hits.has(t) and t.center().distance_to(node.global_position) <= SPARK_RADIUS + t.center_height * 0.4:
+				f.hits.append(t)
+				_hit(t, f.power, node.global_position, basic, 0)
+				_zap_fx(t.center(), 0.35)
+		if f.left <= 0.0:
+			node.queue_free()
+			_sparks_fly.erase(f)
 
 
 ## Trafia wszystkich w łuku `arc` wokół kierunku `aim` do `reach` od środka postaci; zwraca trafionych.
@@ -341,7 +410,10 @@ func _start(id: String) -> void:
 			_dance_t = 0.0
 			_dance_dir = Vector2.from_angle(_aim)
 			_dance_hits = []
-			hero.leap(hero.global_position + _dance_dir * DANCE_DISTANCE * _area(id), DANCE_EVERY * _dance_left)
+			if _unique(id):
+				_dance_left = maxi(_dance_left, SPIN_CUTS)  # Kamień Wiru Ostrza: w miejscu, cięcia dookoła
+			else:
+				hero.leap(hero.global_position + _dance_dir * DANCE_DISTANCE * _area(id), DANCE_EVERY * _dance_left)
 			_set_state("dance")
 		"k_riposte":
 			_connect_parry()
@@ -376,6 +448,8 @@ func _process_dance(delta: float) -> void:
 	_set_state("dance")  # _t od zera - katana przechodzi łuk cięcia
 	_sign = -_sign
 	_aim = _dance_dir.angle()  # cięcia zawsze w kierunku marszu
+	if _unique("k_dance"):
+		_dance_dir = _dance_dir.rotated(SPIN_TURN)  # Kamień Wiru Ostrza: kolejne cięcie obrócone dalej dookoła
 	_start_cut(_area("k_dance"))
 	for t in _arc_hits(_aim, DANCE_RADIUS * _area("k_dance"), DANCE_ARC, _power("k_dance"), "k_dance", 0):
 		if not _dance_hits.has(t):
@@ -428,11 +502,13 @@ func _on_parried() -> void:
 	var fx := Fx.once(get_parent(), RIPOSTE_FX, RIPOSTE_FX_FRAMES, 32.0, (c + Vector2(0, ORBIT_HEIGHT * 0.5)).round(),
 			RIPOSTE_FX_ANCHOR, 21, radius / RIPOSTE_FX_RADIUS)
 	fx.modulate.a = 0.95
+	_echoed = []
 	for t in _live_targets():
 		var to := t.global_position - hero.global_position
 		if Vector2(to.x, to.y / RING_SQUASH).length() <= radius + 6.0 or t.center().distance_to(c) <= radius * 0.6:
 			_hit(t, _power("k_riposte"), c, "k_riposte")
 			_zap_fx(t.center())
+			_echo_from(t)
 	_spin = hero.facing.angle()
 	_leap_wait = RIPOSTE_LEAP_DELAY
 	_ring_wait = -1.0
@@ -476,7 +552,41 @@ func _precise_ring() -> void:
 		if Vector2(to.x, to.y / RING_SQUASH).length() <= radius + 6.0:
 			_hit(t, _power("k_riposte") * RING_POWER, hero.global_position, "k_riposte", arcs, ARC_POWER * 2.0)
 			_zap_fx(t.center())
+			_echo_from(t)
 	Input.vibrate_handheld(25)
+
+
+## Kamień Łańcucha Kontr: wróg trafiony kontrą (też kontrą innego wroga) po chwili tnie dookoła siebie - każdy wróg
+## najwyżej raz na Ripostę i najwyżej ECHO_MAX kontr, żeby łańcuch nie ciągnął się bez końca.
+func _echo_from(t: ProtoTarget) -> void:
+	if not _unique("k_riposte") or _echoed.has(t) or _echoed.size() >= ECHO_MAX:
+		return
+	_echoed.append(t)
+	_echoes.append({"src": t, "at": t.global_position, "t": ECHO_DELAY})
+
+
+func _process_echoes(delta: float) -> void:
+	for e in _echoes.duplicate():
+		e.t -= delta
+		if e.t > 0.0:
+			continue
+		_echoes.erase(e)
+		var at: Vector2 = e.at
+		if is_instance_valid(e.src):
+			at = (e.src as Node2D).global_position
+		var radius := ECHO_RADIUS * _area("k_riposte")
+		var fx := Fx.once(get_parent(), RIPOSTE_FX, RIPOSTE_FX_FRAMES, 32.0, (at + Vector2(0, -6)).round(),
+				RIPOSTE_FX_ANCHOR, 21, radius / RIPOSTE_FX_RADIUS)
+		fx.modulate.a = 0.85
+		for t in _live_targets():
+			if t == e.src:
+				continue
+			var to := t.global_position - at
+			if Vector2(to.x, to.y / RING_SQUASH).length() <= radius + 6.0:
+				_hit(t, _power("k_riposte") * ECHO_POWER, at, "k_riposte", 0)
+				_zap_fx(t.center(), 0.35)
+				_echo_from(t)
+		Input.vibrate_handheld(8)
 
 
 ## Sąd Peruna: ładowanie, dopóki palec trzyma przycisk (najwyżej do pełna + PERUN_HOLD_MAX); katana uniesiona drży
@@ -529,12 +639,73 @@ func _perun_cut(k: float) -> void:
 				_hit(t, _power("k_perun") * PERUN_BLAST_POWER, b, "k_perun", 0)
 		_zap_fx(b, 0.9)
 	_bolt(a, b)
+	if _unique("k_perun"):
+		_spawn_crawlers(a, b, k)
 	Input.vibrate_handheld(35)
 	_end_skill()
 	# katana ląduje na końcu cięcia i stamtąd wraca za ramię
 	global_position = b + Vector2(0, ORBIT_HEIGHT * 0.5)
 	_sprite.position = Vector2(0, -ORBIT_HEIGHT)
 	_sprite.rotation = _aim
+
+
+## Kamień Wędrownych Gromów: z cięcia (od a do b) wyskakują pioruny pełzające po ziemi, każdy do innego wroga
+## w pobliżu końca cięcia - najpierw do tych, których cięcie nie trafiło; im dłuższe ładowanie (`k`), tym więcej.
+func _spawn_crawlers(a: Vector2, b: Vector2, k: float) -> void:
+	var count := roundi(lerpf(CRAWL_COUNT.x, CRAWL_COUNT.y, k))
+	var width := lerpf(PERUN_WIDTH.x, PERUN_WIDTH.y, k) * _area("k_perun")
+	var near: Array = []
+	for t in _live_targets():
+		var d := t.global_position.distance_to(b)
+		if d > CRAWL_RANGE * _area("k_perun"):
+			continue
+		var c := t.center()
+		var in_cut := Geometry2D.get_closest_point_to_segment(c, a, b).distance_to(c) <= width * 0.5 + t.center_height * 0.5
+		near.append([d + (1000.0 if in_cut else 0.0), t])
+	near.sort_custom(func(x: Array, y: Array) -> bool: return x[0] < y[0])
+	for i in count:
+		var start := a.lerp(b, (i + 1.0) / (count + 1.0)) + Vector2(0, ORBIT_HEIGHT * 0.5)
+		var node := _Crawler.new()
+		get_parent().add_child(node)
+		node.global_position = start
+		var target: Variant = near[i][1] if i < near.size() else null
+		_crawlers.append({"node": node, "target": target, "left": CRAWL_LIFE,
+				"dir": Vector2.from_angle(_aim + randf_range(-1.2, 1.2))})
+
+
+## Pioruny pełzające po ziemi: suną do swojego wroga (gdy zginie - do najbliższego, za którym nikt nie idzie),
+## rażą go i gasną; bez celu pełzną przed siebie i gasną po CRAWL_LIFE.
+func _process_crawlers(delta: float) -> void:
+	for c in _crawlers.duplicate():
+		var node: Node2D = c.node
+		c.left -= delta
+		if not is_instance_valid(c.target) or not (c.target as ProtoTarget).alive():
+			c.target = _free_crawl_target(node.global_position)
+		if c.target != null:
+			var to: Vector2 = (c.target as ProtoTarget).global_position - node.global_position
+			c.dir = to.normalized() if to.length() > 0.5 else c.dir
+			if to.length() <= 8.0:
+				_hit(c.target, _power("k_perun") * CRAWL_POWER, node.global_position, "k_perun")
+				_zap_fx((c.target as ProtoTarget).center(), 0.55)
+				c.left = 0.0
+		node.global_position += c.dir * CRAWL_SPEED * delta
+		if c.left <= 0.0:
+			node.queue_free()
+			_crawlers.erase(c)
+
+
+func _free_crawl_target(from: Vector2) -> ProtoTarget:
+	var taken: Array = []
+	for c in _crawlers:
+		taken.append(c.target)
+	var best: ProtoTarget = null
+	var best_d := CRAWL_RANGE * _area("k_perun")
+	for t in _live_targets():
+		var d := t.global_position.distance_to(from)
+		if d < best_d and not taken.has(t):
+			best = t
+			best_d = d
+	return best
 
 
 # --- Błysk Peruna (Mgnienie katany) ---
@@ -612,6 +783,56 @@ class _ArcBolt extends Node2D:
 			pts.append(Vector2.from_angle(from + sweep * k) * (radius + jitter))
 		draw_polyline(pts, Color(ProtoKatana.BOLT, 0.9 * alpha), 3.0)
 		draw_polyline(pts, Color(ProtoKatana.BOLT_CORE, alpha), 1.0)
+
+
+## Łuk pioruna z Kamienia Gromowego Ostrza: trzaskający półksiężyc zwrócony w stronę lotu (oś X węzła).
+class _SparkArc extends Node2D:
+	func _ready() -> void:
+		z_index = 21
+
+	func _process(_delta: float) -> void:
+		queue_redraw()
+
+	func _draw() -> void:
+		var pts := PackedVector2Array()
+		for i in 9:
+			var a := lerpf(-1.1, 1.1, i / 8.0)
+			pts.append(Vector2.from_angle(a) * (18.0 + (0.0 if i in [0, 8] else randf_range(-3.0, 3.0))) - Vector2(12, 0))
+		draw_polyline(pts, Color(ProtoKatana.BOLT, 0.5), 5.0)
+		draw_polyline(pts, Color(ProtoKatana.BOLT, 0.95), 3.0)
+		draw_polyline(pts, ProtoKatana.BOLT_CORE, 1.0)
+
+
+## Piorun pełzający po ziemi (Kamień Wędrownych Gromów): trzaskające zygzaki nad świecącą plamą i gasnący ślad
+## po ziemi za nim (ostatnie pozycje, w świecie).
+class _Crawler extends Node2D:
+	const TRAIL := 8
+	var _trail: Array[Vector2] = []
+
+	func _ready() -> void:
+		z_index = 2
+
+	func _process(_delta: float) -> void:
+		_trail.push_front(global_position)
+		if _trail.size() > TRAIL:
+			_trail.pop_back()
+		queue_redraw()
+
+	func _draw() -> void:
+		for i in range(1, _trail.size()):
+			var a := to_local(_trail[i - 1])
+			var b := to_local(_trail[i]) + Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
+			draw_line(a, b, Color(ProtoKatana.BOLT, 0.8 * (1.0 - float(i) / TRAIL)), 2.0)
+		draw_circle(Vector2.ZERO, 4.0, Color(ProtoKatana.BOLT, 0.45))
+		draw_circle(Vector2.ZERO, 2.0, ProtoKatana.BOLT_CORE)
+		for n in 2:
+			var p := Vector2.ZERO
+			var pts := PackedVector2Array([p])
+			for i in 3:
+				p += Vector2(randf_range(-5.0, 5.0), randf_range(-8.0, -3.0))
+				pts.append(p)
+			draw_polyline(pts, Color(ProtoKatana.BOLT, 0.9), 2.0)
+			draw_polyline(pts, ProtoKatana.BOLT_CORE, 1.0)
 
 
 ## Precyzyjne cięcie Riposty: cienka linia biegnie po idealnym (spłaszczonym jak ziemia) okręgu w RING_DRAW s,

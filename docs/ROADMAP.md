@@ -73,7 +73,8 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   ładowany Sąd Peruna, Błysk Peruna). Do oceny na telefonie: tempo i siła cięcia katany wobec miecza, czy porażenie
   (+15%) i przeskok pioruna są odczuwalne, czy Taniec ostrza nie wrzuca w tłum, czas gardy Riposty (3 s), ładowanie
   Sądu Peruna (1,5 s, 60-200 px), czy krople przemoczenia widać w tłumie, siła combo (+30%, zamrożenie Szronem).
-  Później: kamienie unikalne katany, dźwięk pioruna.
+  Kamienie unikalne katany zrobione 15.11.2026 - do oceny ich siła (łuk 50%, łańcuch kontr 50% do 12 wrogów,
+  2-6 pełzających piorunów po 60%). Później: dźwięk pioruna.
   Krąg stali (nowa umiejętność miecza zamiast Mgnienia) zrobiony 15.11.2026 - do oceny na telefonie: siła i czas
   kręgu (3 miecze, 6 s, 0,6 siły), czy widmowe miecze widać w tłumie. Kamień unikalny (Wiecznej Stali, krąg bez
   końca za 6 many/s) zrobiony 15.11.2026 - do oceny koszt many na sekundę.
