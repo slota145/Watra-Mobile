@@ -2,6 +2,13 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - przyciski nad Watrą i skrzynią
+
+- Zgłoszenie autora: gdy za przyciskiem interfejsu („Postać”, „Umiejętności”) stała Watra albo skrzynia, stuknięcie
+  otwierało to, co pod przyciskiem. Watra, skrzynie w bazie (też kamień run, kowal, kupiec) i skrzynia po bossie
+  czytają dotyk w `_input` - przed przyciskami - więc pytają teraz `TouchUi.covers` (`scripts/ui/touch_ui.gd`: widoczna
+  kontrolka z MOUSE_FILTER_STOP pod palcem w warstwie interfejsu areny, grupa `touch_ui`). Test `tests/test_touch_ui.gd`.
+
 ## 15.11.2026 - Kamień Wiecznej Stali (kamień unikalny Kręgu stali)
 
 - Wybór autora z 4 propozycji Claude: krąg bez końca (wzór - Kamień Wiecznego Wiru Młynka). `Gems.UNIQUE["steel_ring"]`:

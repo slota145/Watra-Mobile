@@ -128,7 +128,8 @@ func _show_brought() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch and event.pressed and not get_tree().paused:
+	if event is InputEventScreenTouch and event.pressed and not get_tree().paused \
+			and not TouchUi.covers(get_tree(), event.position):
 		var local: Vector2 = (get_global_transform_with_canvas().affine_inverse() * event.position)
 		if TAP_RECT.has_point(local):
 			entered.emit()

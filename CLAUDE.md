@@ -43,7 +43,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
 ## Struktura
 
 - `scripts/`: logika. `game.gd` (autoload `Game`: wersja, zmiana sceny, zapis gry - żar Watry, przebity poziom lochu), `main_menu.gd` (ekran startowy),
-  `lang.gd` (tłumaczenia), `scripts/ui/` (interfejs, `safe_area.gd`).
+  `lang.gd` (tłumaczenia), `scripts/ui/` (interfejs, `safe_area.gd`; `touch_ui.gd` - czy dotyk trafia w przycisk, a nie w rzecz w świecie pod nim).
 - `scripts/proto/`: prototyp walki (`arena.gd` - polana i interfejs, `proto_hero.gd` - postać, `proto_weapon.gd` -
   lewitujący miecz, `proto_target.gd` - wspólna baza celów miecza, `proto_dummy.gd` - kukła, `proto_goblin.gd` - goblin Hordy, `proto_goblin_archer.gd` - goblin łucznik (od 2. poziomu, strzały `proto_arrow.gd`), `proto_goblin_brute.gd` - goblin osiłek (od 3. poziomu, cios w ziemię z kołem), `proto_elite.gd` - elita goblina (cechy, poświata, napis; dane w `scripts/elites.gd`),
   `proto_horde.gd` - strumień potworów, `proto_watra.gd` - Watra = wejście do lochu i licznik żaru, `proto_ember.gd` - iskra żaru z potworów,

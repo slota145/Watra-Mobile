@@ -66,7 +66,7 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if is_open or not (event is InputEventScreenTouch and event.pressed):
+	if is_open or not (event is InputEventScreenTouch and event.pressed) or TouchUi.covers(get_tree(), event.position):
 		return
 	var local: Vector2 = get_global_transform_with_canvas().affine_inverse() * event.position
 	if TAP_RECT.has_point(local):
