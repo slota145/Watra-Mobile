@@ -25,6 +25,9 @@ const BOW_HEIGHT := 11.0
 
 ## Kierunek strzału (od stóp łucznika do stóp postaci).
 var aim := Vector2.DOWN
+## Wielkość i barwa pocisku (oszczep ptakoczłeka miotacza - większy i jaśniejszy).
+var arrow_scale := 1.0
+var arrow_tint := Color.WHITE
 var _aim_line: _AimLine
 
 
@@ -95,6 +98,8 @@ func _strike() -> void:
 	arrow.damage = hit_damage()
 	arrow.water = element == Elements.WATER
 	arrow.element = element
+	arrow.tint = arrow_tint
+	arrow.scale = Vector2.ONE * arrow_scale
 	if element == Elements.NAWIA:
 		arrow.tint = Elements.COLORS[Elements.NAWIA].lerp(Color.WHITE, 0.25)
 	arrow.position = position + aim * 6.0

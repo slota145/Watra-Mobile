@@ -75,6 +75,10 @@ var anim_hit_at := ANIM_HIT_AT
 var anim_fallback := ANIM_FALLBACK
 ## Z jakiej odległości od postaci boss przestaje podchodzić.
 var keep_distance := SLAM_RANGE * 0.6
+## Prędkość marszu (orzeł lata szybciej).
+var move_speed := SPEED
+## Chodzi po ziemi (ozdoby go zatrzymują); orzeł lata - nie.
+var grounded := true
 var max_hp := MAX_HP
 var hp := MAX_HP
 
@@ -104,11 +108,7 @@ func _ready() -> void:
 	shadow.texture = ProtoHero._shadow_texture()
 	shadow.scale = Vector2(1.5, 1.4)
 	add_child(shadow)
-	var own := ResourceLoader.exists(scene_path)
-	_sprite = (load(scene_path if own else FALLBACK_PATH) as PackedScene).instantiate()
-	if not own:
-		_sprite.scale = Vector2.ONE * FALLBACK_SCALE
-		_sprite.self_modulate = fallback_tint  # czerwonawy, żeby odróżniał się od zwykłych goblinów
+	_sprite = _make_sprite()
 	add_child(_sprite)
 	_anims = _sprite.anim_names()
 	_sprite.anim_finished.connect(_on_anim_finished)
@@ -120,6 +120,17 @@ func _ready() -> void:
 
 func alive() -> bool:
 	return state != "dead"
+
+
+## Grafika bossa: model SpriteKiln (`scene_path`) albo powiększony goblin. Musi mieć `anim_names`, `play_anim`,
+## `face` i sygnał `anim_finished` (orzeł z Watry - ProtoStormEagle - podmienia na arkusz klatek).
+func _make_sprite() -> Node2D:
+	var own := ResourceLoader.exists(scene_path)
+	var s: Node2D = (load(scene_path if own else FALLBACK_PATH) as PackedScene).instantiate()
+	if not own:
+		s.scale = Vector2.ONE * FALLBACK_SCALE
+		s.self_modulate = fallback_tint  # czerwonawy, żeby odróżniał się od zwykłych goblinów
+	return s
 
 
 ## Wejście: spada z góry, ryk, wstrząs ekranu.
@@ -159,7 +170,7 @@ func _process(delta: float) -> void:
 				_choose_attack(to_hero.length())
 			if state == "walk":
 				if to_hero.length() > keep_distance:
-					position += to_hero.normalized() * SPEED * speed_factor() * delta
+					position += to_hero.normalized() * move_speed * speed_factor() * delta
 					_play(&"walk")
 				else:
 					_play(&"idle")
@@ -177,7 +188,9 @@ func _process(delta: float) -> void:
 		"recover":
 			if _timer >= RECOVER:
 				_set_state("walk")
-	position = ProtoDecor.push_out(position.clamp(bounds.position, bounds.end), 8.0)  # boss też obchodzi ozdoby
+	position = position.clamp(bounds.position, bounds.end)
+	if grounded:
+		position = ProtoDecor.push_out(position, 8.0)  # boss też obchodzi ozdoby
 
 
 ## Wybór ataku: z bliska cios w ziemię, z daleka rzut tasakiem, okrzyk co ROAR_COOLDOWN s (gdy jest miejsce).
