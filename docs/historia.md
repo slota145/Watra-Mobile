@@ -10,7 +10,10 @@ podziemia, kolejne lochy w podobnym rytmie, od 101 przy każdym wejściu losowy 
 „odporność na żywioły” zamiast osobnych.
 - `scripts/dungeons.gd` (`Dungeons`): rodzaje lochów (`DATA`: nazwa, `from`, boss, napis przyzwania, podłoże
   i odcień, żywioł, opis), `for_level` (od `RANDOM_FROM`=101 losowo), `is_random`. Podłoże podziemi -
-  `assets/watra/swamp_shallow.png` (płycizna z liliami z Watry, `assets/swamp/ground/shallow.png`).
+  `assets/watra/swamp_floor.png` - generator `tools/swamp_floor.py` (uwaga autora: kafelek 64 px za bardzo się
+  powtarzał): kępki rzęsy i lilii wycięte z płycizny Watry (`assets/swamp/ground/shallow.png`, kopia w
+  `tools/data/swamp_shallow_src.png`) rozrzucone losowo z odbiciami na polu 768x768 bez szwów, gęstość z miękkiego
+  szumu (skupiska i otwarta woda), zmarszczki, kolory przesunięte w stronę mętnej, szaroniebieskiej wody.
 - Arena: `climate` z poziomu przy wejściu, podłoże i odcień z `Dungeons`, nazwa bossa nad paskiem, „Przyzwij Wodnika”,
   boss `ProtoWodnik`. Wybór poziomu pokazuje nazwę i opis lochu („Loch losowy” od 101); wynik - „Pokonane potwory”.
 - `ProtoHorde.climate` i `make_monster(loch, rola)`: role strumienia (zwykły / strzelający / silny) mają te same
