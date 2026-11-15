@@ -12,6 +12,8 @@ extends Node
 ## Ulepszenia lochów (DungeonUpgrades, ustawia arena): `density` - gęstszy strumień, `loot_mult` - mnożnik szans łupu,
 ## `reach` - o tyle pikseli dalej iskry i łup lecą do postaci. Premie przedmiotów (ustawia arena): `pickup_mult` - mnożnik
 ## zasięgu przyciągania, `ember_mult` - mnożnik żaru z iskier (ułamki zbierają się w `_ember_rest`).
+## Rodzaj lochu (`climate`, Dungeons) wybiera potwory na trzech rolach strumienia (`make_monster`): w Leżu goblinów
+## goblin / łucznik / osiłek, w Zatopionych podziemiach topielec / żabołak / topielica.
 
 signal kills_changed(kills: int)
 signal embers_changed(embers: int)
@@ -58,6 +60,8 @@ var clock := true
 var power := 1.0
 ## Poziom lochu (siła przedmiotów z goblinów).
 var level := 1
+## Rodzaj lochu (Dungeons) - jakie potwory idą w strumieniu.
+var climate := Dungeons.GOBLINS
 ## Ulepszenia lochów: mnożnik liczby potworów (częściej i więcej naraz), mnożnik szans łupu, dodatkowy zasięg zbierania.
 var density := 1.0
 var loot_mult := 1.0
@@ -134,14 +138,7 @@ func _roll_kind() -> String:
 ## Goblin w danym miejscu (strumień albo okrzyk Wodza; `kind`: goblin, archer - łucznik, brute - osiłek).
 ## Liczy się do pokonanych i daje iskrę. `elite_traits` - cechy elity (puste - zwykły goblin).
 func spawn_at(pos: Vector2, kind := "goblin", elite_traits: Array[String] = []) -> ProtoGoblin:
-	var g: ProtoGoblin
-	match kind:
-		"archer":
-			g = ProtoGoblinArcher.new()
-		"brute":
-			g = ProtoGoblinBrute.new()
-		_:
-			g = ProtoGoblin.new()
+	var g := make_monster(climate, kind)
 	g.hero = hero
 	g.bounds = bounds
 	g.power = power
@@ -152,6 +149,24 @@ func spawn_at(pos: Vector2, kind := "goblin", elite_traits: Array[String] = []) 
 	_alive += 1
 	world.add_child(g)
 	return g
+
+
+## Potwór lochu `climate` w roli `kind` (goblin - zwykły, archer - strzelający, brute - silny).
+static func make_monster(climate_id: String, kind: String) -> ProtoGoblin:
+	if climate_id == Dungeons.FLOODED:
+		match kind:
+			"archer":
+				return ProtoFrogman.new()
+			"brute":
+				return ProtoRusalka.new()
+			_:
+				return ProtoDrowner.new()
+	match kind:
+		"archer":
+			return ProtoGoblinArcher.new()
+		"brute":
+			return ProtoGoblinBrute.new()
+	return ProtoGoblin.new()
 
 
 ## Ilu łuczników żyje teraz w lochu.

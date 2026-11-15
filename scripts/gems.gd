@@ -180,7 +180,7 @@ const JEWELS := {
 	"emerald": {"name": "Szmaragd", "color": Color(0.37, 0.86, 0.49),
 		"pool": ["attack_speed_pct", "move_pct", "dodge_pct", "pickup_pct", "area_pct"]},
 	"onyx": {"name": "Onyks", "color": Color(0.78, 0.78, 0.82),
-		"pool": ["protection_pct", "hp", "life_on_kill", "regen", "dodge_pct"]},
+		"pool": ["protection_pct", "hp", "life_on_kill", "regen", "element_res_pct"]},
 }
 const JEWEL_ORDER := ["ruby", "sapphire", "emerald", "onyx"]
 

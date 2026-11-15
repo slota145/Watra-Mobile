@@ -67,6 +67,14 @@ const FX_SIZE := 0.6
 var hero: ProtoHero
 var bounds := Rect2(-300, -300, 600, 600)
 var power := 1.0
+## Liczby i grafika tego bossa (Wodnik - ProtoWodnik - ustawia inne w `_init`).
+var scene_path := SCENE_PATH
+var base_hp := MAX_HP
+var fallback_tint := Color(1.0, 0.72, 0.62)
+var anim_hit_at := ANIM_HIT_AT
+var anim_fallback := ANIM_FALLBACK
+## Z jakiej odległości od postaci boss przestaje podchodzić.
+var keep_distance := SLAM_RANGE * 0.6
 var max_hp := MAX_HP
 var hp := MAX_HP
 
@@ -89,18 +97,18 @@ var _anims: Array = []
 
 func _ready() -> void:
 	center_height = 22.0
-	max_hp = roundi(MAX_HP * power)
+	max_hp = roundi(base_hp * power)
 	hp = max_hp
 	add_to_group(ProtoWeapon.TARGETS)
 	var shadow := Sprite2D.new()
 	shadow.texture = ProtoHero._shadow_texture()
 	shadow.scale = Vector2(1.5, 1.4)
 	add_child(shadow)
-	var own := ResourceLoader.exists(SCENE_PATH)
-	_sprite = (load(SCENE_PATH if own else FALLBACK_PATH) as PackedScene).instantiate()
+	var own := ResourceLoader.exists(scene_path)
+	_sprite = (load(scene_path if own else FALLBACK_PATH) as PackedScene).instantiate()
 	if not own:
 		_sprite.scale = Vector2.ONE * FALLBACK_SCALE
-		_sprite.self_modulate = Color(1.0, 0.72, 0.62)  # czerwonawy, żeby odróżniał się od zwykłych goblinów
+		_sprite.self_modulate = fallback_tint  # czerwonawy, żeby odróżniał się od zwykłych goblinów
 	add_child(_sprite)
 	_anims = _sprite.anim_names()
 	_sprite.anim_finished.connect(_on_anim_finished)
@@ -150,7 +158,7 @@ func _process(delta: float) -> void:
 			if _cooldown <= 0.0:
 				_choose_attack(to_hero.length())
 			if state == "walk":
-				if to_hero.length() > SLAM_RANGE * 0.6:
+				if to_hero.length() > keep_distance:
 					position += to_hero.normalized() * SPEED * speed_factor() * delta
 					_play(&"walk")
 				else:
@@ -330,7 +338,7 @@ func _set_state(s: String) -> void:
 func _sync_anim(anim: StringName, hit_time: float) -> void:
 	if _anim_started:
 		return
-	var hit_at: float = ANIM_HIT_AT.get(anim, 0.3)
+	var hit_at: float = anim_hit_at.get(anim, 0.3)
 	if _timer >= hit_time - hit_at:
 		_anim_started = true
 		_play(anim, true)
@@ -394,6 +402,6 @@ func _face(dir: Vector2) -> void:
 ## Gra animację Wodza albo jej zastępstwo (zastępczy goblin nie ma `slam`, `throw`, `roar`).
 func _play(anim: StringName, restart := false) -> void:
 	if anim not in _anims:
-		anim = ANIM_FALLBACK.get(anim, &"idle")
+		anim = anim_fallback.get(anim, &"idle")
 	if anim in _anims:
 		_sprite.play_anim(anim, restart)

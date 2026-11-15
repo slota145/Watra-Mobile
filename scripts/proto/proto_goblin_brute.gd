@@ -30,6 +30,8 @@ const FX_SLAM := preload("res://assets/effects/boss_slam.png")
 
 var _telegraph: ProtoTelegraph
 var _anim_started := false
+## Kiedy w animacji `attack` pada cios (podklasy z inną animacją mają inną chwilę).
+var anim_hit_at := ANIM_HIT_AT
 
 
 func _init() -> void:
@@ -52,7 +54,7 @@ func _process(delta: float) -> void:
 	super(delta)
 	if _state != "attack" or _stunned > 0.0:
 		return
-	if _scene and not _anim_started and _timer >= SLAM_WARN - ANIM_HIT_AT:
+	if _scene and not _anim_started and _timer >= SLAM_WARN - anim_hit_at:
 		_anim_started = true
 		_play(&"attack", true)
 	if not _struck and _timer >= SLAM_WARN:
@@ -94,7 +96,8 @@ func _strike() -> void:
 	_struck = true
 	if _telegraph and is_instance_valid(_telegraph):
 		if hero and not hero.dead and _telegraph.contains(hero.global_position):
-			hero.take_damage(hit_damage())
+			hero.take_damage(hit_damage(), element)
+			_hit_hero()
 		Fx.once(get_parent(), FX_SLAM, 12, 16.0, _telegraph.global_position, Vector2(37, 25), 20, SLAM_RADIUS / 34.0)
 	_remove_telegraph()
 	_audio.stream = SLAM_SOUND

@@ -1,0 +1,284 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: frogman
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.6, 0]}
+palette: "watra"
+size: 48
+extends: humanoid   # its skeleton (torso, arm and leg IK), reshaped below; head of its own (no head kit)
+
+# Żabołak: wróg z dystansu Zatopionych podziemi, pluje kulami wody. Przysadzisty, przykucnięty człekokształtny
+# żabol (ok. 27 px wobec 36 px człowieka, ta sama camera.scale): szeroka płaska żabia głowa bez szyi, wielkie
+# wyłupiaste oczy na czubku (lekko świecące, żółte), linia szerokiego pyska, cętkowana zielona skóra, kremowo-żółty
+# brzuch i podgardle (gardło pulsuje), przepaska z trzciny, płetwiaste dłonie i wielkie płetwiaste stopy,
+# nogi zgięte jak u żaby (kolana na boki). Referencje: docs/referencje/zatopione/frogman.png, frog_spitter.png.
+brief:
+  summary: >
+    frogman of the flooded ruins (Watra's frogman sprite): a squat, crouched humanoid frog about 27 px tall
+    (36 px human, same density), wide flat frog head sitting straight on the shoulders, two big bulging eyes on
+    top with a soft yellow glow, a wide mouth line, mottled green skin, pale cream belly and throat sac, a belt
+    with a short skirt of reed strips, short arms with webbed paddle hands, bent frog legs with the knees out
+    and big flat webbed feet; ranged: inflates its throat and spits a ball of water
+  head: >
+    no head kit: a wide flattened skull (wider than tall, the widest shape of the body together with the
+    feet), a lower jaw a little narrower, a dark 1 px mouth line round the front between them, two eye domes
+    of skin on top of the skull with glowing yellow eyeballs on their front-top; no ears, no nose; the cream
+    throat sac under the jaw is its own part on the `throat` bone (scaled by the `throat` channel)
+  must_keep:
+    - the silhouette differs from the goblin (no ears; a wide flat head with two eye bumps on top, crouched legs
+      with knees out, big flat feet)
+    - glowing yellow eyes (readable in a crowd), mottled green skin, cream belly and throat
+    - the throat pulsing (idle) and inflating (attack), the spitter's telegraph
+  simplify:
+    - webbed hands are flat paddles, the feet flat fans with three toe tips; no single fingers
+    - the reed skirt is a few thin strips on the coat bone, no knots
+    - the mottling is a paint layer (spots), not geometry
+  decisions:
+    - the reference's tan face is replaced by green skin with a cream throat (the request: pale belly and throat)
+    - eyes glow yellow (a cooler, swampy accent than the goblins' amber)
+    - the spit is a small water ball at the mouth on the release frame only; the projectile itself is spawned by the
+      game at the socket `spit` (in front of the mouth)
+    - the back (n) shows the mottled back, the eye bumps over the skull and the reed belt all round
+
+ramps:
+  # swamp green, a little bluer and more saturated than the goblin's olive
+  frog_skin: ["#08110d", "#173a2a", "#265d35", "#3f823c", "#6aa448", "#9ec468"]
+  # darker blue-green mottling
+  mottle:    ["#070d0b", "#13291f", "#1d3d2c", "#2a5236", "#3a6a40"]
+  # pale yellow-cream belly and throat
+  belly:     ["#17110a", "#6a5a32", "#a8965a", "#d0c084", "#e6dcaa", "#f6f0d4"]
+  # dry reeds and rushes of the belt and skirt
+  reed:      ["#0c0a05", "#2c2a12", "#4a4520", "#6a6230", "#857c42", "#a09858"]
+  # glowing yellow eyes
+  frog_eye:  ["#2a2205", "#b89a14", "#f0d640", "#fff7b0"]
+  # the spat water
+  water:     ["#061018", "#12334f", "#1f5d84", "#3c8fb4", "#76c2d8", "#c4eef4"]
+
+materials:
+  skin:    {ramp: frog_skin, gamma: 0.85, finish: soft}
+  mottle:  {ramp: mottle, finish: soft}
+  belly:   {ramp: belly, finish: soft, bands: [3, 5]}
+  reed:    {ramp: reed, finish: matte}
+  mouth:   {ramp: mouth, bands: [1, 2], line: false, outline: false}
+  eye:     {ramp: frog_eye, emissive: true, band: 2, outline: false, glow: {color: "#e8e070", mix: 0.2, radius: 1}}
+  water:   {ramp: water, finish: glossy, bands: [3, 5]}
+
+remove: [use.hair, use.sword, use.head]
+
+shadow: {rx: 11, ry: 4, alpha: 120}
+
+channels:
+  hand_L: [0.24, 0.03, 0.15]
+  hand_R: [0.24, 0.03, 0.15]
+  foot_L: [0.24, 0, 0.08]
+  foot_R: [0.24, 0, 0.08]
+  throat: 1    # throat sac size (idle pulse ~1.0-1.25, attack inflated ~1.7)
+  puff: 0      # cheeks puffed: widens the head (attack)
+  spit: 0      # 1: a water ball shows at the mouth (release frame)
+
+bones:
+  # hip height 0.48: a crouch on bent frog legs; +0.18 is the permanent forward hunch
+  torso_rot: {parent: root, pos: "[0, 0.48 + bob, 0]", rot: "[lean + 0.18, twist, roll]"}
+  # no neck: the head sits forward on the shoulders, kept level when the body hunches
+  headbase:  {parent: pelvis, pos: [0, 0.40, 0.09], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.6 - 0.05, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]",
+              scale: "[1.8*(1 + 0.10*puff), 1.8, 1.8*(1 + 0.05*puff)]"}
+  throat:    {parent: head, pos: [0, -0.045, 0.09], scale: throat}
+  shoulder_L: {parent: pelvis, pos: [0.19, 0.33, 0.04]}
+  coatbase:   {parent: pelvis, rot: "[-coat*0.25 - 0.2, 0, 0]"}
+  hip_L:      {parent: pelvis, pos: [0.12, -0.01, 0.0]}
+
+ik:
+  arm_L: {lengths: [0.19, 0.18], pole: [0.6, 0.0, -1.0]}
+  # knees bent out to the side and forward (frog legs)
+  leg_L: {lengths: [0.31, 0.33], pole: [1.0, 0, 0.5]}
+
+parts:
+  torso:           # pear-shaped: a round belly, narrower shoulders
+    material: skin
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.05, 0.02], r: [0.21, 0.16, 0.17]}
+      - ellipsoid: {c: [0, 0.26, 0.0], r: [0.19, 0.13, 0.14]}
+    paint:
+      - material: mottle
+        spots: {scale: 0.06, density: 0.3, seed: 7}
+      - material: belly    # the pale belly and chest in front
+        prims:
+          - ellipsoid: {c: [0, 0.15, 0.17], r: [0.16, 0.27, 0.12]}
+  coat:            # short skirt of reed strips hanging from the belt
+    material: reed
+    space: coatbase
+    blend: 0.0
+    min_cover: 2
+    prims:
+      - cone: {a: [0, 0, 0.207], b: [0, -0.183, 0.232], r: [0.034, 0.024]}
+      - cone: {a: [0.098, 0, 0.183], b: [0.122, -0.159, 0.195], r: [0.034, 0.024]}
+      - cone: {a: [-0.098, 0, 0.183], b: [-0.122, -0.171, 0.195], r: [0.034, 0.024]}
+      - cone: {a: [0.183, 0, 0.073], b: [0.22, -0.146, 0.085], r: [0.034, 0.024]}
+      - cone: {a: [-0.183, 0, 0.073], b: [-0.22, -0.146, 0.085], r: [0.034, 0.024]}
+      - cone: {a: [0.146, 0, -0.122], b: [0.171, -0.159, -0.146], r: [0.034, 0.024]}
+      - cone: {a: [-0.146, 0, -0.122], b: [-0.171, -0.159, -0.146], r: [0.034, 0.024]}
+      - cone: {a: [0, 0, -0.195], b: [0, -0.171, -0.22], r: [0.034, 0.024]}
+  belt:            # a twisted reed belt round the hips
+    material: reed
+    space: pelvis
+    prims:
+      - torus: {c: [0, 0.0, 0.02], R: 0.205, r: 0.035}
+  neck: {when: "0"}
+  head:            # wide flat skull and a slightly narrower lower jaw
+    material: skin
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0.02], r: [0.165, 0.08, 0.14]}
+      - ellipsoid: {c: [0, 0.01, 0.04], r: [0.15, 0.06, 0.13]}
+    paint:
+      - material: mottle
+        spots: {scale: 0.05, density: 0.3, seed: 3}
+      - material: belly    # pale underside of the jaw
+        prims:
+          - ellipsoid: {c: [0, -0.035, 0.09], r: [0.14, 0.05, 0.14]}
+      - material: mouth    # the wide mouth line round the front between the skull and the jaw
+        prims:
+          - box: {c: [0, 0.03, 0.12], half: [0.2, 0.014, 0.1], rot: [-0.25, 0, 0]}
+  eyedome_L:       # skin dome on top of the skull holding the eye
+    material: skin
+    space: head
+    prims:
+      - sphere: {c: [0.085, 0.13, 0.05], r: 0.058}
+  eye_L:           # bulging glowing eyeball on the dome's front-top
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.095, 0.145, 0.08], r: 0.04}
+  throat_sac:      # cream throat sac under the jaw: pulses (idle) and inflates (attack)
+    material: belly
+    space: throat
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.11, 0.06, 0.08]}
+  arm_L:
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.06}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.06, 0.048]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.048, 0.042]}
+  hand_L:          # webbed paddle hand with three finger tips
+    material: skin
+    space: wrist_L
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, 0, 0.05], r: [0.067, 0.03, 0.06]}
+      - sphere: {c: [0.055, 0, 0.104], r: 0.027}
+      - sphere: {c: [0.0, 0, 0.116], r: 0.027}
+      - sphere: {c: [-0.055, 0, 0.104], r: 0.027}
+  leg_L:           # thick frog thigh, thinner shin
+    material: skin
+    blend: 0.04
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.10, 0.06]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.058, 0.043]}
+    paint:
+      - material: mottle
+        spots: {scale: 0.05, density: 0.2, seed: 11}
+  boot_L:          # big flat webbed foot: a wide fan with three toe tips
+    material: skin
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.06, 0], b: [0, -0.025, 0.025], r: [0.043, 0.049]}
+      - ellipsoid: {c: [0, -0.05, 0.11], r: [0.098, 0.027, 0.122]}
+      - sphere: {c: [0.085, -0.055, 0.207], r: 0.03}
+      - sphere: {c: [0.0, -0.055, 0.232], r: 0.03}
+      - sphere: {c: [-0.085, -0.055, 0.207], r: 0.03}
+  spit_ball:       # the water ball leaving the mouth (release frame only)
+    material: water
+    space: head
+    when: "spit > 0.5"
+    priority: 2
+    prims:
+      - sphere: {c: [0, 0.03, 0.24], r: 0.06}
+
+sockets:
+  spit: {bone: head, offset: [0, 0.03, 0.24]}   # in front of the mouth: where the water ball (projectile) spawns
+
+timing: {attack: {release: 410ms, total: 720ms}}
+
+animations:
+  idle:
+    frames: 8
+    ms: 140
+    channels:
+      bob: "0.015*sin(p)"
+      squash: "1 + 0.012*sin(p)"
+      throat: "1 + 0.22*pos(sin(2*p))"
+      head_pitch: "-0.03*sin(p - 0.5)"
+      hand_L: "[0.24, 0.03 + 0.012*sin(p - 0.6), 0.15]"
+      hand_R: "[0.24, 0.03 + 0.012*sin(p - 0.6), 0.15]"
+      coat: "0.1*sin(p - 1.0)"
+  walk:
+    frames: 8
+    ms: 100
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.08
+      bob: "0.03*abs(sin(p)) - 0.01"
+      squash: "1 - 0.03*cos(2*p)"
+      roll: "0.10*sin(p)"
+      twist: "0.08*cos(p)"
+      head_yaw: "-0.05*cos(p)"
+      throat: "1 + 0.08*cos(2*p)"
+      foot_L: "[0.24, 0.085*sin(pi*clamp((p/tau - 0.375)/0.625, 0, 1)), 0.08 + 0.24 - 0.48*clamp(p/tau/0.375, 0, 1) + 0.48*clamp((p/tau - 0.375)/0.625, 0, 1)**2*(3 - 2*clamp((p/tau - 0.375)/0.625, 0, 1))]"
+      foot_R: "[0.24, 0.085*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1)), 0.08 + 0.24 - 0.48*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.375, 0, 1) + 0.48*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1))]"
+      pitch_foot_L: "0.3*sin(pi*clamp((p/tau - 0.375)/0.625, 0, 1))"
+      pitch_foot_R: "0.3*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1))"
+      hand_L: "[0.27, 0.05 + 0.035*pos(cos(p)), 0.15 - 0.09*cos(p)]"
+      hand_R: "[0.27, 0.05 + 0.035*pos(-cos(p)), 0.15 + 0.09*cos(p)]"
+      coat: "0.4*sin(2*p - 0.6)"
+  # lean back while the throat and cheeks fill, hold the inflated pose (the telegraph), jerk forward and spit
+  attack:
+    loop: false
+    keys:
+      - {ms: 130, event: windup, set: {lean: -0.15, bob: -0.02, squash: 0.97, head_pitch: -0.15, throat: 1.3, puff: 0.3,
+          hand_L: [0.268, 0.073, 0.098], hand_R: [0.268, 0.073, 0.098], coat: -0.2}}
+      - {ms: 140, set: {root: [0, 0, -0.03], lean: -0.3, bob: 0.0, squash: 1.03, head_pitch: -0.3, throat: 1.45, puff: 0.8,
+          hand_L: [0.305, 0.122, 0.024], hand_R: [0.305, 0.122, 0.024], coat: -0.3}}
+      - {ms: 140, set: {root: [0, 0, -0.04], lean: -0.34, bob: 0.01, squash: 1.04, head_pitch: -0.34, throat: 1.55, puff: 1.0,
+          hand_L: [0.317, 0.134, 0], hand_R: [0.317, 0.134, 0], coat: -0.3}}
+      - {ms: 70, event: release, set: {root: [0, 0, 0.06], lean: 0.35, bob: -0.04, squash: 0.94, head_pitch: 0.3, throat: 0.85, puff: 0,
+          spit: 1, hand_L: [0.268, 0, 0.22], hand_R: [0.268, 0, 0.22], coat: 0.5}}
+      - {ms: 110, set: {root: [0, 0, 0.05], lean: 0.25, bob: -0.03, squash: 0.97, head_pitch: 0.18, throat: 0.9,
+          hand_L: [0.256, 0, 0.195], hand_R: [0.256, 0, 0.195], coat: 0.3}}
+      - {ms: 130, set: {root: [0, 0, 0.01], lean: 0.05, head_pitch: 0.0, throat: 1.0,
+          hand_L: [0.244, 0.024, 0.146], hand_R: [0.244, 0.024, 0.146], coat: 0.0}}
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.35, bob: -0.02, squash: 0.94, head_pitch: -0.3, coat: -0.5, throat: 0.8,
+          hand_L: [0.329, 0.146, -0.024], hand_R: [0.329, 0.146, -0.024]}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.18, bob: -0.01, squash: 0.98, head_pitch: -0.12, coat: -0.2, throat: 0.9,
+          hand_L: [0.293, 0.073, 0.073], hand_R: [0.293, 0.073, 0.073]}}
+      - {ms: 70, set: {root: [0, 0, -0.01], lean: 0.0, head_pitch: 0.02, coat: 0.1,
+          hand_L: [0.244, 0.024, 0.146], hand_R: [0.244, 0.024, 0.146]}}
+  # struck back, knees buckle, falls on its back with the legs up and splayed
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: -0.35, bob: -0.024, squash: 0.95, head_pitch: -0.3, coat: -0.5, throat: 0.8,
+          hand_L: [0.329, 0.171, -0.024], hand_R: [0.329, 0.171, -0.024]}}
+      - {ms: 110, set: {root: [0, 0, -0.06], twist: 0.2, roll: 0.08, lean: -0.3, bob: -0.049, head_pitch: -0.2, coat: -0.3,
+          hand_L: [0.342, 0.122, 0], hand_R: [0.342, 0.122, 0], foot_L: [0.207, 0, 0.098], foot_R: [0.22, 0.049, -0.098]}}
+      - {ms: 120, set: {root: [0, 0, -0.06], twist: 0.15, roll: 0.1, lean: -0.15, bob: -0.134, squash: 0.93, head_pitch: 0.15,
+          coat: 0.2, hand_L: [0.293, -0.024, 0.122], hand_R: [0.293, 0, 0.122], foot_L: [0.207, 0, 0.098], foot_R: [0.22, 0, -0.049]}}
+      - {ms: 110, set: {root: [0, 0, -0.06], twist: 0.1, roll: 0.06, lean: -0.75, bob: -0.22, head_pitch: -0.2, coat: -0.4,
+          hand_L: [0.366, 0.146, 0.098], hand_R: [0.366, 0.171, 0.098], foot_L: [0.22, 0.049, 0.22], foot_R: [0.22, 0.024, 0.146]}}
+      - {ms: 100, set: {root: [0, 0, 0.0], twist: "0.3*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.3, bob: -0.317, head_pitch: -0.45,
+          coat: -0.5, hand_L: [0.39, 0.122, 0.122], hand_R: [0.39, 0.146, 0.122], foot_L: [0.244, 0.122, 0.366], foot_R: [0.244, 0.073, 0.317]}}
+      - {ms: 110, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.75, bob: -0.378, squash: 0.92, head_pitch: -0.7,
+          coat: -0.6, throat: 0.8, hand_L: [0.415, 0.073, -0.073], hand_R: [0.415, 0.073, -0.073], foot_L: [0.268, 0.122, 0.439], foot_R: [0.268, 0.098, 0.415]}}
+      - {ms: 120, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.68, bob: -0.366, squash: 0.97, head_pitch: -0.62,
+          coat: -0.5, throat: 0.8, hand_L: [0.427, 0.073, -0.049], hand_R: [0.427, 0.073, -0.049], foot_L: [0.268, 0.073, 0.451], foot_R: [0.268, 0.049, 0.427]}}
+      - {ms: 500, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.72, bob: -0.378, head_pitch: -0.68,
+          coat: -0.6, throat: 0.8, hand_L: [0.427, 0.073, -0.073], hand_R: [0.427, 0.073, -0.073], foot_L: [0.268, 0.061, 0.464], foot_R: [0.268, 0.037, 0.439]}}

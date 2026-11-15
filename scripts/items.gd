@@ -88,6 +88,7 @@ const STAT_FORMATS := {
 	"dodge_pct": "+%d%% szansy na unik",
 	"pickup_pct": "+%d%% zasięgu zbierania",
 	"ember_pct": "+%d%% żaru",
+	"element_res_pct": "+%d%% odporności na żywioły",
 }
 ## Losowe premie: [najmniej, najwięcej] na 1. poziomie lochu; `scales` - rośnie z siłą lochu (DungeonLevels.power),
 ## inaczej (procenty) rośnie płynnie o `per_level` z każdym poziomem lochu (decyzja autora 12.11.2026 - wcześniej
@@ -111,6 +112,7 @@ const AFFIXES := {
 	"dodge_pct": {"min": 2.0, "max": 4.0, "per_level": 0.1},
 	"pickup_pct": {"min": 10.0, "max": 20.0, "per_level": 0.5},
 	"ember_pct": {"min": 4.0, "max": 8.0, "per_level": 0.3},
+	"element_res_pct": {"min": 5.0, "max": 10.0, "per_level": 0.3},
 }
 ## Premie z ułamkiem (jedno miejsce po przecinku), reszta - liczby całkowite.
 const DECIMAL_STATS := ["regen", "mana_regen"]
@@ -119,7 +121,8 @@ const DECIMAL_STATS := ["regen", "mana_regen"]
 ## osiągalne, ale bardzo trudne - premie na jednym przedmiocie są małe; przy zerowym odnowieniu hamulcem zostaje mana).
 ## Unik do 50% (połowa ciosów nadal trafia), obszar do +100%, zasięg zbierania do +200%, żar do +100%.
 const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0, "crit_pct": 95.0, "cdr_pct": 100.0,
-	"dodge_pct": 50.0, "area_pct": 100.0, "pickup_pct": 200.0, "ember_pct": 100.0}
+	"dodge_pct": 50.0, "area_pct": 100.0, "pickup_pct": 200.0, "ember_pct": 100.0,
+	"element_res_pct": Elements.MAX_RESISTANCE * 100.0}
 ## Stała cecha każdego miejsca na 1. poziomie lochu (liczby rosną z siłą lochu, procenty o BASE_PCT_PER_LEVEL).
 ## Kolczyk: obrażenia ciosu (od-do) każdej broni zamiast gołych obrażeń postaci.
 const BASE := {

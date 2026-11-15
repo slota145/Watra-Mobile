@@ -1,0 +1,321 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: drowner
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.74, 0]}
+palette: "watra"
+size: 48
+extends: humanoid   # its skeleton, IK and smear; here only what differs (sword and hair kits removed)
+
+# Topielec (drowner): the basic melee enemy of the "Zatopione podziemia" (flooded ruins) dungeon.
+# Reference: docs/referencje/zatopione/drowner.png (Watra's sprite, 6x). A drowned man, about 32 px tall
+# (a bit shorter than the 36 px human, same camera.scale), hunched and slouching forward, bloated pale
+# blue-grey skin, long dark wet hair hanging over the whole face, two faint cold cyan eyes through it,
+# torn dark rags, waterweed over the shoulders, long arms with clawed hands reaching forward.
+brief:
+  summary: >
+    drowned man of the flooded ruins (Watra's drowner): about 32 px tall, a strong permanent hunch with the
+    head thrust forward and drooping, a bloated pale blue-grey / greenish body (belly), long thin arms hanging
+    forward with pale clawed hands, dark torn rag trousers with a ragged hem, bare feet, a strand of green
+    waterweed draped over the shoulders and down the chest and back
+  head: >
+    the head kit (narrow, no nose, no ears) almost hidden: own hair in pieces - a wet crown cap, a curtain of
+    long dark strands hanging straight down in front of the face to below the chin, temple locks and long
+    back strands down the shoulder blades; face minimal (style): only two small emissive cyan-white eyes
+    peeking through the curtain, no nose, no mouth
+  must_keep:
+    - the cold pale-blue skin against the near-black hair: the read in a crowd of green goblins
+    - the hair curtain over the face (no face, only the two cold eyes)
+    - the hunch and the long arms reaching forward (baked into torso_rot and the default hand channels)
+    - cool cyan accent (water element): the eyes
+  simplify:
+    - rags are the trousers, a ragged skirt and painted patches on the torso, no separate cloth pieces
+    - claws are three short pale cones per hand
+    - toes are not modelled
+  decisions:
+    - the reference's iridescent highlights on the skin are dropped (noise at 32 px); skin is a smooth cold ramp
+    - eyes sit just in front of the hair curtain so they show in s and the diagonals; in ne, n, nw they are
+      pulled back under the hair (a per-direction cheat), only hair shows
+    - the back (n) shows the hair's long strands, the weed over the shoulder and the hunched bare back
+    - death collapses forward onto the knees and then into a heap on its front (legs folded under, so the
+      body stays inside the 48 px frame)
+
+ramps:
+  # bloated drowned skin: pale blue-grey, the deep tones toward cold teal
+  drown_skin: ["#0a1014", "#24363d", "#3f5a60", "#62827f", "#8eaba5", "#bfd4cc"]
+  # wet near-black hair with a cold green sheen
+  wet_hair:   ["#050708", "#0e1517", "#172224", "#22312f", "#33463f"]
+  # dark torn rags, grey-brown, cold
+  rags:       ["#08090c", "#171a20", "#252a32", "#353b45", "#474e58"]
+  # green waterweed
+  weed:       ["#07100a", "#183a1f", "#2a5a2a", "#437a33", "#649a45"]
+  # yellowish-grey claws and nails
+  claw:       ["#141410", "#4a4a3c", "#7a7a62", "#a8a68a", "#cfccb0"]
+  # cold glowing eyes: cyan to white
+  cold_eye:   ["#08252e", "#5fdcf5", "#bff6ff", "#ffffff"]
+  # the claw swipe smear: cold water-white instead of the template's warm fire
+  fx_tail:    ["#3a8fa8"]
+  fx_mid:     ["#9fe6f2"]
+  fx_core:    ["#effcff"]
+
+materials:
+  skin:  {ramp: drown_skin, gamma: 0.8, finish: soft}
+  hair:  {ramp: wet_hair, finish: glossy}
+  rags:  {ramp: rags, finish: matte}
+  weed:  {ramp: weed, finish: soft}
+  claw:  {ramp: claw, finish: soft}
+  eye:   {ramp: cold_eye, emissive: true, band: 2, outline: false, glow: {color: "#6fe6ff", mix: 0.3, radius: 1}}
+
+remove: [use.hair, use.sword]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 0.9, jaw: 0.3, chin: 0.6, nose: 0, ears: 0}}
+
+shadow: {rx: 9, ry: 3.2, alpha: 120}
+
+channels:
+  # the long arms hang forward, hands low in front of the knees (torso_rot space, which is hunched)
+  hand_L: [0.22, 0.08, 0.34]
+  hand_R: [0.22, 0.08, 0.34]
+  foot_L: [0.11, 0, 0.02]
+  foot_R: [0.11, 0, 0.02]
+  hair_sway: 0     # the hair curtain swings forward (+) / back (-)
+  claw_curl: 0     # claws spread (-) or hooked (+)
+  eyes_lit: 1      # 0 puts the eyes out (the end of death)
+  smear_y: 0
+  smear_z: 0.10
+  smear_r: 0.40
+
+bones:
+  # hip height 0.82 (human 0.84); +0.30 is the permanent hunch
+  torso_rot: {parent: root, pos: "[0, 0.82 + bob, 0]", rot: "[lean + 0.30, twist, roll]"}
+  headbase:  {parent: pelvis, pos: [0, 0.56, 0.12], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5 + 0.18, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.18}
+  hairbone:  {parent: head, pos: [0, 0.14, 0], rot: "[-head_pitch*0.6 - lean*0.4 + hair_sway*0.3, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.20, 0.44, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.09, -0.02, 0.0]}
+  coatbase:   {parent: pelvis, rot: "[-coat*0.25 - 0.30, 0, 0]"}   # the rag skirt hangs straight despite the hunch
+  claws_L:    {parent: wrist_L, pos: [0, 0, 0.05], rot: "[claw_curl, 0, 0]"}
+  # the claw swipe smear: a horizontal arc at hand height in front of the body
+  fxspace:    {parent: root, pos: [0, 0.62, 0.08], rot: "[0, twist*0.4, 0]"}
+
+ik:
+  arm_L: {lengths: [0.27, 0.27], pole: [0.4, 0.0, -1.0]}
+  leg_L: {lengths: [0.43, 0.41]}
+
+parts:
+  torso:             # bloated belly, narrow chest, round sloping shoulders
+    material: skin
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0.06], r: [0.165, 0.14, 0.14]}
+      - ellipsoid: {c: [0, 0.26, 0.0], r: [0.17, 0.13, 0.13]}
+      - ellipsoid: {c: [0, 0.41, -0.02], r: [0.21, 0.10, 0.12]}
+    paint:
+      - material: rags          # the trousers' waist and a torn shirt remnant over the back
+        prims:
+          - box: {c: [0, -0.05, 0], half: [0.4, 0.09, 0.4]}
+          - box: {c: [0.06, 0.30, -0.25], half: [0.12, 0.14, 0.12], rot: [0, 0, 0.5]}
+  coat:              # ragged skirt of the trousers with a torn hem
+    material: rags
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.0, 0.0], b: [0, -0.06, -0.01], r: [0.16, 0.175]}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.16}
+      - box: {c: [0.08, -0.22, 0.18], half: [0.03, 0.07, 0.08], rot: [0, 0, 0.3]}
+      - box: {c: [-0.09, -0.21, 0.16], half: [0.03, 0.08, 0.08], rot: [0, 0, -0.3]}
+      - box: {c: [0.19, -0.22, -0.04], half: [0.08, 0.06, 0.03], rot: [0.3, 0, 0]}
+      - box: {c: [-0.02, -0.21, -0.20], half: [0.03, 0.07, 0.08], rot: [0, 0, 0.3]}
+      - box: {c: [-0.19, -0.22, -0.08], half: [0.08, 0.05, 0.03], rot: [-0.3, 0, 0]}
+  belt: {when: "0"}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.42, 0.0], b: [0, 0.56, 0.10], r: [0.07, 0.055]}
+  weed:              # a strand of waterweed over the left shoulder, down the chest and the back
+    material: weed
+    space: pelvis
+    priority: 2
+    line: false
+    prims:
+      - tube: {pts: [[0.05, 0.12, 0.15], [0.12, 0.40, 0.16], [0.17, 0.53, 0.0], [0.12, 0.40, -0.16], [0.05, 0.16, -0.14]], r: [0.03, 0.025]}
+      - tube: {pts: [[-0.16, 0.50, -0.05], [-0.20, 0.42, 0.10], [-0.13, 0.26, 0.15]], r: [0.028, 0.018]}
+  eye_L:             # a cold glowing eye just in front of the hair curtain
+    material: eye
+    space: head
+    when: "eyes_lit > 0.5"
+    min_cover: 2
+    prims:
+      - extrude: {c: "[0.07, 0.12, 0.165 - 0.08*(abs(yaw) > 100)]", rot: [0, 0.5, 0], depth: 0.035, profile: {rect: [0.018, 0.016], round: 0.005}}
+  hair:              # the wet crown cap, tight to the skull
+    material: hair
+    space: hairbone
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.05, -0.04], r: [0.145, 0.13, 0.155], rot: [-0.3, 0, 0]}
+  fringe:            # the curtain: long straight strands hanging in front of the face to below the chin
+    material: hair
+    space: hairbone
+    blend: 0.015
+    prims:
+      - tube: {pts: [[0.0, 0.14, 0.06], "[0.0, 0.02, 0.15 + 0.03*hair_sway]", "[0.01, -0.20, 0.14 + 0.05*hair_sway]"], r: [0.04, 0.022]}
+      - tube: {pts: [[-0.07, 0.13, 0.05], "[-0.09, 0.0, 0.13 + 0.03*hair_sway]", "[-0.09, -0.22, 0.11 + 0.05*hair_sway]"], r: [0.04, 0.02]}
+      - tube: {pts: [[0.07, 0.13, 0.05], "[0.09, 0.0, 0.13 + 0.03*hair_sway]", "[0.09, -0.19, 0.11 + 0.05*hair_sway]"], r: [0.04, 0.02]}
+  lock_L:            # side lock at the temple down past the jaw
+    material: hair
+    space: hairbone
+    prims:
+      - tube: {pts: [[0.14, 0.06, -0.02], [0.17, -0.08, 0.02], "[0.14, -0.26, 0.04 + 0.04*hair_sway]"], r: [0.035, 0.016]}
+  back:              # long strands down the nape and shoulder blades
+    material: hair
+    space: hairbone
+    blend: 0.03
+    prims:
+      - tube: {pts: [[0, 0.0, -0.15], [0, -0.20, -0.22], "[0, -0.30, -0.20 + 0.04*hair_sway]"], r: [0.075, 0.02]}
+      - tube: {pts: [[0.08, 0.0, -0.13], [0.10, -0.18, -0.19], "[0.11, -0.26, -0.16 + 0.04*hair_sway]"], r: [0.06, 0.016]}
+      - tube: {pts: [[-0.08, 0.0, -0.13], [-0.10, -0.18, -0.19], "[-0.11, -0.28, -0.16 + 0.04*hair_sway]"], r: [0.06, 0.016]}
+  arm_L:             # long thin arms
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.06}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.052, 0.042]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.042, 0.038]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - ellipsoid: {c: [0, 0, 0.03], r: [0.055, 0.035, 0.055]}
+  claws_L:           # three hooked claws
+    material: claw
+    space: claws_L
+    priority: 2
+    min_cover: 2
+    line: false
+    prims:
+      - cone: {a: [0.0, 0, 0.0], b: [0.0, -0.03, 0.08], r: [0.017, 0.006]}
+      - cone: {a: [0.035, 0, -0.005], b: [0.05, -0.03, 0.07], r: [0.016, 0.006]}
+      - cone: {a: [-0.035, 0, -0.005], b: [-0.05, -0.03, 0.07], r: [0.016, 0.006]}
+  leg_L:
+    material: rags
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.075, 0.055]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.055, 0.042]}
+    paint:
+      - material: skin           # torn trousers: bare shins
+        prims:
+          - box: {c: [0, 0.05, 0], half: [1.0, 0.17, 1.0]}
+  boot_L:            # a bare bloated foot
+    material: skin
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.07, 0], b: [0, -0.02, 0.0], r: [0.045, 0.05]}
+      - ellipsoid: {c: [0, -0.04, 0.06], r: [0.06, 0.035, 0.10]}
+
+sockets:
+  claw_hit: {bone: wrist_R, offset: [0, 0, 0.12]}
+
+animations:
+  idle:
+    frames: 6
+    ms: 160
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.05*sin(p - 0.5)"
+      hair_sway: "0.3*sin(p - 1.2)"
+      hand_L: "[0.22, 0.08 + 0.02*sin(p - 0.6), 0.34]"
+      hand_R: "[0.22, 0.08 + 0.02*sin(p - 0.9), 0.34]"
+      coat: "0.15*sin(p - 1.0)"
+  # slow, heavy shamble: short dragging steps (each foot planted half the cycle, sliding back at a constant
+  # speed, then swung forward low), the body lurching side to side, limp arms swinging late, hair swaying
+  walk:
+    frames: 8
+    ms: 120
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.06
+      bob: "-0.03*cos(2*p) + 0.005"
+      squash: "1 - 0.02*cos(2*p)"
+      roll: "0.07*sin(p)"
+      twist: "0.07*cos(p)"
+      head_yaw: "-0.05*cos(p)"
+      head_pitch: "0.07*cos(2*p - 0.8)"
+      hair_sway: "0.35*sin(2*p - 1.6)"
+      foot_L: "[0.11, 0.05*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.18 - 0.36*clamp(p/tau/0.5, 0, 1) + 0.36*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.11, 0.05*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.18 - 0.36*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.36*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      pitch_foot_L: "0.25*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
+      pitch_foot_R: "0.25*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
+      hand_L: "[0.22 + 0.02*sin(p), 0.08 + 0.025*pos(cos(p - 0.7)), 0.34 - 0.10*cos(p - 0.7)]"
+      hand_R: "[0.22 - 0.02*sin(p), 0.08 + 0.025*pos(-cos(p - 0.7)), 0.34 + 0.10*cos(p - 0.7)]"
+      claw_curl: "0.15*sin(p - 1.0)"
+      coat: "0.35*sin(2*p - 0.8)"
+  # claw swipe with the right hand: the arm drawn back and up (held), one fast horizontal swipe across the
+  # front with a smear, the claws landing (hit) as the hand crosses the middle, follow-through to the left,
+  # recovery. Total 630 ms.
+  attack:
+    loop: false
+    keys:
+      - {ms: 70, event: windup, set: {twist: -0.25, lean: -0.08, bob: -0.01, squash: 0.98, hair_sway: -0.3,
+          hand_R: [0.32, 0.28, 0.10], hand_L: [0.22, 0.12, 0.32], claw_curl: -0.3, head_pitch: -0.08, coat: -0.2}}
+      - {ms: 150, set: {twist: -0.5, lean: -0.15, bob: -0.03, squash: 0.95, hair_sway: -0.5,
+          hand_R: [0.38, 0.40, -0.08], hand_L: [0.20, 0.16, 0.34], claw_curl: -0.5, head_pitch: -0.14, coat: -0.3,
+          foot_L: [0.11, 0, 0.10], foot_R: [0.11, 0, -0.08]}}
+      - {ms: 50, set: {root: [0, 0, 0.08], twist: 0.15, lean: 0.18, bob: -0.02, squash: 1.04, hair_sway: 0.4,
+          hand_R: [0.12, 0.26, 0.50], hand_L: [0.24, 0.08, 0.24], claw_curl: -0.4, head_pitch: 0.05, coat: 0.4,
+          foot_L: [0.11, 0, 0.20], foot_R: [0.11, 0, -0.08],
+          smear_w: 0.08, smear_a0: -1.6, smear_a1: -0.1}}
+      - {ms: 70, event: hit, set: {root: [0, 0, 0.12], twist: 0.45, lean: 0.28, bob: -0.04, squash: 1.0, hair_sway: 0.6,
+          hand_R: [-0.18, 0.18, 0.44], hand_L: [0.26, 0.06, 0.18], claw_curl: 0.3, head_pitch: 0.1, coat: 0.6,
+          foot_L: [0.11, 0, 0.22], foot_R: [0.11, 0, -0.08],
+          smear_w: 0.10, smear_a0: -1.1, smear_a1: 1.0}}
+      - {ms: 90, set: {root: [0, 0, 0.12], twist: 0.6, lean: 0.25, bob: -0.05, squash: 0.97, hair_sway: 0.4,
+          hand_R: [-0.30, 0.06, 0.22], hand_L: [0.26, 0.06, 0.18], claw_curl: 0.5, head_pitch: 0.08, coat: 0.3,
+          foot_L: [0.11, 0, 0.22], foot_R: [0.11, 0, -0.08],
+          smear_w: 0.06, smear_a0: 0.3, smear_a1: 1.3, smear_fade: 0.65}}
+      - {ms: 100, set: {root: [0, 0, 0.06], twist: 0.25, lean: 0.12, bob: -0.02, hair_sway: 0.1,
+          hand_R: [0.08, 0.06, 0.30], hand_L: [0.24, 0.07, 0.28], claw_curl: 0.2, coat: 0.1,
+          foot_L: [0.11, 0, 0.14], foot_R: [0.11, 0, -0.04]}}
+      - {ms: 100, set: {root: [0, 0, 0.02], twist: 0.05, lean: 0.03, hair_sway: -0.1,
+          hand_R: [0.20, 0.08, 0.34], hand_L: [0.22, 0.08, 0.34], foot_L: [0.11, 0, 0.06]}}
+  # hit: a short flinch - head and body snap back, the hair flung, arms jerk up
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.3, bob: -0.02, squash: 0.95, head_pitch: -0.3, hair_sway: -0.8,
+          coat: -0.5, hand_L: [0.30, 0.18, 0.20], hand_R: [0.30, 0.20, 0.22], claw_curl: -0.5}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.15, bob: -0.01, squash: 0.98, head_pitch: -0.12, hair_sway: -0.3,
+          coat: -0.2, hand_L: [0.26, 0.12, 0.28], hand_R: [0.26, 0.13, 0.28], claw_curl: -0.2}}
+      - {ms: 70, set: {root: [0, 0, -0.01], lean: 0.0, head_pitch: 0.02, hair_sway: 0.3, coat: 0.1,
+          hand_L: [0.23, 0.09, 0.33], hand_R: [0.23, 0.09, 0.33]}}
+  # death: a flinch, the knees give way, it drops to its knees and slumps forward into a heap on its front,
+  # arms limp beside it, hair spread over the ground; the eyes go out on the last two frames
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: -0.3, bob: -0.02, squash: 0.95, head_pitch: -0.3, hair_sway: -0.8,
+          coat: -0.5, hand_L: [0.30, 0.18, 0.18], hand_R: [0.30, 0.20, 0.20], claw_curl: -0.5}}
+      - {ms: 120, set: {root: [0, 0, -0.04], lean: -0.05, roll: 0.06, bob: -0.12, squash: 0.96, head_pitch: 0.1, hair_sway: 0.2,
+          coat: 0.1, hand_L: [0.26, -0.02, 0.22], hand_R: [0.26, -0.02, 0.24],
+          foot_L: [0.11, 0, 0.04], foot_R: [0.11, 0, -0.02]}}
+      - {ms: 120, set: {root: [0, 0, -0.06], lean: 0.2, roll: 0.05, bob: -0.32, squash: 0.94, head_pitch: 0.25, hair_sway: 0.5,
+          coat: 0.3, hand_L: [0.27, -0.10, 0.20], hand_R: [0.27, -0.10, 0.22], claw_curl: 0.3,
+          foot_L: [0.11, 0.0, -0.16], foot_R: [0.11, 0.0, -0.20], pitch_foot_L: -0.8, pitch_foot_R: -0.8}}
+      - {ms: 110, set: {root: [0, 0, -0.10], lean: 0.75, roll: 0.03, bob: -0.45, squash: 0.94, head_pitch: 0.3, hair_sway: 0.8,
+          coat: 0.4, hand_L: [0.30, 0.10, 0.36], hand_R: [0.30, 0.10, 0.38], claw_curl: 0.3,
+          foot_L: [0.11, 0.0, -0.30], foot_R: [0.11, 0.0, -0.33], pitch_foot_L: -1.2, pitch_foot_R: -1.2}}
+      - {ms: 100, set: {root: [0, 0, -0.10], lean: 1.0, roll: 0.03, bob: -0.55, squash: 0.92, head_pitch: 0.3, hair_sway: 0.7,
+          coat: 0.3, hand_L: [0.30, 0.30, 0.20], hand_R: [0.30, 0.32, 0.20], claw_curl: 0.5,
+          foot_L: [0.12, 0.0, -0.42], foot_R: [0.13, 0.0, -0.44], pitch_foot_L: -1.4, pitch_foot_R: -1.4}}
+      - {ms: 140, set: {eyes_lit: 0, root: [0, 0, -0.14], lean: 1.18, roll: 0.03, bob: -0.60, squash: 0.88, head_pitch: 0.45, hair_sway: 0.5,
+          coat: 0.2, hand_L: [0.28, 0.16, 0.14], hand_R: [0.28, 0.20, 0.14], claw_curl: 0.6,
+          foot_L: [0.13, 0.0, -0.44], foot_R: [0.15, 0.0, -0.46], pitch_foot_L: -1.5, pitch_foot_R: -1.5}}
+      - {ms: 500, set: {eyes_lit: 0, root: [0, 0, -0.14], lean: 1.17, roll: 0.03, bob: -0.61, squash: 0.87, head_pitch: 0.45, hair_sway: 0.4,
+          coat: 0.2, hand_L: [0.28, 0.16, 0.15], hand_R: [0.28, 0.20, 0.15], claw_curl: 0.6,
+          foot_L: [0.13, 0.0, -0.45], foot_R: [0.15, 0.0, -0.47], pitch_foot_L: -1.5, pitch_foot_R: -1.5}}
