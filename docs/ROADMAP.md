@@ -118,6 +118,10 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   elektryczna katana (zrobiona 15.11.2026), kostur nekromancji; zmiana broni w bazie i kupno za złoto przed progiem (`Weapons.unlock`, `price`);
   kamienie dodające mieczowi żywioł; później odporności bohatera i potwory bijące żywiołami. Do decyzji: światło.
 
+- **Boss szczytowy: Żmij Gorynycz (pomysł autora 15.11.2026):** trójgłowy ognisty smok z Watry
+  (`../Watra/assets/world_bosses/zmij.png`, ataki w `../Watra/scripts/world_boss.gd`: Zionięcie, Trzy Głowy, Uderzenie)
+  - zostawiony na później jako boss szczytowy (nie boss Wulkanicznych równin). Dopytać, kiedy i jak się go przyzywa.
+
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
 - Watra jako „serce” ekranu startowego: animowany ogień, który przygasa, gdy długo nie grasz, i rozpala się po powrocie.
