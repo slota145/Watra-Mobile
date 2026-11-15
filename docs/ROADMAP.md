@@ -31,6 +31,13 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 
 ## Pomysły autora (do zrobienia)
 
+- **Kamienie bez stopni (15.11.2026, następny duży temat):** stopnie kamieni (Okruch…Królewski) zaśmiecają sakwę.
+  Ustalone z autorem: kamienie szlachetne (rubin, szafir, szmaragd, onyks) wypadają z 2-3 losowymi premiami jak jewele
+  w PoE; kamienie umiejętności (Mnożenie, Żar…) wypadają bez stopni i ulepsza się je złotem; niepotrzebne kamienie
+  można sprzedać za złoto albo rozbić na odpryski (odpryski idą na ulepszanie); sakwa z sortowaniem i filtrem po
+  poziomie ulepszenia. Do ustalenia: czy kamienie szlachetne też się ulepsza (i czym), duplikaty kamieni umiejętności,
+  ceny, przeniesienie starych zapisów (stopień -> poziom ulepszenia).
+
 - **Boss w lochu (12.11.2026):** zrobione (szczegóły w `docs/historia.md`); do oceny na telefonie: czas zapełniania
   paska (100 żaru), trudność Wodza, czytelność ostrzeżeń. Model, animacje i efekty
   Wodza gotowe; skrzynia daje żar i 3 przedmioty.
