@@ -2,6 +2,14 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - Błysk Peruna: jedno cięcie, piorun przy postaci
+
+- Zgłoszenie autora: pioruny Błysku Peruna wychodziły daleko przed postać i czasem były dwa cięcia. Przyczyny: piorun
+  przelatujący przez cięcie (`ProtoKatana._ArcBolt`) był dzieckiem katany, która po skoku dolatywała do postaci
+  i ciągnęła go o całą długość skoku (teraz `top_level`, stoi w miejscu cięcia); do cięcia katany dochodziło cięcie
+  Mgnienia miecza na celu (`ProtoWeapon.flicker_cut` - katana go nie pokazuje). Cięcie po skoku zwrócone w przebitego
+  wroga (za plecami), a nie w pustkę przed postacią; smuga długiego skoku wydłuża się, ale nie grubieje.
+
 ## 15.11.2026 - Krąg stali zamiast Mgnienia miecza
 
 - Pomysł autora (ten sam co propozycja Claude): Krąg stali (`steel_ring`, miecz, mistrz. 15, 30 many, 12 s) zamiast

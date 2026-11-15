@@ -107,7 +107,11 @@ func _run() -> void:
 	weapon.cast("k_flash")
 	await create_timer(0.05).timeout
 	await _shot("6_blysk")
-	await create_timer(1.45).timeout
+	await create_timer(0.08).timeout
+	await _shot("6b_blysk")
+	await create_timer(0.08).timeout
+	await _shot("6c_blysk")
+	await create_timer(1.29).timeout
 	weapon.flicker_held = false
 	print("klatki/s w Błysku Peruna: %.0f" % ((Engine.get_frames_drawn() - frames) / 1.5))
 	for g in get_nodes_in_group(ProtoWeapon.TARGETS):
