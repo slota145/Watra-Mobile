@@ -55,6 +55,10 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   Mgnienie jak Flicker Strike i trudniejsze głębokie lochy zrobione (13.11.2026). Do oceny na telefonie: czy 2 many za
   zabicie skokiem to dobry zwrot, czy 70 potworów naraz nie zwalnia telefonu, czy krzywa siły (100. poziom x113) pasuje.
   Później może: więcej kamieni unikalnych na umiejętność (autor: „na razie po jednym”).
+  Kamienie bez stopni (ulepszanie złotem i odpryskami, szlachetne z 2-5 premiami, sprzedaż i rozbijanie, sakwa
+  z filtrami) zrobione 15.11.2026 (szczegóły w `docs/historia.md`). Do oceny na telefonie: ceny ulepszeń (80-1700 zł
+  za poziom, 2-20 odprysków) wobec złota z lochów, siła 10. poziomu, czy szlachetne nie są za słabe/za mocne
+  (premia x0,6 przedmiotu), wygoda zaznaczania kilku w sakwie.
 
 - **Baza: żar i złoto (12.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: ceny ulepszeń
   i ich odczuwalność (czy +10% potworów widać), ceny kowala i kupca (przedmioty u kupca tanie wobec klucza),

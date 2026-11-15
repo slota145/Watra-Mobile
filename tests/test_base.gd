@@ -103,8 +103,10 @@ func _test_shop(game: Node) -> void:
 	_check(game.shop_ready and offers.size() == 7, "pierwsze otwarcie: towar na półce (%d)" % offers.size())
 	_check(offers[0].get("gem") == Gems.KEY and offers[0].price == 400 and offers[1].get("gem") == Gems.CHISEL
 			and offers[1].price == 250, "klucz za 400, dłuto za 250")
-	_check(Gems.grade_of(offers[2].gem) == 0 and Gems.grade_of(offers[3].gem) == 0 and offers[2].price == 60
-			and Gems.kind_of(offers[2].gem) != Gems.kind_of(offers[3].gem), "2 różne kamienie 1. stopnia po 60")
+	var fresh := func(id: String) -> bool:
+		return Gems.level_of(id) == 1 if Gems.is_support(id) else Gems.is_jewel(id) and Gems.jewel_level(id) == 4
+	_check(fresh.call(offers[2].gem) and fresh.call(offers[3].gem) and offers[2].price == 60
+			and Gems.kind_of(offers[2].gem) != Gems.kind_of(offers[3].gem), "2 różne kamienie po 60 (umiejętności 1. poziomu, szlachetne z lochu 4)")
 	var items_ok := true
 	for o in offers.slice(4):
 		items_ok = items_ok and o.has("item") and o.item.rarity in ["magic", "rare"] and o.item.level == 4 \

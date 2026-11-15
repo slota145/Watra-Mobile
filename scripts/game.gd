@@ -8,7 +8,7 @@ extends Node
 ## broń i mistrzostwo (`weapon`, `mastery` - broń -> poziom, `mastery_xp`, `weapons_bought` - kupione przed progiem,
 ## `weapon_slots` - miejsca umiejętności każdej broni; dane w Weapons), umiejętności
 ## (`skills_owned` - odblokowane, `skill_slots` - co stoi w miejscach, `skill_levels` - poziomy; dane w Skills), kamienie (Gems):
-## sakwa (`gems`: identyfikator -> ile sztuk), kamienie w umiejętnościach (`skill_gems`: umiejętność -> lista
+## sakwa (`gems`: identyfikator -> ile sztuk), odpryski (`shards`), kamienie w umiejętnościach (`skill_gems`: umiejętność -> lista
 ## Gems.SKILL_SOCKETS identyfikatorów, "" - puste) i otwarte gniazda (`skill_open`); kamienie w przedmiotach
 ## leżą w samych przedmiotach ("sockets"). Baza (ustalone 12.11.2026): ulepszenia lochów za złoto (`upgrades`:
 ## identyfikator DungeonUpgrades -> kupione stopnie), półka kupca (`shop`: oferty Shop, `shop_ready` - był już towar;
@@ -87,6 +87,8 @@ var skill_slots: Array = _default_slots()
 var skill_levels := {}
 ## Sakwa z kamieniami, kluczami i dłutami (identyfikator Gems -> liczba sztuk).
 var gems := {}
+## Odpryski z rozbitych kamieni - waluta ulepszania kamieni (razem ze złotem).
+var shards := 0
 ## Kamienie w gniazdach umiejętności i liczba otwartych gniazd (brak wpisu - Gems.SKILL_OPEN).
 var skill_gems := {}
 var skill_open := {}
@@ -179,6 +181,7 @@ func load_game() -> void:
 	skill_slots = _default_slots()
 	skill_levels = {}
 	gems = {}
+	shards = 0
 	skill_gems = {}
 	skill_open = {}
 	upgrades = {}
@@ -195,6 +198,7 @@ func load_game() -> void:
 		hero_level = clampi(int(data.get("hero_level", 1)), 1, HeroLevels.MAX_LEVEL)
 		hero_xp = maxi(int(data.get("hero_xp", 0)), 0)
 		gold = maxi(int(data.get("gold", 0)), 0)
+		shards = maxi(int(data.get("shards", 0)), 0)
 		var raw_bag = data.get("bag", [])
 		if raw_bag is Array:
 			for raw in raw_bag:
@@ -307,7 +311,7 @@ func save_game() -> void:
 		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
-				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems,
+				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards,
 				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "shop": shop,
 				"shop_ready": shop_ready}))
 
@@ -372,6 +376,7 @@ func reset_hero() -> void:
 	skill_slots = _default_slots()
 	skill_levels = {}
 	gems = {}
+	shards = 0
 	skill_gems = {}
 	skill_open = {}
 	save_game()
@@ -836,26 +841,127 @@ func _take_gem(id: String) -> bool:
 	return true
 
 
-## Kamienie w sakwie posortowane: najpierw klucze i dłuta, potem kamienie umiejętności, potem szlachetne;
-## w rodzaju od najlepszego stopnia. `filter`: "support", "jewel" albo "" - wszystkie.
-func gem_list(filter := "") -> Array:
+## Przedziały poziomu w filtrze sakwy (poziom ulepszenia; szlachetny - liczba premii): [od, do].
+const GEM_LEVEL_RANGES := [[1, 3], [4, 7], [8, 10]]
+
+
+## Kamienie w sakwie. `filter`: "support", "jewel" albo "" - wszystkie. `sort`: "kind" - najpierw klucze i dłuta,
+## potem unikalne, kamienie umiejętności i szlachetne, w rodzaju od najwyższego poziomu; "level" - od najwyższego
+## poziomu (szlachetne - liczby premii), klucze i dłuta na końcu. `levels`: [od, do] poziomu (puste - wszystkie;
+## klucze, dłuta i unikalne wtedy pominięte).
+func gem_list(filter := "", sort := "kind", levels: Array = []) -> Array:
 	var out: Array = []
 	for id in gems:
 		if filter == "support" and not Gems.is_support(id) or filter == "jewel" and not Gems.is_jewel(id):
 			continue
+		if not levels.is_empty():
+			var lvl := Gems.level_of(id)
+			if lvl < int(levels[0]) or lvl > int(levels[1]):
+				continue
 		out.append(id)
-	out.sort_custom(func(a: String, b: String) -> bool: return _gem_order(a) < _gem_order(b))
+	if sort == "level":
+		out.sort_custom(func(a: String, b: String) -> bool:
+			var la := _gem_rank(a)
+			var lb := _gem_rank(b)
+			return la > lb if la != lb else _gem_order(a) < _gem_order(b))
+	else:
+		out.sort_custom(func(a: String, b: String) -> bool: return _gem_order(a) < _gem_order(b))
 	return out
 
 
-static func _gem_order(id: String) -> int:
+## Pozycja przy sortowaniu po rodzaju (w rodzaju: wyższy poziom, potem nazwa - stałe ułożenie szlachetnych).
+static func _gem_order(id: String) -> String:
 	if Gems.is_special(id):
-		return 0 if id == Gems.KEY else 1
+		return "0%d" % (0 if id == Gems.KEY else 1)
 	if Gems.is_unique(id):
-		return 50 + Skills.ORDER.find(Gems.unique_skill(id))
+		return "1%02d" % Skills.ORDER.find(Gems.unique_skill(id))
 	var kind := Gems.kind_of(id)
-	var base := 100 + Gems.SUPPORT_ORDER.find(kind) * 10 if Gems.is_support(id) else 200 + Gems.JEWEL_ORDER.find(kind) * 10
-	return base + (4 - Gems.grade_of(id))
+	var group := "2%02d" % Gems.SUPPORT_ORDER.find(kind) if Gems.is_support(id) else "3%02d" % Gems.JEWEL_ORDER.find(kind)
+	return "%s%02d%s" % [group, 99 - Gems.level_of(id), id]
+
+
+## Poziom przy sortowaniu po poziomie (szlachetne z premiami jak poziomy; unikalne wysoko, klucze i dłuta na końcu).
+static func _gem_rank(id: String) -> int:
+	if Gems.is_special(id):
+		return -1
+	return Gems.MAX_LEVEL + 1 if Gems.is_unique(id) else Gems.level_of(id)
+
+
+# --- ulepszanie, sprzedaż i rozbijanie kamieni ---
+
+## Czy stać na ulepszenie kamienia (złoto i odpryski).
+func can_afford_upgrade(id: String) -> bool:
+	var cost := Gems.upgrade_cost(id)
+	return cost != Vector2i.ZERO and gold >= cost.x and shards >= cost.y
+
+
+## Ulepsza kamień za złoto i odpryski: sztukę z sakwy (`skill` i `item` puste), kamień w gnieździe `index`
+## umiejętności `skill` albo przedmiotu `item`. Zwraca nowy identyfikator ("" - nie da się).
+func upgrade_gem(id: String, skill := "", item: Dictionary = {}, index := -1) -> String:
+	if not can_afford_upgrade(id):
+		return ""
+	if skill != "":
+		if index < 0 or index >= Gems.SKILL_SOCKETS or skill_sockets(skill)[index] != id:
+			return ""
+	elif not item.is_empty():
+		var sockets: Array = item.get("sockets", [])
+		if index < 0 or index >= sockets.size() or sockets[index] != id:
+			return ""
+	elif gem_count(id) <= 0:
+		return ""
+	var cost := Gems.upgrade_cost(id)
+	var new_id := Gems.upgraded(id)
+	gold -= cost.x
+	shards -= cost.y
+	if skill != "":
+		var list := skill_sockets(skill).duplicate()
+		list[index] = new_id
+		skill_gems[skill] = list
+	elif not item.is_empty():
+		item.sockets[index] = new_id
+	else:
+		_take_gem(id)
+		gems[new_id] = gem_count(new_id) + 1
+	save_game()
+	inventory_changed.emit()
+	if skill != "":
+		skills_changed.emit()
+	return new_id
+
+
+## Złoto i odpryski za sprzedaż / rozbicie wszystkich sztuk kamieni `ids` z sakwy: Vector2i(złoto, odpryski).
+func gems_value(ids: Array, shatter: bool) -> Vector2i:
+	var total := 0
+	for id in ids:
+		if Gems.can_sell(id):
+			total += (Gems.shard_value(id) if shatter else Gems.sell_price(id)) * gem_count(id)
+	return Vector2i(0, total) if shatter else Vector2i(total, 0)
+
+
+## Sprzedaje (`shatter` false - za złoto) albo rozbija na odpryski wszystkie sztuki kamieni `ids` z sakwy (klucze
+## i dłuta się pomija). Zwraca Vector2i(złoto, odpryski).
+func sell_gems(ids: Array, shatter := false) -> Vector2i:
+	var got := gems_value(ids, shatter)
+	for id in ids:
+		if Gems.can_sell(id):
+			gems.erase(id)
+	gold += got.x
+	shards += got.y
+	save_game()
+	inventory_changed.emit()
+	return got
+
+
+## Sprzedaje albo rozbija jedną sztukę kamienia z sakwy. Zwraca Vector2i(złoto, odpryski) (zero - nie da się).
+func sell_gem(id: String, shatter := false) -> Vector2i:
+	if not Gems.can_sell(id) or not _take_gem(id):
+		return Vector2i.ZERO
+	var got := Vector2i(0, Gems.shard_value(id)) if shatter else Vector2i(Gems.sell_price(id), 0)
+	gold += got.x
+	shards += got.y
+	save_game()
+	inventory_changed.emit()
+	return got
 
 
 ## Liczba otwartych gniazd umiejętności.
@@ -1002,13 +1108,14 @@ func _return_item_gems(item: Dictionary) -> void:
 			add_gem(id, 1, false)
 
 
-## Tryb deweloperski: po kamieniu każdego rodzaju (stopień z obecnego poziomu lochu), kamienie unikalne, 2 klucze i 2 dłuta.
+## Tryb deweloperski: po kamieniu każdego rodzaju (szlachetne z obecnego poziomu lochu), kamienie unikalne,
+## 2 klucze, 2 dłuta i 100 odprysków.
 func dev_gems() -> void:
-	var grade := Items.tier_for(dungeon_level)
 	for kind in Gems.SUPPORT_ORDER:
-		add_gem(Gems.make(kind, grade), 1, false)
+		add_gem(Gems.make(kind), 1, false)
 	for kind in Gems.JEWEL_ORDER:
-		add_gem(Gems.make(kind, grade), 1, false)
+		add_gem(Gems.roll_jewel(kind, dungeon_level), 1, false)
+	shards += 100
 	for skill in Gems.UNIQUE:
 		add_gem(Gems.unique_of(skill), 1, false)
 	add_gem(Gems.KEY, 2, false)

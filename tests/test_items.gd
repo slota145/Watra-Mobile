@@ -90,7 +90,7 @@ func _test_earring(game: Node) -> void:
 	game.load_game()
 	var e: Dictionary = game.equipped.get("earring", {})
 	_check(not game.equipped.has("weapon") and e.get("slot") == "earring" and e.base.damage == [30, 42]
-			and e.sockets == ["ruby:0"] and game.bag[0].slot == "earring", "stary miecz założony i w torbie -> kolczyk tej samej siły")
+			and e.sockets == [""] and game.bag[0].slot == "earring", "stary miecz założony i w torbie -> kolczyk tej samej siły (stary kamień ze stopniem znika)")
 	_check(Items.name_of(e) == "Kolczyk z kłem niedźwiedzia", "nazwa kolczyka według stopnia")
 	game.reset_hero()
 

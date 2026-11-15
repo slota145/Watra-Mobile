@@ -610,9 +610,9 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 			_leech_acc -= heal
 			hero.heal(heal)
 	if skill == basic:
-		var grade := Gems.skill_grade(sockets, "thrift")
-		if grade >= 0:
-			hero.add_mana(Gems.THRIFT_STRIKE[grade])
+		var thrift := Gems.skill_level(sockets, "thrift")
+		if thrift > 0:
+			hero.add_mana(Gems.thrift_mana(thrift))
 	p = Gems.skill_power(sockets, "discharge")
 	if p > 0.0 and not _chained:
 		_chained = true

@@ -9,8 +9,12 @@ extends Control
 ## oraz przełącznik auto sprzedaży zwykłych przedmiotów podniesionych w lochu (`Game.auto_sell_common`).
 ## Kamienie szlachetne (Gems): w opisie przedmiotu rząd jego gniazd, pod każdym krótko, co daje kamień; stuknięcie
 ## gniazda otwiera GemPicker z pasującymi kamieniami i ich premią w tym miejscu („Włóż”, „Wymień”, „Wyjmij”);
-## „Dłuto” dorabia drugie gniazdo (drugie stuknięcie potwierdza). Zakładka „Sakwa”: wszystkie kamienie, klucze i dłuta
-## z kropkami stopnia - stuknięcie otwiera GemPicker z listą miejsc, gdzie kamień pasuje.
+## „Dłuto” dorabia drugie gniazdo (drugie stuknięcie potwierdza). Zakładka „Sakwa” (15.11.2026): kamienie, klucze
+## i dłuta (liczba w rogu - poziom kamienia umiejętności, kropki - premie szlachetnego), u góry odpryski, rodzaj
+## (wszystkie / umiejętności / szlachetne), sortowanie (rodzaj / poziom) i filtr poziomu (Game.GEM_LEVEL_RANGES);
+## stuknięcie otwiera GemPicker (opis, ulepszanie, sprzedaż, rozbicie, gdzie pasuje). Nad zakładkami pasek
+## „Zaznacz kilka”: stukane kamienie się zaznaczają (cały stos), potem „Sprzedaj” albo „Rozbij” z ceną (drugie
+## stuknięcie potwierdza); „Zaznacz widoczne” bierze wszystko, co pokazuje filtr.
 ## Liczby bierze z HeroLevels, Items, ProtoHero i ProtoWeapon, stan z Game. Zakładka przewija się na niskich ekranach.
 ## Działa przy zatrzymanej grze (PROCESS_MODE_ALWAYS).
 
@@ -74,6 +78,25 @@ var _detail_kind: Label
 ## Kamienie: sakwa (zakładka), w opisie przedmiotu gniazda, podpowiedź i dłuto.
 var pouch_label: Label
 var pouch_grid: GridContainer
+## Sakwa: rodzaj ("", "support", "jewel"), sortowanie ("kind", "level"), filtr poziomu (indeks w
+## Game.GEM_LEVEL_RANGES, -1 - wszystkie), tryb zaznaczania, zaznaczone kamienie (identyfikator -> true)
+## i akcja czekająca na potwierdzenie ("sell", "shatter" albo "").
+var pouch_filter := ""
+var pouch_sort := "kind"
+var pouch_range := -1
+var pouch_select := false
+var pouch_marked := {}
+var _pouch_armed := ""
+var pouch_kind_buttons := {}
+var pouch_sort_button: Button
+var pouch_range_button: Button
+## Pasek nad zakładkami (tylko w „Sakwie”): „Zaznacz kilka” albo zaznaczanie, sprzedaż i rozbijanie.
+var pouch_bar: VBoxContainer
+var pouch_select_button: Button
+var pouch_all_button: Button
+var pouch_cancel_button: Button
+var pouch_sell_button: Button
+var pouch_shatter_button: Button
 var socket_row: HBoxContainer
 var gem_hint: Label
 var chisel_button: Button
@@ -177,18 +200,71 @@ func _ready() -> void:
 	# zakładka „Statystyki”: pełna lista z przyrostem na następnym poziomie
 	page_stats = _page(pages)
 	_make_stats(page_stats)
-	# zakładka „Sakwa”: kamienie, klucze i dłuta - stuknięcie pokazuje, gdzie pasują
+	# zakładka „Sakwa”: kamienie, klucze i dłuta - rodzaj, sortowanie i poziom; stuknięcie - GemPicker
 	page_pouch = _page(pages)
 	pouch_label = _label(page_pouch, "", 13, GOLD)
 	pouch_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var kinds := HBoxContainer.new()
+	kinds.add_theme_constant_override("separation", 4)
+	page_pouch.add_child(kinds)
+	for k in ["", "support", "jewel"]:
+		var kb := _pouch_button(kinds, tr({"": "Wszystkie", "support": "Umiejętności", "jewel": "Szlachetne"}[k]))
+		kb.pressed.connect(func() -> void:
+			pouch_filter = k
+			refresh())
+		pouch_kind_buttons[k] = kb
+	var order := HBoxContainer.new()
+	order.add_theme_constant_override("separation", 4)
+	page_pouch.add_child(order)
+	pouch_sort_button = _pouch_button(order, "")
+	pouch_sort_button.pressed.connect(func() -> void:
+		pouch_sort = "level" if pouch_sort == "kind" else "kind"
+		refresh())
+	pouch_range_button = _pouch_button(order, "")
+	pouch_range_button.pressed.connect(func() -> void:
+		pouch_range = pouch_range + 1 if pouch_range + 1 < Game.GEM_LEVEL_RANGES.size() else -1
+		refresh())
 	pouch_grid = GridContainer.new()
 	pouch_grid.columns = BAG_COLUMNS
 	pouch_grid.add_theme_constant_override("h_separation", 6)
 	pouch_grid.add_theme_constant_override("v_separation", 6)
 	pouch_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	page_pouch.add_child(pouch_grid)
-	var pouch_hint := _label(page_pouch, tr("Stuknij kamień: zobaczysz, gdzie pasuje i co tam da. Kropki pod kamieniem to jego stopień."), 11, DIM)
+	var pouch_hint := _label(page_pouch, tr("Stuknij kamień: opis, ulepszanie, sprzedaż i gdzie pasuje. Liczba w rogu to poziom kamienia umiejętności, kropki - premie kamienia szlachetnego. Odpryski z rozbitych kamieni idą na ulepszanie."), 11, DIM)
 	pouch_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# pasek sakwy nad zakładkami (pod kciukiem): zaznaczanie kilku kamieni, sprzedaż i rozbijanie
+	pouch_bar = VBoxContainer.new()
+	pouch_bar.add_theme_constant_override("separation", 4)
+	_column.add_child(pouch_bar)
+	var bar1 := HBoxContainer.new()
+	bar1.add_theme_constant_override("separation", 4)
+	pouch_bar.add_child(bar1)
+	pouch_select_button = _pouch_button(bar1, tr("Zaznacz kilka"))
+	pouch_select_button.pressed.connect(func() -> void:
+		pouch_select = true
+		pouch_marked.clear()
+		_pouch_armed = ""
+		refresh())
+	pouch_all_button = _pouch_button(bar1, tr("Zaznacz widoczne"))
+	pouch_all_button.pressed.connect(func() -> void:
+		for id in _pouch_list():
+			if Gems.can_sell(id):
+				pouch_marked[id] = true
+		_pouch_armed = ""
+		refresh())
+	pouch_cancel_button = _pouch_button(bar1, tr("Anuluj"))
+	pouch_cancel_button.pressed.connect(func() -> void:
+		pouch_select = false
+		pouch_marked.clear()
+		_pouch_armed = ""
+		refresh())
+	var bar2 := HBoxContainer.new()
+	bar2.add_theme_constant_override("separation", 4)
+	pouch_bar.add_child(bar2)
+	pouch_sell_button = _pouch_button(bar2, "")
+	pouch_sell_button.pressed.connect(_on_pouch_sell.bind(false))
+	pouch_shatter_button = _pouch_button(bar2, "")
+	pouch_shatter_button.pressed.connect(_on_pouch_sell.bind(true))
 	# zakładki na dole, pod kciukiem, i „Wróć”
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 4)
@@ -228,6 +304,10 @@ func set_tab(t: String) -> void:
 	page_equip.visible = t == "equip"
 	page_stats.visible = t == "stats"
 	page_pouch.visible = t == "pouch"
+	pouch_select = false
+	pouch_marked.clear()
+	_pouch_armed = ""
+	_refresh_pouch_bar()
 	for k in tab_buttons:
 		_tab_look(tab_buttons[k], k == t)
 	_scroll.scroll_vertical = 0
@@ -683,24 +763,111 @@ func _redetail() -> void:
 		_show_detail(item, _sel_index >= 0)
 
 
-## Zakładka „Sakwa”: wszystkie kamienie, klucze i dłuta (stuknięcie - GemPicker: gdzie pasuje).
+## Kamienie w sakwie według rodzaju, sortowania i filtra poziomu.
+func _pouch_list() -> Array:
+	var levels: Array = Game.GEM_LEVEL_RANGES[pouch_range] if pouch_range >= 0 else []
+	return _game.gem_list(pouch_filter, pouch_sort, levels)
+
+
+## Zakładka „Sakwa”: kamienie według filtrów (stuknięcie - GemPicker albo zaznaczenie w trybie „Zaznacz kilka”).
 func _refresh_pouch() -> void:
 	for c in pouch_grid.get_children():
 		pouch_grid.remove_child(c)
 		c.queue_free()
-	var list: Array = _game.gem_list()
 	var total := 0
-	for id in list:
+	for id in _game.gems:
 		total += _game.gem_count(id)
-	pouch_label.text = tr("Sakwa: %d") % total if total > 0 \
-			else tr("Sakwa pusta - kamienie wypadają w lochach od poziomu %d.") % Gems.MIN_LEVEL
+	for id in pouch_marked.keys():
+		if _game.gem_count(id) <= 0:
+			pouch_marked.erase(id)
+	pouch_label.text = tr("Kamienie: %d  ·  Odpryski: %d") % [total, _game.shards] if total > 0 \
+			else tr("Sakwa pusta - kamienie wypadają w lochach od poziomu %d.") % Gems.MIN_LEVEL \
+			+ "  " + tr("Odpryski: %d") % _game.shards
 	tab_buttons["pouch"].text = tr("Sakwa (%d)") % total if total > 0 else tr("Sakwa")
-	for id in list:
+	for k in pouch_kind_buttons:
+		_tab_look(pouch_kind_buttons[k], k == pouch_filter)
+	pouch_sort_button.text = tr("Sortuj: rodzaj") if pouch_sort == "kind" else tr("Sortuj: poziom")
+	if pouch_range < 0:
+		pouch_range_button.text = tr("Poziom: wszystkie")
+	else:
+		var r: Array = Game.GEM_LEVEL_RANGES[pouch_range]
+		pouch_range_button.text = tr("Poziom: %d-%d") % [r[0], r[1]]
+	_tab_look(pouch_range_button, pouch_range >= 0)
+	for id in _pouch_list():
 		var slot := GemSlot.new(SLOT_SIZE)
 		slot.area = "pouch"
-		slot.show_gem(id, _game.gem_count(id))
-		slot.pressed.connect(func() -> void: picker.open_gem(id))
+		slot.show_gem(id, _game.gem_count(id), false, false, pouch_marked.has(id))
+		if pouch_select and not Gems.can_sell(id):
+			slot.modulate = Color(1, 1, 1, 0.4)
+		slot.pressed.connect(_on_pouch_gem.bind(id))
 		pouch_grid.add_child(slot)
+	_refresh_pouch_bar()
+
+
+## Stuknięcie kamienia w sakwie: w trybie zaznaczania - zaznacza / odznacza (klucze i dłuta nie), inaczej GemPicker.
+func _on_pouch_gem(id: String) -> void:
+	if not pouch_select:
+		picker.open_gem(id)
+		return
+	if not Gems.can_sell(id):
+		return
+	if pouch_marked.has(id):
+		pouch_marked.erase(id)
+	else:
+		pouch_marked[id] = true
+	_pouch_armed = ""
+	refresh()
+
+
+## Pasek nad zakładkami: widoczny w „Sakwie”; ceny sprzedaży i rozbicia zaznaczonych.
+func _refresh_pouch_bar() -> void:
+	if pouch_bar == null:
+		return
+	pouch_bar.visible = tab == "pouch"
+	pouch_select_button.visible = not pouch_select
+	pouch_all_button.visible = pouch_select
+	pouch_cancel_button.visible = pouch_select
+	pouch_sell_button.get_parent().visible = pouch_select
+	var ids: Array = pouch_marked.keys()
+	var pieces := 0
+	for id in ids:
+		pieces += _game.gem_count(id)
+	var gold: int = _game.gems_value(ids, false).x
+	var dust: int = _game.gems_value(ids, true).y
+	pouch_sell_button.text = tr("Na pewno? +%d zł") % gold if _pouch_armed == "sell" \
+			else tr("Sprzedaj %d: %d zł") % [pieces, gold]
+	pouch_shatter_button.text = tr("Na pewno? +%d odpr.") % dust if _pouch_armed == "shatter" \
+			else tr("Rozbij %d: %d odpr.") % [pieces, dust]
+	pouch_sell_button.disabled = ids.is_empty()
+	pouch_shatter_button.disabled = ids.is_empty()
+
+
+## Sprzedaż (`shatter` false) albo rozbicie zaznaczonych: pierwsze stuknięcie pyta, drugie wykonuje.
+func _on_pouch_sell(shatter: bool) -> void:
+	var key := "shatter" if shatter else "sell"
+	if pouch_marked.is_empty():
+		return
+	if _pouch_armed != key:
+		_pouch_armed = key
+		_refresh_pouch_bar()
+		return
+	_game.sell_gems(pouch_marked.keys(), shatter)
+	if shatter:
+		_play_gem()
+	else:
+		_play_coins()
+	pouch_marked.clear()
+	pouch_select = false
+	_pouch_armed = ""
+	refresh()
+
+
+## Przycisk sakwy: 44 px wysokości, rozciąga się w rzędzie, mniejszy napis.
+func _pouch_button(parent: Control, text: String) -> Button:
+	var b := _detail_button(parent, text)
+	b.custom_minimum_size = Vector2(0, 44)
+	b.add_theme_font_size_override("font_size", 12)
+	return b
 
 
 ## Gniazda przedmiotu w opisie: pod każdym krótko, co daje kamień; stuknięcie - GemPicker. Obok dłuto.

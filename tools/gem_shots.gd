@@ -3,6 +3,7 @@ extends SceneTree
 ## a w lochu walka - Rzut mieczem z Mnożeniem (widmowe miecze), Żar, Szron i Piorun na goblinach.
 ## Użycie: SCRIPT=tools/gem_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
 ## Pliki: <prefiks>_1_umiejetnosci.png, _1b_gniazdo, _1c_kamien (wybór kamienia), _2_postac, _2b_statystyki, _2c_sakwa,
+## _2d_zaznaczanie (sakwa: „Zaznacz kilka”), _2e_ulepsz (okno kamienia z ulepszaniem), _2f_szlachetny,
 ## _3_opis, _3b_gniazdo, _4_rzut.png, _5_zar.png
 
 var _prefix := "/tmp/kamienie"
@@ -29,13 +30,20 @@ func _run() -> void:
 	game.dev_skills()
 	game.dev_gems()
 	game.add_gem("ember:1", 2)
+	game.add_gem("ember:6")
+	game.add_gem("area:3")
+	game.add_gem("leech:9")
+	game.add_gem(Gems.roll_jewel("ruby", 9, 3))
+	game.add_gem(Gems.roll_jewel("emerald", 9, 5))
+	game.gold = 2400
+	game.shards = 37
 	game.open_skill_socket("throw")
-	game.socket_skill("throw", 0, "multi:2")
-	game.socket_skill("throw", 1, "discharge:2")
-	game.socket_skill("strike", 0, "ember:2")
-	game.socket_skill("strike", 1, "rime:2")
+	game.socket_skill("throw", 0, "multi:3")
+	game.socket_skill("throw", 1, "discharge:3")
+	game.socket_skill("strike", 0, "ember:3")
+	game.socket_skill("strike", 1, "rime:3")
 	var weapon_item := Items.roll(9, "earring", "rare")
-	weapon_item.sockets = ["ruby:2", ""]
+	weapon_item.sockets = [Gems.roll_jewel("ruby", 9, 2), ""]
 	game.bag = [weapon_item, Items.roll(9, "helmet", "magic"), Items.roll(9, "ring", "rare")]
 	game.equip(0)
 	game.save_game()
@@ -52,7 +60,7 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	await _shot("1b_gniazdo")
 	win.picker.close()
-	for p in win.pouch_row.get_children():
+	for p in win.pouch_row.find_children("*", "GemSlot", true, false):
 		if p.gem == "ember:1":
 			p.pressed.emit()  # kamień z sakwy: gdzie pasuje
 	await create_timer(0.2).timeout
@@ -69,6 +77,19 @@ func _run() -> void:
 	stats.set_tab("pouch")
 	await create_timer(0.2).timeout
 	await _shot("2c_sakwa")
+	stats.pouch_select_button.pressed.emit()
+	for id in ["ember:1", "area:3"]:
+		stats._on_pouch_gem(id)
+	await create_timer(0.2).timeout
+	await _shot("2d_zaznaczanie")
+	stats.pouch_cancel_button.pressed.emit()
+	stats.picker.open_gem("ember:6")
+	await create_timer(0.2).timeout
+	await _shot("2e_ulepsz")
+	stats.picker.open_gem(game.gem_list("jewel")[0])
+	await create_timer(0.2).timeout
+	await _shot("2f_szlachetny")
+	stats.picker.close()
 	stats.set_tab("equip")
 	stats._select_equipped("earring")
 	await create_timer(0.2).timeout
