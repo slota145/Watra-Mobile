@@ -9,7 +9,7 @@ extends ProtoGoblinBrute
 
 const SHAMAN_SCENE := "res://assets/spritekiln/birdman_shaman/birdman_shaman.tscn"
 const SHAMAN_HP := 120
-const SHAMAN_SPEED := 30.0
+const SHAMAN_SPEED := 25.0
 const BOLT_DAMAGE := 22
 const BOLT_RADIUS := 22.0
 const CAST_RANGE := 100.0
@@ -28,7 +28,7 @@ func _init() -> void:
 	element = Elements.LIGHTNING
 	squeaks = false
 	fallback_color = Color(0.5, 0.7, 1.0)
-	anim_hit_at = 0.6
+	anim_hit_at = 0.62
 
 
 func _walk_move(to_hero: Vector2) -> Vector2:
