@@ -77,6 +77,15 @@ func _test_monsters(game: Node) -> void:
 	arena.weapon.auto_attack = false
 	_check(arena.climate == Dungeons.FLOODED and horde.climate == Dungeons.FLOODED
 			and arena.summon_button.text == "Przyzwij Wodnika", "poziom 11: Zatopione podziemia, przyzwanie Wodnika")
+	var props := 0
+	var near := 0
+	for c in arena.get_node("World").get_children():
+		if c is Sprite2D and c.texture and c.texture.resource_path.contains("/decor/flooded/"):
+			props += 1
+			if c.position.distance_to(Vector2(0, 40)) < ProtoDecor.CLEAR_RADIUS:
+				near += 1
+	_check(arena.decor != null and props > 50 and near == 0 and arena.decor.glow_count() > 0,
+			"wystrój: %d ozdób podziemi, wolne miejsce startu, poświaty (%d)" % [props, arena.decor.glow_count()])
 	# odporność: tylko ciosy żywiołów
 	hero.element_res = 0.5
 	hero.protection = 0.0

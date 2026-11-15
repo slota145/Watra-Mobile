@@ -2,6 +2,21 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - wystrój lochów
+
+Decyzje autora: same ozdoby (bez kolizji), losowy układ przy każdym wejściu, proste poświaty zamiast świateł Godota.
+- `scripts/proto/proto_decor.gd` (`ProtoDecor`, tworzy arena w lochu): `DATA` - ozdoby każdego lochu (plik, waga, `frames`
+  - warianty albo klatki, `fps` - animacja, `flat` - leży pod postaciami, `light` i `glow` - poświata); `scatter`
+  rozrzuca COUNT=85 ozdób co najmniej 30 px od siebie, z wolnym kołem 70 px wokół startu postaci. Wysokie ozdoby stoją
+  w świecie sortowanym po Y (postać chowa się za kolumną), płaskie mają z_index -5. Poświata: wspólna miękka plama
+  (GradientTexture2D, mieszanie ADD, spłaszczona), lekko migocząca; animacje i migotanie w jednym `_process`.
+- Grafiki z Watry w `assets/watra/decor/<loch>/`: gobliny - sztandar, kości, głazy, ognisko (4 klatki), padlina, pnie,
+  kłody, garnki, tarcze, pale z czaszką, totem, ciernie, stojak z bronią; podziemia - misy z zielonym ogniem (2 klatki),
+  pałki wodne i trzciny (warianty), garnki, zatopione drzewo, sieć, lilie, omszałe kamienie, pień, dzbany dusz
+  (poświata), łódź, krzyż; Katakumby - kości, kandelabr, świece, trumna, zwłoki, kamienie, otwarty grób, kolumna,
+  żebra, sarkofag, czaszki, posąg, pochodnie (2 klatki).
+- Test w `tests/test_flooded.gd` (ozdoby, wolny start, poświaty), zrzuty `tools/decor_shots.gd`.
+
 ## 15.11.2026 - poprawka: okno wyboru kamienia nie mieści się na ekranie
 
 - Zgłoszenie autora: okno kamieni dla miecza za szerokie. Przyczyna: tytuł i podtytuł `GemPicker` („Kamienie

@@ -126,6 +126,8 @@ var stats_window: HeroStats
 ## Poziom lochu tej wyprawy (Game.dungeon_level) i jego rodzaj (Dungeons - od RANDOM_FROM losowany przy wejściu).
 var level := 1
 var climate := Dungeons.GOBLINS
+## Wystrój lochu (ozdoby i poświaty, ProtoDecor).
+var decor: ProtoDecor
 var chief: ProtoChief
 var chest: ProtoChest
 ## Etap wyprawy: horde (zbieranie żaru), boss (walka z Wodzem), loot (skrzynia), won (po zwycięstwie).
@@ -144,6 +146,11 @@ func _ready() -> void:
 	world.y_sort_enabled = true
 	add_child(world)
 
+	if horde:
+		decor = ProtoDecor.new()
+		decor.name = "Decor"
+		add_child(decor)
+		decor.scatter(world, climate, ARENA.grow(-24), Vector2(0, 40))
 	_make_hud()
 	hero = ProtoHero.new()
 	hero.name = "Hero"
