@@ -60,7 +60,7 @@ func _init() -> void:
 	base_hp = NECRO_HP
 	fallback_tint = Color(0.75, 0.55, 1.0)
 	keep_distance = KEEP_DISTANCE
-	anim_hit_at = {&"bolts": 0.45, &"ring": 0.5, &"summon": 0.6, &"drain": DRAIN_START}
+	anim_hit_at = {&"bolts": 0.3, &"ring": 0.35, &"summon": 0.35, &"drain": 0.26}
 	anim_fallback = {&"bolts": &"attack", &"ring": &"attack", &"drain": &"attack", &"summon": &"attack",
 		&"roar": &"idle", &"slam": &"attack", &"throw": &"attack"}
 
