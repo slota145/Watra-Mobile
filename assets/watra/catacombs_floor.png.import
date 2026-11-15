@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bswi16704ppv1"
-path="res://.godot/imported/swamp_shallow_src.png-b576f4f6c6f163a53baf609a96bcafd3.ctex"
+uid="uid://dbyhreyrf8ph6"
+path="res://.godot/imported/catacombs_floor.png-e49ffa20a8c83e1d1bdbf4dba77593c2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://tools/data/swamp_shallow_src.png"
-dest_files=["res://.godot/imported/swamp_shallow_src.png-b576f4f6c6f163a53baf609a96bcafd3.ctex"]
+source_file="res://assets/watra/catacombs_floor.png"
+dest_files=["res://.godot/imported/catacombs_floor.png-e49ffa20a8c83e1d1bdbf4dba77593c2.ctex"]
 
 [params]
 

@@ -7,6 +7,8 @@ extends Node2D
 ## Węzeł stoi w punkcie na ziemi pod strzałą, więc sortowanie po Y działa jak u postaci.
 ## Kula wody żabołaka (`water`): ta sama strzała z grafiką bańki hydrosfery (`hydro_bolt`, rozprysk `hydro_splash`),
 ## żywioł wody i przemoczenie postaci (spowolnienie SOAK_SLOW na SOAK_TIME s).
+## Inne pociski: `element` - żywioł (strzała Nawii szkieleta łucznika), `bubble` - grafika bańki (kule Nawii
+## Nekromanty), `tint` - barwa, `speed` / `fly_range` - prędkość i zasięg.
 
 ## Prędkość (Wojciech: 70 px/s) - strzała z odległości 120 px leci ok. 1 s, w tym czasie da się zejść z linii.
 const SPEED := 115.0
@@ -38,6 +40,11 @@ var direction := Vector2.RIGHT
 var damage := 8
 ## Kula wody zamiast strzały (żabołak).
 var water := false
+var element := Elements.PHYSICAL
+var bubble := false
+var tint := Color.WHITE
+var speed := SPEED
+var fly_range := RANGE
 
 var _flown := 0.0
 var _done := false
@@ -47,11 +54,15 @@ var _sprite: Sprite2D
 
 
 func _ready() -> void:
+	if water:
+		bubble = true
+		element = Elements.WATER
 	_sprite = Sprite2D.new()
-	_sprite.texture = WATER_FLY if water else FLY
-	_sprite.hframes = WATER_FLY_FRAMES if water else FLY_FRAMES
+	_sprite.texture = WATER_FLY if bubble else FLY
+	_sprite.hframes = WATER_FLY_FRAMES if bubble else FLY_FRAMES
 	_sprite.centered = false
-	_sprite.offset = -(WATER_FLY_ANCHOR if water else FLY_ANCHOR)
+	_sprite.offset = -(WATER_FLY_ANCHOR if bubble else FLY_ANCHOR)
+	_sprite.modulate = tint
 	_sprite.position = Vector2(0, -_height)
 	_sprite.rotation = direction.angle()
 	add_child(_sprite)
@@ -62,18 +73,16 @@ func _process(delta: float) -> void:
 	_sprite.frame = int(_time * FLY_FPS) % _sprite.hframes
 	if _done:
 		return
-	var step := SPEED * delta
+	var step := speed * delta
 	position += direction * step
 	_flown += step
 	if hero and not hero.dead and global_position.distance_to(hero.global_position) <= HIT_RADIUS:
+		hero.take_damage(damage, element)
 		if water:
-			hero.take_damage(damage, Elements.WATER)
 			hero.slow(SOAK_SLOW, SOAK_TIME, Elements.COLORS[Elements.WATER].lerp(Color.WHITE, 0.4))
-		else:
-			hero.take_damage(damage)
 		_finish(true)
 		return
-	if _flown >= RANGE:
+	if _flown >= fly_range:
 		_finish(false)
 
 
@@ -81,10 +90,12 @@ func _process(delta: float) -> void:
 func _finish(hit: bool) -> void:
 	_done = true
 	if hit:
-		if water:
-			Fx.once(get_parent(), WATER_HIT, WATER_HIT_FRAMES, 14.0, global_position + Vector2(0, -_height), WATER_HIT_ANCHOR, 20, 0.6)
+		var fx: Sprite2D
+		if bubble:
+			fx = Fx.once(get_parent(), WATER_HIT, WATER_HIT_FRAMES, 14.0, global_position + Vector2(0, -_height), WATER_HIT_ANCHOR, 20, 0.6)
 		else:
-			Fx.once(get_parent(), HIT, HIT_FRAMES, HIT_FPS, global_position + Vector2(0, -_height), HIT_ANCHOR)
+			fx = Fx.once(get_parent(), HIT, HIT_FRAMES, HIT_FPS, global_position + Vector2(0, -_height), HIT_ANCHOR)
+		fx.modulate = tint
 		queue_free()
 		return
 	var tween := create_tween()

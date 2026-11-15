@@ -94,6 +94,9 @@ func _strike() -> void:
 	arrow.direction = aim
 	arrow.damage = hit_damage()
 	arrow.water = element == Elements.WATER
+	arrow.element = element
+	if element == Elements.NAWIA:
+		arrow.tint = Elements.COLORS[Elements.NAWIA].lerp(Color.WHITE, 0.25)
 	arrow.position = position + aim * 6.0
 	get_parent().add_child(arrow)
 
