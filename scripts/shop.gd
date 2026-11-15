@@ -1,7 +1,7 @@
 class_name Shop
 ## Kupiec w bazie (ustalone z autorem 12.11.2026): towar w ograniczonej liczbie, odnawia się po każdym pokonanym
 ## bossie (`Game.restock_shop` przy zwycięstwie; pierwszy towar przy pierwszym otwarciu). Na półce: Klucz Runiczny,
-## Dłuto Jubilera, kamienie najniższego stopnia (Okruch) i kilka przedmiotów (magiczne albo rzadkie) z poziomu
+## Dłuto Jubilera, kamienie (umiejętności na 1. poziomie, szlachetne z premiami z poziomu lochu) i kilka przedmiotów (magiczne albo rzadkie) z poziomu
 ## najwyższego przebitego lochu. Oferta to słownik {"gem": identyfikator, "price"} albo {"item": przedmiot, "price"};
 ## kupiona znika z półki do następnej dostawy. Stan trzyma i zapisuje `Game.shop`, okno - `scripts/ui/shop_window.gd`.
 
@@ -24,7 +24,8 @@ static func stock(level: int) -> Array:
 	var kinds: Array = Gems.SUPPORT_ORDER + Gems.JEWEL_ORDER
 	kinds.shuffle()  # różne rodzaje kamieni
 	for i in GEMS:
-		offers.append({"gem": Gems.make(kinds[i], 0), "price": GEM_PRICE})
+		var gem: String = Gems.roll_jewel(kinds[i], level) if Gems.JEWELS.has(kinds[i]) else Gems.make(kinds[i])
+		offers.append({"gem": gem, "price": GEM_PRICE})
 	for i in ITEMS:
 		var item := Items.roll(level, "", "rare" if randf() < RARE_CHANCE else "magic")
 		offers.append({"item": item, "price": Items.sell_price(item) * ITEM_MARKUP})

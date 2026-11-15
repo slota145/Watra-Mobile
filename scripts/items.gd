@@ -313,8 +313,7 @@ static func totals(equipped: Dictionary) -> Dictionary:
 		for a in item.affixes:
 			t[a.stat] += float(a.value)
 		for id in item.get("sockets", []):
-			var gem := Gems.jewel_stat(id, item.slot)
-			if gem[0] != "":
+			for gem in Gems.jewel_stats(id):
 				t[gem[0]] += gem[1]
 	for stat in CAPS:
 		t[stat] = minf(t[stat], CAPS[stat])
@@ -347,7 +346,7 @@ static func socket_lines(item: Dictionary) -> Array[String]:
 		if id == "":
 			lines.append(Lang.t("Puste gniazdo"))
 		else:
-			lines.append(Lang.t("%s: %s") % [Gems.name_of(id), Gems.jewel_text(id, item.slot)])
+			lines.append(Lang.t("%s: %s") % [Gems.name_of(id), Gems.jewel_text(id)])
 	return lines
 
 
@@ -378,7 +377,7 @@ static func normalize(data) -> Dictionary:
 	var raw_sockets = data.get("sockets", [""])
 	if raw_sockets is Array:
 		for id in raw_sockets.slice(0, MAX_SOCKETS):
-			sockets.append(Gems.make(Gems.kind_of(id), Gems.grade_of(id)) if id is String and Gems.is_jewel(id) else "")
+			sockets.append(id if id is String and Gems.is_jewel(id) else "")
 	if sockets.is_empty():
 		sockets.append("")
 	var item := {"slot": data.slot, "tier": clampi(int(data.get("tier", 0)), 0, 4), "level": maxi(int(data.get("level", 1)), 1),

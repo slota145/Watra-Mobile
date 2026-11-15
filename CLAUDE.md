@@ -54,7 +54,8 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/skills.gd` - umiejętności broni (odblokowuje mistrzostwo, poziomy 1-10 za żar z nowym działaniem na 5. i 10.; odblokowane, miejsca i poziomy w `Game`, działanie w `proto_weapon.gd`, okno
   `scripts/ui/skills_window.gd` z polami `skill_slot.gd`, kamień run w bazie);
   `scripts/items.gd` - przedmioty (miejsca z kolczykiem z kłem zamiast broni, rzadkości, premie, łup, ceny; torba, założone i złoto w `Game`),
-  `scripts/gems.gd` - kamienie w umiejętnościach i przedmiotach (dane, łup, kamienie unikalne umiejętności - `Gems.UNIQUE`; sakwa i gniazda w `Game`, działanie w `proto_weapon.gd`
+  `scripts/gems.gd` - kamienie w umiejętnościach i przedmiotach (dane, łup, kamienie unikalne umiejętności - `Gems.UNIQUE`; bez stopni: umiejętności
+  ulepszane złotem i odpryskami do 10. poziomu, szlachetne z 2-5 losowymi premiami, sprzedaż i rozbijanie na odpryski; sakwa z filtrami, odpryski i gniazda w `Game`, działanie w `proto_weapon.gd`
   i `Items.totals`, pole `scripts/ui/gem_slot.gd`, zakładka „Kamienie” w oknie umiejętności, gniazda w opisie przedmiotu w „Postać”,
   wybór kamienia wysuwany od dołu `scripts/ui/gem_picker.gd` - „najpierw gniazdo” i „najpierw kamień”),
   `proto_loot.gd` - przedmiot na ziemi, `proto_stash.gd` - skrzynia w bazie (okno `scripts/ui/stash_window.gd`, pola z przeciąganiem `item_slot.gd`;

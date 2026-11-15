@@ -2,6 +2,39 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 15.11.2026 - kamienie bez stopni: ulepszanie, sprzedaż, odpryski, nowa sakwa
+
+Decyzje autora: kamienie bez stopni; kamienie umiejętności ulepsza się złotem i odpryskami (10 poziomów), szlachetne
+wypadają z 2-3 losowymi premiami jak jewele w PoE, a ulepszenie dokłada im kolejną (do 5); te same kamienie to osobne
+sztuki (na stosie w sakwie); premie z puli rodzaju, takie same w każdym miejscu przedmiotu; stare kamienie
+szlachetne ze stopniem po prostu znikają z zapisu („nieważne”).
+- `Gems` (`scripts/gems.gd`): identyfikatory - kamień umiejętności `"rodzaj:poziom"` (1-`MAX_LEVEL`=10, wypada na 1.),
+  szlachetny `"rodzaj:poziom lochu:cecha=wartość,…"` (`make_jewel`, `jewel_stats`, `jewel_level`); `level_of` (szlachetny -
+  liczba premii). Siła kamienia umiejętności płynnie między `values` [1. poziom, 10. poziom] (`support_value`, np. Żar
+  20% -> 115%, Mnożenie 40 -> 100, Szerokość 15 -> 55, Szron 15 -> 45, Piorun 20 -> 80, Pośpiech 10 -> 33,
+  Oszczędność 15 -> 45, Krwiopijca 2 -> 8; mana z ciosu `thrift_mana` 1 -> 4). Pule szlachetnych (`JEWELS.pool`):
+  rubin - obrażenia, zdrowie, odnowa, szansa i obrażenia krytyczne; szafir - mana, odnowa many, odnowienie,
+  doświadczenie, żar; szmaragd - szybkość ataku i ruchu, unik, zasięg zbierania, obszar; onyks - ochrona, zdrowie,
+  zdrowie za zabicie, odnowa, unik. Siła premii = premia przedmiotu z tego poziomu lochu x0,6 (`JEWEL_MULT`), 3 premie
+  w 35% (`JEWEL_THREE`). Ikona szlachetnego rośnie z liczbą premii (`<rodzaj>_<n>.png`).
+- Ulepszenie (`upgrade_cost`, `upgraded`): kamień umiejętności z poziomu L - 80 x 1,45^(L-1) zł (do 10) i 2,25 x L
+  odprysków (razem ok. 4900 zł i 100 odprysków do 10.); szlachetny - 3. premia 300 zł + 5, 4. - 900 + 10,
+  5. - 2000 + 20 (złoto +5% na poziom lochu kamienia). Sprzedaż (`sell_price`): umiejętności 15 zł + połowa włożonego
+  złota, szlachetny 10 zł za premię, unikalny 200; rozbicie (`shard_value`): 2 + połowa włożonych odprysków, unikalny 15.
+  Klucze i dłuta nie idą na sprzedaż (`can_sell`). Kamienie unikalne bez ulepszeń.
+- `Game`: `shards` (odpryski, w zapisie), `upgrade_gem` (sztuka z sakwy, kamień w gnieździe umiejętności albo
+  przedmiotu), `sell_gems` / `gems_value` (cały stos kilku kamieni naraz), `sell_gem` (jedna sztuka), `gem_list(filtr,
+  sortowanie "kind"/"level", przedział poziomu)`, `GEM_LEVEL_RANGES` (1-3, 4-7, 8-10); `dev_gems` daje też 100 odprysków.
+  Kupiec: kamienie umiejętności 1. poziomu i szlachetne z poziomu lochu (`Shop.stock`).
+- Sakwa (`HeroStats`, zakładka „Sakwa”): kamienie i odpryski u góry, rodzaj (Wszystkie / Umiejętności / Szlachetne),
+  „Sortuj: rodzaj/poziom”, „Poziom: wszystkie/1-3/4-7/8-10”; pole kamienia (`GemSlot`) - poziom w lewym górnym rogu,
+  kropki = premie szlachetnego, ptaszek przy zaznaczeniu. Nad zakładkami pasek „Zaznacz kilka” -> „Zaznacz widoczne”,
+  „Anuluj”, „Sprzedaj N: X zł”, „Rozbij N: Y odpr.” (drugie stuknięcie potwierdza).
+- `GemPicker`: kamień z sakwy - opis, „Ulepsz” (co da i koszt; okno zostaje otwarte z ulepszonym kamieniem),
+  „Sprzedaj” i „Rozbij” jednej sztuki (potwierdzenie); w gnieździe umiejętności i przedmiotu - „Ulepsz” w miejscu.
+- Testy: `tests/test_gems.gd` (`_test_upgrade_sell` i sakwa w oknie „Postać”), `test_base.gd` (kupiec), `test_items.gd`;
+  zrzuty `tools/gem_shots.gd` (`_2d_zaznaczanie`, `_2e_ulepsz`, `_2f_szlachetny`).
+
 ## 15.11.2026 - kamienie unikalne katany
 
 - Pomysły z ankiety (Riposta i Sąd Peruna - własne pomysły autora), `Gems.UNIQUE`, działanie w `ProtoKatana`:

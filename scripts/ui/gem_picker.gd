@@ -8,6 +8,8 @@ extends Control
 ##   umiejętności - kupione umiejętności, szlachetny - założone przedmioty i torba), przy każdym działanie i „Włóż”
 ##   (w pierwsze wolne gniazdo). Klucz Runiczny - umiejętności z zamkniętymi gniazdami („Otwórz”), Dłuto Jubilera -
 ##   przedmioty z jednym gniazdem („Dorób”); oba z potwierdzeniem drugim stuknięciem.
+## Kamień z sakwy ma też na górze „Ulepsz” (złoto + odpryski; okno zostaje otwarte z ulepszonym kamieniem),
+## „Sprzedaj” i „Rozbij” (jedna sztuka, potwierdzenie drugim stuknięciem); kamień w gnieździe - „Ulepsz” w miejscu.
 ## Każdy przycisk ma co najmniej 44 px, „Zamknij” na dole pod kciukiem. Po włożeniu okno zamyka się (sygnał `changed`).
 ## Stan trzyma i zapisuje Game. Działa przy zatrzymanej grze.
 
@@ -178,8 +180,7 @@ func _build_item_socket() -> void:
 	var current: String = item.sockets[index]
 	_current_row(current, Gems.jewel_text(current, item.slot) if current != "" else "")
 	var gems: Array = _game.gem_list("jewel")
-	sub_label.text = tr("Kamienie szlachetne z sakwy - co dadzą w tym miejscu (%s)") \
-			% Lang.t(Gems.GROUP_NAMES[Gems.SLOT_GROUPS[item.slot]])
+	sub_label.text = tr("Kamienie szlachetne z sakwy i ich premie")
 	if gems.is_empty():
 		_label(list, tr("Brak kamieni szlachetnych. Wypadają w lochach od poziomu %d.") % Gems.MIN_LEVEL, 12, DIM, true)
 	for id in gems:
@@ -200,6 +201,9 @@ func _current_row(current: String, effect: String) -> void:
 		var ok: bool = _game.unsocket_skill(skill, index) if mode == "skill_socket" else _game.unsocket_item(item, index)
 		if ok:
 			_done(PUT_SOUND))
+	_upgrade_row(current, func() -> String:
+		return _game.upgrade_gem(current, skill, {}, index) if mode == "skill_socket" \
+				else _game.upgrade_gem(current, "", item, index))
 	var sep := HSeparator.new()
 	list.add_child(sep)
 
@@ -210,12 +214,18 @@ func _build_gem() -> void:
 	title_label.text = Gems.name_of(gem)
 	title_label.add_theme_color_override("font_color", Gems.color_of(gem))
 	sub_label.text = Gems.kind_line(gem) + "  ·  " + tr("Sztuk: %d") % _game.gem_count(gem)
+	if Gems.can_sell(gem):
+		for line in Gems.description(gem):
+			_label(list, line, 12, TEXT, true)
+		_upgrade_row(gem, func() -> String: return _game.upgrade_gem(gem))
+		_sell_row(false)
+		_sell_row(true)
+		list.add_child(HSeparator.new())
 	if gem == Gems.KEY:
 		_build_key()
 	elif gem == Gems.CHISEL:
 		_build_chisel()
 	elif Gems.is_support(gem):
-		_label(list, Gems.description(gem)[0], 12, TEXT, true)
 		_label(list, tr("Gdzie włożyć:"), 12, GOLD)
 		var any := false
 		for id in Skills.ORDER:
@@ -235,8 +245,6 @@ func _build_gem() -> void:
 		if not any:
 			_label(list, tr("Najpierw kup umiejętność przy kamieniu run w bazie."), 12, DIM, true)
 	else:
-		for line in Gems.jewel_lines(gem):
-			_label(list, line, 12, TEXT, true)
 		_label(list, tr("Gdzie włożyć:"), 12, GOLD)
 		_item_rows(func(it: Dictionary) -> String: return "" if _game.free_item_socket(it) >= 0 \
 				else tr("Brak wolnego gniazda (dorabia je Dłuto Jubilera)."),
@@ -303,6 +311,65 @@ func _item_rows(reason_of: Callable, effect_of: Callable, action_text: String, a
 				_done(sound))
 
 
+# --- ulepszanie, sprzedaż, rozbijanie ---
+
+## Wiersz „Ulepsz”: co da ulepszenie i koszt; `act` ulepsza i zwraca nowy identyfikator. Okno zostaje otwarte:
+## w trybie kamienia pokazuje ulepszony kamień, w gnieździe - gniazdo z nim.
+func _upgrade_row(id: String, act: Callable) -> void:
+	if not Gems.is_support(id) and not Gems.is_jewel(id) or Gems.is_unique(id):
+		return
+	var cost := Gems.upgrade_cost(id)
+	var effect := ""
+	var reason := ""
+	if not Gems.can_upgrade(id):
+		effect = tr("Najwyższy poziom.") if Gems.is_support(id) else tr("Ma już wszystkie premie.")
+	else:
+		if Gems.is_support(id):
+			var next := Gems.make(Gems.kind_of(id), Gems.level_of(id) + 1)
+			effect = tr("Poziom %d -> %d: %s") % [Gems.level_of(id), Gems.level_of(next), Gems.short_text(next, skill)]
+		else:
+			effect = tr("Dokłada losową premię (%d -> %d).") % [Gems.level_of(id), Gems.level_of(id) + 1]
+		effect += "\n" + tr("Koszt: %d zł i %d odprysków (masz %d zł i %d).") % [cost.x, cost.y, _game.gold, _game.shards]
+		if not _game.can_afford_upgrade(id):
+			reason = tr("Za mało złota.") if _game.gold < cost.x else tr("Za mało odprysków - rozbij niepotrzebne kamienie.")
+	var b := _row("upgrade", Gems.icon_of(id), tr("Ulepsz"), GOLD, effect, reason, tr("Ulepsz"))
+	b.disabled = reason != "" or not Gems.can_upgrade(id)
+	b.pressed.connect(func() -> void:
+		var new_id: String = act.call()
+		if new_id == "":
+			return
+		_play(GEM_SOUND)
+		if mode == "gem":
+			gem = new_id
+		armed = ""
+		changed.emit()
+		_build())
+
+
+## Wiersz „Sprzedaj” (`shatter` false) albo „Rozbij”: jedna sztuka, potwierdzenie drugim stuknięciem.
+func _sell_row(shatter: bool) -> void:
+	var key := "shatter" if shatter else "sell"
+	var effect := tr("+%d odprysków (ulepszają kamienie)") % Gems.shard_value(gem) if shatter \
+			else tr("+%d zł") % Gems.sell_price(gem)
+	var title := tr("Rozbij sztukę") if shatter else tr("Sprzedaj sztukę")
+	var b := _row(key, Gems.icon_of(gem), title, Gems.color_of(gem), effect, "",
+			tr("Na pewno?") if armed == key else (tr("Rozbij") if shatter else tr("Sprzedaj")))
+	b.pressed.connect(func() -> void:
+		if armed != key:
+			armed = key
+			_build()
+			return
+		if _game.sell_gem(gem, shatter) == Vector2i.ZERO:
+			return
+		armed = ""
+		if _game.gem_count(gem) > 0:
+			_play(GEM_SOUND)
+			changed.emit()
+			_build()
+		else:
+			_done(GEM_SOUND))
+
+
 # --- wiersze ---
 
 ## Wiersz: ikona, nazwa w kolorze, opis działania, powód (czerwony - wtedy wiersz przygaszony) i przycisk akcji.
@@ -350,14 +417,18 @@ func _row(key: String, icon: Texture2D, title: String, color: Color, effect: Str
 
 
 func _done(sound: AudioStream) -> void:
+	_play(sound)
+	changed.emit()
+	close()
+
+
+func _play(sound: AudioStream) -> void:
 	var audio := AudioStreamPlayer.new()
 	audio.stream = sound
 	audio.volume_db = -8.0
 	get_parent().add_child(audio)
 	audio.play()
 	audio.finished.connect(audio.queue_free)
-	changed.emit()
-	close()
 
 
 func _label(parent: Control, text: String, font_size: int, color: Color, wrap := false) -> Label:

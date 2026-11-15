@@ -4,7 +4,9 @@ extends Button
 ## `area` - "pouch" (kamień w sakwie, w rogu liczba sztuk) albo "socket" (gniazdo umiejętności lub przedmiotu,
 ## `index` - które). Stuknięcie - sygnał `pressed`. Przeciągnięcie palcem kamienia z sakwy na gniazdo - sygnał
 ## `dropped` na gnieździe; przeciągnięcie z gniazda na sakwę - `dropped` na polu sakwy (wyjęcie). Zamknięte
-## gniazdo (`locked`) pokazuje kłódkę z kluczem i nic na nie nie wpada. Stopień kamienia (1-5) - kropki u dołu ikony.
+## gniazdo (`locked`) pokazuje kłódkę z kluczem i nic na nie nie wpada. Poziom kamienia umiejętności - liczba w lewym
+## górnym rogu, liczba premii kamienia szlachetnego - kropki u dołu ikony. `marked` - zaznaczony do sprzedaży lub
+## rozbicia (sakwa w trybie „Zaznacz kilka”: ptaszek w rogu, złota ramka).
 
 ## Na to pole upuszczono kamień `gem` przeciągnięty z pola `from_area` / `from_index`.
 signal dropped(gem: String, from_area: String, from_index: int)
@@ -19,10 +21,12 @@ var index := 0
 var gem := ""
 var count := 0
 var locked := false
+var marked := false
 var _styles := {}
 var _count_label: Label
+var _level_label: Label
 var _socket: TextureRect
-## Kropki stopnia kamienia (rysowane w kodzie).
+## Kropki premii kamienia szlachetnego i ptaszek zaznaczenia (rysowane w kodzie).
 var _pips: Control
 
 
@@ -60,6 +64,16 @@ func _init(size_px := 44.0) -> void:
 	_count_label.offset_bottom = 1
 	_count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_count_label)
+	_level_label = Label.new()
+	_level_label.add_theme_font_size_override("font_size", 10)
+	_level_label.add_theme_color_override("font_color", GOLD)
+	_level_label.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.03))
+	_level_label.add_theme_constant_override("outline_size", 3)
+	_level_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_level_label.offset_left = 4
+	_level_label.offset_top = -1
+	_level_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_level_label)
 	_pips = Control.new()
 	_pips.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_pips.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -67,11 +81,15 @@ func _init(size_px := 44.0) -> void:
 	add_child(_pips)
 
 
-## Pokazuje kamień (albo puste / zamknięte gniazdo). `selected` - złota ramka.
-func show_gem(id: String, amount := 0, selected := false, is_locked := false) -> void:
+## Pokazuje kamień (albo puste / zamknięte gniazdo). `selected` - złota ramka, `is_marked` - zaznaczony (ptaszek).
+func show_gem(id: String, amount := 0, selected := false, is_locked := false, is_marked := false) -> void:
 	gem = id
 	count = amount
 	locked = is_locked
+	marked = is_marked
+	selected = selected or marked
+	_level_label.text = str(Gems.level_of(id)) if id != "" and not locked and Gems.is_support(id) \
+			and not Gems.is_unique(id) else ""
 	icon = KEY_ICON if locked else (Gems.icon_of(id) if id != "" else null)
 	modulate = Color(1, 1, 1, 0.45) if locked else Color.WHITE
 	_socket.visible = area == "socket" and not locked
@@ -83,11 +101,17 @@ func show_gem(id: String, amount := 0, selected := false, is_locked := false) ->
 		st.set_border_width_all(3 if selected else 2)
 
 
-## Kropki stopnia (1-5) u dołu pola, w kolorze kamienia z ciemną obwódką.
+## Kropki liczby premii kamienia szlachetnego u dołu pola, w kolorze kamienia z ciemną obwódką; ptaszek zaznaczenia.
 func _draw_pips() -> void:
-	if gem == "" or locked or Gems.is_special(gem):
+	if marked:
+		var r := Vector2(_pips.size.x - 9.0, 9.0)
+		_pips.draw_circle(r, 6.5, Color(0.08, 0.04, 0.02))
+		_pips.draw_circle(r, 5.0, GOLD)
+		_pips.draw_polyline(PackedVector2Array([r + Vector2(-3, 0), r + Vector2(-1, 2.5), r + Vector2(3, -2.5)]),
+				Color(0.1, 0.05, 0.03), 1.6)
+	if gem == "" or locked or not Gems.is_jewel(gem):
 		return
-	var n := Gems.grade_of(gem) + 1
+	var n := Gems.level_of(gem)
 	var step := 4.0
 	var y := _pips.size.y - 5.0
 	var x0 := _pips.size.x / 2.0 - (n - 1) * step / 2.0
