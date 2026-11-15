@@ -399,11 +399,20 @@ func _test_windows(game: Node) -> void:
 			and not (pouch[3] is GemSlot) and pouch[4].gem == Gems.unique_of("throw"),
 			"sakwa: tylko unikalny tej umiejętności, za kreską „Unikalny”")
 	game.gems.erase(Gems.unique_of("throw"))
-	game.gems.erase(Gems.unique_of("whirl"))
 	win.refresh()
 	# najpierw gniazdo: lista pasujących kamieni z działaniem w tej umiejętności
 	win.socket_slots[0].pressed.emit()
 	var picker: GemPicker = win.picker
+	_check(not picker.actions.has(Gems.unique_of("whirl")), "kamień unikalny innej umiejętności ukryty w liście gniazda")
+	picker.close()
+	picker.open_gem(Gems.unique_of("whirl"))
+	_check(picker.actions.has("whirl") and not picker.actions.has("throw"), "kamień unikalny z sakwy: tylko jego umiejętność")
+	picker.close()
+	game.gems.erase(Gems.unique_of("whirl"))
+	win.refresh()
+	win.socket_slots[0].pressed.emit()
+	await process_frame
+	await process_frame
 	_check(picker.visible and picker.actions.has("ember:1") and picker.actions.has("rime:1") and not picker.actions.has(Gems.KEY),
 			"gniazdo: tylko pasujące kamienie")
 	var effect_shown := false

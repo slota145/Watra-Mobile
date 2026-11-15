@@ -7,7 +7,8 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - Zgłoszenie autora: okno kamieni dla miecza za szerokie. Przyczyna: tytuł i podtytuł `GemPicker` („Kamienie
   umiejętności z sakwy - co zrobią w: Rozłupanie Ziemi”) nie zawijały się, więc długa nazwa umiejętności rozpychała
   okno (351 px przy 344 px miejsca). Teraz oba się zawijają. Przy cudzych kamieniach unikalnych napis „Pasuje tylko
-  do: …” był dwa razy (opis i powód) - zostaje sam powód.
+  do: …” był dwa razy. Decyzja autora: kamienie unikalne innych umiejętności są w ogóle ukryte - w liście gniazda
+  i w „Gdzie włożyć” kamienia unikalnego z sakwy (tylko jego umiejętność).
 
 ## 15.11.2026 - trzeci loch: Katakumby, Nekromanta
 
