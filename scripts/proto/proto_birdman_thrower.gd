@@ -8,9 +8,11 @@ extends ProtoGoblinArcher
 const THROWER_SCENE := "res://assets/spritekiln/birdman_thrower/birdman_thrower.tscn"
 const THROWER_HP := 32
 const JAVELIN_DAMAGE := 12
+## Wolniej niż goblin łucznik (krok animacji jest krótki - przy szybszym marszu stopy się ślizgają).
+const THROWER_SPEED := 32.0
 ## Rzut w animacji `attack` pada tyle sekund po jej początku (zdarzenie `release`) - animacja rusza tak, żeby
-## rzut zgrał się z RELEASE_TIME (linia celu); ustawiane po eksporcie modelu.
-var throw_at := RELEASE_TIME
+## rzut zgrał się z RELEASE_TIME (linia celu).
+var throw_at := 0.45
 var _throw_started := false
 
 
@@ -18,6 +20,7 @@ func _init() -> void:
 	super()
 	scene_path = THROWER_SCENE
 	max_hp = THROWER_HP
+	speed = THROWER_SPEED
 	damage = JAVELIN_DAMAGE
 	squeaks = false
 	fallback_color = Color(0.8, 0.8, 0.82)

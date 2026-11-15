@@ -1,0 +1,406 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: birdman
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.80, 0]}
+palette: "watra"
+size: 64          # the spear thrust in e/w reaches about 30 px from the body: 48 would clip it
+extends: humanoid   # its skeleton, IK and smear; here only what differs (sword, head and hair kits removed)
+
+# Ptakoczłek wojownik (birdman): the basic melee enemy of the "Górskie równiny" (mountain plains) dungeon.
+# Reference: docs/referencje/turnie/birdman.png (Watra's sprite, 6x). A hawk-headed bird-man, about 33 px
+# tall (the human is 36 px, same camera.scale), a little hunched, brown and rust feathers, a cream speckled
+# chest, wing-arms with feather fringes, scaly yellow bird legs with talons, a leather loincloth and strap,
+# a wooden spear with an iron head in the right hand.
+brief:
+  summary: >
+    hawk-headed bird-man warrior of the mountain plains (Watra's birdman): about 33 px tall, slightly hunched,
+    dark brown feathered body with a rust feather ruff round the neck and shoulders, a cream chest with dark
+    speckles, wing-arms (feathered arms with a fringe of long feathers hanging behind the forearms), feathered
+    thighs over thin scaly yellow shins and taloned feet, a short tail fan, a leather loincloth on a belt and a
+    strap across the chest, a wooden spear with an iron leaf head (and a rust feather tuft) in the right fist
+  head: >
+    own hawk head (head kit removed): a round brown skull, a big hooked yellow-orange beak (upper bill curving
+    down over a short lower bill), a dark brow ridge over each sharp amber eye (emissive, 1-2 px, on the sides
+    of the head so they show in s, the diagonals and e/w), a cream cheek patch, three rust crest feathers
+    swept back from the crown; face minimal (style): eyes and the beak only
+  must_keep:
+    - the hooked yellow beak and the spear: the read in a crowd (no goblin or skeleton has either)
+    - warm brown/rust feathers against the cream chest, yellow legs and beak
+    - the wing fringes on the arms (they spread in the leap)
+  simplify:
+    - feathers are a few flat vanes and tubes, the speckles paint dots; scales are not modelled (a ramp only)
+    - hands are small yellow knobs with no fingers
+  decisions:
+    - the reference's grey-blue shadows on the body become plain darker brown (one warm ramp reads better at 33 px)
+    - eyes are lit amber in every direction except ne, n, nw (on the side of the head, behind it there)
+    - the spear has an iron leaf head (the kit's) with a rust feather tuft below it (tribal, birdlike touch)
+    - leap is in place - the crouch, take-off (jump) with the wings spread wide and the body lifted a little,
+      the spread glide and a landing crouch; the game moves the body
+
+ramps:
+  # dark warm brown feathers
+  feather:  ["#100907", "#2e1a12", "#4e2c1c", "#70412a", "#93603a", "#b07f4e"]
+  # rust-red feathers of the ruff, crest and fringes
+  rust:     ["#140604", "#4e160a", "#822a12", "#b0401c", "#d4622c", "#e88a48"]
+  # cream chest and cheek
+  cream:    ["#1a120a", "#6a5238", "#a28a68", "#cbb48c", "#e6d6b0", "#f4ecd4"]
+  # yellow-orange beak and scaly legs
+  beak:     ["#1a0e04", "#6a380c", "#b0641a", "#de9a2a", "#f2c254", "#f8e29a"]
+  # dark talons and beak tip
+  talon:    ["#0b0909", "#262220", "#423c38", "#625a54", "#857c74"]
+  # sharp amber eye
+  hawk_eye: ["#3a1a04", "#ff9a1a", "#ffd040", "#fff4b0"]
+  # the thrust's smear: pale wind-white with a warm tail
+  fx_tail:  ["#a8865a"]
+  fx_mid:   ["#efe2c4"]
+  fx_core:  ["#ffffff"]
+
+materials:
+  feather: {ramp: feather, finish: matte, gamma: 0.9}
+  rust:    {ramp: rust, finish: matte}
+  cream:   {ramp: cream, finish: soft}
+  beak:    {ramp: beak, finish: soft}
+  talon:   {ramp: talon, finish: soft}
+  leather: {ramp: leather, finish: soft, bands: [1, 4]}
+  eye:     {ramp: hawk_eye, emissive: true, band: 2, outline: false, glow: {color: "#ffb030", mix: 0.2, radius: 1}}
+  speck:   {ramp: feather, bands: [1, 2], line: false}
+
+remove: [use.hair, use.sword, use.head]
+
+use:
+  - {kit: spear, as: spear, at: wrist_R, with: {length: 0.94, butt: 0.38, head: 0.22, width: 0.095, pitch: spear_pitch}}
+
+shadow: {rx: 9, ry: 3.2, alpha: 120}
+
+channels:
+  lean: 0
+  hand_L: [0.24, 0.05, 0.08]
+  hand_R: [0.25, 0.08, 0.14]
+  foot_L: [0.11, 0, 0.02]
+  spear_pitch: 0     # the spear leans forward (+) from upright
+  wing: 0            # the wing fringes swing out (+) / in
+  crest: 0           # the crest feathers lift (+)
+  tail: 0            # the tail fan lifts (+)
+  eyes_lit: 1
+  neck: 0           # the head thrusts forward (+) / pulls back: the pigeon bob of the strut
+  scatter: 0        # 0..1: loose feathers fly up and settle on the ground (death)
+  smear_y: 0
+  smear_z: 0
+  smear_r: 0.5
+
+bones:
+  # hip height 0.86 (human 0.84, long bird legs); +0.16 is the permanent forward hunch
+  torso_rot: {parent: root, pos: "[0, 0.86 + bob, 0]", rot: "[lean + 0.16, twist, roll]"}
+  headbase:  {parent: pelvis, pos: "[0, 0.52, 0.08 + neck]", inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5 + 0.05, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch - 0.12, head_yaw, 0]", scale: 1.45}
+  crestbone: {parent: head, pos: [0, 0.20, -0.07], rot: "[0.35 - crest*0.6, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.19, 0.42, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.09, -0.02, 0.0]}
+  # the fringe hangs behind the forearm; with the wings spread (wing > 0.5) it turns down under the arm and grows
+  wingfan_L:  {parent: wrist_L, rot: "[wing*0.3, 0, -2.6*pos(wing - 0.4)]", scale: "[1, 1 + 0.9*pos(wing - 0.4), 1 + 0.5*pos(wing - 0.4)]"}
+  tailbone:   {parent: pelvis, pos: [0, 0.02, -0.12], rot: "[-tail*0.5, 0, 0]"}
+  coatbase:   {parent: pelvis, rot: "[-coat*0.25 - 0.16, 0, 0]"}
+  # the thrust smear: a short horizontal arc at chest height in front
+  fxspace:    {parent: root, pos: [0, 1.05, 0.10], rot: "[0, twist*0.3, 0]"}
+
+ik:
+  arm_L: {lengths: [0.25, 0.24], pole: [0.4, 0.0, -1.0]}
+  leg_L: {lengths: [0.45, 0.43], pole: [0.1, 0, 1.0]}
+
+parts:
+  torso:             # a barrel chest, narrow waist, round feathered shoulders
+    material: feather
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, -0.01], r: [0.15, 0.12, 0.13]}
+      - ellipsoid: {c: [0, 0.25, 0.03], r: [0.17, 0.15, 0.15]}
+      - ellipsoid: {c: [0, 0.40, 0.0], r: [0.20, 0.11, 0.13]}
+    paint:
+      - material: cream         # the cream chest
+        prims:
+          - ellipsoid: {c: [0, 0.22, 0.15], r: [0.12, 0.17, 0.10]}
+      - material: speck         # dark speckles on the chest
+        prims:
+          - sphere: {c: [0.05, 0.30, 0.17], r: 0.026}
+          - sphere: {c: [-0.04, 0.22, 0.18], r: 0.026}
+          - sphere: {c: [0.03, 0.15, 0.16], r: 0.026}
+          - sphere: {c: [-0.06, 0.33, 0.15], r: 0.02}
+  ruff:              # rust feather ruff round the neck and over the shoulders
+    material: rust
+    space: pelvis
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.46, -0.02], r: [0.17, 0.09, 0.14]}
+      - cone: {a: [0, 0.44, 0.0], b: [0, 0.56, 0.06], r: [0.12, 0.08]}
+    cut:
+      - ellipsoid: {c: [0, 0.38, 0.17], r: [0.08, 0.08, 0.06]}
+  strap:             # leather strap from the left shoulder across the chest to the right hip
+    material: leather
+    space: pelvis
+    priority: 2
+    line: false
+    prims:
+      - tube: {pts: [[0.13, 0.44, 0.10], [0.0, 0.26, 0.19], [-0.13, 0.08, 0.15]], r: 0.026}
+      - tube: {pts: [[0.13, 0.44, -0.10], [0.0, 0.26, -0.17], [-0.13, 0.08, -0.13]], r: 0.026}
+  belt:
+    material: leather
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, -0.02, 0], b: [0, 0.035, 0], r: 0.155}
+  coat:              # loincloth: a front and a back leather flap
+    material: leather
+    space: coatbase
+    blend: 0.02
+    prims:
+      - box: {c: [0, -0.12, 0.13], half: [0.08, 0.12, 0.02], round: 0.015}
+      - box: {c: [0, -0.10, -0.13], half: [0.09, 0.10, 0.02], round: 0.015}
+  tail:              # a short fan of tail feathers behind the loincloth
+    material: feather
+    space: tailbone
+    blend: 0.01
+    prims:
+      - ellipsoid: {c: [0, -0.12, -0.08], r: [0.04, 0.13, 0.025], rot: [-0.6, 0, 0]}
+      - ellipsoid: {c: [0.06, -0.11, -0.07], r: [0.035, 0.12, 0.022], rot: [-0.6, 0, -0.35]}
+      - ellipsoid: {c: [-0.06, -0.11, -0.07], r: [0.035, 0.12, 0.022], rot: [-0.6, 0, 0.35]}
+  neck: {when: "0"}
+  # --- the hawk head ---
+  skull:
+    material: feather
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.13, 0.0], r: [0.115, 0.115, 0.125]}
+      - ellipsoid: {c: [0, 0.07, 0.03], r: [0.09, 0.07, 0.09]}
+    paint:
+      - material: cream          # cream cheeks and throat
+        prims:
+          - ellipsoid: {c: [0, 0.02, 0.07], r: [0.10, 0.06, 0.07]}
+      - material: speck          # dark eye mask: a stripe from the beak through the eye to the nape
+        prims:
+          - box: {c: [0, 0.165, 0.02], half: [0.2, 0.03, 0.10], rot: [-0.25, 0, 0]}
+  beak:              # the hooked upper bill
+    material: beak
+    space: head
+    priority: 2
+    min_cover: 3
+    prims:
+      - tube: {pts: [[0, 0.15, 0.07], [0, 0.145, 0.17], [0, 0.11, 0.235], [0, 0.04, 0.25]], r: [0.062, 0.016]}
+  beak_low:          # the short lower bill
+    material: beak
+    space: head
+    prims:
+      - cone: {a: [0, 0.07, 0.10], b: [0, 0.07, 0.18], r: [0.035, 0.014]}
+  beak_tip:          # the dark hook at the tip
+    material: talon
+    space: head
+    priority: 3
+    line: false
+    prims:
+      - sphere: {c: [0, 0.045, 0.247], r: 0.02}
+  eye_L:             # a sharp amber eye on the side of the head, in the dark mask
+    material: eye
+    space: head
+    when: "eyes_lit > 0.5"
+    min_cover: 2
+    prims:
+      - extrude: {c: "[0.106 - 0.07*(abs(yaw) > 110), 0.165, 0.03]", rot: [0, 0.9, 0], depth: 0.045, profile: {rect: [0.026, 0.022], round: 0.006}}
+  socket_L:          # dark rim round the eye, so the amber reads against the feathers
+    material: talon
+    space: head
+    line: false
+    when: "abs(yaw) < 110"
+    prims:
+      - extrude: {c: [0.098, 0.165, 0.03], rot: [0, 0.9, 0], depth: 0.04, profile: {rect: [0.042, 0.036], round: 0.01}}
+  crest:             # three rust crest feathers swept back from the crown
+    material: rust
+    space: crestbone
+    blend: 0.01
+    prims:
+      - tube: {pts: [[0, 0.0, 0.0], [0, 0.03, -0.10], [0, 0.0, -0.20]], r: [0.04, 0.012]}
+      - tube: {pts: [[0.04, -0.03, -0.02], [0.06, -0.03, -0.10], [0.06, -0.08, -0.16]], r: [0.03, 0.01]}
+      - tube: {pts: [[-0.04, -0.03, -0.02], [-0.06, -0.03, -0.10], [-0.06, -0.08, -0.16]], r: [0.03, 0.01]}
+  # --- wing-arms ---
+  arm_L:
+    material: feather
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.075}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.068, 0.05]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.05, 0.04]}
+  fringe_L:          # long rust feathers hanging behind the forearm (the wing)
+    material: rust
+    space: wingfan_L
+    blend: 0.015
+    prims:
+      - ellipsoid: {c: [0, -0.07, -0.12], r: [0.026, 0.08, 0.16], rot: [0.2, 0, 0]}
+      - ellipsoid: {c: [0, -0.10, 0.0], r: [0.024, 0.09, 0.10], rot: [-0.3, 0, 0]}
+      - ellipsoid: {c: [0, -0.04, 0.06], r: [0.022, 0.06, 0.08], rot: [-0.6, 0, 0]}
+  hand_L:
+    material: beak
+    space: wrist_L
+    prims:
+      - ellipsoid: {c: [0, 0, 0.03], r: [0.045, 0.04, 0.05]}
+  # --- bird legs ---
+  leg_L:
+    material: beak
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.085, 0.06]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.034, 0.03]}
+    paint:
+      - material: feather       # feathered thighs ("trousers") down past the knee
+        prims:
+          - box: {c: [0, 0.58, 0], half: [1.0, 0.26, 1.0]}
+  boot_L:            # taloned bird foot: three toes forward, one back, dark claws
+    material: beak
+    space: sole_L
+    blend: 0.02
+    prims:
+      - sphere: {c: [0, 0.0, 0], r: 0.04}
+      - cone: {a: [0, -0.02, 0.0], b: [0, -0.04, 0.12], r: [0.026, 0.018]}
+      - cone: {a: [0.02, -0.02, 0.0], b: [0.07, -0.04, 0.10], r: [0.022, 0.016]}
+      - cone: {a: [-0.02, -0.02, 0.0], b: [-0.07, -0.04, 0.10], r: [0.022, 0.016]}
+      - cone: {a: [0, -0.02, 0.0], b: [0, -0.04, -0.07], r: [0.022, 0.015]}
+  claws_L:
+    material: talon
+    space: sole_L
+    priority: 2
+    line: false
+    prims:
+      - cone: {a: [0, -0.04, 0.12], b: [0, -0.06, 0.155], r: [0.016, 0.005]}
+      - cone: {a: [0.07, -0.04, 0.10], b: [0.085, -0.06, 0.13], r: [0.014, 0.005]}
+      - cone: {a: [-0.07, -0.04, 0.10], b: [-0.085, -0.06, 0.13], r: [0.014, 0.005]}
+  x_feather_a:       # loose feathers of the death (hidden until scatter > 0)
+    material: rust
+    space: root
+    when: "scatter > 0.04"
+    prims:
+      - ellipsoid: {c: "[0.10 + 0.30*scatter, 0.95 + 0.30*scatter - 1.20*scatter*scatter, 0.05 + 0.10*scatter]", r: [0.022, 0.06, 0.022], rot: "[0.8, 0, 3.0*scatter]"}
+      - ellipsoid: {c: "[-0.12 - 0.32*scatter, 1.00 + 0.40*scatter - 1.33*scatter*scatter, -0.05 + 0.15*scatter]", r: [0.022, 0.055, 0.022], rot: "[0.5, 0, -2.5*scatter]"}
+  x_feather_b:
+    material: feather
+    space: root
+    when: "scatter > 0.04"
+    prims:
+      - ellipsoid: {c: "[0.02 + 0.10*scatter, 1.10 + 0.50*scatter - 1.55*scatter*scatter, 0.10 + 0.32*scatter]", r: [0.022, 0.06, 0.022], rot: "[1.0, 0, 2.0*scatter]"}
+      - ellipsoid: {c: "[-0.05 - 0.15*scatter, 0.90 + 0.35*scatter - 1.20*scatter*scatter, -0.10 - 0.30*scatter]", r: [0.022, 0.055, 0.022], rot: "[0.6, 0, -3.0*scatter]"}
+  spear_tuft:        # a rust feather tuft tied under the spearhead
+    material: rust
+    space: spear_shaft
+    prims:
+      - ellipsoid: {c: [0.03, 0.66, 0.0], r: [0.02, 0.07, 0.02], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [-0.02, 0.66, 0.02], r: [0.02, 0.065, 0.02], rot: [0.2, 0, -0.2]}
+
+animations:
+  idle:
+    frames: 6
+    ms: 160
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.06*sin(p - 0.5)"
+      head_yaw: "0.12*sin(p)"
+      crest: "0.3*sin(p - 1.0)"
+      wing: "0.2*sin(p - 1.2)"
+      tail: "0.2*sin(p - 0.8)"
+      hand_L: "[0.24, 0.05 + 0.02*sin(p - 0.6), 0.08]"
+      hand_R: "[0.25, 0.08 + 0.015*sin(p - 0.9), 0.14]"
+  # bird strut: high steps with the toes lifted, the head pumping forward and back (pigeon bob), the body
+  # rocking, the wing-arms swinging a little, the spear arm steadier
+  walk:
+    frames: 8
+    ms: 110
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.06
+      bob: "-0.03*cos(2*p) + 0.01"
+      squash: "1 - 0.02*cos(2*p)"
+      roll: "0.06*sin(p)"
+      twist: "0.08*cos(p)"
+      neck: "0.04*sin(2*p)"
+      head_pitch: "0.06*cos(2*p - 0.6)"
+      crest: "0.3*sin(2*p - 1.2)"
+      tail: "0.3*sin(2*p - 1.0)"
+      wing: "0.25*sin(p - 0.8)"
+      foot_L: "[0.11, 0.10*pos(-sin(p)), 0.02 + 0.16*cos(p)]"
+      foot_R: "[0.11, 0.10*pos(sin(p)), 0.02 - 0.16*cos(p)]"
+      pitch_foot_L: "0.5*pos(-sin(p))"
+      pitch_foot_R: "0.5*pos(sin(p))"
+      hand_L: "[0.24, 0.05 + 0.02*pos(-cos(p)), 0.08 - 0.10*cos(p)]"
+      hand_R: "[0.25, 0.08, 0.14 + 0.05*cos(p)]"
+      coat: "0.35*sin(2*p - 0.8)"
+  # spear thrust: the spear levelled and drawn back (held), one fast lunge, hit on the fully extended frame,
+  # a short hold and the recovery. Total 600 ms, hit at 300 ms.
+  attack:
+    loop: false
+    keys:
+      - {ms: 90, event: windup, set: {twist: -0.3, lean: -0.05, bob: -0.02, squash: 0.98, spear_pitch: 1.0, crest: 0.6, wing: -0.2,
+          neck: -0.03, hand_R: [0.24, 0.22, -0.06], hand_L: [0.26, 0.12, 0.20]}}
+      - {ms: 160, set: {twist: -0.5, lean: -0.10, bob: -0.04, squash: 0.95, spear_pitch: 1.1, crest: 0.9, wing: -0.3, tail: 0.4,
+          neck: -0.05, hand_R: [0.24, 0.24, -0.18], hand_L: [0.28, 0.14, 0.24],
+          foot_L: [0.11, 0, 0.12], foot_R: [0.11, 0, -0.10]}}
+      - {ms: 50, set: {root: [0, 0, 0.04], twist: 0.25, lean: 0.20, bob: -0.02, squash: 1.04, spear_pitch: 1.0, crest: 0.2, wing: 0.4, tail: -0.2,
+          neck: 0.04, hand_R: [0.06, 0.24, 0.42], hand_L: [0.30, 0.10, -0.10],
+          foot_L: [0.11, 0, 0.22], foot_R: [0.11, 0, -0.10]}}
+      - {ms: 80, event: hit, set: {root: [0, 0, 0.06], twist: 0.40, lean: 0.26, bob: -0.04, squash: 1.0, spear_pitch: 1.0, crest: -0.2, wing: 0.6, tail: -0.3,
+          neck: 0.05, hand_R: [0.0, 0.24, 0.48], hand_L: [0.32, 0.10, -0.16],
+          foot_L: [0.11, 0, 0.24], foot_R: [0.11, 0, -0.10]}}
+      - {ms: 110, set: {root: [0, 0, 0.05], twist: 0.30, lean: 0.20, bob: -0.04, squash: 0.98, spear_pitch: 0.9, crest: 0.1, wing: 0.3,
+          neck: 0.02, hand_R: [0.06, 0.20, 0.40], hand_L: [0.30, 0.08, -0.06],
+          foot_L: [0.11, 0, 0.22], foot_R: [0.11, 0, -0.08]}}
+      - {ms: 110, set: {root: [0, 0, 0.03], twist: 0.08, lean: 0.05, spear_pitch: 0.3, wing: 0.0,
+          hand_R: [0.22, 0.12, 0.20], hand_L: [0.25, 0.06, 0.06], foot_L: [0.11, 0, 0.08]}}
+  # leap: a crouch with the wings folded back, the take-off (jump) with the wings flung wide and the body
+  # stretched, the spread glide, a landing crouch. In place: the game moves the body. Total 300 ms.
+  leap:
+    loop: false
+    keys:
+      - {ms: 60, set: {bob: -0.10, squash: 0.90, lean: 0.28, head_pitch: -0.15, neck: 0.02, crest: 0.6, wing: -0.4, tail: 0.5,
+          hand_L: [0.26, -0.02, -0.16], hand_R: [0.26, 0.02, -0.12], spear_pitch: 0.6,
+          foot_L: [0.12, 0, 0.04], foot_R: [0.12, 0, 0.0]}}
+      - {ms: 60, event: jump, set: {root: [0, 0.06, 0], bob: 0.03, squash: 1.08, lean: 0.12, head_pitch: -0.2, neck: 0.04, crest: -0.3, wing: 0.7, tail: -0.3,
+          hand_L: [0.50, 0.40, -0.04], hand_R: [0.48, 0.36, 0.0], spear_pitch: 0.9,
+          foot_L: [0.12, 0.02, -0.06], foot_R: [0.12, 0.0, -0.08], pitch_foot_L: -0.6, pitch_foot_R: -0.6, coat: -0.6}}
+      - {ms: 100, set: {root: [0, 0.12, 0], bob: 0.0, squash: 1.0, lean: 0.18, head_pitch: -0.15, neck: 0.05, crest: -0.5, wing: 0.9, tail: 0.2,
+          hand_L: [0.56, 0.30, -0.06], hand_R: [0.52, 0.28, 0.02], spear_pitch: 1.0,
+          foot_L: [0.12, 0.10, 0.06], foot_R: [0.12, 0.08, 0.02], pitch_foot_L: 0.4, pitch_foot_R: 0.4, coat: -0.3}}
+      - {ms: 80, set: {root: [0, 0, 0], bob: -0.08, squash: 0.92, lean: 0.20, head_pitch: 0.05, neck: 0.03, crest: 0.4, wing: 0.3, tail: 0.5,
+          hand_L: [0.38, 0.14, 0.0], hand_R: [0.34, 0.14, 0.06], spear_pitch: 0.5,
+          foot_L: [0.12, 0, 0.06], foot_R: [0.12, 0, 0.0], coat: 0.4}}
+  # hit: a short flinch - body and head snap back, crest and feathers ruffled, wings jerk out
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.28, bob: -0.02, squash: 0.95, head_pitch: -0.3, neck: -0.05, crest: 1.0, wing: 0.8, tail: 0.6,
+          coat: -0.5, hand_L: [0.34, 0.16, 0.0], hand_R: [0.32, 0.16, 0.06], spear_pitch: -0.2}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.14, bob: -0.01, squash: 0.98, head_pitch: -0.12, neck: -0.02, crest: 0.5, wing: 0.4, tail: 0.3,
+          coat: -0.2, hand_L: [0.28, 0.10, 0.04], hand_R: [0.28, 0.12, 0.10], spear_pitch: -0.1}}
+      - {ms: 70, set: {root: [0, 0, -0.01], lean: 0.0, head_pitch: 0.02, crest: 0.1, wing: 0.1, coat: 0.1,
+          hand_L: [0.24, 0.06, 0.07], hand_R: [0.25, 0.08, 0.13]}}
+  # death: a flinch with feathers bursting off, the legs give way, it topples backwards onto its back, the
+  # spear falling from the hand, the loose feathers drifting down; the eyes go out at the end
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: -0.30, bob: -0.02, squash: 0.95, head_pitch: -0.35, crest: 1.0, wing: 0.9, tail: 0.6,
+          coat: -0.5, hand_L: [0.36, 0.20, 0.0], hand_R: [0.34, 0.20, 0.06], spear_pitch: -0.2, scatter: 0.15}}
+      - {ms: 120, set: {root: [0, 0, -0.06], lean: -0.35, roll: 0.05, bob: -0.14, squash: 0.95, head_pitch: -0.2, crest: 0.6, wing: 0.6, tail: 0.3,
+          coat: -0.2, hand_L: [0.34, 0.10, -0.04], hand_R: [0.34, 0.06, 0.02], spear_pitch: -0.5, scatter: 0.35,
+          foot_L: [0.11, 0, 0.08], foot_R: [0.11, 0, 0.12]}}
+      - {ms: 120, set: {root: [0, 0, -0.10], lean: -0.70, roll: 0.06, bob: -0.32, squash: 0.94, head_pitch: -0.1, crest: 0.4, wing: 0.5, tail: 0.0,
+          coat: -0.4, hand_L: [0.40, 0.10, -0.10], hand_R: [0.40, 0.04, -0.06], spear_pitch: -0.9, scatter: 0.55,
+          foot_L: [0.11, 0.04, 0.20], foot_R: [0.11, 0.0, 0.24], pitch_foot_L: 0.5, pitch_foot_R: 0.5}}
+      - {ms: 110, set: {root: [0, 0, -0.14], lean: -1.05, roll: 0.05, bob: -0.50, squash: 0.92, head_pitch: 0.1, crest: 0.2, wing: 0.6, tail: -0.2,
+          coat: -0.5, hand_L: [0.44, 0.06, -0.10], hand_R: [0.44, 0.02, -0.08], spear_pitch: -1.3, scatter: 0.75,
+          foot_L: [0.11, 0.10, 0.30], foot_R: [0.11, 0.06, 0.34], pitch_foot_L: 0.8, pitch_foot_R: 0.8}}
+      - {ms: 110, set: {root: [0, 0, -0.16], lean: -1.25, roll: 0.04, bob: -0.60, squash: 0.90, head_pitch: 0.2, crest: 0.0, wing: 0.7, tail: -0.3,
+          coat: -0.4, hand_L: [0.46, 0.0, -0.06], hand_R: [0.46, -0.02, -0.04], spear_pitch: -1.5, scatter: 0.92,
+          foot_L: [0.12, 0.04, 0.34], foot_R: [0.13, 0.02, 0.38], pitch_foot_L: 0.6, pitch_foot_R: 0.6}}
+      - {ms: 140, set: {eyes_lit: 0, root: [0, 0, -0.16], lean: -1.30, roll: 0.04, bob: -0.62, squash: 0.88, head_pitch: 0.25, crest: 0.0, wing: 0.6, tail: -0.3,
+          coat: -0.3, hand_L: [0.46, -0.02, -0.06], hand_R: [0.46, -0.04, -0.04], spear_pitch: -1.5, scatter: 1.0,
+          foot_L: [0.12, 0.0, 0.34], foot_R: [0.13, 0.0, 0.38], pitch_foot_L: 0.4, pitch_foot_R: 0.4}}
+      - {ms: 500, set: {eyes_lit: 0, root: [0, 0, -0.16], lean: -1.30, roll: 0.04, bob: -0.63, squash: 0.87, head_pitch: 0.25, crest: 0.0, wing: 0.6, tail: -0.3,
+          coat: -0.3, hand_L: [0.46, -0.02, -0.06], hand_R: [0.46, -0.04, -0.04], spear_pitch: -1.5, scatter: 1.0,
+          foot_L: [0.12, 0.0, 0.34], foot_R: [0.13, 0.0, 0.38], pitch_foot_L: 0.4, pitch_foot_R: 0.4}}

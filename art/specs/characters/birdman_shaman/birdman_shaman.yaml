@@ -1,0 +1,383 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: birdman_shaman
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.20, 0]}
+palette: "watra"
+size: 80
+extends: humanoid   # the template's skeleton, IK legs and arms; the bird head, mantle and staff are his own
+
+# Szaman burzy (ptakoczłek): silny wróg lochu „Górskie równiny”. Wysoki ptakoczłek ok. 39-40 px (człowiek 36 px,
+# ta sama camera.scale): wysoki grzebień z białych i elektrycznie niebieskich piór, haczykowaty dziób, świecące
+# bladożółte oczy, płaszcz z niebiesko-białych piór z rdzawymi akcentami, łuskowate nogi ze szponami, wysoki kostur
+# z pierzastym fetyszem, w którym trzeszczy żółte światełko. Atak: unosi kostur wysoko (iskry się zbierają), potem
+# wskazuje nim bohatera (event `hit`) - po chwili w to miejsce bije piorun.
+brief:
+  summary: >
+    storm shaman of the birdmen, the strong enemy of the mountain plains (reference
+    docs/referencje/turnie/birdman_shaman.png, a 6x upscale of the Watra sprite): a tall bird-man, about 39-40 px
+    with the crest, a tall crest of white and electric-blue feathers, a hooked pale-horn beak, glowing pale yellow
+    eyes, a mantle of blue and white feathers with red-brown accents, scaled ochre legs with talons, a tall dark
+    staff topped with a feathered fetish crackling with a small electric-yellow light (element: lightning)
+  head: >
+    no head kit or hair: an own bird head (a round skull a little longer front to back), a hooked beak curving
+    down at the tip, two glowing pale yellow eyes on the sides of the face (face minimal: eyes only), a tall crest
+    of feathers from the brow back over the crown: a white central fan flanked by electric-blue plumes, sweeping
+    up and back (the silhouette's mark from every direction)
+  must_keep:
+    - the tall white / electric-blue crest
+    - the electric-yellow spark on the staff's fetish (the lightning accent), brightest in the attack
+    - the hooked beak and the glowing yellow eyes
+    - the blue-white feather mantle with red-brown accents, bird legs with talons
+  simplify:
+    - feathers are tubes and V notches in the mantle and skirt hems, not single quills
+    - the fetish is a red-brown knot with three hanging feathers and a glowing orb on top
+  decisions:
+    - the staff is in his right hand, so that it stands on the screen's left in s (the reference's bright blue-yellow
+      top at the upper left)
+    - the legs keep the template's IK (knee forward); the thighs hide under the feathered skirt, only the scaled
+      shins and the talons show, so they read as bird legs
+    - the electric light is a channel `spark` (0..1) - the orb on the staff grows and a yellow crackle appears
+    - frame 80 px for the staff raised high in the attack
+    - game contract - `attack` event `windup` at 0 ms, `hit` (the staff points at the hero, the lightning target
+      is marked) at 620 ms, total 1000 ms; socket `staff_tip` (the spark) and `ground`
+
+ramps:
+  # electric-blue feathers
+  bfeather: ["#05071a", "#111c48", "#1a3178", "#244fa8", "#3478d6", "#62b0f2"]
+  # white feathers (cool white)
+  wfeather: ["#10141f", "#4b5670", "#8592ab", "#b6c3d6", "#dde7f2", "#ffffff"]
+  # red-brown accents
+  rust:     ["#120605", "#3a140e", "#632816", "#8a3f22", "#ad5c34", "#c97e52"]
+  # pale horn of the beak and claws
+  horn:     ["#16110a", "#4a3f26", "#7d6c42", "#ab9a62", "#d2c48e", "#efe6bc"]
+  # scaled ochre legs
+  scales:   ["#120a06", "#43281a", "#70452a", "#9a6a3a", "#bf9150", "#d8b678"]
+  # the staff's dark wood
+  darkwood: ["#0e0907", "#2a1b14", "#45301f", "#634630", "#82603f", "#9c7a52"]
+  # electric-yellow light (spark, eyes)
+  volt:     ["#3a2c02", "#c49610", "#ffdc3a", "#fff59c", "#ffffff"]
+  fx_core: ["#ffffff"]
+  fx_mid:  ["#fff27a"]
+  fx_tail: ["#4fb0ff"]
+
+materials:
+  feather:  {ramp: bfeather, finish: matte}
+  white:    {ramp: wfeather, finish: matte}
+  rust:     {ramp: rust, finish: matte}
+  beak:     {ramp: horn, finish: soft, gamma: 0.8}
+  claw:     {ramp: horn, finish: soft, bands: [1, 3]}
+  legs:     {ramp: scales, finish: soft}
+  wood:     {ramp: darkwood, finish: matte, bands: [1, 4]}
+  eye:      {ramp: volt, emissive: true, band: 2, outline: false}
+  volt:     {ramp: volt, emissive: true, band: 2, outline: false, glow: {color: "#ffe14a", mix: 0.35, radius: 1}}
+
+remove: [use.hair, use.sword, use.head, parts.belt]
+
+shadow: {rx: 11, ry: 4, alpha: 110}
+snap: [root, torso_rot]   # the idle bob moves in whole pixels (less boiling)
+
+channels:
+  hand_L: [0.30, 0.06, 0.08]     # the free hand (left, screen right in s)
+  hand_R: [0.30, 0.14, 0.16]     # the staff hand (right, screen left in s)
+  foot_L: [0.13, 0, 0.02]
+  staff_pitch: 0    # extra lean of the staff (+: top forward/down)
+  staff_splay: 0    # staff leaned outwards (+) or across the body (-)
+  spark: 0.2        # 0..1 the electric light on the fetish (idle: a small crackle)
+  crest: 0          # crest sway back (+) / forward (-)
+
+bones:
+  big:        {parent: root, scale: 1.0}
+  torso_rot:  {parent: big, pos: "[0, 0.84 + bob, 0]", rot: "[lean, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  headbase:   {parent: pelvis, pos: [0, 0.66, 0.06], inherit_rot: false, inherit_scale: false, scale: 1.05,
+               rot: "[lean*0.5, twist, roll]"}
+  head:       {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.25}
+  crestbase:  {parent: head, pos: [0, 0.14, -0.07], rot: "[-crest*0.4, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.24, 0.53, 0.0]}
+  # the staff keeps its own world lean (the wrist only carries it): upright, a little outwards
+  staff:      {parent: wrist_R, pos: [0, 0, 0.035], inherit_rot: false,
+               rot: "[-0.04 + staff_pitch + lean*0.5, twist, 0.10 + staff_splay]"}
+  stafftop:   {parent: staff, pos: [0, 1.12, 0]}
+
+ik:
+  arm_L: {lengths: [0.28, 0.27]}
+
+parts:
+  torso:           # a feathered body: blue, a white breast
+    material: feather
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.17, 0.13, 0.13]}
+      - ellipsoid: {c: [0, 0.27, 0.01], r: [0.17, 0.16, 0.14]}
+      - ellipsoid: {c: [0, 0.45, 0.0], r: [0.22, 0.14, 0.14]}
+    paint:
+      - material: white
+        prims:
+          - ellipsoid: {c: [0, 0.32, 0.16], r: [0.11, 0.24, 0.1]}
+  neck:
+    material: white
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.50, 0.01], b: [0, 0.68, 0.06], r: [0.09, 0.07]}
+  coat:            # the feathered skirt over the thighs, a notched hem, a rust band
+    material: feather
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.08, -0.01], b: [0, -0.34, -0.03], r: [0.19, 0.25]}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.38}
+      - box: {c: [0.0, -0.40, 0.26], half: [0.06, 0.06, 0.15], rot: [0, 0, 0.785]}
+      - box: {c: [0.22, -0.40, 0.16], half: [0.05, 0.05, 0.15], rot: [0, 0.9, 0.785]}
+      - box: {c: [-0.22, -0.40, 0.16], half: [0.05, 0.05, 0.15], rot: [0, -0.9, 0.785]}
+      - box: {c: [0.27, -0.40, -0.08], half: [0.15, 0.05, 0.05], rot: [0.785, 0, 0]}
+      - box: {c: [-0.27, -0.40, -0.08], half: [0.15, 0.05, 0.05], rot: [0.785, 0, 0]}
+      - box: {c: [0.0, -0.40, -0.28], half: [0.06, 0.06, 0.15], rot: [0, 0, 0.785]}
+    paint:
+      - material: rust
+        stripes: {axis: y, at: [-0.02], width: 0.08}
+      - material: white
+        stripes: {axis: y, at: [-0.30], width: 0.07}
+  mantle:          # a cape of blue feathers from the shoulders to the knees, white collar, notched hem
+    material: feather
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.62, -0.03], b: [0, -0.16, -0.10], r: [0.17, 0.26], shell: 0.05}
+    cut:
+      - plane: {n: [0, 1, 0], at: 0.60}
+      - box: {c: [0, 0.0, 0.42], half: [0.22, 0.8, 0.22], rot: [0, 0.785, 0]}   # open at the front
+      - box: {c: [0.26, -0.20, -0.10], half: [0.05, 0.05, 0.2], rot: [0, 1.2, 0.785]}
+      - box: {c: [-0.26, -0.20, -0.10], half: [0.05, 0.05, 0.2], rot: [0, -1.2, 0.785]}
+      - box: {c: [0.13, -0.20, -0.34], half: [0.05, 0.05, 0.2], rot: [0, 0.4, 0.785]}
+      - box: {c: [-0.13, -0.20, -0.34], half: [0.05, 0.05, 0.2], rot: [0, -0.4, 0.785]}
+    paint:
+      - material: white
+        prims:
+          - box: {c: [0, 0.52, 0], half: [0.5, 0.08, 0.5]}
+      - material: rust
+        stripes: {axis: y, at: [0.30], width: 0.07}
+      - material: white
+        stripes: {axis: y, at: [-0.10], width: 0.07}
+  arm_L:           # feathered arms
+    material: feather
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.09}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.08, 0.065]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.065, 0.06]}
+  cuff_L:          # a white feather fringe at the wrist
+    material: white
+    space: wrist_L
+    prims:
+      - cone: {a: [0, 0, -0.09], b: [0, -0.02, -0.0], r: [0.07, 0.085]}
+  hand_L:          # a horn-clawed hand
+    material: claw
+    space: wrist_L
+    blend: 0.02
+    min_cover: 2
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.05}
+      - cone: {a: [0, 0, 0.05], b: [0.03, -0.04, 0.12], r: [0.022, 0.01]}
+      - cone: {a: [0, 0, 0.05], b: [-0.03, -0.04, 0.12], r: [0.022, 0.01]}
+  leg_L:           # scaled bird legs (the thighs hide under the skirt)
+    material: legs
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.08, 0.055]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.05, 0.04]}
+  boot_L:          # talons: three toes forward, one back
+    material: legs
+    space: sole_L
+    blend: 0.02
+    min_cover: 2
+    prims:
+      - sphere: {c: [0, 0.0, 0.0], r: 0.045}
+      - cone: {a: [0, -0.02, 0.0], b: [0.06, -0.04, 0.15], r: [0.03, 0.018]}
+      - cone: {a: [0, -0.02, 0.0], b: [0.0, -0.04, 0.17], r: [0.03, 0.018]}
+      - cone: {a: [0, -0.02, 0.0], b: [-0.06, -0.04, 0.15], r: [0.03, 0.018]}
+      - cone: {a: [0, -0.02, 0.0], b: [0.0, -0.04, -0.09], r: [0.028, 0.016]}
+  # the bird head: a round skull, a hooked beak, glowing eyes
+  head:
+    material: feather
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0.0], r: [0.13, 0.125, 0.15]}
+    paint:
+      - material: white
+        prims:
+          - ellipsoid: {c: [0, 0.02, 0.10], r: [0.10, 0.08, 0.08]}
+  beak:
+    material: beak
+    space: head
+    blend: 0.02
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0, 0.07, 0.10], [0, 0.08, 0.25], [0, -0.01, 0.30]], r: [0.065, 0.014]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.088, 0.10, 0.10], r: 0.04}
+  # the crest: a white central fan flanked by electric-blue plumes, up and back
+  crest:
+    material: white
+    space: crestbase
+    blend: 0.03
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0, -0.02, 0.02], [0, 0.18, 0.0], [0, 0.34, -0.10]], r: [0.05, 0.015]}
+      - tube: {pts: [[0, -0.02, -0.02], [0, 0.14, -0.08], [0, 0.26, -0.22]], r: [0.05, 0.015]}
+  crest_L:
+    material: feather
+    space: crestbase
+    blend: 0.03
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0.05, -0.02, 0.0], [0.09, 0.16, -0.04], [0.13, 0.27, -0.14]], r: [0.045, 0.012]}
+      - tube: {pts: [[0.05, -0.04, -0.06], [0.08, 0.06, -0.16], [0.10, 0.14, -0.28]], r: [0.04, 0.012]}
+  # the staff
+  staff_shaft:
+    material: wood
+    space: staff
+    priority: 2
+    min_cover: 2
+    prims:
+      - cone: {a: [0, -0.80, 0], b: [0, 1.06, 0], r: [0.026, 0.032]}
+  fetish:          # a red-brown knot at the top with three hanging feathers
+    material: rust
+    space: stafftop
+    priority: 2
+    min_cover: 2
+    prims:
+      - sphere: {c: [0, -0.04, 0], r: 0.055}
+  fetish_feathers:
+    material: white
+    space: stafftop
+    priority: 2
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0.03, -0.06, 0.02], [0.09, -0.14, 0.03], [0.08, -0.26, 0.02]], r: [0.035, 0.01]}
+      - tube: {pts: [[-0.03, -0.06, 0.02], [-0.09, -0.14, 0.03], [-0.08, -0.26, 0.02]], r: [0.035, 0.01]}
+  fetish_blue:
+    material: feather
+    space: stafftop
+    priority: 2
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0, -0.06, -0.03], [0.0, -0.16, -0.08], [0.0, -0.30, -0.06]], r: [0.035, 0.01]}
+      - tube: {pts: [[0.0, 0.0, 0.0], [0.05, 0.10, 0.0], [0.10, 0.16, 0.0]], r: [0.03, 0.01]}
+      - tube: {pts: [[0.0, 0.0, 0.0], [-0.05, 0.10, 0.0], [-0.10, 0.16, 0.0]], r: [0.03, 0.01]}
+  orb:             # the electric-yellow light crackling on the fetish
+    material: volt
+    space: stafftop
+    when: "spark > 0.02"
+    priority: 3
+    min_cover: 1
+    prims:
+      - sphere: {c: [0, 0.07, 0], r: "0.04*min(1, spark*5) + 0.05*spark"}
+  crackle:         # zig-zag sparks round the orb while charged
+    material: volt
+    space: stafftop
+    when: "spark > 0.5"
+    priority: 3
+    min_cover: 1
+    prims:
+      - chain: {pts: ["[0.06, 0.10, 0]", "[0.10 + 0.06*spark, 0.18, 0.02]", "[0.07 + 0.06*spark, 0.24, 0]", "[0.12 + 0.08*spark, 0.32, 0.0]"], r: [0.018, 0.016, 0.014, 0.01]}
+      - chain: {pts: ["[-0.06, 0.08, 0]", "[-0.10 - 0.06*spark, 0.14, -0.02]", "[-0.07 - 0.06*spark, 0.20, 0]", "[-0.13 - 0.08*spark, 0.26, 0.0]"], r: [0.018, 0.016, 0.014, 0.01]}
+
+sockets:
+  staff_tip: {bone: stafftop, offset: [0, 0.07, 0]}   # the spark: the lightning effect can start here
+  ground: {bone: root}
+
+animations:
+  # standing: a slow breath, the crest and the mantle sway late, the spark flickers a little
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.012*sin(p)"
+      head_pitch: "-0.05*sin(p - 0.5)"
+      crest: "0.25*sin(p - 1.2)"
+      coat: "0.25*sin(p - 1.0)"
+      hand_L: "[0.30, 0.06 + 0.02*sin(p - 0.6), 0.08]"
+      hand_R: "[0.30, 0.14 + 0.02*sin(p - 0.7), 0.16]"
+      staff_pitch: "0.02*sin(p - 0.9)"
+      spark: "0.25 + 0.15*sin(2*p)"
+  walk:
+    frames: 8
+    ms: 100
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.12
+      bob: "-0.035*cos(2*p) + 0.01"
+      twist: "0.08*cos(p)"
+      foot_L: "[0.13, 0.10*pos(-sin(p)), 0.02 + 0.22*cos(p)]"
+      foot_R: "[0.13, 0.10*pos(sin(p)), 0.02 - 0.22*cos(p)]"
+      pitch_foot_L: "0.4*pos(-sin(p))"
+      pitch_foot_R: "0.4*pos(sin(p))"
+      hand_L: "[0.30, 0.08 + 0.03*pos(cos(p)), 0.08 - 0.16*cos(p)]"
+      hand_R: "[0.30, 0.16 + 0.02*sin(2*p), 0.20]"
+      staff_pitch: "0.12 + 0.04*sin(2*p - 0.8)"
+      head_yaw: "-0.05*cos(p)"
+      head_pitch: "0.03*sin(2*p - 0.5)"
+      crest: "0.35 + 0.15*sin(2*p - 1.2)"
+      coat: "-0.3 + 0.3*sin(2*p - 1.0)"
+      spark: 0.25
+  # the lightning call: the staff rises high over the crest while the spark gathers (windup; a trembling held top
+  # pose while the game shows the warning), then it is thrust forward and down to point at the hero (`hit`: the
+  # lightning target), a held point, recovery
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {lean: -0.04, head_pitch: -0.05, crest: 0.2, coat: -0.1, spark: 0.4,
+          hand_R: [0.30, 0.32, 0.10], hand_L: [0.32, 0.10, 0.10], staff_pitch: -0.1}}
+      - {ms: 160, set: {lean: -0.12, bob: 0.03, squash: 1.03, head_pitch: -0.2, crest: 0.4, coat: -0.2, spark: 0.7,
+          hand_R: [0.26, 0.62, 0.02], hand_L: [0.36, 0.20, 0.10], staff_pitch: -0.25}}
+      - {ms: 180, set: {lean: -0.16, bob: 0.04, squash: 1.04, head_pitch: -0.25, crest: 0.5, coat: -0.25, spark: 1.0,
+          hand_R: [0.24, 0.68, -0.02], hand_L: [0.40, 0.26, 0.08], staff_pitch: -0.3}}
+      - {ms: 160, set: {root: [0.02, 0, 0], lean: -0.15, bob: 0.04, squash: 1.04, head_pitch: -0.24, crest: 0.45, coat: -0.25, spark: 0.85,
+          hand_R: [0.25, 0.67, -0.01], hand_L: [0.40, 0.25, 0.08], staff_pitch: -0.28}}
+      - {ms: 70, event: hit, set: {root: [0, 0, 0.03], lean: 0.22, bob: -0.03, squash: 0.96, head_pitch: 0.12, crest: -0.3, coat: 0.4, spark: 1.0,
+          hand_R: [0.18, 0.40, 0.30], hand_L: [0.30, 0.04, -0.06], staff_pitch: 1.0}}
+      - {ms: 120, set: {root: [0, 0, 0.03], lean: 0.20, bob: -0.02, squash: 0.97, head_pitch: 0.10, crest: -0.2, coat: 0.3, spark: 0.6,
+          hand_R: [0.18, 0.38, 0.30], hand_L: [0.30, 0.04, -0.04], staff_pitch: 0.95}}
+      - {ms: 90, set: {root: [0, 0, 0.03], lean: 0.10, head_pitch: 0.04, crest: 0.0, coat: 0.1, spark: 0.35,
+          hand_R: [0.26, 0.26, 0.28], hand_L: [0.30, 0.06, 0.04], staff_pitch: 0.45}}
+      - {ms: 100, set: {root: [0, 0, 0.01], lean: 0.06, crest: 0.1, coat: -0.05, spark: 0.25,
+          hand_R: [0.30, 0.16, 0.18], staff_pitch: 0.08}}
+  # hit: jolted back, the crest and mantle whip, the spark flickers out for a beat
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.22, bob: -0.02, squash: 0.95, head_pitch: -0.3, crest: 0.6, coat: -0.45, spark: 0.05,
+          hand_R: [0.34, 0.20, 0.06], hand_L: [0.36, 0.14, -0.04], staff_pitch: -0.15}}
+      - {ms: 70, set: {root: [0, 0, -0.03], lean: -0.10, squash: 0.98, head_pitch: -0.12, crest: 0.3, coat: -0.2, spark: 0.1,
+          hand_R: [0.32, 0.17, 0.12], hand_L: [0.33, 0.10, 0.02], staff_pitch: -0.06}}
+      - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.06, head_pitch: 0.03, crest: -0.05, coat: 0.1, spark: 0.2}}
+  # death: thrown back, the light goes out, the knees buckle and he falls forward on his face; the staff tips
+  # over and falls beside him; the last frame held
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.05], lean: -0.30, head_pitch: -0.40, crest: 0.7, coat: -0.4, spark: 0.6,
+          hand_R: [0.40, 0.30, 0.02], hand_L: [0.40, 0.30, 0.0], staff_splay: 0.15}}
+      - {ms: 120, set: {root: [0, 0, -0.05], bob: -0.18, lean: 0.15, head_pitch: 0.20, crest: 0.2, coat: 0.2, spark: 0.15,
+          foot_L: [0.15, 0, 0.10], foot_R: [0.15, 0, 0.08], hand_R: [0.34, 0.02, 0.16], hand_L: [0.34, 0.0, 0.16], staff_splay: 0.4}}
+      - {ms: 120, set: {root: [0, 0, -0.05], bob: -0.36, lean: 0.45, head_pitch: 0.30, crest: 0.0, coat: 0.3,
+          foot_L: [0.17, 0, 0.14], foot_R: [0.17, 0, 0.12], hand_R: [0.36, -0.10, 0.24], hand_L: [0.36, -0.12, 0.24], staff_splay: 0.8}}
+      - {ms: 120, set: {root: [0, 0, -0.05], bob: -0.50, lean: 0.90, head_pitch: 0.40, crest: -0.2, coat: 0.3,
+          foot_L: [0.18, 0, 0.16], foot_R: [0.18, 0, 0.14], hand_R: [0.40, -0.25, 0.30], hand_L: [0.40, -0.25, 0.30], staff_splay: 1.2}}
+      - {ms: 130, set: {root: [0, 0, -0.05], bob: -0.58, lean: 1.25, head_pitch: 0.35, crest: -0.4, coat: 0.2,
+          foot_L: [0.18, 0, 0.16], foot_R: [0.18, 0, 0.14], hand_R: [0.42, -0.30, 0.32], hand_L: [0.42, -0.30, 0.32], staff_splay: 1.15, staff_pitch: -0.55}}
+      - {ms: 120, set: {root: [0, 0, -0.05], bob: -0.60, lean: 1.35, head_pitch: 0.30, crest: 0.1, coat: 0.1,
+          foot_L: [0.18, 0, 0.16], foot_R: [0.18, 0, 0.14], hand_R: [0.42, -0.32, 0.32], hand_L: [0.42, -0.32, 0.32], staff_splay: 1.2, staff_pitch: -0.6}}
+      - {ms: 600, set: {root: [0, 0, -0.05], bob: -0.60, lean: 1.35, head_pitch: 0.30, crest: 0.0, coat: 0.1,
+          foot_L: [0.18, 0, 0.16], foot_R: [0.18, 0, 0.14], hand_R: [0.42, -0.32, 0.32], hand_L: [0.42, -0.32, 0.32], staff_splay: 1.2, staff_pitch: -0.6}}
+
+timing:
+  attack: {hit: 620ms, total: 1000ms}
