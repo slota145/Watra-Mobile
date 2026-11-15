@@ -429,7 +429,7 @@ void fragment() {
 "Pojawiają się dwie kule naraz.","","skills.gd"
 "Przez 3 s glewia tnie zamaszyście dookoła ciebie pod różnymi kątami, a każde cięcie wypuszcza sierp ognia, który powoli leci na zewnątrz i przebija wrogów.","","skills.gd"
 "Przez 3 s katana czeka w gardzie: następny cios cię nie rani, a ty odpowiadasz cięciem dookoła, wyskokiem ku napastnikowi i precyzyjnym cięciem po okręgu.","","skills.gd"
-"Przez 6 s wokół ciebie krążą trzy widmowe miecze i tną każdego, kto podejdzie. Twój miecz walczy w tym czasie normalnie.","","skills.gd"
+"Przez 6 s wokół ciebie krążą trzy widmowe miecze i tną każdego, kto podejdzie. Twój miecz walczy w tym czasie normalnie. Nie może stać pod dużym przyciskiem.","","skills.gd"
 "Przytrzymaj - przeskakujesz piorunem na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego, dopóki starcza many. Każdy wróg zabity skokiem zwraca 2 many. Nie może stać pod dużym przyciskiem.","","skills.gd"
 "Przytrzymaj, żeby naładować, i puść: katana tnie w linii prostej ku wrogowi - tym dłużej i szerzej, im dłużej trwało ładowanie. Nie może stać pod dużym przyciskiem.","","skills.gd"
 "Płonąca bruzda","","skills.gd"

@@ -68,10 +68,10 @@ func _test_game(game: Node) -> void:
 	game.skill_slots = ["whirl", "strike", "steel_ring", "", ""]
 	game.skills_owned = ["strike", "whirl", "steel_ring"]
 	game.mastery["sword"] = 2
-	_check(game.assign_skill("steel_ring", 0) and game.skill_slots[0] == "steel_ring" and game.skill_slots[2] == "whirl",
-			"Krąg stali może stać pod „Atak” (zamiana z Młynkiem)")
-	game.clear_skill_slot(0)
-	_check(game.skill_slots[0] == "" and game.main_skill() == "strike", "pusty „Atak” to zwykły cios")
+	_check(not game.assign_skill("steel_ring", 0) and game.skill_slots[0] == "whirl", "Krąg stali nie może stać pod „Atak”")
+	_check(game.assign_skill("whirl", 2) and game.skill_slots[0] == "" and game.skill_slots[2] == "whirl",
+			"zamiana z Kręgiem stali zostawia „Atak” pusty")
+	_check(game.main_skill() == "strike", "pusty „Atak” to zwykły cios")
 	game.save_game()
 	game.load_game()
 	_check(game.skills_owned == ["strike", "whirl", "steel_ring"] and game.skill_slots == ["", "strike", "whirl", "", ""]

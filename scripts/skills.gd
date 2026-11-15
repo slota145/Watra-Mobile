@@ -52,11 +52,12 @@ const DATA := {
 		"description": "Miecz spada z góry na wrogów: fala pęknięć rani wszystkich wokół i na chwilę ich ogłusza.",
 	},
 	# Krąg stali (pomysł autora i Claude 15.11.2026, zamiast Mgnienia - to zostało przy katanie jako Błysk Peruna):
-	# widmowe miecze krążą wokół postaci, a miecz w ręku walczy normalnie (ProtoWeapon._process_ring).
+	# widmowe miecze krążą wokół postaci, a miecz w ręku walczy normalnie (ProtoWeapon._process_ring). Nie pod „Atak”
+	# (decyzja autora 15.11.2026 - krąg odpala się osobno, np. razem z Młynkiem pod „Atak”).
 	"steel_ring": {
 		"name": "Krąg stali", "icon": preload("res://assets/skills/sword/steel_ring.png"),
-		"mana": 30, "cooldown": 12.0, "weapon": "sword", "mastery": 15, "main": true, "range": 50.0, "power": 0.6,
-		"description": "Przez 6 s wokół ciebie krążą trzy widmowe miecze i tną każdego, kto podejdzie. Twój miecz walczy w tym czasie normalnie.",
+		"mana": 30, "cooldown": 12.0, "weapon": "sword", "mastery": 15, "main": false, "range": 50.0, "power": 0.6,
+		"description": "Przez 6 s wokół ciebie krążą trzy widmowe miecze i tną każdego, kto podejdzie. Twój miecz walczy w tym czasie normalnie. Nie może stać pod dużym przyciskiem.",
 	},	# Glewia ognia (ustalone z autorem 13.11.2026): każde trafienie podpala (ProtoGlaive), "burn" - ile obrażeń
 	# trafienia dopala się przez 3 s.
 	"g_thrust": {
