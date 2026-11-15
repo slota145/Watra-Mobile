@@ -64,6 +64,9 @@ var element_res := 0.0
 ## Spowolnienie od potworów (przemoczenie, lód): ułamek szybkości mniej i ile sekund jeszcze; kolor postaci.
 var chill := 0.0
 var chill_left := 0.0
+## Porażenie piorunem (żywioł Grom): przez `shock_left` s postać dostaje SHOCK_MULT obrażeń i miga na żółto.
+const SHOCK_MULT := 1.25
+var shock_left := 0.0
 var _chill_color := Color.WHITE
 ## Szansa na unik (0-1, premia przedmiotów): cios potwora nie zadaje obrażeń, nad głową napis „Unik!”.
 var dodge := 0.0
@@ -106,6 +109,11 @@ func _process(delta: float) -> void:
 		if chill_left <= 0.0:
 			chill = 0.0
 			_sprite.self_modulate = Color.WHITE
+	if shock_left > 0.0:
+		shock_left -= delta
+		if chill_left <= 0.0:  # spowolnienie ma pierwszeństwo w kolorze
+			var on := int(shock_left * 12.0) % 2 == 0
+			_sprite.self_modulate = Color(1.35, 1.3, 0.6) if on and shock_left > 0.0 else Color.WHITE
 	if dead:
 		velocity = Vector2.ZERO
 		_leap_time = 0.0
@@ -192,6 +200,12 @@ func slow(fraction: float, time: float, color := Color(0.6, 0.8, 1.2)) -> void:
 	_sprite.self_modulate = color
 
 
+## Porażenie piorunem: przez `time` s postać dostaje więcej obrażeń (SHOCK_MULT) i miga na żółto.
+func shock(time: float) -> void:
+	if not dead:
+		shock_left = maxf(shock_left, time)
+
+
 ## Trafienie przez potwora: czerwony błysk, liczba nad głową, krótka nietykalność; przy zerze - śmierć.
 ## Garda Riposty (`parry_left`) blokuje cios i wysyła `parried`. `element` - żywioł ciosu (Elements; nie fizyczny -
 ## mniej o odporność na żywioły, liczba w kolorze żywiołu).
@@ -210,7 +224,7 @@ func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 		dodged.emit()
 		return
 	var res := element_res if element != Elements.PHYSICAL else 0.0
-	amount = maxi(1, roundi(amount * (1.0 - protection) * (1.0 - res)))
+	amount = maxi(1, roundi(amount * (1.0 - protection) * (1.0 - res) * (SHOCK_MULT if shock_left > 0.0 else 1.0)))
 	hp = maxi(hp - amount, 0)
 	health_changed.emit(hp, max_hp)
 	_spawn_text("-%d" % amount, Color(1.0, 0.4, 0.35) if element == Elements.PHYSICAL \
