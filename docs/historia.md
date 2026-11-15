@@ -9,6 +9,11 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   okno (351 px przy 344 px miejsca). Teraz oba się zawijają. Przy cudzych kamieniach unikalnych napis „Pasuje tylko
   do: …” był dwa razy. Decyzja autora: kamienie unikalne innych umiejętności są w ogóle ukryte - w liście gniazda
   i w „Gdzie włożyć” kamienia unikalnego z sakwy (tylko jego umiejętność).
+- Drugie zgłoszenie (zrzut z telefonu): całe okno umiejętności za szerokie. Przyczyna: z kamieniem unikalnym Młynka albo
+  Kręgu stali linia many („20 many, potem 7 na sekundę, bez odnowienia”) nie zawijała się - okno miało 433 px przy 360.
+  Teraz się zawija; test `tests/test_gems.gd` (`_test_window_width`) sprawdza okno przy wszystkich broniach,
+  umiejętnościach na 10. poziomie i kamieniach unikalnych (obie zakładki). Okno „Postać” sprawdzone ręcznie przy
+  skrajnych premiach - najszerzej 334 px.
 
 ## 15.11.2026 - trzeci loch: Katakumby, Nekromanta
 

@@ -209,6 +209,9 @@ func _make_row(list: VBoxContainer, i: int) -> void:
 	name_labels.append(_label(texts, Skills.name_of(id), 14, GOLD))
 	name_labels.back().autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # długa nazwa z poziomem nie rozpycha okna
 	info_labels.append(_label(texts, "", 11, BLUE))
+	# z kamieniem unikalnym linia jest długa („20 many, potem 7 na sekundę, bez odnowienia”) - bez zawijania rozpychała
+	# okno poza ekran (zgłoszenie autora 15.11.2026)
+	info_labels.back().autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var desc := _label(texts, Lang.t(Skills.DATA[id].description), 11, TEXT)
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var perks: Array[Label] = []
