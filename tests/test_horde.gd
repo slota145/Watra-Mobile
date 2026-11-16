@@ -259,8 +259,8 @@ func _test_horde() -> void:
 	hero.take_damage(1000)
 	_check(not hero.dead and hero.hp == ProtoHero.MAX_HP and hero.deaths == 1, "nieśmiertelny: zamiast śmierci pełne zdrowie")
 	_check(arena.deaths_label.text == tr("Zgony: %d") % 1, "licznik zgonów: " + arena.deaths_label.text)
-	game0.load_settings()
-	_check(game0.dev_immortal, "nieśmiertelność zapamiętana w ustawieniach")
+	game0.load_game()
+	_check(game0.dev_immortal, "nieśmiertelność zapamiętana w zapisie postaci")
 	arena._open_menu()
 	arena.pause_menu.dev.immortal_toggle.button_pressed = false
 	arena.pause_menu.close()

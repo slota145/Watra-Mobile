@@ -145,6 +145,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   Klucze z bossów do specjalnych lochów (np. do Żmija Gorynycza): decyzja autora - rzadko ze skrzyni bossa; do zrobienia
   razem z Żmijem (punkt niżej).
 
+- **Wiele postaci (pomysł autora 16.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy
+  stara postać przeszła bez strat, wygoda kart i formularza (klawiatura), wspólna skrzynia między postaciami.
+
 - **Boss szczytowy: Żmij Gorynycz (pomysł autora 15.11.2026):** trójgłowy ognisty smok z Watry
   (`../Watra/assets/world_bosses/zmij.png`, ataki w `../Watra/scripts/world_boss.gd`: Zionięcie, Trzy Głowy, Uderzenie)
   - zostawiony na później jako boss szczytowy (nie boss Wulkanicznych równin). Przyzywanie: klucz rzadko ze skrzyni

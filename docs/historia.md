@@ -2,6 +2,27 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - wiele postaci
+
+Pomysł autora (też do testów: jedna postać normalnie, druga w trybie deweloperskim). Decyzje (ankieta): bez limitu
+postaci, tryb deweloperski osobno dla każdej, wspólne ustawienia sterowania i skrzynia w bazie, do wyboru postać SSF
+(tylko własny łup, własna skrzynia), wybór na kartach z podglądem.
+- `Game`: postać = plik `user://characters/<id>.json` (`chars_dir`) z `name`, `ssf`, `created` i `dev` (nieśmiertelność,
+  wszystkie poziomy, licznik klatek, suwaki statystyk - wcześniej w settings.cfg); `list_characters`,
+  `create_character`, `select_character` (zapis poprzedniej, wczytanie, `last_character` w ustawieniach - wybierana
+  przy starcie), `delete_character`. Bez wybranej postaci (`save_path` "") nic się nie zapisuje. `save_settings`
+  zapisuje też postać (tryb deweloperski).
+- Wspólna skrzynia `user://shared_stash.json` (postacie bez SSF, `_uses_shared_stash`); „postać od nowa” jej nie czyści.
+  Zapisy testowe (`save_path` z „test”) trzymają skrzynię w sobie, jak dawniej.
+- Stary pojedynczy zapis `user://savegame.json` przechodzi raz na postać „Wojciech” (`_migrate_legacy`, plik `c0`,
+  z trybem deweloperskim ze starych ustawień; stary plik zostaje jako `savegame.json.old`).
+- Ekran `scripts/ui/character_select.gd` (`CharacterSelect`) po „Graj” w menu: karty (ikona broni, nazwa, poziom,
+  najgłębszy loch, „SSF”, „Tryb deweloperski”; obecna postać w złotej ramce), „Graj” i „Usuń” z potwierdzeniem,
+  „Nowa postać” - formularz (imię u góry ekranu - klawiatura telefonu zasłania dół, skrzynia Wspólna / SSF);
+  bez postaci formularz otwiera się od razu. „Wstecz” Androida zamyka formularz / wybór.
+- Testy `tests/test_characters.gd`; w `test_dev` i `test_horde` tryb deweloperski sprawdzany w zapisie postaci.
+  Zrzuty `tools/character_shots.gd`.
+
 ## 16.11.2026 - modyfikatory lochów
 
 Pomysł z Dwarven Realms. Decyzje autora (ankieta): gracz sam włącza modyfikatory przy wyborze poziomu, każdy utrudnia
