@@ -121,6 +121,15 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   elektryczna katana (zrobiona 15.11.2026), kostur nekromancji; zmiana broni w bazie i kupno za złoto przed progiem (`Weapons.unlock`, `price`);
   kamienie dodające mieczowi żywioł; później odporności bohatera i potwory bijące żywiołami. Do decyzji: światło.
 
+- **Cele na mapie lochu za żar (pomysł z Dwarven Realms, decyzja autora 16.11.2026):** przy progach paska przyzwania
+  (np. 25/50/75% `DungeonLevels.summon_cost`) na mapie pojawia się cel, żeby między falami było dokąd biec. Propozycja
+  Claude (czeka na odpowiedzi autora): skrzynia, kapliczka z darem na 60 s, Skarbnik (uciekający duch ze złotem),
+  Krąg Żertwy (zabij N potworów w kręgu), Kryształ Watry (obroń przez 20-30 s); wskazanie strzałką przy krawędzi
+  ekranu. Mechaniki i grafiki do przeniesienia z Watry: `scripts/dungeons.gd` (`MECHANICS`), `dungeon_chest.gd`,
+  `dungeon_shrine.gd`, `skarbnik.gd`, `zertwa.gd`, `watra_crystal.gd` (Uroczysko na później).
+  Na później (też z Dwarven Realms, do ustalenia w kolejnych sesjach): drabinka odblokowań systemów z głębokością lochu,
+  modyfikatory lochów (np. podwójny żar), klucze z bossów do specjalnych lochów (np. do Żmija Gorynycza).
+
 - **Boss szczytowy: Żmij Gorynycz (pomysł autora 15.11.2026):** trójgłowy ognisty smok z Watry
   (`../Watra/assets/world_bosses/zmij.png`, ataki w `../Watra/scripts/world_boss.gd`: Zionięcie, Trzy Głowy, Uderzenie)
   - zostawiony na później jako boss szczytowy (nie boss Wulkanicznych równin). Dopytać, kiedy i jak się go przyzywa.
