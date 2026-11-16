@@ -138,7 +138,7 @@ func _test_dungeon(game: Node) -> void:
 	var horde: ProtoHorde = arena.horde_spawner
 	_check(is_equal_approx(horde.density, 1.5) and is_equal_approx(horde.loot_mult, 1.3) and horde.reach == 32.0,
 			"loch: gęstość 1,5, łup x1,3, zasięg +32 px")
-	_check(is_equal_approx(horde.interval(), ProtoHorde.INTERVAL_START / 1.5) and horde.max_alive() == 12,
+	_check(is_equal_approx(horde.interval(), ProtoHorde.INTERVAL_START / 1.5) and horde.max_alive() == roundi(ProtoHorde.ALIVE_START * 1.5),
 			"gęstsza Horda: częściej i więcej naraz (%d)" % horde.max_alive())
 	var xp: int = game.hero_xp
 	arena._gain_xp(100)

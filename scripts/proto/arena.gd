@@ -100,6 +100,8 @@ var ember_text: Label
 var gear := {}
 ## Licznik zgonów w trybie deweloperskim (widoczny, gdy nieśmiertelność jest włączona).
 var deaths_label: Label
+## Tryb deweloperski: klatki na sekundę i potwory naraz (Game.dev_fps).
+var fps_label: Label
 var ember_bar: ProgressBar
 var summon_button: Button
 var boss_box: VBoxContainer
@@ -548,6 +550,10 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	deaths_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35))
 	deaths_label.visible = Game.dev_immortal
 	box.add_child(deaths_label)
+	fps_label = _hud_label("")
+	fps_label.add_theme_color_override("font_color", Color(0.6, 1, 0.6))
+	fps_label.visible = Game.dev_fps
+	box.add_child(fps_label)
 
 
 ## Kwadratowa ikonka 44 px w górnym rzędzie (Postać, Umiejętności).
@@ -846,6 +852,8 @@ func _process(delta: float) -> void:
 	if horde_spawner and time_label:
 		var s := int(horde_spawner.time)
 		time_label.text = "%d:%02d" % [s / 60, s % 60]
+	if fps_label and fps_label.visible:
+		fps_label.text = tr("%d kl./s, potwory: %d") % [Engine.get_frames_per_second(), horde_spawner._alive if horde_spawner else 0]
 	if summon_button and summon_button.visible:  # pełny pasek pulsuje
 		var k := 0.5 + 0.5 * sin(_time * 6.0)
 		_fill_style.bg_color = EMBER_FILL.lerp(EMBER_FULL, k)
@@ -1075,6 +1083,8 @@ func _apply_settings() -> void:
 		base_bar.left_handed = Game.left_handed
 	if deaths_label:
 		deaths_label.visible = Game.dev_immortal
+	if fps_label:
+		fps_label.visible = Game.dev_fps
 
 
 ## Przycisk „wstecz” na Androidzie otwiera i zamyka pauzę; przełączenie telefonu na inną aplikację ją otwiera.

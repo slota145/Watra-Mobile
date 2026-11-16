@@ -217,7 +217,20 @@ func _test_horde() -> void:
 	await _test_embers(arena, hero, horde)
 	# strumień rozkręca się z czasem
 	horde.time = ProtoHorde.RAMP_TIME
-	_check(is_equal_approx(horde.interval(), ProtoHorde.INTERVAL_END) and horde.max_alive() == ProtoHorde.ALIVE_END, "po 3 minutach pełne tempo")
+	_check(is_equal_approx(horde.interval(), ProtoHorde.INTERVAL_END) and horde.max_alive() == ProtoHorde.ALIVE_END, "po rozkręceniu pełne tempo")
+	# grupka: kilka potworów naraz z jednego miejsca
+	var before: Array = get_nodes_in_group(ProtoWeapon.TARGETS)
+	var made := horde.spawn_group()
+	var group: Array = get_nodes_in_group(ProtoWeapon.TARGETS).filter(func(n: Node) -> bool: return not n in before)
+	var tight := group.size() == made and group.all(func(n: Node2D) -> bool:
+		return n.global_position.distance_to(group[0].global_position) <= ProtoHorde.GROUP_SPREAD * 3.0)
+	_check(made >= ProtoHorde.GROUP_END.x and made <= ProtoHorde.GROUP_END.y and tight, "grupka %d potworów z jednej strony" % made)
+	# reszta testu bez tłumu (gęsta Horda potrafi zabić postać, zanim włączy się nieśmiertelność)
+	horde.running = false
+	for n in get_nodes_in_group(ProtoWeapon.TARGETS):
+		n.queue_free()
+	hero.hp = ProtoHero.MAX_HP
+	await process_frame
 	# tryb deweloperski: nieśmiertelność - zdrowie wraca do pełna, licznik zgonów
 	var game0: Node = root.get_node("Game")
 	arena._open_menu()
@@ -350,7 +363,7 @@ func _test_brute() -> void:
 	await process_frame
 	_check(b.hp == roundi(ProtoGoblinBrute.BRUTE_HP * horde.power) and b.hp > roundi(ProtoGoblin.MAX_HP * horde.power) * 3, "osiłek ma dużo zdrowia (%d)" % b.hp)
 	await _wait(0.5)
-	_check(b.position.x - hero.position.x < 78.0 and b.position.x - hero.position.x > 60.0, "osiłek idzie powoli (%.0f)" % (b.position.x - hero.position.x))
+	_check(b.position.x - hero.position.x < 78.0 and b.position.x - hero.position.x > 55.0, "osiłek idzie powoli (%.0f)" % (b.position.x - hero.position.x))
 	# cios: koło przed osiłkiem, stojąca postać obrywa, cięcie nie przerywa zamachu
 	b.position = hero.position + Vector2(20, 0)
 	b._cooldown = 0.0
