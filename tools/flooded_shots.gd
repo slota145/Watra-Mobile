@@ -54,9 +54,9 @@ func _run() -> void:
 	w._cooldown = 99.0
 	hero.position = w.position + Vector2(10, 70)
 	w.start_attack("wave")
-	await create_timer(0.7).timeout
+	await create_timer(ProtoWodnik.WAVE_WARN + 0.2).timeout
 	await _shot("3_fala")
-	await create_timer(1.2).timeout
+	await create_timer(0.7).timeout
 	w._cooldown = 99.0
 	w.start_attack("vortex")
 	await create_timer(ProtoWodnik.VORTEX_WARN + 0.5).timeout

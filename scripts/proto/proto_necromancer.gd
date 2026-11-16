@@ -10,7 +10,10 @@ extends ProtoChief
 ##   przez DRAIN_TIME s co DRAIN_TICK s rani Nawią i leczy Nekromantę; wyjście poza koło przerywa wiązkę;
 ## - Przywołanie szkieletów: z ziemi wstaje SUMMON_COUNT szkieletów (co SUMMON_COOLDOWN s).
 ## Grafika: model SpriteKiln assets/spritekiln/necromancer/ (idle, walk, roar, bolts, ring, drain, summon, hit,
-## death), do tego czasu powiększony goblin w kolorze Nawii.
+## death), do tego czasu powiększony goblin w kolorze Nawii. Efekty z kreatora PixelLab (16.11.2026): kule Nawii
+## z dymiącym ogonem (`ProtoArrow.nawia`), kościane kolce (`bone_spikes`), drobinki płynące wiązką od postaci
+## do Nekromanty (`nawia_drain` - kafelki wzdłuż kreski) i błysk leczenia (`nawia_heal`), krąg przywołania z czarnym
+## płomieniem (`nawia_summon`) i dym Nawii za Nekromantą przez całą zapowiedź ataku (`nawia_aura`).
 
 const NECRO_SCENE := "res://assets/spritekiln/necromancer/necromancer.tscn"
 const NECRO_HP := 900
@@ -43,10 +46,30 @@ const SUMMON_RING := 50.0
 const SUMMON_TIME := 1.0
 const SUMMON_COOLDOWN := 12.0
 const NAWIA_TINT := Color(0.75, 0.5, 1.0)
+const SPIKES_FX := preload("res://assets/effects/bone_spikes.png")
+const SPIKES_FRAMES := 18
+const SPIKES_ANCHOR := Vector2(51, 47)
+## Promień koła, do którego pasują kolce w skali 1 (skala = promień koła / SPIKES_RADIUS).
+const SPIKES_RADIUS := 24.0
+const DRAIN_FX := preload("res://assets/effects/nawia_drain.png")
+const DRAIN_FX_FRAMES := 12
+const DRAIN_FX_SIZE := Vector2(48, 16)
+const HEAL_FX := preload("res://assets/effects/nawia_heal.png")
+const HEAL_ANCHOR := Vector2(11, 24)
+const SUMMON_FX := preload("res://assets/effects/nawia_summon.png")
+const SUMMON_FX_ANCHOR := Vector2(38, 64)
+const AURA_FX := preload("res://assets/effects/nawia_aura.png")
+const AURA_FRAMES := 16
+const AURA_ANCHOR := Vector2(24, 45)
+## Stany zapowiedzi ataku - wtedy za Nekromantą kłębi się dym Nawii.
+const WARN_STATES: Array[String] = ["bolts", "ring", "drain", "summon"]
 const ATTACKS: Array[String] = ["bolts", "ring", "drain"]
 
 var _drops: Array[ProtoTelegraph] = []
 var _beam: Line2D
+## Drobinki płynące wiązką (kafelki DRAIN_FX wzdłuż kreski).
+var _beam_fx: Node2D
+var _aura: Sprite2D
 var _drain_tick := 0.0
 var _summon_cooldown := 6.0
 var _summon_points: Array = []
@@ -70,6 +93,7 @@ func _process(delta: float) -> void:
 	super(delta)
 	_summon_cooldown -= delta
 	_update_drops()
+	_update_aura()
 	if state == "dead" or hero == null:
 		return
 	match state:
@@ -128,9 +152,8 @@ func _fire_bolts() -> void:
 	for i in BOLTS:
 		var b := ProtoArrow.new()
 		b.hero = hero
-		b.bubble = true
+		b.nawia = true
 		b.element = Elements.NAWIA
-		b.tint = NAWIA_TINT
 		b.speed = BOLT_SPEED
 		b.fly_range = BOLT_RANGE
 		b.damage = roundi(BOLT_DAMAGE * power)
@@ -174,7 +197,7 @@ func _update_drops() -> void:
 			continue
 		if hero and not hero.dead and state != "dead" and t.contains(hero.global_position):
 			hero.take_damage(roundi(RING_DAMAGE * power))
-		Fx.once(get_parent(), FX_SLAM, 12, 18.0, t.global_position, Vector2(37, 25), 20, t.radius / 34.0).modulate = Color(0.95, 0.9, 0.8)
+		Fx.once(get_parent(), SPIKES_FX, SPIKES_FRAMES, 16.0, t.global_position, SPIKES_ANCHOR, 20, t.radius / SPIKES_RADIUS)
 		t.queue_free()
 		_drops.remove_at(i)
 
@@ -198,14 +221,43 @@ func _update_drain(delta: float) -> void:
 		_beam.default_color = Color(NAWIA_TINT, 0.85)
 		_beam.z_index = 20
 		get_parent().add_child(_beam)
-	_beam.points = PackedVector2Array([global_position + Vector2(0, -26), hero.global_position + Vector2(0, -12)])
-	_beam.width = 2.5 + sin(_timer * 30.0)
+	var from := global_position + Vector2(0, -26)
+	var to := hero.global_position + Vector2(0, -12)
+	_beam.points = PackedVector2Array([from, to])
+	_beam.width = 1.5 + 0.5 * sin(_timer * 30.0)
+	_update_beam_fx(from, to)
 	_drain_tick -= delta
 	if _drain_tick <= 0.0:
 		_drain_tick = DRAIN_TICK
 		hero.take_damage(roundi(DRAIN_DAMAGE * power), Elements.NAWIA)
 		hp = mini(hp + roundi(DRAIN_HEAL * power), max_hp)
 		health_changed.emit(hp, max_hp)
+		Fx.once(get_parent(), HEAL_FX, 10, 14.0, global_position + Vector2(randf_range(-7.0, 7.0), -18.0), HEAL_ANCHOR, 21)
+
+
+## Drobinki wzdłuż wiązki: kafelki arkusza od Nekromanty do postaci (ostatni przycięty), płyną w stronę Nekromanty.
+func _update_beam_fx(from: Vector2, to: Vector2) -> void:
+	if _beam_fx == null:
+		_beam_fx = Node2D.new()
+		_beam_fx.z_index = 21
+		get_parent().add_child(_beam_fx)
+	_beam_fx.global_position = from
+	_beam_fx.rotation = (to - from).angle()
+	var length := from.distance_to(to)
+	var count := ceili(length / DRAIN_FX_SIZE.x)
+	var frame := int(_timer * 12.0) % DRAIN_FX_FRAMES
+	while _beam_fx.get_child_count() < count:
+		var tile := Sprite2D.new()
+		tile.texture = DRAIN_FX
+		tile.centered = false
+		tile.region_enabled = true
+		_beam_fx.add_child(tile)
+	for i in _beam_fx.get_child_count():
+		var tile := _beam_fx.get_child(i) as Sprite2D
+		tile.visible = i < count
+		var w := minf(DRAIN_FX_SIZE.x, length - i * DRAIN_FX_SIZE.x)
+		tile.position = Vector2(i * DRAIN_FX_SIZE.x, -DRAIN_FX_SIZE.y / 2.0)
+		tile.region_rect = Rect2(frame * DRAIN_FX_SIZE.x, 0, maxf(w, 1.0), DRAIN_FX_SIZE.y)
 
 
 ## Czy punkt leży w kole wyssania (koło spłaszczone jak ostrzeżenia na ziemi).
@@ -220,9 +272,7 @@ func draining() -> bool:
 
 
 func _end_drain() -> void:
-	if _beam and is_instance_valid(_beam):
-		_beam.queue_free()
-	_beam = null
+	_clear_beam()
 	_remove_telegraph()
 	_set_state("recover")
 
@@ -237,14 +287,36 @@ func _start_summon() -> void:
 		var p := global_position + Vector2.from_angle(start + TAU * i / SUMMON_COUNT) * SUMMON_RING * Vector2(1, 0.7)
 		p = p.clamp(bounds.position, bounds.end)
 		_summon_points.append(p)
-		Fx.once(get_parent(), FX_ROAR, 10, 12.0, p, Vector2(73, 42), 6, 0.6).modulate = NAWIA_TINT
+		Fx.once(get_parent(), SUMMON_FX, 12, 12.0, p, SUMMON_FX_ANCHOR, 6, 0.6)
 	_sound(ROAR_SOUND, -6.0, randf_range(0.6, 0.7))
 
 
-func _die() -> void:
+## Dym Nawii: jest, póki Nekromanta zapowiada atak albo wysysa (WARN_STATES).
+func _update_aura() -> void:
+	var warn := state in WARN_STATES
+	if warn and _aura == null:
+		_aura = Fx.loop(self, AURA_FX, AURA_FRAMES, 12.0, Vector2.ZERO, AURA_ANCHOR, -1)
+	elif not warn and _aura:
+		_aura.queue_free()
+		_aura = null
+
+
+## Czy dym Nawii kłębi się za Nekromantą (testy).
+func aura_active() -> bool:
+	return _aura != null
+
+
+func _clear_beam() -> void:
 	if _beam and is_instance_valid(_beam):
 		_beam.queue_free()
 	_beam = null
+	if _beam_fx and is_instance_valid(_beam_fx):
+		_beam_fx.queue_free()
+	_beam_fx = null
+
+
+func _die() -> void:
+	_clear_beam()
 	for t in _drops:
 		if is_instance_valid(t):
 			t.queue_free()
@@ -259,3 +331,5 @@ func _exit_tree() -> void:
 			t.queue_free()
 	if _beam and is_instance_valid(_beam):
 		_beam.queue_free()
+	if _beam_fx and is_instance_valid(_beam_fx):
+		_beam_fx.queue_free()

@@ -2,6 +2,26 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - efekty ataków Wodnika i Nekromanty
+
+Ciąg dalszy efektów bossów z kreatora PixelLab (darmowy; wpisy w `pixellab_src/vfx/ids.json`, arkusze w `assets/effects/`).
+Decyzje autora: sople spadają z góry, Nawia zostaje fioletowa, wiązka wyssania zostaje kreską z efektem wzdłuż niej,
+aury przy zapowiedzi ataku - tak.
+- Wodnik (`proto_wodnik.gd`): `wodnik_wave` - fala z ciemną masą wody za grzywą piany (pętla w locie, skala `TIDE_SCALE`
+  0,75, na końcu pasa rozprysk `hydro_splash`); `wodnik_vortex` - wir z szybszymi spiralami i krążącymi kroplami;
+  `wodnik_icicle` - sopel spada z nieba w każde koło lodowych kropli (startuje `ICICLE_LEAD` = 7/18 s przed
+  wypełnieniem koła, rozbija się w lodowe odłamki w 8. klatce; zastąpił niebieski rozprysk wody); `wodnik_geyser` -
+  zmarszczki, słup wody i rozbryzg przy wezwaniu topielców (skala 0,8); `wodnik_aura` - krople krążące wokół Wodnika
+  w stanach `WARN_STATES` (`_update_aura`, `aura_active`).
+- Nekromanta (`proto_necromancer.gd`): kule `ProtoArrow.nawia` (`nawia_orb` - kula z dymiącym ogonem, trafienie
+  `nawia_hit`) zamiast przebarwionych baniek; `bone_spikes` - kościane kolce w kołach kręgu (skala = promień koła /
+  `SPIKES_RADIUS` 24) zamiast pożyczonego uderzenia; `nawia_drain` - drobinki płynące od postaci do Nekromanty,
+  kafelki 48x16 wzdłuż kreski (ostatni przycięty `region_rect`, `_update_beam_fx`, `_clear_beam`), cieńsza kreska;
+  `nawia_heal` - zielony błysk leczenia przy każdym ciosie wiązki; `nawia_summon` - krąg run z czarnym płomieniem
+  Nawii przy przywołaniu; `nawia_aura` - dym Nawii za Nekromantą w `WARN_STATES` (z_index -1).
+- Testy: `test_flooded.gd` (krople wokół Wodnika przy zapowiedzi i po ataku), `test_catacombs.gd` (kule `nawia`,
+  drobinki i dym przy wiązce). Zrzuty `tools/flooded_shots.gd` (fala w locie) i `tools/catacombs_shots.gd` (kolce).
+
 ## 16.11.2026 - efekty ataków Gromoskrzydłego i Żywiołaka ognia
 
 Uwaga autora: w walce z bossami za mało widać ich żywioł, a Gromoskrzydły „strzelał strzałami”. Decyzja autora:

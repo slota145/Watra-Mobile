@@ -150,7 +150,7 @@ func _test_necromancer(game: Node) -> void:
 	await _wait(ProtoNecromancer.BOLT_WARN + 0.05)
 	var bolts := 0
 	for c in arena.get_node("World").get_children():
-		if c is ProtoArrow and c.bubble and c.element == Elements.NAWIA:
+		if c is ProtoArrow and c.nawia and c.element == Elements.NAWIA:
 			bolts += 1
 	_check(bolts == ProtoNecromancer.BOLTS, "wachlarz %d kul Nawii" % bolts)
 	await _wait(1.5)
@@ -179,9 +179,11 @@ func _test_necromancer(game: Node) -> void:
 	n.start_attack("drain")
 	await _wait(ProtoNecromancer.DRAIN_START + 0.9)
 	_check(n.draining() and hero.hp < hero.max_hp and n.hp > n.max_hp - 500, "wiązka wysysa zdrowie i leczy Nekromantę")
+	_check(n._beam_fx != null and n._beam_fx.get_child_count() >= 1 and n.aura_active(), "drobinki płyną wiązką, za Nekromantą dym Nawii")
 	hero.position = n.position + Vector2(0, 150)
 	await _wait(0.1)
 	_check(not n.draining() and n.state == "recover", "wyjście z koła przerywa wiązkę")
+	_check(n._beam_fx == null and not n.aura_active(), "drobinki i dym znikają z wiązką")
 	# przywołanie szkieletów
 	await _wait(0.8)
 	var before := horde.count(ProtoSkeleton)
