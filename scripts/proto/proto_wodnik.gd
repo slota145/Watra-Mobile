@@ -11,8 +11,10 @@ extends ProtoChief
 ##   lód rani i mocno spowalnia;
 ## - Wezwanie topielców: wbija trójząb, z gejzerów wychodzi SUMMON_COUNT topielców (co SUMMON_COOLDOWN s).
 ## Grafika: model SpriteKiln assets/spritekiln/wodnik/ (idle, walk, roar, wave, vortex, cast, summon, hit, death),
-## do tego czasu powiększony goblin w kolorze wody. Efekty wody z hydrosfery (hydro_wave, hydro_vortex,
-## hydro_splash, hydro_geyser), lód - rozprysk w kolorze lodu.
+## do tego czasu powiększony goblin w kolorze wody. Efekty z kreatora PixelLab (16.11.2026): fala z masą wody
+## (`wodnik_wave`, na końcu pasa rozprysk `hydro_splash`), wir z krążącymi kroplami (`wodnik_vortex`), sopel spadający
+## z nieba w każde koło kropli (`wodnik_icicle`, uderza w 8. klatce razem z obrażeniami), gejzer wezwania
+## (`wodnik_geyser`) i aura kropli wokół Wodnika przez całą zapowiedź ataku (`wodnik_aura`).
 
 const WODNIK_SCENE := "res://assets/spritekiln/wodnik/wodnik.tscn"
 const WODNIK_HP := 800
@@ -46,15 +48,30 @@ const SOAK_TIME := 2.0
 const ICE_SLOW := 0.45
 const ICE_TIME := 1.3
 const ICE_TINT := Color(0.6, 0.9, 1.0)
-const TIDE_FX := preload("res://assets/effects/hydro_wave.png")
+const TIDE_FX := preload("res://assets/effects/wodnik_wave.png")
 const TIDE_FRAMES := 12
-const TIDE_ANCHOR := Vector2(17, 32)
-const VORTEX_FX := preload("res://assets/effects/hydro_vortex.png")
+const TIDE_ANCHOR := Vector2(62, 35)
+## Wysokość fali (px w arkuszu) przeskalowana do szerokości pasa z zapasem.
+const TIDE_SCALE := 0.75
+const TIDE_SPLASH := preload("res://assets/effects/hydro_splash.png")
+const VORTEX_FX := preload("res://assets/effects/wodnik_vortex.png")
 const VORTEX_FRAMES := 12
-const VORTEX_ANCHOR := Vector2(48, 34)
+const VORTEX_ANCHOR := Vector2(43, 25)
 const VORTEX_FX_RADIUS := 34.0
-const GEYSER_FX := preload("res://assets/effects/hydro_geyser.png")
-const GEYSER_ANCHOR := Vector2(49, 39)
+const GEYSER_FX := preload("res://assets/effects/wodnik_geyser.png")
+const GEYSER_FRAMES := 16
+const GEYSER_ANCHOR := Vector2(38, 65)
+## Sopel: spada ICICLE_LEAD s i uderza w 8. klatce - wtedy, gdy koło się wypełni.
+const ICICLE_FX := preload("res://assets/effects/wodnik_icicle.png")
+const ICICLE_FRAMES := 18
+const ICICLE_FPS := 18.0
+const ICICLE_ANCHOR := Vector2(32, 93)
+const ICICLE_LEAD := 7.0 / ICICLE_FPS
+const AURA_FX := preload("res://assets/effects/wodnik_aura.png")
+const AURA_FRAMES := 12
+const AURA_ANCHOR := Vector2(30, 37)
+## Stany zapowiedzi ataku - wtedy wokół Wodnika krążą krople.
+const WARN_STATES: Array[String] = ["wave", "vortex", "cast", "summon"]
 const ATTACKS: Array[String] = ["wave", "vortex", "cast"]
 
 ## Kierunek fali (radiany) i jej ostrzeżenie.
@@ -70,6 +87,7 @@ var _drops: Array[ProtoTelegraph] = []
 var _summon_cooldown := 5.0
 var _summon_points: Array = []
 var _last_attack := ""
+var _aura: Sprite2D
 ## Testy i zrzuty: Wodnik sam nie wybiera ataków (tylko `start_attack`).
 var passive := false
 
@@ -89,6 +107,7 @@ func _process(delta: float) -> void:
 	_summon_cooldown -= delta
 	_update_vortex(delta)
 	_update_drops()
+	_update_aura()
 	if state == "dead" or hero == null:
 		return
 	match state:
@@ -165,6 +184,7 @@ func _wave_hit() -> void:
 	fx.centered = false
 	fx.offset = -TIDE_ANCHOR
 	fx.rotation = _wave_angle
+	fx.scale = Vector2.ONE * TIDE_SCALE
 	fx.z_index = 20
 	get_parent().add_child(fx)
 	var from := global_position
@@ -173,7 +193,9 @@ func _wave_hit() -> void:
 	var tween := fx.create_tween()
 	tween.tween_method(func(k: float) -> void:
 		fx.global_position = from.lerp(to, k)
-		fx.frame = mini(int(k * TIDE_FRAMES), TIDE_FRAMES - 1), 0.0, 1.0, WAVE_FLIGHT)
+		fx.frame = int(k * WAVE_FLIGHT * 12.0) % TIDE_FRAMES, 0.0, 1.0, WAVE_FLIGHT)
+	tween.tween_callback(func() -> void:
+		Fx.once(fx.get_parent(), TIDE_SPLASH, 10, 14.0, to, Vector2(21, 18), 20, 1.3))
 	tween.tween_property(fx, "modulate:a", 0.0, 0.15)
 	tween.tween_callback(fx.queue_free)
 	_sound(SLAM_SOUND, -4.0, randf_range(1.2, 1.35))
@@ -258,21 +280,21 @@ func _start_cast() -> void:
 		_drops.append(t)
 
 
-## Spada sopel tam, gdzie koło się wypełniło.
+## Sopel zaczyna spadać ICICLE_LEAD s przed wypełnieniem koła; rani tam, gdzie koło się wypełniło.
 func _update_drops() -> void:
 	for i in range(_drops.size() - 1, -1, -1):
 		var t := _drops[i]
 		if not is_instance_valid(t):
 			_drops.remove_at(i)
 			continue
+		if not t.has_meta("icicle") and (1.0 - t.progress) * t.duration <= ICICLE_LEAD:
+			t.set_meta("icicle", true)
+			Fx.once(get_parent(), ICICLE_FX, ICICLE_FRAMES, ICICLE_FPS, t.global_position, ICICLE_ANCHOR, 20, 0.8)
 		if t.progress < 1.0:
 			continue
 		if hero and not hero.dead and state != "dead" and t.contains(hero.global_position):
 			hero.take_damage(roundi(DROP_DAMAGE * power), Elements.COLD)
 			hero.slow(ICE_SLOW, ICE_TIME, ICE_TINT.lerp(Color.WHITE, 0.3))
-		var fx := Fx.once(get_parent(), ProtoArrow.WATER_HIT, ProtoArrow.WATER_HIT_FRAMES, 14.0, t.global_position,
-				ProtoArrow.WATER_HIT_ANCHOR, 20, 0.9)
-		fx.modulate = ICE_TINT
 		t.queue_free()
 		_drops.remove_at(i)
 
@@ -288,9 +310,24 @@ func _start_summon() -> void:
 		var p := global_position + Vector2.from_angle(start + TAU * i / SUMMON_COUNT) * SUMMON_RING * Vector2(1, 0.7)
 		p = p.clamp(bounds.position, bounds.end)
 		_summon_points.append(p)
-		Fx.once(get_parent(), GEYSER_FX, 12, 12.0, p, GEYSER_ANCHOR, 6, 0.55)
+		Fx.once(get_parent(), GEYSER_FX, GEYSER_FRAMES, 14.0, p, GEYSER_ANCHOR, 6, 0.8)
 	_sound(ROAR_SOUND, -6.0, randf_range(1.25, 1.4))
 	_play(&"idle")
+
+
+## Aura kropli: jest, póki Wodnik zapowiada atak (WARN_STATES).
+func _update_aura() -> void:
+	var warn := state in WARN_STATES
+	if warn and _aura == null:
+		_aura = Fx.loop(self, AURA_FX, AURA_FRAMES, 12.0, Vector2.ZERO, AURA_ANCHOR, 1)
+	elif not warn and _aura:
+		_aura.queue_free()
+		_aura = null
+
+
+## Czy krople krążą wokół Wodnika (testy).
+func aura_active() -> bool:
+	return _aura != null
 
 
 func _die() -> void:

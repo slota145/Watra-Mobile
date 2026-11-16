@@ -630,5 +630,185 @@
       21
     ],
     "columns": 4
+  },
+  "wodnik_icicle": {
+    "effect": "32f774c9-317d-4d8f-b656-8c5f512fcad2",
+    "name": "Wodnik - sopel (spada, uderzenie w 8. klatce)",
+    "frame": [
+      64,
+      124
+    ],
+    "frames": 18,
+    "fps": 18,
+    "anchor": [
+      32,
+      93
+    ],
+    "columns": 5
+  },
+  "wodnik_wave": {
+    "effect": "c9ba3654-8370-433a-9022-7ec061f12755",
+    "name": "Wodnik - fala (pętla, lot w prawo)",
+    "frame": [
+      91,
+      76
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      62,
+      35
+    ],
+    "columns": 4
+  },
+  "wodnik_vortex": {
+    "effect": "291625a2-f6c7-4c51-a4cb-49476c3e9b56",
+    "name": "Wodnik - wir (pętla, krople krążą)",
+    "frame": [
+      87,
+      51
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      43,
+      25
+    ],
+    "columns": 4
+  },
+  "wodnik_geyser": {
+    "effect": "abd054db-c7ec-497b-aa55-c93460ac9ced",
+    "name": "Wodnik - gejzer wezwania topielca",
+    "frame": [
+      75,
+      97
+    ],
+    "frames": 16,
+    "fps": 12,
+    "anchor": [
+      38,
+      65
+    ],
+    "columns": 4
+  },
+  "wodnik_aura": {
+    "effect": "2e9d528e-79f4-4cd8-bf2c-d323a831e7f1",
+    "name": "Wodnik - aura kropli przy zapowiedzi (pętla; zaczepienie pod stopami)",
+    "frame": [
+      60,
+      50
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      30,
+      37
+    ],
+    "columns": 4
+  },
+  "nawia_orb": {
+    "effect": "c9437e84-1184-46fa-bd65-9a36d78e2756",
+    "name": "Nekromanta - kula Nawii (pętla, lot w prawo)",
+    "frame": [
+      54,
+      25
+    ],
+    "frames": 8,
+    "fps": 12,
+    "anchor": [
+      41,
+      12
+    ],
+    "columns": 3
+  },
+  "nawia_hit": {
+    "effect": "ee56ed97-ee09-4d93-87d9-c2f7a7d90fde",
+    "name": "Nekromanta - trafienie kuli Nawii",
+    "frame": [
+      38,
+      32
+    ],
+    "frames": 10,
+    "fps": 16,
+    "anchor": [
+      20,
+      18
+    ],
+    "columns": 4
+  },
+  "bone_spikes": {
+    "effect": "d5343032-8d2d-4b61-a7d0-267a788e3c50",
+    "name": "Nekromanta - kościane kolce",
+    "frame": [
+      103,
+      65
+    ],
+    "frames": 18,
+    "fps": 16,
+    "anchor": [
+      51,
+      47
+    ],
+    "columns": 5
+  },
+  "nawia_drain": {
+    "effect": "321e8d55-c092-4bd9-9be2-9c4d1346d12c",
+    "name": "Nekromanta - drobinki wyssania (pętla, płyną w lewo; kafelki wzdłuż wiązki)",
+    "frame": [
+      48,
+      16
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      0,
+      8
+    ],
+    "columns": 4
+  },
+  "nawia_summon": {
+    "effect": "ab30e5c0-8f98-40cc-9e80-8ae58b6da129",
+    "name": "Nekromanta - krąg przywołania szkieletu",
+    "frame": [
+      76,
+      81
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      38,
+      64
+    ],
+    "columns": 4
+  },
+  "nawia_aura": {
+    "effect": "ab4eb296-1d0c-4674-9f6c-704dec7a1150",
+    "name": "Nekromanta - aura dymu Nawii przy zapowiedzi (pętla)",
+    "frame": [
+      46,
+      58
+    ],
+    "frames": 16,
+    "fps": 12,
+    "anchor": [
+      24,
+      45
+    ],
+    "columns": 4
+  },
+  "nawia_heal": {
+    "effect": "e9dc5d7e-6b5c-4908-8983-b7f5ee9f976c",
+    "name": "Nekromanta - leczenie z wyssania (10 pierwszych z 12 klatek)",
+    "frame": [
+      22,
+      35
+    ],
+    "frames": 10,
+    "fps": 14,
+    "anchor": [
+      11,
+      24
+    ],
+    "columns": 4
   }
 }

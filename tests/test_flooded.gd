@@ -208,6 +208,8 @@ func _test_wodnik(game: Node) -> void:
 	hero.position = wod.position + Vector2(80, 0)
 	wod.start_attack("vortex")
 	var center: Vector2 = wod._vortex_at
+	await _wait(0.05)
+	_check(wod.aura_active(), "krople krążą wokół Wodnika przy zapowiedzi")
 	await _wait(ProtoWodnik.VORTEX_WARN + 0.05)
 	_check(wod.vortex_active(), "wir kręci się w miejscu ostrzeżenia")
 	hero.position = center + Vector2(50, 0)
@@ -216,6 +218,7 @@ func _test_wodnik(game: Node) -> void:
 	_check(hero.position.distance_to(center) < before - 10.0, "wir wciąga postać (%.0f -> %.0f)" % [before, hero.position.distance_to(center)])
 	await _wait(ProtoWodnik.VORTEX_TIME)
 	_check(not wod.vortex_active(), "wir znika po czasie")
+	_check(not wod.aura_active(), "krople znikają po ataku")
 	# lodowe krople
 	wod._cooldown = 99.0
 	wod._set_state("walk")
