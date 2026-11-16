@@ -4,6 +4,9 @@ extends Node2D
 ## (albo po stuknięciu palcem) - wtedy sypie iskry żaru, które same lecą do postaci (`embers` żaru, duże po 5).
 ## Razem z żarem wysypują się przedmioty (`items`, Items.roll_chest) - też same lecą do postaci.
 ## Grafika: skrzynia z Watry (assets/watra/chest.png).
+## Ta sama skrzynia jest celem na mapie lochu (DungeonGoals, `hold_time` > 0): stoi pod słupem światła (GoalBeam),
+## otwiera się dopiero, gdy postać postoi przy niej `hold_time` s (kółko postępu na ziemi; odejście cofa postęp),
+## i ma strzałkę przy krawędzi ekranu (grupa GoalArrows.GROUP).
 
 signal opened
 ## Z każdej iskry ze skrzyni (wartość) - podpina ją arena do licznika żaru.
@@ -18,12 +21,22 @@ const SOUND := preload("res://assets/watra/chest_open.ogg")
 const OPEN_RANGE := 22.0
 ## Obszar do stukania wokół skrzyni (piksele gry względem węzła).
 const TAP_RECT := Rect2(-26, -42, 52, 50)
+## Skrzynia-cel: z tej odległości liczy się stanie przy niej (stopy-stopy) i promień kółka postępu.
+const HOLD_RANGE := 30.0
+const RING_RADIUS := 26.0
 
 var hero: ProtoHero
 var embers := 20
 ## Przedmioty do wysypania (słowniki z Items).
 var items: Array = []
 var is_open := false
+## Skrzynia-cel: ile sekund trzeba przy niej postać (0 - otwiera się od razu, jak skrzynia Wodza).
+var hold_time := 0.0
+## Kolor słupa światła, kółka i strzałki celu; ikonka na strzałce.
+var goal_color := Color(1.0, 0.8, 0.4)
+var goal_icon: Texture2D = TEXTURE
+var _hold := 0.0
+var _beam: GoalBeam
 
 var _sprite: Sprite2D
 var _hint: Label
@@ -55,18 +68,44 @@ func _ready() -> void:
 	var tween := create_tween().set_parallel()
 	tween.tween_property(_sprite, "position:y", 0.0, 0.45).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BOUNCE)
 	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.6)
+	if hold_time > 0.0:
+		add_to_group(GoalArrows.GROUP)
+		_beam = GoalBeam.new()
+		_beam.color = goal_color
+		add_child(_beam)
 
 
 func _process(delta: float) -> void:
 	_time += delta
 	_hint.position.y = -58.0 - 3.0 * (0.5 + 0.5 * sin(_time * 5.0))
-	if not is_open and hero and not hero.dead and _time > 0.5 \
-			and hero.global_position.distance_to(global_position) <= OPEN_RANGE:
+	if is_open or hero == null or hero.dead or _time <= 0.5:
+		return
+	var dist := hero.global_position.distance_to(global_position)
+	if hold_time <= 0.0:
+		if dist <= OPEN_RANGE:
+			open()
+		return
+	if dist <= HOLD_RANGE:
+		_hold += delta
+	else:
+		_hold = maxf(0.0, _hold - delta * 2.0)
+	queue_redraw()
+	if _hold >= hold_time:
 		open()
 
 
+## Cel na mapie jeszcze czeka (strzałka przy krawędzi ekranu).
+func goal_active() -> bool:
+	return not is_open
+
+
+func _draw() -> void:
+	if hold_time > 0.0 and not is_open:
+		GoalBeam.draw_ring(self, _hold / hold_time, RING_RADIUS, goal_color)
+
+
 func _input(event: InputEvent) -> void:
-	if is_open or not (event is InputEventScreenTouch and event.pressed) or TouchUi.covers(get_tree(), event.position):
+	if is_open or hold_time > 0.0 or not (event is InputEventScreenTouch and event.pressed) or TouchUi.covers(get_tree(), event.position):
 		return
 	var local: Vector2 = get_global_transform_with_canvas().affine_inverse() * event.position
 	if TAP_RECT.has_point(local):
@@ -79,6 +118,10 @@ func open() -> void:
 		return
 	is_open = true
 	_hint.visible = false
+	if _beam:
+		_beam.fade_out()
+		_beam = null
+	queue_redraw()
 	var audio := AudioStreamPlayer2D.new()
 	audio.stream = SOUND
 	audio.volume_db = -4.0

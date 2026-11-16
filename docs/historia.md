@@ -2,6 +2,28 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - cele na mapie lochu: skrzynia i kapliczka
+
+Pomysł z Dwarven Realms (decyzje autora z ankiety 16.11.2026): przy progach paska żaru na polanie pojawia się cel,
+żeby między falami było dokąd biec. Na start skrzynia i kapliczka; Skarbnik, Krąg Żertwy i Kryształ Watry - dalej.
+- `scripts/dungeon_goals.gd` (`DungeonGoals`): progi `THRESHOLDS` 25/50/75% `DungeonLevels.summon_cost`
+  (`thresholds_passed`), pula wg poziomu `KINDS` (skrzynia od 1., kapliczka od 5. - pula rośnie co 5 poziomów),
+  losowanie bez powtórek w jednym zejściu (`roll`; przy małej puli powtórki), miejsce `spot` (200-420 px od postaci,
+  48 px od brzegu, 120 px od innych celów, poza ozdobami), łup skrzyni, dary kapliczek `GIFTS`.
+- Skrzynia-cel: `ProtoChest.hold_time` (`CHEST_HOLD` 1,5 s stania w promieniu 30 px; odejście cofa postęp 2x szybciej,
+  stuknięcie nie otwiera), kółko postępu na ziemi; łup: 1 przedmiot z wagami skrzyni Wodza, 50% na kamień (od 3.
+  poziomu), żar = 25% żaru skrzyni Wodza (bez mnożnika głębi, idzie do paska).
+- Kapliczka `scripts/proto/proto_shrine.gd` (`ProtoShrine`, grafika `assets/watra/shrine.png` i dźwięk
+  `shrine_pray.ogg` z Watry): 1 s stania (`PRAY_TIME`), dar na 60 s (`GIFT_TIME`, nowy zastępuje stary) - nazwy z Watry:
+  Moc Peruna (+50% obrażeń, +10% kryt.), Opieka Mokoszy (+20% uniku i ochrony, leczenie 3% zdrowia/s), Tchnienie
+  Strzyboga (+30% ruchu i ataku), Hojność Dadźboga (łup x2). Dar doliczany do cech z przedmiotów (`arena._gear`,
+  `_refresh_gift`), łup przez `_apply_upgrades`; napis daru z czasem pod paskami (`gift_label`).
+- Pokazanie: słup światła `scripts/proto/goal_beam.gd` (`GoalBeam`, wielokąt addytywny, też `draw_ring`), strzałki przy
+  krawędzi ekranu `scripts/ui/goal_arrows.gd` (`GoalArrows`, grupa `dungeon_goal`, omijają górny pasek), napis na
+  środku ekranu (`arena.announce`) i dźwięk.
+- Niezrobiony cel zostaje po przyzwaniu Wodza; nowe cele tylko w fazie Hordy.
+- Test `tests/test_goals.gd`, zrzuty `tools/goal_shots.gd`.
+
 ## 16.11.2026 - mniej żaru w głębi
 
 Uwaga autora: na 101. poziomie (Wulkaniczne równiny) w 2 minuty ~30 000 żaru. Przyczyny: iskra warta `reward`

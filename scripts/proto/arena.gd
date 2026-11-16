@@ -29,6 +29,10 @@ extends Node2D
 ## i pasek skrótów (BaseBar) otwierający okna budynków bez podchodzenia.
 ## Górny rząd (decyzja autora 13.11.2026): „Menu”, ikonki „Postać” (okno HeroStats) i „Umiejętności” (SkillsWindow;
 ## kupno tylko w bazie) - w bazie i w lochu; oba okna zatrzymują grę.
+## Cele na mapie lochu (DungeonGoals, 16.11.2026): przy progach paska żaru (25/50/75%) na polanie pojawia się cel -
+## skrzynia (ProtoChest z `hold_time`) albo kapliczka (ProtoShrine - dar bóstwa na 60 s doliczany do cech
+## z przedmiotów w `_gear`); napis na środku ekranu (`announce`), strzałki przy krawędzi (GoalArrows), nazwa daru
+## z pozostałym czasem pod paskami (`gift_label`). Niezrobiony cel zostaje po przyzwaniu Wodza.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 170), Vector2(100, 180), Vector2(0, 290)]
@@ -134,6 +138,15 @@ var chief: ProtoChief
 var chest: ProtoChest
 ## Etap wyprawy: horde (zbieranie żaru), boss (walka z Wodzem), loot (skrzynia), won (po zwycięstwie).
 var phase := "horde"
+## Cele na mapie lochu (DungeonGoals): pojawione cele, wylosowane rodzaje (bez powtórek), strzałki i napis.
+var goals: Array[Node2D] = []
+var goal_kinds: Array[String] = []
+var goal_arrows: GoalArrows
+var banner: Label
+## Dar kapliczki (klucz DungeonGoals.GIFTS, "" - brak) i ile sekund jeszcze trwa.
+var gift := ""
+var gift_left := 0.0
+var gift_label: Label
 var _fill_style: StyleBoxFlat
 var _time := 0.0
 
@@ -176,7 +189,7 @@ func _ready() -> void:
 	weapon.name = "Weapon"
 	weapon.hero = hero
 	weapon.auto_attack = Game.auto_attack
-	gear = Game.gear()
+	gear = _gear()
 	if horde:
 		horde_spawner = ProtoHorde.new()
 		horde_spawner.name = "Horde"
@@ -289,7 +302,7 @@ func _npc(world: Node2D, node_name: String, title: String, sheet: Texture2D, at:
 ## Doświadczenie dolicza `_gain_xp`, szansę na kamienie ze skrzyni Wodza - `_on_chief_died`.
 func _apply_upgrades() -> void:
 	horde_spawner.density = (1.0 + Game.upgrade_bonus("monsters") / 100.0) * DungeonLevels.crowd(Game.dungeon_level)
-	horde_spawner.loot_mult = 1.0 + Game.upgrade_bonus("loot") / 100.0
+	horde_spawner.loot_mult = (1.0 + Game.upgrade_bonus("loot") / 100.0) * _gift_value("loot", 1.0)
 	horde_spawner.reach = Game.upgrade_bonus("reach")
 
 
@@ -385,6 +398,22 @@ func _make_hud() -> void:
 		loot_feed.add_theme_constant_override("separation", 2)
 		loot_feed.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		column.add_child(loot_feed)
+		goal_arrows = GoalArrows.new()  # pod oknami (dodane później), nad światem
+		goal_arrows.avoid_top = top
+		safe.add_child(goal_arrows)
+		banner = Label.new()
+		banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		banner.custom_minimum_size = Vector2(300, 0)
+		banner.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		banner.position.y -= 120.0
+		banner.add_theme_font_size_override("font_size", 15)
+		banner.add_theme_color_override("font_outline_color", Color(0.06, 0.03, 0.02))
+		banner.add_theme_constant_override("outline_size", 5)
+		banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		banner.visible = false
+		layer.add_child(banner)
 	else:
 		var hint := Label.new()
 		hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj przycisk ataku, żeby atakować.")
@@ -550,6 +579,9 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	deaths_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35))
 	deaths_label.visible = Game.dev_immortal
 	box.add_child(deaths_label)
+	gift_label = _hud_label("")
+	gift_label.visible = false
+	box.add_child(gift_label)
 	fps_label = _hud_label("")
 	fps_label.add_theme_color_override("font_color", Color(0.6, 1, 0.6))
 	fps_label.visible = Game.dev_fps
@@ -640,7 +672,7 @@ func _on_xp(lvl: int, xp: int, need: int) -> void:
 
 ## Zmiana ekwipunku (okno „Postać”, łup): nowe cechy postaci i miecza bez leczenia.
 func _on_inventory() -> void:
-	gear = Game.gear()
+	gear = _gear()
 	if not hero.dead:
 		hero.apply_gear(Game.hero_level, gear)
 	_apply_weapon()
@@ -854,6 +886,8 @@ func _process(delta: float) -> void:
 		time_label.text = "%d:%02d" % [s / 60, s % 60]
 	if fps_label and fps_label.visible:
 		fps_label.text = tr("%d kl./s, potwory: %d") % [Engine.get_frames_per_second(), horde_spawner._alive if horde_spawner else 0]
+	if gift != "":
+		_tick_gift(delta)
 	if summon_button and summon_button.visible:  # pełny pasek pulsuje
 		var k := 0.5 + 0.5 * sin(_time * 6.0)
 		_fill_style.bg_color = EMBER_FILL.lerp(EMBER_FULL, k)
@@ -866,11 +900,118 @@ func _on_embers(e: int) -> void:
 	if phase != "horde":
 		return
 	ember_bar.value = mini(e, DungeonLevels.summon_cost(level))
+	while goals.size() < DungeonGoals.thresholds_passed(e, DungeonLevels.summon_cost(level)) and not hero.dead:
+		spawn_goal(DungeonGoals.roll(level, goal_kinds))
 	ember_text.text = "%d / %d" % [e, DungeonLevels.summon_cost(level)]
 	var full := e >= DungeonLevels.summon_cost(level)
 	summon_button.visible = full and not hero.dead
 	if not full:
 		_fill_style.bg_color = EMBER_FILL
+
+
+## Cel na mapie lochu w wolnym miejscu z dala od postaci (DungeonGoals.spot): skrzynia albo kapliczka.
+## Pojawienie się ogłasza napis i dźwięk, a strzałka przy krawędzi ekranu wskazuje drogę.
+func spawn_goal(kind: String) -> Node2D:
+	var others: Array = goals.filter(func(g: Node2D) -> bool: return is_instance_valid(g)).map(
+			func(g: Node2D) -> Vector2: return g.position)
+	var at := DungeonGoals.spot(ARENA, hero.position, others)
+	var goal: Node2D
+	match kind:
+		"shrine":
+			var shrine := ProtoShrine.new()
+			shrine.hero = hero
+			shrine.gift = DungeonGoals.roll_gift()
+			shrine.prayed.connect(grant_gift)
+			goal = shrine
+			announce(tr("Na polanie rozbłysła kapliczka!"), DungeonGoals.GIFTS[shrine.gift]["color"])
+		_:
+			var box := ProtoChest.new()
+			box.hero = hero
+			box.hold_time = DungeonGoals.CHEST_HOLD
+			box.embers = DungeonGoals.chest_embers(level)
+			box.items = DungeonGoals.chest_items(level, horde_spawner.loot_mult)
+			box.loot_spawned.connect(_track_loot)
+			box.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner.on_chest_ember))
+			goal = box
+			announce(tr("Na polanie pojawiła się skrzynia!"), box.goal_color)
+	goal.name = "Goal%d" % goals.size()
+	goal.position = at
+	goals.append(goal)
+	goal_kinds.append(kind)
+	$World.add_child(goal)
+	var ping := AudioStreamPlayer.new()
+	ping.stream = preload("res://assets/watra/shrine_pray.ogg")
+	ping.volume_db = -10.0
+	ping.pitch_scale = 1.3
+	ping.finished.connect(ping.queue_free)
+	add_child(ping)
+	ping.play()
+	return goal
+
+
+## Napis na środku ekranu (nad postacią) na chwilę: pojawienie się celu, dar kapliczki.
+func announce(text: String, color: Color) -> void:
+	if banner == null:
+		return
+	banner.text = text
+	banner.add_theme_color_override("font_color", color.lightened(0.3))
+	banner.visible = true
+	banner.modulate = Color(1, 1, 1, 0)
+	var tween := banner.create_tween()
+	tween.tween_property(banner, "modulate:a", 1.0, 0.2)
+	tween.tween_interval(2.2)
+	tween.tween_property(banner, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(func() -> void: banner.visible = false)
+
+
+## Dar kapliczki: DungeonGoals.GIFT_TIME s (nowy zastępuje poprzedni), cechy od razu w postaci i broni.
+func grant_gift(id: String) -> void:
+	gift = id
+	gift_left = DungeonGoals.GIFT_TIME
+	var data: Dictionary = DungeonGoals.GIFTS[id]
+	announce("%s\n%s" % [tr(data["name"]), tr(data["description"])], data["color"])
+	hero.float_text(tr(data["name"]), -60.0, data["color"].lightened(0.3), 14)
+	gift_label.add_theme_color_override("font_color", data["color"].lightened(0.3))
+	gift_label.visible = true
+	_refresh_gift()
+
+
+func _tick_gift(delta: float) -> void:
+	gift_left -= delta
+	if gift_left <= 0.0:
+		gift = ""
+		gift_label.visible = false
+		_refresh_gift()
+		return
+	gift_label.text = tr("%s: %d s") % [tr(DungeonGoals.GIFTS[gift]["name"]), ceili(gift_left)]
+
+
+func _refresh_gift() -> void:
+	if gift != "":
+		gift_label.text = tr("%s: %d s") % [tr(DungeonGoals.GIFTS[gift]["name"]), ceili(gift_left)]
+	_on_inventory()
+	if horde_spawner:
+		_apply_upgrades()
+
+
+## Wartość daru kapliczki (`key` w DungeonGoals.GIFTS) albo `default`, gdy nie ma daru.
+func _gift_value(key: String, default: float) -> float:
+	return float(DungeonGoals.GIFTS[gift].get(key, default)) if gift != "" else default
+
+
+## Cechy z przedmiotów (Game.gear) razem z darem kapliczki.
+func _gear() -> Dictionary:
+	var g := Game.gear()
+	if gift == "":
+		return g
+	g = g.duplicate()
+	var data: Dictionary = DungeonGoals.GIFTS[gift]
+	for stat: String in data["stats"]:
+		g[stat] = g.get(stat, 0.0) + float(data["stats"][stat])
+	if data.has("regen_pct"):
+		var max_hp := HeroLevels.max_hp(Game.hero_level) + roundi(g.get("hp", 0.0))
+		g["regen"] = g.get("regen", 0.0) + max_hp * float(data["regen_pct"]) / 100.0
+	return g
 
 
 ## Przyzwanie Wodza: zjada żar z paska (nadwyżka zostaje), gobliny uciekają, Wódz wchodzi nad postacią.

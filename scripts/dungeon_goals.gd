@@ -1,0 +1,108 @@
+class_name DungeonGoals
+extends RefCounted
+## Cele na mapie lochu (pomysł z Dwarven Realms, ustalone z autorem 16.11.2026): przy progach paska przyzwania
+## (THRESHOLDS - ułamki DungeonLevels.summon_cost) na mapie pojawia się cel, żeby między falami było dokąd biec.
+## Cel losuje się z puli zależnej od poziomu lochu (KINDS - od którego poziomu), bez powtórek w jednym zejściu
+## (gdy pula jest mniejsza niż liczba progów, powtórki są dozwolone). Niezrobiony cel zostaje po przyzwaniu Wodza.
+## Na razie: skrzynia (ProtoChest z `hold_time` - stań przy niej) i kapliczka (ProtoShrine - dar bóstwa na GIFT_TIME s).
+## Później: Skarbnik, Krąg Żertwy, Kryształ Watry (docs/ROADMAP.md).
+## Pokazanie graczowi: słup światła nad celem, strzałka przy krawędzi ekranu (GoalArrows), napis i dźwięk.
+
+const THRESHOLDS: Array[float] = [0.25, 0.5, 0.75]
+## Rodzaj celu -> od którego poziomu lochu jest w puli (pula rośnie co 5 poziomów - decyzja autora).
+const KINDS := {"chest": 1, "shrine": 5}
+## Cel pojawia się w takiej odległości od postaci (piksele gry; ekran ma 360 px szerokości).
+const MIN_DIST := 200.0
+const MAX_DIST := 420.0
+## Najmniejszy odstęp od innych celów i od brzegu polany.
+const GOAL_GAP := 120.0
+const EDGE_MARGIN := 48.0
+
+## Skrzynia-cel: tyle sekund stania przy niej, łup mniejszy niż skrzynia Wodza.
+const CHEST_HOLD := 1.5
+## Żar ze skrzyni-celu - ułamek żaru skrzyni Wodza (DungeonLevels.chest_embers).
+const CHEST_EMBER_SHARE := 0.25
+## Szansa na kamień (Gems.roll) ze skrzyni-celu.
+const CHEST_GEM := 0.5
+
+## Kapliczka: tyle sekund modlitwy (stania na niej) i czas daru.
+const PRAY_TIME := 1.0
+const GIFT_TIME := 60.0
+## Dary bóstw (nazwy jak w Watrze, Boons): premie doliczane do cech z przedmiotów (`stats`, te same klucze co
+## Items.totals), `loot` - mnożnik szansy łupu, `regen_pct` - % maks. zdrowia na sekundę.
+const GIFTS := {
+	"might": {"name": "Moc Peruna", "color": Color(1.0, 0.45, 0.3), "stats": {"damage_pct": 50.0, "crit_pct": 10.0},
+			"description": "+50% obrażeń, +10% szansy na trafienie krytyczne"},
+	"ward": {"name": "Opieka Mokoszy", "color": Color(0.45, 1.0, 0.5), "stats": {"dodge_pct": 20.0, "protection_pct": 20.0},
+			"regen_pct": 3.0, "description": "+20% uniku i ochrony, leczenie 3% zdrowia na sekundę"},
+	"haste": {"name": "Tchnienie Strzyboga", "color": Color(0.75, 1.0, 1.0), "stats": {"move_pct": 30.0, "attack_speed_pct": 30.0},
+			"description": "+30% szybkości ruchu i ataku"},
+	"fortune": {"name": "Hojność Dadźboga", "color": Color(1.0, 0.85, 0.3), "stats": {}, "loot": 2.0,
+			"description": "Przedmioty i kamienie wypadają dwa razy częściej"},
+}
+
+
+## Rodzaje celów dostępne na tym poziomie lochu.
+static func pool(level: int) -> Array[String]:
+	var out: Array[String] = []
+	for kind: String in KINDS:
+		if level >= int(KINDS[kind]):
+			out.append(kind)
+	return out
+
+
+## Losowy rodzaj celu; `used` - rodzaje już wylosowane w tym zejściu (bez powtórek, póki się da).
+static func roll(level: int, used: Array) -> String:
+	var all := pool(level)
+	var fresh := all.filter(func(k: String) -> bool: return not used.has(k))
+	return (fresh if not fresh.is_empty() else all).pick_random()
+
+
+## Ile progów przekracza żar `embers` przy koszcie przyzwania `cost`.
+static func thresholds_passed(embers: int, cost: int) -> int:
+	var n := 0
+	for t in THRESHOLDS:
+		if embers >= ceili(cost * t):
+			n += 1
+	return n
+
+
+## Miejsce na cel: w polanie, MIN_DIST-MAX_DIST od postaci, z dala od innych celów i ozdób. Kilka prób losowania,
+## potem najlepsze z nich.
+static func spot(area: Rect2, hero_pos: Vector2, others: Array) -> Vector2:
+	var inner := area.grow(-EDGE_MARGIN)
+	var best := inner.get_center()
+	var best_score := -INF
+	for i in 24:
+		var p := hero_pos + Vector2.from_angle(randf() * TAU) * randf_range(MIN_DIST, MAX_DIST)
+		p = p.clamp(inner.position, inner.end)
+		p = ProtoDecor.push_out(p, 16.0).clamp(inner.position, inner.end)
+		var score := 0.0
+		var d := p.distance_to(hero_pos)
+		if d < MIN_DIST:
+			score -= MIN_DIST - d
+		for o: Vector2 in others:
+			score -= maxf(0.0, GOAL_GAP - p.distance_to(o))
+		if score >= 0.0:
+			return p
+		if score > best_score:
+			best_score = score
+			best = p
+	return best
+
+
+## Łup skrzyni-celu: jeden przedmiot (wagi skrzyni Wodza), czasem kamień (od Gems.MIN_LEVEL, jak inne kamienie).
+static func chest_items(level: int, loot_mult := 1.0) -> Array:
+	var items: Array = [Items.roll(level, "", "", Items.CHEST_WEIGHTS)]
+	if level >= Gems.MIN_LEVEL and randf() < CHEST_GEM * loot_mult:
+		items.append({"gem": Gems.roll(level)})
+	return items
+
+
+static func chest_embers(level: int) -> int:
+	return maxi(1, roundi(DungeonLevels.chest_embers(level) * CHEST_EMBER_SHARE))
+
+
+## Losowy dar kapliczki.
+static func roll_gift() -> String:
+	return GIFTS.keys().pick_random()
