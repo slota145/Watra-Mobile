@@ -4,8 +4,11 @@ class_name DungeonLevels
 ## (najwyższy przebity trzyma `Game.best_level`). Stąd też koszt przyzwania bossa - pełny pasek żaru w lochu.
 
 ## Koszt przyzwania bossa na 1. poziomie (pełny pasek żaru w lochu; przyzwanie go zjada, nadwyżka po zwycięstwie
-## idzie do bazy). W głębi rośnie razem z wartością iskier (`reward`) i tłumem (`crowd`) - `summon_cost`.
+## idzie do bazy). W głębi rośnie razem z wartością iskier (`ember_value`) i tłumem (`crowd`) - `summon_cost`.
 const SUMMON_BASE := 100
+## Wartość iskry żaru: +2% z każdym poziomem (101. poziom x3). Z +15% (jak doświadczenie) na 101. poziomie wpadało
+## ~30 000 żaru w 2 minuty (uwaga autora 16.11.2026).
+const EMBER_STEP := 0.02
 ## Siła potworów (zdrowie i obrażenia): +15% z każdym poziomem, a całość dodatkowo x1,02 na poziom - w głębi rośnie
 ## coraz szybciej (decyzja autora 13.11.2026: poziom 10 ~2,8x, 50 ~22x, 100 ~112x; wcześniej tylko liniowo, 100 = 16x).
 const POWER_STEP := 0.15
@@ -35,17 +38,21 @@ static func power(level: int) -> float:
 	return (1.0 + POWER_STEP * steps) * pow(POWER_GROWTH, steps)
 
 
-## Liniowy przyrost (stara krzywa siły) - doświadczenie za potwory (żeby postać nie awansowała lawinowo w głębi)
-## i wartość iskier żaru (ProtoHorde._on_ember).
+## Liniowy przyrost (stara krzywa siły) - doświadczenie za potwory, żeby postać nie awansowała lawinowo w głębi.
 static func reward(level: int) -> float:
 	return 1.0 + POWER_STEP * (maxi(level, 1) - 1)
 
 
-## Koszt przyzwania bossa (decyzja autora 16.11.2026): iskry są warte `reward` razy więcej, a potworów jest `crowd`
-## razy więcej, więc koszt rośnie o oba mnożniki - wyprawa trwa podobnie długo, a nadwyżka do bazy rośnie z głębią.
-## Poziom 1 - 100, 10 - ~255, 50 - ~1240, 100 - ~2460.
+## Koszt przyzwania bossa (decyzja autora 16.11.2026): iskry są warte `ember_value` razy więcej, a potworów jest
+## `crowd` razy więcej, więc koszt rośnie o oba mnożniki - wyprawa trwa podobnie długo, a nadwyżka do bazy rośnie z głębią.
+## Poziom 1 - 100, 10 - ~129, 50 - ~295, 101 - ~465.
 static func summon_cost(level: int) -> int:
-	return roundi(SUMMON_BASE * reward(level) * crowd(level))
+	return roundi(SUMMON_BASE * ember_value(level) * crowd(level))
+
+
+## Mnożnik wartości iskry żaru z potworów na danym poziomie (ProtoHorde._on_ember).
+static func ember_value(level: int) -> float:
+	return 1.0 + EMBER_STEP * (maxi(level, 1) - 1)
 
 
 ## Mnożnik liczby potworów w strumieniu na danym poziomie.

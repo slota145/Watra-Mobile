@@ -127,15 +127,14 @@ func _test_depth() -> void:
 	horde.density = 3.0
 	horde.time = ProtoHorde.RAMP_TIME
 	_check(horde.max_alive() == ProtoHorde.ALIVE_CAP, "najwyżej %d potworów naraz" % ProtoHorde.ALIVE_CAP)
-	# żar w głębi: iskra warta DungeonLevels.reward, przyzwanie droższe o wartość iskier i tłum
-	_check(DungeonLevels.summon_cost(1) == DungeonLevels.SUMMON_BASE and DungeonLevels.summon_cost(10) > 240
-			and DungeonLevels.summon_cost(100) > 2400 and DungeonLevels.summon_cost(100) < 2500,
-			"przyzwanie: 1. poz. %d, 10. %d, 100. %d" % [DungeonLevels.summon_cost(1), DungeonLevels.summon_cost(10), DungeonLevels.summon_cost(100)])
-	horde.level = 50
+	# żar w głębi: iskra warta DungeonLevels.ember_value (+2% na poziom), przyzwanie droższe o wartość iskier i tłum
+	_check(DungeonLevels.summon_cost(1) == DungeonLevels.SUMMON_BASE and is_equal_approx(DungeonLevels.ember_value(101), 3.0)
+			and DungeonLevels.summon_cost(101) > 450 and DungeonLevels.summon_cost(101) < 480,
+			"przyzwanie: 1. poz. %d, 10. %d, 101. %d" % [DungeonLevels.summon_cost(1), DungeonLevels.summon_cost(10), DungeonLevels.summon_cost(101)])
+	horde.level = 101
 	horde._on_ember(1)
-	horde._on_ember(1)
-	_check(horde.embers == roundi(2 * DungeonLevels.reward(50)) - 1 or horde.embers == roundi(2 * DungeonLevels.reward(50)),
-			"iskra na 50. poziomie warta x%.2f (2 iskry - %d żaru)" % [DungeonLevels.reward(50), horde.embers])
+	horde._on_ember(ProtoHorde.BRUTE_EMBERS)
+	_check(horde.embers == 12, "iskra na 101. poziomie warta x3 (zwykła + osiłka - %d żaru)" % horde.embers)
 	horde.free()
 
 
@@ -422,10 +421,19 @@ func _test_brute() -> void:
 	b.take_damage(100000, hero.global_position)
 	await process_frame
 	await process_frame
-	var big := false
+	_check(horde.kills == kills + 1, "osiłek pokonany")
+	# iskra z części osiłków (EMBER_CHANCE), ale warta BRUTE_EMBERS
+	var brute_sparks := 0
+	for i in 40:
+		var extra: ProtoGoblin = horde.spawn_at(hero.position + Vector2(-60, 40), "brute")
+		horde.kills = 1  # bez dużych iskier co BIG_EVERY
+		extra.take_damage(100000, hero.global_position)
+	await process_frame
+	await process_frame
 	for n in arena.get_node("World").get_children():
-		big = big or (n is ProtoEmber and n.value == ProtoHorde.BRUTE_EMBERS)
-	_check(horde.kills == kills + 1 and big, "z osiłka wypada więcej żaru (%d)" % ProtoHorde.BRUTE_EMBERS)
+		if n is ProtoEmber and n.value == ProtoHorde.BRUTE_EMBERS:
+			brute_sparks += 1
+	_check(brute_sparks >= 1 and brute_sparks <= 22, "iskra z części osiłków, warta %d (%d z 40)" % [ProtoHorde.BRUTE_EMBERS, brute_sparks])
 	horde.level = 50
 	for i in 60:
 		horde.spawn()

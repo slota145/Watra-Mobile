@@ -2,6 +2,15 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - mniej żaru w głębi
+
+Uwaga autora: na 101. poziomie (Wulkaniczne równiny) w 2 minuty ~30 000 żaru. Przyczyny: iskra warta `reward`
+(+15% na poziom, x16 na 101.) i osiłki (tu żużlowe golemy, 15% tłumu) zawsze z iskrą za 3. Decyzja autora:
+- `DungeonLevels.ember_value(level)` = 1 + `EMBER_STEP` 0,02 na poziom (101. x3) - wartość iskry i koszt przyzwania
+  (`summon_cost` = 100 x `ember_value` x `crowd`: 10. ~129, 50. ~295, 101. ~465); `reward` zostaje dla doświadczenia.
+- Osiłki (goblin osiłek, topielica, rycerz-szkielet, szaman burzy, żużlowy golem) jak zwykłe: iskra z `EMBER_CHANCE`
+  (20%), nadal warta `BRUTE_EMBERS` 3; duża iskra co `BIG_EVERY` i elity - zawsze.
+
 ## 16.11.2026 - gęstsza Horda grupkami, sufit 150 potworów
 
 Uwaga autora: potworów zdecydowanie za mało. Decyzje autora: gęściej od startu, grupkami z różnych stron, sufit jak
