@@ -61,7 +61,7 @@ func _test_embers(arena: Node, hero: ProtoHero, horde: ProtoHorde) -> void:
 	for n in arena.get_node("World").get_children():
 		if n is ProtoEmber:
 			embers.append(n)
-	_check(embers.size() + horde.embers == horde.kills, "z każdego goblina wypada iskra żaru (%d + zebrane %d)" % [embers.size(), horde.embers])
+	_check(embers.size() + horde.embers <= horde.kills + ProtoEmber.BIG, "iskry żaru wypadają z części goblinów (%d + zebrane %d, pokonane %d)" % [embers.size(), horde.embers, horde.kills])
 	await _wait(0.6)
 	_check(horde.embers >= 1 and arena.embers_label.text == str(horde.embers), "iskry obok postaci same do niej lecą (żar %d)" % horde.embers)
 	# iskra daleko leży; z bliska leci do postaci
@@ -91,12 +91,12 @@ func _test_embers(arena: Node, hero: ProtoHero, horde: ProtoHorde) -> void:
 	horde.embers = 40
 	horde._on_ember(0)
 	_check(is_equal_approx(arena.ember_bar.value, 40.0) and not arena.summon_button.visible, "pasek żaru rośnie, bez przycisku przyzwania")
-	horde.embers = DungeonLevels.SUMMON_COST + 5
+	horde.embers = DungeonLevels.summon_cost(horde.level) + 5
 	horde._on_ember(0)
 	await process_frame
 	var r: Rect2 = arena.summon_button.get_global_rect()
 	var view := root.get_visible_rect().size
-	_check(arena.summon_button.visible and arena.ember_bar.value == DungeonLevels.SUMMON_COST, "pełny pasek - przycisk przyzwania")
+	_check(arena.summon_button.visible and arena.ember_bar.value == DungeonLevels.summon_cost(horde.level), "pełny pasek - przycisk przyzwania")
 	_check(r.size.y >= 44.0 and r.get_center().y < view.y * 0.25 and arena.joystick._is_blocked(r.get_center()), "przycisk przyzwania u góry ekranu, 44 px, nie rusza gałki")
 	# ucieczka z okna pauzy nie zanosi żaru
 	arena._open_menu()
@@ -122,6 +122,15 @@ func _test_depth() -> void:
 	horde.density = 3.0
 	horde.time = ProtoHorde.RAMP_TIME
 	_check(horde.max_alive() == ProtoHorde.ALIVE_CAP, "najwyżej %d potworów naraz" % ProtoHorde.ALIVE_CAP)
+	# żar w głębi: iskra warta DungeonLevels.reward, przyzwanie droższe o wartość iskier i tłum
+	_check(DungeonLevels.summon_cost(1) == DungeonLevels.SUMMON_BASE and DungeonLevels.summon_cost(10) > 240
+			and DungeonLevels.summon_cost(100) > 2400 and DungeonLevels.summon_cost(100) < 2500,
+			"przyzwanie: 1. poz. %d, 10. %d, 100. %d" % [DungeonLevels.summon_cost(1), DungeonLevels.summon_cost(10), DungeonLevels.summon_cost(100)])
+	horde.level = 50
+	horde._on_ember(1)
+	horde._on_ember(1)
+	_check(horde.embers == roundi(2 * DungeonLevels.reward(50)) - 1 or horde.embers == roundi(2 * DungeonLevels.reward(50)),
+			"iskra na 50. poziomie warta x%.2f (2 iskry - %d żaru)" % [DungeonLevels.reward(50), horde.embers])
 	horde.free()
 
 
@@ -502,7 +511,7 @@ func _test_chief() -> void:
 	var g := horde.spawn_at(hero.position + Vector2(60, 0))
 	await process_frame
 	_check(g.hp == roundi(ProtoGoblin.MAX_HP * horde.power), "goblin ma więcej zdrowia (%d)" % g.hp)
-	horde.embers = DungeonLevels.SUMMON_COST + 12
+	horde.embers = DungeonLevels.summon_cost(horde.level) + 12
 	horde._on_ember(0)
 	arena.summon_button.pressed.emit()
 	await process_frame

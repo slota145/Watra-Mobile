@@ -1,6 +1,6 @@
 extends SceneTree
 ## Symulacja wyprawy: postać stoi z auto atakiem (nieśmiertelna), Horda płynie jak w grze. Co 15 s wypisuje,
-## ile potworów żyje, ile zabito i ile żaru zebrano, oraz kiedy uzbierało się SUMMON_COST żaru na bossa.
+## ile potworów żyje, ile zabito i ile żaru zebrano, oraz kiedy uzbierało się żaru na bossa (DungeonLevels.summon_cost).
 ## Użycie: godot --headless --path . -s res://tools/crowd_sim.gd -- [poziom lochu] [sekundy]
 
 
@@ -27,10 +27,10 @@ func _run() -> void:
 	var next_print := 15.0
 	while horde.time < seconds:
 		await process_frame
-		if boss_at < 0.0 and horde.embers >= DungeonLevels.SUMMON_COST:
+		if boss_at < 0.0 and horde.embers >= DungeonLevels.summon_cost(horde.level):
 			boss_at = horde.time
 		if horde.time >= next_print:
 			next_print += 15.0
 			print("CZAS %3.0f s: żyje %d (limit %d), zabito %d, żar %d" % [horde.time, horde._alive, horde.max_alive(), horde.kills, horde.embers])
-	print("ŻAR NA BOSSA (%d): %s" % [DungeonLevels.SUMMON_COST, ("po %.0f s" % boss_at) if boss_at >= 0.0 else "nie uzbierano"])
+	print("ŻAR NA BOSSA (%d): %s" % [DungeonLevels.summon_cost(horde.level), ("po %.0f s" % boss_at) if boss_at >= 0.0 else "nie uzbierano"])
 	quit()

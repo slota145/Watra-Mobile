@@ -138,7 +138,7 @@ func _test_necromancer(game: Node) -> void:
 	hero.immortal = true
 	hero.max_hp = 100000  # na 21. poziomie cios zabiłby postać 1. poziomu (nieśmiertelność wróciłaby jej pełne zdrowie)
 	hero.hp = hero.max_hp
-	horde.add_embers(DungeonLevels.SUMMON_COST)
+	horde.add_embers(DungeonLevels.summon_cost(horde.level))
 	arena.summon_chief()
 	var n := arena.chief as ProtoNecromancer
 	_check(n != null and arena.boss_box.get_child(0).text == "Nekromanta", "przyzwany Nekromanta")

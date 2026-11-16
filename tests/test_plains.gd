@@ -144,7 +144,7 @@ func _test_eagle(game: Node) -> void:
 	hero.max_hp = 100000
 	hero.hp = hero.max_hp
 	_clear_decor(hero)
-	horde.add_embers(DungeonLevels.SUMMON_COST)
+	horde.add_embers(DungeonLevels.summon_cost(horde.level))
 	arena.summon_chief()
 	var e := arena.chief as ProtoStormEagle
 	_check(e != null and arena.boss_box.get_child(0).text == "Gromoskrzydły" and not e.grounded, "przyzwany Gromoskrzydły (lata)")

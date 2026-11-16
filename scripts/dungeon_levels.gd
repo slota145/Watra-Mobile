@@ -3,8 +3,9 @@ class_name DungeonLevels
 ## (`power`) oraz bogatszą skrzynię bossa (`chest_embers`). Pokonanie bossa odblokowuje następny poziom
 ## (najwyższy przebity trzyma `Game.best_level`). Stąd też koszt przyzwania bossa - pełny pasek żaru w lochu.
 
-## Tyle żaru zapełnia pasek w lochu i tyle zjada przyzwanie bossa (nadwyżka zostaje i po zwycięstwie idzie do bazy).
-const SUMMON_COST := 100
+## Koszt przyzwania bossa na 1. poziomie (pełny pasek żaru w lochu; przyzwanie go zjada, nadwyżka po zwycięstwie
+## idzie do bazy). W głębi rośnie razem z wartością iskier (`reward`) i tłumem (`crowd`) - `summon_cost`.
+const SUMMON_BASE := 100
 ## Siła potworów (zdrowie i obrażenia): +15% z każdym poziomem, a całość dodatkowo x1,02 na poziom - w głębi rośnie
 ## coraz szybciej (decyzja autora 13.11.2026: poziom 10 ~2,8x, 50 ~22x, 100 ~112x; wcześniej tylko liniowo, 100 = 16x).
 const POWER_STEP := 0.15
@@ -34,9 +35,17 @@ static func power(level: int) -> float:
 	return (1.0 + POWER_STEP * steps) * pow(POWER_GROWTH, steps)
 
 
-## Liniowy przyrost (stara krzywa siły) - doświadczenie za potwory, żeby postać nie awansowała lawinowo w głębi.
+## Liniowy przyrost (stara krzywa siły) - doświadczenie za potwory (żeby postać nie awansowała lawinowo w głębi)
+## i wartość iskier żaru (ProtoHorde._on_ember).
 static func reward(level: int) -> float:
 	return 1.0 + POWER_STEP * (maxi(level, 1) - 1)
+
+
+## Koszt przyzwania bossa (decyzja autora 16.11.2026): iskry są warte `reward` razy więcej, a potworów jest `crowd`
+## razy więcej, więc koszt rośnie o oba mnożniki - wyprawa trwa podobnie długo, a nadwyżka do bazy rośnie z głębią.
+## Poziom 1 - 100, 10 - ~255, 50 - ~1240, 100 - ~2460.
+static func summon_cost(level: int) -> int:
+	return roundi(SUMMON_BASE * reward(level) * crowd(level))
 
 
 ## Mnożnik liczby potworów w strumieniu na danym poziomie.

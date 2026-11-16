@@ -45,7 +45,7 @@ func _run() -> void:
 	for n in arena.get_node("World").get_children():
 		if n is ProtoGoblin:
 			n.queue_free()
-	horde.add_embers(DungeonLevels.SUMMON_COST)
+	horde.add_embers(DungeonLevels.summon_cost(horde.level))
 	arena.summon_chief()
 	var e := arena.chief as ProtoFireElemental
 	e.passive = true
