@@ -46,7 +46,8 @@ const FIRST_DELAY := 1.5
 ## Co tyle pokonanych potworów wypada duża iskra (ProtoEmber.BIG żaru) zamiast małej.
 const BIG_EVERY := 40
 ## Szansa, że zwykły potwór upuści małą iskrę (tłum jest gęsty - decyzja autora 16.11.2026: mniej żaru z potwora;
-## duża iskra co BIG_EVERY, osiłki i elity zawsze). Wartość iskry rośnie z głębią (DungeonLevels.reward).
+## duża iskra co BIG_EVERY i z elit zawsze; osiłki jak zwykłe, ale iskra warta BRUTE_EMBERS). Wartość iskry rośnie
+## z głębią (DungeonLevels.ember_value).
 const EMBER_CHANCE := 0.2
 ## Przy ucieczce przed bossem piszczy najwyżej tylu goblinów (żeby tłum nie zagłuszył ryku).
 const SQUEAKERS := 6
@@ -275,7 +276,7 @@ func _on_died(g: ProtoGoblin) -> void:
 	var value := ProtoEmber.BIG if kills % BIG_EVERY == 0 else (BRUTE_EMBERS if g is ProtoGoblinBrute else 1)
 	if g.elite:
 		value = Elites.EMBERS
-	if value > 1 or randf() < EMBER_CHANCE:
+	if value == ProtoEmber.BIG or g.elite or randf() < EMBER_CHANCE:
 		var ember := ProtoEmber.new()
 		ember.hero = hero
 		ember.value = value
@@ -305,9 +306,9 @@ func drop_item(item: Dictionary, at: Vector2) -> ProtoLoot:
 	return loot
 
 
-## Zebrana iskra z potwora: żar z głębi lochu (DungeonLevels.reward) i premii przedmiotów (`ember_mult`).
+## Zebrana iskra z potwora: żar z głębi lochu (DungeonLevels.ember_value) i premii przedmiotów (`ember_mult`).
 func _on_ember(value: int) -> void:
-	_gain(value * DungeonLevels.reward(level))
+	_gain(value * DungeonLevels.ember_value(level))
 
 
 ## Zebrana iskra ze skrzyni bossa: bez mnożnika głębi (DungeonLevels.chest_embers już rośnie z poziomem).
