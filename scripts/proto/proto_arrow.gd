@@ -8,7 +8,8 @@ extends Node2D
 ## Kula wody żabołaka (`water`): ta sama strzała z grafiką bańki hydrosfery (`hydro_bolt`, rozprysk `hydro_splash`),
 ## żywioł wody i przemoczenie postaci (spowolnienie SOAK_SLOW na SOAK_TIME s).
 ## Inne pociski: `element` - żywioł (strzała Nawii szkieleta łucznika), `bubble` - grafika bańki (kule Nawii
-## Nekromanty), `tint` - barwa, `speed` / `fly_range` - prędkość i zasięg.
+## Nekromanty), `tint` - barwa, `speed` / `fly_range` - prędkość i zasięg, `orb` - kula piorunu z podmuchu Gromoskrzydłego
+## (`eagle_orb`, trafienie `katana_hit` w mniejszej skali).
 
 ## Prędkość (Wojciech: 70 px/s) - strzała z odległości 120 px leci ok. 1 s, w tym czasie da się zejść z linii.
 const SPEED := 115.0
@@ -32,6 +33,12 @@ const WATER_FLY_ANCHOR := Vector2(22, 8)
 const WATER_HIT := preload("res://assets/effects/hydro_splash.png")
 const WATER_HIT_FRAMES := 10
 const WATER_HIT_ANCHOR := Vector2(21, 18)
+const ORB_FLY := preload("res://assets/effects/eagle_orb.png")
+const ORB_FLY_FRAMES := 12
+const ORB_FLY_ANCHOR := Vector2(23, 12)
+const ORB_HIT := preload("res://assets/effects/katana_hit.png")
+const ORB_HIT_FRAMES := 10
+const ORB_HIT_ANCHOR := Vector2(28, 22)
 const SOAK_SLOW := 0.25
 const SOAK_TIME := 2.0
 
@@ -47,6 +54,8 @@ var speed := SPEED
 var fly_range := RANGE
 ## Podpalenie przy trafieniu (żar ognika): obrażenia jednego płomienia (0 - bez podpalenia).
 var ignite := 0
+## Kula piorunu zamiast strzały (podmuch Gromoskrzydłego).
+var orb := false
 
 var _flown := 0.0
 var _done := false
@@ -60,10 +69,10 @@ func _ready() -> void:
 		bubble = true
 		element = Elements.WATER
 	_sprite = Sprite2D.new()
-	_sprite.texture = WATER_FLY if bubble else FLY
-	_sprite.hframes = WATER_FLY_FRAMES if bubble else FLY_FRAMES
+	_sprite.texture = ORB_FLY if orb else (WATER_FLY if bubble else FLY)
+	_sprite.hframes = ORB_FLY_FRAMES if orb else (WATER_FLY_FRAMES if bubble else FLY_FRAMES)
 	_sprite.centered = false
-	_sprite.offset = -(WATER_FLY_ANCHOR if bubble else FLY_ANCHOR)
+	_sprite.offset = -(ORB_FLY_ANCHOR if orb else (WATER_FLY_ANCHOR if bubble else FLY_ANCHOR))
 	_sprite.modulate = tint
 	_sprite.position = Vector2(0, -_height)
 	_sprite.rotation = direction.angle()
@@ -95,7 +104,9 @@ func _finish(hit: bool) -> void:
 	_done = true
 	if hit:
 		var fx: Sprite2D
-		if bubble:
+		if orb:
+			fx = Fx.once(get_parent(), ORB_HIT, ORB_HIT_FRAMES, 18.0, global_position + Vector2(0, -_height), ORB_HIT_ANCHOR, 20, 0.5)
+		elif bubble:
 			fx = Fx.once(get_parent(), WATER_HIT, WATER_HIT_FRAMES, 14.0, global_position + Vector2(0, -_height), WATER_HIT_ANCHOR, 20, 0.6)
 		else:
 			fx = Fx.once(get_parent(), HIT, HIT_FRAMES, HIT_FPS, global_position + Vector2(0, -_height), HIT_ANCHOR)

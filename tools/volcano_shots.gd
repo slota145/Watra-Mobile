@@ -52,11 +52,11 @@ func _run() -> void:
 	await create_timer(ProtoChief.ENTER_TIME + 0.2).timeout
 	hero.position = e.position + Vector2(10, 45)
 	e.start_attack("wave")
-	await create_timer(1.3).timeout  # tuż po wybuchu fali
+	await create_timer(1.45).timeout  # tuż po wybuchu fali
 	await _shot("3_fala")
 	await create_timer(2.5).timeout
 	e.start_attack("rain")
-	await create_timer(0.6).timeout
+	await create_timer(0.9).timeout
 	await _shot("4_lawa")
 	await create_timer(1.5).timeout
 	hero.position = e.position + Vector2(10, 30)
