@@ -2,6 +2,22 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - cele na mapie lochu: Skarbnik
+
+Trzeci cel (decyzja autora: uciekający duch zamiast oferty z falami jak w Watrze), w puli od 10. poziomu lochu.
+- `scripts/proto/proto_skarbnik.gd` (`ProtoSkarbnik`, cel miecza - `ProtoTarget`): złocista zjawa górnika
+  (`assets/watra/skarbnik.png` = `miner_down.png` z Watry, shader `shaders/ghost.gdshader` z Watry - tu mocniej kryjący,
+  żeby było go widać na trawie), złota poświata pod nim. Czeka pod słupem światła; budzi się, gdy postać podejdzie
+  bliżej niż `WAKE` 110 px (albo po trafieniu), i ucieka `FLEE_TIME` 15 s z prędkością `SPEED` 58 (postać 70) z zakosami
+  (`ZIGZAG`), ślizga się wzdłuż brzegu polany; ostatnie 3 s miga, potem zapada się pod ziemię.
+- Trafienie (najwyżej co `HIT_GAP` 0,2 s - Młynek nie wybija złota seriami): złoto `gold_per_hit` = `Items.SELL_BASE`
+  x `DungeonLevels.power` x `GOLD_HIT` 0,8 (12. poziom: 9 zł), złota liczba „+N”, brzęk monet, zachwianie (połowa
+  prędkości na 0,5 s). Po `CATCH_HITS` 8 trafieniach złapany: `JACKPOT` 10 x złoto za trafienie i kamień na ziemi.
+  Symulacja (auto atak, bez umiejętności): złapany w 4 na 4 próby, ale trzeba gonić.
+- Złoto od razu do `Game.gold` (`Game.add_gold`, zapis przy `save_if_dirty`), w oknie wyniku linia „Złoto Skarbnika”
+  (`RunResult.add_gold_line`, `arena.run_skarbnik_gold`).
+- Testy w `tests/test_goals.gd`, zrzuty w `tools/goal_shots.gd` (`_4_skarbnik`, `_5_poscig`).
+
 ## 16.11.2026 - cele na mapie lochu: skrzynia i kapliczka
 
 Pomysł z Dwarven Realms (decyzje autora z ankiety 16.11.2026): przy progach paska żaru na polanie pojawia się cel,

@@ -2,7 +2,8 @@ extends SceneTree
 ## Zrzuty celów na mapie lochu (DungeonGoals) do oceny wyglądu: skrzynia-cel pod słupem światła z kółkiem postępu
 ## i kapliczka poza kadrem ze strzałką przy krawędzi; potem kapliczka z bliska i napis daru.
 ## Użycie: SCRIPT=tools/goal_shots.gd tools/screenshot.sh <prefiks> [rozdzielczość jako RESOLUTION]
-## Pliki: <prefiks>_1_cele.png, _2_kapliczka.png, _3_dar.png
+## Na koniec Skarbnik: czeka pod słupem światła, potem ucieka i wybija złoto przy trafieniu.
+## Pliki: <prefiks>_1_cele.png, _2_kapliczka.png, _3_dar.png, _4_skarbnik.png, _5_poscig.png
 
 var _prefix := "/tmp/cele"
 
@@ -51,4 +52,13 @@ func _run() -> void:
 	hero.position = shrine.position
 	await create_timer(DungeonGoals.PRAY_TIME + 0.4).timeout
 	await _shot("3_dar")
+	var spirit: ProtoSkarbnik = arena.spawn_goal("skarbnik")
+	spirit.position = hero.position + Vector2(40, -150)
+	await create_timer(0.8).timeout
+	await _shot("4_skarbnik")
+	hero.position = spirit.position + Vector2(-20, 60)
+	await create_timer(0.5).timeout
+	spirit.take_damage(1, hero.position)
+	await create_timer(0.15).timeout
+	await _shot("5_poscig")
 	quit()

@@ -500,6 +500,14 @@ func sell_all(rarities: Array) -> int:
 	return total
 
 
+## Złoto z lochu (Skarbnik) - zapis przy najbliższym `save_if_dirty`, jak doświadczenie.
+func add_gold(amount: int) -> void:
+	if amount <= 0:
+		return
+	gold += amount
+	_dirty = true
+
+
 ## Złoto za przedmiot bez wkładania go do torby (auto sprzedaż, pełna torba przy skrzyni).
 func sell_loot(item: Dictionary) -> int:
 	var price := Items.sell_price(item)

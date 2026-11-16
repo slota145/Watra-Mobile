@@ -30,8 +30,8 @@ extends Node2D
 ## Górny rząd (decyzja autora 13.11.2026): „Menu”, ikonki „Postać” (okno HeroStats) i „Umiejętności” (SkillsWindow;
 ## kupno tylko w bazie) - w bazie i w lochu; oba okna zatrzymują grę.
 ## Cele na mapie lochu (DungeonGoals, 16.11.2026): przy progach paska żaru (25/50/75%) na polanie pojawia się cel -
-## skrzynia (ProtoChest z `hold_time`) albo kapliczka (ProtoShrine - dar bóstwa na 60 s doliczany do cech
-## z przedmiotów w `_gear`); napis na środku ekranu (`announce`), strzałki przy krawędzi (GoalArrows), nazwa daru
+## skrzynia (ProtoChest z `hold_time`), kapliczka (ProtoShrine - dar bóstwa na 60 s doliczany do cech
+## z przedmiotów w `_gear`) albo Skarbnik (ProtoSkarbnik - złoto za trafienia, `Game.add_gold`); napis na środku ekranu (`announce`), strzałki przy krawędzi (GoalArrows), nazwa daru
 ## z pozostałym czasem pod paskami (`gift_label`). Niezrobiony cel zostaje po przyzwaniu Wodza.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
@@ -94,6 +94,8 @@ var _start_hero_level := 1
 ## Przedmioty podniesione w tej wyprawie i złoto za sprzedane od razu (pełna torba przy skrzyni).
 var run_items := 0
 var run_sold_gold := 0
+## Złoto ze Skarbnika (cel na mapie lochu) w tej wyprawie.
+var run_skarbnik_gold := 0
 ## Powiadomienia o łupie (pod paskami u góry, znikają same) i ich największa liczba naraz.
 var loot_feed: VBoxContainer
 const FEED_MAX := 4
@@ -909,7 +911,7 @@ func _on_embers(e: int) -> void:
 		_fill_style.bg_color = EMBER_FILL
 
 
-## Cel na mapie lochu w wolnym miejscu z dala od postaci (DungeonGoals.spot): skrzynia albo kapliczka.
+## Cel na mapie lochu w wolnym miejscu z dala od postaci (DungeonGoals.spot): skrzynia, kapliczka albo Skarbnik.
 ## Pojawienie się ogłasza napis i dźwięk, a strzałka przy krawędzi ekranu wskazuje drogę.
 func spawn_goal(kind: String) -> Node2D:
 	var others: Array = goals.filter(func(g: Node2D) -> bool: return is_instance_valid(g)).map(
@@ -917,6 +919,20 @@ func spawn_goal(kind: String) -> Node2D:
 	var at := DungeonGoals.spot(ARENA, hero.position, others)
 	var goal: Node2D
 	match kind:
+		"skarbnik":
+			var spirit := ProtoSkarbnik.new()
+			spirit.hero = hero
+			spirit.level = level
+			spirit.bounds = ARENA.grow(-24)
+			spirit.gold.connect(func(amount: int) -> void:
+				run_skarbnik_gold += amount
+				Game.add_gold(amount))
+			spirit.caught.connect(func(where: Vector2) -> void:
+				announce(tr("Skarbnik złapany!"), spirit.goal_color)
+				horde_spawner.drop_item({"gem": Gems.roll(level)}, where))
+			spirit.escaped.connect(func() -> void: announce(tr("Skarbnik zapadł się pod ziemię"), Color(0.8, 0.75, 0.6)))
+			goal = spirit
+			announce(tr("Na polanie zjawił się Skarbnik - złap go!"), spirit.goal_color)
 		"shrine":
 			var shrine := ProtoShrine.new()
 			shrine.hero = hero
@@ -1102,6 +1118,7 @@ func victory() -> void:
 	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time, hero.deaths)
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
 	result.add_loot_lines(run_items, run_sold_gold)
+	result.add_gold_line(run_skarbnik_gold)
 	get_tree().paused = true
 
 
@@ -1197,6 +1214,7 @@ func _on_hero_died() -> void:
 	result.show_result(horde_spawner.kills, horde_spawner.time, horde_spawner.embers)
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
 	result.add_loot_lines(run_items, run_sold_gold)
+	result.add_gold_line(run_skarbnik_gold)
 	get_tree().paused = true
 
 

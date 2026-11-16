@@ -104,6 +104,12 @@ func add_loot_lines(items: int, sold_gold := 0) -> void:
 		_summary.text += "\n" + tr("Łup sprzedany od razu: +%d złota") % sold_gold
 
 
+## Złoto wybite ze Skarbnika w tej wyprawie.
+func add_gold_line(amount: int) -> void:
+	if amount > 0:
+		_summary.text += "\n" + tr("Złoto Skarbnika: +%d") % amount
+
+
 func _button(parent: Control, text: String) -> Button:
 	var b := Button.new()
 	b.text = text

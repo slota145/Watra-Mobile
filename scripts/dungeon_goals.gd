@@ -4,13 +4,13 @@ extends RefCounted
 ## (THRESHOLDS - ułamki DungeonLevels.summon_cost) na mapie pojawia się cel, żeby między falami było dokąd biec.
 ## Cel losuje się z puli zależnej od poziomu lochu (KINDS - od którego poziomu), bez powtórek w jednym zejściu
 ## (gdy pula jest mniejsza niż liczba progów, powtórki są dozwolone). Niezrobiony cel zostaje po przyzwaniu Wodza.
-## Na razie: skrzynia (ProtoChest z `hold_time` - stań przy niej) i kapliczka (ProtoShrine - dar bóstwa na GIFT_TIME s).
-## Później: Skarbnik, Krąg Żertwy, Kryształ Watry (docs/ROADMAP.md).
+## Na razie: skrzynia (ProtoChest z `hold_time` - stań przy niej), kapliczka (ProtoShrine - dar bóstwa na GIFT_TIME s)
+## i Skarbnik (ProtoSkarbnik - uciekający duch, trafienia wybijają złoto). Później: Krąg Żertwy, Kryształ Watry.
 ## Pokazanie graczowi: słup światła nad celem, strzałka przy krawędzi ekranu (GoalArrows), napis i dźwięk.
 
 const THRESHOLDS: Array[float] = [0.25, 0.5, 0.75]
 ## Rodzaj celu -> od którego poziomu lochu jest w puli (pula rośnie co 5 poziomów - decyzja autora).
-const KINDS := {"chest": 1, "shrine": 5}
+const KINDS := {"chest": 1, "shrine": 5, "skarbnik": 10}
 ## Cel pojawia się w takiej odległości od postaci (piksele gry; ekran ma 360 px szerokości).
 const MIN_DIST := 200.0
 const MAX_DIST := 420.0

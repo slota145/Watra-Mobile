@@ -49,7 +49,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `proto_horde.gd` - strumień potworów, `proto_watra.gd` - Watra = wejście do lochu i licznik żaru, `proto_ember.gd` - iskra żaru z potworów,
   `proto_chief.gd` - boss Wódz Goblinów (ataki z ostrzeżeniem `proto_telegraph.gd`, tasak `proto_cleaver.gd`),
   `proto_chest.gd` - skrzynia po bossie (też skrzynia-cel); cele na mapie lochu `scripts/dungeon_goals.gd` (progi paska żaru, pula wg poziomu, dary kapliczek),
-  kapliczka `proto_shrine.gd`, słup światła `goal_beam.gd`, strzałki przy krawędzi `scripts/ui/goal_arrows.gd`; `scripts/dungeon_levels.gd` - poziomy lochu (siła, koszt przyzwania, nagroda);
+  kapliczka `proto_shrine.gd`, Skarbnik `proto_skarbnik.gd` (uciekający duch, złoto za trafienia; shader `shaders/ghost.gdshader`), słup światła `goal_beam.gd`, strzałki przy krawędzi `scripts/ui/goal_arrows.gd`; `scripts/dungeon_levels.gd` - poziomy lochu (siła, koszt przyzwania, nagroda);
   `scripts/dungeons.gd` - rodzaje lochów na wspólnej drabince (1-10 gobliny, 11-20 Zatopione podziemia, 21-30 Katakumby, 31-40 Górskie równiny, od 41 Wulkaniczne równiny, od 101 losowo; `ProtoHorde.make_monster`):
   topielec `proto_drowner.gd`, żabołak `proto_frogman.gd`, topielica `proto_rusalka.gd`, boss Wodnik `proto_wodnik.gd` (po `ProtoChief`);
   szkielet `proto_skeleton.gd` (wstaje z kupki kości), szkielet łucznik `proto_skeleton_archer.gd`, rycerz-szkielet `proto_skeleton_knight.gd`, boss Nekromanta `proto_necromancer.gd`;

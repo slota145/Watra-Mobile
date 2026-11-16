@@ -3,6 +3,8 @@ extends SceneTree
 ## powtórek, progi paska żaru wywołują cele, cel z dala od postaci w polanie, strzałka przy krawędzi ekranu dla celu
 ## poza kadrem, skrzynia-cel otwiera się dopiero po staniu przy niej (odejście cofa postęp), kapliczka daje dar
 ## (cechy w postaci i broni, napis z czasem), dar gaśnie po czasie, cel zostaje po przyzwaniu Wodza.
+## Skarbnik: budzi się, gdy postać podejdzie, ucieka, trafienia wybijają złoto (nie częściej niż HIT_GAP), po
+## CATCH_HITS złapany (garść złota i kamień), po czasie ucieczki znika.
 
 var _failed := 0
 
@@ -25,6 +27,7 @@ func _wait(seconds: float) -> void:
 func _run() -> void:
 	_test_data()
 	await _test_arena()
+	await _test_skarbnik()
 	DirAccess.remove_absolute(root.get_node("Game").save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
 	quit(1 if _failed else 0)
@@ -33,6 +36,7 @@ func _run() -> void:
 func _test_data() -> void:
 	_check(DungeonGoals.pool(1) == ["chest"], "poziom 1: tylko skrzynia")
 	_check(DungeonGoals.pool(5).has("shrine") and not DungeonGoals.pool(4).has("shrine"), "kapliczka od 5. poziomu")
+	_check(DungeonGoals.pool(10).has("skarbnik") and not DungeonGoals.pool(9).has("skarbnik"), "Skarbnik od 10. poziomu")
 	var used: Array[String] = []
 	for i in 2:
 		used.append(DungeonGoals.roll(5, used))
@@ -77,6 +81,7 @@ func _test_arena() -> void:
 	await process_frame
 	await process_frame
 	_check(arena.goal_arrows.arrows().is_empty(), "cel w kadrze - bez strzałki")
+	first.queue_free()  # losowy rodzaj (mógł być kapliczką) - nie może dać daru w dalszej części testu
 
 	# skrzynia-cel: trzeba postać
 	var box: ProtoChest = arena.spawn_goal("chest")
@@ -123,4 +128,55 @@ func _test_arena() -> void:
 	_check(arena.goals.size() == 4, "w fazie bossa nie pojawiają się nowe cele")
 	arena.queue_free()
 	await process_frame
+	game.dev_immortal = false
+
+
+func _test_skarbnik() -> void:
+	var game: Node = root.get_node("Game")
+	game.dev_immortal = true
+	game.dungeon_level = 12
+	game.best_level = 12
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	arena.horde_spawner.running = false
+	arena.weapon.auto_attack = false
+	var spirit: ProtoSkarbnik = arena.spawn_goal("skarbnik")
+	spirit.position = hero.position + Vector2(200, 0)
+	await _wait(0.3)
+	_check(spirit.state == "sleep" and spirit.is_in_group(ProtoWeapon.TARGETS), "Skarbnik czeka")
+	hero.position = spirit.position - Vector2(80, 0)
+	await process_frame
+	await process_frame
+	var d0 := spirit.position.distance_to(hero.position)
+	await _wait(0.5)
+	_check(spirit.state == "flee" and spirit.position.distance_to(hero.position) > d0 + 10.0,
+			"budzi się i ucieka (%.0f -> %.0f px)" % [d0, spirit.position.distance_to(hero.position)])
+	var gold_before: int = game.gold
+	spirit.take_damage(10, hero.position)
+	spirit.take_damage(10, hero.position)
+	var per := ProtoSkarbnik.gold_per_hit(12)
+	_check(spirit.hits == 1 and game.gold == gold_before + per, "trafienie wybija złoto (+%d), drugie od razu się nie liczy" % per)
+	for i in ProtoSkarbnik.CATCH_HITS - 1:
+		spirit._hit_ready = 0.0
+		spirit.take_damage(10, hero.position)
+	_check(spirit.state == "gone" and not spirit.goal_active(), "po %d trafieniach złapany" % ProtoSkarbnik.CATCH_HITS)
+	_check(game.gold == gold_before + per * (ProtoSkarbnik.CATCH_HITS - 1 + ProtoSkarbnik.JACKPOT)
+			and arena.run_skarbnik_gold == game.gold - gold_before, "złapanie: garść złota (razem %d)" % (game.gold - gold_before))
+	await process_frame
+	var gem := false
+	for n in arena.get_node("World").get_children():
+		if n is ProtoLoot and n.item.has("gem"):
+			gem = true
+	_check(gem, "złapany Skarbnik zostawia kamień")
+	var runner: ProtoSkarbnik = arena.spawn_goal("skarbnik")
+	runner.position = hero.position + Vector2(60, 0)
+	await _wait(0.2)
+	runner.flee_left = 0.05
+	await _wait(0.2)
+	_check(runner.state == "gone" and not runner.is_in_group(ProtoWeapon.TARGETS), "po czasie ucieczki Skarbnik znika")
+	arena.queue_free()
+	await process_frame
+	game.gold = gold_before
 	game.dev_immortal = false
