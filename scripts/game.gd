@@ -16,6 +16,12 @@ extends Node
 ## Żywioły i mistrzostwo (13.11.2026): umiejętności odblokowuje mistrzostwo broni, ulepsza się je żarem, a ulepszenia
 ## lochów kupuje się złotem. Stary zapis (bez `mastery`) przechodzi raz (`_migrate_mastery`): mistrzostwo miecza = poziom
 ## postaci, kupione umiejętności i poziomy zostają, a wydane na nie złoto i żar wydany na ulepszenia lochów wracają.
+## Wiele postaci (decyzje autora 16.11.2026): każda postać to osobny plik w `chars_dir` (`<id>.json`, z nazwą `char_name`,
+## `ssf` i trybem deweloperskim - `dev`), bez limitu; wybór na ekranie postaci (CharacterSelect w menu), ostatnia
+## w ustawieniach (`last_character`). Ustawienia sterowania wspólne (settings.cfg). Skrzynia w bazie wspólna dla
+## postaci bez SSF (SHARED_STASH); postać SSF ma własną skrzynię w swoim pliku. Stary pojedynczy zapis (SAVE_PATH)
+## przechodzi raz na pierwszą postać „Wojciech” (`_migrate_legacy`, razem z trybem deweloperskim z ustawień).
+## Testy ustawiają `save_path` na plik testowy - wtedy jedna postać w jednym pliku, skrzynia w nim (bez wspólnej).
 
 ## Zmiana doświadczenia: `xp` na obecnym poziomie, `need` - ile trzeba do awansu (0 na najwyższym poziomie).
 signal xp_changed(level: int, xp: int, need: int)
@@ -41,19 +47,35 @@ const STASH_TAB_SIZE := 20
 const STASH_TAB_PRICES := [100, 300, 800, 2000]
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
-## Zapis gracza. Testy podmieniają go na osobny plik, żeby nie ruszać prawdziwego zapisu.
+## Stary zapis jednej postaci (sprzed wielu postaci) - przenoszony na pierwszą postać.
 const SAVE_PATH := "user://savegame.json"
+## Pliki postaci i wspólna skrzynia postaci bez SSF.
+const CHARS_DIR := "user://characters/"
+const SHARED_STASH := "user://shared_stash.json"
+const DEFAULT_NAME := "Wojciech"
 const SETTINGS_PATH := "user://settings.cfg"
 const TEST_SETTINGS_PATH := "user://test_settings.cfg"
 
-## Testy ustawiają osobny plik zapisu - wtedy ustawienia też idą do osobnego pliku.
-var save_path := SAVE_PATH:
+## Plik zapisu obecnej postaci ("" - żadna nie wybrana, nic się nie zapisuje). Testy ustawiają osobny plik
+## (nazwa z „test”) - wtedy ustawienia też idą do osobnego pliku.
+var save_path := "":
 	set(value):
 		save_path = value
-		settings_path = SETTINGS_PATH if value == SAVE_PATH else TEST_SETTINGS_PATH
+		settings_path = TEST_SETTINGS_PATH if value.contains("test") else SETTINGS_PATH
 		load_settings()
 		load_game()
 var settings_path := SETTINGS_PATH
+## Katalog plików postaci (testy - osobny) i wspólna skrzynia.
+var chars_dir := CHARS_DIR
+var shared_stash_path := SHARED_STASH
+## Obecna postać: identyfikator (nazwa pliku; "" - zapis testowy), nazwa i czy SSF (tylko własny łup, własna skrzynia).
+var character := ""
+var char_name := DEFAULT_NAME
+var ssf := false
+## Ostatnio grana postać (w ustawieniach) - wybierana przy starcie gry.
+var last_character := ""
+## Stary zapis jednej postaci do przeniesienia (testy podmieniają).
+var legacy_path := SAVE_PATH
 ## Żar zgromadzony w Watrze (z iskier zebranych w lochach i doniesionych do bazy).
 var embers := 0
 ## Żar doniesiony z ostatniego lochu - baza pokazuje go nad Watrą i zeruje.
@@ -126,7 +148,9 @@ func _ready() -> void:
 	# jak w Watrze: gra startuje po polsku, niezależnie od języka telefonu (wybór języka dojdzie w ustawieniach)
 	Lang.set_language(Lang.DEFAULT)
 	load_settings()
-	load_game()
+	_migrate_legacy()
+	if last_character != "" and FileAccess.file_exists(chars_dir + last_character + ".json"):
+		select_character(last_character)
 
 
 ## Numer wersji gry z project.godot (pokazywany w rogu menu).
@@ -148,11 +172,7 @@ func load_settings() -> void:
 	left_handed = cfg.get_value("controls", "left_handed", false)
 	gesture = cfg.get_value("controls", "gesture", true)
 	auto_attack = cfg.get_value("controls", "auto_attack", false)
-	dev_immortal = cfg.get_value("dev", "immortal", false)
-	dev_all_levels = cfg.get_value("dev", "all_levels", false)
-	dev_fps = cfg.get_value("dev", "fps", false)
-	var raw_stats = cfg.get_value("dev", "stats", {})
-	dev_stats = raw_stats if raw_stats is Dictionary else {}
+	last_character = str(cfg.get_value("characters", "last", ""))
 	auto_sell_common = cfg.get_value("items", "auto_sell_common", false)
 
 
@@ -161,12 +181,118 @@ func save_settings() -> void:
 	cfg.set_value("controls", "left_handed", left_handed)
 	cfg.set_value("controls", "gesture", gesture)
 	cfg.set_value("controls", "auto_attack", auto_attack)
-	cfg.set_value("dev", "immortal", dev_immortal)
-	cfg.set_value("dev", "all_levels", dev_all_levels)
-	cfg.set_value("dev", "fps", dev_fps)
-	cfg.set_value("dev", "stats", dev_stats)
+	cfg.set_value("characters", "last", last_character)
 	cfg.set_value("items", "auto_sell_common", auto_sell_common)
 	cfg.save(settings_path)
+	save_game()  # tryb deweloperski leży w zapisie postaci
+
+
+## Tryb deweloperski postaci z zapisu (słownik `dev`).
+func _read_dev(raw) -> void:
+	var d: Dictionary = raw if raw is Dictionary else {}
+	dev_immortal = bool(d.get("immortal", false))
+	dev_all_levels = bool(d.get("all_levels", false))
+	dev_fps = bool(d.get("fps", false))
+	var raw_stats = d.get("stats", {})
+	dev_stats = raw_stats if raw_stats is Dictionary else {}
+
+
+func _dev_data() -> Dictionary:
+	return {"immortal": dev_immortal, "all_levels": dev_all_levels, "fps": dev_fps, "stats": dev_stats}
+
+
+## Lista postaci do ekranu wyboru: słowniki z `id`, `name`, `ssf`, `level`, `best_level`, `weapon`, `dev` (czy włączony
+## tryb deweloperski), `created`; od najstarszej.
+func list_characters() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var dir := DirAccess.open(chars_dir)
+	if dir == null:
+		return out
+	for file in dir.get_files():
+		if not file.ends_with(".json"):
+			continue
+		var data = JSON.parse_string(FileAccess.get_file_as_string(chars_dir + file))
+		if not data is Dictionary:
+			continue
+		var dev: Dictionary = data.get("dev", {}) if data.get("dev", {}) is Dictionary else {}
+		out.append({"id": file.get_basename(), "name": str(data.get("name", DEFAULT_NAME)), "ssf": bool(data.get("ssf", false)),
+				"level": int(data.get("hero_level", 1)), "best_level": int(data.get("best_level", 0)),
+				"weapon": str(data.get("weapon", Weapons.SWORD)), "created": int(data.get("created", 0)),
+				"dev": bool(dev.get("immortal", false)) or bool(dev.get("all_levels", false)) or not (dev.get("stats", {}) as Dictionary).is_empty()})
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return a.created < b.created if a.created != b.created else a.id < b.id)
+	return out
+
+
+## Nowa postać (1. poziom, pusta torba; postać bez SSF widzi wspólną skrzynię). Zwraca jej identyfikator.
+func create_character(name: String, is_ssf: bool) -> String:
+	DirAccess.make_dir_recursive_absolute(chars_dir)
+	var id := "c%d" % int(Time.get_unix_time_from_system())
+	var n := 1
+	while FileAccess.file_exists(chars_dir + id + ".json"):
+		n += 1
+		id = "c%d_%d" % [int(Time.get_unix_time_from_system()), n]
+	var clean := name.strip_edges().left(20)
+	var f := FileAccess.open(chars_dir + id + ".json", FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify({"name": clean if clean != "" else DEFAULT_NAME, "ssf": is_ssf,
+				"created": int(Time.get_unix_time_from_system())}))
+		f.close()
+	return id
+
+
+## Wybiera postać: zapis obecnej, wczytanie wybranej, zapamiętanie jako ostatniej.
+func select_character(id: String) -> void:
+	if save_path != "":
+		save_if_dirty()
+	character = id  # przed wczytaniem - od niej zależy, czy skrzynia jest wspólna
+	save_path = chars_dir + id + ".json"
+	last_character = id
+	var cfg := ConfigFile.new()
+	cfg.load(settings_path)
+	cfg.set_value("characters", "last", id)
+	cfg.save(settings_path)
+
+
+## Usuwa postać na zawsze (jej przedmioty we wspólnej skrzyni zostają). Obecna postać - zapis się odłącza.
+func delete_character(id: String) -> void:
+	DirAccess.remove_absolute(chars_dir + id + ".json")
+	if id == character:
+		character = ""
+		save_path = ""
+	if id == last_character:
+		last_character = ""
+		var cfg := ConfigFile.new()
+		cfg.load(settings_path)
+		cfg.set_value("characters", "last", "")
+		cfg.save(settings_path)
+
+
+## Stary pojedynczy zapis (SAVE_PATH) - raz przenosi go na postać „Wojciech” z trybem deweloperskim ze starych
+## ustawień; skrzynia trafia do wspólnej (przy pierwszym wczytaniu, gdy wspólnej jeszcze nie ma).
+func _migrate_legacy() -> void:
+	if not FileAccess.file_exists(legacy_path):
+		return
+	var data = JSON.parse_string(FileAccess.get_file_as_string(legacy_path))
+	if not data is Dictionary:
+		return
+	var cfg := ConfigFile.new()
+	cfg.load(settings_path)
+	data["name"] = DEFAULT_NAME
+	data["ssf"] = false
+	data["created"] = 0
+	data["dev"] = {"immortal": cfg.get_value("dev", "immortal", false), "all_levels": cfg.get_value("dev", "all_levels", false),
+			"fps": cfg.get_value("dev", "fps", false), "stats": cfg.get_value("dev", "stats", {})}
+	DirAccess.make_dir_recursive_absolute(chars_dir)
+	var id := "c0"
+	var f := FileAccess.open(chars_dir + id + ".json", FileAccess.WRITE)
+	if f == null:
+		return
+	f.store_string(JSON.stringify(data))
+	f.close()
+	DirAccess.rename_absolute(legacy_path, legacy_path + ".old")
+	if last_character == "":
+		last_character = id
 
 
 func load_game() -> void:
@@ -197,11 +323,21 @@ func load_game() -> void:
 	upgrades = {}
 	shop = []
 	shop_ready = false
+	char_name = DEFAULT_NAME
+	ssf = false
+	_read_dev({})
 	_dirty = false
-	if not FileAccess.file_exists(save_path):
+	if save_path == "" or not FileAccess.file_exists(save_path):
 		return
 	var data = JSON.parse_string(FileAccess.get_file_as_string(save_path))
 	if data is Dictionary:
+		char_name = str(data.get("name", DEFAULT_NAME))
+		ssf = bool(data.get("ssf", false))
+		_read_dev(data.get("dev", {}))
+		if _uses_shared_stash() and FileAccess.file_exists(shared_stash_path):
+			var shared = JSON.parse_string(FileAccess.get_file_as_string(shared_stash_path))
+			if shared is Dictionary:
+				data["stash"] = shared.get("stash", [])
 		embers = int(data.get("embers", 0))
 		best_level = int(data.get("best_level", 0))
 		unlocks_seen = int(data.get("unlocks_seen", 0))
@@ -319,14 +455,45 @@ func load_game() -> void:
 
 func save_game() -> void:
 	_dirty = false
+	if save_path == "":
+		return
+	var shared := _uses_shared_stash()
+	if shared:
+		var sf := FileAccess.open(shared_stash_path, FileAccess.WRITE)
+		if sf:
+			sf.store_string(JSON.stringify({"stash": stash}))
+			sf.close()
+	var created := _created()  # przed otwarciem pliku do zapisu (otwarcie go czyści)
 	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
+		f.store_string(JSON.stringify({"name": char_name, "ssf": ssf, "created": created, "dev": _dev_data(),
+				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards,
 				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "shop": shop,
 				"shop_ready": shop_ready}))
+
+
+## Czy obecna postać korzysta ze wspólnej skrzyni (postać z listy, nie SSF; zapis testowy - nie).
+func _uses_shared_stash() -> bool:
+	return character != "" and not ssf
+
+
+var _created_cache := {}
+
+
+## Data utworzenia postaci z jej pliku (zachowana przy zapisie - kolejność na liście).
+func _created() -> int:
+	if _created_cache.has(save_path):
+		return _created_cache[save_path]
+	var value := 0
+	if FileAccess.file_exists(save_path):
+		var data = JSON.parse_string(FileAccess.get_file_as_string(save_path))
+		if data is Dictionary:
+			value = int(data.get("created", 0))
+	_created_cache[save_path] = value
+	return value
 
 
 ## Zapis tylko wtedy, gdy od ostatniego coś się zmieniło (np. doświadczenie z goblinów).
@@ -379,7 +546,8 @@ func reset_hero() -> void:
 	bag = []
 	equipped = {}
 	gold = 0
-	stash = [[]]
+	if not _uses_shared_stash():  # wspólna skrzynia należy też do innych postaci
+		stash = [[]]
 	weapon = Weapons.SWORD
 	mastery = {}
 	mastery_xp = {}

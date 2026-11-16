@@ -3,10 +3,11 @@ extends Control
 ## „Aktualizuj” pojawia się tylko w wyeksportowanej grze (Updater.enabled): menu samo sprawdza, czy jest
 ## nowa kompilacja, a przycisk pobiera paczkę z grą (kilka MB zamiast całego apk).
 
-## Na razie „Graj” otwiera prototyp walki (lewitujący miecz i kukły).
+## „Graj” otwiera wybór postaci (CharacterSelect, wiele postaci); wybrana postać wchodzi do bazy (prototyp).
 const PROTOTYPE_SCENE := "res://scenes/prototype.tscn"
 
 var update_button: Button
+var characters: CharacterSelect
 
 @onready var _play: Button = %Play
 @onready var _version: Label = %Version
@@ -15,6 +16,10 @@ var update_button: Button
 
 func _ready() -> void:
 	_play.pressed.connect(_on_play)
+	characters = CharacterSelect.new()
+	characters.visible = false
+	characters.play.connect(_on_character)
+	$SafeArea.add_child(characters)
 	update_button = Button.new()
 	update_button.custom_minimum_size = Vector2(200, 44)
 	update_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -39,7 +44,21 @@ func _show_version() -> void:
 
 
 func _on_play() -> void:
+	characters.open()
+
+
+func _on_character(id: String) -> void:
+	Game.select_character(id)
 	Game.change_scene(PROTOTYPE_SCENE)
+
+
+## Przycisk „wstecz” na Androidzie: zamyka formularz albo wybór postaci.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and characters and characters.visible:
+		if characters.form.visible:
+			characters.form.visible = false
+		else:
+			characters.visible = false
 
 
 func _on_update_pressed() -> void:

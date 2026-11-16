@@ -44,8 +44,8 @@ func _test_data(game: Node) -> void:
 	_check(g.hp == 500.0 and g.damage == Vector2i(100, 140), "zdrowie i obrażenia broni z trybu deweloperskiego")
 	game.save_settings()
 	game.dev_stats = {}
-	game.load_settings()
-	_check(game.dev_stats.get("hp", 0.0) == 500.0, "statystyki zapamiętane w ustawieniach")
+	game.load_game()
+	_check(game.dev_stats.get("hp", 0.0) == 500.0, "statystyki zapamiętane w zapisie postaci")
 	game.dev_clear_stat("hp")
 	_check(game.gear().hp == 0.0, "↺: zdrowie znów z przedmiotów")
 	game.dev_clear_stats()
