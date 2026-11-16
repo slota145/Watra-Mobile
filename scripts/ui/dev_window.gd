@@ -21,6 +21,7 @@ const STAT_MAX := {"hp": 2000.0, "mana": 1000.0, "damage_pct": 500.0, "regen": 5
 
 var immortal_toggle: CheckButton
 var all_levels_toggle: CheckButton
+var fps_toggle: CheckButton
 var level_button: Button
 var embers_button: Button
 var items_button: Button
@@ -82,6 +83,10 @@ func _ready() -> void:
 	all_levels_toggle = _toggle(tr("Wszystkie poziomy lochu (bez przebijania)"))
 	all_levels_toggle.toggled.connect(func(on: bool) -> void:
 		_game.dev_all_levels = on
+		_game.save_settings())
+	fps_toggle = _toggle(tr("Licznik klatek i potworów"))
+	fps_toggle.toggled.connect(func(on: bool) -> void:
+		_game.dev_fps = on
 		_game.save_settings())
 	var row := _row()
 	level_button = _button(row, tr("+1 poz."))
@@ -148,6 +153,7 @@ func _sync() -> void:
 	_syncing = true
 	immortal_toggle.set_pressed_no_signal(_game.dev_immortal)
 	all_levels_toggle.set_pressed_no_signal(_game.dev_all_levels)
+	fps_toggle.set_pressed_no_signal(_game.dev_fps)
 	hero_level_label.text = tr("Poziom postaci: %d") % _game.hero_level
 	var gear: Dictionary = _game.gear()
 	for stat in stat_rows:

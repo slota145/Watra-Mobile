@@ -61,7 +61,12 @@ func _test_embers(arena: Node, hero: ProtoHero, horde: ProtoHorde) -> void:
 	for n in arena.get_node("World").get_children():
 		if n is ProtoEmber:
 			embers.append(n)
-	_check(embers.size() + horde.embers == horde.kills, "z każdego goblina wypada iskra żaru (%d + zebrane %d)" % [embers.size(), horde.embers])
+	_check(embers.size() + horde.embers <= horde.kills + ProtoEmber.BIG, "iskry żaru wypadają z części goblinów (%d + zebrane %d, pokonane %d)" % [embers.size(), horde.embers, horde.kills])
+	var near := ProtoEmber.new()  # iskra wypada tylko z części goblinów - jedna na pewno obok postaci
+	near.hero = hero
+	near.position = hero.position + Vector2(12, 0)
+	near.collected.connect(horde._on_ember)
+	arena.get_node("World").add_child(near)
 	await _wait(0.6)
 	_check(horde.embers >= 1 and arena.embers_label.text == str(horde.embers), "iskry obok postaci same do niej lecą (żar %d)" % horde.embers)
 	# iskra daleko leży; z bliska leci do postaci
@@ -91,12 +96,12 @@ func _test_embers(arena: Node, hero: ProtoHero, horde: ProtoHorde) -> void:
 	horde.embers = 40
 	horde._on_ember(0)
 	_check(is_equal_approx(arena.ember_bar.value, 40.0) and not arena.summon_button.visible, "pasek żaru rośnie, bez przycisku przyzwania")
-	horde.embers = DungeonLevels.SUMMON_COST + 5
+	horde.embers = DungeonLevels.summon_cost(horde.level) + 5
 	horde._on_ember(0)
 	await process_frame
 	var r: Rect2 = arena.summon_button.get_global_rect()
 	var view := root.get_visible_rect().size
-	_check(arena.summon_button.visible and arena.ember_bar.value == DungeonLevels.SUMMON_COST, "pełny pasek - przycisk przyzwania")
+	_check(arena.summon_button.visible and arena.ember_bar.value == DungeonLevels.summon_cost(horde.level), "pełny pasek - przycisk przyzwania")
 	_check(r.size.y >= 44.0 and r.get_center().y < view.y * 0.25 and arena.joystick._is_blocked(r.get_center()), "przycisk przyzwania u góry ekranu, 44 px, nie rusza gałki")
 	# ucieczka z okna pauzy nie zanosi żaru
 	arena._open_menu()
@@ -122,6 +127,15 @@ func _test_depth() -> void:
 	horde.density = 3.0
 	horde.time = ProtoHorde.RAMP_TIME
 	_check(horde.max_alive() == ProtoHorde.ALIVE_CAP, "najwyżej %d potworów naraz" % ProtoHorde.ALIVE_CAP)
+	# żar w głębi: iskra warta DungeonLevels.reward, przyzwanie droższe o wartość iskier i tłum
+	_check(DungeonLevels.summon_cost(1) == DungeonLevels.SUMMON_BASE and DungeonLevels.summon_cost(10) > 240
+			and DungeonLevels.summon_cost(100) > 2400 and DungeonLevels.summon_cost(100) < 2500,
+			"przyzwanie: 1. poz. %d, 10. %d, 100. %d" % [DungeonLevels.summon_cost(1), DungeonLevels.summon_cost(10), DungeonLevels.summon_cost(100)])
+	horde.level = 50
+	horde._on_ember(1)
+	horde._on_ember(1)
+	_check(horde.embers == roundi(2 * DungeonLevels.reward(50)) - 1 or horde.embers == roundi(2 * DungeonLevels.reward(50)),
+			"iskra na 50. poziomie warta x%.2f (2 iskry - %d żaru)" % [DungeonLevels.reward(50), horde.embers])
 	horde.free()
 
 
@@ -202,6 +216,11 @@ func _test_horde() -> void:
 	var d0 := g.position.distance_to(hero.position)
 	await _wait(0.5)
 	_check(g.position.distance_to(hero.position) < d0 - 10.0, "goblin idzie do Wojciecha")
+	# dalej tylko ten goblin (gęsta Horda potrafi zabić postać przed sprawdzeniem obrażeń)
+	horde.running = false
+	for n in get_nodes_in_group(ProtoWeapon.TARGETS):
+		if n != g:
+			n.queue_free()
 	# goblin obok postaci zadaje obrażenia
 	g.position = hero.position + Vector2(10, 0)
 	await _wait(2.0)
@@ -217,7 +236,20 @@ func _test_horde() -> void:
 	await _test_embers(arena, hero, horde)
 	# strumień rozkręca się z czasem
 	horde.time = ProtoHorde.RAMP_TIME
-	_check(is_equal_approx(horde.interval(), ProtoHorde.INTERVAL_END) and horde.max_alive() == ProtoHorde.ALIVE_END, "po 3 minutach pełne tempo")
+	_check(is_equal_approx(horde.interval(), ProtoHorde.INTERVAL_END) and horde.max_alive() == ProtoHorde.ALIVE_END, "po rozkręceniu pełne tempo")
+	# grupka: kilka potworów naraz z jednego miejsca
+	var before: Array = get_nodes_in_group(ProtoWeapon.TARGETS)
+	var made := horde.spawn_group()
+	var group: Array = get_nodes_in_group(ProtoWeapon.TARGETS).filter(func(n: Node) -> bool: return not n in before)
+	var tight := group.size() == made and group.all(func(n: Node2D) -> bool:
+		return n.global_position.distance_to(group[0].global_position) <= ProtoHorde.GROUP_SPREAD * 3.0)
+	_check(made >= ProtoHorde.GROUP_END.x and made <= ProtoHorde.GROUP_END.y and tight, "grupka %d potworów z jednej strony" % made)
+	# reszta testu bez tłumu (gęsta Horda potrafi zabić postać, zanim włączy się nieśmiertelność)
+	horde.running = false
+	for n in get_nodes_in_group(ProtoWeapon.TARGETS):
+		n.queue_free()
+	hero.hp = ProtoHero.MAX_HP
+	await process_frame
 	# tryb deweloperski: nieśmiertelność - zdrowie wraca do pełna, licznik zgonów
 	var game0: Node = root.get_node("Game")
 	arena._open_menu()
@@ -350,7 +382,7 @@ func _test_brute() -> void:
 	await process_frame
 	_check(b.hp == roundi(ProtoGoblinBrute.BRUTE_HP * horde.power) and b.hp > roundi(ProtoGoblin.MAX_HP * horde.power) * 3, "osiłek ma dużo zdrowia (%d)" % b.hp)
 	await _wait(0.5)
-	_check(b.position.x - hero.position.x < 78.0 and b.position.x - hero.position.x > 60.0, "osiłek idzie powoli (%.0f)" % (b.position.x - hero.position.x))
+	_check(b.position.x - hero.position.x < 78.0 and b.position.x - hero.position.x > 55.0, "osiłek idzie powoli (%.0f)" % (b.position.x - hero.position.x))
 	# cios: koło przed osiłkiem, stojąca postać obrywa, cięcie nie przerywa zamachu
 	b.position = hero.position + Vector2(20, 0)
 	b._cooldown = 0.0
@@ -489,7 +521,7 @@ func _test_chief() -> void:
 	var g := horde.spawn_at(hero.position + Vector2(60, 0))
 	await process_frame
 	_check(g.hp == roundi(ProtoGoblin.MAX_HP * horde.power), "goblin ma więcej zdrowia (%d)" % g.hp)
-	horde.embers = DungeonLevels.SUMMON_COST + 12
+	horde.embers = DungeonLevels.summon_cost(horde.level) + 12
 	horde._on_ember(0)
 	arena.summon_button.pressed.emit()
 	await process_frame

@@ -135,7 +135,7 @@ func _test_elemental(game: Node) -> void:
 	await process_frame
 	var hero := _setup(arena)
 	var horde: ProtoHorde = arena.horde_spawner
-	horde.add_embers(DungeonLevels.SUMMON_COST)
+	horde.add_embers(DungeonLevels.summon_cost(horde.level))
 	arena.summon_chief()
 	var e := arena.chief as ProtoFireElemental
 	_check(e != null and arena.boss_box.get_child(0).text == "Żywiołak ognia", "przyzwany Żywiołak ognia")

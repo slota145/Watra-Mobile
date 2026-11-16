@@ -137,9 +137,9 @@ func _test_dungeon(game: Node) -> void:
 	_check(hero.max_hp == HeroLevels.max_hp(1) + helmet.base.hp and hero.hp == hero.max_hp, "hełm dodaje zdrowia (%d)" % hero.max_hp)
 	_check(arena.health_text.text == "%d / %d" % [hero.max_hp, hero.max_hp], "pasek zdrowia z hełmem")
 	_check(arena.weapon.damage == ProtoWeapon.DAMAGE, "bez kolczyka - gołe obrażenia")
-	_check(arena.ember_text.text == "0 / %d" % DungeonLevels.SUMMON_COST, "liczby na pasku żaru: " + arena.ember_text.text)
+	_check(arena.ember_text.text == "0 / %d" % DungeonLevels.summon_cost(horde.level), "liczby na pasku żaru: " + arena.ember_text.text)
 	horde._on_ember(37)
-	_check(arena.ember_text.text == "37 / %d" % DungeonLevels.SUMMON_COST, "pasek żaru liczy zebrany żar")
+	_check(arena.ember_text.text == "37 / %d" % DungeonLevels.summon_cost(horde.level), "pasek żaru liczy zebrany żar")
 	# broń, ochrona, szybkość - założone w trakcie wyprawy (pauza)
 	var sword := Items.roll(1, "earring", "common")
 	sword.affixes = [{"stat": "attack_speed_pct", "value": 20.0}, {"stat": "damage_pct", "value": 10.0}]

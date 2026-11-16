@@ -6,7 +6,7 @@ extends Node2D
 ## Wszystko budowane w kodzie, żeby prototyp łatwo było zmieniać i wyrzucić.
 ## Dwa tryby: baza (prototype.tscn - kukły i Watra; dotknięcie Watry przenosi do lochu) i loch z Hordą
 ## (horde.tscn, `horde = true` - ciągły strumień goblinów, pasek zdrowia, licznik pokonanych, po śmierci okno wyniku).
-## Żar: iskry z goblinów liczy ProtoHorde i zapełniają pasek żaru (DungeonLevels.SUMMON_COST). Pełny pasek pokazuje
+## Żar: iskry z goblinów liczy ProtoHorde i zapełniają pasek żaru (DungeonLevels.summon_cost(level)). Pełny pasek pokazuje
 ## przycisk „Przyzwij Wodza”: przyzwanie zjada żar z paska, gobliny uciekają, wchodzi Wódz Goblinów (ProtoChief) z własnym
 ## paskiem zdrowia. Po jego śmierci spada skrzynia z żarem (ProtoChest), a po jej otwarciu cały żar z wyprawy trafia do
 ## Watry (`Game.bank_embers`), poziom lochu zostaje przebity (`Game.beat_level`) i pokazuje się okno zwycięstwa.
@@ -100,6 +100,8 @@ var ember_text: Label
 var gear := {}
 ## Licznik zgonów w trybie deweloperskim (widoczny, gdy nieśmiertelność jest włączona).
 var deaths_label: Label
+## Tryb deweloperski: klatki na sekundę i potwory naraz (Game.dev_fps).
+var fps_label: Label
 var ember_bar: ProgressBar
 var summon_button: Button
 var boss_box: VBoxContainer
@@ -500,7 +502,7 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	mana_text = _bar_text(mana_bar, 9)
 	_make_xp_row(box)
 	ember_bar = ProgressBar.new()
-	ember_bar.max_value = DungeonLevels.SUMMON_COST
+	ember_bar.max_value = DungeonLevels.summon_cost(level)
 	ember_bar.value = 0
 	ember_bar.show_percentage = false
 	ember_bar.custom_minimum_size = Vector2(0, 11)
@@ -517,7 +519,7 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	ember_bar.add_theme_stylebox_override("fill", _fill_style)
 	box.add_child(ember_bar)
 	ember_text = _bar_text(ember_bar, 9)
-	ember_text.text = "0 / %d" % DungeonLevels.SUMMON_COST
+	ember_text.text = "0 / %d" % DungeonLevels.summon_cost(level)
 	# dwa krótkie wiersze (w jednym nie mieściły się na 360 px i rozpychały cały interfejs): poziom i czas,
 	# pokonane i żar
 	var row := HBoxContainer.new()
@@ -548,6 +550,10 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	deaths_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35))
 	deaths_label.visible = Game.dev_immortal
 	box.add_child(deaths_label)
+	fps_label = _hud_label("")
+	fps_label.add_theme_color_override("font_color", Color(0.6, 1, 0.6))
+	fps_label.visible = Game.dev_fps
+	box.add_child(fps_label)
 
 
 ## Kwadratowa ikonka 44 px w górnym rzędzie (Postać, Umiejętności).
@@ -846,6 +852,8 @@ func _process(delta: float) -> void:
 	if horde_spawner and time_label:
 		var s := int(horde_spawner.time)
 		time_label.text = "%d:%02d" % [s / 60, s % 60]
+	if fps_label and fps_label.visible:
+		fps_label.text = tr("%d kl./s, potwory: %d") % [Engine.get_frames_per_second(), horde_spawner._alive if horde_spawner else 0]
 	if summon_button and summon_button.visible:  # pełny pasek pulsuje
 		var k := 0.5 + 0.5 * sin(_time * 6.0)
 		_fill_style.bg_color = EMBER_FILL.lerp(EMBER_FULL, k)
@@ -857,9 +865,9 @@ func _on_embers(e: int) -> void:
 	embers_label.text = str(e)
 	if phase != "horde":
 		return
-	ember_bar.value = mini(e, DungeonLevels.SUMMON_COST)
-	ember_text.text = "%d / %d" % [e, DungeonLevels.SUMMON_COST]
-	var full := e >= DungeonLevels.SUMMON_COST
+	ember_bar.value = mini(e, DungeonLevels.summon_cost(level))
+	ember_text.text = "%d / %d" % [e, DungeonLevels.summon_cost(level)]
+	var full := e >= DungeonLevels.summon_cost(level)
 	summon_button.visible = full and not hero.dead
 	if not full:
 		_fill_style.bg_color = EMBER_FILL
@@ -867,10 +875,10 @@ func _on_embers(e: int) -> void:
 
 ## Przyzwanie Wodza: zjada żar z paska (nadwyżka zostaje), gobliny uciekają, Wódz wchodzi nad postacią.
 func summon_chief() -> void:
-	if phase != "horde" or hero.dead or horde_spawner.embers < DungeonLevels.SUMMON_COST:
+	if phase != "horde" or hero.dead or horde_spawner.embers < DungeonLevels.summon_cost(level):
 		return
 	phase = "boss"
-	horde_spawner.embers -= DungeonLevels.SUMMON_COST
+	horde_spawner.embers -= DungeonLevels.summon_cost(level)
 	embers_label.text = str(horde_spawner.embers)
 	summon_button.visible = false
 	ember_bar.visible = false
@@ -926,7 +934,7 @@ func _on_chief_died(_c: ProtoChief) -> void:
 		chest.items.append({"gem": id})
 	chest.loot_spawned.connect(_track_loot)
 	chest.position = at
-	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner._on_ember))
+	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner.on_chest_ember))
 	chest.opened.connect(_on_chest_opened)
 	$World.add_child(chest)
 
@@ -1075,6 +1083,8 @@ func _apply_settings() -> void:
 		base_bar.left_handed = Game.left_handed
 	if deaths_label:
 		deaths_label.visible = Game.dev_immortal
+	if fps_label:
+		fps_label.visible = Game.dev_fps
 
 
 ## Przycisk „wstecz” na Androidzie otwiera i zamyka pauzę; przełączenie telefonu na inną aplikację ją otwiera.

@@ -1,9 +1,10 @@
 class_name ProtoHorde
 extends Node
 ## Ciągły strumień Hordy w lochu prototypu: gobliny pojawiają się tuż poza ekranem i idą do Wojciecha.
-## Z czasem przychodzą coraz częściej i coraz więcej naraz (`interval`, `max_alive`), aż do sufitu po ~3 minutach.
-## Liczy pokonane potwory i czas przetrwania (`kills`, `time`). Z każdego potwora wypada iskra żaru (co `BIG_EVERY`
-## potwór - duża), zebrany żar liczy `embers` - do bazy trafia tylko po pokonaniu bossa, ucieczka i śmierć go gaszą.
+## Przychodzą grupkami z różnych stron kadru (`spawn_group`), z czasem częściej, większymi grupkami i więcej naraz
+## (`interval`, `max_alive`), aż do pełnego tempa po RAMP_TIME (1,5 minuty).
+## Liczy pokonane potwory i czas przetrwania (`kills`, `time`). Z części potworów wypada iskra żaru (`EMBER_CHANCE`,
+## co `BIG_EVERY` potwór - duża; warta więcej w głębi), zebrany żar liczy `embers` - do bazy trafia tylko po pokonaniu bossa, ucieczka i śmierć go gaszą.
 ## Przyzwanie bossa (`call_boss`) zatrzymuje strumień, a gobliny uciekają z piskiem. Siła goblinów rośnie z poziomem
 ## lochu (`power`). Od 2. poziomu część goblinów to łucznicy (DungeonLevels.archer_share, najwyżej `MAX_ARCHERS`
 ## naraz), od 3. - osiłki (DungeonLevels.brute_share, najwyżej `MAX_BRUTES`; z osiłka wypada `BRUTE_EMBERS` żaru). Rzadko goblin upuszcza przedmiot z poziomu lochu (`level`, Items.roll_goblin).
@@ -24,20 +25,29 @@ signal loot_spawned(loot: ProtoLoot)
 ## Pokonano elitę (arena dolicza doświadczenie ponad zwykłego goblina).
 signal elite_killed(goblin: ProtoGoblin)
 
-## Odstęp między potworami na starcie i po pełnym rozkręceniu (s).
-const INTERVAL_START := 1.3
-const INTERVAL_END := 0.3
+## Odstęp między grupkami potworów na starcie i po pełnym rozkręceniu (s).
+const INTERVAL_START := 1.6
+const INTERVAL_END := 0.6
+## Wielkość grupki (losowo od-do) na starcie i po pełnym rozkręceniu; grupka wychodzi z jednej strony kadru.
+const GROUP_START := Vector2i(3, 5)
+const GROUP_END := Vector2i(4, 7)
+## Jak szeroko rozsypana jest grupka wzdłuż krawędzi kadru (w obie strony) i w głąb poza kadr (px).
+const GROUP_SPREAD := 22.0
 ## Najwięcej potworów naraz na starcie i po pełnym rozkręceniu.
-const ALIVE_START := 8
-const ALIVE_END := 45
-## Twardy limit potworów naraz (gęstość z ulepszeń i tłum głębokich lochów) - żeby słabszy telefon nie zwolnił.
-const ALIVE_CAP := 70
+const ALIVE_START := 25
+const ALIVE_END := 70
+## Twardy limit potworów naraz (gęstość z ulepszeń i tłum głębokich lochów) - żeby słabszy telefon nie zwolnił
+## (pomiar `tools/crowd_bench.gd`: odpychanie w siatce, czas rośnie równo z liczbą potworów).
+const ALIVE_CAP := 150
 ## Po tylu sekundach strumień osiąga pełne tempo.
-const RAMP_TIME := 180.0
+const RAMP_TIME := 90.0
 ## Pierwszy potwór po tylu sekundach (chwila na rozejrzenie się).
 const FIRST_DELAY := 1.5
 ## Co tyle pokonanych potworów wypada duża iskra (ProtoEmber.BIG żaru) zamiast małej.
-const BIG_EVERY := 20
+const BIG_EVERY := 40
+## Szansa, że zwykły potwór upuści małą iskrę (tłum jest gęsty - decyzja autora 16.11.2026: mniej żaru z potwora;
+## duża iskra co BIG_EVERY, osiłki i elity zawsze). Wartość iskry rośnie z głębią (DungeonLevels.reward).
+const EMBER_CHANCE := 0.2
 ## Przy ucieczce przed bossem piszczy najwyżej tylu goblinów (żeby tłum nie zagłuszył ryku).
 const SQUEAKERS := 6
 ## Najwięcej łuczników naraz (żeby strzały dało się wymijać, a nie były deszczem).
@@ -98,8 +108,7 @@ func _process(delta: float) -> void:
 	_next -= delta
 	if _next <= 0.0:
 		_next = interval()
-		if _alive < max_alive():
-			spawn()
+		spawn_group()
 
 
 ## Obecny odstęp między potworami.
@@ -122,6 +131,21 @@ func spawn_elite() -> ProtoGoblin:
 
 func spawn() -> ProtoGoblin:
 	return spawn_at(spawn_point(), _roll_kind())
+
+
+## Grupka potworów z jednej strony kadru (wielkość z GROUP_START/GROUP_END, nie ponad limit naraz). Zwraca ile wyszło.
+func spawn_group() -> int:
+	var size := lerpf(GROUP_START.x, GROUP_END.x, _ramp())
+	var top := lerpf(GROUP_START.y, GROUP_END.y, _ramp())
+	var count := mini(randi_range(roundi(size), roundi(top)), max_alive() - _alive)
+	if count <= 0:
+		return 0
+	var center := spawn_point()
+	var out := (center - hero.global_position).normalized()  # rozsyp wzdłuż krawędzi i na zewnątrz, nigdy w kadr
+	for i in count:
+		spawn_at(center + out * randf_range(0.0, GROUP_SPREAD) + out.orthogonal() * randf_range(-GROUP_SPREAD, GROUP_SPREAD),
+				_roll_kind())
+	return count
 
 
 ## Rodzaj goblina ze strumienia: osiłek, łucznik albo zwykły (udziały z poziomu, limity naraz).
@@ -248,15 +272,17 @@ func _on_died(g: ProtoGoblin) -> void:
 		hero.heal(heal)  # premia przedmiotów: zdrowie za zabicie
 	kills += 1
 	kills_changed.emit(kills)
-	var ember := ProtoEmber.new()
-	ember.hero = hero
-	ember.value = ProtoEmber.BIG if kills % BIG_EVERY == 0 else (BRUTE_EMBERS if g is ProtoGoblinBrute else 1)
+	var value := ProtoEmber.BIG if kills % BIG_EVERY == 0 else (BRUTE_EMBERS if g is ProtoGoblinBrute else 1)
 	if g.elite:
-		ember.value = Elites.EMBERS
-	ember.position = g.position
-	ember.magnet = (ProtoEmber.MAGNET + reach) * pickup_mult
-	ember.collected.connect(_on_ember)
-	world.add_child.call_deferred(ember)
+		value = Elites.EMBERS
+	if value > 1 or randf() < EMBER_CHANCE:
+		var ember := ProtoEmber.new()
+		ember.hero = hero
+		ember.value = value
+		ember.position = g.position
+		ember.magnet = (ProtoEmber.MAGNET + reach) * pickup_mult
+		ember.collected.connect(_on_ember)
+		world.add_child.call_deferred(ember)
 	var item := Items.roll(level, "", "", Items.CHEST_WEIGHTS) if g.elite else Items.roll_goblin(level, loot_mult)
 	if not item.is_empty():
 		drop_item(item, g.position)
@@ -279,8 +305,17 @@ func drop_item(item: Dictionary, at: Vector2) -> ProtoLoot:
 	return loot
 
 
-## Zebrana iskra: żar z premią przedmiotów (`ember_mult`).
+## Zebrana iskra z potwora: żar z głębi lochu (DungeonLevels.reward) i premii przedmiotów (`ember_mult`).
 func _on_ember(value: int) -> void:
+	_gain(value * DungeonLevels.reward(level))
+
+
+## Zebrana iskra ze skrzyni bossa: bez mnożnika głębi (DungeonLevels.chest_embers już rośnie z poziomem).
+func on_chest_ember(value: int) -> void:
+	_gain(value)
+
+
+func _gain(value: float) -> void:
 	var total := value * ember_mult + _ember_rest
 	var whole := floori(total)
 	_ember_rest = total - whole

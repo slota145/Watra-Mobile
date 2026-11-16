@@ -38,6 +38,10 @@ const FLEE_TIME := 1.4
 
 ## Wczytane sceny grafik (wspólne dla wszystkich goblinów danego rodzaju; klucz - ścieżka).
 static var _scenes := {}
+## Siatka tłumu do odpychania: kratka PERSONAL_SPACE -> gobliny w niej; budowana raz na klatkę (`_crowd_grid`),
+## żeby każdy goblin sprawdzał tylko sąsiadów z 9 kratek, a nie cały tłum (inaczej czas rośnie z kwadratem liczby potworów).
+static var _grid := {}
+static var _grid_frame := -1
 
 var hero: ProtoHero
 var bounds := Rect2(-300, -300, 600, 600)
@@ -329,14 +333,35 @@ func _on_anim_finished(anim: StringName) -> void:
 ## Odpychanie od sąsiednich goblinów (żeby tłum się rozkładał, a nie stał w jednym punkcie).
 func _separation() -> Vector2:
 	var away := Vector2.ZERO
-	for other in get_tree().get_nodes_in_group(ProtoWeapon.TARGETS):
-		if other == self or not other is ProtoGoblin:
-			continue
-		var d: Vector2 = global_position - other.global_position
-		var l := d.length()
-		if l < PERSONAL_SPACE:
-			away += (d / l if l > 0.01 else Vector2.from_angle(randf() * TAU)) * (1.0 - l / PERSONAL_SPACE)
+	var grid := _crowd_grid(get_tree())
+	var cell := Vector2i((global_position / PERSONAL_SPACE).floor())
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			var near: Array = grid.get(cell + Vector2i(dx, dy), [])
+			for other: ProtoGoblin in near:
+				if other == self:
+					continue
+				var d: Vector2 = global_position - other.global_position
+				var l := d.length()
+				if l < PERSONAL_SPACE:
+					away += (d / l if l > 0.01 else Vector2.from_angle(randf() * TAU)) * (1.0 - l / PERSONAL_SPACE)
 	return away.limit_length(1.0)
+
+
+## Siatka tłumu z tej klatki (przy pierwszym wywołaniu w klatce układa wszystkie gobliny w kratki).
+static func _crowd_grid(tree: SceneTree) -> Dictionary:
+	var frame := Engine.get_process_frames()
+	if frame != _grid_frame:
+		_grid_frame = frame
+		_grid = {}
+		for n in tree.get_nodes_in_group(ProtoWeapon.TARGETS):
+			if n is ProtoGoblin:
+				var key := Vector2i((n.global_position / PERSONAL_SPACE).floor())
+				if _grid.has(key):
+					_grid[key].append(n)
+				else:
+					_grid[key] = [n]
+	return _grid
 
 
 func _face(dir: Vector2) -> void:

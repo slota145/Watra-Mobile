@@ -2,6 +2,30 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - gęstsza Horda grupkami, sufit 150 potworów
+
+Uwaga autora: potworów zdecydowanie za mało. Decyzje autora: gęściej od startu, grupkami z różnych stron, sufit jak
+najwyżej (endgame). Wyprawa do Wodza trwała u autora około 2 minut.
+- `ProtoHorde.spawn_group`: grupka z jednego punktu tuż za kadrem (`spawn_point`), rozsypana wzdłuż krawędzi
+  i na zewnątrz (`GROUP_SPREAD` 22 px - nigdy w kadr), wielkość 3-5 na starcie i 4-7 po rozkręceniu (`GROUP_START`,
+  `GROUP_END`), nie ponad limit naraz; rodzaj każdego potwora z `_roll_kind` (limity łuczników i osiłków bez zmian).
+- Liczby: grupka co 1,6 s -> 0,6 s (`INTERVAL_START/END`), naraz 25 -> 70 (było 8 -> 45), pełne tempo po 90 s
+  (było 180 s), twardy limit `ALIVE_CAP` 150 (było 70; osiągalny z ulepszeniem „Gęstsza Horda” i tłumem głębokich lochów).
+- Wydajność: odpychanie goblinów (`ProtoGoblin._separation`) sprawdzało cały tłum w każdej klatce (czas rósł z kwadratem
+  liczby potworów); teraz siatka kratek `PERSONAL_SPACE` budowana raz na klatkę (`_crowd_grid`) i tylko 9 sąsiednich
+  kratek. Pomiar `tools/crowd_bench.gd` (logika w chmurze): 70 potworów 2,9 -> 1,9 ms, 150: 8,2 -> 4,2 ms,
+  200: 15,9 -> 6,9 ms.
+- Tryb deweloperski: przełącznik „Licznik klatek i potworów” (`Game.dev_fps`, `arena.fps_label`) - do sprawdzenia
+  tłumu na telefonie.
+- Symulacja `tools/crowd_sim.gd` (stojąca postać z auto atakiem, poziom 1): przed - naraz 9-18, żar na bossa po 101 s;
+  po - naraz 27 -> 70, żar na bossa po 46 s, 413 pokonanych w 2 minuty (było 110).
+- Testy: grupka w `test_horde.gd`, gęstość z ulepszeniem w `test_base.gd`; test nieśmiertelności bez tłumu.
+- Żar z głębią (decyzja autora: mniej żaru z potwora, ale im głębiej, tym więcej żaru z potwora i droższe przyzwanie):
+  mała iskra wypada z `ProtoHorde.EMBER_CHANCE` (20%; duża iskra co 40. potwór, było co 20. - symulacja: przy 35% i co 20. żar na Wodza po 70 s, przy 20% po 80 s, teraz po 92 s - jak przed zagęszczeniem, 101 s) zwykłych potworów (duża co `BIG_EVERY`, osiłki i elity zawsze),
+  iskra warta `DungeonLevels.reward(level)` (+15% na poziom, `_on_ember`); koszt przyzwania
+  `DungeonLevels.summon_cost(level)` = `SUMMON_BASE` 100 x `reward` x `crowd` (1. poziom 100, 10. ~255, 50. ~1240,
+  100. ~2460; było stałe `SUMMON_COST` 100) - wyprawa trwa podobnie, nadwyżka do bazy rośnie z głębią.
+
 ## 16.11.2026 - efekty ataków Wodnika i Nekromanty
 
 Ciąg dalszy efektów bossów z kreatora PixelLab (darmowy; wpisy w `pixellab_src/vfx/ids.json`, arkusze w `assets/effects/`).

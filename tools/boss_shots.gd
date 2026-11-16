@@ -29,7 +29,7 @@ func _run() -> void:
 	await create_timer(6.0).timeout
 	var horde: ProtoHorde = arena.horde_spawner
 	arena.hero.hp = 1000
-	horde.embers = DungeonLevels.SUMMON_COST + 17
+	horde.embers = DungeonLevels.summon_cost(horde.level) + 17
 	horde._on_ember(0)
 	await create_timer(0.3).timeout
 	await _shot("1_pasek")

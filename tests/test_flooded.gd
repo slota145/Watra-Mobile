@@ -173,7 +173,7 @@ func _test_wodnik(game: Node) -> void:
 	horde.running = false
 	arena.weapon.auto_attack = false
 	hero.immortal = true
-	horde.add_embers(DungeonLevels.SUMMON_COST)
+	horde.add_embers(DungeonLevels.summon_cost(horde.level))
 	arena.summon_chief()
 	var w: ProtoChief = arena.chief
 	_check(w is ProtoWodnik and arena.boss_box.get_child(0).text == "Wodnik", "przyzwany Wodnik z paskiem zdrowia")
