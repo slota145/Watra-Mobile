@@ -934,7 +934,7 @@ func _on_chief_died(_c: ProtoChief) -> void:
 		chest.items.append({"gem": id})
 	chest.loot_spawned.connect(_track_loot)
 	chest.position = at
-	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner._on_ember))
+	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner.on_chest_ember))
 	chest.opened.connect(_on_chest_opened)
 	$World.add_child(chest)
 

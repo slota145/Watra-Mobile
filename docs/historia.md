@@ -21,7 +21,7 @@ najwyżej (endgame). Wyprawa do Wodza trwała u autora około 2 minut.
   po - naraz 27 -> 70, żar na bossa po 46 s, 413 pokonanych w 2 minuty (było 110).
 - Testy: grupka w `test_horde.gd`, gęstość z ulepszeniem w `test_base.gd`; test nieśmiertelności bez tłumu.
 - Żar z głębią (decyzja autora: mniej żaru z potwora, ale im głębiej, tym więcej żaru z potwora i droższe przyzwanie):
-  mała iskra wypada z `ProtoHorde.EMBER_CHANCE` (35%) zwykłych potworów (duża co `BIG_EVERY`, osiłki i elity zawsze),
+  mała iskra wypada z `ProtoHorde.EMBER_CHANCE` (20%; duża iskra co 40. potwór, było co 20. - symulacja: przy 35% i co 20. żar na Wodza po 70 s, przy 20% po 80 s, teraz po 92 s - jak przed zagęszczeniem, 101 s) zwykłych potworów (duża co `BIG_EVERY`, osiłki i elity zawsze),
   iskra warta `DungeonLevels.reward(level)` (+15% na poziom, `_on_ember`); koszt przyzwania
   `DungeonLevels.summon_cost(level)` = `SUMMON_BASE` 100 x `reward` x `crowd` (1. poziom 100, 10. ~255, 50. ~1240,
   100. ~2460; było stałe `SUMMON_COST` 100) - wyprawa trwa podobnie, nadwyżka do bazy rośnie z głębią.

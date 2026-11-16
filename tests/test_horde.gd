@@ -62,6 +62,11 @@ func _test_embers(arena: Node, hero: ProtoHero, horde: ProtoHorde) -> void:
 		if n is ProtoEmber:
 			embers.append(n)
 	_check(embers.size() + horde.embers <= horde.kills + ProtoEmber.BIG, "iskry żaru wypadają z części goblinów (%d + zebrane %d, pokonane %d)" % [embers.size(), horde.embers, horde.kills])
+	var near := ProtoEmber.new()  # iskra wypada tylko z części goblinów - jedna na pewno obok postaci
+	near.hero = hero
+	near.position = hero.position + Vector2(12, 0)
+	near.collected.connect(horde._on_ember)
+	arena.get_node("World").add_child(near)
 	await _wait(0.6)
 	_check(horde.embers >= 1 and arena.embers_label.text == str(horde.embers), "iskry obok postaci same do niej lecą (żar %d)" % horde.embers)
 	# iskra daleko leży; z bliska leci do postaci
@@ -211,6 +216,11 @@ func _test_horde() -> void:
 	var d0 := g.position.distance_to(hero.position)
 	await _wait(0.5)
 	_check(g.position.distance_to(hero.position) < d0 - 10.0, "goblin idzie do Wojciecha")
+	# dalej tylko ten goblin (gęsta Horda potrafi zabić postać przed sprawdzeniem obrażeń)
+	horde.running = false
+	for n in get_nodes_in_group(ProtoWeapon.TARGETS):
+		if n != g:
+			n.queue_free()
 	# goblin obok postaci zadaje obrażenia
 	g.position = hero.position + Vector2(10, 0)
 	await _wait(2.0)
