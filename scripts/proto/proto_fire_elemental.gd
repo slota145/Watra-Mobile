@@ -8,6 +8,8 @@ extends ProtoChief
 ##   chwilę płonącą ziemię (ProtoFirePatch);
 ## - Ognisty taran: czerwony pas do postaci (CHARGE_LENGTH x CHARGE_WIDTH), po CHARGE_WARN s szarżuje nim (CHARGE_TIME s),
 ##   rani przy przelocie i zostawia za sobą ślad płonącej ziemi.
+## Efekty z kreatora PixelLab (16.11.2026): pierścień fali ognia (`fire_wave`), kule lawy spadające z nieba
+## (`lava_meteor` - uderzenie, gdy koło się wypełni) i płomienna smuga w szarży (`charge_flame`).
 ## Ogień podpala (ProtoHero.ignite). Grafika: model SpriteKiln assets/spritekiln/fire_elemental/ (idle, walk, roar,
 ## wave, rain, charge, hit, death), do tego czasu powiększony goblin w kolorze ognia.
 
@@ -34,10 +36,22 @@ const CHARGE_DAMAGE := 28
 const CHARGE_TRAIL := 3.0
 const BURN := 4
 const BURN_TIME := 3.0
-## Płomienie wybuchu (zapętlone płomienie podpalenia z kreatora efektów - jeden przebieg).
-const FIRE_FX := preload("res://assets/effects/burning.png")
-const FIRE_FX_FRAMES := 8
-const FIRE_FX_ANCHOR := Vector2(16, 28)
+const WAVE_FX := preload("res://assets/effects/fire_wave.png")
+const WAVE_FX_FRAMES := 12
+const WAVE_FX_ANCHOR := Vector2(99, 81)
+## Promień pierścienia fali w arkuszu (px, największy) - skala efektu = WAVE_RADIUS / WAVE_FX_RADIUS.
+const WAVE_FX_RADIUS := 95.0
+## Kula lawy: spada METEOR_LEAD s i uderza w 8. klatce - wtedy, gdy koło się wypełni.
+const METEOR_FX := preload("res://assets/effects/lava_meteor.png")
+const METEOR_FX_FRAMES := 18
+const METEOR_FX_FPS := 18.0
+const METEOR_FX_ANCHOR := Vector2(32, 72)
+const METEOR_LEAD := 7.0 / METEOR_FX_FPS
+const CHARGE_FX := preload("res://assets/effects/charge_flame.png")
+const CHARGE_FX_FRAMES := 12
+const CHARGE_FX_ANCHOR := Vector2(91, 21)
+## Wysokość środka ciała nad stopami (px) - tam płonie smuga szarży.
+const BODY_HEIGHT := 22.0
 const ATTACKS: Array[String] = ["wave", "rain", "charge"]
 
 ## Testy i zrzuty: sam nie wybiera ataków.
@@ -48,6 +62,8 @@ var _charge_from := Vector2.ZERO
 var _charge_to := Vector2.ZERO
 var _charge_hit := false
 var _trail_next := 0.0
+## Płomienna smuga w czasie szarży.
+var _flame: Sprite2D
 
 
 func _init() -> void:
@@ -63,6 +79,9 @@ func _init() -> void:
 func _process(delta: float) -> void:
 	super(delta)
 	_update_drops()
+	if _flame and state != "charge":
+		_flame.queue_free()
+		_flame = null
 	if state == "dead" or hero == null:
 		return
 	match state:
@@ -80,6 +99,8 @@ func _process(delta: float) -> void:
 				_set_state("charge")
 				_charge_hit = false
 				_trail_next = 0.0
+				_flame = Fx.loop(self, CHARGE_FX, CHARGE_FX_FRAMES, 12.0, Vector2(0, -BODY_HEIGHT), CHARGE_FX_ANCHOR, -1)
+				_flame.rotation = (_charge_to - _charge_from).angle()
 		"charge":
 			var k := clampf(_timer / CHARGE_TIME, 0.0, 1.0)
 			position = _charge_from.lerp(_charge_to, k)
@@ -149,11 +170,7 @@ func _wave_hit() -> void:
 		hero.take_damage(roundi(WAVE_DAMAGE * power), Elements.FIRE)
 		hero.ignite(roundi(BURN * power), BURN_TIME)
 	_remove_telegraph()
-	for ring: float in [(WAVE_INNER + WAVE_RADIUS) / 2.0 - 8.0, WAVE_RADIUS - 10.0]:
-		var count := int(TAU * ring / 34.0)
-		for i in count:
-			var p := global_position + Vector2.from_angle(TAU * (i + randf() * 0.5) / count) * ring * Vector2(1, 0.6)
-			Fx.once(get_parent(), FIRE_FX, FIRE_FX_FRAMES, 14.0, p, FIRE_FX_ANCHOR, 20, randf_range(0.75, 1.0))
+	Fx.once(get_parent(), WAVE_FX, WAVE_FX_FRAMES, 14.0, global_position, WAVE_FX_ANCHOR, -1, WAVE_RADIUS / WAVE_FX_RADIUS)
 	_shake(4.0, 0.3)
 	_sound(SLAM_SOUND, -2.0, randf_range(0.9, 1.0))
 	_set_state("recover")
@@ -166,12 +183,14 @@ func _update_drops() -> void:
 		if not is_instance_valid(t):
 			_drops.remove_at(i)
 			continue
+		if not t.has_meta("meteor") and (1.0 - t.progress) * t.duration <= METEOR_LEAD:
+			t.set_meta("meteor", true)
+			Fx.once(get_parent(), METEOR_FX, METEOR_FX_FRAMES, METEOR_FX_FPS, t.global_position, METEOR_FX_ANCHOR, 20)
 		if t.progress < 1.0:
 			continue
 		if hero and not hero.dead and state != "dead" and t.contains(hero.global_position):
 			hero.take_damage(roundi(RAIN_DAMAGE * power), Elements.FIRE)
 			hero.ignite(roundi(BURN * power), BURN_TIME)
-		Fx.once(get_parent(), FIRE_FX, FIRE_FX_FRAMES, 14.0, t.global_position, FIRE_FX_ANCHOR, 20, 1.6)
 		ProtoFirePatch.spawn(get_parent(), t.global_position, hero, RAIN_RADIUS, RAIN_PATCH, roundi(BURN * power))
 		t.queue_free()
 		_drops.remove_at(i)

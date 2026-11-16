@@ -9,7 +9,9 @@ extends ProtoChief
 ## - Nurkowanie: czerwony pas od orła w stronę postaci (DIVE_LENGTH x DIVE_WIDTH), po DIVE_WARN s orzeł przelatuje nim
 ##   (DIVE_TIME s) i rani, jeśli postać stoi w pasie;
 ## - Podmuch: koło wokół orła (GUST_RADIUS), po GUST_WARN s uderzenie skrzydeł rani, odrzuca postać (ProtoHero.leap)
-##   i rozsiewa dookoła FEATHERS naelektryzowanych piór (ProtoArrow, Grom, porażenie przy trafieniu).
+##   i rozsiewa dookoła FEATHERS kul piorunów (ProtoArrow.orb, Grom).
+## Efekty z kreatora PixelLab (16.11.2026): piorun z nieba w kole burzy (`eagle_bolt`), aura iskier przy nurkowaniu
+## (`eagle_aura`), pierścień wyładowania podmuchu (`eagle_gust`) i kule piorunów (`eagle_orb`).
 
 const SHEET := preload("res://assets/watra/bosses/storm_eagle.png")
 const SHEET_COLS := 4
@@ -40,10 +42,20 @@ const FEATHERS := 10
 const FEATHER_DAMAGE := 10
 const FEATHER_SPEED := 90.0
 const SHOCK_TIME := 2.0
-const SPARK := Color(1.0, 0.95, 0.5)
-const BOLT_FX := preload("res://assets/effects/katana_hit.png")
-const BOLT_FX_FRAMES := 10
-const BOLT_FX_ANCHOR := Vector2(28, 22)
+## Piorun burzy: schodzi z nieba BOLT_LEAD s, uderza w 5. klatce - wtedy, gdy koło się wypełni.
+const BOLT_FX := preload("res://assets/effects/eagle_bolt.png")
+const BOLT_FX_FRAMES := 14
+const BOLT_FX_FPS := 20.0
+const BOLT_FX_ANCHOR := Vector2(39, 111)
+const BOLT_LEAD := 4.0 / BOLT_FX_FPS
+const AURA_FX := preload("res://assets/effects/eagle_aura.png")
+const AURA_FX_FRAMES := 12
+const AURA_FX_ANCHOR := Vector2(38, 44)
+const GUST_FX := preload("res://assets/effects/eagle_gust.png")
+const GUST_FX_FRAMES := 10
+const GUST_FX_ANCHOR := Vector2(55, 24)
+## Promień pierścienia podmuchu w arkuszu (px) - skala efektu = GUST_RADIUS / GUST_FX_RADIUS.
+const GUST_FX_RADIUS := 52.0
 const ATTACKS: Array[String] = ["storm", "dive", "gust"]
 
 ## Testy i zrzuty: sam nie wybiera ataków.
@@ -56,6 +68,8 @@ var _dive_from := Vector2.ZERO
 var _dive_to := Vector2.ZERO
 var _dive_hit := false
 var _flap := 0.0
+## Aura iskier w czasie nurkowania.
+var _aura: Sprite2D
 
 
 func _init() -> void:
@@ -83,6 +97,8 @@ func _process(delta: float) -> void:
 		_sprite.offset.y = -HOVER + sin(_flap * 2.5) * BOB
 	_update_storm(delta)
 	_update_drops()
+	if _aura and state != "dive_warn" and state != "dive":
+		_remove_aura()
 	if state == "dead" or hero == null:
 		return
 	match state:
@@ -100,6 +116,7 @@ func _process(delta: float) -> void:
 				hero.shock(SHOCK_TIME)
 			if k >= 1.0:
 				_remove_telegraph()
+				_remove_aura()
 				_set_state("recover")
 		"gust":
 			if _timer >= GUST_WARN:
@@ -126,6 +143,8 @@ func start_attack(kind: String) -> void:
 			_timer = -STORM_STEP * STORM_BOLTS  # stoi i woła burzę
 		"dive":
 			_set_state("dive_warn")
+			_remove_aura()
+			_aura = Fx.loop(self, AURA_FX, AURA_FX_FRAMES, 12.0, Vector2(0, -HOVER), AURA_FX_ANCHOR, 1)
 			_dive_from = global_position
 			var dir := (hero.global_position - global_position).normalized()
 			if dir == Vector2.ZERO:
@@ -168,12 +187,14 @@ func _update_drops() -> void:
 		if not is_instance_valid(t):
 			_drops.remove_at(i)
 			continue
+		if not t.has_meta("bolt") and (1.0 - t.progress) * t.duration <= BOLT_LEAD:
+			t.set_meta("bolt", true)
+			Fx.once(get_parent(), BOLT_FX, BOLT_FX_FRAMES, BOLT_FX_FPS, t.global_position, BOLT_FX_ANCHOR, 20)
 		if t.progress < 1.0:
 			continue
 		if hero and not hero.dead and state != "dead" and t.contains(hero.global_position):
 			hero.take_damage(roundi(STORM_DAMAGE * power), Elements.LIGHTNING)
 			hero.shock(SHOCK_TIME)
-		Fx.once(get_parent(), BOLT_FX, BOLT_FX_FRAMES, 18.0, t.global_position + Vector2(0, -8), BOLT_FX_ANCHOR, 20, 1.1)
 		t.queue_free()
 		_drops.remove_at(i)
 
@@ -183,7 +204,7 @@ func storm_pending() -> int:
 	return _drops.size() + _storm_left
 
 
-## Podmuch: rani i odrzuca w kole, pióra lecą dookoła.
+## Podmuch: rani i odrzuca w kole, pierścień wyładowania, kule piorunów lecą dookoła.
 func _gust() -> void:
 	if _telegraph and is_instance_valid(_telegraph) and hero and not hero.dead and _telegraph.contains(hero.global_position):
 		hero.take_damage(roundi(GUST_DAMAGE * power), Elements.LIGHTNING)
@@ -192,12 +213,13 @@ func _gust() -> void:
 			away = Vector2.DOWN
 		hero.leap(hero.global_position + away * GUST_PUSH, 0.25, 6.0)
 	_remove_telegraph()
+	Fx.once(get_parent(), GUST_FX, GUST_FX_FRAMES, 14.0, global_position, GUST_FX_ANCHOR, -1, GUST_RADIUS / GUST_FX_RADIUS)
 	var start := randf() * TAU
 	for i in FEATHERS:
 		var f := ProtoArrow.new()
 		f.hero = hero
 		f.element = Elements.LIGHTNING
-		f.tint = SPARK
+		f.orb = true
 		f.speed = FEATHER_SPEED
 		f.fly_range = 200.0
 		f.damage = roundi(FEATHER_DAMAGE * power)
@@ -209,7 +231,14 @@ func _gust() -> void:
 	_set_state("recover")
 
 
+func _remove_aura() -> void:
+	if _aura and is_instance_valid(_aura):
+		_aura.queue_free()
+	_aura = null
+
+
 func _die() -> void:
+	_remove_aura()
 	for t in _drops:
 		if is_instance_valid(t):
 			t.queue_free()

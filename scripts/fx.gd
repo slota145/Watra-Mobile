@@ -21,3 +21,21 @@ static func once(parent: Node, texture: Texture2D, frames: int, fps: float, at: 
 	tween.tween_interval(1.0 / fps)
 	tween.tween_callback(fx.queue_free)
 	return fx
+
+
+## Zapętlony arkusz (aura, smuga) jako dziecko `parent` w jego współrzędnych `at`; trwa, aż ktoś go usunie.
+static func loop(parent: Node, texture: Texture2D, frames: int, fps: float, at: Vector2, anchor: Vector2,
+		z := 0, size := 1.0) -> Sprite2D:
+	var fx := Sprite2D.new()
+	fx.texture = texture
+	fx.hframes = frames
+	fx.centered = false
+	fx.offset = -anchor
+	fx.z_index = z
+	fx.scale = Vector2.ONE * size
+	fx.position = at
+	parent.add_child(fx)
+	var tween := fx.create_tween().set_loops()
+	tween.tween_property(fx, "frame", frames - 1, (frames - 1) / fps).from(0)
+	tween.tween_interval(1.0 / fps)
+	return fx

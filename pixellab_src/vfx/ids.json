@@ -525,5 +525,110 @@
       21
     ],
     "columns": 3
+  },
+  "eagle_bolt": {
+    "effect": "32c0182f-04aa-4803-b386-9056012004e3",
+    "name": "Gromoskrzydły - piorun burzy (uderzenie w 5. klatce)",
+    "frame": [
+      80,
+      117
+    ],
+    "frames": 14,
+    "fps": 20,
+    "anchor": [
+      39,
+      111
+    ],
+    "columns": 4
+  },
+  "eagle_orb": {
+    "effect": "2e3ee54e-9625-46f4-a71b-c3856eb5d981",
+    "name": "Gromoskrzydły - kula piorunu z podmuchu (pętla, lot w prawo)",
+    "frame": [
+      33,
+      23
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      23,
+      12
+    ],
+    "columns": 4
+  },
+  "eagle_gust": {
+    "effect": "f749e848-693f-408b-8e18-b14b2130c92c",
+    "name": "Gromoskrzydły - podmuch wyładowania (pierścień)",
+    "frame": [
+      110,
+      49
+    ],
+    "frames": 10,
+    "fps": 14,
+    "anchor": [
+      55,
+      24
+    ],
+    "columns": 4
+  },
+  "eagle_aura": {
+    "effect": "979b44de-ab8c-4dc0-91d1-2494504c8e9a",
+    "name": "Gromoskrzydły - aura iskier przy nurkowaniu (pętla)",
+    "frame": [
+      75,
+      83
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      38,
+      44
+    ],
+    "columns": 4
+  },
+  "lava_meteor": {
+    "effect": "fca87db5-d321-4add-bd8a-a125a535b8f5",
+    "name": "Żywiołak ognia - kula lawy (spada, uderzenie w 8. klatce)",
+    "frame": [
+      75,
+      87
+    ],
+    "frames": 18,
+    "fps": 18,
+    "anchor": [
+      32,
+      72
+    ],
+    "columns": 5
+  },
+  "fire_wave": {
+    "effect": "2ccc7d9a-0932-4cd3-addd-d35dc9802af1",
+    "name": "Żywiołak ognia - fala ognia (pierścień)",
+    "frame": [
+      198,
+      121
+    ],
+    "frames": 12,
+    "fps": 14,
+    "anchor": [
+      99,
+      81
+    ],
+    "columns": 4
+  },
+  "charge_flame": {
+    "effect": "466829a9-7062-4142-b8a7-0c1d0611623b",
+    "name": "Żywiołak ognia - smuga taranu (pętla, głowa płomienia w prawo)",
+    "frame": [
+      106,
+      40
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      91,
+      21
+    ],
+    "columns": 4
   }
 }

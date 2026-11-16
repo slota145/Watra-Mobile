@@ -2,6 +2,22 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - efekty ataków Gromoskrzydłego i Żywiołaka ognia
+
+Uwaga autora: w walce z bossami za mało widać ich żywioł, a Gromoskrzydły „strzelał strzałami”. Decyzja autora:
+pióra z podmuchu zastępują kule piorunów. Efekty z kreatora PixelLab (darmowy; wpisy w `pixellab_src/vfx/ids.json`,
+arkusze w `assets/effects/`), w grze nowy pomocnik pętli `Fx.loop` (`scripts/fx.gd`).
+- Gromoskrzydły (`proto_storm_eagle.gd`): `eagle_bolt` - piorun z nieba w każde koło burzy (startuje `BOLT_LEAD`
+  = 0,2 s przed wypełnieniem koła, uderza w 5. klatce razem z obrażeniami); `eagle_aura` - aura iskier wokół orła
+  od ostrzeżenia do końca nurkowania (`_aura`, `_remove_aura`); `eagle_gust` - pierścień wyładowania podmuchu
+  (pod postaciami, z_index -1, skala `GUST_RADIUS / GUST_FX_RADIUS`); kule piorunów `ProtoArrow.orb` (`eagle_orb`
+  w locie, trafienie `katana_hit` w skali 0,5) zamiast strzał.
+- Żywiołak ognia (`proto_fire_elemental.gd`): `fire_wave` - pierścień fali z płomieniami (zamiast pojedynczych
+  płomyków `burning`, pod postaciami); `lava_meteor` - kula lawy spada z nieba (startuje `METEOR_LEAD` = 7/18 s przed
+  wypełnieniem koła, krater w 8. klatce); `charge_flame` - płomienna smuga w szarży (`_flame`, obrócona w kierunku
+  taranu, za postacią).
+- `tools/volcano_shots.gd`: zrzuty fali i lawy chwilę później (widać efekty).
+
 ## 15.11.2026 - piąty loch: Wulkaniczne równiny, Żywiołak ognia
 
 Decyzje autora: najpierw po jednej krainie na każdy żywioł broni - brakowało ognia; Wulkaniczne równiny od 41, nowe
