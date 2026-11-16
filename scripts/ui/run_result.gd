@@ -104,6 +104,12 @@ func add_loot_lines(items: int, sold_gold := 0) -> void:
 		_summary.text += "\n" + tr("Łup sprzedany od razu: +%d złota") % sold_gold
 
 
+## Co odblokowało pokonanie tego bossa (drabinka - Unlocks.on_beat), złotym kolorem w podsumowaniu.
+func add_unlock_lines(entries: Array) -> void:
+	for e: Dictionary in entries:
+		_summary.text += "\n" + tr("Odblokowano: %s") % e.text
+
+
 ## Złoto wybite ze Skarbnika w tej wyprawie.
 func add_gold_line(amount: int) -> void:
 	if amount > 0:

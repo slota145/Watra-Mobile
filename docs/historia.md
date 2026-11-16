@@ -2,6 +2,25 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - drabinka odblokowań
+
+Pomysł z Dwarven Realms. Decyzje autora (ankieta): drabinka tylko POKAZUJE progi, które już są w grze (nic nowego się
+nie blokuje), bez nagród za kamienie milowe; widać ją przy wyborze poziomu, w oknie zwycięstwa, w osobnym oknie
+i jako znaczek „Nowość!” nad Watrą.
+- `scripts/unlocks.gd` (`Unlocks`): wpisy z progów systemów (elity i ich cechy - `Elites`, łucznicy i osiłki -
+  `DungeonLevels`, kamienie i kamienie unikalne - `Gems`, cele na mapie - `DungeonGoals.KINDS`, lochy - `Dungeons`,
+  bronie za darmo - `Weapons.unlock_level`), więc zmiana progu w systemie zmienia drabinkę. Wpis: `beat` (który poziom
+  przebić), `level`, `kind`, `text`, `icon`. `on_beat`, `new_at`, `next_after`, `has_new`.
+- Wybór poziomu (`LevelPicker`): „Nowość: …” na poziomie, od którego coś dochodzi; na najwyższym poziomie
+  „Następne odblokowanie po bossie poziomu N:” z listą. Przyciski „Drabinka” i „Ulepszenia” obok siebie (było jedno
+  „Ulepszenia lochów” na całą szerokość).
+- Okno `scripts/ui/unlocks_window.gd` (`UnlocksWindow`, na `BaseWindow`): wszystkie progi z ikoną, odblokowane
+  (zielony napis), następny (złota ramka, przewija się do niego), dalsze przygaszone; „Wróć” wraca do wyboru poziomu.
+- Okno zwycięstwa: „Odblokowano: …” (`RunResult.add_unlock_lines`).
+- Znaczek „Nowość!” nad Watrą (`ProtoWatra.set_news`), gdy `Game.unlocks_seen` (w zapisie) < `best_level` i coś się
+  odblokowało; otwarcie wyboru poziomu go gasi.
+- Test `tests/test_unlocks.gd`, zrzuty `tools/unlock_shots.gd`.
+
 ## 16.11.2026 - cele na mapie lochu: Krąg Żertwy i Kryształ Watry
 
 Ostatnie dwa cele z ankiety autora (pula: Żertwa od 15., Kryształ od 20. poziomu lochu).

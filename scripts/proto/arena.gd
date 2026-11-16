@@ -35,6 +35,8 @@ extends Node2D
 ## paczki potworów, danina z zabitych w kręgu, wybór nagrody ZertwaOffer) albo Kryształ Watry (ProtoCrystal - fale
 ## potworów bijących kryształ, kamienie i odpryski); napis na środku ekranu (`announce`), strzałki przy krawędzi (GoalArrows), nazwa daru
 ## z pozostałym czasem pod paskami (`gift_label`). Niezrobiony cel zostaje po przyzwaniu Wodza.
+## Drabinka odblokowań (Unlocks): znaczek „Nowość!” nad Watrą (`Game.unlocks_seen`), okno UnlocksWindow z wyboru
+## poziomu, w oknie zwycięstwa linie „Odblokowano: …”.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 170), Vector2(100, 180), Vector2(0, 290)]
@@ -128,6 +130,8 @@ var merchant: ProtoStash
 var smith_window: SmithWindow
 var shop_window: ShopWindow
 var upgrades_window: UpgradesWindow
+## Drabinka odblokowań (Unlocks) z wyboru poziomu.
+var unlocks_window: UnlocksWindow
 var base_bar: BaseBar
 ## Ikonki w górnym rzędzie i okno „Postać”.
 var stats_icon: Button
@@ -238,6 +242,7 @@ func _ready() -> void:
 		watra.brought = Game.embers_brought
 		Game.embers_brought = 0
 		watra.entered.connect(open_picker)
+		watra.ready.connect(func() -> void: watra.set_news(Unlocks.has_new(Game.unlocks_seen, Game.best_level)))
 		world.add_child(watra)
 		hero.obstacles.append(Vector3(WATRA_POS.x, WATRA_POS.y, ProtoWatra.RADIUS))
 		stash = ProtoStash.new()
@@ -476,6 +481,11 @@ func _make_hud() -> void:
 		upgrades_window = UpgradesWindow.new()
 		upgrades_window.visible = false
 		upgrades_window.closed.connect(open_picker)
+		unlocks_window = UnlocksWindow.new()
+		unlocks_window.visible = false
+		unlocks_window.closed.connect(open_picker)
+		safe.add_child(unlocks_window)
+		picker.ladder.connect(func() -> void: unlocks_window.open())
 		safe.add_child(upgrades_window)
 		smith_window = SmithWindow.new()
 		smith_window.visible = false
@@ -1183,6 +1193,8 @@ func victory() -> void:
 	Game.restock_shop(level)  # kupiec ma nowy towar po każdym pokonanym Wodzu
 	Game.save_if_dirty()
 	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time, hero.deaths)
+	if unlocked > 0:
+		result.add_unlock_lines(Unlocks.on_beat(level))
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
 	result.add_loot_lines(run_items, run_sold_gold)
 	result.add_gold_line(run_skarbnik_gold)
@@ -1262,6 +1274,10 @@ func open_picker() -> void:
 	joystick.release()
 	actions.release_all()
 	picker.open(Game.dungeon_level, Game.unlocked_level())
+	if Game.unlocks_seen < Game.best_level:  # nowości obejrzane - znaczek nad Watrą gaśnie
+		Game.unlocks_seen = Game.best_level
+		Game.save_game()
+	watra.set_news(false)
 
 
 func enter_dungeon(chosen: int) -> void:
@@ -1333,7 +1349,7 @@ func _notification(what: int) -> void:
 		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 			stats_window.back()
 		return
-	for w in [smith_window, shop_window, upgrades_window]:
+	for w in [smith_window, shop_window, upgrades_window, unlocks_window]:
 		if w and w.visible:
 			if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 				w.back()

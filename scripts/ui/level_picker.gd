@@ -5,11 +5,14 @@ extends Control
 ## Wodza, na dole duże przyciski „Wejdź” i „Anuluj” (pod kciukiem). Zatrzymuje grę na czas wyboru.
 ## Wybrany poziom trafia do `Game.dungeon_level` (zapisywany z grą). Nad „Wejdź” przycisk „Ulepszenia lochów”
 ## (sygnał `upgrades` - arena chowa wybór i otwiera UpgradesWindow; po jego zamknięciu wybór wraca).
+## Drabinka odblokowań (Unlocks): pod opisem poziomu nowości od tego poziomu, a na najwyższym dostępnym - najbliższe
+## odblokowanie (który boss i co da); przycisk „Drabinka odblokowań” (sygnał `ladder` - arena otwiera UnlocksWindow, po zamknięciu wybór wraca).
 ## Przy ponad 10 dostępnych poziomach (np. tryb deweloperski „wszystkie poziomy”) dochodzą skoki o 10 (−10 / +10).
 
 signal enter(level: int)
 signal canceled
 signal upgrades
+signal ladder
 
 var level := 1
 var max_level := 1
@@ -20,6 +23,7 @@ var plus10_button: Button
 var enter_button: Button
 var cancel_button: Button
 var upgrades_button: Button
+var ladder_button: Button
 var _level_label: Label
 var _info: Label
 
@@ -66,7 +70,16 @@ func _ready() -> void:
 	gap.custom_minimum_size = Vector2(0, 8)
 	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(gap)
-	upgrades_button = _button(column, tr("Ulepszenia lochów"), Vector2(220, 48))
+	var extra := HBoxContainer.new()  # dwa mniejsze przyciski obok siebie - mniej miejsca w pionie
+	extra.alignment = BoxContainer.ALIGNMENT_CENTER
+	extra.add_theme_constant_override("separation", 8)
+	column.add_child(extra)
+	ladder_button = _button(extra, tr("Drabinka"), Vector2(106, 48))
+	ladder_button.add_theme_font_size_override("font_size", 15)
+	ladder_button.pressed.connect(func() -> void:
+		visible = false
+		ladder.emit())
+	upgrades_button = _button(extra, tr("Ulepszenia"), Vector2(106, 48))
 	upgrades_button.icon = preload("res://assets/watra/ember_icon.png")
 	upgrades_button.add_theme_constant_override("icon_max_width", 20)
 	upgrades_button.add_theme_font_size_override("font_size", 16)
@@ -118,8 +131,15 @@ func set_level(value: int) -> void:
 		lines.append(Lang.t(Dungeons.get_data(id).description))
 	lines.append(tr("Siła potworów: %d%%") % roundi(DungeonLevels.power(level) * 100.0))
 	lines.append(tr("Skrzynia bossa: %d żaru") % DungeonLevels.chest_embers(level))
+	for e: Dictionary in Unlocks.new_at(level):
+		lines.append(tr("Nowość: %s") % e.text)
 	if level == max_level:
 		lines.append(tr("Pokonaj bossa, żeby odblokować poziom %d") % (level + 1))
+		var next := Unlocks.next_after(Game.best_level)
+		if level - 1 == Game.best_level and not next.is_empty():  # nie w trybie „wszystkie poziomy”
+			lines.append(tr("Następne odblokowanie po bossie poziomu %d:") % next[0].beat)
+			for e: Dictionary in next:
+				lines.append("• " + e.text)
 	_info.text = "\n".join(lines)
 
 

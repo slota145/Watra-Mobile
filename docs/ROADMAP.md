@@ -139,8 +139,8 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   skrzynia od 1., kapliczka od 5., Skarbnik od 10., Żertwa od 15., Kryształ od 20.). Wskazanie: strzałka z ikoną
   przy krawędzi ekranu, napis i dźwięk przy pojawieniu się, słup światła nad celem; cel najwyżej ~1,5 ekranu od postaci. Mechaniki i grafiki do przeniesienia z Watry: `scripts/dungeons.gd` (`MECHANICS`), `dungeon_chest.gd`,
   `dungeon_shrine.gd`, `skarbnik.gd`, `zertwa.gd`, `watra_crystal.gd` (Uroczysko na później).
-  Na później (też z Dwarven Realms, do ustalenia w kolejnych sesjach): drabinka odblokowań systemów z głębokością lochu,
-  modyfikatory lochów (np. podwójny żar), klucze z bossów do specjalnych lochów (np. do Żmija Gorynycza).
+  Drabinka odblokowań zrobiona 16.11.2026 (tylko pokazuje istniejące progi; szczegóły w `docs/historia.md`).
+  Na później (też z Dwarven Realms, do ustalenia): modyfikatory lochów (np. podwójny żar), klucze z bossów do specjalnych lochów (np. do Żmija Gorynycza).
 
 - **Boss szczytowy: Żmij Gorynycz (pomysł autora 15.11.2026):** trójgłowy ognisty smok z Watry
   (`../Watra/assets/world_bosses/zmij.png`, ataki w `../Watra/scripts/world_boss.gd`: Zionięcie, Trzy Głowy, Uderzenie)

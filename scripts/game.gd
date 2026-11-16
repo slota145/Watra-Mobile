@@ -60,6 +60,8 @@ var embers := 0
 var embers_brought := 0
 ## Najwyższy poziom lochu, na którym pokonano bossa (0 - jeszcze żaden). Odblokowany jest o jeden wyższy.
 var best_level := 0
+## Do którego przebitego poziomu gracz widział drabinkę odblokowań (Unlocks) - kropka „Nowość!” nad Watrą.
+var unlocks_seen := 0
 ## Poziom lochu wybrany przy Watrze (na niego wchodzi scena lochu).
 var dungeon_level := 1
 ## Poziom postaci i doświadczenie zebrane na tym poziomie.
@@ -169,6 +171,7 @@ func load_game() -> void:
 	embers = 0
 	embers_brought = 0
 	best_level = 0
+	unlocks_seen = 0
 	dungeon_level = 1
 	hero_level = 1
 	hero_xp = 0
@@ -198,6 +201,7 @@ func load_game() -> void:
 	if data is Dictionary:
 		embers = int(data.get("embers", 0))
 		best_level = int(data.get("best_level", 0))
+		unlocks_seen = int(data.get("unlocks_seen", 0))
 		dungeon_level = clampi(int(data.get("dungeon_level", 1)), 1, unlocked_level())
 		hero_level = clampi(int(data.get("hero_level", 1)), 1, HeroLevels.MAX_LEVEL)
 		hero_xp = maxi(int(data.get("hero_xp", 0)), 0)
@@ -312,7 +316,7 @@ func save_game() -> void:
 	_dirty = false
 	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "dungeon_level": dungeon_level,
+		f.store_string(JSON.stringify({"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards,

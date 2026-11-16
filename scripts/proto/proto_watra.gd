@@ -25,6 +25,8 @@ var _glow: Sprite2D
 var _time := 0.0
 var _flare := 0.0
 var embers_label: Label
+## Znaczek „Nowość!” nad ogniem (drabinka odblokowań - Unlocks; arena włącza `set_news`).
+var news_label: Label
 
 
 func _ready() -> void:
@@ -83,6 +85,18 @@ func _ready() -> void:
 	embers_label.position = Vector2(-100, 17)
 	embers_label.z_index = 31
 	add_child(embers_label)
+	news_label = Label.new()
+	news_label.text = tr("Nowość!")
+	news_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	news_label.add_theme_font_size_override("font_size", 12)
+	news_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.45))
+	news_label.add_theme_color_override("font_outline_color", Color(0.3, 0.08, 0.02))
+	news_label.add_theme_constant_override("outline_size", 5)
+	news_label.size = Vector2(100, 16)
+	news_label.position = Vector2(-50, -104)
+	news_label.z_index = 32
+	news_label.visible = false
+	add_child(news_label)
 	if brought > 0:
 		_show_brought.call_deferred()
 
@@ -94,6 +108,14 @@ func _process(delta: float) -> void:
 	var pulse := 1.0 + sin(_time * 5.3) * 0.04 + sin(_time * 9.1) * 0.03
 	_glow.scale = Vector2(3.2, 2.2) * pulse * (glow_size() + _flare * 0.4)
 	_glow.modulate.a = 0.45 + 0.15 * minf(glow_size() - 1.0, 1.0) + _flare * 0.3
+	if news_label.visible:  # podskakuje i pulsuje
+		news_label.position.y = -104.0 - 4.0 * absf(sin(_time * 3.0))
+		news_label.modulate = Color.WHITE.lerp(Color(1.4, 1.2, 0.8), 0.5 + 0.5 * sin(_time * 6.0))
+
+
+## Znaczek „Nowość!” nad ogniem: po przebiciu poziomu, który coś odblokował, aż gracz otworzy wybór poziomu.
+func set_news(on: bool) -> void:
+	news_label.visible = on
 
 
 ## Nowa ilość żaru (np. po kupnie ulepszenia) - licznik pod ogniem i wielkość poświaty.
