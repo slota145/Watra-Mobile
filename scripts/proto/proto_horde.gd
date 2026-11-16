@@ -24,6 +24,8 @@ signal embers_changed(embers: int)
 signal loot_spawned(loot: ProtoLoot)
 ## Pokonano elitę (arena dolicza doświadczenie ponad zwykłego goblina).
 signal elite_killed(goblin: ProtoGoblin)
+## Każdy pokonany potwór (cele na mapie lochu - Krąg Żertwy liczy daninę).
+signal monster_died(goblin: ProtoGoblin)
 
 ## Odstęp między grupkami potworów na starcie i po pełnym rozkręceniu (s).
 const INTERVAL_START := 1.6
@@ -81,6 +83,13 @@ var loot_mult := 1.0
 var reach := 0.0
 var pickup_mult := 1.0
 var ember_mult := 1.0
+## Modyfikatory lochu (DungeonMods, ustawia arena): prędkość i obrażenia potworów, żar z iskier, elity częściej,
+## przedmioty z wagami skrzyni bossa.
+var mod_speed := 1.0
+var mod_damage := 1.0
+var mod_embers := 1.0
+var elite_rate := 1.0
+var rare_loot := false
 var _ember_rest := 0.0
 
 var _next := FIRST_DELAY
@@ -104,7 +113,7 @@ func _process(delta: float) -> void:
 	if _elite_next > 0.0:
 		_elite_next -= delta
 		if _elite_next <= 0.0:
-			_elite_next = randf_range(Elites.EVERY.x, Elites.EVERY.y)
+			_elite_next = randf_range(Elites.EVERY.x, Elites.EVERY.y) / elite_rate
 			spawn_elite()
 	_next -= delta
 	if _next <= 0.0:
@@ -173,9 +182,24 @@ func spawn_at(pos: Vector2, kind := "goblin", elite_traits: Array[String] = []) 
 	g.died.connect(_on_died)
 	if not elite_traits.is_empty():
 		ProtoElite.promote(g, elite_traits)
+	g.speed *= mod_speed
+	g.damage_mult *= mod_damage
 	_alive += 1
 	world.add_child(g)
 	return g
+
+
+## Paczka `count` potworów (rodzaje jak w strumieniu) rozsypana wokół `at` - cele na mapie lochu (Krąg Żertwy,
+## Kryształ Watry). Nie ponad ALIVE_CAP naraz. `objective` - cel ataku zamiast postaci (Kryształ). Zwraca potwory.
+func spawn_pack(at: Vector2, count: int, objective: ProtoCrystal = null) -> Array[ProtoGoblin]:
+	var out: Array[ProtoGoblin] = []
+	for i in count:
+		if _alive >= ALIVE_CAP:
+			break
+		var g := spawn_at(at + Vector2.from_angle(randf() * TAU) * randf_range(0.0, GROUP_SPREAD), _roll_kind())
+		g.objective = objective
+		out.append(g)
+	return out
 
 
 ## Potwór lochu `climate` w roli `kind` (goblin - zwykły, archer - strzelający, brute - silny).
@@ -273,6 +297,7 @@ func _on_died(g: ProtoGoblin) -> void:
 		hero.heal(heal)  # premia przedmiotów: zdrowie za zabicie
 	kills += 1
 	kills_changed.emit(kills)
+	monster_died.emit(g)
 	var value := ProtoEmber.BIG if kills % BIG_EVERY == 0 else (BRUTE_EMBERS if g is ProtoGoblinBrute else 1)
 	if g.elite:
 		value = Elites.EMBERS
@@ -284,7 +309,8 @@ func _on_died(g: ProtoGoblin) -> void:
 		ember.magnet = (ProtoEmber.MAGNET + reach) * pickup_mult
 		ember.collected.connect(_on_ember)
 		world.add_child.call_deferred(ember)
-	var item := Items.roll(level, "", "", Items.CHEST_WEIGHTS) if g.elite else Items.roll_goblin(level, loot_mult)
+	var item := Items.roll(level, "", "", Items.CHEST_WEIGHTS) if g.elite \
+			else Items.roll_goblin(level, loot_mult, Items.CHEST_WEIGHTS if rare_loot else Items.GOBLIN_WEIGHTS)
 	if not item.is_empty():
 		drop_item(item, g.position)
 	var gem := Gems.roll_goblin(level, loot_mult)
@@ -308,7 +334,7 @@ func drop_item(item: Dictionary, at: Vector2) -> ProtoLoot:
 
 ## Zebrana iskra z potwora: żar z głębi lochu (DungeonLevels.ember_value) i premii przedmiotów (`ember_mult`).
 func _on_ember(value: int) -> void:
-	_gain(value * DungeonLevels.ember_value(level))
+	_gain(value * DungeonLevels.ember_value(level) * mod_embers)
 
 
 ## Zebrana iskra ze skrzyni bossa: bez mnożnika głębi (DungeonLevels.chest_embers już rośnie z poziomem).

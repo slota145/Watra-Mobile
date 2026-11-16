@@ -219,8 +219,9 @@ static func roll_chest(level: int) -> Array:
 
 
 ## Goblin padł: z szansą GOBLIN_DROP (razy `chance_mult` - ulepszenie łupu) przedmiot, inaczej pusty słownik.
-static func roll_goblin(level: int, chance_mult := 1.0) -> Dictionary:
-	return roll(level) if randf() < GOBLIN_DROP * chance_mult else {}
+## `weights` - wagi rzadkości (modyfikator lochu Krwawy księżyc - wagi skrzyni bossa).
+static func roll_goblin(level: int, chance_mult := 1.0, weights := GOBLIN_WEIGHTS) -> Dictionary:
+	return roll(level, "", "", weights) if randf() < GOBLIN_DROP * chance_mult else {}
 
 
 ## Nazwa przedmiotu w obecnym języku.

@@ -29,6 +29,16 @@ extends Node2D
 ## i pasek skrótów (BaseBar) otwierający okna budynków bez podchodzenia.
 ## Górny rząd (decyzja autora 13.11.2026): „Menu”, ikonki „Postać” (okno HeroStats) i „Umiejętności” (SkillsWindow;
 ## kupno tylko w bazie) - w bazie i w lochu; oba okna zatrzymują grę.
+## Cele na mapie lochu (DungeonGoals, 16.11.2026): przy progach paska żaru (25/50/75%) na polanie pojawia się cel -
+## skrzynia (ProtoChest z `hold_time`), kapliczka (ProtoShrine - dar bóstwa na 60 s doliczany do cech
+## z przedmiotów w `_gear`), Skarbnik (ProtoSkarbnik - złoto za trafienia, `Game.add_gold`), Krąg Żertwy (ProtoZertwa -
+## paczki potworów, danina z zabitych w kręgu, wybór nagrody ZertwaOffer) albo Kryształ Watry (ProtoCrystal - fale
+## potworów bijących kryształ, kamienie i odpryski); napis na środku ekranu (`announce`), strzałki przy krawędzi (GoalArrows), nazwa daru
+## z pozostałym czasem pod paskami (`gift_label`). Niezrobiony cel zostaje po przyzwaniu Wodza.
+## Drabinka odblokowań (Unlocks): znaczek „Nowość!” nad Watrą (`Game.unlocks_seen`), okno UnlocksWindow z wyboru
+## poziomu, w oknie zwycięstwa linie „Odblokowano: …”.
+## Modyfikatory lochów (DungeonMods, włączane przy wyborze poziomu od 20.): `mods`, działanie w `_apply_upgrades`
+## i ProtoHorde (prędkość, obrażenia, żar, elity, rzadki łup), nazwy pod paskami (`mods_label`).
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 170), Vector2(100, 180), Vector2(0, 290)]
@@ -90,6 +100,8 @@ var _start_hero_level := 1
 ## Przedmioty podniesione w tej wyprawie i złoto za sprzedane od razu (pełna torba przy skrzyni).
 var run_items := 0
 var run_sold_gold := 0
+## Złoto ze Skarbnika (cel na mapie lochu) w tej wyprawie.
+var run_skarbnik_gold := 0
 ## Powiadomienia o łupie (pod paskami u góry, znikają same) i ich największa liczba naraz.
 var loot_feed: VBoxContainer
 const FEED_MAX := 4
@@ -120,6 +132,9 @@ var merchant: ProtoStash
 var smith_window: SmithWindow
 var shop_window: ShopWindow
 var upgrades_window: UpgradesWindow
+## Drabinka odblokowań (Unlocks) z wyboru poziomu.
+var unlocks_window: UnlocksWindow
+var mods_window: ModsWindow
 var base_bar: BaseBar
 ## Ikonki w górnym rzędzie i okno „Postać”.
 var stats_icon: Button
@@ -134,6 +149,20 @@ var chief: ProtoChief
 var chest: ProtoChest
 ## Etap wyprawy: horde (zbieranie żaru), boss (walka z Wodzem), loot (skrzynia), won (po zwycięstwie).
 var phase := "horde"
+## Cele na mapie lochu (DungeonGoals): pojawione cele, wylosowane rodzaje (bez powtórek), strzałki i napis.
+var goals: Array[Node2D] = []
+var goal_kinds: Array[String] = []
+var goal_arrows: GoalArrows
+var banner: Label
+## Dar kapliczki (klucz DungeonGoals.GIFTS, "" - brak) i ile sekund jeszcze trwa.
+var gift := ""
+var gift_left := 0.0
+var gift_label: Label
+## Włączone modyfikatory lochu w tej wyprawie (DungeonMods) i ich nazwy pod paskami.
+var mods: Array[String] = []
+var mods_label: Label
+## Wybór nagrody za Krąg Żertwy (zatrzymuje grę).
+var zertwa_offer: ZertwaOffer
 var _fill_style: StyleBoxFlat
 var _time := 0.0
 
@@ -142,6 +171,7 @@ func _ready() -> void:
 	if horde:
 		level = Game.dungeon_level
 		climate = Dungeons.for_level(level)
+		mods = DungeonMods.active(level, Game.dungeon_mods)
 	_make_ground()
 	var world := Node2D.new()
 	world.name = "World"
@@ -176,7 +206,7 @@ func _ready() -> void:
 	weapon.name = "Weapon"
 	weapon.hero = hero
 	weapon.auto_attack = Game.auto_attack
-	gear = Game.gear()
+	gear = _gear()
 	if horde:
 		horde_spawner = ProtoHorde.new()
 		horde_spawner.name = "Horde"
@@ -186,6 +216,11 @@ func _ready() -> void:
 		horde_spawner.power = DungeonLevels.power(level)
 		horde_spawner.level = level
 		horde_spawner.climate = climate
+		horde_spawner.mod_speed = DungeonMods.mult(mods, "speed")
+		horde_spawner.mod_damage = DungeonMods.mult(mods, "damage")
+		horde_spawner.mod_embers = DungeonMods.mult(mods, "embers")
+		horde_spawner.elite_rate = DungeonMods.mult(mods, "elite_rate")
+		horde_spawner.rare_loot = DungeonMods.has_flag(mods, "rare_loot")
 		_apply_upgrades()
 		horde_spawner.loot_spawned.connect(_track_loot)
 		horde_spawner.kills_changed.connect(func(k: int) -> void:
@@ -193,7 +228,7 @@ func _ready() -> void:
 			_gain_xp(HeroLevels.goblin_xp(level)))
 		horde_spawner.embers_changed.connect(_on_embers)
 		horde_spawner.elite_killed.connect(func(_g: ProtoGoblin) -> void:
-			_gain_xp(HeroLevels.goblin_xp(level) * (Elites.XP - 1)))
+			_gain_xp(roundi(HeroLevels.goblin_xp(level) * (Elites.XP * DungeonMods.mult(mods, "elite_xp") - 1))))
 		add_child(horde_spawner)
 		hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
 			health_bar.max_value = max_hp
@@ -219,6 +254,7 @@ func _ready() -> void:
 		watra.brought = Game.embers_brought
 		Game.embers_brought = 0
 		watra.entered.connect(open_picker)
+		watra.ready.connect(func() -> void: watra.set_news(Unlocks.has_new(Game.unlocks_seen, Game.best_level)))
 		world.add_child(watra)
 		hero.obstacles.append(Vector3(WATRA_POS.x, WATRA_POS.y, ProtoWatra.RADIUS))
 		stash = ProtoStash.new()
@@ -288,8 +324,9 @@ func _npc(world: Node2D, node_name: String, title: String, sheet: Texture2D, at:
 ## Ulepszenia lochów za żar (Game.upgrades) do strumienia Hordy: gęstość (razy tłum poziomu lochu), szansa łupu, zasięg zbierania.
 ## Doświadczenie dolicza `_gain_xp`, szansę na kamienie ze skrzyni Wodza - `_on_chief_died`.
 func _apply_upgrades() -> void:
-	horde_spawner.density = (1.0 + Game.upgrade_bonus("monsters") / 100.0) * DungeonLevels.crowd(Game.dungeon_level)
-	horde_spawner.loot_mult = 1.0 + Game.upgrade_bonus("loot") / 100.0
+	horde_spawner.density = (1.0 + Game.upgrade_bonus("monsters") / 100.0) * DungeonLevels.crowd(Game.dungeon_level) \
+			* DungeonMods.mult(mods, "density")
+	horde_spawner.loot_mult = (1.0 + Game.upgrade_bonus("loot") / 100.0) * _gift_value("loot", 1.0) * DungeonMods.mult(mods, "loot")
 	horde_spawner.reach = Game.upgrade_bonus("reach")
 
 
@@ -385,6 +422,22 @@ func _make_hud() -> void:
 		loot_feed.add_theme_constant_override("separation", 2)
 		loot_feed.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		column.add_child(loot_feed)
+		goal_arrows = GoalArrows.new()  # pod oknami (dodane później), nad światem
+		goal_arrows.avoid_top = top
+		safe.add_child(goal_arrows)
+		banner = Label.new()
+		banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		banner.custom_minimum_size = Vector2(300, 0)
+		banner.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		banner.position.y -= 120.0
+		banner.add_theme_font_size_override("font_size", 15)
+		banner.add_theme_color_override("font_outline_color", Color(0.06, 0.03, 0.02))
+		banner.add_theme_constant_override("outline_size", 5)
+		banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		banner.visible = false
+		layer.add_child(banner)
 	else:
 		var hint := Label.new()
 		hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj przycisk ataku, żeby atakować.")
@@ -413,6 +466,9 @@ func _make_hud() -> void:
 		joystick.blocked.append(base_bar.column)
 	if horde:
 		joystick.blocked.append(summon_button)
+		zertwa_offer = ZertwaOffer.new()
+		zertwa_offer.visible = false
+		safe.add_child(zertwa_offer)
 		result = RunResult.new()
 		result.visible = false
 		result.retry.connect(_on_retry)
@@ -438,6 +494,16 @@ func _make_hud() -> void:
 		upgrades_window = UpgradesWindow.new()
 		upgrades_window.visible = false
 		upgrades_window.closed.connect(open_picker)
+		unlocks_window = UnlocksWindow.new()
+		unlocks_window.visible = false
+		unlocks_window.closed.connect(open_picker)
+		safe.add_child(unlocks_window)
+		picker.ladder.connect(func() -> void: unlocks_window.open())
+		mods_window = ModsWindow.new()
+		mods_window.visible = false
+		mods_window.closed.connect(open_picker)
+		safe.add_child(mods_window)
+		picker.mods.connect(func() -> void: mods_window.open())
 		safe.add_child(upgrades_window)
 		smith_window = SmithWindow.new()
 		smith_window.visible = false
@@ -550,6 +616,15 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	deaths_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35))
 	deaths_label.visible = Game.dev_immortal
 	box.add_child(deaths_label)
+	mods_label = _hud_label(DungeonMods.names(mods))
+	mods_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.45))
+	mods_label.add_theme_font_size_override("font_size", 11)
+	mods_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	mods_label.visible = not mods.is_empty()
+	box.add_child(mods_label)
+	gift_label = _hud_label("")
+	gift_label.visible = false
+	box.add_child(gift_label)
 	fps_label = _hud_label("")
 	fps_label.add_theme_color_override("font_color", Color(0.6, 1, 0.6))
 	fps_label.visible = Game.dev_fps
@@ -640,7 +715,7 @@ func _on_xp(lvl: int, xp: int, need: int) -> void:
 
 ## Zmiana ekwipunku (okno „Postać”, łup): nowe cechy postaci i miecza bez leczenia.
 func _on_inventory() -> void:
-	gear = Game.gear()
+	gear = _gear()
 	if not hero.dead:
 		hero.apply_gear(Game.hero_level, gear)
 	_apply_weapon()
@@ -854,6 +929,8 @@ func _process(delta: float) -> void:
 		time_label.text = "%d:%02d" % [s / 60, s % 60]
 	if fps_label and fps_label.visible:
 		fps_label.text = tr("%d kl./s, potwory: %d") % [Engine.get_frames_per_second(), horde_spawner._alive if horde_spawner else 0]
+	if gift != "":
+		_tick_gift(delta)
 	if summon_button and summon_button.visible:  # pełny pasek pulsuje
 		var k := 0.5 + 0.5 * sin(_time * 6.0)
 		_fill_style.bg_color = EMBER_FILL.lerp(EMBER_FULL, k)
@@ -866,11 +943,192 @@ func _on_embers(e: int) -> void:
 	if phase != "horde":
 		return
 	ember_bar.value = mini(e, DungeonLevels.summon_cost(level))
+	while goals.size() < DungeonGoals.thresholds_passed(e, DungeonLevels.summon_cost(level)) and not hero.dead:
+		spawn_goal(DungeonGoals.roll(level, goal_kinds))
 	ember_text.text = "%d / %d" % [e, DungeonLevels.summon_cost(level)]
 	var full := e >= DungeonLevels.summon_cost(level)
 	summon_button.visible = full and not hero.dead
 	if not full:
 		_fill_style.bg_color = EMBER_FILL
+
+
+## Cel na mapie lochu w wolnym miejscu z dala od postaci (DungeonGoals.spot): skrzynia, kapliczka, Skarbnik,
+## Krąg Żertwy albo Kryształ Watry.
+## Pojawienie się ogłasza napis i dźwięk, a strzałka przy krawędzi ekranu wskazuje drogę.
+func spawn_goal(kind: String) -> Node2D:
+	var others: Array = goals.filter(func(g: Node2D) -> bool: return is_instance_valid(g)).map(
+			func(g: Node2D) -> Vector2: return g.position)
+	var at := DungeonGoals.spot(ARENA, hero.position, others)
+	var goal: Node2D
+	match kind:
+		"skarbnik":
+			var spirit := ProtoSkarbnik.new()
+			spirit.hero = hero
+			spirit.level = level
+			spirit.bounds = ARENA.grow(-24)
+			spirit.gold.connect(func(amount: int) -> void:
+				run_skarbnik_gold += amount
+				Game.add_gold(amount))
+			spirit.caught.connect(func(where: Vector2) -> void:
+				announce(tr("Skarbnik złapany!"), spirit.goal_color)
+				horde_spawner.drop_item({"gem": Gems.roll(level)}, where))
+			spirit.escaped.connect(func() -> void: announce(tr("Skarbnik zapadł się pod ziemię"), Color(0.8, 0.75, 0.6)))
+			goal = spirit
+			announce(tr("Na polanie zjawił się Skarbnik - złap go!"), spirit.goal_color)
+		"zertwa":
+			var stump := ProtoZertwa.new()
+			stump.hero = hero
+			horde_spawner.monster_died.connect(stump.offer_kill)
+			stump.pack.connect(func(where: Vector2, count: int) -> void: horde_spawner.spawn_pack(where, count))
+			stump.completed.connect(_on_zertwa_completed)
+			stump.failed.connect(func() -> void: announce(tr("Krąg Żertwy zgasł"), Color(0.8, 0.6, 0.55)))
+			goal = stump
+			announce(tr("Na polanie stoi Krąg Żertwy - złóż daninę!"), stump.goal_color)
+		"crystal":
+			var crystal := ProtoCrystal.new()
+			crystal.hero = hero
+			crystal.power = DungeonLevels.power(level)
+			crystal.wave.connect(func(where: Vector2, count: int) -> void: horde_spawner.spawn_pack(where, count, crystal))
+			crystal.defended.connect(_on_crystal_defended)
+			crystal.destroyed.connect(func(_where: Vector2) -> void:
+				Game.add_shards(DungeonGoals.CRYSTAL_SHARDS_LOST)
+				announce(tr("Kryształ rozbity - zostało %d odprysków") % DungeonGoals.CRYSTAL_SHARDS_LOST, Color(0.8, 0.65, 0.55)))
+			goal = crystal
+			announce(tr("Na polanie lśni Kryształ Watry - podejdź i obroń go!"), crystal.goal_color)
+		"shrine":
+			var shrine := ProtoShrine.new()
+			shrine.hero = hero
+			shrine.gift = DungeonGoals.roll_gift()
+			shrine.prayed.connect(grant_gift)
+			goal = shrine
+			announce(tr("Na polanie rozbłysła kapliczka!"), DungeonGoals.GIFTS[shrine.gift]["color"])
+		_:
+			var box := ProtoChest.new()
+			box.hero = hero
+			box.hold_time = DungeonGoals.CHEST_HOLD
+			box.embers = DungeonGoals.chest_embers(level)
+			box.items = DungeonGoals.chest_items(level, horde_spawner.loot_mult)
+			box.loot_spawned.connect(_track_loot)
+			box.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner.on_chest_ember))
+			goal = box
+			announce(tr("Na polanie pojawiła się skrzynia!"), box.goal_color)
+	goal.name = "Goal%d" % goals.size()
+	goal.position = at
+	goals.append(goal)
+	goal_kinds.append(kind)
+	$World.add_child(goal)
+	var ping := AudioStreamPlayer.new()
+	ping.stream = preload("res://assets/watra/shrine_pray.ogg")
+	ping.volume_db = -10.0
+	ping.pitch_scale = 1.3
+	ping.finished.connect(ping.queue_free)
+	add_child(ping)
+	ping.play()
+	return goal
+
+
+## Krąg Żertwy dopełniony: gra staje, wybór nagrody 1 z 3.
+func _on_zertwa_completed(at: Vector2) -> void:
+	if hero.dead:
+		return
+	joystick.release()
+	actions.release_all()
+	weapon.attack_held = false
+	get_tree().paused = true
+	zertwa_offer.chosen.connect(_on_zertwa_chosen.bind(at), CONNECT_ONE_SHOT)
+	zertwa_offer.open(DungeonGoals.zertwa_offer(level))
+
+
+## Wybrana nagroda Żertwy: przedmiot lub kamień wyskakuje z pnia i leci do postaci, żar od razu do paska.
+func _on_zertwa_chosen(reward: Dictionary, at: Vector2) -> void:
+	get_tree().paused = false
+	if reward.has("embers"):
+		horde_spawner.on_chest_ember(int(reward["embers"]))
+		hero.float_text(tr("+%d żaru") % int(reward["embers"]), -60.0, Color(1.0, 0.7, 0.3), 14)
+	else:
+		_drop_reward(reward["item"], at, 0.2)
+
+
+## Nagroda celu na ziemi: odskakuje od `at` i po chwili sama leci do postaci (jak łup ze skrzyni).
+func _drop_reward(item: Dictionary, at: Vector2, delay: float) -> void:
+	var loot := horde_spawner.drop_item(item, at + Vector2(0, -4))
+	loot.spread = 30.0
+	loot.magnet = 1000.0
+	loot.delay = delay
+
+
+## Kryształ obroniony: kamienie (wg zdrowia, które zostało) i odpryski od razu do sakwy.
+func _on_crystal_defended(at: Vector2, health: float) -> void:
+	var shards := DungeonGoals.crystal_shards(health)
+	Game.add_shards(shards)
+	for i in DungeonGoals.crystal_gems(health):
+		_drop_reward({"gem": Gems.roll(level)}, at, 0.3 + 0.2 * i)
+	announce(tr("Kryształ obroniony! +%d odprysków") % shards, Color(1.0, 0.7, 0.35))
+
+
+## Napis na środku ekranu (nad postacią) na chwilę: pojawienie się celu, dar kapliczki.
+func announce(text: String, color: Color) -> void:
+	if banner == null:
+		return
+	banner.text = text
+	banner.add_theme_color_override("font_color", color.lightened(0.3))
+	banner.visible = true
+	banner.modulate = Color(1, 1, 1, 0)
+	var tween := banner.create_tween()
+	tween.tween_property(banner, "modulate:a", 1.0, 0.2)
+	tween.tween_interval(2.2)
+	tween.tween_property(banner, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(func() -> void: banner.visible = false)
+
+
+## Dar kapliczki: DungeonGoals.GIFT_TIME s (nowy zastępuje poprzedni), cechy od razu w postaci i broni.
+func grant_gift(id: String) -> void:
+	gift = id
+	gift_left = DungeonGoals.GIFT_TIME
+	var data: Dictionary = DungeonGoals.GIFTS[id]
+	announce("%s\n%s" % [tr(data["name"]), tr(data["description"])], data["color"])
+	hero.float_text(tr(data["name"]), -60.0, data["color"].lightened(0.3), 14)
+	gift_label.add_theme_color_override("font_color", data["color"].lightened(0.3))
+	gift_label.visible = true
+	_refresh_gift()
+
+
+func _tick_gift(delta: float) -> void:
+	gift_left -= delta
+	if gift_left <= 0.0:
+		gift = ""
+		gift_label.visible = false
+		_refresh_gift()
+		return
+	gift_label.text = tr("%s: %d s") % [tr(DungeonGoals.GIFTS[gift]["name"]), ceili(gift_left)]
+
+
+func _refresh_gift() -> void:
+	if gift != "":
+		gift_label.text = tr("%s: %d s") % [tr(DungeonGoals.GIFTS[gift]["name"]), ceili(gift_left)]
+	_on_inventory()
+	if horde_spawner:
+		_apply_upgrades()
+
+
+## Wartość daru kapliczki (`key` w DungeonGoals.GIFTS) albo `default`, gdy nie ma daru.
+func _gift_value(key: String, default: float) -> float:
+	return float(DungeonGoals.GIFTS[gift].get(key, default)) if gift != "" else default
+
+
+## Cechy z przedmiotów (Game.gear) razem z darem kapliczki.
+func _gear() -> Dictionary:
+	var g := Game.gear()
+	if gift == "":
+		return g
+	g = g.duplicate()
+	var data: Dictionary = DungeonGoals.GIFTS[gift]
+	for stat: String in data["stats"]:
+		g[stat] = g.get(stat, 0.0) + float(data["stats"][stat])
+	if data.has("regen_pct"):
+		var max_hp := HeroLevels.max_hp(Game.hero_level) + roundi(g.get("hp", 0.0))
+		g["regen"] = g.get("regen", 0.0) + max_hp * float(data["regen_pct"]) / 100.0
+	return g
 
 
 ## Przyzwanie Wodza: zjada żar z paska (nadwyżka zostaje), gobliny uciekają, Wódz wchodzi nad postacią.
@@ -959,8 +1217,11 @@ func victory() -> void:
 	Game.restock_shop(level)  # kupiec ma nowy towar po każdym pokonanym Wodzu
 	Game.save_if_dirty()
 	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time, hero.deaths)
+	if unlocked > 0:
+		result.add_unlock_lines(Unlocks.on_beat(level))
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
 	result.add_loot_lines(run_items, run_sold_gold)
+	result.add_gold_line(run_skarbnik_gold)
 	get_tree().paused = true
 
 
@@ -1037,6 +1298,10 @@ func open_picker() -> void:
 	joystick.release()
 	actions.release_all()
 	picker.open(Game.dungeon_level, Game.unlocked_level())
+	if Game.unlocks_seen < Game.best_level:  # nowości obejrzane - znaczek nad Watrą gaśnie
+		Game.unlocks_seen = Game.best_level
+		Game.save_game()
+	watra.set_news(false)
 
 
 func enter_dungeon(chosen: int) -> void:
@@ -1056,6 +1321,7 @@ func _on_hero_died() -> void:
 	result.show_result(horde_spawner.kills, horde_spawner.time, horde_spawner.embers)
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
 	result.add_loot_lines(run_items, run_sold_gold)
+	result.add_gold_line(run_skarbnik_gold)
 	get_tree().paused = true
 
 
@@ -1107,7 +1373,7 @@ func _notification(what: int) -> void:
 		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 			stats_window.back()
 		return
-	for w in [smith_window, shop_window, upgrades_window]:
+	for w in [smith_window, shop_window, upgrades_window, unlocks_window, mods_window]:
 		if w and w.visible:
 			if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 				w.back()

@@ -44,6 +44,10 @@ static var _grid := {}
 static var _grid_frame := -1
 
 var hero: ProtoHero
+## Cel ataku zamiast postaci (Kryształ Watry - ProtoCrystal): potwór idzie do niego i go bije, chyba że postać
+## jest bliżej niż OBJECTIVE_AGGRO - wtedy walczy z nią jak zwykle.
+var objective: ProtoCrystal
+const OBJECTIVE_AGGRO := 70.0
 var bounds := Rect2(-300, -300, 600, 600)
 var hp := MAX_HP
 ## Mnożnik zdrowia i obrażeń (DungeonLevels.power poziomu lochu) - ustawiany przed dodaniem do sceny.
@@ -139,7 +143,9 @@ func _process(delta: float) -> void:
 	var move := _push
 	match _state:
 		"walk":
-			if hero and not hero.dead:
+			if _objective_alive() and (hero == null or hero.dead or to_hero.length() > OBJECTIVE_AGGRO):
+				move += _objective_move()
+			elif hero and not hero.dead:
 				move += _walk_move(to_hero)
 			move += _separation() * speed
 			if _state == "walk":  # zamach mógł się właśnie zacząć - wtedy gra animacja ataku
@@ -155,6 +161,23 @@ func _process(delta: float) -> void:
 			if not _scene and _timer > 0.25:
 				_state = "walk"
 	position = ProtoDecor.push_out((position + move * delta).clamp(bounds.position, bounds.end), 3.0)  # obchodzi ozdoby
+
+
+func _objective_alive() -> bool:
+	return is_instance_valid(objective) and objective.under_attack()
+
+
+## Marsz do celu ataku (Kryształ) i bicie go z bliska co `attack_cooldown` (bez animacji ciosu - podklasy mają różne
+## ataki na postać; cel błyska przy trafieniu).
+func _objective_move() -> Vector2:
+	var to := objective.global_position - global_position
+	if to.length() > objective.RADIUS + 6.0:
+		_face(to)
+		return to.normalized() * speed * speed_factor()
+	if _cooldown <= 0.0:
+		_cooldown = attack_cooldown
+		objective.take_hit(hit_damage())
+	return Vector2.ZERO
 
 
 ## Ruch w stanie marszu (postać żyje): podejście i zamach z bliska. Łucznik nadpisuje (dystans i strzał).

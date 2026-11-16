@@ -121,9 +121,34 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   elektryczna katana (zrobiona 15.11.2026), kostur nekromancji; zmiana broni w bazie i kupno za złoto przed progiem (`Weapons.unlock`, `price`);
   kamienie dodające mieczowi żywioł; później odporności bohatera i potwory bijące żywiołami. Do decyzji: światło.
 
+- **Cele na mapie lochu za żar (pomysł z Dwarven Realms, decyzja autora 16.11.2026):** przy progach paska przyzwania
+  25/50/75% `DungeonLevels.summon_cost` na mapie pojawia się cel (losowy z puli, bez powtórek w jednym zejściu), żeby
+  między falami było dokąd biec. Ustalone z autorem (ankieta 16.11.2026) - wszystkie 5 celów:
+  - skrzynia (stań przy niej 1,5 s - przedmiot albo kamienie, mniej niż skrzynia Wodza),
+  - kapliczka (dar bóstwa na 60 s: Perun obrażenia, Swaróg szybkość ataku, Mokosz leczenie, Weles łup),
+  - Skarbnik - uciekający złocisty duch górnika, trafienia wybijają złoto, po 15 s znika (nie Ultimatum z Watry) - zrobiony,
+  - Krąg Żertwy - zabij 80 potworów w kręgu, krąg sam wypuszcza paczki potworów (na razie te same co w lochu, kiedyś
+    może własne); nagroda: wybór 1 z 3 (przedmiot / kamień / żar), kiedyś może unikalny łup,
+  - Kryształ Watry - obroń przez 20-30 s, nagroda kamienie i odpryski.
+  Skrzynia i kapliczka zrobione 16.11.2026 (szczegóły w `docs/historia.md`) - do oceny na telefonie: czy strzałki
+  i słup światła są czytelne, 1,5 s przy skrzyni w tłumie, siła darów, łup skrzyni. Skarbnik zrobiony 16.11.2026 - do oceny: czy da się go złapać
+  (8 trafień w 15 s), ile złota daje, czy widać go w tłumie. Krąg Żertwy i Kryształ Watry zrobione 16.11.2026 -
+  do oceny: 80 daniny w 75 s, czy krąg jest czytelny w tłumie, zdrowie kryształu (600 x siła poziomu), nagrody.
+  Na później: unikalne potwory Żertwy i unikalny łup (pomysły autora), Uroczysko z Watry.
+  Niezrobiony cel zostaje po przyzwaniu Wodza. Pula rośnie z głębokością co 5 albo 10 poziomów (propozycja Claude:
+  skrzynia od 1., kapliczka od 5., Skarbnik od 10., Żertwa od 15., Kryształ od 20.). Wskazanie: strzałka z ikoną
+  przy krawędzi ekranu, napis i dźwięk przy pojawieniu się, słup światła nad celem; cel najwyżej ~1,5 ekranu od postaci. Mechaniki i grafiki do przeniesienia z Watry: `scripts/dungeons.gd` (`MECHANICS`), `dungeon_chest.gd`,
+  `dungeon_shrine.gd`, `skarbnik.gd`, `zertwa.gd`, `watra_crystal.gd` (Uroczysko na później).
+  Drabinka odblokowań zrobiona 16.11.2026 (tylko pokazuje istniejące progi; szczegóły w `docs/historia.md`).
+  Modyfikatory lochów zrobione 16.11.2026 (od 20. poziomu, 4 na start) - do oceny na telefonie: czy premie są warte
+  utrudnień, czy Krwawy księżyc i Żarliwa Horda razem nie są za trudne.
+  Klucze z bossów do specjalnych lochów (np. do Żmija Gorynycza): decyzja autora - rzadko ze skrzyni bossa; do zrobienia
+  razem z Żmijem (punkt niżej).
+
 - **Boss szczytowy: Żmij Gorynycz (pomysł autora 15.11.2026):** trójgłowy ognisty smok z Watry
   (`../Watra/assets/world_bosses/zmij.png`, ataki w `../Watra/scripts/world_boss.gd`: Zionięcie, Trzy Głowy, Uderzenie)
-  - zostawiony na później jako boss szczytowy (nie boss Wulkanicznych równin). Dopytać, kiedy i jak się go przyzywa.
+  - zostawiony na później jako boss szczytowy (nie boss Wulkanicznych równin). Przyzywanie: klucz rzadko ze skrzyni
+  bossa (decyzja autora 16.11.2026); dopytać o próg, szansę, wygląd specjalnego lochu i nagrody.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

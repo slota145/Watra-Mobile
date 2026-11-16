@@ -2,6 +2,97 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - modyfikatory lochów
+
+Pomysł z Dwarven Realms. Decyzje autora (ankieta): gracz sam włącza modyfikatory przy wyborze poziomu, każdy utrudnia
+i daje lepsze nagrody, od 20. poziomu lochu (szczebel drabinki odblokowań).
+- `scripts/dungeon_mods.gd` (`DungeonMods`, `FROM_LEVEL` 20): Żarliwa Horda (potwory +25% prędkości, żar z iskier x2),
+  Gromada (tłum x1,5, szansa łupu +30%), Krwawy księżyc (potwory +50% obrażeń, przedmioty z potworów z wagami rzadkości
+  skrzyni bossa - `Items.roll_goblin(…, weights)`), Dwór elit (elity 2x częściej, doświadczenie za elity x2).
+  Bossa nie zmieniają.
+- Wybór w `Game.dungeon_mods` (zapis), działa tylko na poziomach >= 20 (`DungeonMods.active`). Okno
+  `scripts/ui/mods_window.gd` (`ModsWindow`, przełączniki „Włącz” / „Włączony”) z przycisku „Modyfikatory” w wyborze
+  poziomu (widoczny od 20.); wybór poziomu pisze „Modyfikatory: …”.
+- W lochu: `ProtoHorde.mod_speed`, `mod_damage` (po `ProtoElite.promote`), `mod_embers` (`_on_ember`), `elite_rate`,
+  `rare_loot`; gęstość i łup w `arena._apply_upgrades`; nazwy pod paskami (`arena.mods_label`).
+- Testy w `tests/test_unlocks.gd` (`_test_mods`), zrzuty `tools/unlock_shots.gd` (`_4_wybor20`, `_5_modyfikatory`, `_6_loch`).
+
+## 16.11.2026 - drabinka odblokowań
+
+Pomysł z Dwarven Realms. Decyzje autora (ankieta): drabinka tylko POKAZUJE progi, które już są w grze (nic nowego się
+nie blokuje), bez nagród za kamienie milowe; widać ją przy wyborze poziomu, w oknie zwycięstwa, w osobnym oknie
+i jako znaczek „Nowość!” nad Watrą.
+- `scripts/unlocks.gd` (`Unlocks`): wpisy z progów systemów (elity i ich cechy - `Elites`, łucznicy i osiłki -
+  `DungeonLevels`, kamienie i kamienie unikalne - `Gems`, cele na mapie - `DungeonGoals.KINDS`, lochy - `Dungeons`,
+  bronie za darmo - `Weapons.unlock_level`), więc zmiana progu w systemie zmienia drabinkę. Wpis: `beat` (który poziom
+  przebić), `level`, `kind`, `text`, `icon`. `on_beat`, `new_at`, `next_after`, `has_new`.
+- Wybór poziomu (`LevelPicker`): „Nowość: …” na poziomie, od którego coś dochodzi; na najwyższym poziomie
+  „Następne odblokowanie po bossie poziomu N:” z listą. Przyciski „Drabinka” i „Ulepszenia” obok siebie (było jedno
+  „Ulepszenia lochów” na całą szerokość).
+- Okno `scripts/ui/unlocks_window.gd` (`UnlocksWindow`, na `BaseWindow`): wszystkie progi z ikoną, odblokowane
+  (zielony napis), następny (złota ramka, przewija się do niego), dalsze przygaszone; „Wróć” wraca do wyboru poziomu.
+- Okno zwycięstwa: „Odblokowano: …” (`RunResult.add_unlock_lines`).
+- Znaczek „Nowość!” nad Watrą (`ProtoWatra.set_news`), gdy `Game.unlocks_seen` (w zapisie) < `best_level` i coś się
+  odblokowało; otwarcie wyboru poziomu go gasi.
+- Test `tests/test_unlocks.gd`, zrzuty `tools/unlock_shots.gd`.
+
+## 16.11.2026 - cele na mapie lochu: Krąg Żertwy i Kryształ Watry
+
+Ostatnie dwa cele z ankiety autora (pula: Żertwa od 15., Kryształ od 20. poziomu lochu).
+- Krąg Żertwy `scripts/proto/proto_zertwa.gd` (`ProtoZertwa`, pień `assets/watra/zertwa_stump.png` z Watry): 1 s stania
+  przy pniu zapala krwawy krąg (`ZER_RADIUS` 110 px, spłaszczony; węzeł pod potworami z_index -1, łuk postępu daniny),
+  co `ZER_PACK_EVERY` 2,5 s paczka 4-6 potworów zza brzegu (`ProtoHorde.spawn_pack`, nie ponad `ALIVE_CAP`). Danina
+  (`offer_kill`, sygnał `ProtoHorde.monster_died`): tylko pokonani w kręgu, elita x3; `ZER_GOAL` 80 w `ZER_TIME` 75 s,
+  inaczej krąg gaśnie. Napis nad pniem „Danina N / 80 · s”. Komplet: gra staje i okno `scripts/ui/zertwa_offer.gd`
+  (`ZertwaOffer`, 3 duże przyciski w dolnej połowie) - rzadki przedmiot, kamień albo żar skrzyni Wodza
+  (`DungeonGoals.zertwa_offer`); przedmiot/kamień wyskakuje z pnia i leci do postaci (`arena._drop_reward`).
+- Kryształ Watry `scripts/proto/proto_crystal.gd` (`ProtoCrystal`, grafiki kryształu i gruzu z Watry): przygaszony do
+  podejścia postaci (`WAKE` 90 px), potem `CRYSTAL_TIME` 25 s obrony; co 5 s fala z 2 stron po 4-6 potworów
+  (230 px od kryształu). Potwory z `ProtoGoblin.objective` idą bić kryształ (`_objective_move`, cios co
+  `attack_cooldown` bez animacji - różne ataki podklas), chyba że postać jest bliżej niż `OBJECTIVE_AGGRO` 70 px.
+  Zdrowie `CRYSTAL_HP` 600 x siła poziomu, pasek nad kryształem. Obroniony: 1-4 kamienie (wg zdrowia) i 6-12 odprysków
+  (`Game.add_shards`), rozbity: gruz i 3 odpryski.
+- Testy w `tests/test_goals.gd`, zrzuty `tools/goal_shots2.gd` (oba skrypty zrzutów usuwają testowy zapis na końcu -
+  inaczej `test_horde` wczytywał poziom 22 z Katakumbami).
+
+## 16.11.2026 - cele na mapie lochu: Skarbnik
+
+Trzeci cel (decyzja autora: uciekający duch zamiast oferty z falami jak w Watrze), w puli od 10. poziomu lochu.
+- `scripts/proto/proto_skarbnik.gd` (`ProtoSkarbnik`, cel miecza - `ProtoTarget`): złocista zjawa górnika
+  (`assets/watra/skarbnik.png` = `miner_down.png` z Watry, shader `shaders/ghost.gdshader` z Watry - tu mocniej kryjący,
+  żeby było go widać na trawie), złota poświata pod nim. Czeka pod słupem światła; budzi się, gdy postać podejdzie
+  bliżej niż `WAKE` 110 px (albo po trafieniu), i ucieka `FLEE_TIME` 15 s z prędkością `SPEED` 58 (postać 70) z zakosami
+  (`ZIGZAG`), ślizga się wzdłuż brzegu polany; ostatnie 3 s miga, potem zapada się pod ziemię.
+- Trafienie (najwyżej co `HIT_GAP` 0,2 s - Młynek nie wybija złota seriami): złoto `gold_per_hit` = `Items.SELL_BASE`
+  x `DungeonLevels.power` x `GOLD_HIT` 0,8 (12. poziom: 9 zł), złota liczba „+N”, brzęk monet, zachwianie (połowa
+  prędkości na 0,5 s). Po `CATCH_HITS` 8 trafieniach złapany: `JACKPOT` 10 x złoto za trafienie i kamień na ziemi.
+  Symulacja (auto atak, bez umiejętności): złapany w 4 na 4 próby, ale trzeba gonić.
+- Złoto od razu do `Game.gold` (`Game.add_gold`, zapis przy `save_if_dirty`), w oknie wyniku linia „Złoto Skarbnika”
+  (`RunResult.add_gold_line`, `arena.run_skarbnik_gold`).
+- Testy w `tests/test_goals.gd`, zrzuty w `tools/goal_shots.gd` (`_4_skarbnik`, `_5_poscig`).
+
+## 16.11.2026 - cele na mapie lochu: skrzynia i kapliczka
+
+Pomysł z Dwarven Realms (decyzje autora z ankiety 16.11.2026): przy progach paska żaru na polanie pojawia się cel,
+żeby między falami było dokąd biec. Na start skrzynia i kapliczka; Skarbnik, Krąg Żertwy i Kryształ Watry - dalej.
+- `scripts/dungeon_goals.gd` (`DungeonGoals`): progi `THRESHOLDS` 25/50/75% `DungeonLevels.summon_cost`
+  (`thresholds_passed`), pula wg poziomu `KINDS` (skrzynia od 1., kapliczka od 5. - pula rośnie co 5 poziomów),
+  losowanie bez powtórek w jednym zejściu (`roll`; przy małej puli powtórki), miejsce `spot` (200-420 px od postaci,
+  48 px od brzegu, 120 px od innych celów, poza ozdobami), łup skrzyni, dary kapliczek `GIFTS`.
+- Skrzynia-cel: `ProtoChest.hold_time` (`CHEST_HOLD` 1,5 s stania w promieniu 30 px; odejście cofa postęp 2x szybciej,
+  stuknięcie nie otwiera), kółko postępu na ziemi; łup: 1 przedmiot z wagami skrzyni Wodza, 50% na kamień (od 3.
+  poziomu), żar = 25% żaru skrzyni Wodza (bez mnożnika głębi, idzie do paska).
+- Kapliczka `scripts/proto/proto_shrine.gd` (`ProtoShrine`, grafika `assets/watra/shrine.png` i dźwięk
+  `shrine_pray.ogg` z Watry): 1 s stania (`PRAY_TIME`), dar na 60 s (`GIFT_TIME`, nowy zastępuje stary) - nazwy z Watry:
+  Moc Peruna (+50% obrażeń, +10% kryt.), Opieka Mokoszy (+20% uniku i ochrony, leczenie 3% zdrowia/s), Tchnienie
+  Strzyboga (+30% ruchu i ataku), Hojność Dadźboga (łup x2). Dar doliczany do cech z przedmiotów (`arena._gear`,
+  `_refresh_gift`), łup przez `_apply_upgrades`; napis daru z czasem pod paskami (`gift_label`).
+- Pokazanie: słup światła `scripts/proto/goal_beam.gd` (`GoalBeam`, wielokąt addytywny, też `draw_ring`), strzałki przy
+  krawędzi ekranu `scripts/ui/goal_arrows.gd` (`GoalArrows`, grupa `dungeon_goal`, omijają górny pasek), napis na
+  środku ekranu (`arena.announce`) i dźwięk.
+- Niezrobiony cel zostaje po przyzwaniu Wodza; nowe cele tylko w fazie Hordy.
+- Test `tests/test_goals.gd`, zrzuty `tools/goal_shots.gd`.
+
 ## 16.11.2026 - mniej żaru w głębi
 
 Uwaga autora: na 101. poziomie (Wulkaniczne równiny) w 2 minuty ~30 000 żaru. Przyczyny: iskra warta `reward`
