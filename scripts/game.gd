@@ -508,6 +508,14 @@ func add_gold(amount: int) -> void:
 	_dirty = true
 
 
+## Odpryski z lochu (Kryształ Watry) - zapis przy najbliższym `save_if_dirty`.
+func add_shards(amount: int) -> void:
+	if amount <= 0:
+		return
+	shards += amount
+	_dirty = true
+
+
 ## Złoto za przedmiot bez wkładania go do torby (auto sprzedaż, pełna torba przy skrzyni).
 func sell_loot(item: Dictionary) -> int:
 	var price := Items.sell_price(item)

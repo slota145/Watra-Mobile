@@ -132,7 +132,9 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   - Kryształ Watry - obroń przez 20-30 s, nagroda kamienie i odpryski.
   Skrzynia i kapliczka zrobione 16.11.2026 (szczegóły w `docs/historia.md`) - do oceny na telefonie: czy strzałki
   i słup światła są czytelne, 1,5 s przy skrzyni w tłumie, siła darów, łup skrzyni. Skarbnik zrobiony 16.11.2026 - do oceny: czy da się go złapać
-  (8 trafień w 15 s), ile złota daje, czy widać go w tłumie. Dalej: Krąg Żertwy, Kryształ Watry.
+  (8 trafień w 15 s), ile złota daje, czy widać go w tłumie. Krąg Żertwy i Kryształ Watry zrobione 16.11.2026 -
+  do oceny: 80 daniny w 75 s, czy krąg jest czytelny w tłumie, zdrowie kryształu (600 x siła poziomu), nagrody.
+  Na później: unikalne potwory Żertwy i unikalny łup (pomysły autora), Uroczysko z Watry.
   Niezrobiony cel zostaje po przyzwaniu Wodza. Pula rośnie z głębokością co 5 albo 10 poziomów (propozycja Claude:
   skrzynia od 1., kapliczka od 5., Skarbnik od 10., Żertwa od 15., Kryształ od 20.). Wskazanie: strzałka z ikoną
   przy krawędzi ekranu, napis i dźwięk przy pojawieniu się, słup światła nad celem; cel najwyżej ~1,5 ekranu od postaci. Mechaniki i grafiki do przeniesienia z Watry: `scripts/dungeons.gd` (`MECHANICS`), `dungeon_chest.gd`,

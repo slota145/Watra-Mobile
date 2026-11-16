@@ -24,6 +24,8 @@ signal embers_changed(embers: int)
 signal loot_spawned(loot: ProtoLoot)
 ## Pokonano elitę (arena dolicza doświadczenie ponad zwykłego goblina).
 signal elite_killed(goblin: ProtoGoblin)
+## Każdy pokonany potwór (cele na mapie lochu - Krąg Żertwy liczy daninę).
+signal monster_died(goblin: ProtoGoblin)
 
 ## Odstęp między grupkami potworów na starcie i po pełnym rozkręceniu (s).
 const INTERVAL_START := 1.6
@@ -178,6 +180,19 @@ func spawn_at(pos: Vector2, kind := "goblin", elite_traits: Array[String] = []) 
 	return g
 
 
+## Paczka `count` potworów (rodzaje jak w strumieniu) rozsypana wokół `at` - cele na mapie lochu (Krąg Żertwy,
+## Kryształ Watry). Nie ponad ALIVE_CAP naraz. `objective` - cel ataku zamiast postaci (Kryształ). Zwraca potwory.
+func spawn_pack(at: Vector2, count: int, objective: ProtoCrystal = null) -> Array[ProtoGoblin]:
+	var out: Array[ProtoGoblin] = []
+	for i in count:
+		if _alive >= ALIVE_CAP:
+			break
+		var g := spawn_at(at + Vector2.from_angle(randf() * TAU) * randf_range(0.0, GROUP_SPREAD), _roll_kind())
+		g.objective = objective
+		out.append(g)
+	return out
+
+
 ## Potwór lochu `climate` w roli `kind` (goblin - zwykły, archer - strzelający, brute - silny).
 static func make_monster(climate_id: String, kind: String) -> ProtoGoblin:
 	if climate_id == Dungeons.VOLCANO:
@@ -273,6 +288,7 @@ func _on_died(g: ProtoGoblin) -> void:
 		hero.heal(heal)  # premia przedmiotów: zdrowie za zabicie
 	kills += 1
 	kills_changed.emit(kills)
+	monster_died.emit(g)
 	var value := ProtoEmber.BIG if kills % BIG_EVERY == 0 else (BRUTE_EMBERS if g is ProtoGoblinBrute else 1)
 	if g.elite:
 		value = Elites.EMBERS

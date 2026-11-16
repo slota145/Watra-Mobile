@@ -61,4 +61,5 @@ func _run() -> void:
 	spirit.take_damage(1, hero.position)
 	await create_timer(0.15).timeout
 	await _shot("5_poscig")
+	DirAccess.remove_absolute(game.save_path)  # testowy zapis (poziom lochu) nie może zmieniać innych testów
 	quit()

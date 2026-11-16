@@ -31,7 +31,9 @@ extends Node2D
 ## kupno tylko w bazie) - w bazie i w lochu; oba okna zatrzymują grę.
 ## Cele na mapie lochu (DungeonGoals, 16.11.2026): przy progach paska żaru (25/50/75%) na polanie pojawia się cel -
 ## skrzynia (ProtoChest z `hold_time`), kapliczka (ProtoShrine - dar bóstwa na 60 s doliczany do cech
-## z przedmiotów w `_gear`) albo Skarbnik (ProtoSkarbnik - złoto za trafienia, `Game.add_gold`); napis na środku ekranu (`announce`), strzałki przy krawędzi (GoalArrows), nazwa daru
+## z przedmiotów w `_gear`), Skarbnik (ProtoSkarbnik - złoto za trafienia, `Game.add_gold`), Krąg Żertwy (ProtoZertwa -
+## paczki potworów, danina z zabitych w kręgu, wybór nagrody ZertwaOffer) albo Kryształ Watry (ProtoCrystal - fale
+## potworów bijących kryształ, kamienie i odpryski); napis na środku ekranu (`announce`), strzałki przy krawędzi (GoalArrows), nazwa daru
 ## z pozostałym czasem pod paskami (`gift_label`). Niezrobiony cel zostaje po przyzwaniu Wodza.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
@@ -149,6 +151,8 @@ var banner: Label
 var gift := ""
 var gift_left := 0.0
 var gift_label: Label
+## Wybór nagrody za Krąg Żertwy (zatrzymuje grę).
+var zertwa_offer: ZertwaOffer
 var _fill_style: StyleBoxFlat
 var _time := 0.0
 
@@ -444,6 +448,9 @@ func _make_hud() -> void:
 		joystick.blocked.append(base_bar.column)
 	if horde:
 		joystick.blocked.append(summon_button)
+		zertwa_offer = ZertwaOffer.new()
+		zertwa_offer.visible = false
+		safe.add_child(zertwa_offer)
 		result = RunResult.new()
 		result.visible = false
 		result.retry.connect(_on_retry)
@@ -911,7 +918,8 @@ func _on_embers(e: int) -> void:
 		_fill_style.bg_color = EMBER_FILL
 
 
-## Cel na mapie lochu w wolnym miejscu z dala od postaci (DungeonGoals.spot): skrzynia, kapliczka albo Skarbnik.
+## Cel na mapie lochu w wolnym miejscu z dala od postaci (DungeonGoals.spot): skrzynia, kapliczka, Skarbnik,
+## Krąg Żertwy albo Kryształ Watry.
 ## Pojawienie się ogłasza napis i dźwięk, a strzałka przy krawędzi ekranu wskazuje drogę.
 func spawn_goal(kind: String) -> Node2D:
 	var others: Array = goals.filter(func(g: Node2D) -> bool: return is_instance_valid(g)).map(
@@ -933,6 +941,26 @@ func spawn_goal(kind: String) -> Node2D:
 			spirit.escaped.connect(func() -> void: announce(tr("Skarbnik zapadł się pod ziemię"), Color(0.8, 0.75, 0.6)))
 			goal = spirit
 			announce(tr("Na polanie zjawił się Skarbnik - złap go!"), spirit.goal_color)
+		"zertwa":
+			var stump := ProtoZertwa.new()
+			stump.hero = hero
+			horde_spawner.monster_died.connect(stump.offer_kill)
+			stump.pack.connect(func(where: Vector2, count: int) -> void: horde_spawner.spawn_pack(where, count))
+			stump.completed.connect(_on_zertwa_completed)
+			stump.failed.connect(func() -> void: announce(tr("Krąg Żertwy zgasł"), Color(0.8, 0.6, 0.55)))
+			goal = stump
+			announce(tr("Na polanie stoi Krąg Żertwy - złóż daninę!"), stump.goal_color)
+		"crystal":
+			var crystal := ProtoCrystal.new()
+			crystal.hero = hero
+			crystal.power = DungeonLevels.power(level)
+			crystal.wave.connect(func(where: Vector2, count: int) -> void: horde_spawner.spawn_pack(where, count, crystal))
+			crystal.defended.connect(_on_crystal_defended)
+			crystal.destroyed.connect(func(_where: Vector2) -> void:
+				Game.add_shards(DungeonGoals.CRYSTAL_SHARDS_LOST)
+				announce(tr("Kryształ rozbity - zostało %d odprysków") % DungeonGoals.CRYSTAL_SHARDS_LOST, Color(0.8, 0.65, 0.55)))
+			goal = crystal
+			announce(tr("Na polanie lśni Kryształ Watry - podejdź i obroń go!"), crystal.goal_color)
 		"shrine":
 			var shrine := ProtoShrine.new()
 			shrine.hero = hero
@@ -963,6 +991,45 @@ func spawn_goal(kind: String) -> Node2D:
 	add_child(ping)
 	ping.play()
 	return goal
+
+
+## Krąg Żertwy dopełniony: gra staje, wybór nagrody 1 z 3.
+func _on_zertwa_completed(at: Vector2) -> void:
+	if hero.dead:
+		return
+	joystick.release()
+	actions.release_all()
+	weapon.attack_held = false
+	get_tree().paused = true
+	zertwa_offer.chosen.connect(_on_zertwa_chosen.bind(at), CONNECT_ONE_SHOT)
+	zertwa_offer.open(DungeonGoals.zertwa_offer(level))
+
+
+## Wybrana nagroda Żertwy: przedmiot lub kamień wyskakuje z pnia i leci do postaci, żar od razu do paska.
+func _on_zertwa_chosen(reward: Dictionary, at: Vector2) -> void:
+	get_tree().paused = false
+	if reward.has("embers"):
+		horde_spawner.on_chest_ember(int(reward["embers"]))
+		hero.float_text(tr("+%d żaru") % int(reward["embers"]), -60.0, Color(1.0, 0.7, 0.3), 14)
+	else:
+		_drop_reward(reward["item"], at, 0.2)
+
+
+## Nagroda celu na ziemi: odskakuje od `at` i po chwili sama leci do postaci (jak łup ze skrzyni).
+func _drop_reward(item: Dictionary, at: Vector2, delay: float) -> void:
+	var loot := horde_spawner.drop_item(item, at + Vector2(0, -4))
+	loot.spread = 30.0
+	loot.magnet = 1000.0
+	loot.delay = delay
+
+
+## Kryształ obroniony: kamienie (wg zdrowia, które zostało) i odpryski od razu do sakwy.
+func _on_crystal_defended(at: Vector2, health: float) -> void:
+	var shards := DungeonGoals.crystal_shards(health)
+	Game.add_shards(shards)
+	for i in DungeonGoals.crystal_gems(health):
+		_drop_reward({"gem": Gems.roll(level)}, at, 0.3 + 0.2 * i)
+	announce(tr("Kryształ obroniony! +%d odprysków") % shards, Color(1.0, 0.7, 0.35))
 
 
 ## Napis na środku ekranu (nad postacią) na chwilę: pojawienie się celu, dar kapliczki.

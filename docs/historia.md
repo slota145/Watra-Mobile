@@ -2,6 +2,25 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - cele na mapie lochu: Krąg Żertwy i Kryształ Watry
+
+Ostatnie dwa cele z ankiety autora (pula: Żertwa od 15., Kryształ od 20. poziomu lochu).
+- Krąg Żertwy `scripts/proto/proto_zertwa.gd` (`ProtoZertwa`, pień `assets/watra/zertwa_stump.png` z Watry): 1 s stania
+  przy pniu zapala krwawy krąg (`ZER_RADIUS` 110 px, spłaszczony; węzeł pod potworami z_index -1, łuk postępu daniny),
+  co `ZER_PACK_EVERY` 2,5 s paczka 4-6 potworów zza brzegu (`ProtoHorde.spawn_pack`, nie ponad `ALIVE_CAP`). Danina
+  (`offer_kill`, sygnał `ProtoHorde.monster_died`): tylko pokonani w kręgu, elita x3; `ZER_GOAL` 80 w `ZER_TIME` 75 s,
+  inaczej krąg gaśnie. Napis nad pniem „Danina N / 80 · s”. Komplet: gra staje i okno `scripts/ui/zertwa_offer.gd`
+  (`ZertwaOffer`, 3 duże przyciski w dolnej połowie) - rzadki przedmiot, kamień albo żar skrzyni Wodza
+  (`DungeonGoals.zertwa_offer`); przedmiot/kamień wyskakuje z pnia i leci do postaci (`arena._drop_reward`).
+- Kryształ Watry `scripts/proto/proto_crystal.gd` (`ProtoCrystal`, grafiki kryształu i gruzu z Watry): przygaszony do
+  podejścia postaci (`WAKE` 90 px), potem `CRYSTAL_TIME` 25 s obrony; co 5 s fala z 2 stron po 4-6 potworów
+  (230 px od kryształu). Potwory z `ProtoGoblin.objective` idą bić kryształ (`_objective_move`, cios co
+  `attack_cooldown` bez animacji - różne ataki podklas), chyba że postać jest bliżej niż `OBJECTIVE_AGGRO` 70 px.
+  Zdrowie `CRYSTAL_HP` 600 x siła poziomu, pasek nad kryształem. Obroniony: 1-4 kamienie (wg zdrowia) i 6-12 odprysków
+  (`Game.add_shards`), rozbity: gruz i 3 odpryski.
+- Testy w `tests/test_goals.gd`, zrzuty `tools/goal_shots2.gd` (oba skrypty zrzutów usuwają testowy zapis na końcu -
+  inaczej `test_horde` wczytywał poziom 22 z Katakumbami).
+
 ## 16.11.2026 - cele na mapie lochu: Skarbnik
 
 Trzeci cel (decyzja autora: uciekający duch zamiast oferty z falami jak w Watrze), w puli od 10. poziomu lochu.

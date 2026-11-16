@@ -5,6 +5,8 @@ extends SceneTree
 ## (cechy w postaci i broni, napis z czasem), dar gaśnie po czasie, cel zostaje po przyzwaniu Wodza.
 ## Skarbnik: budzi się, gdy postać podejdzie, ucieka, trafienia wybijają złoto (nie częściej niż HIT_GAP), po
 ## CATCH_HITS złapany (garść złota i kamień), po czasie ucieczki znika.
+## Krąg Żertwy: zapala się przy pniu, wypuszcza paczki, liczy tylko zabitych w kręgu, komplet - pauza i wybór nagrody,
+## po czasie gaśnie. Kryształ Watry: budzi się, fale biją kryształ, obroniony - kamienie i odpryski, rozbity - garść odprysków.
 
 var _failed := 0
 
@@ -28,6 +30,8 @@ func _run() -> void:
 	_test_data()
 	await _test_arena()
 	await _test_skarbnik()
+	await _test_zertwa()
+	await _test_crystal()
 	DirAccess.remove_absolute(root.get_node("Game").save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
 	quit(1 if _failed else 0)
@@ -179,4 +183,102 @@ func _test_skarbnik() -> void:
 	arena.queue_free()
 	await process_frame
 	game.gold = gold_before
+	game.dev_immortal = false
+
+
+func _arena(lvl: int) -> Node:
+	var game: Node = root.get_node("Game")
+	game.dev_immortal = true
+	game.dungeon_level = lvl
+	game.best_level = lvl
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	arena.horde_spawner.running = false
+	arena.weapon.auto_attack = false
+	return arena
+
+
+func _test_zertwa() -> void:
+	var arena: Node = await _arena(16)
+	var hero: ProtoHero = arena.hero
+	var horde: ProtoHorde = arena.horde_spawner
+	_check(DungeonGoals.pool(15).has("zertwa") and not DungeonGoals.pool(14).has("zertwa"), "Żertwa od 15. poziomu")
+	var stump: ProtoZertwa = arena.spawn_goal("zertwa")
+	stump.position = hero.position + Vector2(0, 150)
+	await process_frame
+	hero.position = stump.position
+	await _wait(ProtoZertwa.PRAY_TIME + 0.2)
+	_check(stump.state == "active", "pień zapala krąg")
+	var alive_before := horde._alive
+	await _wait(0.6)
+	_check(horde._alive > alive_before, "krąg wypuszcza paczkę potworów (%d -> %d)" % [alive_before, horde._alive])
+	var inside := horde.spawn_at(stump.position + Vector2(30, 10))
+	var outside := horde.spawn_at(stump.position + Vector2(0, 120))
+	await process_frame
+	var t0 := stump.tribute
+	inside.take_damage(1000000, hero.position)
+	outside.take_damage(1000000, hero.position)
+	_check(stump.tribute == t0 + 1, "liczy się tylko zabity w kręgu")
+	stump.tribute = DungeonGoals.ZER_GOAL - 1
+	var last := horde.spawn_at(stump.position + Vector2(-20, 0))
+	await process_frame
+	last.take_damage(1000000, hero.position)
+	await process_frame
+	_check(stump.state == "done" and paused and arena.zertwa_offer.visible, "komplet daniny: gra staje, wybór nagrody")
+	var buttons: Array = arena.zertwa_offer._list.get_children().filter(func(b: Node) -> bool: return not b.is_queued_for_deletion())
+	_check(buttons.size() == 3, "trzy nagrody do wyboru")
+	var embers_before := horde.embers
+	buttons[2].pressed.emit()
+	await process_frame
+	_check(not paused and not arena.zertwa_offer.visible and horde.embers > embers_before, "wybór żaru: gra rusza, żar w pasku")
+	var second: ProtoZertwa = arena.spawn_goal("zertwa")
+	second.position = hero.position + Vector2(200, 0)
+	second.ignite()
+	second.time_left = 0.05
+	await _wait(0.15)
+	_check(second.state == "failed" and not second.goal_active(), "po czasie krąg gaśnie")
+	arena.queue_free()
+	await process_frame
+
+
+func _test_crystal() -> void:
+	var game: Node = root.get_node("Game")
+	var arena: Node = await _arena(22)
+	var hero: ProtoHero = arena.hero
+	var horde: ProtoHorde = arena.horde_spawner
+	_check(DungeonGoals.pool(20).has("crystal") and not DungeonGoals.pool(19).has("crystal"), "Kryształ od 20. poziomu")
+	var crystal: ProtoCrystal = arena.spawn_goal("crystal")
+	crystal.position = hero.position + Vector2(0, 60)
+	await _wait(0.2)
+	_check(crystal.state == "defend" and crystal.max_hp > DungeonGoals.CRYSTAL_HP, "kryształ budzi się przy postaci (zdrowie %d)" % crystal.max_hp)
+	await process_frame
+	var attackers := 0
+	for n in arena.get_node("World").get_children():
+		if n is ProtoGoblin and n.objective == crystal:
+			attackers += 1
+	_check(attackers >= DungeonGoals.CRYSTAL_PACK.x, "fala potworów idzie na kryształ (%d)" % attackers)
+	hero.position = crystal.position + Vector2(300, 0)
+	var g := horde.spawn_at(crystal.position + Vector2(10, 0))
+	g.objective = crystal
+	await _wait(1.5)
+	_check(crystal.hp < crystal.max_hp, "potwory biją kryształ (%d / %d)" % [crystal.hp, crystal.max_hp])
+	var shards_before: int = game.shards
+	crystal.time_left = 0.05
+	await _wait(0.15)
+	_check(crystal.state == "done" and game.shards > shards_before, "obroniony: odpryski (+%d)" % (game.shards - shards_before))
+	await _wait(0.1)
+	var gems := 0
+	for n in arena.get_node("World").get_children():
+		if n is ProtoLoot and n.item.has("gem"):
+			gems += 1
+	_check(gems >= 1, "obroniony: kamienie (%d)" % gems)
+	var weak: ProtoCrystal = arena.spawn_goal("crystal")
+	weak.position = hero.position + Vector2(0, 40)
+	await _wait(0.1)
+	shards_before = game.shards
+	weak.take_hit(weak.hp)
+	_check(weak.state == "broken" and game.shards == shards_before + DungeonGoals.CRYSTAL_SHARDS_LOST, "rozbity: garść odprysków")
+	arena.queue_free()
+	await process_frame
 	game.dev_immortal = false
