@@ -2,6 +2,21 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 16.11.2026 - modyfikatory lochów
+
+Pomysł z Dwarven Realms. Decyzje autora (ankieta): gracz sam włącza modyfikatory przy wyborze poziomu, każdy utrudnia
+i daje lepsze nagrody, od 20. poziomu lochu (szczebel drabinki odblokowań).
+- `scripts/dungeon_mods.gd` (`DungeonMods`, `FROM_LEVEL` 20): Żarliwa Horda (potwory +25% prędkości, żar z iskier x2),
+  Gromada (tłum x1,5, szansa łupu +30%), Krwawy księżyc (potwory +50% obrażeń, przedmioty z potworów z wagami rzadkości
+  skrzyni bossa - `Items.roll_goblin(…, weights)`), Dwór elit (elity 2x częściej, doświadczenie za elity x2).
+  Bossa nie zmieniają.
+- Wybór w `Game.dungeon_mods` (zapis), działa tylko na poziomach >= 20 (`DungeonMods.active`). Okno
+  `scripts/ui/mods_window.gd` (`ModsWindow`, przełączniki „Włącz” / „Włączony”) z przycisku „Modyfikatory” w wyborze
+  poziomu (widoczny od 20.); wybór poziomu pisze „Modyfikatory: …”.
+- W lochu: `ProtoHorde.mod_speed`, `mod_damage` (po `ProtoElite.promote`), `mod_embers` (`_on_ember`), `elite_rate`,
+  `rare_loot`; gęstość i łup w `arena._apply_upgrades`; nazwy pod paskami (`arena.mods_label`).
+- Testy w `tests/test_unlocks.gd` (`_test_mods`), zrzuty `tools/unlock_shots.gd` (`_4_wybor20`, `_5_modyfikatory`, `_6_loch`).
+
 ## 16.11.2026 - drabinka odblokowań
 
 Pomysł z Dwarven Realms. Decyzje autora (ankieta): drabinka tylko POKAZUJE progi, które już są w grze (nic nowego się

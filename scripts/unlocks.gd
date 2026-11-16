@@ -38,6 +38,7 @@ static func all() -> Array[Dictionary]:
 		var from := int(Dungeons.get_data(id).from)
 		if from > 1:
 			_add(out, from, "dungeon", "Nowy loch: %s (boss: %s)", [Dungeons.name_of(id), Dungeons.get_data(id).boss])
+	_add(out, DungeonMods.FROM_LEVEL, "dungeon", "Modyfikatory lochów: trudniej, ale lepsze nagrody (przy wyborze poziomu)")
 	_add(out, Dungeons.RANDOM_FROM, "dungeon", "Loch losowy przy każdym wejściu")
 	for id: String in Weapons.ORDER:
 		var beat := Weapons.unlock_level(id)

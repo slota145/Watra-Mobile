@@ -1,7 +1,8 @@
 extends SceneTree
 ## Zrzuty drabinki odblokowań (Unlocks): znaczek „Nowość!” nad Watrą, wybór poziomu z najbliższym odblokowaniem
 ## i okno „Drabinka”. Użycie: SCRIPT=tools/unlock_shots.gd tools/screenshot.sh <prefiks> [RESOLUTION]
-## Pliki: <prefiks>_1_watra.png, _2_wybor.png, _3_drabinka.png
+## Potem modyfikatory lochów: wybór poziomu 20, okno modyfikatorów, pasek w lochu z nazwami modyfikatorów.
+## Pliki: <prefiks>_1_watra.png, _2_wybor.png, _3_drabinka.png, _4_wybor20.png, _5_modyfikatory.png, _6_loch.png
 
 var _prefix := "/tmp/drabinka"
 
@@ -35,5 +36,22 @@ func _run() -> void:
 	arena.picker.ladder_button.pressed.emit()
 	await create_timer(0.4).timeout
 	await _shot("3_drabinka")
+	arena.unlocks_window.close()
+	game.best_level = 25
+	game.dungeon_mods = ["embers", "blood_moon"]
+	arena.picker.open(20, 26)
+	await create_timer(0.3).timeout
+	await _shot("4_wybor20")
+	arena.picker.mods_button.pressed.emit()
+	await create_timer(0.3).timeout
+	await _shot("5_modyfikatory")
+	arena.mods_window.close()
+	arena.picker.close()
+	arena.queue_free()
+	game.dungeon_level = 20
+	var dungeon: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(dungeon)
+	await create_timer(2.0).timeout
+	await _shot("6_loch")
 	DirAccess.remove_absolute(game.save_path)
 	quit()

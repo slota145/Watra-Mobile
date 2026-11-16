@@ -140,11 +140,15 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   przy krawędzi ekranu, napis i dźwięk przy pojawieniu się, słup światła nad celem; cel najwyżej ~1,5 ekranu od postaci. Mechaniki i grafiki do przeniesienia z Watry: `scripts/dungeons.gd` (`MECHANICS`), `dungeon_chest.gd`,
   `dungeon_shrine.gd`, `skarbnik.gd`, `zertwa.gd`, `watra_crystal.gd` (Uroczysko na później).
   Drabinka odblokowań zrobiona 16.11.2026 (tylko pokazuje istniejące progi; szczegóły w `docs/historia.md`).
-  Na później (też z Dwarven Realms, do ustalenia): modyfikatory lochów (np. podwójny żar), klucze z bossów do specjalnych lochów (np. do Żmija Gorynycza).
+  Modyfikatory lochów zrobione 16.11.2026 (od 20. poziomu, 4 na start) - do oceny na telefonie: czy premie są warte
+  utrudnień, czy Krwawy księżyc i Żarliwa Horda razem nie są za trudne.
+  Klucze z bossów do specjalnych lochów (np. do Żmija Gorynycza): decyzja autora - rzadko ze skrzyni bossa; do zrobienia
+  razem z Żmijem (punkt niżej).
 
 - **Boss szczytowy: Żmij Gorynycz (pomysł autora 15.11.2026):** trójgłowy ognisty smok z Watry
   (`../Watra/assets/world_bosses/zmij.png`, ataki w `../Watra/scripts/world_boss.gd`: Zionięcie, Trzy Głowy, Uderzenie)
-  - zostawiony na później jako boss szczytowy (nie boss Wulkanicznych równin). Dopytać, kiedy i jak się go przyzywa.
+  - zostawiony na później jako boss szczytowy (nie boss Wulkanicznych równin). Przyzywanie: klucz rzadko ze skrzyni
+  bossa (decyzja autora 16.11.2026); dopytać o próg, szansę, wygląd specjalnego lochu i nagrody.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

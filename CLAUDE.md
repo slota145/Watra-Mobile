@@ -73,7 +73,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/ui/smith_window.gd`), `scripts/shop.gd` - kupiec (okno `scripts/ui/shop_window.gd`), wspólny szkielet okien
   `scripts/ui/base_window.gd`, pasek skrótów w bazie `scripts/ui/base_bar.gd`;
   `scripts/ui/run_result.gd` - wynik po śmierci i okno zwycięstwa, `scripts/ui/level_picker.gd` - wybór poziomu przy Watrze;
-  drabinka odblokowań `scripts/unlocks.gd` (progi zebrane z systemów, okno `scripts/ui/unlocks_window.gd`, „Nowość!” nad Watrą - `Game.unlocks_seen`)); `scripts/ui/joystick.gd` - pływająca gałka (dotyk wieloma palcami),
+  drabinka odblokowań `scripts/unlocks.gd` (progi zebrane z systemów, okno `scripts/ui/unlocks_window.gd`, „Nowość!” nad Watrą - `Game.unlocks_seen`), modyfikatory lochów `scripts/dungeon_mods.gd` (od 20., okno `scripts/ui/mods_window.gd`, wybór w `Game.dungeon_mods`)); `scripts/ui/joystick.gd` - pływająca gałka (dotyk wieloma palcami),
   `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
   `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania i auto atakiem (zapis w `Game`, `user://settings.cfg`)
   i przyciskiem trybu deweloperskiego - okno `scripts/ui/dev_window.gd` (nieśmiertelność, wszystkie poziomy lochu bez przebijania

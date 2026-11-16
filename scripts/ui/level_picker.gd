@@ -13,6 +13,8 @@ signal enter(level: int)
 signal canceled
 signal upgrades
 signal ladder
+## „Modyfikatory” (od DungeonMods.FROM_LEVEL) - arena otwiera ModsWindow.
+signal mods
 
 var level := 1
 var max_level := 1
@@ -24,6 +26,7 @@ var enter_button: Button
 var cancel_button: Button
 var upgrades_button: Button
 var ladder_button: Button
+var mods_button: Button
 var _level_label: Label
 var _info: Label
 
@@ -79,6 +82,11 @@ func _ready() -> void:
 	ladder_button.pressed.connect(func() -> void:
 		visible = false
 		ladder.emit())
+	mods_button = _button(extra, tr("Modyfikatory"), Vector2(106, 48))
+	mods_button.add_theme_font_size_override("font_size", 13)
+	mods_button.pressed.connect(func() -> void:
+		visible = false
+		mods.emit())
 	upgrades_button = _button(extra, tr("Ulepszenia"), Vector2(106, 48))
 	upgrades_button.icon = preload("res://assets/watra/ember_icon.png")
 	upgrades_button.add_theme_constant_override("icon_max_width", 20)
@@ -131,6 +139,10 @@ func set_level(value: int) -> void:
 		lines.append(Lang.t(Dungeons.get_data(id).description))
 	lines.append(tr("Siła potworów: %d%%") % roundi(DungeonLevels.power(level) * 100.0))
 	lines.append(tr("Skrzynia bossa: %d żaru") % DungeonLevels.chest_embers(level))
+	mods_button.visible = level >= DungeonMods.FROM_LEVEL
+	var active := DungeonMods.active(level, Game.dungeon_mods)
+	if not active.is_empty():
+		lines.append(tr("Modyfikatory: %s") % DungeonMods.names(active))
 	for e: Dictionary in Unlocks.new_at(level):
 		lines.append(tr("Nowość: %s") % e.text)
 	if level == max_level:

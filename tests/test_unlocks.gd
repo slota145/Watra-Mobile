@@ -1,5 +1,5 @@
 extends SceneTree
-## Test drabinki odblokowań (Unlocks): wpisy z progów systemów (łucznicy, kamienie, cele, lochy, bronie) po kolei,
+## Test drabinki odblokowań (Unlocks) i modyfikatorów lochów (DungeonMods - na końcu pliku): wpisy z progów systemów (łucznicy, kamienie, cele, lochy, bronie) po kolei,
 ## co odblokowuje boss danego poziomu, następny próg, znaczek „Nowość!” nad Watrą gaśnie po otwarciu wyboru poziomu,
 ## nowości i najbliższe odblokowanie w wyborze poziomu, okno „Drabinka” z przycisku i powrót do wyboru, linie w oknie zwycięstwa.
 
@@ -20,6 +20,7 @@ func _check(ok: bool, what: String) -> void:
 func _run() -> void:
 	_test_data()
 	await _test_base()
+	await _test_mods()
 	DirAccess.remove_absolute(root.get_node("Game").save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
 	quit(1 if _failed else 0)
@@ -90,3 +91,73 @@ func _test_base() -> void:
 	result.add_unlock_lines(Unlocks.on_beat(10))
 	_check(result._summary.text.contains("Odblokowano: ") and result._summary.text.contains("Zatopione"), "okno zwycięstwa: co odblokowano")
 	result.queue_free()
+
+
+## Modyfikatory: od 20. poziomu, okno z przełącznikami z wyboru poziomu (zapis), w lochu: szybsze i silniejsze
+## potwory, podwójny żar, gęstszy tłum, więcej łupu, rzadki łup, elity częściej, nazwy pod paskami.
+func _test_mods() -> void:
+	var game: Node = root.get_node("Game")
+	_check(DungeonMods.active(19, DungeonMods.ORDER).is_empty() and DungeonMods.active(20, ["embers"]) == ["embers"],
+			"modyfikatory działają od 20. poziomu")
+	_check(_texts(Unlocks.on_beat(DungeonMods.FROM_LEVEL - 1)).contains("Modyfikatory"), "drabinka: modyfikatory po bossie 19.")
+	game.best_level = 25
+	game.dungeon_level = 20
+	game.dungeon_mods = []
+	var base: Node = load("res://scenes/prototype.tscn").instantiate()
+	root.add_child(base)
+	await process_frame
+	base.open_picker()
+	base.picker.set_level(19)
+	_check(not base.picker.mods_button.visible, "poziom 19: bez przycisku modyfikatorów")
+	base.picker.set_level(20)
+	_check(base.picker.mods_button.visible, "poziom 20: przycisk „Modyfikatory”")
+	base.picker.mods_button.pressed.emit()
+	await process_frame
+	_check(base.mods_window.visible and not base.picker.visible, "przycisk otwiera okno modyfikatorów")
+	for id in DungeonMods.ORDER:
+		base.mods_window.toggle(id)
+	_check(game.dungeon_mods.size() == 4, "włączone wszystkie cztery")
+	base.mods_window.toggle("embers")
+	base.mods_window.toggle("embers")
+	base.mods_window.back_button.pressed.emit()
+	await process_frame
+	_check(base.picker.visible and base.picker._info.text.contains(DungeonMods.name_of("blood_moon")), "wybór poziomu pokazuje włączone")
+	base.picker.close()
+	base.queue_free()
+	await process_frame
+	game.load_game()
+	_check(game.dungeon_mods.size() == 4, "modyfikatory w zapisie")
+
+	# bez modyfikatorów - punkt odniesienia
+	game.dungeon_mods = []
+	var plain: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(plain)
+	await process_frame
+	plain.horde_spawner.running = false
+	var g0: ProtoGoblin = plain.horde_spawner.spawn_at(plain.hero.position + Vector2(200, 0))
+	var speed0 := g0.speed
+	var dmg0 := g0.hit_damage()
+	var density0: float = plain.horde_spawner.density
+	var loot0: float = plain.horde_spawner.loot_mult
+	plain.queue_free()
+	await process_frame
+	game.dungeon_mods = DungeonMods.ORDER.duplicate()
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var horde: ProtoHorde = arena.horde_spawner
+	horde.running = false
+	var g: ProtoGoblin = horde.spawn_at(arena.hero.position + Vector2(200, 0))
+	_check(is_equal_approx(g.speed, speed0 * 1.25), "Żarliwa Horda: potwory szybsze (%.0f -> %.0f)" % [speed0, g.speed])
+	_check(g.hit_damage() == roundi(dmg0 * 1.5) or absi(g.hit_damage() - roundi(dmg0 * 1.5)) <= 1, "Krwawy księżyc: +50%% obrażeń (%d -> %d)" % [dmg0, g.hit_damage()])
+	_check(horde.rare_loot, "Krwawy księżyc: rzadszy łup")
+	_check(is_equal_approx(horde.density, density0 * 1.5) and is_equal_approx(horde.loot_mult, loot0 * 1.3), "Gromada: tłum x1,5, łup +30%")
+	_check(is_equal_approx(horde.elite_rate, 2.0), "Dwór elit: elity dwa razy częściej")
+	var before := horde.embers
+	horde._on_ember(10)
+	_check(horde.embers - before == floori(10 * DungeonLevels.ember_value(20) * 2.0 * horde.ember_mult),
+			"Żarliwa Horda: podwójny żar (+%d)" % (horde.embers - before))
+	_check(arena.mods_label.visible and arena.mods_label.text.contains(DungeonMods.name_of("elites")), "nazwy modyfikatorów pod paskami")
+	arena.queue_free()
+	await process_frame
+	game.dungeon_mods = []

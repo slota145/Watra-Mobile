@@ -37,6 +37,8 @@ extends Node2D
 ## z pozostałym czasem pod paskami (`gift_label`). Niezrobiony cel zostaje po przyzwaniu Wodza.
 ## Drabinka odblokowań (Unlocks): znaczek „Nowość!” nad Watrą (`Game.unlocks_seen`), okno UnlocksWindow z wyboru
 ## poziomu, w oknie zwycięstwa linie „Odblokowano: …”.
+## Modyfikatory lochów (DungeonMods, włączane przy wyborze poziomu od 20.): `mods`, działanie w `_apply_upgrades`
+## i ProtoHorde (prędkość, obrażenia, żar, elity, rzadki łup), nazwy pod paskami (`mods_label`).
 
 const ARENA := Rect2(-360, -560, 720, 1120)
 const DUMMIES := [Vector2(-100, 170), Vector2(100, 180), Vector2(0, 290)]
@@ -132,6 +134,7 @@ var shop_window: ShopWindow
 var upgrades_window: UpgradesWindow
 ## Drabinka odblokowań (Unlocks) z wyboru poziomu.
 var unlocks_window: UnlocksWindow
+var mods_window: ModsWindow
 var base_bar: BaseBar
 ## Ikonki w górnym rzędzie i okno „Postać”.
 var stats_icon: Button
@@ -155,6 +158,9 @@ var banner: Label
 var gift := ""
 var gift_left := 0.0
 var gift_label: Label
+## Włączone modyfikatory lochu w tej wyprawie (DungeonMods) i ich nazwy pod paskami.
+var mods: Array[String] = []
+var mods_label: Label
 ## Wybór nagrody za Krąg Żertwy (zatrzymuje grę).
 var zertwa_offer: ZertwaOffer
 var _fill_style: StyleBoxFlat
@@ -165,6 +171,7 @@ func _ready() -> void:
 	if horde:
 		level = Game.dungeon_level
 		climate = Dungeons.for_level(level)
+		mods = DungeonMods.active(level, Game.dungeon_mods)
 	_make_ground()
 	var world := Node2D.new()
 	world.name = "World"
@@ -209,6 +216,11 @@ func _ready() -> void:
 		horde_spawner.power = DungeonLevels.power(level)
 		horde_spawner.level = level
 		horde_spawner.climate = climate
+		horde_spawner.mod_speed = DungeonMods.mult(mods, "speed")
+		horde_spawner.mod_damage = DungeonMods.mult(mods, "damage")
+		horde_spawner.mod_embers = DungeonMods.mult(mods, "embers")
+		horde_spawner.elite_rate = DungeonMods.mult(mods, "elite_rate")
+		horde_spawner.rare_loot = DungeonMods.has_flag(mods, "rare_loot")
 		_apply_upgrades()
 		horde_spawner.loot_spawned.connect(_track_loot)
 		horde_spawner.kills_changed.connect(func(k: int) -> void:
@@ -216,7 +228,7 @@ func _ready() -> void:
 			_gain_xp(HeroLevels.goblin_xp(level)))
 		horde_spawner.embers_changed.connect(_on_embers)
 		horde_spawner.elite_killed.connect(func(_g: ProtoGoblin) -> void:
-			_gain_xp(HeroLevels.goblin_xp(level) * (Elites.XP - 1)))
+			_gain_xp(roundi(HeroLevels.goblin_xp(level) * (Elites.XP * DungeonMods.mult(mods, "elite_xp") - 1))))
 		add_child(horde_spawner)
 		hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
 			health_bar.max_value = max_hp
@@ -312,8 +324,9 @@ func _npc(world: Node2D, node_name: String, title: String, sheet: Texture2D, at:
 ## Ulepszenia lochów za żar (Game.upgrades) do strumienia Hordy: gęstość (razy tłum poziomu lochu), szansa łupu, zasięg zbierania.
 ## Doświadczenie dolicza `_gain_xp`, szansę na kamienie ze skrzyni Wodza - `_on_chief_died`.
 func _apply_upgrades() -> void:
-	horde_spawner.density = (1.0 + Game.upgrade_bonus("monsters") / 100.0) * DungeonLevels.crowd(Game.dungeon_level)
-	horde_spawner.loot_mult = (1.0 + Game.upgrade_bonus("loot") / 100.0) * _gift_value("loot", 1.0)
+	horde_spawner.density = (1.0 + Game.upgrade_bonus("monsters") / 100.0) * DungeonLevels.crowd(Game.dungeon_level) \
+			* DungeonMods.mult(mods, "density")
+	horde_spawner.loot_mult = (1.0 + Game.upgrade_bonus("loot") / 100.0) * _gift_value("loot", 1.0) * DungeonMods.mult(mods, "loot")
 	horde_spawner.reach = Game.upgrade_bonus("reach")
 
 
@@ -486,6 +499,11 @@ func _make_hud() -> void:
 		unlocks_window.closed.connect(open_picker)
 		safe.add_child(unlocks_window)
 		picker.ladder.connect(func() -> void: unlocks_window.open())
+		mods_window = ModsWindow.new()
+		mods_window.visible = false
+		mods_window.closed.connect(open_picker)
+		safe.add_child(mods_window)
+		picker.mods.connect(func() -> void: mods_window.open())
 		safe.add_child(upgrades_window)
 		smith_window = SmithWindow.new()
 		smith_window.visible = false
@@ -598,6 +616,12 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	deaths_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35))
 	deaths_label.visible = Game.dev_immortal
 	box.add_child(deaths_label)
+	mods_label = _hud_label(DungeonMods.names(mods))
+	mods_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.45))
+	mods_label.add_theme_font_size_override("font_size", 11)
+	mods_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	mods_label.visible = not mods.is_empty()
+	box.add_child(mods_label)
 	gift_label = _hud_label("")
 	gift_label.visible = false
 	box.add_child(gift_label)
@@ -1349,7 +1373,7 @@ func _notification(what: int) -> void:
 		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 			stats_window.back()
 		return
-	for w in [smith_window, shop_window, upgrades_window, unlocks_window]:
+	for w in [smith_window, shop_window, upgrades_window, unlocks_window, mods_window]:
 		if w and w.visible:
 			if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 				w.back()
