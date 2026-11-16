@@ -882,6 +882,8 @@ func summon_chief() -> void:
 			chief = ProtoNecromancer.new()
 		Dungeons.PLAINS:
 			chief = ProtoStormEagle.new()
+		Dungeons.VOLCANO:
+			chief = ProtoFireElemental.new()
 		_:
 			chief = ProtoChief.new()
 	chief.name = "Chief"

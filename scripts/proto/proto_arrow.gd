@@ -45,6 +45,8 @@ var bubble := false
 var tint := Color.WHITE
 var speed := SPEED
 var fly_range := RANGE
+## Podpalenie przy trafieniu (żar ognika): obrażenia jednego płomienia (0 - bez podpalenia).
+var ignite := 0
 
 var _flown := 0.0
 var _done := false
@@ -80,6 +82,8 @@ func _process(delta: float) -> void:
 		hero.take_damage(damage, element)
 		if water:
 			hero.slow(SOAK_SLOW, SOAK_TIME, Elements.COLORS[Elements.WATER].lerp(Color.WHITE, 0.4))
+		if ignite > 0:
+			hero.ignite(ignite, 3.0)
 		_finish(true)
 		return
 	if _flown >= fly_range:

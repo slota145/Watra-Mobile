@@ -4,6 +4,7 @@ extends Node2D
 ## Wypełnia się od środka przez `duration` sekund, w chwili pełnego wypełnienia atak uderza. W środku zbiegają się
 ## kręgi (coraz szybciej), tuż przed uderzeniem koło jasno błyska. Koło jest spłaszczone w pionie jak cienie
 ## (widok z góry pod kątem). Leży pod postaciami (z_index -1); sprząta je potwór albo samo po `LINGER` s.
+## Pierścień (`inner` > 0, Fala ognia Żywiołaka): groźny tylko pas między `inner` a `radius` - w środku bezpiecznie.
 ## Wachlarz (`arc` > 0, zamach rycerza-szkieleta): wycinek koła o kącie `arc` w kierunku `angle` (liczonym na
 ## płaskiej ziemi, przed spłaszczeniem - `ground_angle`).
 ## Pas (`length` > 0, fala Wodnika): prostokąt od punktu startu w kierunku `angle`, szerokości `width`,
@@ -29,6 +30,8 @@ var width := 28.0
 var angle := 0.0
 ## Wachlarz: kąt rozwarcia (0 - pełne koło).
 var arc := 0.0
+## Pierścień: promień bezpiecznego środka (0 - pełne koło).
+var inner := 0.0
 var progress := 0.0
 
 var _time := 0.0
@@ -59,6 +62,8 @@ func contains(point: Vector2) -> bool:
 	local.y /= SQUASH
 	if arc > 0.0 and local.length() > 0.5 and absf(angle_difference(local.angle(), angle)) > arc / 2.0:
 		return false
+	if inner > 0.0 and local.length() < inner:
+		return false
 	return local.length() <= radius
 
 
@@ -73,6 +78,9 @@ func _draw() -> void:
 		return
 	if arc > 0.0:
 		_draw_fan()
+		return
+	if inner > 0.0:
+		_draw_ring()
 		return
 	var pulse := 0.75 + 0.25 * sin(_time * lerpf(8.0, 22.0, progress))
 	var edge := Color(EDGE, EDGE.a * pulse)
@@ -123,3 +131,18 @@ func _fan_points(r: float) -> PackedVector2Array:
 	for i in steps + 1:
 		pts.append(Vector2.from_angle(angle - arc / 2.0 + arc * i / steps) * r)
 	return pts
+
+
+## Pierścień: pas między `inner` a `radius` (gruby łuk), wypełnia się od środka na zewnątrz; oba brzegi obrysowane.
+func _draw_ring() -> void:
+	var pulse := 0.75 + 0.25 * sin(_time * lerpf(8.0, 22.0, progress))
+	var w := radius - inner
+	draw_arc(Vector2.ZERO, inner + w / 2.0, 0.0, TAU, 64, FILL, w)
+	var filled := w * progress
+	if filled > 0.5:
+		draw_arc(Vector2.ZERO, inner + filled / 2.0, 0.0, TAU, 64, CHARGE, filled)
+	if progress >= FLASH_FROM and int(_time * 20.0) % 2 == 0:
+		draw_arc(Vector2.ZERO, inner + w / 2.0, 0.0, TAU, 64, FLASH, w)
+	var edge := Color(EDGE, EDGE.a * pulse)
+	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 64, edge, 2.0)
+	draw_arc(Vector2.ZERO, inner, 0.0, TAU, 48, edge, 2.0)

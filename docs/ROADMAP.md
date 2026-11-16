@@ -67,7 +67,10 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 - **Trzeci loch - Katakumby (15.11.2026):** zrobiony (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy
   wstawanie szkieletów jest czytelne i nie irytujące, siła rycerzy, ataki Nekromanty (krąg z luką, wiązka).
 - **Czwarty loch - Górskie równiny (15.11.2026):** zrobiony (szczegóły w `docs/historia.md`). Do oceny: doskoki
-  wojowników, porażenie, ataki Gromoskrzydłego. Dalej: piąty loch od 41 (Pajęcze korzenie? Oblężony gród?).
+  wojowników, porażenie, ataki Gromoskrzydłego.
+- **Piąty loch - Wulkaniczne równiny (15.11.2026):** zrobiony (szczegóły w `docs/historia.md`). Do oceny: podpalenie,
+  płonąca ziemia, czytelność salamander na bazalcie, ilość lawy na podłożu, ataki Żywiołaka. Dalej (autor: po jednej
+  krainie na żywioł broni) - kolejne lochy dla nowych broni; potem Pajęcze korzenie / Oblężony gród.
 
 - **Baza: żar i złoto (12.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: ceny ulepszeń
   i ich odczuwalność (czy +10% potworów widać), ceny kowala i kupca (przedmioty u kupca tanie wobec klucza),
@@ -117,6 +120,10 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   mroczna kosa, ostrza na łańcuchach, księgi żywiołów, sztylety powietrza, glewia ognia (zrobiona), lodowy rapier,
   elektryczna katana (zrobiona 15.11.2026), kostur nekromancji; zmiana broni w bazie i kupno za złoto przed progiem (`Weapons.unlock`, `price`);
   kamienie dodające mieczowi żywioł; później odporności bohatera i potwory bijące żywiołami. Do decyzji: światło.
+
+- **Boss szczytowy: Żmij Gorynycz (pomysł autora 15.11.2026):** trójgłowy ognisty smok z Watry
+  (`../Watra/assets/world_bosses/zmij.png`, ataki w `../Watra/scripts/world_boss.gd`: Zionięcie, Trzy Głowy, Uderzenie)
+  - zostawiony na później jako boss szczytowy (nie boss Wulkanicznych równin). Dopytać, kiedy i jak się go przyzywa.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

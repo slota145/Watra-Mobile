@@ -1,0 +1,367 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: fire_elemental
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.45, 0]}
+palette: "watra"
+size: 96
+extends: humanoid   # the template's skeleton and channels; the body, head and flames below are the elemental's own
+
+# Żywiołak ognia (boss Wulkanicznych równin): olbrzym z żywego ognia i magmy, ok. 50 px (człowiek 36 px, ta sama
+# camera.scale). Tors z zastygłej skały z pękniętymi, świecącymi szczelinami, zamiast nóg słup ognia (unosi się),
+# szerokie barki z wybuchami płomieni, długie ręce z płonącymi szponami, głowa - skalna maska-czaszka z białymi
+# oczami i koroną wysokich płomieni. Klatka 96 px: 8 animacji x 8 kierunków = 64 rzędy (6144 px) < 8192 px.
+brief:
+  summary: >
+    boss of the volcanic plains, the Fire Elemental: a towering humanoid of living fire and magma, about 49 px tall
+    with the flame crown (the human is 36 px, same density); a torso of dark charcoal rock plates split by glowing
+    orange cracks with a white-hot core in the chest, no legs: the lower body dissolves into a column of flame (he
+    floats and glides), broad rock shoulders with flame bursts, long rock arms ending in burning yellow claws
+  proportions: "huge chest and shoulders (an inverted triangle), small head sunk between the shoulders, flame column 2/5 of the height"
+  head: >
+    no hair, no head kit: a skull-like mask of dark rock (a broad brow over dark sockets, a narrower jaw), two
+    white-hot eyes in the sockets, a glowing crack up the forehead, a crown of five tall flames (yellow at the
+    roots, orange, red at the tips) that flicker; face minimal
+  must_keep:
+    - warm emissive colours (white-yellow core, orange, red) against dark charcoal rock plates
+    - the flame column instead of legs: he never touches the ground
+    - the flame crown and the shoulder flames: the silhouette's mark from every direction
+    - the white-hot eyes and chest core
+  simplify:
+    - cracks are painted lines of magma on the rock, not geometry
+    - the flame column is one tapering cone with a few tongues, coloured in bands (yellow under the torso, red at the tip)
+  decisions:
+    - flames are emissive (unlit) in three bands of the watra `flame` ramp; the rock is lit and matte, for contrast
+    - flames flicker through expressions of the cycle phase in the flame prims (loops stay seamless)
+    - death - the channel `fire` shrinks every flame to nothing, `cool` turns the cracks dark red and drops loose rocks
+
+ramps:
+  # dark charcoal rock, warm (lit from the fire)
+  rock:  ["#0a0808", "#1b1515", "#2c2323", "#413332", "#5a4741", "#755d52"]
+
+materials:
+  rock:     {ramp: rock, finish: matte, bands: [1, 5]}
+  socket:   {ramp: rock, bands: [0, 1], line: false}
+  mask:     {ramp: rock, finish: soft, bands: [2, 5], gamma: 0.8}
+  magma:    {ramp: flame, emissive: true, band: 2, outline: false}
+  core:     {ramp: flame, emissive: true, band: 4, outline: false, glow: {color: "#ffc23d", mix: 0.35, radius: 1}}
+  eye:      {ramp: flame, emissive: true, band: 4, outline: false}
+  fire_r:   {ramp: flame, emissive: true, band: 1, outline: false}
+  fire_o:   {ramp: flame, emissive: true, band: 2, outline: false}
+  fire_y:   {ramp: flame, emissive: true, band: 3, outline: false}
+  fire_w:   {ramp: flame, emissive: true, band: 4, outline: false}
+
+remove: [use.hair, use.sword, use.head, animations.attack]
+
+shadow: {rx: 17, ry: 5, alpha: 100}
+snap: [root, torso_rot]
+
+channels:
+  bob: 0.16         # he floats: the flame column hangs over the ground
+  hand_L: [0.40, 0.06, 0.14]
+  hand_R: [0.40, 0.06, 0.14]
+  fire: 1           # 1..0 size of every flame (death: they die out)
+  flare: 0          # 0..1 extra flame height and brightness (roar, attacks)
+  cool: 0           # 0..1 death: >0.6 the cracks go dark, >0.5 loose rocks lie round him
+
+bones:
+  big:        {parent: root, scale: 1.4}
+  torso_rot:  {parent: big, pos: "[0, 0.84 + bob, 0]", rot: "[lean, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  headbase:   {parent: pelvis, pos: [0, 0.77, 0.08], inherit_rot: false, inherit_scale: false, scale: 1.45,
+               rot: "[lean*0.5 + 0.05, twist, roll]"}
+  head:       {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.0}
+  shoulder_L: {parent: pelvis, pos: [0.31, 0.52, -0.02]}
+  hip_L:      {parent: pelvis, pos: [0.12, -0.02, 0.0]}
+  fxspace:    {parent: big, rot: "[0, twist*0.3, 0]"}
+
+ik:
+  arm_L: {lengths: [0.44, 0.42]}
+  leg_L: {space: big, lengths: [0.525, 0.50]}
+
+parts:
+  torso:           # a broad chest of rock plates, a narrow waist; magma cracks and a white-hot core
+    material: rock
+    space: pelvis
+    blend: 0.07
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0], r: [0.17, 0.18, 0.13]}
+      - ellipsoid: {c: [0, 0.40, 0], r: [0.31, 0.19, 0.18]}
+      - ellipsoid: {c: [0, 0.56, -0.03], r: [0.24, 0.10, 0.14]}
+    paint:
+      - material: magma
+        prims:
+          - box: {c: [0.07, 0.30, 0.15], half: [0.012, 0.13, 0.1], rot: [0, 0, 0.5]}
+          - box: {c: [-0.10, 0.42, 0.15], half: [0.012, 0.12, 0.1], rot: [0, 0, -0.7]}
+          - box: {c: [0.17, 0.46, 0.12], half: [0.012, 0.09, 0.1], rot: [0, 0, 1.1]}
+          - box: {c: [-0.02, 0.10, 0.12], half: [0.012, 0.08, 0.1], rot: [0, 0, 0.3]}
+          - box: {c: [0.10, 0.40, -0.15], half: [0.012, 0.14, 0.1], rot: [0, 0, -0.4]}
+          - box: {c: [-0.12, 0.30, -0.15], half: [0.012, 0.12, 0.1], rot: [0, 0, 0.6]}
+      - material: core
+        prims:
+          - sphere: {c: [0, 0.34, 0.19], r: 0.055}
+      - material: rock        # death: the cracks cool down into plain rock
+        prims:
+          - sphere: {c: "[0, 0.3 + 20*(cool < 0.6), 0]", r: 1.2}
+  coat:            # the column of flame instead of legs: yellow under the torso, orange, red at the tip
+    material: fire_o
+    space: coatbase
+    when: "fire > 0.05"
+    blend: 0.06
+    prims:
+      - cone: {a: [0, 0.06, 0], b: "[0.03*sin(2*p), -0.82*fire, -0.02]", r: ["0.19*fire", "0.03*fire"]}
+      - cone: {a: [0.10, -0.10, 0.04], b: "[0.20 + 0.03*sin(3*p), -0.50*fire, 0.05]", r: ["0.07*fire", "0.015*fire"]}
+      - cone: {a: [-0.10, -0.12, 0.02], b: "[-0.19 + 0.03*sin(3*p + 2), -0.58*fire, 0.0]", r: ["0.07*fire", "0.015*fire"]}
+      - cone: {a: [0, -0.10, -0.08], b: "[0.02, -0.62*fire, -0.20 + 0.03*sin(3*p + 4)]", r: ["0.07*fire", "0.015*fire"]}
+    paint:
+      - material: fire_y
+        prims:
+          - box: {c: [0, -0.02, 0], half: [0.4, 0.10, 0.4]}
+      - material: fire_r
+        prims:
+          - box: {c: [0, -0.80, 0], half: [0.5, 0.36, 0.5]}
+  belt: {when: "0"}
+  neck: {when: "0"}
+  leg_L: {when: "0"}
+  boot_L: {when: "0"}
+  pauldron_L:      # a big rock shoulder plate
+    material: rock
+    space: pelvis
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0.32, 0.56, -0.02], r: [0.15, 0.12, 0.15], rot: [0, 0, -0.35]}
+    paint:
+      - material: magma
+        prims:
+          - box: {c: [0.36, 0.60, 0.06], half: [0.012, 0.08, 0.12], rot: [0, 0, 0.9]}
+      - material: rock        # death: the cracks cool down into plain rock
+        prims:
+          - sphere: {c: "[0, 0.3 + 20*(cool < 0.6), 0]", r: 1.2}
+  sflame_L:        # flame bursts on the shoulder
+    material: fire_o
+    space: pelvis
+    when: "fire > 0.05"
+    blend: 0.03
+    min_cover: 2
+    prims:
+      - cone: {a: [0.34, 0.62, -0.04], b: "[0.46, 0.62 + (0.26 + 0.04*sin(3*p + 1) + 0.12*flare)*fire, -0.08]", r: ["0.08*fire", "0.012"]}
+      - cone: {a: [0.26, 0.64, -0.08], b: "[0.30, 0.64 + (0.18 + 0.04*sin(3*p + 3) + 0.08*flare)*fire, -0.16]", r: ["0.06*fire", "0.012"]}
+    paint:
+      - material: fire_y
+        prims:
+          - sphere: {c: [0.32, 0.62, -0.05], r: 0.09}
+      - material: fire_r
+        prims:
+          - box: {c: [0.35, 0.98, -0.1], half: [0.3, 0.16, 0.3]}
+  arm_L:           # long rock arms
+    material: rock
+    blend: 0.04
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.10}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.095, 0.075]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.075, 0.09]}
+    paint:
+      - material: magma
+        prims:
+          - sphere: {c: "@elbow_L", r: 0.085}
+      - material: rock        # death: the cracks cool down into plain rock
+        prims:
+          - sphere: {c: {at: elbow_L, off: "[0, 20*(cool < 0.6), 0]"}, r: 1.2}
+  hand_L:          # a rock fist with three burning claws
+    material: rock
+    space: wrist_L
+    blend: 0.02
+    prims:
+      - sphere: {c: [0, 0, 0.05], r: 0.075}
+  claw_L:
+    material: fire_y
+    space: wrist_L
+    min_cover: 2
+    when: "cool < 0.6"
+    prims:
+      - cone: {a: [0, 0, 0.08], b: [0.06, -0.04, 0.22], r: [0.03, 0.012]}
+      - cone: {a: [0, 0, 0.08], b: [0.0, -0.05, 0.24], r: [0.03, 0.012]}
+      - cone: {a: [0, 0, 0.08], b: [-0.06, -0.04, 0.22], r: [0.03, 0.012]}
+  head:            # the skull mask: a cranium, a heavy brow, a narrower jaw
+    material: mask
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0.0], r: [0.13, 0.13, 0.13]}
+      - box: {c: [0, 0.10, 0.10], half: [0.12, 0.035, 0.05], round: 0.02}
+      - ellipsoid: {c: [0, -0.05, 0.07], r: [0.085, 0.06, 0.08]}
+    paint:
+      - material: socket
+        prims:
+          - sphere: {c: [0.055, 0.05, 0.15], r: 0.045}
+          - sphere: {c: [-0.055, 0.05, 0.15], r: 0.045}
+      - material: magma
+        prims:
+          - box: {c: [0, 0.16, 0.1], half: [0.012, 0.05, 0.1], rot: [0, 0, 0.3]}
+      - material: rock        # death: the cracks cool down into plain rock
+        prims:
+          - sphere: {c: "[0, 0.1 + 20*(cool < 0.6), 0]", r: 0.5}
+  eye_L:
+    material: eye
+    space: head
+    when: "cool < 0.6"
+    prims:
+      - sphere: {c: [0.055, 0.05, 0.155], r: 0.035}
+  crown:           # a crown of tall flames
+    material: fire_o
+    space: head
+    when: "fire > 0.05"
+    blend: 0.02
+    min_cover: 2
+    prims:
+      - cone: {a: [0, 0.17, -0.05], b: "[0.02*sin(2*p), 0.17 + (0.44 + 0.05*sin(3*p) + 0.18*flare)*fire, -0.08]", r: ["0.065*fire", "0.012"]}
+      - cone: {a: [0.09, 0.15, -0.02], b: "[0.19, 0.15 + (0.30 + 0.05*sin(3*p + 2) + 0.12*flare)*fire, -0.04]", r: ["0.05*fire", "0.012"]}
+      - cone: {a: [-0.09, 0.15, -0.02], b: "[-0.19, 0.15 + (0.32 + 0.05*sin(3*p + 4) + 0.12*flare)*fire, -0.04]", r: ["0.05*fire", "0.012"]}
+      - cone: {a: [0.07, 0.13, -0.10], b: "[0.13, 0.13 + (0.34 + 0.05*sin(3*p + 5) + 0.12*flare)*fire, -0.20]", r: ["0.05*fire", "0.012"]}
+      - cone: {a: [-0.07, 0.13, -0.10], b: "[-0.13, 0.13 + (0.36 + 0.05*sin(3*p + 1) + 0.12*flare)*fire, -0.20]", r: ["0.05*fire", "0.012"]}
+    paint:
+      - material: fire_y
+        prims:
+          - box: {c: [0, 0.14, 0], half: [0.4, 0.08, 0.4]}
+      - material: fire_r
+        prims:
+          - box: {c: [0, 0.80, 0], half: [0.5, 0.30, 0.5]}
+  rocks:           # death: loose cooled rocks round the heap
+    material: rock
+    space: big
+    when: "cool > 0.5"
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [-0.34, 0.06, 0.30], r: [0.10, 0.07, 0.09]}
+      - ellipsoid: {c: [0.30, 0.05, 0.34], r: [0.08, 0.06, 0.08]}
+      - ellipsoid: {c: [0.40, 0.05, -0.10], r: [0.09, 0.06, 0.08]}
+      - ellipsoid: {c: [-0.36, 0.05, -0.18], r: [0.07, 0.05, 0.07]}
+
+sockets:
+  core: {bone: pelvis, offset: [0, 0.34, 0.2]}           # the chest core: fire bolts / the ring start here
+  claw_L: {bone: wrist_L, offset: [0, 0, 0.16]}          # burning claws (automatic claw_R)
+
+animations:
+  idle:
+    frames: 8
+    ms: 130
+    channels:
+      bob: "0.16 + 0.05*sin(p)"
+      squash: "1 + 0.01*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.6)"
+      hand_L: "[0.40, 0.06 + 0.03*sin(p - 0.6), 0.14]"
+      hand_R: "[0.40, 0.06 + 0.03*sin(p - 0.8), 0.14]"
+      coat: "0.15*sin(p - 1.2)"
+  # gliding: leaning into the move, the flame column trails behind, the arms sway a little
+  walk:
+    frames: 8
+    ms: 110
+    channels:
+      lean: 0.16
+      bob: "0.16 + 0.04*sin(p)"
+      twist: "0.04*cos(p)"
+      head_pitch: "-0.03*sin(p - 0.6)"
+      hand_L: "[0.40, 0.08 + 0.02*sin(p), 0.10 + 0.07*cos(p)]"
+      hand_R: "[0.40, 0.08 + 0.02*sin(p + 3.1416), 0.10 - 0.07*cos(p)]"
+      coat: "-1.2 + 0.25*sin(2*p - 1.0)"
+  # entrance: gathered low, then he rises and spreads his arms wide, every flame flares (`roar` at the peak),
+  # a trembling held beat, then settles
+  roar:
+    loop: false
+    keys:
+      - {ms: 140, set: {bob: 0.08, lean: 0.20, squash: 0.94, head_pitch: 0.20, coat: 0.3, fire: 0.85,
+          hand_L: [0.22, 0.10, 0.24], hand_R: [0.22, 0.10, 0.24]}}
+      - {ms: 160, set: {bob: 0.20, lean: -0.05, squash: 1.02, head_pitch: -0.10, coat: -0.3, flare: 0.4,
+          hand_L: [0.52, 0.30, 0.10], hand_R: [0.52, 0.30, 0.10]}}
+      - {ms: 130, event: roar, set: {bob: 0.26, lean: -0.20, squash: 1.06, head_pitch: -0.32, coat: -0.6, flare: 1.0,
+          hand_L: [0.74, 0.50, 0.02], hand_R: [0.74, 0.50, 0.02]}}
+      - {ms: 100, set: {root: [0.03, 0, 0], roll: 0.03, bob: 0.25, lean: -0.19, squash: 1.06, head_pitch: -0.30, coat: -0.55, flare: 0.85,
+          hand_L: [0.75, 0.48, 0.02], hand_R: [0.73, 0.51, 0.02]}}
+      - {ms: 100, set: {root: [-0.03, 0, 0], roll: -0.03, bob: 0.26, lean: -0.20, squash: 1.06, head_pitch: -0.32, coat: -0.6, flare: 1.0,
+          hand_L: [0.73, 0.51, 0.02], hand_R: [0.75, 0.48, 0.02]}}
+      - {ms: 100, set: {root: [0.02, 0, 0], roll: 0.02, bob: 0.24, lean: -0.17, squash: 1.05, head_pitch: -0.26, coat: -0.5, flare: 0.8,
+          hand_L: [0.72, 0.46, 0.03], hand_R: [0.72, 0.46, 0.03]}}
+      - {ms: 150, set: {bob: 0.19, lean: -0.02, head_pitch: -0.05, coat: -0.1, flare: 0.3,
+          hand_L: [0.50, 0.18, 0.12], hand_R: [0.50, 0.18, 0.12]}}
+      - {ms: 120, set: {coat: 0.1}}
+  # wave: arms pulled in to the chest, hunched (the fire gathers), then thrown out to both sides (`hit`: the ring
+  # of fire bursts out), a held beat, recovery
+  wave:
+    loop: false
+    keys:
+      - {ms: 130, event: windup, set: {bob: 0.12, lean: 0.15, squash: 0.95, head_pitch: 0.12, coat: 0.2, flare: 0.3,
+          hand_L: [0.08, 0.34, 0.28], hand_R: [0.08, 0.34, 0.28]}}
+      - {ms: 200, set: {bob: 0.08, lean: 0.22, squash: 0.92, head_pitch: 0.22, coat: 0.3, flare: 0.6, fire: 0.85,
+          hand_L: [0.02, 0.28, 0.24], hand_R: [0.02, 0.28, 0.24]}}
+      - {ms: 70, event: hit, set: {bob: 0.22, lean: -0.15, squash: 1.06, head_pitch: -0.20, coat: -0.5, flare: 1.0,
+          hand_L: [0.82, 0.30, 0.06], hand_R: [0.82, 0.30, 0.06]}}
+      - {ms: 160, set: {bob: 0.21, lean: -0.13, squash: 1.05, head_pitch: -0.18, coat: -0.45, flare: 0.8,
+          hand_L: [0.82, 0.27, 0.04], hand_R: [0.82, 0.27, 0.04]}}
+      - {ms: 170, set: {bob: 0.18, lean: 0.0, head_pitch: -0.04, coat: -0.1, flare: 0.3,
+          hand_L: [0.54, 0.14, 0.12], hand_R: [0.54, 0.14, 0.12]}}
+      - {ms: 170, set: {coat: 0.1}}
+  # rain: low gathering, then both arms raised to the sky (`hit` when the hands reach the top: lava falls), a
+  # trembling held beat, the arms come down
+  rain:
+    loop: false
+    keys:
+      - {ms: 140, event: windup, set: {bob: 0.10, lean: 0.18, squash: 0.95, head_pitch: 0.15, coat: 0.2,
+          hand_L: [0.30, -0.06, 0.26], hand_R: [0.30, -0.06, 0.26]}}
+      - {ms: 200, set: {bob: 0.18, lean: -0.05, squash: 1.02, head_pitch: -0.12, coat: -0.2, flare: 0.4,
+          hand_L: [0.50, 0.60, 0.14], hand_R: [0.50, 0.60, 0.14]}}
+      - {ms: 120, event: hit, set: {bob: 0.24, lean: -0.18, squash: 1.06, head_pitch: -0.32, coat: -0.45, flare: 1.0,
+          hand_L: [0.58, 1.18, 0.04], hand_R: [0.58, 1.18, 0.04]}}
+      - {ms: 160, set: {root: [0.02, 0, 0], bob: 0.23, lean: -0.17, squash: 1.05, head_pitch: -0.30, coat: -0.4, flare: 0.85,
+          hand_L: [0.59, 1.16, 0.04], hand_R: [0.57, 1.19, 0.04]}}
+      - {ms: 140, set: {bob: 0.18, lean: -0.03, head_pitch: -0.06, coat: -0.1, flare: 0.3,
+          hand_L: [0.46, 0.30, 0.12], hand_R: [0.46, 0.30, 0.12]}}
+      - {ms: 140, set: {coat: 0.1}}
+  # charge: leans back gathering (claws drawn back), then lunges forward in a burst (`start`: the game moves him
+  # along a line); the last frame is the held forward-leaning pose, the flame column streaming behind
+  charge:
+    loop: false
+    keys:
+      - {ms: 100, event: windup, set: {root: [0, 0, -0.02], bob: 0.14, lean: -0.10, squash: 0.97, coat: 0.2, flare: 0.3,
+          hand_L: [0.42, 0.12, -0.04], hand_R: [0.42, 0.12, -0.04]}}
+      - {ms: 100, set: {root: [0, 0, -0.05], bob: 0.12, lean: -0.22, squash: 0.94, head_pitch: -0.05, coat: 0.4, flare: 0.5,
+          hand_L: [0.42, 0.16, -0.18], hand_R: [0.42, 0.16, -0.18]}}
+      - {ms: 100, set: {root: [0, 0, -0.08], bob: 0.10, lean: -0.28, squash: 0.92, head_pitch: -0.08, coat: 0.5, flare: 0.7,
+          hand_L: [0.44, 0.20, -0.24], hand_R: [0.44, 0.20, -0.24]}}
+      - {ms: 80, event: start, set: {root: [0, 0, 0.08], bob: 0.18, lean: 0.48, squash: 1.05, head_pitch: -0.25, coat: -1.6, flare: 1.0,
+          hand_L: [0.40, 0.52, 0.56], hand_R: [0.40, 0.52, 0.56]}}
+      - {ms: 220, set: {root: [0, 0, 0.08], bob: 0.18, lean: 0.45, squash: 1.04, head_pitch: -0.22, coat: -1.5, flare: 0.9,
+          hand_L: [0.41, 0.50, 0.55], hand_R: [0.41, 0.50, 0.55]}}
+  # hit: a short flinch: jolted back, the flames flare
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.05], bob: 0.19, lean: -0.15, squash: 0.95, head_pitch: -0.2, coat: 0.4, flare: 0.6,
+          hand_L: [0.44, 0.12, 0.04], hand_R: [0.44, 0.12, 0.04]}}
+      - {ms: 70, set: {root: [0, 0, -0.02], bob: 0.17, lean: -0.05, squash: 0.98, head_pitch: -0.08, coat: 0.15, flare: 0.3,
+          hand_L: [0.42, 0.08, 0.10], hand_R: [0.42, 0.08, 0.10]}}
+      - {ms: 70, set: {lean: 0.06, head_pitch: 0.02, coat: -0.05}}
+  # death: struck back, he sags and sinks, every flame shrinks and dies out, the cracks cool to dark rock and the
+  # body settles into a heap of rock with loose stones round it; the last frame held
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.04], bob: 0.20, lean: -0.30, squash: 1.03, head_pitch: -0.35, coat: 0.5, flare: 0.8,
+          hand_L: [0.50, 0.30, 0.0], hand_R: [0.50, 0.30, 0.0]}}
+      - {ms: 150, set: {root: [0, 0, -0.04], bob: 0.06, lean: 0.20, squash: 0.90, head_pitch: 0.30, coat: 0.2, fire: 0.7,
+          hand_L: [0.36, -0.04, 0.18], hand_R: [0.36, -0.04, 0.18]}}
+      - {ms: 140, set: {root: [0, 0, -0.04], bob: -0.18, lean: 0.25, squash: 0.72, head_pitch: 0.35, fire: 0.45,
+          hand_L: [0.42, -0.22, 0.20], hand_R: [0.42, -0.22, 0.20]}}
+      - {ms: 130, set: {root: [0, 0, -0.04], bob: -0.36, lean: 0.22, squash: 0.52, head_pitch: 0.35, fire: 0.25, cool: 0.65,
+          hand_L: [0.54, -0.20, 0.22], hand_R: [0.54, -0.20, 0.22]}}
+      - {ms: 130, set: {root: [0, 0, -0.04], bob: -0.56, lean: 0.15, roll: 0.10, squash: 0.42, head_pitch: 0.45, fire: 0.1, cool: 0.8,
+          hand_L: [0.68, -0.16, 0.10], hand_R: [0.66, -0.17, 0.12]}}
+      - {ms: 130, set: {root: [0, 0, -0.04], bob: -0.62, lean: 0.14, roll: 0.14, squash: 0.38, head_pitch: 0.55, fire: 0.0, cool: 0.9,
+          hand_L: [0.72, -0.12, 0.06], hand_R: [0.70, -0.13, 0.08]}}
+      - {ms: 600, set: {root: [0, 0, -0.04], bob: -0.64, lean: 0.14, roll: 0.15, squash: 0.36, head_pitch: 0.6, fire: 0.0, cool: 1.0,
+          hand_L: [0.72, -0.13, 0.06], hand_R: [0.70, -0.14, 0.08]}}
+
+timing:
+  roar: {roar: 300ms, total: 1000ms}
+  wave: {hit: 330ms, total: 900ms}
+  rain: {hit: 340ms, total: 900ms}
+  charge: {start: 300ms, total: 600ms}

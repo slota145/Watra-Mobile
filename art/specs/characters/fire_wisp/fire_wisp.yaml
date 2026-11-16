@@ -1,0 +1,257 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: fire_wisp
+kind: character
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.80, 0]}
+palette: "watra"
+size: 48
+directions: 8
+shadow: {rx: 5.5, ry: 2.2, alpha: 110}
+
+# Ognik (fire wisp): the ranged enemy of the "Wulkaniczne równiny" (volcanic plains) dungeon; it spits embers.
+# No reference image. A floating ball of fire about 17 px across, hovering ~9 px above its small shadow.
+# Custom body (no humanoid template): one `body` bone at the hover height carries everything.
+brief:
+  summary: >
+    a floating ball of living fire, about 17 px across, hovering ~9 px above a small ground shadow: deep red
+    outer flame, an orange layer, a bright yellow-white core, a crown of flame licks rising from the top,
+    two dark coal eyes and a small coal mouth on the front, three tiny embers orbiting it
+  head: >
+    the whole wisp is the head: two dark coal eyes (2 px wide, a little taller than wide) above the centre of
+    the front and a small dark mouth below them, on the bright core; face minimal; seen from n the face is hidden
+  must_keep:
+    - the concentric fire read: red rim, orange, yellow, white-hot centre (emissive, flat bands)
+    - the flame crown rising from the top (the silhouette that tells it from a plain orb)
+    - the dark coal eyes on the bright core (the creature read)
+    - the gap of air between the ball and its shadow (it floats)
+  simplify:
+    - the fire layers are spheres pushed towards the camera (a billboard frame `bb` that undoes the yaw and the
+      38 degree pitch), so the hot core always faces the viewer and reads as concentric rings
+    - flame licks are tapered cones; their flicker is a channel `flick` (phase) in their lengths
+    - embers are 1-2 px emissive dots on an orbit bone
+  decisions:
+    - every fire material is emissive (unlit, flat), using the palette's `flame` ramp, so the wisp reads as a
+      light source on dark volcanic floors; only the coal eyes and mouth are dark
+    - walk drifts with the crown tilted back (`trail`) and the body leaning into the motion
+    - attack (700 ms) swells and brightens (core grows), then contracts and jerks forward with the mouth open
+      and a blob of fire leaving it; event `release` on that spit frame; socket `mouth` for the projectile
+    - death flares, then bursts: the ball shrinks to nothing while sparks fly outward and shrink away
+
+ramps:
+  coal: ["#0a0403", "#1c0a06", "#2e130c"]
+
+materials:
+  fire_red:    {ramp: flame, emissive: true, band: 1}
+  fire_orange: {ramp: flame, emissive: true, band: 2}
+  fire_yellow: {ramp: flame, emissive: true, band: 3}
+  fire_white:  {ramp: flame, emissive: true, band: 4, glow: {color: "#ffd060", mix: 0.25, radius: 1}}
+  coal:        {ramp: coal, emissive: true, band: 1, outline: false}
+  ember:       {ramp: flame, emissive: true, band: 3, outline: false}
+
+channels:
+  hover: 0.0        # vertical offset of the ball (bobbing)
+  swell: 1.0        # scale of the whole ball
+  core: 1.0         # scale of the hot core layers (brighter when > 1)
+  flick: 0.0        # flame flicker phase (radians)
+  flame: 1.0        # length of the flame licks
+  trail: 0.0        # crown tilted backwards (walk), radians
+  lean: 0.0         # ball leaning forward
+  push: 0.0         # ball moved forward (+z) - the attack jerk
+  mouth_open: 0.0   # 0..1
+  blink: 1.0        # eye height scale (squint < 1)
+  orb: 0.0          # ember orbit angle
+  orb_r: 1.0        # ember orbit radius scale
+  ember_r: 1.0      # ember size
+  spit: 0.0         # 0..1 the blob of fire leaving the mouth
+  burst: 0.0        # death: sparks flying outward (0..1)
+  spark_r: 0.0      # death spark size
+  cinder: 0.0       # death: a dying coal left on the ground (0..1)
+  smoke: 0.0        # death: the last sparks fallen on the ground around the coal (0..1)
+  alive: 1.0        # 0 hides the ball (after the death burst)
+
+bones:
+  center: {parent: root, pos: "[0, 0.98 + hover, push]"}
+  body:   {parent: center, rot: "[lean, 0, 0]", scale: swell}
+  # billboard: +z towards the camera (undo the yaw, then tilt up by the 38 degree pitch)
+  bb_yaw: {parent: body, rot: "[0, -radians(yaw), 0]"}
+  bb:     {parent: bb_yaw, rot: [-0.663, 0, 0], scale: core}
+  crown:  {parent: body, pos: [0, 0.22, 0], rot: "[-trail, 0, 0]"}
+  orbit:  {parent: center, rot: "[0.35, orb, 0]"}
+  # the face: drawn on the billboard over the hot core, slid sideways as the wisp turns (hidden facing away)
+  face:   {parent: bb_yaw, rot: [-0.663, 0, 0]}
+
+parts:
+  ball:
+    material: fire_red
+    space: body
+    when: "alive > 0"
+    prims:
+      - sphere: {c: [0, 0, 0], r: 0.42}
+  layer_orange:
+    material: fire_orange
+    space: bb
+    when: "alive > 0"
+    prims:
+      - sphere: {c: [0, -0.02, 0.12], r: 0.35}
+  layer_yellow:
+    material: fire_yellow
+    space: bb
+    when: "alive > 0"
+    prims:
+      - sphere: {c: [0, -0.04, 0.23], r: 0.25}
+  layer_white:
+    material: fire_white
+    space: bb
+    when: "alive > 0"
+    prims:
+      - sphere: {c: [0, -0.06, 0.40], r: 0.11}
+  # a crown of flame licks rising from the top, tilted back by `trail`
+  licks:
+    material: fire_red
+    space: crown
+    when: "alive > 0"
+    blend: 0.06
+    prims:
+      - cone: {a: [0, 0, 0], b: "[0, 0.50*flame + 0.06*sin(flick), -0.03]", r: [0.20, 0.02]}
+      - cone: {a: [0.15, -0.02, 0.05], b: "[0.26, 0.26*flame + 0.05*sin(flick + 2.1), 0.06]", r: [0.13, 0.02]}
+      - cone: {a: [-0.15, -0.02, 0.05], b: "[-0.26, 0.28*flame + 0.05*sin(flick + 4.2), 0.06]", r: [0.13, 0.02]}
+      - cone: {a: [0.10, -0.02, -0.14], b: "[0.16, 0.30*flame + 0.05*sin(flick + 1.0), -0.24]", r: [0.13, 0.02]}
+      - cone: {a: [-0.10, -0.02, -0.14], b: "[-0.16, 0.24*flame + 0.05*sin(flick + 3.1), -0.24]", r: [0.13, 0.02]}
+  licks_inner:
+    material: fire_orange
+    space: crown
+    when: "alive > 0"
+    blend: 0.05
+    prims:
+      - cone: {a: "[-0.12*sin(radians(yaw)), 0, 0.12*cos(radians(yaw))]",
+               b: "[-0.14*sin(radians(yaw)), 0.24*flame + 0.04*sin(flick + 1.4), 0.14*cos(radians(yaw))]", r: [0.12, 0.02]}
+  eyes:
+    material: coal
+    space: face
+    when: "abs(yaw) < 100 and alive > 0"
+    prims:
+      - ellipsoid: {c: "[0.21*sin(radians(yaw)) + 0.10*cos(radians(yaw)), 0.05, sqrt(max(0.0, 0.55 - (0.21*sin(radians(yaw)) + 0.10*cos(radians(yaw)))*(0.21*sin(radians(yaw)) + 0.10*cos(radians(yaw)))))]",
+                    r: "[0.045, 0.065*blink, 0.04]"}
+      - ellipsoid: {c: "[0.21*sin(radians(yaw)) - 0.10*cos(radians(yaw)), 0.05, sqrt(max(0.0, 0.55 - (0.21*sin(radians(yaw)) - 0.10*cos(radians(yaw)))*(0.21*sin(radians(yaw)) - 0.10*cos(radians(yaw)))))]",
+                    r: "[0.045, 0.065*blink, 0.04]"}
+  mouth:
+    material: coal
+    space: face
+    when: "abs(yaw) < 100 and alive > 0"
+    prims:
+      - ellipsoid: {c: "[0.21*sin(radians(yaw)), -0.13, sqrt(max(0.0, 0.55 - 0.0441*sin(radians(yaw))*sin(radians(yaw))))]",
+                    r: "[(0.05 + 0.02*mouth_open)*(0.6 + 0.4*abs(cos(radians(yaw)))), 0.022 + 0.05*mouth_open, 0.04]"}
+  embers:
+    material: ember
+    space: orbit
+    min_cover: 2
+    prims:
+      - sphere: {c: "[0.56*orb_r, 0.05, 0]", r: "0.036*ember_r"}
+      - sphere: {c: "[-0.28*orb_r, -0.08, 0.48*orb_r]", r: "0.032*ember_r"}
+      - sphere: {c: "[-0.28*orb_r, 0.10, -0.48*orb_r]", r: "0.032*ember_r"}
+  spit_blob:
+    material: fire_white
+    space: body
+    when: "spit > 0"
+    prims:
+      - sphere: {c: "[0, -0.10 - 0.05*spit, 0.42 + 0.40*spit]", r: "0.11*(1 - 0.3*spit)"}
+  sparks:
+    material: ember
+    space: center
+    when: "spark_r > 0"
+    min_cover: 2
+    prims:
+      - sphere: {c: "[0.45*burst, 0.30*burst, 0]", r: spark_r}
+      - sphere: {c: "[-0.45*burst, 0.25*burst, 0.1]", r: spark_r}
+      - sphere: {c: "[0.15*burst, 0.50*burst, 0.3*burst]", r: spark_r}
+      - sphere: {c: "[-0.2*burst, 0.45*burst, -0.3*burst]", r: spark_r}
+      - sphere: {c: "[0.35*burst, -0.2*burst, 0.3*burst]", r: spark_r}
+      - sphere: {c: "[-0.32*burst, -0.25*burst, -0.25*burst]", r: spark_r}
+      - sphere: {c: "[0.08*burst, -0.08*burst, 0.5*burst]", r: spark_r}
+      - sphere: {c: "[-0.05*burst, 0.12*burst, -0.5*burst]", r: spark_r}
+
+  # death: the dying coal left on the ground, with one last glowing point
+  cinder_coal:
+    material: coal
+    space: root
+    when: "cinder > 0"
+    prims:
+      - ellipsoid: {c: [0, 0.04, 0], r: "[0.17*cinder, 0.07*cinder, 0.14*cinder]"}
+  cinder_glow:
+    material: fire_red
+    space: root
+    when: "cinder > 0"
+    min_cover: 2
+    prims:
+      - sphere: {c: [0.02, 0.09, 0.04], r: "0.05*cinder"}
+  # the last sparks fallen around the coal
+  cinder_sparks:
+    material: ember
+    space: root
+    when: "smoke > 0"
+    min_cover: 2
+    prims:
+      - sphere: {c: [0.24, 0.03, 0.10], r: "0.035*smoke"}
+      - sphere: {c: [-0.22, 0.03, 0.05], r: "0.035*smoke"}
+      - sphere: {c: [0.05, 0.03, -0.22], r: "0.03*smoke"}
+      - sphere: {c: [-0.08, 0.03, 0.24], r: "0.03*smoke"}
+
+sockets:
+  mouth: {bone: face, offset: "[0.30*sin(radians(yaw)), -0.12, 0.50]"}   # where the spat ember (projectile) spawns: the drawn mouth
+
+# the game's contract: the ember leaves 400 ms into the 700 ms spit (after a 400 ms swelling telegraph)
+timing: {attack: {release: 400ms, total: 700ms}}
+
+animations:
+  idle:
+    frames: 8
+    ms: 120
+    channels:
+      hover: "0.05*sin(p)"
+      flick: "2*p"
+      flame: "1 + 0.12*sin(2*p)"
+      core: "1 + 0.04*sin(2*p + 1)"
+      orb: "p"
+  # drifting: the ball leans into the motion, the crown and the embers trail behind
+  walk:
+    frames: 8
+    ms: 90
+    channels:
+      hover: "0.03*sin(2*p)"
+      lean: 0.15
+      trail: "0.30 + 0.06*sin(2*p)"
+      flick: "2*p"
+      flame: "1.12 + 0.10*sin(2*p + 1)"
+      core: "1 + 0.03*sin(2*p)"
+      orb: "p"
+      orb_r: 1.1
+  # swell and glow brighter (the telegraph), then contract and jerk forward spitting a blob of fire
+  attack:
+    loop: false
+    keys:
+      - {ms: 100, event: windup, set: {swell: 1.05, core: 1.12, flame: 1.15, blink: 0.8, push: -0.03, lean: -0.08, flick: 0.8, orb: 0.4}}
+      - {ms: 140, set: {swell: 1.08, core: 1.22, flame: 1.25, blink: 0.7, push: -0.06, lean: -0.15, flick: 2.0, orb: 0.9, orb_r: 1.2, hover: 0.02}}
+      - {ms: 160, set: {swell: 1.12, core: 1.32, flame: 1.32, blink: 0.6, push: -0.06, lean: -0.15, flick: 3.3, orb: 1.5, orb_r: 1.3, hover: 0.03}}
+      # release: the spit leaves the mouth (projectile spawns at socket `mouth`)
+      - {ms: 60, event: release, set: {swell: 0.86, core: 0.95, flame: 0.80, trail: 0.4, push: 0.12, lean: 0.25, mouth_open: 1, spit: 0.35, flick: 4.4, orb: 2.0, orb_r: 0.9}}
+      - {ms: 70, set: {swell: 0.92, core: 0.95, flame: 0.90, trail: 0.3, push: 0.08, lean: 0.15, mouth_open: 0.6, spit: 1.0, flick: 5.2, orb: 2.4}}
+      - {ms: 80, set: {swell: 1.02, flame: 1.05, trail: 0.1, push: 0.02, lean: 0.05, mouth_open: 0.2, flick: 6.0, orb: 2.8}}
+      - {ms: 90, set: {flick: 6.8, orb: 3.2}}
+  # hit: the flame gutters (shrinks, the core dims), flares back, settles
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {swell: 0.82, core: 0.82, flame: 0.6, blink: 0.3, push: -0.08, lean: -0.25, hover: -0.03, trail: 0.3, orb_r: 0.85}}
+      - {ms: 70, set: {swell: 0.92, core: 1.2, flame: 1.25, blink: 0.6, push: -0.05, lean: -0.1, flick: 2.0, orb_r: 1.1}}
+      - {ms: 90, set: {swell: 0.98, flame: 1.05, push: -0.01, flick: 3.5}}
+  # death: gutters, flares one last time, then bursts into sparks that fly out and die, leaving a dying coal
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {swell: 0.82, core: 0.82, flame: 0.6, blink: 0.2, push: -0.06, lean: -0.25, hover: -0.03, trail: 0.3}}
+      - {ms: 110, set: {swell: 1.10, core: 1.35, flame: 1.3, blink: 0.2, mouth_open: 0.8, flick: 2.0, orb_r: 1.3, hover: 0.02}}
+      - {ms: 90, set: {swell: 0.70, core: 1.2, flame: 1.1, blink: 0.2, mouth_open: 1, burst: 0.4, spark_r: 0.06, flick: 3.0, orb_r: 1.5, ember_r: 1.3}}
+      - {ms: 90, set: {swell: 0.42, core: 0.9, flame: 0.7, burst: 0.75, spark_r: 0.055, flick: 4.0, orb_r: 1.55, ember_r: 1.1, hover: -0.10}}
+      - {ms: 100, set: {swell: 0.18, core: 0.7, flame: 0.5, burst: 1.05, spark_r: 0.045, flick: 5.0, orb_r: 1.65, ember_r: 0.8, hover: -0.25, cinder: 0.7}}
+      - {ms: 110, set: {alive: 0, burst: 1.3, spark_r: 0.032, orb_r: 1.7, ember_r: 0.5, cinder: 1, smoke: 1}}
+      - {ms: 500, set: {alive: 0, ember_r: 0.0, cinder: 1, smoke: 1}}
