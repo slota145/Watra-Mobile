@@ -122,10 +122,17 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
   kamienie dodające mieczowi żywioł; później odporności bohatera i potwory bijące żywiołami. Do decyzji: światło.
 
 - **Cele na mapie lochu za żar (pomysł z Dwarven Realms, decyzja autora 16.11.2026):** przy progach paska przyzwania
-  (np. 25/50/75% `DungeonLevels.summon_cost`) na mapie pojawia się cel, żeby między falami było dokąd biec. Propozycja
-  Claude (czeka na odpowiedzi autora): skrzynia, kapliczka z darem na 60 s, Skarbnik (uciekający duch ze złotem),
-  Krąg Żertwy (zabij N potworów w kręgu), Kryształ Watry (obroń przez 20-30 s); wskazanie strzałką przy krawędzi
-  ekranu. Mechaniki i grafiki do przeniesienia z Watry: `scripts/dungeons.gd` (`MECHANICS`), `dungeon_chest.gd`,
+  25/50/75% `DungeonLevels.summon_cost` na mapie pojawia się cel (losowy z puli, bez powtórek w jednym zejściu), żeby
+  między falami było dokąd biec. Ustalone z autorem (ankieta 16.11.2026) - wszystkie 5 celów:
+  - skrzynia (stań przy niej 1,5 s - przedmiot albo kamienie, mniej niż skrzynia Wodza),
+  - kapliczka (dar bóstwa na 60 s: Perun obrażenia, Swaróg szybkość ataku, Mokosz leczenie, Weles łup),
+  - Skarbnik - uciekający złocisty duch górnika, trafienia wybijają złoto, po 15 s znika (nie Ultimatum z Watry),
+  - Krąg Żertwy - zabij 80 potworów w kręgu, krąg sam wypuszcza paczki potworów (na razie te same co w lochu, kiedyś
+    może własne); nagroda: wybór 1 z 3 (przedmiot / kamień / żar), kiedyś może unikalny łup,
+  - Kryształ Watry - obroń przez 20-30 s, nagroda kamienie i odpryski.
+  Niezrobiony cel zostaje po przyzwaniu Wodza. Pula rośnie z głębokością co 5 albo 10 poziomów (propozycja Claude:
+  skrzynia od 1., kapliczka od 5., Skarbnik od 10., Żertwa od 15., Kryształ od 20.). Wskazanie: strzałka z ikoną
+  przy krawędzi ekranu, napis i dźwięk przy pojawieniu się, słup światła nad celem; cel najwyżej ~1,5 ekranu od postaci. Mechaniki i grafiki do przeniesienia z Watry: `scripts/dungeons.gd` (`MECHANICS`), `dungeon_chest.gd`,
   `dungeon_shrine.gd`, `skarbnik.gd`, `zertwa.gd`, `watra_crystal.gd` (Uroczysko na później).
   Na później (też z Dwarven Realms, do ustalenia w kolejnych sesjach): drabinka odblokowań systemów z głębokością lochu,
   modyfikatory lochów (np. podwójny żar), klucze z bossów do specjalnych lochów (np. do Żmija Gorynycza).
