@@ -33,6 +33,9 @@ const MAX_HP := HeroLevels.HP_BASE
 const LEVEL_UP_SOUND := preload("res://assets/watra/level_up.ogg")
 ## Po trafieniu postać przez chwilę nie dostaje kolejnych obrażeń (kilka goblinów naraz nie zabija w mgnieniu oka).
 const INVULNERABLE := 0.35
+## Nietykalność po zwykłym trafieniu (17.11.2026: było 0,35 s - postać dostawała najwyżej ~3 ciosy na sekundę
+## bez względu na tłum, więc stanie w miejscu było za bezpieczne; uwaga autora). Riposta zostaje przy INVULNERABLE.
+const HIT_INVULNERABLE := 0.1
 
 ## Skąd postać bierze kierunek ruchu (gałka).
 var joystick: Joystick
@@ -249,7 +252,7 @@ func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 		_spawn_text(tr("Riposta!"), Color(0.6, 0.88, 1.0))
 		parried.emit()
 		return
-	_invulnerable = INVULNERABLE
+	_invulnerable = HIT_INVULNERABLE
 	if dodge > 0.0 and randf() < dodge:
 		_spawn_text(tr("Unik!"), Color(0.75, 0.9, 1.0))
 		dodged.emit()
