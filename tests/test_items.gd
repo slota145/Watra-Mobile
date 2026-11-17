@@ -334,8 +334,10 @@ func _test_new_stats(game: Node) -> void:
 	weapon._deal(e, 10, hero.global_position, Skills.STRIKE)
 	_check(e.hp == hp - 12, "przeciw elitom +20%% (%d)" % (hp - e.hp))
 	hero.hp = 50
+	horde._heal_acc = 0.0
 	g.take_damage(100000, hero.global_position)
-	_check(hero.hp == 55, "zdrowie za zabicie potwora (%d)" % hero.hp)
+	_check(hero.hp == 50 + floori(5.0 * Items.LIFE_ON_KILL_MULT) and is_equal_approx(horde._heal_acc, 0.25),
+			"zdrowie za zabicie potwora - ćwierć wartości, ułamki się zbierają (%d)" % hero.hp)
 	hero.mana = 0
 	await _wait(1.0)
 	_check(hero.mana >= 4 and hero.mana <= 6, "odnowa many z premią (%d na s)" % hero.mana)

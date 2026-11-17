@@ -53,14 +53,14 @@ const SKILL_SOCKETS := 5
 const SKILL_OPEN := 2
 const KEY := "skill_key"
 const CHISEL := "chisel"
-## Łup: szansa na kamień z goblina, na kamień ze skrzyni Wodza (dwie próby), na klucz i dłuto ze skrzyni
+## Łup (17.11.2026 - ok. 3x mniej, uwaga autora: za dużo kamieni na początku): szansa na kamień z goblina, na kamień ze skrzyni Wodza (dwie próby), na klucz i dłuto ze skrzyni
 ## (rośnie z poziomem lochu do sufitu) i z goblina.
-const GOBLIN_GEM := 0.012
-const CHEST_GEM := [0.8, 0.3]
+const GOBLIN_GEM := 0.004
+const CHEST_GEM := [0.3, 0.1]
 const CHEST_KEY := Vector2(0.04, 0.15)
 const CHEST_CHISEL := Vector2(0.06, 0.2)
 const CHEST_RARE_STEP := 0.005
-const GOBLIN_RARE := 0.0015
+const GOBLIN_RARE := 0.0005
 ## Kamień unikalny ze skrzyni Wodza: od poziomu lochu, szansa (rośnie o CHEST_RARE_STEP na poziom do sufitu).
 const UNIQUE_MIN_LEVEL := 5
 const CHEST_UNIQUE := Vector2(0.03, 0.08)
@@ -93,10 +93,10 @@ const SUPPORT := {
 		"text": "Podpala trafionych: %d%% obrażeń przez 3 s."},
 	"rime": {"name": "Szron", "icon": "rime", "color": Color(0.55, 0.85, 1.0), "unit": "pct",
 		"values": [15, 45],
-		"text": "Spowalnia trafionych o %d%% na 2 s."},
-	"discharge": {"name": "Piorun", "icon": "discharge", "color": Color(1.0, 0.95, 0.45), "unit": "pct",
+		"text": "Spowalnia trafionych o %d%% na 2 s i rani lodem (połowa tej liczby jako %% obrażeń)."},
+	"discharge": {"name": "Piorun", "icon": "discharge", "color": Color(0.45, 0.7, 1.0), "unit": "pct",
 		"values": [20, 80],
-		"text": "Trafienie przeskakuje na 2 pobliskich wrogów (%d%% obrażeń)."},
+		"text": "Trafienie przeskakuje na 2 pobliskich wrogów (%d%% obrażeń od pioruna) i poraża ich."},
 	"haste": {"name": "Pośpiech", "icon": "venom", "color": Color(0.55, 0.9, 0.5), "unit": "pct",
 		"values": [10, 33],
 		"text": "Odnowienie krótsze o %d%%.",
@@ -120,8 +120,8 @@ const UNIQUE_PREFIX := "unique:"
 const UNIQUE := {
 	"strike": {"name": "Kamień Wichrowego Ostrza", "short": "Fala cięcia",
 		"text": "Każde cięcie wypuszcza do przodu falę, która przebija wrogów (60% obrażeń ciosu)."},
-	"whirl": {"name": "Kamień Wiecznego Wiru", "short": "Bez odnowienia",
-		"text": "Młynek nie ma odnowienia: wiruje, dopóki go nie wyłączysz (drugie stuknięcie, puszczenie „Atak”) albo nie skończy się mana - zużywa ją co sekundę. Z 10. poziomem wybuch co tyle, ile trwałoby odnowienie."},
+	"whirl": {"name": "Kamień Wiecznego Wiru", "short": "Rośnie z czasem",
+		"text": "Im dłużej wirujesz, tym większy wir: przez 4 s zasięg i obrażenia Młynka rosną aż do +100%."},
 	"throw": {"name": "Kamień Rykoszetu", "short": "Odbicia",
 		"text": "Miecz (i widmowe miecze) odbija się od trafionego wroga w kolejnego - do 3 odbić."},
 	"slam": {"name": "Kamień Drżącej Ziemi", "short": "Fale z trafionych",

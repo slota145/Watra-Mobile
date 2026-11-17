@@ -447,7 +447,7 @@ static func summary(level: int, gear: Dictionary) -> Dictionary:
 		"crit": "%d%%" % roundi(crit_chance(gear)),
 		"crit_dmg": "%d%%" % roundi(crit_damage(gear)),
 		"mana_regen": Lang.t("%.1f /s") % (HeroLevels.MANA_REGEN + gear.get("mana_regen", 0.0)),
-		"life_on_kill": "+%d" % roundi(gear.get("life_on_kill", 0.0)),
+		"life_on_kill": "+%.1f" % Items.life_on_kill(gear),
 		"cdr": "-%d%%" % roundi(gear.get("cdr_pct", 0.0)),
 		"elite_dmg": "+%d%%" % roundi(gear.get("elite_dmg_pct", 0.0)),
 		"dodge": "%d%%" % roundi(gear.get("dodge_pct", 0.0)),

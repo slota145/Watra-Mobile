@@ -87,6 +87,7 @@ func _test_monsters(game: Node) -> void:
 	var a: ProtoSkeletonArcher = horde.spawn_at(hero.position + Vector2(100, 0), "archer")
 	await process_frame
 	a._cooldown = 0.0
+	hero.max_hp = 100000  # mocniejsze potwory (17.11.2026) zabijałyby postać - nieśmiertelność leczy do pełna
 	hero.hp = hero.max_hp
 	var nawia := false
 	for i in 60:
@@ -110,7 +111,7 @@ func _test_monsters(game: Node) -> void:
 	_check(k._state == "attack" and is_instance_valid(k._telegraph) and k._telegraph.arc > 0.0
 			and k._telegraph.contains(hero.global_position), "rycerz: wachlarz w stronę postaci")
 	await _wait(ProtoGoblinBrute.SLAM_WARN)
-	_check(hero.hp == hero.max_hp - roundi(ProtoSkeletonKnight.SWEEP_DAMAGE * horde.power), "zamach rani w wachlarzu (%d / %d, %s)" % [hero.hp, hero.max_hp, k._state])
+	_check(hero.hp == hero.max_hp - roundi(ProtoSkeletonKnight.SWEEP_DAMAGE * horde.power * DungeonLevels.MONSTER_DAMAGE), "zamach rani w wachlarzu (%d / %d, %s)" % [hero.hp, hero.max_hp, k._state])
 	await _wait(0.6)
 	hero._invulnerable = 0.0
 	k._cooldown = 0.0

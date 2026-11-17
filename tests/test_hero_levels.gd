@@ -38,7 +38,7 @@ func _run() -> void:
 
 
 func _test_data(game: Node) -> void:
-	_check(HeroLevels.xp_to_next(1) == 50 and HeroLevels.xp_to_next(2) > 50, "krzywa doświadczenia rośnie (%d, %d)" % [HeroLevels.xp_to_next(1), HeroLevels.xp_to_next(2)])
+	_check(HeroLevels.xp_to_next(1) == 150 and HeroLevels.xp_to_next(2) > 150, "krzywa doświadczenia rośnie (%d, %d)" % [HeroLevels.xp_to_next(1), HeroLevels.xp_to_next(2)])
 	_check(HeroLevels.max_hp(1) == ProtoHero.MAX_HP and HeroLevels.max_hp(5) > HeroLevels.max_hp(1), "zdrowie rośnie z poziomem")
 	_check(is_equal_approx(HeroLevels.damage_mult(1), 1.0) and HeroLevels.damage_mult(5) > 1.0, "obrażenia rosną z poziomem")
 	_check(HeroLevels.skill_slots(1) == 0 and HeroLevels.skill_slots(3) == 1 and HeroLevels.skill_slots(99) == 4, "miejsca na umiejętności odblokowują się z poziomem")
@@ -48,7 +48,7 @@ func _test_data(game: Node) -> void:
 	game.leveled_up.connect(on_up)
 	game.add_xp(30)
 	_check(game.hero_level == 1 and game.hero_xp == 30, "doświadczenie bez awansu")
-	var n: int = game.add_xp(20 + HeroLevels.xp_to_next(2) + 5)
+	var n: int = game.add_xp(HeroLevels.xp_to_next(1) - 30 + HeroLevels.xp_to_next(2) + 5)
 	_check(n == 2 and game.hero_level == 3 and game.hero_xp == 5 and ups[0] == 1, "kilka awansów naraz (poziom %d, reszta %d)" % [game.hero_level, game.hero_xp])
 	game.load_game()
 	_check(game.hero_level == 3 and game.hero_xp == 5, "awans od razu w zapisie")
@@ -92,7 +92,7 @@ func _test_dungeon(game: Node) -> void:
 	game.add_xp(game.xp_needed() - game.hero_xp)
 	await process_frame
 	_check(game.hero_level == 2 and hero.max_hp == HeroLevels.max_hp(2) and hero.hp == hero.max_hp, "awans leczy do pełna i dodaje zdrowia (%d)" % hero.max_hp)
-	_check(arena.health_text.text == "110 / 110" and arena.mana_text.text == "55 / 55", "po awansie więcej zdrowia i many na paskach")
+	_check(arena.health_text.text == "%d / %d" % [HeroLevels.max_hp(2), HeroLevels.max_hp(2)] and arena.mana_text.text == "%d / %d" % [HeroLevels.max_mana(2), HeroLevels.max_mana(2)], "po awansie więcej zdrowia i many na paskach")
 	_check(arena.health_bar.max_value == hero.max_hp and arena.hero_level_label.text == "Poz. 2", "pasek zdrowia i numer poziomu po awansie")
 	_check(is_equal_approx(arena.weapon.damage_mult, HeroLevels.damage_mult(2)), "miecz bije mocniej")
 	var effect := false
@@ -112,7 +112,7 @@ func _test_dungeon(game: Node) -> void:
 	arena.stats_icon.pressed.emit()
 	var stats: HeroStats = arena.stats_window
 	_check(stats.visible and stats._title.text == "Poziom 3", "okno „Postać” z poziomem")
-	_check(stats.rows["hp"][0].text == str(HeroLevels.max_hp(3)) and stats.rows["hp"][1].text == "+10", "zdrowie i przyrost z awansem")
+	_check(stats.rows["hp"][0].text == str(HeroLevels.max_hp(3)) and stats.rows["hp"][1].text == "+%d" % HeroLevels.HP_STEP, "zdrowie i przyrost z awansem")
 	var dmg := HeroStats.damage_range(3)
 	_check(stats.rows["damage"][0].text == "%d-%d" % [dmg.x, dmg.y] and dmg.x > ProtoWeapon.DAMAGE.x, "obrażenia miecza rosną (%s)" % stats.rows["damage"][0].text)
 	_check(stats.rows["slots"][0].text == "1 / 4" and stats.rows["slots"][1].text == "na poz. 6", "miejsca na umiejętności i następne")

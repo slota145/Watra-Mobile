@@ -777,12 +777,15 @@ func _on_skill_pressed(slot: int) -> void:
 		weapon.flicker_held = true
 	elif Skills.is_charged(id):
 		weapon.charge_held = true
+	elif id == "whirl":
+		weapon.whirl_held = true  # Młynek wiruje, dopóki palec trzyma przycisk
 
 
 ## Puszczenie małego przycisku: koniec skoków Mgnienia i wyzwolenie ładowanej umiejętności.
 func _on_skill_released() -> void:
 	weapon.flicker_held = false
 	weapon.charge_held = false
+	weapon.whirl_held = false
 
 
 ## Odnowienie i brak many na przyciskach walki (co klatkę; przycisk przerysowuje się tylko przy zmianie).
@@ -1155,7 +1158,7 @@ func summon_chief() -> void:
 	chief.name = "Chief"
 	chief.hero = hero
 	chief.bounds = ARENA.grow(-24)
-	chief.power = DungeonLevels.power(level)
+	chief.power = DungeonLevels.power(level) * DungeonLevels.BOSS_POWER
 	var spot := hero.position + CHIEF_OFFSET
 	if not ARENA.grow(-40).has_point(spot):
 		spot = hero.position - CHIEF_OFFSET

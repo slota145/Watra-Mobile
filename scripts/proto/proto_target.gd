@@ -19,6 +19,8 @@ const FREEZE_IMMUNE := 2.0
 
 ## Następna liczba obrażeń to trafienie krytyczne (ustawia miecz tuż przed take_damage; liczba złota, większa, z „!”).
 var crit_next := false
+## Kolor następnej liczby obrażeń (żywioł kamienia: piorun, szron; przezroczysty - zwykły biały).
+var color_next := Color(0, 0, 0, 0)
 var _freeze_ready := -INF
 
 
@@ -138,6 +140,9 @@ func _status() -> _Status:
 func spawn_number(amount: int, color := Color(1.0, 0.95, 0.8)) -> void:
 	var crit := crit_next
 	crit_next = false
+	if color_next.a > 0.0:
+		color = color_next
+		color_next = Color(0, 0, 0, 0)
 	var num := Label.new()
 	num.text = str(amount) + ("!" if crit else "")
 	if crit:

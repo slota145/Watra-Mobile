@@ -140,19 +140,24 @@ func set_level(value: int) -> void:
 	lines.append(tr("Siła potworów: %d%%") % roundi(DungeonLevels.power(level) * 100.0))
 	lines.append(tr("Skrzynia bossa: %d żaru") % DungeonLevels.chest_embers(level))
 	mods_button.visible = level >= DungeonMods.FROM_LEVEL
-	var active := DungeonMods.active(level, Game.dungeon_mods)
+	var active := DungeonMods.active(level, _game().dungeon_mods)
 	if not active.is_empty():
 		lines.append(tr("Modyfikatory: %s") % DungeonMods.names(active))
 	for e: Dictionary in Unlocks.new_at(level):
 		lines.append(tr("Nowość: %s") % e.text)
 	if level == max_level:
 		lines.append(tr("Pokonaj bossa, żeby odblokować poziom %d") % (level + 1))
-		var next := Unlocks.next_after(Game.best_level)
-		if level - 1 == Game.best_level and not next.is_empty():  # nie w trybie „wszystkie poziomy”
+		var next := Unlocks.next_after(_game().best_level)
+		if level - 1 == _game().best_level and not next.is_empty():  # nie w trybie „wszystkie poziomy”
 			lines.append(tr("Następne odblokowanie po bossie poziomu %d:") % next[0].beat)
 			for e: Dictionary in next:
 				lines.append("• " + e.text)
 	_info.text = "\n".join(lines)
+
+
+## Autoload Game przez drzewo (odwołanie wprost nie kompiluje się w części testów).
+func _game() -> Node:
+	return get_node("/root/Game")
 
 
 func _label(text: String, size: int, color: Color) -> Label:
