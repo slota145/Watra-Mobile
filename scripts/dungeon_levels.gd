@@ -18,6 +18,9 @@ const REWARD_STEP := 0.15
 const MONSTER_DAMAGE := 1.5
 ## Bossowie: tyle razy więcej zdrowia i obrażeń niż siła poziomu (uwaga autora 17.11.2026: bossowie też za łatwi).
 const BOSS_POWER := 1.5
+## Zdrowie potworów i bossów rośnie szybciej niż ich obrażenia: dodatkowo x HP_GROWTH na poziom (decyzja autora
+## 17.11.2026 - w głębi wszystko padało od jednego ciosu; 10. ~x1,07, 50. ~x1,48, 101. ~x2,2).
+const HP_GROWTH := 1.008
 const POWER_GROWTH := 1.02
 ## Tłum: z każdym poziomem o tyle więcej potworów (gęstość strumienia), najwyżej CROWD_MAX razy
 ## (z 45 naraz robi się ~70 - ProtoHorde.ALIVE_CAP pilnuje telefonu).
@@ -42,6 +45,11 @@ const BRUTE_SHARE_MAX := 0.15
 static func power(level: int) -> float:
 	var steps := maxi(level, 1) - 1
 	return (1.0 + POWER_STEP * steps) * pow(POWER_GROWTH, steps)
+
+
+## Dodatkowy mnożnik zdrowia potworów i bossów na danym poziomie (ponad `power`).
+static func hp_mult(level: int) -> float:
+	return pow(HP_GROWTH, maxi(level, 1) - 1)
 
 
 ## Liniowy przyrost (stara krzywa siły) - doświadczenie za potwory, żeby postać nie awansowała lawinowo w głębi.

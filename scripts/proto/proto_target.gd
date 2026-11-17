@@ -19,9 +19,16 @@ const FREEZE_IMMUNE := 2.0
 
 ## Następna liczba obrażeń to trafienie krytyczne (ustawia miecz tuż przed take_damage; liczba złota, większa, z „!”).
 var crit_next := false
+## Odporności na żywioły (Dungeons.RESISTS lochu; żywioł -> ułamek, ujemny - wrażliwość).
+var resists := {}
 ## Kolor następnej liczby obrażeń (żywioł kamienia: piorun, szron; przezroczysty - zwykły biały).
 var color_next := Color(0, 0, 0, 0)
 var _freeze_ready := -INF
+
+
+## Odporność na żywioł (przycięta do granic Elements).
+func resist(element: String) -> float:
+	return clampf(float(resists.get(element, 0.0)), Elements.MIN_RESISTANCE, Elements.MAX_RESISTANCE)
 
 
 ## Punkt, w który celuje broń.
@@ -53,6 +60,7 @@ func stun(_time: float) -> void:
 func burn(total: float, time: float) -> void:
 	if not alive() or total <= 0.0 or time <= 0.0:
 		return
+	total *= 1.0 - resist(Elements.FIRE)  # podpalenie to ogień
 	var st := _status()
 	var dps := total / time
 	if dps >= st.burn_dps or st.burn_left <= 0.0:

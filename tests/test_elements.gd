@@ -24,6 +24,7 @@ func _run() -> void:
 	_test_elements()
 	_test_weapons(game)
 	await _test_mastery(game)
+	await _test_resists(game)
 	game.reset_hero()
 	DirAccess.remove_absolute(game.settings_path)
 	DirAccess.remove_absolute(game.save_path)
@@ -77,3 +78,46 @@ func _test_mastery(game: Node) -> void:
 			"mistrzostwo 3 w lochu: Młynek odblokowany, napis nad postacią")
 	arena.queue_free()
 	await process_frame
+
+
+## Odporności lochów (Dungeons.RESISTS, 17.11.2026): potwory i boss dostają je ze swojego lochu, broń żywiołu zadaje
+## mniej (odporność) albo więcej (wrażliwość), fizyczne bez zmian, podpalenie słabsze na odpornych na ogień,
+## opis w wyborze poziomu; zdrowie potworów rośnie w głębi szybciej (DungeonLevels.hp_mult).
+func _test_resists(game: Node) -> void:
+	_check(Dungeons.resists(Dungeons.GOBLINS).is_empty() and Dungeons.resists(Dungeons.VOLCANO)[Elements.FIRE] > 0.0,
+			"gobliny bez odporności, wulkan odporny na ogień")
+	_check(Dungeons.resist_text(Dungeons.VOLCANO).contains("Odporne") and Dungeons.resist_text(Dungeons.VOLCANO).contains("Wrażliwe"),
+			"opis odporności: " + Dungeons.resist_text(Dungeons.VOLCANO))
+	_check(DungeonLevels.hp_mult(1) == 1.0 and DungeonLevels.hp_mult(101) > 2.0 and DungeonLevels.hp_mult(10) < 1.1,
+			"zdrowie w głębi rośnie szybciej (101. x%.2f)" % DungeonLevels.hp_mult(101))
+	game.best_level = 45
+	game.dungeon_level = 45
+	game.dev_immortal = true
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var horde: ProtoHorde = arena.horde_spawner
+	horde.running = false
+	var weapon: ProtoWeapon = arena.weapon
+	weapon.crit_chance = 0.0
+	var g := horde.spawn_at(arena.hero.position + Vector2(200, 0))
+	await process_frame
+	_check(g.resist(Elements.FIRE) == Dungeons.RESISTS[Dungeons.VOLCANO][Elements.FIRE], "salamandra zna odporności lochu")
+	g.hp = 1000000
+	weapon.element = Elements.PHYSICAL
+	weapon._deal(g, 1000, g.global_position, Skills.STRIKE)
+	var physical := 1000000 - g.hp
+	g.hp = 1000000
+	weapon.element = Elements.FIRE
+	weapon._deal(g, 1000, g.global_position, Skills.STRIKE)
+	var fire := 1000000 - g.hp
+	g.hp = 1000000
+	weapon.element = Elements.WATER
+	weapon._deal(g, 1000, g.global_position, Skills.STRIKE)
+	var water := 1000000 - g.hp
+	_check(physical == 1000 and fire == 400 and water == 1300, "fizyczne 1000, ogień 400 (odporność), woda 1300 (wrażliwość): %d / %d / %d" % [physical, fire, water])
+	weapon.element = Elements.PHYSICAL
+	arena.queue_free()
+	await process_frame
+	game.dev_immortal = false
+

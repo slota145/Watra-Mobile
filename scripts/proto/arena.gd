@@ -1159,6 +1159,8 @@ func summon_chief() -> void:
 	chief.hero = hero
 	chief.bounds = ARENA.grow(-24)
 	chief.power = DungeonLevels.power(level) * DungeonLevels.BOSS_POWER
+	chief.hp_mult = DungeonLevels.hp_mult(level)
+	chief.resists = Dungeons.resists(climate)
 	var spot := hero.position + CHIEF_OFFSET
 	if not ARENA.grow(-40).has_point(spot):
 		spot = hero.position - CHIEF_OFFSET

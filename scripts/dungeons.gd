@@ -16,6 +16,16 @@ const VOLCANO := "volcano"
 ## Od tego poziomu (włącznie z nim) loch jest losowy przy każdym wejściu.
 const RANDOM_FROM := 101
 const ORDER: Array[String] = [GOBLINS, FLOODED, CATACOMBS, PLAINS, VOLCANO]
+## Odporności potworów i bossa lochu na żywioły (decyzja autora 17.11.2026 - obrażenia w głębi za duże): żywioł -> ułamek
+## (0,5 - połowa obrażeń; ujemny - wrażliwość, więcej obrażeń). Fizyczne bez odporności. Działa przez Elements.reduce
+## (ProtoWeapon._deal, piorun i szron z kamieni, podpalenie - ProtoTarget.burn).
+const RESISTS := {
+	GOBLINS: {},
+	FLOODED: {Elements.WATER: 0.5, Elements.FIRE: 0.3, Elements.LIGHTNING: -0.25},
+	CATACOMBS: {Elements.NAWIA: 0.5, Elements.COLD: 0.3, Elements.FIRE: -0.25},
+	PLAINS: {Elements.LIGHTNING: 0.5, Elements.WATER: 0.2, Elements.COLD: -0.25},
+	VOLCANO: {Elements.FIRE: 0.6, Elements.LIGHTNING: 0.2, Elements.WATER: -0.3, Elements.COLD: -0.25},
+}
 const DATA := {
 	GOBLINS: {"name": "Leże goblinów", "from": 1, "boss": "Wódz Goblinów", "summon": "Przyzwij Wodza",
 		"ground": "res://assets/watra/grass.png", "tint": Color(0.72, 0.68, 0.8), "element": Elements.PHYSICAL,
@@ -57,6 +67,29 @@ static func name_of(id: String) -> String:
 
 static func boss_of(id: String) -> String:
 	return Lang.t(DATA.get(id, DATA[GOBLINS]).boss)
+
+
+static func resists(id: String) -> Dictionary:
+	return RESISTS.get(id, {})
+
+
+## Opis odporności do wyboru poziomu: „Odporne: Woda 50%, Ogień 30% · Wrażliwe: Grom 25%” ("" - brak).
+static func resist_text(id: String) -> String:
+	var strong: Array[String] = []
+	var weak: Array[String] = []
+	var r: Dictionary = resists(id)
+	for e: String in r:
+		var line := "%s %d%%" % [Elements.name_of(e), roundi(absf(r[e]) * 100.0)]
+		if r[e] > 0.0:
+			strong.append(line)
+		else:
+			weak.append(line)
+	var parts: Array[String] = []
+	if not strong.is_empty():
+		parts.append(Lang.t("Odporne: %s") % ", ".join(strong))
+	if not weak.is_empty():
+		parts.append(Lang.t("Wrażliwe: %s") % ", ".join(weak))
+	return " · ".join(parts)
 
 
 static func get_data(id: String) -> Dictionary:

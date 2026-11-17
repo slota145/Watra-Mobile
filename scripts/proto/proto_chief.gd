@@ -67,6 +67,8 @@ const FX_SIZE := 0.6
 var hero: ProtoHero
 var bounds := Rect2(-300, -300, 600, 600)
 var power := 1.0
+## Dodatkowy mnożnik zdrowia z głębokości lochu (DungeonLevels.hp_mult - ustawia arena).
+var hp_mult := 1.0
 ## Liczby i grafika tego bossa (Wodnik - ProtoWodnik - ustawia inne w `_init`).
 var scene_path := SCENE_PATH
 var base_hp := MAX_HP
@@ -101,7 +103,7 @@ var _anims: Array = []
 
 func _ready() -> void:
 	center_height = 22.0
-	max_hp = roundi(base_hp * power)
+	max_hp = roundi(base_hp * power * hp_mult)
 	hp = max_hp
 	add_to_group(ProtoWeapon.TARGETS)
 	var shadow := Sprite2D.new()
