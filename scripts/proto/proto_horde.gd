@@ -31,13 +31,13 @@ signal monster_died(goblin: ProtoGoblin)
 const INTERVAL_START := 1.6
 const INTERVAL_END := 0.6
 ## Wielkość grupki (losowo od-do) na starcie i po pełnym rozkręceniu; grupka wychodzi z jednej strony kadru.
-const GROUP_START := Vector2i(3, 5)
-const GROUP_END := Vector2i(4, 7)
+const GROUP_START := Vector2i(4, 6)
+const GROUP_END := Vector2i(5, 8)
 ## Jak szeroko rozsypana jest grupka wzdłuż krawędzi kadru (w obie strony) i w głąb poza kadr (px).
 const GROUP_SPREAD := 22.0
 ## Najwięcej potworów naraz na starcie i po pełnym rozkręceniu.
-const ALIVE_START := 25
-const ALIVE_END := 70
+const ALIVE_START := 35
+const ALIVE_END := 85
 ## Twardy limit potworów naraz (gęstość z ulepszeń i tłum głębokich lochów) - żeby słabszy telefon nie zwolnił
 ## (pomiar `tools/crowd_bench.gd`: odpychanie w siatce, czas rośnie równo z liczbą potworów).
 const ALIVE_CAP := 150
@@ -91,6 +91,7 @@ var mod_embers := 1.0
 var elite_rate := 1.0
 var rare_loot := false
 var _ember_rest := 0.0
+var _heal_acc := 0.0
 
 var _next := FIRST_DELAY
 ## Za ile sekund następna elita (ustawia _ready; ujemne - poziom bez elit).
@@ -183,7 +184,7 @@ func spawn_at(pos: Vector2, kind := "goblin", elite_traits: Array[String] = []) 
 	if not elite_traits.is_empty():
 		ProtoElite.promote(g, elite_traits)
 	g.speed *= mod_speed
-	g.damage_mult *= mod_damage
+	g.damage_mult *= mod_damage * DungeonLevels.MONSTER_DAMAGE
 	_alive += 1
 	world.add_child(g)
 	return g
@@ -292,9 +293,12 @@ func scatter() -> void:
 
 func _on_died(g: ProtoGoblin) -> void:
 	_alive -= 1
-	var heal := roundi(hero.gear.get("life_on_kill", 0.0))
-	if heal > 0 and not hero.dead:
-		hero.heal(heal)  # premia przedmiotów: zdrowie za zabicie
+	_heal_acc += Items.life_on_kill(hero.gear)  # premia przedmiotów: zdrowie za zabicie (ułamki się zbierają)
+	var heal := floori(_heal_acc)
+	if heal > 0:
+		_heal_acc -= heal
+		if not hero.dead:
+			hero.heal(heal)
 	kills += 1
 	kills_changed.emit(kills)
 	monster_died.emit(g)

@@ -97,7 +97,7 @@ func _test_data() -> void:
 			if not Gems.is_special(id) and not Gems.is_unique(id):
 				gems += 1
 				levels_ok = levels_ok and (Gems.level_of(id) == 1 if Gems.is_support(id) else Gems.jewel_level(id) == 10)
-	_check(gems > 200 and levels_ok, "skrzynia Wodza zwykle daje kamień (umiejętności - 1. poziom, szlachetny z poziomu lochu) (%d)" % gems)
+	_check(gems > 80 and gems < 170 and levels_ok, "skrzynia Wodza czasem daje kamień (umiejętności - 1. poziom, szlachetny z poziomu lochu) (%d)" % gems)
 	# kamienie unikalne
 	var ok := true
 	for skill in Gems.UNIQUE:  # hydrosfera - kamienie unikalne później
@@ -270,7 +270,7 @@ func _test_combat(game: Node) -> void:
 	for id in ["thrift:10", "haste:10", "ember:3", "rime:3", "leech:10", "discharge:10", "multi:10", "area:10"]:
 		game.add_gem(id, 4)
 	game.socket_skill("whirl", 0, "thrift:10")
-	game.socket_skill("whirl", 1, "haste:10")
+	game.socket_skill("throw", 0, "haste:10")  # Młynek nie ma odnowienia (17.11.2026) - Pośpiech na Rzucie
 	game.save_game()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
 	root.add_child(arena)
@@ -278,12 +278,14 @@ func _test_combat(game: Node) -> void:
 	var hero: ProtoHero = arena.hero
 	var weapon: ProtoWeapon = arena.weapon
 	_check(weapon.skill_gems.has("whirl"), "miecz zna kamienie umiejętności")
-	_check(weapon.mana_cost("whirl") == 14 and weapon.mana_cost("throw") == 15, "Oszczędność: Młynek za 14 zamiast 25 many")
-	_check(is_equal_approx(weapon.cooldown_full("whirl"), 8.0 * 0.67), "Pośpiech: odnowienie krótsze o 33%")
+	var cheap := weapon.mana_cost("whirl")
+	_check(cheap < Skills.DATA.whirl.mana and cheap > 0 and weapon.mana_cost("slam") == Skills.DATA.slam.mana,
+			"Oszczędność: Młynek za %d zamiast %d many" % [cheap, Skills.DATA.whirl.mana])
+	_check(is_equal_approx(weapon.cooldown_full("throw"), Skills.DATA.throw.cooldown * 0.67), "Pośpiech: odnowienie krótsze o 33%")
 	hero.position = Vector2(0, 200)
 	await _wait(0.3)
 	var mana := hero.mana
-	_check(weapon.cast("whirl") and hero.mana == mana - 14 and weapon.cooldown_left("whirl") < 5.4, "Młynek płaci mniej i krócej się odnawia")
+	_check(weapon.cast("whirl") and hero.mana == mana - cheap, "Młynek płaci mniej")
 	await _wait(3.2)
 	# podpalenie, spowolnienie, leczenie, mana, piorun - na zwykłym ciosie
 	game.socket_skill("strike", 0, "ember:3")

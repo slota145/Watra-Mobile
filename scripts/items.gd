@@ -80,7 +80,7 @@ const STAT_FORMATS := {
 	"xp_pct": "+%d%% doświadczenia",
 	"crit_pct": "+%d%% szansy na trafienie krytyczne",
 	"crit_dmg_pct": "+%d%% obrażeń krytycznych",
-	"life_on_kill": "+%d zdrowia za zabicie potwora",
+	"life_on_kill": "+%.1f zdrowia za zabicie potwora",
 	"cdr_pct": "%d%% krótsze odnowienie umiejętności",
 	"elite_dmg_pct": "+%d%% obrażeń przeciw elitom i bossom",
 	"mana_regen": "+%.1f many na sekundę",
@@ -116,6 +116,15 @@ const AFFIXES := {
 }
 ## Premie z ułamkiem (jedno miejsce po przecinku), reszta - liczby całkowite.
 const DECIMAL_STATS := ["regen", "mana_regen"]
+## Zdrowie za zabicie działa w tylu częściach wartości z przedmiotu (uwaga autora 17.11.2026: setki zabójstw na wyprawę
+## robiły z postaci nieśmiertelną; było 1-2 za zabicie, teraz 0,25-0,5). Mnożnik zamiast nowych liczb, żeby stare
+## przedmioty i kamienie szlachetne osłabły tak samo jak nowe.
+const LIFE_ON_KILL_MULT := 0.25
+
+
+## Zdrowie za jedno zabicie z sumy cech (`gear`).
+static func life_on_kill(gear: Dictionary) -> float:
+	return gear.get("life_on_kill", 0.0) * LIFE_ON_KILL_MULT
 ## Sufity sumy z całego ekwipunku (żeby postać nie stała się nieśmiertelna ani nie fruwała po lochu).
 ## Szansa na krytyk: 95% z przedmiotów + bazowe 5% = pewny krytyk; odnowienie aż do zera (decyzja autora 13.11.2026:
 ## osiągalne, ale bardzo trudne - premie na jednym przedmiocie są małe; przy zerowym odnowieniu hamulcem zostaje mana).
@@ -252,6 +261,8 @@ static func kind_line(item: Dictionary) -> String:
 static func stat_text(stat: String, value: float) -> String:
 	if stat == "damage":
 		return ""
+	if stat == "life_on_kill":
+		return Lang.t(STAT_FORMATS[stat]) % (value * LIFE_ON_KILL_MULT)
 	if stat in DECIMAL_STATS:
 		return Lang.t(STAT_FORMATS[stat]) % value
 	return Lang.t(STAT_FORMATS[stat]) % roundi(value)

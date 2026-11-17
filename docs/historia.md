@@ -2,6 +2,30 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 17.11.2026 - poprawki po pierwszej uczciwej wyprawie
+
+Zgłoszenia autora (nowa postać, 4. loch, 12. poziom postaci) i decyzje z ankiety:
+- Okno wyniku (`RunResult`): podsumowanie w przewijanym polu z zawijaniem linii (czcionka 14), przyciski zawsze na dole.
+- Poziomy postaci (`HeroLevels`): wolniej i mocniej - `XP_BASE` 50 -> 150 (3x więcej na poziom), awans +10% obrażeń
+  (było 6%), +20 zdrowia (10), +8 many (5).
+- Trudność: siła potworów +20% na poziom (`DungeonLevels.POWER_STEP` 0,15 -> 0,20; nagrody dalej +15% - `REWARD_STEP`;
+  10. ~3,4x, 50. ~29x, 100. ~148x), potwory (bez bossów) zadają x1,5 (`MONSTER_DAMAGE`, w `ProtoHorde.spawn_at`),
+  gęściej od startu (`ALIVE_START` 25 -> 35, `ALIVE_END` 70 -> 85, grupki 4-6 / 5-8).
+- Zdrowie za zabicie: działa w 1/4 wartości z przedmiotu (`Items.LIFE_ON_KILL_MULT` - tak samo dla starych przedmiotów
+  i kamieni szlachetnych), ułamki zbierają się w `ProtoHorde._heal_acc`; opisy „+0,5 zdrowia za zabicie”.
+- Młynek: wiruje, dopóki palec trzyma przycisk (duży - „Atak”/auto atak przy wrogach, mały - `ProtoWeapon.whirl_held`
+  z `arena._on_skill_pressed`), bez odnowienia, 10 many na start i co sekundę (`WHIRL_DRAIN`); 5. poziom - 30% mniej many
+  (było: 4 s zamiast 3), 10. poziom - wybuch co `WHIRL_BLAST_EVERY` 2,5 s. Kamień Wiecznego Wiru - „rośnie z czasem”:
+  przez 4 s zasięg i obrażenia do +100% (`_whirl_grow`). Pośpiech na Młynku nic już nie daje (brak odnowienia).
+- Kamienie ok. 3x rzadziej: goblin 0,4% (było 1,2%), rzadkie 0,05%, skrzynia bossa 30% + 10% (było 80% + 30%),
+  skrzynia-cel 20% (było 50%).
+- Kamienie żywiołów: Piorun - niebieskie liczby, poraża przeskokiem (`DISCHARGE_SHOCK` 3 s, jak katana); Szron -
+  oprócz spowolnienia rani lodem (`RIME_DAMAGE` 0,5 siły, combo z przemoczeniem), błękitne liczby (`ProtoTarget.color_next`).
+  Żar - podpalenie jak dotąd (pomarańczowe liczby).
+- Piorun niebieski w całej grze: `Elements.COLORS` Grom niebieski (lód jaśniejszy), zygzak `_bolt` z szeroką
+  addytywną poświatą i jasnym rdzeniem, gaśnie w 0,3 s.
+- Testy poprawione pod nowe liczby; zrzuty `tools/result_shots.gd`.
+
 ## 16.11.2026 - wiele postaci
 
 Pomysł autora (też do testów: jedna postać normalnie, druga w trybie deweloperskim). Decyzje (ankieta): bez limitu

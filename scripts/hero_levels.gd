@@ -6,19 +6,20 @@ class_name HeroLevels
 
 ## Najwyższy poziom postaci (na razie - do rozbudowy razem z lochami).
 const MAX_LEVEL := 50
-## Doświadczenie na awans z poziomu n: BASE * n^POW (1->2: 50, 2->3: 132, 5->6: 476, 10->11: 1256).
-const XP_BASE := 50.0
+## Doświadczenie na awans z poziomu n: BASE * n^POW (1->2: 150, 2->3: 396, 5->6: 1428, 10->11: 3768). Było BASE 50 -
+## uwaga autora 17.11.2026: 12. poziom na 4. lochu, awanse za szybkie i za słabe.
+const XP_BASE := 150.0
 const XP_POW := 1.4
 ## Zdrowie na 1. poziomie i przyrost na każdy kolejny.
 const HP_BASE := 100
-const HP_STEP := 10
+const HP_STEP := 20
 ## Mana na 1. poziomie i przyrost na każdy kolejny (prośba autora: pasek many; zużyją ją umiejętności).
 const MANA_BASE := 50
-const MANA_STEP := 5
+const MANA_STEP := 8
 ## Mana odnawia się o tyle na sekundę (umiejętności miecza: 15-25 many co kilka sekund).
 const MANA_REGEN := 3.0
-## Mnożnik obrażeń broni rośnie o tyle na poziom (+6%).
-const DAMAGE_STEP := 0.06
+## Mnożnik obrażeń broni rośnie o tyle na poziom (+10%; było +6%).
+const DAMAGE_STEP := 0.10
 ## Na tych poziomach odblokowują się kolejne miejsca na umiejętności (w kolejności od boku ekranu do góry).
 const SKILL_SLOT_LEVELS := [3, 6, 10, 15]
 ## Doświadczenie za goblina i za Wodza na 1. poziomie lochu (rośnie liniowo z poziomem lochu - DungeonLevels.reward).

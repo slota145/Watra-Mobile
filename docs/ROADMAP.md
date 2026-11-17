@@ -5,7 +5,8 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 
 ## Do poprawy
 
-(na razie nic)
+Poprawki z pierwszej uczciwej wyprawy (17.11.2026) zrobione - szczegóły w `docs/historia.md`. Do oceny na telefonie:
+tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej), Młynek trzymany, ilość kamieni, piorun.
 
 ## Najbliższe kroki
 

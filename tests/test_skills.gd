@@ -143,10 +143,11 @@ func _test_levels(game: Node) -> void:
 	await process_frame
 	var hero: ProtoHero = arena.hero
 	var weapon: ProtoWeapon = arena.weapon
-	_check(weapon.level_of("whirl") == 10 and weapon.mana_cost("whirl") == 20 and is_equal_approx(weapon.cooldown_full("whirl"), 6.4)
-			and is_equal_approx(weapon._area("slam"), 1.2), "miecz zna poziomy: mniej many, krótsze odnowienie, większy obszar")
+	_check(weapon.level_of("whirl") == 10 and weapon.mana_cost("whirl") == 8 and weapon.cooldown_full("whirl") == 0.0
+			and is_equal_approx(weapon.cooldown_full("throw"), 3.2) and is_equal_approx(weapon._area("slam"), 1.2),
+			"miecz zna poziomy: mniej many, krótsze odnowienie, większy obszar (Młynek bez odnowienia)")
 	var dummy: ProtoDummy = weapon.targets[0]
-	# Młynek 10. poziomu: 4 s i wybuch odpychający goblina na koniec
+	# Młynek 10. poziomu: wiruje, dopóki trzymany; wybuch co WHIRL_BLAST_EVERY s odpycha goblina
 	var goblin := ProtoGoblin.new()
 	goblin.hero = hero
 	goblin.bounds = Rect2(-400, -600, 800, 1200)
@@ -156,11 +157,16 @@ func _test_levels(game: Node) -> void:
 	arena.get_node("World").add_child(goblin)
 	await _wait(0.1)
 	hero.mana = hero.max_mana
+	weapon.whirl_held = true
 	_check(weapon.cast("whirl"), "Młynek 10. poziomu rusza")
-	await _wait(3.4)
-	_check(weapon._state == "whirl", "Młynek 5. poziomu wiruje dłużej niż 3 s")
-	await _wait(0.8)
-	_check(weapon._state != "whirl" and goblin._push.length() > ProtoGoblin.KNOCKBACK, "na koniec wybuch odpycha goblina")
+	await _wait(ProtoWeapon.WHIRL_BLAST_EVERY - 0.3)
+	await _wait(0.4)
+	_check(weapon._state == "whirl" and weapon.whirl_blasts == 1, "trzymany wiruje, po %.1f s wybuch" % ProtoWeapon.WHIRL_BLAST_EVERY)
+	weapon._whirl_blast()
+	_check(goblin._push.length() > ProtoGoblin.KNOCKBACK, "wybuch odpycha goblina")
+	weapon.whirl_held = false
+	await _wait(0.1)
+	_check(weapon._state != "whirl", "puszczony przycisk kończy Młynek")
 	# Rozłupanie: dłuższe ogłuszenie i druga fala
 	await _wait(0.4)
 	goblin.position = hero.position + Vector2(30, 0)
@@ -251,18 +257,25 @@ func _test_unique(game: Node) -> void:
 	_check(not weapon._waves.is_empty(), "cięcie wypuszcza falę")
 	await _wait(0.5)
 	_check(dummy._count > hits and weapon._waves.is_empty(), "fala trafia kukłę 90 px dalej i znika")
-	# Młynek bez odnowienia: wiruje dłużej niż 4 s, wyłącza go drugie stuknięcie
+	# Kamień Wiecznego Wiru: wir rośnie z czasem (zasięg i obrażenia do +100%)
 	hero.position = dummy.position + Vector2(0, 20)
 	hero.mana = hero.max_mana
 	await _wait(0.4)
+	weapon.whirl_held = true
 	_check(weapon.cast("whirl"), "Młynek z kamieniem rusza")
-	await _wait(4.5)
-	_check(weapon._state == "whirl" and hero.mana < hero.max_mana, "wiruje dłużej niż 4 s i zużywa manę")
-	_check(weapon.cast("whirl") and weapon._state != "whirl", "drugie stuknięcie wyłącza Młynek")
-	hero.mana = 30
+	var small_radius := weapon._whirl_radius()
+	await _wait(ProtoWeapon.WHIRL_GROW_TIME + 0.3)
+	_check(weapon._state == "whirl" and is_equal_approx(weapon._whirl_grow(), 1.0 + ProtoWeapon.WHIRL_GROW)
+			and weapon._whirl_radius() > small_radius * 1.9, "wir urósł do x%.1f" % weapon._whirl_grow())
+	weapon.whirl_held = false
+	await _wait(0.1)
+	weapon.whirl_held = true
+	hero.mana = 12
 	weapon.cast("whirl")
-	await _wait(5.0)
+	_check(is_equal_approx(weapon._whirl_grow(), 1.0), "nowe wirowanie zaczyna od małego wiru")
+	await _wait(3.0)
 	_check(weapon._state != "whirl", "bez many Młynek się kończy")
+	weapon.whirl_held = false
 	# Rzut: odbicia między goblinami
 	var goblins: Array = []
 	for i in 3:
@@ -329,21 +342,25 @@ func _test_combat(game: Node) -> void:
 	_check(actions.skills[0].icon == Skills.icon_of(game.skill_slots[1]) and actions.attack.icon == Skills.icon_of("strike"),
 			"przyciski walki pokazują ikony umiejętności z miejsc")
 	var dummy: ProtoDummy = weapon.targets[0]
-	# Młynek: mana, odnowienie, trafienia wokół
+	# Młynek: wiruje, dopóki palec trzyma mały przycisk (mana co sekundę, bez odnowienia), trafienia wokół
 	hero.position = dummy.position + Vector2(0, 20)
 	await _wait(0.6)
 	var mana := hero.mana
 	var total := dummy._total
-	_check(weapon.cast("whirl"), "Młynek rusza")
-	_check(hero.mana == mana - 25 and weapon.cooldown_left("whirl") > 7.0, "Młynek zjada 25 many i odnawia się 8 s")
+	var slot: int = game.skill_slots.find("whirl")
+	arena._on_skill_pressed(slot)
+	await process_frame
+	_check(weapon._state == "whirl" and weapon.whirl_held, "Młynek rusza, dopóki palec trzyma przycisk")
+	_check(mana - hero.mana >= 10 and weapon.cooldown_left("whirl") == 0.0, "Młynek zjada 10 many na start, bez odnowienia")
 	await _wait(1.0)
 	_check(dummy._count >= 3 and dummy._total > total, "Młynek rani kukłę kilka razy (%d)" % dummy._count)
-	_check(not weapon.cast("whirl"), "w czasie odnowienia się nie da")
+	_check(hero.mana < mana - 15, "co sekundę zużywa manę (%d -> %d)" % [mana, hero.mana])
+	_check(weapon.cast("whirl") and weapon._state == "whirl", "drugie stuknięcie w trakcie nic nie psuje")
+	await _wait(1.5)
+	_check(weapon._state == "whirl", "trzymany wiruje dłużej niż 2 s")
+	arena._on_skill_released()
 	await _wait(0.1)
-	var slot: int = game.skill_slots.find("whirl")
-	_check(actions.button(slot).cooldown_left > 5.0 and actions.button(slot).cooldown_total == 8.0, "przycisk pokazuje odnowienie")
-	await _wait(2.5)
-	_check(weapon._state == "follow", "po 3 s Młynek się kończy")
+	_check(weapon._state == "follow", "puszczenie przycisku kończy Młynek")
 	# Rzut mieczem: leci w kukłę z daleka, wraca
 	weapon.reset_cooldowns()
 	hero.mana = hero.max_mana
@@ -387,7 +404,7 @@ func _test_combat(game: Node) -> void:
 	_check(weapon._state != "whirl" and dummy._count > total, "bez many auto atak tnie zwykłym ciosem")
 	hero.mana = hero.max_mana
 	await _wait(0.8)
-	_check(weapon._state == "whirl" or weapon.cooldown_left("whirl") > 0.0, "z maną auto atak sam rusza Młynek")
+	_check(weapon._state == "whirl", "z maną auto atak sam rusza Młynek i wiruje przy wrogach")
 	weapon.auto_attack = false
 	# stuknięcie małego przycisku
 	await _wait(3.0)

@@ -154,6 +154,7 @@ func _test_monsters(game: Node) -> void:
 	var r: ProtoRusalka = horde.spawn_at(hero.position + Vector2(20, 0), "brute")
 	await process_frame
 	r._cooldown = 0.0
+	hero.max_hp = 100000  # mocniejsze potwory (17.11.2026) zabijałyby postać - nieśmiertelność leczy do pełna
 	hero.hp = hero.max_hp
 	await _wait(0.15)
 	_check(r._state == "attack" and is_instance_valid(r._telegraph) and r._telegraph.position == r.position

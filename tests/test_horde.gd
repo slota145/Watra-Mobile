@@ -112,13 +112,13 @@ func _test_embers(arena: Node, hero: ProtoHero, horde: ProtoHorde) -> void:
 	horde.embers = 3  # tyle zgaśnie przy śmierci (sprawdzane niżej)
 
 
-## Głębokie lochy (13.11.2026): siła rośnie coraz szybciej, więcej potworów (do ALIVE_CAP), doświadczenie liniowo.
+## Głębokie lochy (13.11.2026, +20% na poziom od 17.11.2026): siła rośnie coraz szybciej, więcej potworów (do ALIVE_CAP), doświadczenie liniowo.
 func _test_depth() -> void:
 	var p10 := DungeonLevels.power(10)
 	var p50 := DungeonLevels.power(50)
 	var p100 := DungeonLevels.power(100)
-	_check(is_equal_approx(DungeonLevels.power(1), 1.0) and p10 > 2.7 and p10 < 2.9 and p50 > 20.0 and p50 < 24.0
-			and p100 > 100.0 and p100 < 120.0, "siła: 10. poz. x%.1f, 50. x%.1f, 100. x%.0f" % [p10, p50, p100])
+	_check(is_equal_approx(DungeonLevels.power(1), 1.0) and p10 > 3.2 and p10 < 3.5 and p50 > 26.0 and p50 < 31.0
+			and p100 > 135.0 and p100 < 160.0, "siła: 10. poz. x%.1f, 50. x%.1f, 100. x%.0f" % [p10, p50, p100])
 	_check(roundi(ProtoGoblin.DAMAGE * p100) > HeroLevels.max_hp(15) * 3, "na 100. poziomie goblin zabija postać 15. poziomu jednym ciosem")
 	_check(DungeonLevels.crowd(1) == 1.0 and DungeonLevels.crowd(30) > 1.25 and DungeonLevels.crowd(100) == DungeonLevels.CROWD_MAX,
 			"tłum rośnie do x%.2f" % DungeonLevels.crowd(100))
@@ -392,7 +392,7 @@ func _test_brute() -> void:
 	await process_frame
 	_check(b._state == "attack" and is_instance_valid(b._telegraph), "cięcie nie przerywa zamachu osiłka")
 	await _wait(ProtoGoblinBrute.SLAM_WARN)
-	_check(hero.hp == hero.max_hp - roundi(ProtoGoblinBrute.SLAM_DAMAGE * horde.power), "maczuga trafia w kole (zdrowie %d)" % hero.hp)
+	_check(hero.hp == hero.max_hp - roundi(ProtoGoblinBrute.SLAM_DAMAGE * horde.power * DungeonLevels.MONSTER_DAMAGE), "maczuga trafia w kole (zdrowie %d)" % hero.hp)
 	_check(b._telegraph == null, "po ciosie koło znika")
 	# wyjście z koła ratuje
 	await _wait(0.6)

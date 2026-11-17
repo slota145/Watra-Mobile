@@ -29,8 +29,11 @@ func _ready() -> void:
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	column.add_theme_constant_override("separation", 12)
 	add_child(column)
+	column.offset_left = 12
+	column.offset_right = -12
+	column.offset_bottom = -12
 	var spacer := Control.new()  # tytuł nieco nad środkiem, przyciski pod nim
-	spacer.custom_minimum_size = Vector2(0, 60)
+	spacer.custom_minimum_size = Vector2(0, 24)
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(spacer)
 	var title := Label.new()
@@ -42,13 +45,21 @@ func _ready() -> void:
 	title.add_theme_color_override("font_outline_color", Color(0.1, 0.03, 0.0))
 	title.add_theme_constant_override("outline_size", 6)
 	column.add_child(title)
+	# podsumowanie przewija się i zawija linie - długie „Odblokowano: …” nie wychodzą poza ekran (zgłoszenie autora
+	# 17.11.2026), a przyciski zostają na dole
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	column.add_child(scroll)
 	_summary = Label.new()
 	_summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_summary.add_theme_font_size_override("font_size", 16)
+	_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_summary.add_theme_font_size_override("font_size", 14)
 	_summary.add_theme_color_override("font_color", Color(1, 0.92, 0.78))
 	_summary.add_theme_color_override("font_outline_color", Color(0.1, 0.03, 0.0))
 	_summary.add_theme_constant_override("outline_size", 4)
-	column.add_child(_summary)
+	scroll.add_child(_summary)
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0, 24)
 	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE

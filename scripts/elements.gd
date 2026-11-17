@@ -19,9 +19,9 @@ const NATURE := "nature"
 const ALL: Array[String] = [FIRE, WATER, COLD, LIGHTNING, EARTH, AIR, NAWIA, NATURE]
 const NAMES := {PHYSICAL: "Fizyczne", FIRE: "Ogień", WATER: "Woda", COLD: "Lód", LIGHTNING: "Grom", EARTH: "Ziemia",
 		AIR: "Powietrze", NAWIA: "Nawia", NATURE: "Natura"}
-## Kolory liczb obrażeń, ikon i efektów (ogień, lód, Grom i Nawia jak w Watrze).
+## Kolory liczb obrażeń, ikon i efektów (ogień, lód i Nawia jak w Watrze; Grom niebieski jak pioruny w grze - 17.11.2026).
 const COLORS := {PHYSICAL: Color(1.0, 0.95, 0.85), FIRE: Color(1.0, 0.55, 0.2), WATER: Color(0.3, 0.6, 1.0),
-		COLD: Color(0.55, 0.85, 1.0), LIGHTNING: Color(1.0, 0.95, 0.45), EARTH: Color(0.75, 0.55, 0.3),
+		COLD: Color(0.7, 0.95, 1.0), LIGHTNING: Color(0.45, 0.7, 1.0), EARTH: Color(0.75, 0.55, 0.3),
 		AIR: Color(0.8, 1.0, 0.9), NAWIA: Color(0.7, 0.45, 1.0), NATURE: Color(0.55, 0.95, 0.35)}
 ## Co robi żywioł (ustalone z autorem 13.11.2026; działanie w grze - razem z bronią danego żywiołu).
 const EFFECTS := {

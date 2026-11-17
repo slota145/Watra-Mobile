@@ -38,8 +38,8 @@ const DATA := {
 	},
 	"whirl": {
 		"name": "Młynek", "icon": preload("res://assets/watra/skills/whirlwind.png"),
-		"mana": 25, "cooldown": 8.0, "weapon": "sword", "mastery": 3, "main": true, "range": 40.0, "power": 0.6,
-		"description": "Miecz wiruje wokół ciebie przez 3 s i rani wszystkich dookoła. Możesz przy tym chodzić.",
+		"mana": 10, "cooldown": 0.0, "weapon": "sword", "mastery": 3, "main": true, "range": 40.0, "power": 0.6,
+		"description": "Miecz wiruje wokół ciebie, dopóki trzymasz przycisk, i rani wszystkich dookoła; co sekundę zużywa manę. Możesz przy tym chodzić.",
 	},
 	"throw": {
 		"name": "Rzut mieczem", "icon": preload("res://assets/watra/skills/lunge.png"),
@@ -157,7 +157,7 @@ const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "st
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
-	"whirl": ["Wiruje 4 s zamiast 3.", "Na koniec wybuch odpycha wrogów."],
+	"whirl": ["Zużywa o 30% mniej many.", "Co 2,5 s wirowania wybuch odpycha wrogów."],
 	"throw": ["Na końcu lotu miecz odbija się w kolejnego wroga.", "Rzuca dwa miecze naraz."],
 	"slam": ["Dłuższe ogłuszenie.", "Po pół sekundy uderza druga fala pęknięć."],
 	"steel_ring": ["Krąg trwa 8 s zamiast 6.", "Pięć mieczy zamiast trzech."],

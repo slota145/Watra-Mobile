@@ -24,7 +24,7 @@ const CHEST_HOLD := 1.5
 ## Żar ze skrzyni-celu - ułamek żaru skrzyni Wodza (DungeonLevels.chest_embers).
 const CHEST_EMBER_SHARE := 0.25
 ## Szansa na kamień (Gems.roll) ze skrzyni-celu.
-const CHEST_GEM := 0.5
+const CHEST_GEM := 0.2
 
 ## Kapliczka: tyle sekund modlitwy (stania na niej) i czas daru.
 const PRAY_TIME := 1.0

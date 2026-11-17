@@ -11,7 +11,11 @@ const SUMMON_BASE := 100
 const EMBER_STEP := 0.02
 ## Siła potworów (zdrowie i obrażenia): +15% z każdym poziomem, a całość dodatkowo x1,02 na poziom - w głębi rośnie
 ## coraz szybciej (decyzja autora 13.11.2026: poziom 10 ~2,8x, 50 ~22x, 100 ~112x; wcześniej tylko liniowo, 100 = 16x).
-const POWER_STEP := 0.15
+## 17.11.2026 (gra za łatwa): +20% na poziom (10 ~3,4x, 50 ~29x, 100 ~148x); nagrody dalej rosną o REWARD_STEP.
+const POWER_STEP := 0.20
+const REWARD_STEP := 0.15
+## Potwory (bez bossów) zadają tyle razy więcej obrażeń (decyzja autora 17.11.2026 - gra za łatwa).
+const MONSTER_DAMAGE := 1.5
 const POWER_GROWTH := 1.02
 ## Tłum: z każdym poziomem o tyle więcej potworów (gęstość strumienia), najwyżej CROWD_MAX razy
 ## (z 45 naraz robi się ~70 - ProtoHorde.ALIVE_CAP pilnuje telefonu).
@@ -40,7 +44,7 @@ static func power(level: int) -> float:
 
 ## Liniowy przyrost (stara krzywa siły) - doświadczenie za potwory, żeby postać nie awansowała lawinowo w głębi.
 static func reward(level: int) -> float:
-	return 1.0 + POWER_STEP * (maxi(level, 1) - 1)
+	return 1.0 + REWARD_STEP * (maxi(level, 1) - 1)
 
 
 ## Koszt przyzwania bossa (decyzja autora 16.11.2026): iskry są warte `ember_value` razy więcej, a potworów jest

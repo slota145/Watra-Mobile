@@ -118,6 +118,10 @@ signal skill_used(id: String)
 ## mieczy Rzutu, opóźnienie drugiej fali Rozłupania, zasięg dodatkowego cięcia Mgnienia.
 const BURN_TIME := 3.0
 const SLOW_TIME := 2.0
+## Szron (kamień) rani lodem: tyle razy siła spowolnienia jako % obrażeń trafienia (15-45% -> 7-22%).
+const RIME_DAMAGE := 0.5
+## Piorun (kamień) poraża trafionych przeskokiem na tyle sekund (jak katana - Elements.SHOCK_BONUS).
+const DISCHARGE_SHOCK := 3.0
 const CHAIN_RANGE := 70.0
 const CHAIN_TARGETS := 2
 const THROW_SPREAD := 0.35
@@ -128,7 +132,12 @@ const FLICKER_EXTRA_RANGE := 60.0
 ## zasięg odbicia Rzutu, dłuższe ogłuszenie, opóźnienie drugiej fali Rozłupania, siła wiru
 ## z Mgnienia.
 const STRIKE_CLEAVE_RANGE := 40.0
-const WHIRL_TIME_LONG := 4.0
+## Młynek trzymany (decyzja autora 17.11.2026): 5. poziom - tyle mniej many na sekundę, 10. poziom - wybuch co
+## WHIRL_BLAST_EVERY s wirowania; kamień unikalny - wir rośnie przez WHIRL_GROW_TIME s do +WHIRL_GROW (zasięg i obrażenia).
+const WHIRL_THRIFT := 0.3
+const WHIRL_BLAST_EVERY := 2.5
+const WHIRL_GROW_TIME := 4.0
+const WHIRL_GROW := 1.0
 const WHIRL_BLAST_PUSH := 160.0
 const THROW_BOUNCE_RANGE := 90.0
 const SLAM_STUN_LONG := 2.0
@@ -150,7 +159,8 @@ const SLAM_SHOCK_MAX := 10
 const SHOCK_FX := preload("res://assets/watra/effects/legend_shockwave.png")
 const SHOCK_FX_ANCHOR := Vector2(52, 40)
 const SHOCK_FX_RADIUS := 44.0
-const WHIRL_DRAIN := 1.0 / 3.0
+## Młynek zużywa co sekundę tyle razy koszt many (start płaci raz koszt).
+const WHIRL_DRAIN := 1.0
 
 ## Krąg stali: czas (5. poziom - dłużej), liczba widmowych mieczy (10. poziom - więcej), odległość rękojeści od środka
 ## postaci, spłaszczenie orbity (ziemia z góry pod kątem), obroty na sekundę, co ile ten sam miecz może ciąć tego samego
@@ -184,7 +194,9 @@ var blink_skill := ""
 var flicker_trail: Texture2D = FLICKER_TRAIL
 ## Czy skok pokazuje na celu cięcie Mgnienia miecza (katana ma własne cięcie - bez podwójnego efektu).
 var flicker_cut := true
-var bolt_color := Color(1.0, 0.97, 0.6)
+var bolt_color := Color(0.55, 0.85, 1.0)
+## Jasny rdzeń zygzaka pioruna.
+var bolt_core := Color(0.92, 0.98, 1.0)
 ## Palec trzyma przycisk umiejętności ładowanej (Skills.is_charged - Sąd Peruna katany).
 var charge_held := false
 ## Czy gracz trzyma przycisk ataku.
@@ -268,6 +280,12 @@ var _blink_jumps := 0
 ## Ile razy zawirował wir z 10. poziomu Mgnienia (do testów).
 var _blink_spins := 0
 var _whirl_main := false
+## Palec trzyma mały przycisk Młynka (arena) - wiruje, dopóki trzyma.
+var whirl_held := false
+## Ile wybuchów Młynka było (10. poziom; do testów).
+var whirl_blasts := 0
+## Ile sekund trwa obecne wirowanie (kamień unikalny - wir rośnie).
+var _whirl_time := 0.0
 var _whirl_drain_acc := 0.0
 var _whirl_blast_t := 0.0
 var _bounces_left := 0
@@ -599,9 +617,13 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		t.burn(amount * p / 100.0, BURN_TIME)
 	p = Gems.skill_power(sockets, "rime")
 	if p > 0.0:
-		if t.is_soaked():
+		var soaked := t.is_soaked()
+		if soaked:
 			t.freeze(Elements.SOAK_FREEZE)  # lód na przemoczonym - krótkie zamrożenie
 		t.slow(p / 100.0, SLOW_TIME)
+		if t.alive():  # Szron rani też lodem (decyzja autora 17.11.2026): RIME_DAMAGE siły spowolnienia, combo z wodą
+			t.color_next = Elements.color_of(Elements.COLD)
+			t.take_damage(maxi(1, roundi(amount * p / 100.0 * RIME_DAMAGE * Elements.soak_bonus(Elements.COLD, soaked))), from)
 	p = Gems.skill_power(sockets, "leech")
 	if p > 0.0:
 		_leech_acc += amount * p / 100.0
@@ -616,7 +638,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	p = Gems.skill_power(sockets, "discharge")
 	if p > 0.0 and not _chained:
 		_chained = true
-		_chain_from(t, maxi(1, roundi(amount * p / 100.0)))
+		for n in _chain_from(t, maxi(1, roundi(amount * p / 100.0))):
+			n.shock(DISCHARGE_SHOCK)  # piorun z kamienia poraża jak katana (decyzja autora 17.11.2026)
 
 
 ## Mnożnik combo żywiołów na celu `t`: porażony - +Elements.SHOCK_BONUS od wszystkiego, przemoczony - Grom i lód
@@ -645,27 +668,39 @@ func _chain_from(src: ProtoTarget, amount: int, count := CHAIN_TARGETS, range_px
 	for pair in near.slice(0, count):
 		var t: ProtoTarget = pair[1]
 		_bolt(from, t.center())
+		t.color_next = Elements.color_of(Elements.LIGHTNING)
 		t.take_damage(maxi(1, amount), src.global_position)
 		hit.append(t)
 	return hit
 
 
-## Zygzak pioruna między dwoma punktami (świat), gaśnie w 0,2 s.
+## Zygzak pioruna między dwoma punktami (świat): szeroka niebieska poświata i jasny rdzeń (17.11.2026 - bardziej
+## widoczny i niebieski jak inne pioruny), gaśnie w 0,3 s.
 func _bolt(a: Vector2, b: Vector2) -> void:
-	var line := Line2D.new()
-	line.width = 1.5
-	line.default_color = bolt_color
-	line.z_index = 21
-	var steps := 5
+	var glow := Line2D.new()
+	glow.width = 4.0
+	glow.default_color = Color(bolt_color, 0.55)
+	glow.z_index = 21
+	glow.joint_mode = Line2D.LINE_JOINT_ROUND
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	glow.material = add
+	var core := Line2D.new()
+	core.width = 1.5
+	core.default_color = bolt_core
+	var steps := 6
 	var side := (b - a).orthogonal().normalized()
 	for i in steps + 1:
 		var k := float(i) / steps
-		var jitter := 0.0 if i == 0 or i == steps else randf_range(-4.0, 4.0)
-		line.add_point(a.lerp(b, k) + side * jitter)
-	get_parent().add_child(line)
-	var tween := line.create_tween()
-	tween.tween_property(line, "modulate:a", 0.0, 0.2)
-	tween.tween_callback(line.queue_free)
+		var jitter := 0.0 if i == 0 or i == steps else randf_range(-5.0, 5.0)
+		glow.add_point(a.lerp(b, k) + side * jitter)
+		core.add_point(glow.get_point_position(i))
+	glow.add_child(core)
+	get_parent().add_child(glow)
+	var tween := glow.create_tween()
+	tween.tween_interval(0.08)
+	tween.tween_property(glow, "modulate:a", 0.0, 0.22)
+	tween.tween_callback(glow.queue_free)
 
 
 ## Ile sekund odnowienia zostało umiejętności `id` (0 - gotowa).
@@ -686,9 +721,8 @@ func can_use(id: String) -> bool:
 func cast(id: String) -> bool:
 	if not Skills.has(id) or hero.dead:
 		return false
-	if id == "whirl" and _state == "whirl" and _unique("whirl"):
-		_end_skill()  # kamień unikalny: drugie stuknięcie wyłącza Młynek
-		return true
+	if id == "whirl" and _state == "whirl":
+		return true  # już wiruje (trzymany)
 	if id == "steel_ring" and _unique(id) and ring_left() > 0.0:
 		_clear_ring()  # Kamień Wiecznej Stali: drugie stuknięcie wyłącza krąg
 		return true
@@ -731,8 +765,9 @@ func _start(id: String) -> void:
 			_whirl_main = false
 			_whirl_drain_acc = 0.0
 			_whirl_blast_t = 0.0
+			_whirl_time = 0.0
 			_whirl_fx.visible = true
-			_whirl_fx.scale = Vector2.ONE * WHIRL_RADIUS * _area("whirl") / WHIRL_FX_RADIUS
+			_whirl_fx.scale = Vector2.ONE * _whirl_radius() / WHIRL_FX_RADIUS
 			_ghosts[0].visible = gem_power("whirl", "multi") > 0.0
 			_set_state("whirl")
 		"throw":
@@ -863,8 +898,12 @@ func ring_left() -> float:
 	return _ring_left if not _ring.is_empty() else 0.0
 
 
-## Młynek: miecz krąży wokół postaci (rękojeścią do niej), co WHIRL_TICK rani wszystkich w promieniu.
+## Młynek: miecz krąży wokół postaci (rękojeścią do niej), co WHIRL_TICK rani wszystkich w promieniu. Wiruje, dopóki
+## gracz trzyma przycisk (decyzja autora 17.11.2026): spod dużego - „Atak” (auto atak - dopóki są wrogowie w pobliżu),
+## spod małego - `whirl_held`; płaci manę co sekundę (WHIRL_DRAIN kosztu, 5. poziom - mniej), bez odnowienia; kończy się
+## bez many. 10. poziom - wybuch co WHIRL_BLAST_EVERY s. Kamień unikalny - wir rośnie z czasem (`_whirl_grow`).
 func _process_whirl(delta: float) -> void:
+	_whirl_time += delta
 	_spin += TAU * WHIRL_SPIN * delta
 	_place(_spin)
 	if _ghosts[0].visible:
@@ -872,33 +911,23 @@ func _process_whirl(delta: float) -> void:
 		_ghosts[0].rotation = _spin + PI
 	_whirl_fx.position = _orbit_center() - global_position
 	_whirl_fx.frame = int(_clock * WHIRL_FX_FPS) % WHIRL_FX_FRAMES
+	_whirl_fx.scale = Vector2.ONE * _whirl_radius() / WHIRL_FX_RADIUS
 	_tick -= delta
 	if _tick <= 0.0:
 		_tick = WHIRL_TICK
 		var hit := false
 		var extra := gem_power("whirl", "multi") / 100.0
+		var power := _power("whirl") * _whirl_grow()
 		for t in _live_targets():
-			if t.center().distance_to(_orbit_center()) <= WHIRL_RADIUS * _area("whirl"):
-				_deal(t, _roll(_power("whirl")), hero.global_position, "whirl")
+			if t.center().distance_to(_orbit_center()) <= _whirl_radius():
+				_deal(t, _roll(power), hero.global_position, "whirl")
 				if extra > 0.0 and t.alive():
-					_deal(t, _roll(_power("whirl") * extra), hero.global_position, "whirl")
+					_deal(t, _roll(power * extra), hero.global_position, "whirl")
 				hit = true
 		if hit:
 			Input.vibrate_handheld(8)
-	if _unique("whirl"):
-		_process_endless_whirl(delta)
-		return
-	var whirl_time := WHIRL_TIME_LONG if _perk("whirl", 0) else WHIRL_TIME
-	if _t >= whirl_time * speed_mult:  # _t rośnie szybciej z premią szybkości ataku - czas Młynka nie
-		if _perk("whirl", 1):
-			_whirl_blast()
-		_end_skill()
-
-
-## Młynek z kamieniem unikalnym: płaci manę co sekundę (ułamek WHIRL_DRAIN kosztu), wybuch z 10. poziomu co czas
-## odnowienia; kończy się bez many, a spod dużego przycisku - gdy gracz puści „Atak” (auto atak - gdy brak wrogów).
-func _process_endless_whirl(delta: float) -> void:
-	_whirl_drain_acc += mana_cost("whirl") * WHIRL_DRAIN * delta
+	var drain := mana_cost("whirl") * WHIRL_DRAIN * (1.0 - WHIRL_THRIFT if _perk("whirl", 0) else 1.0)
+	_whirl_drain_acc += drain * delta
 	var pay := int(_whirl_drain_acc)
 	if pay > 0:
 		_whirl_drain_acc -= pay
@@ -908,16 +937,29 @@ func _process_endless_whirl(delta: float) -> void:
 			return
 	if _perk("whirl", 1):
 		_whirl_blast_t += delta
-		if _whirl_blast_t >= maxf(_cooldown_base("whirl"), 1.0):
+		if _whirl_blast_t >= WHIRL_BLAST_EVERY:
 			_whirl_blast_t = 0.0
 			_whirl_blast()
-	if _whirl_main and not attack_held and not (auto_attack and _nearest(Skills.DATA.whirl.range) != null):
+	var held := attack_held or (auto_attack and _nearest(Skills.DATA.whirl.range) != null) if _whirl_main else whirl_held
+	if not held:
 		_end_skill()
 
 
-## 10. poziom Młynka: na koniec wybuch - trafia wszystkich w promieniu wiru i odpycha ich od postaci.
+## Kamień unikalny Młynka: mnożnik zasięgu i obrażeń rosnący z czasem wirowania (1 -> 1 + WHIRL_GROW).
+func _whirl_grow() -> float:
+	if not _unique("whirl"):
+		return 1.0
+	return 1.0 + WHIRL_GROW * clampf(_whirl_time / WHIRL_GROW_TIME, 0.0, 1.0)
+
+
+func _whirl_radius() -> float:
+	return WHIRL_RADIUS * _area("whirl") * _whirl_grow()
+
+
+## 10. poziom Młynka: wybuch co WHIRL_BLAST_EVERY s wirowania - trafia wszystkich w promieniu wiru i odpycha ich od postaci.
 func _whirl_blast() -> void:
-	var radius := WHIRL_RADIUS * _area("whirl") * 1.2
+	whirl_blasts += 1
+	var radius := _whirl_radius() * 1.2
 	for t in _live_targets():
 		if t.center().distance_to(_orbit_center()) <= radius:
 			_deal(t, _roll(_power("whirl")), hero.global_position, "whirl")
