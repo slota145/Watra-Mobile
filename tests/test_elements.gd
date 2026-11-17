@@ -80,16 +80,20 @@ func _test_mastery(game: Node) -> void:
 	await process_frame
 
 
-## Odporności lochów (Dungeons.RESISTS, 17.11.2026): potwory i boss dostają je ze swojego lochu, broń żywiołu zadaje
-## mniej (odporność) albo więcej (wrażliwość), fizyczne bez zmian, podpalenie słabsze na odpornych na ogień,
-## opis w wyborze poziomu; zdrowie potworów rośnie w głębi szybciej (DungeonLevels.hp_mult).
+## Odporności potworów (17.11.2026): wspólna odporność na wszystko (też fizyczne) rośnie z głębią, lochy mają łagodny
+## charakter (Dungeons.RESISTS, ±20%), przebicie odporności postaci (`pen_pct`) ją zmniejsza (najwyżej do zera),
+## podpalenie też podlega odporności, opis w wyborze poziomu.
 func _test_resists(game: Node) -> void:
-	_check(Dungeons.resists(Dungeons.GOBLINS).is_empty() and Dungeons.resists(Dungeons.VOLCANO)[Elements.FIRE] > 0.0,
-			"gobliny bez odporności, wulkan odporny na ogień")
-	_check(Dungeons.resist_text(Dungeons.VOLCANO).contains("Odporne") and Dungeons.resist_text(Dungeons.VOLCANO).contains("Wrażliwe"),
-			"opis odporności: " + Dungeons.resist_text(Dungeons.VOLCANO))
-	_check(DungeonLevels.hp_mult(1) == 1.0 and DungeonLevels.hp_mult(101) > 2.0 and DungeonLevels.hp_mult(10) < 1.1,
-			"zdrowie w głębi rośnie szybciej (101. x%.2f)" % DungeonLevels.hp_mult(101))
+	_check(DungeonLevels.base_resist(1) == 0.0 and is_equal_approx(DungeonLevels.base_resist(101), DungeonLevels.RESIST_MAX)
+			and DungeonLevels.base_resist(500) == DungeonLevels.RESIST_MAX, "wspólna odporność: 0% na 1., %d%% na 101." % roundi(DungeonLevels.base_resist(101) * 100))
+	var r: Dictionary = Dungeons.resists(Dungeons.VOLCANO, 45)
+	var base := DungeonLevels.base_resist(45)
+	_check(is_equal_approx(r[Elements.PHYSICAL], base) and is_equal_approx(r[Elements.FIRE], base + 0.2)
+			and is_equal_approx(r[Elements.WATER], base - 0.2), "wulkan: fizyczne %.2f, ogień +20%%, woda -20%%" % base)
+	_check(Dungeons.resist_text(Dungeons.VOLCANO, 45).contains("Odporność potworów") and Dungeons.resist_text(Dungeons.VOLCANO, 45).contains("Mniej"),
+			"opis odporności: " + Dungeons.resist_text(Dungeons.VOLCANO, 45))
+	_check(Items.AFFIXES.has("pen_pct") and Gems.JEWELS.ruby.pool.has("pen_pct") and Items.CAPS.pen_pct > 0.0,
+			"przebicie odporności: premia przedmiotów i rubinów, z sufitem")
 	game.best_level = 45
 	game.dungeon_level = 45
 	game.dev_immortal = true
@@ -102,22 +106,23 @@ func _test_resists(game: Node) -> void:
 	weapon.crit_chance = 0.0
 	var g := horde.spawn_at(arena.hero.position + Vector2(200, 0))
 	await process_frame
-	_check(g.resist(Elements.FIRE) == Dungeons.RESISTS[Dungeons.VOLCANO][Elements.FIRE], "salamandra zna odporności lochu")
-	g.hp = 1000000
+	_check(is_equal_approx(g.resist(Elements.FIRE), base + 0.2), "salamandra zna odporności lochu")
+	var hits := {}
+	for e in [Elements.PHYSICAL, Elements.FIRE, Elements.WATER]:
+		g.hp = 1000000
+		weapon.element = e
+		weapon._deal(g, 1000, g.global_position, Skills.STRIKE)
+		hits[e] = 1000000 - g.hp
+	_check(hits[Elements.PHYSICAL] == roundi(1000 * (1.0 - base)) and hits[Elements.FIRE] < hits[Elements.PHYSICAL]
+			and hits[Elements.WATER] > hits[Elements.PHYSICAL], "fizyczne %d, ogień %d (mniej), woda %d (więcej)" % [hits[Elements.PHYSICAL], hits[Elements.FIRE], hits[Elements.WATER]])
 	weapon.element = Elements.PHYSICAL
-	weapon._deal(g, 1000, g.global_position, Skills.STRIKE)
-	var physical := 1000000 - g.hp
+	weapon.penetration = 0.15
 	g.hp = 1000000
-	weapon.element = Elements.FIRE
 	weapon._deal(g, 1000, g.global_position, Skills.STRIKE)
-	var fire := 1000000 - g.hp
-	g.hp = 1000000
-	weapon.element = Elements.WATER
-	weapon._deal(g, 1000, g.global_position, Skills.STRIKE)
-	var water := 1000000 - g.hp
-	_check(physical == 1000 and fire == 400 and water == 1300, "fizyczne 1000, ogień 400 (odporność), woda 1300 (wrażliwość): %d / %d / %d" % [physical, fire, water])
-	weapon.element = Elements.PHYSICAL
+	_check(1000000 - g.hp == roundi(1000 * (1.0 - (base - 0.15))), "przebicie 15%% zmniejsza odporność (%d)" % (1000000 - g.hp))
+	weapon.penetration = 1.0
+	_check(g.resist(Elements.PHYSICAL, 1.0) == 0.0 and g.resist(Elements.WATER, 1.0) == minf(base - 0.2, 0.0), "przebicie najwyżej do zera")
+	weapon.penetration = 0.0
 	arena.queue_free()
 	await process_frame
 	game.dev_immortal = false
-

@@ -137,7 +137,7 @@ func set_level(value: int) -> void:
 		var id := Dungeons.for_level(level)
 		lines.append(Dungeons.name_of(id))
 		lines.append(Lang.t(Dungeons.get_data(id).description))
-		var res := Dungeons.resist_text(id)
+		var res := Dungeons.resist_text(id, level)
 		if res != "":
 			lines.append(res)
 	lines.append(tr("Siła potworów: %d%%") % roundi(DungeonLevels.power(level) * 100.0))

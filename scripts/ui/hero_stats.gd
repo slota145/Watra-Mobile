@@ -31,11 +31,11 @@ const BAG_COLUMNS := 5
 const LEFT_SLOTS := ["helmet", "armor", "boots"]
 const RIGHT_SLOTS := ["earring", "amulet", "ring"]
 ## Kolejność statystyk w oknie; te z EXTRA_STATS pokazują się tylko, gdy przedmioty coś do nich dają.
-const STAT_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "mana_regen", "protection", "element_res", "regen",
+const STAT_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "pen", "mana_regen", "protection", "element_res", "regen",
 	"life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp", "slots"]
-const EXTRA_STATS := ["protection", "element_res", "regen", "life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
+const EXTRA_STATS := ["pen", "protection", "element_res", "regen", "life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
 ## Statystyki porównywane przy zakładaniu przedmiotu (bez miejsc na umiejętności).
-const COMPARE_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "mana_regen", "protection", "element_res", "regen",
+const COMPARE_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "pen", "mana_regen", "protection", "element_res", "regen",
 	"life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
 ## Bazowe trafienie krytyczne postaci (bez przedmiotów): szansa i obrażenia w procentach.
 const CRIT_CHANCE := 5.0
@@ -442,6 +442,7 @@ static func summary(level: int, gear: Dictionary) -> Dictionary:
 		"move": str(roundi(ProtoHero.SPEED * (1.0 + gear.get("move_pct", 0.0) / 100.0))),
 		"protection": "%d%%" % roundi(gear.get("protection_pct", 0.0)),
 		"element_res": "%d%%" % roundi(gear.get("element_res_pct", 0.0)),
+		"pen": "%d%%" % roundi(gear.get("pen_pct", 0.0)),
 		"regen": Lang.t("%.1f /s") % gear.get("regen", 0.0),
 		"xp": "+%d%%" % roundi(gear.get("xp_pct", 0.0)),
 		"crit": "%d%%" % roundi(crit_chance(gear)),
@@ -1018,6 +1019,8 @@ func _stat_name(key: String) -> String:
 			return tr("Ochrona")
 		"element_res":
 			return tr("Odporność na żywioły")
+		"pen":
+			return tr("Przebicie odporności")
 		"regen":
 			return tr("Regeneracja")
 		"crit":

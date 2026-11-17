@@ -68,7 +68,8 @@ const CHEST_ITEMS := 3
 ## (do bazowych HeroStats.CRIT_DAMAGE), life_on_kill - zdrowie za zabicie potwora, cdr_pct - krótsze odnowienie
 ## umiejętności, elite_dmg_pct - obrażenia przeciw elitom i bossom, mana_regen - mana na sekundę (do HeroLevels.MANA_REGEN),
 ## area_pct - większy obszar cięć i umiejętności, dodge_pct - szansa, że cios potwora nie trafi, pickup_pct - dalej
-## przyciągane iskry i łup, ember_pct - więcej żaru z iskier (decyzja autora 13.11.2026).
+## przyciągane iskry i łup, ember_pct - więcej żaru z iskier (decyzja autora 13.11.2026), pen_pct - przebicie odporności
+## potworów (zmniejsza ich wspólną odporność głębi - DungeonLevels.base_resist; 17.11.2026).
 const STAT_FORMATS := {
 	"hp": "+%d do zdrowia",
 	"mana": "+%d do many",
@@ -89,6 +90,7 @@ const STAT_FORMATS := {
 	"pickup_pct": "+%d%% zasięgu zbierania",
 	"ember_pct": "+%d%% żaru",
 	"element_res_pct": "+%d%% odporności na żywioły",
+	"pen_pct": "+%d%% przebicia odporności potworów",
 }
 ## Losowe premie: [najmniej, najwięcej] na 1. poziomie lochu; `scales` - rośnie z siłą lochu (DungeonLevels.power),
 ## inaczej (procenty) rośnie płynnie o `per_level` z każdym poziomem lochu (decyzja autora 12.11.2026 - wcześniej
@@ -113,6 +115,7 @@ const AFFIXES := {
 	"pickup_pct": {"min": 10.0, "max": 20.0, "per_level": 0.5},
 	"ember_pct": {"min": 4.0, "max": 8.0, "per_level": 0.3},
 	"element_res_pct": {"min": 5.0, "max": 10.0, "per_level": 0.3},
+	"pen_pct": {"min": 2.0, "max": 5.0, "per_level": 0.1},
 }
 ## Premie z ułamkiem (jedno miejsce po przecinku), reszta - liczby całkowite.
 const DECIMAL_STATS := ["regen", "mana_regen"]
@@ -131,7 +134,7 @@ static func life_on_kill(gear: Dictionary) -> float:
 ## Unik do 50% (połowa ciosów nadal trafia), obszar do +100%, zasięg zbierania do +200%, żar do +100%.
 const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0, "crit_pct": 95.0, "cdr_pct": 100.0,
 	"dodge_pct": 50.0, "area_pct": 100.0, "pickup_pct": 200.0, "ember_pct": 100.0,
-	"element_res_pct": Elements.MAX_RESISTANCE * 100.0}
+	"element_res_pct": Elements.MAX_RESISTANCE * 100.0, "pen_pct": 55.0}
 ## Stała cecha każdego miejsca na 1. poziomie lochu (liczby rosną z siłą lochu, procenty o BASE_PCT_PER_LEVEL).
 ## Kolczyk: obrażenia ciosu (od-do) każdej broni zamiast gołych obrażeń postaci.
 const BASE := {

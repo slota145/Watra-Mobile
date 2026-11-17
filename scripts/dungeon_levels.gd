@@ -18,9 +18,13 @@ const REWARD_STEP := 0.15
 const MONSTER_DAMAGE := 1.5
 ## Bossowie: tyle razy więcej zdrowia i obrażeń niż siła poziomu (uwaga autora 17.11.2026: bossowie też za łatwi).
 const BOSS_POWER := 1.5
-## Zdrowie potworów i bossów rośnie szybciej niż ich obrażenia: dodatkowo x HP_GROWTH na poziom (decyzja autora
-## 17.11.2026 - w głębi wszystko padało od jednego ciosu; 10. ~x1,07, 50. ~x1,48, 101. ~x2,2).
-const HP_GROWTH := 1.008
+## Zdrowie potworów i bossów może rosnąć szybciej niż obrażenia: dodatkowo x HP_GROWTH na poziom. Przez chwilę 1,008
+## (17.11.2026), potem zastąpione wspólną odpornością głębi (RESIST_STEP) - zostaje 1,0, haczyk na później.
+const HP_GROWTH := 1.0
+## Wspólna odporność potworów na wszystko (też fizyczne) rośnie o tyle na poziom lochu do RESIST_MAX (decyzja autora
+## 17.11.2026; 10. ~5%, 50. ~27%, 101. 55%). Zmniejsza ją premia „Przebicie odporności” (Items `pen_pct`).
+const RESIST_STEP := 0.0055
+const RESIST_MAX := 0.55
 const POWER_GROWTH := 1.02
 ## Tłum: z każdym poziomem o tyle więcej potworów (gęstość strumienia), najwyżej CROWD_MAX razy
 ## (z 45 naraz robi się ~70 - ProtoHorde.ALIVE_CAP pilnuje telefonu).
@@ -45,6 +49,11 @@ const BRUTE_SHARE_MAX := 0.15
 static func power(level: int) -> float:
 	var steps := maxi(level, 1) - 1
 	return (1.0 + POWER_STEP * steps) * pow(POWER_GROWTH, steps)
+
+
+## Wspólna odporność potworów na wszystko na danym poziomie lochu (Dungeons.resists dokłada charakter lochu).
+static func base_resist(level: int) -> float:
+	return minf(RESIST_STEP * (maxi(level, 1) - 1), RESIST_MAX)
 
 
 ## Dodatkowy mnożnik zdrowia potworów i bossów na danym poziomie (ponad `power`).

@@ -26,9 +26,11 @@ var color_next := Color(0, 0, 0, 0)
 var _freeze_ready := -INF
 
 
-## Odporność na żywioł (przycięta do granic Elements).
-func resist(element: String) -> float:
-	return clampf(float(resists.get(element, 0.0)), Elements.MIN_RESISTANCE, Elements.MAX_RESISTANCE)
+## Odporność na żywioł (przycięta do granic Elements); `pen` - przebicie odporności postaci (ułamek): zmniejsza
+## odporność najwyżej do zera, wrażliwości nie pogłębia.
+func resist(element: String, pen := 0.0) -> float:
+	var r := clampf(float(resists.get(element, 0.0)), Elements.MIN_RESISTANCE, Elements.MAX_RESISTANCE)
+	return maxf(r - pen, minf(r, 0.0))
 
 
 ## Punkt, w który celuje broń.
@@ -57,10 +59,10 @@ func stun(_time: float) -> void:
 
 
 ## Podpalenie: razem `total` obrażeń rozłożonych na `time` sekund (nowe podpalenie zastępuje słabsze).
-func burn(total: float, time: float) -> void:
+func burn(total: float, time: float, pen := 0.0) -> void:
 	if not alive() or total <= 0.0 or time <= 0.0:
 		return
-	total *= 1.0 - resist(Elements.FIRE)  # podpalenie to ogień
+	total *= 1.0 - resist(Elements.FIRE, pen)  # podpalenie to ogień
 	var st := _status()
 	var dps := total / time
 	if dps >= st.burn_dps or st.burn_left <= 0.0:
