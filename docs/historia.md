@@ -24,6 +24,8 @@ Zgłoszenia autora (nowa postać, 4. loch, 12. poziom postaci) i decyzje z ankie
   Żar - podpalenie jak dotąd (pomarańczowe liczby).
 - Piorun niebieski w całej grze: `Elements.COLORS` Grom niebieski (lód jaśniejszy), zygzak `_bolt` z szeroką
   addytywną poświatą i jasnym rdzeniem, gaśnie w 0,3 s.
+- Bossowie też za łatwi (druga uwaga autora): `DungeonLevels.BOSS_POWER` 1,5 - zdrowie i obrażenia bossów x1,5
+  (`arena.summon_chief`: `power` x BOSS_POWER).
 - Testy poprawione pod nowe liczby; zrzuty `tools/result_shots.gd`.
 
 ## 16.11.2026 - wiele postaci

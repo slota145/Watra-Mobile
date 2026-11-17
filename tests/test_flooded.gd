@@ -185,6 +185,7 @@ func _test_wodnik(game: Node) -> void:
 	wod._summon_cooldown = 99.0
 	# fala: pas od Wodnika w stronę postaci
 	hero.position = wod.position + Vector2(60, 0)
+	hero.max_hp = 100000  # mocniejszy Wodnik (17.11.2026) zabijałby postać - nieśmiertelność leczy do pełna
 	hero.hp = hero.max_hp
 	hero._invulnerable = 0.0
 	wod.start_attack("wave")
@@ -225,6 +226,7 @@ func _test_wodnik(game: Node) -> void:
 	wod._set_state("walk")
 	wod._cooldown = 99.0
 	hero.position = wod.position + Vector2(80, 0)
+	hero.max_hp = 100000  # mocniejszy Wodnik (17.11.2026) zabijałby postać - nieśmiertelność leczy do pełna
 	hero.hp = hero.max_hp
 	hero._invulnerable = 0.0
 	wod.start_attack("cast")

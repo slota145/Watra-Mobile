@@ -16,6 +16,8 @@ const POWER_STEP := 0.20
 const REWARD_STEP := 0.15
 ## Potwory (bez bossów) zadają tyle razy więcej obrażeń (decyzja autora 17.11.2026 - gra za łatwa).
 const MONSTER_DAMAGE := 1.5
+## Bossowie: tyle razy więcej zdrowia i obrażeń niż siła poziomu (uwaga autora 17.11.2026: bossowie też za łatwi).
+const BOSS_POWER := 1.5
 const POWER_GROWTH := 1.02
 ## Tłum: z każdym poziomem o tyle więcej potworów (gęstość strumienia), najwyżej CROWD_MAX razy
 ## (z 45 naraz robi się ~70 - ProtoHorde.ALIVE_CAP pilnuje telefonu).
