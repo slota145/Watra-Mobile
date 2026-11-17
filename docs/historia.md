@@ -2,6 +2,16 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 17.11.2026 - krótsza nietykalność po trafieniu
+
+Uwaga autora po drugim teście: dalej za łatwo - można długo stać w miejscu i się leczyć (12. poziom, loch 5); w PoE,
+Dwarven Realms i Vampire Survivors takie stanie kończy się śmiercią dużo szybciej. Przyczyna: po każdym trafieniu postać
+była nietykalna 0,35 s, więc dostawała najwyżej ~3 ciosy na sekundę bez względu na tłum.
+- `ProtoHero.HIT_INVULNERABLE` 0,1 s po zwykłym trafieniu (Riposta zostaje przy `INVULNERABLE` 0,35 s).
+- Symulacja (postać 12. poziomu stoi z auto atakiem w lochu 5; pierwsze ~10 s potwory dopiero dochodzą): od otoczenia
+  do śmierci bez przedmiotów ~7 s -> ~4-5 s, z przeciętnymi przedmiotami (+80 zdrowia, regeneracja 3/s, ochrona 15%,
+  unik 8%, leczenie za zabicie) ~12-20 s -> ~6-7 s.
+
 ## 17.11.2026 - poprawki po pierwszej uczciwej wyprawie
 
 Zgłoszenia autora (nowa postać, 4. loch, 12. poziom postaci) i decyzje z ankiety:
