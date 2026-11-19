@@ -825,5 +825,50 @@
       62,
       21
     ]
+  },
+  "perun_bolt": {
+    "effect": "434f857f-7b5a-4428-a979-ad6419c6e651",
+    "name": "Sąd Peruna - grom z nieba (uderzenie w 5. klatce)",
+    "frame": [
+      85,
+      124
+    ],
+    "frames": 14,
+    "columns": 4,
+    "fps": 20,
+    "anchor": [
+      42,
+      118
+    ]
+  },
+  "slam_spikes": {
+    "effect": "0f2cd75b-75ec-4abb-afe6-66960a29bb45",
+    "name": "Rozłupanie Ziemi - skalne kolce wzdłuż pęknięcia",
+    "frame": [
+      61,
+      46
+    ],
+    "frames": 18,
+    "columns": 5,
+    "fps": 16,
+    "anchor": [
+      30,
+      34
+    ]
+  },
+  "furrow_pillar": {
+    "effect": "47b8b8d3-8357-47ee-ba87-6f0e7773e20f",
+    "name": "Płonąca bruzda - słup płomieni ze szczeliny",
+    "frame": [
+      91,
+      90
+    ],
+    "frames": 10,
+    "columns": 4,
+    "fps": 12,
+    "anchor": [
+      45,
+      71
+    ]
   }
 }

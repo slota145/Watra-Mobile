@@ -16,7 +16,8 @@ extends ProtoWeapon
 ##   sygnał `parried`), a postać odpowiada: cięcie dookoła, wyskok ku napastnikowi (najbliższemu wrogowi) i cienkie,
 ##   idealnie równe cięcie po okręgu (`_Ring`), cały czas nietykalna (5. - garda 5 s, 10. - z okręgu przeskakują pioruny);
 ## - „Sąd Peruna” (`k_perun`, ładowany - Skills.is_charged): dopóki palec trzyma przycisk, katana się ładuje, po
-##   puszczeniu tnie w linii prostej ku najbliższemu wrogowi - dłużej i szerzej im dłuższe ładowanie (do PERUN_CHARGE)
+##   puszczeniu tnie w linii prostej ku najdalszemu wrogowi w zasięgu - dłużej i szerzej im dłuższe ładowanie (do PERUN_CHARGE),
+##   a po chwili wzdłuż linii biją gromy z nieba (`_perun_storm`)
 ##   (5. - szybsze ładowanie, 10. - piorun na końcu cięcia);
 ## - „Błysk Peruna” (`k_flash`): Mgnienie miecza (ProtoWeapon - `blink_skill`) z błękitnymi piorunami wzdłuż skoku;
 ##   trafieni są porażeni jak przy każdym cięciu (5. - więcej many za zabicie, 10. - co 5. skok wiązka piorunów).
@@ -99,6 +100,20 @@ const PERUN_WIDTH := Vector2(10.0, 28.0)
 const PERUN_POWER := Vector2(0.8, 1.5)
 const PERUN_BLAST_RADIUS := 36.0
 const PERUN_BLAST_POWER := 0.8
+## Kulminacja Sądu Peruna (19.11.2026, prośba autora o „szlif efektowności”): chwilę po cięciu wzdłuż całej linii,
+## od postaci do końca, uderzają z nieba gromy (efekt `perun_bolt` z kreatora PixelLab) - PERUN_STORM gromów (od-do wg
+## naładowania), co PERUN_STORM_GAP s, każdy rani w promieniu PERUN_STORM_RADIUS (x obszar) PERUN_STORM_POWER siły
+## i poraża; z ostatnim lekki błysk ekranu i drżenie.
+const PERUN_STORM := Vector2(3.0, 6.0)
+const PERUN_STORM_DELAY := 0.1
+const PERUN_STORM_GAP := 0.06
+const PERUN_STORM_RADIUS := 22.0
+const PERUN_STORM_POWER := 0.35
+const PERUN_BOLT_FX := preload("res://assets/effects/perun_bolt.png")
+const PERUN_BOLT_FRAMES := 14
+const PERUN_BOLT_ANCHOR := Vector2(42, 118)
+## Grom w arkuszu uderza w 5. klatce (20 kl./s).
+const PERUN_BOLT_IMPACT := 0.2
 ## Błysk Peruna: siła wyładowania co 5. skok (10. poziom) i jego promień.
 ## 10. poziom Błysku: co 5. skok wiązka piorunów - z postaci w najdalszego wroga w FLASH_CHAIN_RANGE, potem
 ## FLASH_CHAIN_JUMPS przeskoków (zasada `_chain_from`), każdy FLASH_SPIN_POWER siły (19.11.2026 - zamiast wybuchu,
@@ -740,12 +755,64 @@ func _perun_cut(k: float) -> void:
 	_bolt(a, b)
 	if _unique("k_perun"):
 		_spawn_crawlers(a, b, k)
+	_perun_storm(a, b, k)
 	Input.vibrate_handheld(35)
 	_end_skill()
 	# katana ląduje na końcu cięcia i stamtąd wraca za ramię
 	global_position = b + Vector2(0, ORBIT_HEIGHT * 0.5)
 	_sprite.position = Vector2(0, -ORBIT_HEIGHT)
 	_sprite.rotation = _aim
+
+
+## Kulminacja Sądu Peruna: gromy z nieba po kolei wzdłuż linii cięcia od `a` do `b` (więcej przy pełnym ładowaniu).
+func _perun_storm(a: Vector2, b: Vector2, k: float) -> void:
+	var count := roundi(lerpf(PERUN_STORM.x, PERUN_STORM.y, k))
+	var ground := Vector2(0, ORBIT_HEIGHT * 0.5)  # linia cięcia biegnie na wysokości katany - gromy biją w ziemię pod nią
+	var side := (b - a).orthogonal().normalized()
+	for i in count:
+		var at := a.lerp(b, (i + 0.5) / count) + ground + side * randf_range(-5.0, 5.0)
+		var delay := PERUN_STORM_DELAY + PERUN_STORM_GAP * i
+		get_tree().create_timer(delay, false).timeout.connect(_perun_bolt_fx.bind(at))
+		get_tree().create_timer(delay + PERUN_BOLT_IMPACT, false).timeout.connect(_perun_bolt_hit.bind(at, i == count - 1))
+
+
+func _perun_bolt_fx(at: Vector2) -> void:
+	if is_inside_tree():
+		Fx.once(get_parent(), PERUN_BOLT_FX, PERUN_BOLT_FRAMES, 20.0, at.round(), PERUN_BOLT_ANCHOR, 22)
+
+
+## Uderzenie gromu: rani i poraża wokół `at`; ostatni - błysk ekranu i drżenie kamery.
+func _perun_bolt_hit(at: Vector2, last: bool) -> void:
+	if not is_inside_tree() or hero == null or hero.dead:
+		return
+	for t in _live_targets():
+		if t.global_position.distance_to(at) <= PERUN_STORM_RADIUS * _area("k_perun") + t.center_height * 0.4:
+			_hit(t, _power("k_perun") * PERUN_STORM_POWER, at, "k_perun", 0)
+			t.shock(SHOCK_TIME)
+	Input.vibrate_handheld(30 if last else 12)
+	var cam := hero.get_viewport().get_camera_2d()
+	if cam:
+		var shake := cam.create_tween()
+		var power := 3.0 if last else 1.5
+		shake.tween_property(cam, "offset", Vector2(randf_range(-power, power), randf_range(-power, power)), 0.03)
+		shake.tween_property(cam, "offset", Vector2.ZERO, 0.04)
+	if last:
+		_screen_flash()
+
+
+## Krótki, łagodny błysk całego ekranu (biało-błękitny, 0,15 s).
+func _screen_flash() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 50
+	var rect := ColorRect.new()
+	rect.color = Color(0.85, 0.95, 1.0, 0.22)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(rect)
+	get_tree().root.add_child(layer)
+	var tween := rect.create_tween()
+	tween.tween_property(rect, "color:a", 0.0, 0.15)
+	tween.tween_callback(layer.queue_free)
 
 
 ## Kamień Wędrownych Gromów: z cięcia (od a do b) wyskakują pioruny pełzające po ziemi, każdy do innego wroga

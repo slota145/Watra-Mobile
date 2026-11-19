@@ -2,6 +2,25 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 19.11.2026 - szlif efektowności: Sąd Peruna, Rozłupanie Ziemi, Krąg stali, Płonąca bruzda
+
+Wybór autora (ankieta): cztery umiejętności dostają mocniejszy wygląd i „kulminację”. Nowe efekty z darmowego
+kreatora PixelLab (`pixellab_src/vfx/ids.json`, `python tools/vfx_art.py`).
+- Sąd Peruna (`ProtoKatana._perun_storm`, `_perun_bolt_hit`): po cięciu wzdłuż linii biją gromy z nieba
+  (`PERUN_STORM` 3-6 sztuk wg obszaru, co `PERUN_STORM_GAP` 0,06 s po `PERUN_STORM_DELAY` 0,1 s), każdy rani
+  `PERUN_STORM_POWER` 0,35 siły w promieniu `PERUN_STORM_RADIUS` 22 px i poraża; drgnięcie kamery, ostatni - błysk
+  ekranu (`_screen_flash`). Efekt `perun_bolt` („Sąd Peruna - grom z nieba”).
+- Rozłupanie Ziemi (`ProtoWeapon._slam_crack`, `_slam_spike`): od miejsca uderzenia w stronę ataku biegnie szczelina
+  (`SLAM_CRACK` 120 px w `SLAM_CRACK_TIME` 0,25 s), z której wyskakuje `SLAM_SPIKES` 5 skalnych kolców (promień 20 px,
+  0,5 siły, ogłuszenie 0,6 s). Bez kolców przy echu i wstrząsach wtórnych. Efekt `slam_spikes`.
+- Krąg stali (`ProtoWeapon._start_ring`, `_process_ring`, `_clear_ring`): widmowe miecze rozjaśnione (`STEEL_BRIGHT`),
+  ze świecącymi smugami (`STEEL_TRAIL` 8 punktów, błękit `STEEL_GLOW`), błysk przy przywołaniu i znikaniu, widoczna
+  orbita, błękitne iskry trafień.
+- Płonąca bruzda (`ProtoGlaive._draw_fissure`, `_furrow_eruption`): za glewią rośnie rozżarzona szczelina lawy (dwie
+  linie addytywne - brzeg i żar), na końcu bruzdy wyrasta słup płomieni (efekt `furrow_pillar`, „Płonąca bruzda - słup
+  płomieni”) z wstrząsem kamery; szczelina żarzy się tyle, ile płonie bruzda, i stygnie. Same efekty - bez zmian siły.
+- Opisy umiejętności zaktualizowane; zrzuty `tools/perun_shots.gd`, `slam_shots.gd`, `ring_shots.gd`, `furrow_shots.gd`.
+
 ## 19.11.2026 - najdalszy cel dla pocisków i linii; nowy Taniec ostrza (cienkie linie, potem wybuch)
 
 Decyzje autora (ankieta): umiejętności, które lecą przez tłum, celują w najdalszego wroga w zasięgu; zwykły cios

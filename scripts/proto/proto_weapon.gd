@@ -88,6 +88,19 @@ const SLAM_FX := preload("res://assets/effects/ground_slam.png")
 const SLAM_FX_FRAMES := 10
 const SLAM_FX_FPS := 15.0
 const SLAM_FX_ANCHOR := Vector2(26, 35)
+## Kulminacja Rozłupania (szlif 19.11.2026): od miejsca uderzenia, dalej od postaci, biegnie pęknięcie w ziemi
+## (SLAM_CRACK px x obszar, rośnie przez SLAM_CRACK_TIME s), a wzdłuż niego po kolei wyskakują skalne kolce (efekt
+## `slam_spikes` z kreatora PixelLab) - SLAM_SPIKES razy, każdy rani w promieniu SLAM_SPIKE_RADIUS SLAM_SPIKE_POWER siły
+## i ogłusza na SLAM_SPIKE_STUN s.
+const SLAM_CRACK := 120.0
+const SLAM_CRACK_TIME := 0.25
+const SLAM_SPIKES := 5
+const SLAM_SPIKE_RADIUS := 20.0
+const SLAM_SPIKE_POWER := 0.5
+const SLAM_SPIKE_STUN := 0.6
+const SLAM_SPIKE_FX := preload("res://assets/effects/slam_spikes.png")
+const SLAM_SPIKE_FRAMES := 18
+const SLAM_SPIKE_ANCHOR := Vector2(30, 34)
 ## Mgnienie (liczby z Watry): zasięg skoku (prośba autora 15.11.2026: 220 zamiast 150 - skoki między kukłami w bazie),
 ## ile ostatnich celów skoki omijają (prośba autora: 3 - w tłumie skoki rozchodzą się po grupie zamiast w kółko po dwóch
 ## wrogach), odstęp między skokami przy trzymaniu, jak daleko za celem ląduje postać, szerokość pasa cięcia wzdłuż drogi
@@ -175,6 +188,12 @@ const STEEL_TURNS := 0.9
 const STEEL_REHIT := 0.45
 const STEEL_HIT_WIDTH := 8.0
 const STEEL_TINT := Color(0.8, 0.95, 1.0, 1.0)
+## Szlif Kręgu stali (19.11.2026): smuga za ostrzem każdego miecza (STEEL_TRAIL ostatnich pozycji czubka), kolor smug
+## i iskier, miecze rosną z obszarem, błysk przy przywołaniu i znikaniu.
+const STEEL_TRAIL := 8
+const STEEL_GLOW := Color(0.55, 0.9, 1.0)
+## Stałe rozjaśnienie widmowych mieczy (mieszanie addytywne na trawie było blade).
+const STEEL_BRIGHT := Color(1.7, 1.9, 2.2)
 const STEEL_FADE := 0.4
 ## Krąg stali z kamieniem unikalnym (Kamień Wiecznej Stali): bez końca, co sekundę płaci taki ułamek kosztu many.
 const STEEL_DRAIN := 1.0 / 5.0
@@ -860,9 +879,23 @@ func _start_ring() -> void:
 		s.material = glow
 		s.top_level = true
 		add_child(s)
-		_ring.append({"sprite": s, "power": extra if i >= count else 1.0, "hits": {}})
+		var trail := Line2D.new()  # smuga za czubkiem ostrza
+		trail.top_level = true
+		trail.width = 7.0
+		trail.material = glow
+		trail.joint_mode = Line2D.LINE_JOINT_ROUND
+		trail.begin_cap_mode = Line2D.LINE_CAP_ROUND
+		var fade := Gradient.new()
+		fade.colors = PackedColorArray([Color(STEEL_GLOW, 0.0), Color(STEEL_GLOW, 0.95)])
+		trail.gradient = fade
+		var taper := Curve.new()
+		taper.add_point(Vector2(0.0, 0.2))
+		taper.add_point(Vector2(1.0, 1.0))
+		trail.width_curve = taper
+		add_child(trail)
+		_ring.append({"sprite": s, "trail": trail, "power": extra if i >= count else 1.0, "hits": {}})
 	_ring_trail = Line2D.new()  # delikatny ślad orbity - widać, dokąd sięga krąg
-	_ring_trail.width = 1.0
+	_ring_trail.width = 1.5
 	_ring_trail.top_level = true
 	_ring_trail.z_index = -1
 	_ring_trail.material = glow
@@ -876,6 +909,10 @@ func _start_ring() -> void:
 		_ring_drain_acc = 0.0
 	_ring_spin = hero.facing.angle()
 	hero.play_gesture(_orbit_center() + Vector2(0, ORBIT_HEIGHT + 10.0))
+	for r in _ring:  # przywołanie: miecze rozbłyskują i „wskakują” na orbitę
+		var sp: Sprite2D = r.sprite
+		sp.self_modulate = Color(3.0, 3.0, 3.0)
+		sp.create_tween().tween_property(sp, "self_modulate", STEEL_BRIGHT, 0.35)
 
 
 ## Krąg stali: miecze krążą po spłaszczonej orbicie (ostrzem na zewnątrz, z tyłu - za postacią), każdy tnie
@@ -901,7 +938,7 @@ func _process_ring(delta: float) -> void:
 	var center := _orbit_center()
 	var targets_now := _live_targets()
 	_ring_trail.global_position = center
-	_ring_trail.default_color = Color(STEEL_TINT, 0.25 * clampf(_ring_left / STEEL_FADE, 0.0, 1.0))
+	_ring_trail.default_color = Color(STEEL_GLOW, 0.35 * clampf(_ring_left / STEEL_FADE, 0.0, 1.0))
 	for i in _ring.size():
 		var r: Dictionary = _ring[i]
 		var s: Sprite2D = r.sprite
@@ -910,9 +947,17 @@ func _process_ring(delta: float) -> void:
 		var at := center + dir * STEEL_INNER * area
 		s.global_position = at
 		s.rotation = dir.angle()
+		s.scale = Vector2.ONE * SCALE * area  # obszar powiększa też widmowe miecze
 		s.z_index = -1 if sin(a) < -0.2 else 1
-		s.modulate.a = STEEL_TINT.a * clampf(_ring_left / STEEL_FADE, 0.0, 1.0)
+		var fade := clampf(_ring_left / STEEL_FADE, 0.0, 1.0)
+		s.modulate.a = STEEL_TINT.a * fade
 		var tip := at + dir.normalized() * BLADE * area
+		var trail: Line2D = r.trail
+		trail.add_point(tip)
+		while trail.get_point_count() > STEEL_TRAIL:
+			trail.remove_point(0)
+		trail.z_index = s.z_index
+		trail.modulate.a = fade
 		for t in targets_now:
 			var c := t.center()
 			if Geometry2D.get_closest_point_to_segment(c, at, tip).distance_to(c) > STEEL_HIT_WIDTH + t.center_height * 0.4:
@@ -921,12 +966,24 @@ func _process_ring(delta: float) -> void:
 				continue
 			r.hits[t.get_instance_id()] = _clock
 			_deal(t, _roll(_power("steel_ring") * r.power), center, "steel_ring")
-			Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, c.round(), HIT_FX_ANCHOR, 21, 0.7)
+			var spark := Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, c.round(), HIT_FX_ANCHOR, 21, 0.85)
+			spark.modulate = Color(0.75, 0.95, 1.4)  # błękitne iskry widmowej stali
 
 
 func _clear_ring() -> void:
 	for r in _ring:
-		(r.sprite as Sprite2D).queue_free()
+		var sp: Sprite2D = r.sprite
+		if is_inside_tree() and sp.modulate.a > 0.05:  # krąg znika: miecze rozbłyskują i rozwiewają się
+			var ghost := sp.duplicate() as Sprite2D
+			get_parent().add_child(ghost)
+			ghost.global_position = sp.global_position
+			ghost.self_modulate = Color(2.5, 2.5, 2.5)
+			var tw := ghost.create_tween().set_parallel()
+			tw.tween_property(ghost, "modulate:a", 0.0, 0.3)
+			tw.tween_property(ghost, "scale", ghost.scale * 1.4, 0.3)
+			tw.chain().tween_callback(ghost.queue_free)
+		sp.queue_free()
+		(r.trail as Line2D).queue_free()
 	_ring.clear()
 	if _ring_trail:
 		_ring_trail.queue_free()
@@ -1123,6 +1180,8 @@ func _slam_hit(at := global_position, echo := false, aftershock := false) -> voi
 				shocks.append(t)
 	if _unique("slam") and not shocks.is_empty():
 		get_tree().create_timer(0.12, false).timeout.connect(_slam_shocks.bind(shocks))
+	if not echo and not aftershock:
+		_slam_crack(at)
 	Fx.once(get_parent(), SLAM_FX, SLAM_FX_FRAMES, SLAM_FX_FPS, at, SLAM_FX_ANCHOR, 6,
 			1.3 * radius / SLAM_RADIUS)
 	if not echo and not aftershock and gem_power("slam", "multi") > 0.0:
@@ -1136,6 +1195,53 @@ func _slam_hit(at := global_position, echo := false, aftershock := false) -> voi
 		for i in 4:
 			shake.tween_property(cam, "offset", Vector2(randf_range(-3, 3), randf_range(-3, 3)), 0.03)
 		shake.tween_property(cam, "offset", Vector2.ZERO, 0.03)
+
+
+## Pęknięcie Rozłupania: od `at` dalej od postaci biegnie postrzępiona szczelina w ziemi, a za nią po kolei wyskakują
+## skalne kolce, raniąc i ogłuszając wrogów na linii.
+func _slam_crack(at: Vector2) -> void:
+	var dir := at - hero.global_position
+	dir = (dir if dir.length() > 4.0 else hero.facing).normalized()
+	if dir == Vector2.ZERO:
+		dir = Vector2.RIGHT
+	var length := SLAM_CRACK * _area("slam")
+	var side := dir.orthogonal()
+	var crack := Line2D.new()
+	crack.width = 2.0
+	crack.default_color = Color(0.12, 0.08, 0.05, 0.85)
+	crack.z_index = -1
+	crack.joint_mode = Line2D.LINE_JOINT_ROUND
+	var points := PackedVector2Array()
+	var steps := 9
+	for i in steps + 1:
+		points.append(at + dir * length * i / steps + side * (0.0 if i == 0 else randf_range(-5.0, 5.0)))
+	crack.add_point(points[0])
+	get_parent().add_child(crack)
+	var grow := crack.create_tween()
+	grow.tween_method(func(k: float) -> void:
+		var n := clampi(ceili(k * steps), 1, steps)
+		while crack.get_point_count() < n + 1:
+			crack.add_point(points[crack.get_point_count()]), 0.0, 1.0, SLAM_CRACK_TIME)
+	grow.tween_interval(1.0)
+	grow.tween_property(crack, "modulate:a", 0.0, 0.5)
+	grow.tween_callback(crack.queue_free)
+	for i in SLAM_SPIKES:
+		var spot := at + dir * length * (i + 1.0) / SLAM_SPIKES + side * randf_range(-4.0, 4.0)
+		get_tree().create_timer(SLAM_CRACK_TIME * (i + 1.0) / SLAM_SPIKES, false).timeout.connect(_slam_spike.bind(spot))
+
+
+## Skalny kolec w punkcie `spot`: efekt i trafienie (ogłuszenie) wrogów w promieniu.
+func _slam_spike(spot: Vector2) -> void:
+	if not is_inside_tree() or hero == null or hero.dead:
+		return
+	var area := _area("slam")
+	Fx.once(get_parent(), SLAM_SPIKE_FX, SLAM_SPIKE_FRAMES, 16.0, spot.round(), SLAM_SPIKE_ANCHOR, 2, area)
+	for t in _live_targets():
+		var d := t.global_position - spot
+		if Vector2(d.x, d.y * 1.6).length() <= SLAM_SPIKE_RADIUS * area + 6.0:
+			_deal(t, _roll(_power("slam") * SLAM_SPIKE_POWER), spot, "slam")
+			t.stun(SLAM_SPIKE_STUN)
+	Input.vibrate_handheld(10)
 
 
 ## Kamień unikalny Rozłupania: wokół każdego trafionego (`sources`) fala uderzeniowa rani pobliskich (bez źródła
