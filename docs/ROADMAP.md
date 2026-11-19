@@ -32,6 +32,22 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 
 ## Pomysły autora (do zrobienia)
 
+- **Duże pomysły autora (19.11.2026) - kolejność proponowana przez Claude, do potwierdzenia:**
+  1. **Aury rezerwujące manę:** osobna zakładka obok broni, gracz zakłada tyle aur, na ile starczy many; premia
+     „redukcja rezerwacji” (mała). Do podejrzenia w Watrze: `scripts/aura_data.gd`, `scripts/auras.gd`.
+  2. **3 miejsca na przedmioty specjalne** bez statystyk, z efektem (np. fala uderzeniowa po trafieniu, piorun po
+     użyciu umiejętności zależny od many i podnoszący jej koszt - jak Archmage w PoE). Forma do ustalenia:
+     osobne przedmioty, kamienie w ekwipunku czy efekt na przedmiocie (jak legendy Watry - `legendary_effects.gd`).
+  3. **Drzewko lochów zamiast ulepszeń lochów** (jak atlas w PoE): mało węzłów, w każdy 10-20 punktów, kilka małych.
+     W Watrze: `scripts/watra_tree.gd`.
+  4. **Bez złota - waluta-przedmioty jak orby w PoE**, kowal wykuwa przedmioty z surowców, surowce z wydarzeń na
+     mapie lochu (fala potworów, po wygranej kupka surowców). Największa zmiana - dotyka sklepu, kowala, ulepszeń
+     kamieni, Skarbnika i drzewka lochów; przed startem plan i ankieta.
+  5. **Symulowany rynek** jak w PoE (handel „orbami”), niedostępny w SSF. W Watrze: `scripts/market.gd`. Po punkcie 4.
+  - **Nowe bronie: łuk i broń magiczna**, wybór broni na start (resztę odblokowuje się jak teraz). Każda broń to duża
+    praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.
+  - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.
+
 - **Boss w lochu (12.11.2026):** zrobione (szczegóły w `docs/historia.md`); do oceny na telefonie: czas zapełniania
   paska (100 żaru), trudność Wodza, czytelność ostrzeżeń. Model, animacje i efekty
   Wodza gotowe; skrzynia daje żar i 3 przedmioty.
