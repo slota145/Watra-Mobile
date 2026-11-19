@@ -35,7 +35,7 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 - **Duże pomysły autora (19.11.2026) - kolejność proponowana przez Claude, do potwierdzenia:**
   1. **Aury rezerwujące manę:** osobna zakładka obok broni, gracz zakłada tyle aur, na ile starczy many; premia
      „redukcja rezerwacji” (mała). Do podejrzenia w Watrze: `scripts/aura_data.gd`, `scripts/auras.gd`.
-  2. **3 miejsca na przedmioty specjalne** bez statystyk, z efektem (np. fala uderzeniowe po trafieniu, piorun po
+  2. **3 miejsca na przedmioty specjalne** bez statystyk, z efektem (np. fala uderzeniowa po trafieniu, piorun po
      użyciu umiejętności zależny od many i podnoszący jej koszt - jak Archmage w PoE). Forma do ustalenia:
      osobne przedmioty, kamienie w ekwipunku czy efekt na przedmiocie (jak legendy Watry - `legendary_effects.gd`).
   3. **Drzewko lochów zamiast ulepszeń lochów** (jak atlas w PoE): mało węzłów, w każdy 10-20 punktów, kilka małych.
