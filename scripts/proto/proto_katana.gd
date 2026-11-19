@@ -5,10 +5,10 @@ extends ProtoWeapon
 ## obok postaci jak miecz (dziedziczy po ProtoWeapon: podążanie, orbita cięcia, mana, odnowienia, kamienie, krytyki,
 ## skoki Mgnienia). Każde trafienie PORAŻA (`_deal`): wróg przez SHOCK_TIME dostaje od wszystkiego o
 ## Elements.SHOCK_BONUS więcej (ProtoWeapon._combo_mult), a ARC_POWER obrażeń przeskakuje błękitnym piorunem na
-## najbliższego sąsiada (`_chain_from`; z przemoczonego - combo z hydrosferą - na Elements.SOAK_CHAIN_EXTRA wrogów
+## kolejnych wrogów - zawsze najdalszego w zasięgu, bez powtórek, gdy się da (`_chain_from`; z przemoczonego - combo z hydrosferą - na Elements.SOAK_CHAIN_EXTRA wrogów
 ## więcej i mocniej, a cała katana bije przemoczonych o Elements.SOAK_BONUS mocniej).
 ## - „Błyskawiczne cięcie” (`k_slash`, zwykły cios): szybkie cienkie cięcie po łuku, przez które przelatuje piorun
-##   (`_ArcBolt`); 5. poziom - co 4. cięcie piorun w najbliższego wroga, 10. - przeskok na dwóch wrogów obok;
+##   (`_ArcBolt`); 5. poziom - co 4. cięcie piorun w najdalszego wroga w zasięgu, 10. - przeskok na dwóch wrogów obok;
 ## - „Taniec ostrza” (`k_dance`): postać idzie naprzód (ProtoHero.leap) i tnie DANCE_CUTS razy, na końcu błękitny
 ##   piorun przeskakuje po kolei między wszystkimi trafionymi (5. - 6 cięć, 10. - piorun skacze też na 3 wrogów obok);
 ## - „Riposta” (`k_riposte`): katana w gardzie przez RIPOSTE_WAIT - następny cios nie rani (ProtoHero.parry_left,
@@ -18,7 +18,7 @@ extends ProtoWeapon
 ##   puszczeniu tnie w linii prostej ku najbliższemu wrogowi - dłużej i szerzej im dłuższe ładowanie (do PERUN_CHARGE)
 ##   (5. - szybsze ładowanie, 10. - piorun na końcu cięcia);
 ## - „Błysk Peruna” (`k_flash`): Mgnienie miecza (ProtoWeapon - `blink_skill`) z błękitnymi piorunami wzdłuż skoku;
-##   trafieni są porażeni jak przy każdym cięciu (5. - więcej many za zabicie, 10. - co 5. skok wyładowanie).
+##   trafieni są porażeni jak przy każdym cięciu (5. - więcej many za zabicie, 10. - co 5. skok wiązka piorunów).
 ## Kamienie unikalne katany - później. Grafika: assets/weapons/katana.png (tools/katana_art.py), efekty z kreatora
 ## (assets/effects/katana_*.png, pixellab_src/vfx/ids.json): cienkie cięcie, cięcie dookoła, długie cięcie, trafienie
 ## piorunem, smuga skoku (przebarwiona smuga Mgnienia); pioruny i okrąg Riposty rysowane w grze.
@@ -82,8 +82,12 @@ const PERUN_POWER := Vector2(0.8, 1.5)
 const PERUN_BLAST_RADIUS := 36.0
 const PERUN_BLAST_POWER := 0.8
 ## Błysk Peruna: siła wyładowania co 5. skok (10. poziom) i jego promień.
+## 10. poziom Błysku: co 5. skok wiązka piorunów - z postaci w najdalszego wroga w FLASH_CHAIN_RANGE, potem
+## FLASH_CHAIN_JUMPS przeskoków (zasada `_chain_from`), każdy FLASH_SPIN_POWER siły (19.11.2026 - zamiast wybuchu,
+## który zasłaniał postać).
 const FLASH_SPIN_POWER := 0.8
-const FLASH_SPIN_RADIUS := 44.0
+const FLASH_CHAIN_RANGE := 110.0
+const FLASH_CHAIN_JUMPS := 4
 ## Kamienie unikalne (pomysły autora 15.11.2026):
 ## Gromowe Ostrze (cięcie) - łuk pioruna leci do przodu z każdego cięcia: prędkość, zasięg, promień trafienia, siła;
 const SPARK_SPEED := 240.0
@@ -334,7 +338,7 @@ func _process_slash() -> void:
 					_cooldown = K_COOLDOWN
 
 
-## Cięcie trafia wszystkich w łuku przed postacią; 5. poziom - co SLASH_BOLT_EVERY cięcie piorun w najbliższego wroga,
+## Cięcie trafia wszystkich w łuku przed postacią; 5. poziom - co SLASH_BOLT_EVERY cięcie piorun w najdalszego wroga w zasięgu,
 ## 10. - przeskok na SLASH_ARC_TARGETS wrogów (zamiast jednego).
 func _slash_hit() -> void:
 	var power := _swing_power * _power(basic)
@@ -342,7 +346,7 @@ func _slash_hit() -> void:
 	var arc_power := SLASH_ARC_POWER if _perk(basic, 1) else ARC_POWER
 	var hit := _arc_hits(_aim, (HILT_RADIUS + BLADE + 6.0) * _area(basic), ARC, power, basic, arcs, arc_power)
 	if _perk(basic, 0) and not _second and _strike_count % SLASH_BOLT_EVERY == 0:
-		var near := _nearest(SLASH_BOLT_RANGE * _area(basic))
+		var near := _farthest(SLASH_BOLT_RANGE * _area(basic))  # najdalszy - widoczna wiązka (19.11.2026)
 		if near:
 			_bolt(_sprite.global_position, near.center())
 			_hit(near, power * SLASH_BOLT_POWER, hero.global_position, basic, 0)
@@ -458,7 +462,7 @@ func _process_dance(delta: float) -> void:
 	Input.vibrate_handheld(10)
 
 
-## Koniec Tańca: błękitny piorun skacze po kolei między trafionymi (zawsze do najbliższego), rani każdego;
+## Koniec Tańca: błękitny piorun skacze po kolei między trafionymi (zawsze do najdalszego - 19.11.2026), rani każdego;
 ## 10. poziom - z ostatniego przeskakuje jeszcze na DANCE_EXTRA wrogów obok.
 func _dance_finish() -> void:
 	var left: Array = _dance_hits.filter(func(t: Variant) -> bool: return is_instance_valid(t) and t.alive())
@@ -469,7 +473,7 @@ func _dance_finish() -> void:
 	while not left.is_empty():
 		var next: ProtoTarget = left[0]
 		for t in left:
-			if t.center().distance_to(from) < next.center().distance_to(from):
+			if t.center().distance_to(from) > next.center().distance_to(from):
 				next = t
 		left.erase(next)
 		_bolt(from, next.center())
@@ -726,15 +730,28 @@ func _flicker_jump(best: ProtoTarget) -> void:
 	_start_cut()
 
 
-## 10. poziom Błysku: co 5. skok wyładowanie wokół postaci (zamiast wiru miecza).
+## 10. poziom Błysku: co 5. skok wiązka piorunów - z postaci w najdalszego wroga w zasięgu, potem przeskoki po
+## kolejnych (najdalszych, nietrafionych). Zabicia zwracają manę jak skok.
 func _flicker_spin() -> void:
 	_blink_spins += 1
-	var radius := FLASH_SPIN_RADIUS * _area(blink_skill)
+	var range_px := FLASH_CHAIN_RANGE * _area(blink_skill)
+	var first: ProtoTarget = null
+	var best_d := -1.0
 	for t in _live_targets():
-		if t.center().distance_to(_orbit_center()) <= radius:
-			_deal(t, _roll(_power(blink_skill) * FLASH_SPIN_POWER), hero.global_position, blink_skill)
-			_blink_kill(t)
-	_zap_fx(_orbit_center(), radius / 30.0)
+		var d := t.center().distance_to(_orbit_center())
+		if d <= range_px and d > best_d:
+			first = t
+			best_d = d
+	if first == null:
+		return
+	var amount := _roll(_power(blink_skill) * FLASH_SPIN_POWER)
+	_bolt(_sprite.global_position, first.center())
+	_deal(first, amount, hero.global_position, blink_skill)
+	_zap_fx(first.center(), 0.5)
+	_blink_kill(first)
+	for t in _chain_from(first, amount, FLASH_CHAIN_JUMPS, ARC_RANGE * 1.5 * _area(blink_skill)):
+		t.shock(SHOCK_TIME)
+		_blink_kill(t)
 
 
 func _end_skill() -> void:
