@@ -732,6 +732,7 @@ func _apply_weapon() -> void:
 	weapon.elite_mult = 1.0 + gear.get("elite_dmg_pct", 0.0) / 100.0
 	weapon.cooldown_cut = gear.get("cdr_pct", 0.0) / 100.0
 	weapon.area_bonus = gear.get("area_pct", 0.0)
+	weapon.penetration = gear.get("pen_pct", 0.0) / 100.0
 	if horde_spawner:
 		horde_spawner.pickup_mult = 1.0 + gear.get("pickup_pct", 0.0) / 100.0
 		horde_spawner.ember_mult = 1.0 + gear.get("ember_pct", 0.0) / 100.0
@@ -1159,6 +1160,8 @@ func summon_chief() -> void:
 	chief.hero = hero
 	chief.bounds = ARENA.grow(-24)
 	chief.power = DungeonLevels.power(level) * DungeonLevels.BOSS_POWER
+	chief.hp_mult = DungeonLevels.hp_mult(level)
+	chief.resists = Dungeons.resists(climate, level)
 	var spot := hero.position + CHIEF_OFFSET
 	if not ARENA.grow(-40).has_point(spot):
 		spot = hero.position - CHIEF_OFFSET

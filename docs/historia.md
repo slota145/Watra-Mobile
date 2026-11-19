@@ -2,6 +2,44 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 17.11.2026 - wspólna odporność potworów i przebicie odporności (wariant A)
+
+Pytanie autora: czy dać potworom równe odporności na wszystko (też fizyczne)? Porównanie z Diablo 3 (bez odporności),
+PoE (odporności żywiołów + przebicie) i Last Epoch (odporność rośnie z poziomem obszaru, przebicie i rozbijanie) -
+decyzja autora: wariant A (odporność z głębią + przebicie + łagodny charakter lochów). Zastępuje szybszy wzrost
+zdrowia i mocne odporności lochów z poprzedniego punktu (ten sam dzień).
+- `DungeonLevels.base_resist`: wspólna odporność na wszystko, także fizyczne, `RESIST_STEP` 0,55% na poziom do
+  `RESIST_MAX` 55% (10. ~5%, 50. ~27%, 101. 55%). `HP_GROWTH` z powrotem 1,0 (haczyk `hp_mult` zostaje).
+- `Dungeons.RESISTS` - łagodny charakter lochu ±20% (Zatopione: woda +20%, Grom -20%; Katakumby: Nawia +20%, ogień -20%;
+  Górskie równiny: Grom +20%, lód -20%; Wulkan: ogień +20%, woda -20%), `Dungeons.resists(id, level)` = wspólna + charakter.
+- Przebicie odporności: premia `pen_pct` (przedmioty 2-5% + 0,1% na poziom lochu, rubiny w puli kamieni szlachetnych,
+  sufit 55%), `ProtoWeapon.penetration`; `ProtoTarget.resist(element, pen)` zmniejsza odporność najwyżej do zera
+  (wrażliwości nie pogłębia). Działa w ciosach, piorunie i szronie z kamieni, podpaleniu. Wiersz „Przebicie odporności”
+  w oknie „Postać”.
+- Wybór poziomu: „Odporność potworów: X% · Bardziej: … · Mniej: …”.
+- Wynik (średnio z 30 losowań: 50. poziom postaci, rzadkie przedmioty, zwykłe cięcie): 101. loch - goblin ~2,8 ciosu,
+  boss ~72; z przebiciem 45% - goblin ~1,4, boss ~36. Test `_test_resists` w `tests/test_elements.gd`.
+
+## 17.11.2026 - obrażenia w głębi: więcej zdrowia potworów, słabszy poziom, odporności lochów
+
+Uwaga autora po testach lochów 101 i 104 (50. poziom, losowe przedmioty z poziomu, umiejętności na 10.): przeżywalność
+prawie w sam raz, ale wszystko pada od jednego ciosu, boss po kilku - to ma być możliwe tylko przy dobrym buildzie.
+Decyzje (ankieta): jedno i drugie plus odporności na żywioły; cel na 101. - goblin 2-3 ciosy, boss ~70 (zwykłe cięcie,
+losowe rzadkie przedmioty, bez kamieni).
+- Zdrowie potworów i bossów rośnie szybciej niż obrażenia: `DungeonLevels.hp_mult` = `HP_GROWTH` 1,008 na poziom
+  (10. x1,07, 50. x1,48, 101. x2,2) - `ProtoGoblin.hp_mult` (ustawia `ProtoHorde.spawn_at`, też wstawanie szkieletu),
+  `ProtoChief.hp_mult` (arena).
+- Awans +8% obrażeń (`HeroLevels.DAMAGE_STEP`; było +10%, wcześniej +6%) - 50. poziom x4,9 zamiast x5,9.
+- Odporności lochów `Dungeons.RESISTS` (potwory i boss lochu, `ProtoTarget.resists`/`resist`): Zatopione podziemia - woda
+  50%, ogień 30%, wrażliwe na Grom 25%; Katakumby - Nawia 50%, lód 30%, wrażliwe na ogień 25%; Górskie równiny - Grom 50%,
+  woda 20%, wrażliwe na lód 25%; Wulkaniczne - ogień 60%, Grom 20%, wrażliwe na wodę 30% i lód 25%. Gobliny bez.
+  Działa w `ProtoWeapon._deal` (żywioł broni, `Elements.reduce` z combo), piorun i szron z kamieni, podpalenie
+  (`ProtoTarget.burn`). Fizyczne (miecz) bez odporności. Wybór poziomu pokazuje „Odporne: … · Wrażliwe: …”
+  (`Dungeons.resist_text`).
+- Wynik (średnio z 30 losowań, zwykłe cięcie): 101. loch - goblin ~3 ciosy (było ~0,9), boss ~78 (było ~25);
+  50. - goblin ~0,9 (było 0,45), boss ~25 (12); 10. - prawie bez zmian.
+- Test `_test_resists` w `tests/test_elements.gd`.
+
 ## 17.11.2026 - krótsza nietykalność po trafieniu
 
 Uwaga autora po drugim teście: dalej za łatwo - można długo stać w miejscu i się leczyć (12. poziom, loch 5); w PoE,

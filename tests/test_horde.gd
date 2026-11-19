@@ -309,7 +309,7 @@ func _test_archer() -> void:
 	arena.weapon.auto_attack = false
 	var a: ProtoGoblinArcher = horde.spawn_at(hero.position + Vector2(100, 0), "archer")
 	await process_frame
-	_check(a.hp == roundi(ProtoGoblinArcher.ARCHER_HP * horde.power) and a.hp < roundi(ProtoGoblin.MAX_HP * horde.power), "łucznik słabszy od goblina (%d)" % a.hp)
+	_check(a.hp == roundi(ProtoGoblinArcher.ARCHER_HP * horde.power * DungeonLevels.hp_mult(horde.level)) and a.hp < roundi(ProtoGoblin.MAX_HP * horde.power), "łucznik słabszy od goblina (%d)" % a.hp)
 	# z daleka podchodzi, z bliska się cofa
 	a._cooldown = 99.0
 	a.position = hero.position + Vector2(170, 0)
@@ -379,7 +379,7 @@ func _test_brute() -> void:
 	arena.weapon.auto_attack = false
 	var b: ProtoGoblinBrute = horde.spawn_at(hero.position + Vector2(80, 0), "brute")
 	await process_frame
-	_check(b.hp == roundi(ProtoGoblinBrute.BRUTE_HP * horde.power) and b.hp > roundi(ProtoGoblin.MAX_HP * horde.power) * 3, "osiłek ma dużo zdrowia (%d)" % b.hp)
+	_check(b.hp == roundi(ProtoGoblinBrute.BRUTE_HP * horde.power * DungeonLevels.hp_mult(horde.level)) and b.hp > roundi(ProtoGoblin.MAX_HP * horde.power) * 3, "osiłek ma dużo zdrowia (%d)" % b.hp)
 	await _wait(0.5)
 	_check(b.position.x - hero.position.x < 78.0 and b.position.x - hero.position.x > 55.0, "osiłek idzie powoli (%.0f)" % (b.position.x - hero.position.x))
 	# cios: koło przed osiłkiem, stojąca postać obrywa, cięcie nie przerywa zamachu
@@ -467,7 +467,7 @@ func _test_elites() -> void:
 	var s: ProtoGoblin = horde.spawn_at(hero.position + Vector2(150, 0), "goblin", ["shield"] as Array[String])
 	await process_frame
 	await process_frame
-	_check(s.hp == roundi(ProtoGoblin.MAX_HP * Elites.HEALTH * horde.power), "elita ma więcej zdrowia (%d)" % s.hp)
+	_check(s.hp == roundi(ProtoGoblin.MAX_HP * Elites.HEALTH * horde.power * DungeonLevels.hp_mult(horde.level)), "elita ma więcej zdrowia (%d)" % s.hp)
 	_check(s.elite._label != null and s.elite._label.text == "Tarczowy" and s._sprite.material != null, "elita: napis z cechą i poświata")
 	var hp := s.hp
 	s.take_damage(10, hero.global_position)
@@ -528,7 +528,7 @@ func _test_chief() -> void:
 	_check(arena.level == 2 and is_equal_approx(horde.power, DungeonLevels.power(2)), "poziom 2: silniejsze gobliny (x%.2f)" % horde.power)
 	var g := horde.spawn_at(hero.position + Vector2(60, 0))
 	await process_frame
-	_check(g.hp == roundi(ProtoGoblin.MAX_HP * horde.power), "goblin ma więcej zdrowia (%d)" % g.hp)
+	_check(g.hp == roundi(ProtoGoblin.MAX_HP * horde.power * DungeonLevels.hp_mult(horde.level)), "goblin ma więcej zdrowia (%d)" % g.hp)
 	horde.embers = DungeonLevels.summon_cost(horde.level) + 12
 	horde._on_ember(0)
 	arena.summon_button.pressed.emit()

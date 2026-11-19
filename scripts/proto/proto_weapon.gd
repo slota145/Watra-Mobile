@@ -194,6 +194,8 @@ var blink_skill := ""
 var flicker_trail: Texture2D = FLICKER_TRAIL
 ## Czy skok pokazuje na celu cięcie Mgnienia miecza (katana ma własne cięcie - bez podwójnego efektu).
 var flicker_cut := true
+## Przebicie odporności potworów (premia `pen_pct` z przedmiotów, ułamek).
+var penetration := 0.0
 var bolt_color := Color(0.55, 0.85, 1.0)
 ## Jasny rdzeń zygzaka pioruna.
 var bolt_core := Color(0.92, 0.98, 1.0)
@@ -603,7 +605,7 @@ func _cooldown_base(id: String) -> float:
 func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
 		amount = roundi(amount * elite_mult)
-	amount = roundi(amount * _combo_mult(t))
+	amount = Elements.reduce(amount, t.resist(element, penetration), _combo_mult(t))  # odporność lochu na żywioł broni
 	if randf() < crit_chance:
 		amount = roundi(amount * crit_mult)
 		t.crit_next = true
@@ -614,7 +616,7 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		return
 	var p := Gems.skill_power(sockets, "ember")
 	if p > 0.0:
-		t.burn(amount * p / 100.0, BURN_TIME)
+		t.burn(amount * p / 100.0, BURN_TIME, penetration)
 	p = Gems.skill_power(sockets, "rime")
 	if p > 0.0:
 		var soaked := t.is_soaked()
@@ -623,7 +625,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		t.slow(p / 100.0, SLOW_TIME)
 		if t.alive():  # Szron rani też lodem (decyzja autora 17.11.2026): RIME_DAMAGE siły spowolnienia, combo z wodą
 			t.color_next = Elements.color_of(Elements.COLD)
-			t.take_damage(maxi(1, roundi(amount * p / 100.0 * RIME_DAMAGE * Elements.soak_bonus(Elements.COLD, soaked))), from)
+			t.take_damage(Elements.reduce(roundi(amount * p / 100.0 * RIME_DAMAGE), t.resist(Elements.COLD, penetration),
+					Elements.soak_bonus(Elements.COLD, soaked)), from)
 	p = Gems.skill_power(sockets, "leech")
 	if p > 0.0:
 		_leech_acc += amount * p / 100.0
@@ -669,7 +672,7 @@ func _chain_from(src: ProtoTarget, amount: int, count := CHAIN_TARGETS, range_px
 		var t: ProtoTarget = pair[1]
 		_bolt(from, t.center())
 		t.color_next = Elements.color_of(Elements.LIGHTNING)
-		t.take_damage(maxi(1, amount), src.global_position)
+		t.take_damage(Elements.reduce(maxi(1, amount), t.resist(Elements.LIGHTNING, penetration)), src.global_position)
 		hit.append(t)
 	return hit
 

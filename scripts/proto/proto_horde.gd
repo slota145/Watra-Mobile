@@ -183,6 +183,8 @@ func spawn_at(pos: Vector2, kind := "goblin", elite_traits: Array[String] = []) 
 	g.died.connect(_on_died)
 	if not elite_traits.is_empty():
 		ProtoElite.promote(g, elite_traits)
+	g.hp_mult = DungeonLevels.hp_mult(level)
+	g.resists = Dungeons.resists(climate, level)
 	g.speed *= mod_speed
 	g.damage_mult *= mod_damage * DungeonLevels.MONSTER_DAMAGE
 	_alive += 1

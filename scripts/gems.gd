@@ -174,7 +174,7 @@ const THRIFT_STRIKE := [1, 4]
 ## kolor i `pool` - premie (Items.STAT_FORMATS), które mogą na nim wypaść; działają tak samo w każdym miejscu przedmiotu.
 const JEWELS := {
 	"ruby": {"name": "Rubin", "color": Color(1.0, 0.42, 0.42),
-		"pool": ["damage_pct", "hp", "regen", "crit_pct", "crit_dmg_pct"]},
+		"pool": ["damage_pct", "hp", "regen", "crit_pct", "crit_dmg_pct", "pen_pct"]},
 	"sapphire": {"name": "Szafir", "color": Color(0.43, 0.66, 1.0),
 		"pool": ["mana", "mana_regen", "cdr_pct", "xp_pct", "ember_pct"]},
 	"emerald": {"name": "Szmaragd", "color": Color(0.37, 0.86, 0.49),

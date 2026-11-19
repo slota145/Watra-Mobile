@@ -74,7 +74,7 @@ func _test_monsters(game: Node) -> void:
 	s.take_damage(100000, hero.global_position)
 	_check(s.is_pile() and s.alive() and horde.kills == kills, "szkielet rozpada się w kupkę (nie liczy się jako pokonany)")
 	await _wait(ProtoSkeleton.PILE_TIME + ProtoSkeleton.RISE_TIME + 0.2)
-	_check(not s.is_pile() and s.revived and s.hp == roundi(ProtoSkeleton.SKELETON_HP * horde.power * ProtoSkeleton.REVIVE_HP),
+	_check(not s.is_pile() and s.revived and s.hp == roundi(ProtoSkeleton.SKELETON_HP * horde.power * s.hp_mult * ProtoSkeleton.REVIVE_HP),
 			"po chwili wstaje z połową zdrowia (%d)" % s.hp)
 	s.take_damage(100000, hero.global_position)
 	_check(not s.alive() and horde.kills == kills + 1, "drugi raz ginie na dobre")

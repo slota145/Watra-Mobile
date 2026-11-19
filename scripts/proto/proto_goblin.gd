@@ -55,6 +55,8 @@ var power := 1.0
 ## Liczby tego rodzaju goblina (podklasy, np. łucznik, ustawiają inne w `_init`).
 var scene_path := SCENE_PATH
 var max_hp := MAX_HP
+## Dodatkowy mnożnik zdrowia z głębokości lochu (DungeonLevels.hp_mult - ustawia ProtoHorde).
+var hp_mult := 1.0
 var speed := SPEED
 var damage := DAMAGE
 var attack_cooldown := ATTACK_COOLDOWN
@@ -88,7 +90,7 @@ var _audio: AudioStreamPlayer2D
 
 func _ready() -> void:
 	center_height = 12.0
-	hp = roundi(max_hp * power)
+	hp = roundi(max_hp * power * hp_mult)
 	add_to_group(ProtoWeapon.TARGETS)
 	var shadow := Sprite2D.new()
 	shadow.texture = ProtoHero._shadow_texture()

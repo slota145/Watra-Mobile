@@ -18,8 +18,8 @@ const MANA_BASE := 50
 const MANA_STEP := 8
 ## Mana odnawia się o tyle na sekundę (umiejętności miecza: 15-25 many co kilka sekund).
 const MANA_REGEN := 3.0
-## Mnożnik obrażeń broni rośnie o tyle na poziom (+10%; było +6%).
-const DAMAGE_STEP := 0.10
+## Mnożnik obrażeń broni rośnie o tyle na poziom (+8%; było +6%, potem +10% - w głębi za mocno, 17.11.2026).
+const DAMAGE_STEP := 0.08
 ## Na tych poziomach odblokowują się kolejne miejsca na umiejętności (w kolejności od boku ekranu do góry).
 const SKILL_SLOT_LEVELS := [3, 6, 10, 15]
 ## Doświadczenie za goblina i za Wodza na 1. poziomie lochu (rośnie liniowo z poziomem lochu - DungeonLevels.reward).

@@ -69,7 +69,7 @@ func _rise() -> void:
 	revived = true
 	_state = "rise"
 	_timer = 0.0
-	hp = maxi(1, roundi(max_hp * power * REVIVE_HP))
+	hp = maxi(1, roundi(max_hp * power * hp_mult * REVIVE_HP))
 	remove_from_group(ProtoWeapon.TARGETS)
 	z_index = 0
 	if _scene:
