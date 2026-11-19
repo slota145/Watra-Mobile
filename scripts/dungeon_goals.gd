@@ -97,6 +97,9 @@ static func chest_items(level: int, loot_mult := 1.0) -> Array:
 	var items: Array = [Items.roll(level, "", "", Items.CHEST_WEIGHTS)]
 	if level >= Gems.MIN_LEVEL and randf() < CHEST_GEM * loot_mult:
 		items.append({"gem": Gems.roll(level)})
+	var aura := Auras.roll_chest(level, true, loot_mult)  # kamień aury (od lochu Auras.MIN_LEVEL)
+	if aura != "":
+		items.append({"aura": aura})
 	return items
 
 

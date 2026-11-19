@@ -196,7 +196,7 @@ func _update_drops() -> void:
 		if t.progress < 1.0:
 			continue
 		if hero and not hero.dead and state != "dead" and t.contains(hero.global_position):
-			hero.take_damage(roundi(RING_DAMAGE * power))
+			hit_hero(hero, roundi(RING_DAMAGE * power))
 		Fx.once(get_parent(), SPIKES_FX, SPIKES_FRAMES, 16.0, t.global_position, SPIKES_ANCHOR, 20, t.radius / SPIKES_RADIUS)
 		t.queue_free()
 		_drops.remove_at(i)
@@ -229,7 +229,7 @@ func _update_drain(delta: float) -> void:
 	_drain_tick -= delta
 	if _drain_tick <= 0.0:
 		_drain_tick = DRAIN_TICK
-		hero.take_damage(roundi(DRAIN_DAMAGE * power), Elements.NAWIA)
+		hit_hero(hero, roundi(DRAIN_DAMAGE * power), Elements.NAWIA)
 		hp = mini(hp + roundi(DRAIN_HEAL * power), max_hp)
 		health_changed.emit(hp, max_hp)
 		Fx.once(get_parent(), HEAL_FX, 10, 14.0, global_position + Vector2(randf_range(-7.0, 7.0), -18.0), HEAL_ANCHOR, 21)

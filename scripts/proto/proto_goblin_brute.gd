@@ -96,7 +96,7 @@ func _strike() -> void:
 	_struck = true
 	if _telegraph and is_instance_valid(_telegraph):
 		if hero and not hero.dead and _telegraph.contains(hero.global_position):
-			hero.take_damage(hit_damage(), element)
+			hit_hero(hero, hit_damage(), element)
 			_hit_hero()
 		Fx.once(get_parent(), FX_SLAM, 12, 16.0, _telegraph.global_position, Vector2(37, 25), 20, SLAM_RADIUS / 34.0)
 	_remove_telegraph()

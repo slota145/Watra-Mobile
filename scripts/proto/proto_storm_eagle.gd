@@ -112,7 +112,7 @@ func _process(delta: float) -> void:
 			if not _dive_hit and _telegraph and is_instance_valid(_telegraph) and hero and not hero.dead \
 					and global_position.distance_to(hero.global_position) < 20.0:
 				_dive_hit = true
-				hero.take_damage(roundi(DIVE_DAMAGE * power), Elements.LIGHTNING)
+				hit_hero(hero, roundi(DIVE_DAMAGE * power), Elements.LIGHTNING)
 				hero.shock(SHOCK_TIME)
 			if k >= 1.0:
 				_remove_telegraph()
@@ -193,7 +193,7 @@ func _update_drops() -> void:
 		if t.progress < 1.0:
 			continue
 		if hero and not hero.dead and state != "dead" and t.contains(hero.global_position):
-			hero.take_damage(roundi(STORM_DAMAGE * power), Elements.LIGHTNING)
+			hit_hero(hero, roundi(STORM_DAMAGE * power), Elements.LIGHTNING)
 			hero.shock(SHOCK_TIME)
 		t.queue_free()
 		_drops.remove_at(i)
@@ -207,7 +207,7 @@ func storm_pending() -> int:
 ## Podmuch: rani i odrzuca w kole, pierścień wyładowania, kule piorunów lecą dookoła.
 func _gust() -> void:
 	if _telegraph and is_instance_valid(_telegraph) and hero and not hero.dead and _telegraph.contains(hero.global_position):
-		hero.take_damage(roundi(GUST_DAMAGE * power), Elements.LIGHTNING)
+		hit_hero(hero, roundi(GUST_DAMAGE * power), Elements.LIGHTNING)
 		var away := (hero.global_position - global_position).normalized()
 		if away == Vector2.ZERO:
 			away = Vector2.DOWN

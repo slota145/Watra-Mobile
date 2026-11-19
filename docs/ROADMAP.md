@@ -33,8 +33,9 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 ## Pomysły autora (do zrobienia)
 
 - **Duże pomysły autora (19.11.2026) - kolejność proponowana przez Claude, do potwierdzenia:**
-  1. **Aury rezerwujące manę:** osobna zakładka obok broni, gracz zakłada tyle aur, na ile starczy many; premia
-     „redukcja rezerwacji” (mała). Do podejrzenia w Watrze: `scripts/aura_data.gd`, `scripts/auras.gd`.
+  1. ~~**Aury rezerwujące manę**~~ - zrobione 19.11.2026 (krok 1: 8 aur, krok 2: pozostałe 13 i premia przedmiotów
+     „mniejsza rezerwacja many”; szczegóły w `docs/historia.md`). Do oceny na telefonie: siła aur, rezerwacja, szanse
+     kamieni aur (25% skrzynia Wodza, 12% skrzynia na mapie lochu, od lochu 8).
   2. **3 miejsca na przedmioty specjalne** bez statystyk, z efektem (np. fala uderzeniowa po trafieniu, piorun po
      użyciu umiejętności zależny od many i podnoszący jej koszt - jak Archmage w PoE). Forma do ustalenia:
      osobne przedmioty, kamienie w ekwipunku czy efekt na przedmiocie (jak legendy Watry - `legendary_effects.gd`).

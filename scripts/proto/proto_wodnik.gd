@@ -175,7 +175,7 @@ func _start_wave() -> void:
 ## Fala: rani w pasie, przelatuje efektem od Wodnika do końca pasa.
 func _wave_hit() -> void:
 	if _telegraph and is_instance_valid(_telegraph) and hero and not hero.dead and _telegraph.contains(hero.global_position):
-		hero.take_damage(roundi(WAVE_DAMAGE * power), Elements.WATER)
+		hit_hero(hero, roundi(WAVE_DAMAGE * power), Elements.WATER)
 		hero.slow(SOAK_SLOW, SOAK_TIME, Elements.COLORS[Elements.WATER].lerp(Color.WHITE, 0.4))
 	_remove_telegraph()
 	var fx := Sprite2D.new()
@@ -246,7 +246,7 @@ func _update_vortex(delta: float) -> void:
 	_vortex_tick -= delta
 	if flat.length() <= VORTEX_RADIUS and _vortex_tick <= 0.0:
 		_vortex_tick = VORTEX_TICK
-		hero.take_damage(roundi(VORTEX_DAMAGE * power), Elements.WATER)
+		hit_hero(hero, roundi(VORTEX_DAMAGE * power), Elements.WATER)
 
 
 ## Czy wir właśnie się kręci (testy).
@@ -293,7 +293,7 @@ func _update_drops() -> void:
 		if t.progress < 1.0:
 			continue
 		if hero and not hero.dead and state != "dead" and t.contains(hero.global_position):
-			hero.take_damage(roundi(DROP_DAMAGE * power), Elements.COLD)
+			hit_hero(hero, roundi(DROP_DAMAGE * power), Elements.COLD)
 			hero.slow(ICE_SLOW, ICE_TIME, ICE_TINT.lerp(Color.WHITE, 0.3))
 		t.queue_free()
 		_drops.remove_at(i)

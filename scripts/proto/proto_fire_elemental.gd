@@ -110,7 +110,7 @@ func _process(delta: float) -> void:
 				ProtoFirePatch.spawn(get_parent(), global_position, hero, 14.0, CHARGE_TRAIL, roundi(BURN * power))
 			if not _charge_hit and hero and not hero.dead and global_position.distance_to(hero.global_position) < 20.0:
 				_charge_hit = true
-				hero.take_damage(roundi(CHARGE_DAMAGE * power), Elements.FIRE)
+				hit_hero(hero, roundi(CHARGE_DAMAGE * power), Elements.FIRE)
 				hero.ignite(roundi(BURN * power), BURN_TIME)
 			if k >= 1.0:
 				_remove_telegraph()
@@ -167,7 +167,7 @@ func start_attack(kind: String) -> void:
 ## Fala ognia: rani w pierścieniu, wybuch ognia wokół.
 func _wave_hit() -> void:
 	if _telegraph and is_instance_valid(_telegraph) and hero and not hero.dead and _telegraph.contains(hero.global_position):
-		hero.take_damage(roundi(WAVE_DAMAGE * power), Elements.FIRE)
+		hit_hero(hero, roundi(WAVE_DAMAGE * power), Elements.FIRE)
 		hero.ignite(roundi(BURN * power), BURN_TIME)
 	_remove_telegraph()
 	Fx.once(get_parent(), WAVE_FX, WAVE_FX_FRAMES, 14.0, global_position, WAVE_FX_ANCHOR, -1, WAVE_RADIUS / WAVE_FX_RADIUS)
@@ -189,7 +189,7 @@ func _update_drops() -> void:
 		if t.progress < 1.0:
 			continue
 		if hero and not hero.dead and state != "dead" and t.contains(hero.global_position):
-			hero.take_damage(roundi(RAIN_DAMAGE * power), Elements.FIRE)
+			hit_hero(hero, roundi(RAIN_DAMAGE * power), Elements.FIRE)
 			hero.ignite(roundi(BURN * power), BURN_TIME)
 		ProtoFirePatch.spawn(get_parent(), t.global_position, hero, RAIN_RADIUS, RAIN_PATCH, roundi(BURN * power))
 		t.queue_free()

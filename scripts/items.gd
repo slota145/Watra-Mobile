@@ -70,7 +70,8 @@ const CHEST_ITEMS := 3
 ## area_pct - większy obszar cięć i umiejętności, dodge_pct - szansa, że cios potwora nie trafi, pickup_pct - dalej
 ## przyciągane iskry i łup, ember_pct - więcej żaru z iskier (decyzja autora 13.11.2026), pen_pct - przebicie odporności
 ## potworów (zmniejsza ich wspólną odporność głębi - DungeonLevels.base_resist; 17.11.2026), mana_on_kill - mana za
-## zabicie potwora (nisko, z sufitem CAPS - decyzja autora 19.11.2026).
+## zabicie potwora (nisko, z sufitem CAPS - decyzja autora 19.11.2026), reserve_pct - aury rezerwują o tyle procent
+## mniej many (tylko pierścień i amulet, sufit 20% - decyzja autora 19.11.2026).
 const STAT_FORMATS := {
 	"hp": "+%d do zdrowia",
 	"mana": "+%d do many",
@@ -93,6 +94,7 @@ const STAT_FORMATS := {
 	"element_res_pct": "+%d%% odporności na żywioły",
 	"pen_pct": "+%d%% przebicia odporności potworów",
 	"mana_on_kill": "+%.1f many za zabicie potwora",
+	"reserve_pct": "%d%% mniejsza rezerwacja many przez aury",
 }
 ## Losowe premie: [najmniej, najwięcej] na 1. poziomie lochu; `scales` - rośnie z siłą lochu (DungeonLevels.power),
 ## inaczej (procenty) rośnie płynnie o `per_level` z każdym poziomem lochu (decyzja autora 12.11.2026 - wcześniej
@@ -119,6 +121,7 @@ const AFFIXES := {
 	"ember_pct": {"min": 4.0, "max": 8.0, "per_level": 0.3},
 	"element_res_pct": {"min": 5.0, "max": 10.0, "per_level": 0.3},
 	"pen_pct": {"min": 2.0, "max": 5.0, "per_level": 0.1},
+	"reserve_pct": {"min": 2.0, "max": 4.0, "per_level": 0.04, "slots": ["ring", "amulet"]},
 }
 ## Premie z ułamkiem (jedno miejsce po przecinku), reszta - liczby całkowite.
 const DECIMAL_STATS := ["regen", "mana_regen", "mana_on_kill"]
@@ -140,7 +143,8 @@ static func life_on_kill(gear: Dictionary) -> float:
 ## Unik do 50% (połowa ciosów nadal trafia), obszar do +100%, zasięg zbierania do +200%, żar do +100%.
 const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0, "crit_pct": 95.0, "cdr_pct": 100.0,
 	"dodge_pct": 50.0, "area_pct": 100.0, "pickup_pct": 200.0, "ember_pct": 100.0,
-	"element_res_pct": Elements.MAX_RESISTANCE * 100.0, "pen_pct": 55.0, "mana_on_kill": 2.0}
+	"element_res_pct": Elements.MAX_RESISTANCE * 100.0, "pen_pct": 55.0, "mana_on_kill": 2.0,
+	"reserve_pct": 20.0}
 ## Stała cecha każdego miejsca na 1. poziomie lochu (liczby rosną z siłą lochu, procenty o BASE_PCT_PER_LEVEL).
 ## Kolczyk: obrażenia ciosu (od-do) każdej broni zamiast gołych obrażeń postaci.
 const BASE := {
@@ -189,7 +193,7 @@ static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS
 		else:
 			base[stat] = roundi(v * p)
 	var affixes: Array = []
-	var pool: Array = AFFIXES.keys()
+	var pool: Array = AFFIXES.keys().filter(func(stat: String) -> bool: return affix_fits(stat, slot))
 	pool.shuffle()
 	var count := randi_range(AFFIX_COUNT[rarity].x, AFFIX_COUNT[rarity].y)
 	for i in count:
@@ -200,6 +204,12 @@ static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS
 		sockets.append("")
 	return {"slot": slot, "tier": tier, "level": maxi(level, 1), "rarity": rarity, "base": base, "affixes": affixes,
 			"sockets": sockets}
+
+
+## Czy premia może wypaść na przedmiocie z miejsca `slot` (pole "slots" w AFFIXES; bez niego - wszędzie).
+## Mniejsza rezerwacja many (aury, decyzja autora 19.11.2026) - tylko pierścień i amulet.
+static func affix_fits(stat: String, slot: String) -> bool:
+	return not AFFIXES[stat].has("slots") or slot in AFFIXES[stat]["slots"]
 
 
 ## Najwyższa wartość premii `stat` na poziomie lochu `level` (bez losowania).
@@ -329,7 +339,8 @@ static func reroll_affix(item: Dictionary, index: int) -> bool:
 	for i in item.affixes.size():
 		if i != index:
 			taken.append(item.affixes[i].stat)
-	var pool: Array = AFFIXES.keys().filter(func(stat: String) -> bool: return not stat in taken)
+	var pool: Array = AFFIXES.keys().filter(func(stat: String) -> bool:
+		return not stat in taken and affix_fits(stat, item.slot))
 	var stat: String = pool.pick_random()
 	item.affixes[index] = {"stat": stat, "value": roll_affix(stat, item.level)}
 	item.rerolls = int(item.get("rerolls", 0)) + 1
@@ -354,6 +365,7 @@ static func totals(equipped: Dictionary) -> Dictionary:
 		for id in item.get("sockets", []):
 			for gem in Gems.jewel_stats(id):
 				t[gem[0]] += clamp_affix(gem[0], gem[1], Gems.jewel_level(id), Gems.JEWEL_MULT)
+	t["element_res_raw"] = t.element_res_pct  # surowa suma - aura Hart Żywiołów podnosi sufit (Auras.apply)
 	for stat in CAPS:
 		t[stat] = minf(t[stat], CAPS[stat])
 	return t

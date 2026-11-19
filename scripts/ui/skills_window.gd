@@ -7,6 +7,9 @@ extends Control
 ## i 4 małe (zablokowane do poziomu postaci). Przypisanie: stuknij umiejętność, potem miejsce - albo przeciągnij ikonę
 ## na miejsce (SkillSlot). Stuknięcie zajętego miejsca wybiera je: potem stuknięcie innego miejsca zamienia je
 ## miejscami, a „Zdejmij” opróżnia. Mgnienie nie może stać pod „Atak”. Stan trzyma i zapisuje Game.
+## Zakładka „Aury” (Auras, 19.11.2026): lista aur z rezerwacją many i działaniem na obecnym poziomie, przycisk
+## „Włącz” / „Wyłącz” (Game.toggle_aura; powód odmowy w podpowiedzi), u góry suma rezerwacji; aury jeszcze
+## niezdobyte są szare z napisem, skąd je wziąć.
 ## Zakładka „Kamienie” (Gems, część 4 rozwoju postaci): stuknięcie umiejętności na liście wybiera ją, na dole jej
 ## 5 gniazd (otwarte Game.skill_open_count, zamknięte z kluczem - stuknięcie otwiera Kluczem Runicznym, drugie
 ## potwierdza) i sakwa z kamieniami umiejętności. Pod każdym gniazdem krótko, co robi jego kamień (Gems.short_text).
@@ -58,6 +61,12 @@ var back_button: Button
 var tab_slots: Button
 var tab_gems: Button
 var gems_mode := false
+var tab_auras: Button
+var aura_mode := false
+## Lista umiejętności i lista aur (zakładka „Aury” podmienia jedną na drugą).
+var skill_scroll: ScrollContainer
+var aura_scroll: ScrollContainer
+var aura_list: VBoxContainer
 var slots_row: HBoxContainer
 var gems_box: VBoxContainer
 var socket_slots: Array[GemSlot] = []
@@ -143,7 +152,11 @@ func _ready() -> void:
 	tab_gems = _button(tabs, tr("Kamienie"))
 	tab_gems.custom_minimum_size.y = 44
 	tab_gems.pressed.connect(set_gems_mode.bind(true))
+	tab_auras = _button(tabs, tr("Aury"))
+	tab_auras.custom_minimum_size.y = 44
+	tab_auras.pressed.connect(set_aura_mode)
 	var scroll := ScrollContainer.new()
+	skill_scroll = scroll
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(scroll)
@@ -153,6 +166,15 @@ func _ready() -> void:
 	scroll.add_child(list)
 	for i in Skills.ORDER.size():
 		_make_row(list, i)
+	aura_scroll = ScrollContainer.new()
+	aura_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	aura_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	aura_scroll.visible = false
+	column.add_child(aura_scroll)
+	aura_list = VBoxContainer.new()
+	aura_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	aura_list.add_theme_constant_override("separation", 6)
+	aura_scroll.add_child(aura_list)
 	hint = _label(column, "", 11, DIM)
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -176,6 +198,9 @@ func _ready() -> void:
 		if visible:
 			refresh())
 	_game.embers_changed.connect(func() -> void:
+		if visible:
+			refresh())
+	_game.auras_changed.connect(func() -> void:
 		if visible:
 			refresh())
 
@@ -314,6 +339,7 @@ func _make_gems(column: VBoxContainer) -> void:
 ## Przełącza dolną część: miejsca na przyciskach walki albo kamienie w umiejętnościach.
 func set_gems_mode(on: bool) -> void:
 	gems_mode = on
+	aura_mode = false
 	selected_skill = ""
 	selected_slot = -1
 	selected_gem = ""
@@ -321,6 +347,16 @@ func set_gems_mode(on: bool) -> void:
 	_key_armed = false
 	if on and (not _game.skills_owned.has(gem_skill) or Skills.weapon_of(gem_skill) != _game.weapon):
 		gem_skill = Skills.basic_of(_game.weapon)
+	refresh()
+
+
+## Zakładka „Aury”.
+func set_aura_mode() -> void:
+	aura_mode = true
+	gems_mode = false
+	selected_skill = ""
+	selected_slot = -1
+	_aura_problem = ""
 	refresh()
 
 
@@ -333,6 +369,7 @@ func open(shop := false) -> void:
 	selected_gem = ""
 	selected_socket = -1
 	_key_armed = false
+	_aura_problem = ""
 	refresh()
 	visible = true
 	get_tree().paused = true
@@ -417,11 +454,17 @@ func refresh() -> void:
 	for i in Skills.SLOTS:
 		var locked: int = 0 if _game.slot_open(i) else HeroLevels.SKILL_SLOT_LEVELS[i - 1]
 		slots[i].show_skill(_game.skill_slots[i], locked, selected_slot == i)
-	_tab_look(tab_slots, not gems_mode)
+	_tab_look(tab_slots, not gems_mode and not aura_mode)
 	_tab_look(tab_gems, gems_mode)
-	slots_row.visible = not gems_mode
+	_tab_look(tab_auras, aura_mode)
+	skill_scroll.visible = not aura_mode
+	aura_scroll.visible = aura_mode
+	slots_row.visible = not gems_mode and not aura_mode
 	gems_box.visible = gems_mode
-	clear_button.visible = not gems_mode
+	clear_button.visible = not gems_mode and not aura_mode
+	if aura_mode:
+		_refresh_auras()
+		return
 	if gems_mode:
 		_refresh_gems()
 		return
@@ -612,6 +655,75 @@ func _tab_look(b: Button, active: bool) -> void:
 			b.add_theme_color_override(c, GOLD)
 		else:
 			b.remove_theme_color_override(c)
+## Powód ostatniej odmowy włączenia aury (pokazany w podpowiedzi do kolejnej zmiany).
+var _aura_problem := ""
+
+
+## Zakładka „Aury”: suma rezerwacji i wiersz każdej aury (ikona, nazwa z poziomem, rezerwacja, działanie, przycisk).
+func _refresh_auras() -> void:
+	for c in aura_list.get_children():
+		c.queue_free()
+	var cut: float = _game.aura_cut()
+	var reserved := Auras.reserved_total(_game.auras_on, _game.auras, cut)
+	var total := _label(aura_list, tr("Aury rezerwują %d%% many (najwięcej %d%%)") % [roundi(reserved * 100),
+			roundi(Auras.MAX_RESERVED * 100)], 12, BLUE)
+	total.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	for id: String in Auras.ORDER:
+		var lvl: int = _game.auras.get(id, 0)
+		var on: bool = _game.auras_on.has(id)
+		var box := PanelContainer.new()
+		var st := _panel_style(6)
+		st.bg_color = Color(0.16, 0.11, 0.08) if lvl > 0 else Color(0.1, 0.08, 0.07, 0.8)
+		st.border_color = Auras.color_of(id) if on else Color(0.4, 0.3, 0.2)
+		st.set_border_width_all(2 if on else 1)
+		box.add_theme_stylebox_override("panel", st)
+		aura_list.add_child(box)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		box.add_child(row)
+		var icon := TextureRect.new()
+		icon.texture = Auras.icon_of(id)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(36, 36)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon.modulate = Color.WHITE if lvl > 0 else Color(0.45, 0.45, 0.45)
+		row.add_child(icon)
+		var col := VBoxContainer.new()
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		col.add_theme_constant_override("separation", 1)
+		row.add_child(col)
+		var title := tr("%s, poz. %d/%d") % [Auras.name_of(id), lvl, Auras.MAX_LEVEL] if lvl > 0 else Auras.name_of(id)
+		_label(col, title, 14, Auras.color_of(id) if lvl > 0 else DIM)
+		_label(col, Auras.cost_text(id, maxi(lvl, 1), cut), 11, BLUE)
+		var desc := _label(col, Auras.effect_text(id, maxi(lvl, 1)), 11, TEXT if lvl > 0 else DIM)
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		if lvl == 0:
+			var where := _label(col, tr("Kamień aury wypada ze skrzyń od lochu %d") % Auras.MIN_LEVEL, 10, RED)
+			where.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			continue
+		var b := Button.new()
+		b.text = tr("Wyłącz") if on else tr("Włącz")
+		b.custom_minimum_size = Vector2(76, 44)
+		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		b.add_theme_font_size_override("font_size", 13)
+		if on:
+			_tab_look(b, true)
+		b.pressed.connect(_on_aura_pressed.bind(id))
+		row.add_child(b)
+	if _aura_problem != "":
+		hint.text = _aura_problem
+	elif _game.auras.is_empty():
+		hint.text = tr("Nie masz jeszcze żadnej aury. Kamienie aur wypadają ze skrzyń od lochu %d.") % Auras.MIN_LEVEL
+	else:
+		hint.text = tr("Włączona aura działa cały czas, ale zajmuje część many. Kolejny taki sam kamień podnosi jej poziom.")
+
+
+func _on_aura_pressed(id: String) -> void:
+	_aura_problem = _game.toggle_aura(id)
+	refresh()
+
+
 ## Małe ikony kamieni z gniazd umiejętności w wierszu listy (puste otwarte gniazdo - kółko gniazda).
 func _show_row_gems(i: int) -> void:
 	var id: String = Skills.ORDER[i]

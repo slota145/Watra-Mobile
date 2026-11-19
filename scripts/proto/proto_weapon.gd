@@ -258,6 +258,8 @@ var skill_gems := {}
 var skill_levels := {}
 ## Cele do bicia (kukły, potwory). Arena dopisuje je przy starcie, potwory dopisują się same w grupie TARGETS.
 var targets: Array[ProtoTarget] = []
+## Aura Żar Swaroga (Auras): tyle części każdego trafienia dochodzi jako ogień (z podpaleniem); 0 - brak aury.
+var aura_fire := 0.0
 
 var _state := "follow"
 var _t := 0.0
@@ -688,9 +690,23 @@ func _sword_cut_fx(t: ProtoTarget, from: Vector2) -> void:
 	cut.self_modulate = Color(1.4, 1.5, 1.7)  # jaśniej - na trawie i goblinach cienka linia ginęła
 
 
+## Trafienie aury (ProtoAuras: piorun Peruna, mróz Szronu, Błędny Ognik): `power` zwykłego ciosu w żywiole `elem`,
+## z premią przeciw elitom i odpornością celu, bez krytyków i kamieni. Liczba w kolorze żywiołu.
+func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2) -> void:
+	if not t.alive():
+		return
+	var amount := roundi(_roll(power) * (1.0 + t.pride))
+	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
+		amount = roundi(amount * elite_mult)
+	t.color_next = Elements.color_of(elem)
+	t.take_damage(Elements.reduce(amount, t.resist(elem, penetration)), from)
+
+
 func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
 		amount = roundi(amount * elite_mult)
+	if t.pride > 0.0:  # Piętno Czarnoboga
+		amount = roundi(amount * (1.0 + t.pride))
 	amount = Elements.reduce(amount, t.resist(element, penetration), _combo_mult(t))  # odporność lochu na żywioł broni
 	if randf() < crit_chance:
 		amount = roundi(amount * crit_mult)
@@ -699,6 +715,11 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	t.crit_next = false
 	if skill != "slam" and get_script() == ProtoWeapon:
 		_sword_cut_fx(t, from)
+	if aura_fire > 0.0 and t.alive():
+		var fire := amount * aura_fire
+		t.color_next = Elements.color_of(Elements.FIRE)
+		t.take_damage(Elements.reduce(maxi(1, roundi(fire)), t.resist(Elements.FIRE, penetration)), from)
+		t.burn(fire * Auras.SWAROG_BURN, BURN_TIME, penetration)
 	var sockets: Array = skill_gems.get(skill, [])
 	if sockets.is_empty():
 		return

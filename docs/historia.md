@@ -2,6 +2,64 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 19.11.2026 - aury rezerwujące manę (krok 2: pozostałe 13 aur, mniejsza rezerwacja)
+
+Decyzje autora (ankieta): dopasowania z ROADMAP bez zmian, premia „mniejsza rezerwacja many” na przedmiotach.
+- `Auras`: 21 aur (`ORDER`, `DATA`), nowe stałe (`CIRCLE_TICK` 0,25 s, `MARK_TIME`, `POSTRACH_SLOW` 10%,
+  `CZARNOBOG_BUILD` 4 s / `CZARNOBOG_FADE`, `MOKOSZ_DELAY` 3 s, `STONE_BELOW` 35%, `HERALD_RADIUS` 45 px, `MROZ_SLOW`,
+  `MROZ_CHILLED` x1,5, `LICHO_TIME` +30%, `JARYLO_CRIT_DMG` x4, `WELES_XP` /10), `reserve_sum` (bez przycinania -
+  sprawdzanie przy włączaniu i wczytaniu; przy kroku 1 wczytanie nie odrzucało nadmiaru), `cut_of`.
+- Nowe aury (siła na 1. poziomie, przyrost za poziom, rezerwacja): Postrach (krąg 80 px: -15% obrażeń wrogów, +1,5;
+  -10% szybkości; 30%), Mgła Nawii (krąg 86 px: 15% chybień, +1,5; 30%), Opieka Mokoszy (tarcza 15% zdrowia, +1,5,
+  pełna po 3 s bez trafienia; 30%), Piętno Czarnoboga (krąg 76 px: do +20% obrażeń, +2, rośnie przez 4 s; 30%),
+  Oko Jaryły (+5 pkt szansy na krytyk i +20% obrażeń krytycznych, +0,5 / +2; 25%), Pancerz Trzygłowa (+8% ochrony,
+  +0,8; 30%), Kamienna Krew (-30% obrażeń poniżej 35% zdrowia, +2; 20%), Zwiastun Popiołu (wybuch zabitego 40%
+  ciosu ogniem + podpalenie, +5; 25%), Zwiastun Mrozu (odłamki 40% ciosu mrozem, x1,5 ze spowolnionego, -30% szybkości;
+  25%), Złość Licha (podpalenia +25% i +30% dłużej, +3; 30%), Pieczęć Rodu (+12% odporności na żywioły, +1,2; 30%),
+  Hart Żywiołów (sufit odporności +5 pkt, do 85% na 10. poziomie; 35%), Dłoń Welesa (+50% zasięgu zbierania i +5%
+  doświadczenia, +5 / +0,5; 20%).
+- Wrogowie: `ProtoTarget.hit_hero` zamiast `hero.take_damage` w potworach i bossach (znaki `aura_weak`, `aura_miss`,
+  `aura_until`; strzały i wybuch elity Lotnej bez zmian), `pride` (mnożnik w `ProtoWeapon._deal` i `aura_hit`),
+  statyczne `burn_power` / `burn_length` (Licho, ustawia `Arena._apply_weapon`).
+- `ProtoHero`: tarcza (`shield`, `shield_max`, sygnał `shield_changed`, jasny pas na dole paska zdrowia - `Arena.shield_bar`),
+  `stone`, `max_res_bonus`, `enemy_missed` (napis „Chybił!”). `Items.totals` zostawia `element_res_raw` (dla Hartu).
+- `ProtoAuras`: `_circle_tick`, `on_monster_died` (z `ProtoHorde.monster_died`, wybuch odroczony), krąg wybuchu `_Burst`.
+- Przedmioty: premia `reserve_pct` („% mniejsza rezerwacja many przez aury”, 2-4% +0,04 na poziom lochu, sufit 20%),
+  tylko pierścień i amulet (`AFFIXES` pole `slots`, `Items.affix_fits` - też u kowala); `Game.aura_cut`.
+- Test: `tests/test_auras.gd` (krok 2 - `_test_step2`).
+
+## 19.11.2026 - aury rezerwujące manę (krok 1: 8 aur)
+
+Pomysł autora; lista 21 aur zatwierdzona 19.11.2026 (z gałęzi `ccr-23c5ddf4-xminpb`, kod tamtej gałęzi był na starej
+wersji gry - przeniesiony i dopasowany). Decyzje autora z tej sesji (ankieta): kamienie aur od lochu 8 (na 1. poziomie
+postać ma 50 many, a umiejętności kosztują 15-45, więc 2 aury po 25-35% zablokowałyby umiejętności), aura od razu przy
+podniesieniu (bez sakwy), w tej sesji fundament i 8 aur.
+- `scripts/auras.gd` (`Auras`): dane 8 aur (`DATA`: nazwa, rezerwacja `reserve`, kolor, zasięg kręgu, siła `power`
+  [poziom 1, przyrost]), `MAX_RESERVED` 75%, `RESERVE_CUT` 2% taniej za poziom, `MIN_LEVEL` 8, szanse kamienia
+  (`CHEST_CHANCE` 25% skrzynia Wodza, `GOAL_CHEST_CHANCE` 12% skrzynia na mapie lochu, razy mnożnik łupu - `roll_chest`),
+  premie postaci (`apply` dopisuje do sumy cech przedmiotów: Strzybóg `move_pct` i `attack_speed_pct` z sufitami,
+  klucze `aura_hp_pct`, `aura_regen_pct`, `aura_mana_regen_pct`, `aura_reserve`, `aura_fire`), opisy (`effect_text`),
+  ikona rysowana w kodzie (`icon_of`).
+- 8 aur: Krzepa (+20% zdrowia, +2/poz., 25%), Wiatr Strzyboga (+10% ruchu i ataku, +1/poz., 30%), Źródło Żywii
+  (1% zdrowia/s, 20%), Źródło Many (2% many/s, 15%), Żar Swaroga (+15% ciosu jako ogień i podpalenie za połowę tego,
+  `ProtoWeapon.aura_fire`, 25%), Gniew Peruna (co 3 s piorun w najbliższego wroga do 220 px, 120% ciosu, porażenie 2 s,
+  35%), Błędny Ognik (krąży 40 px wokół postaci, 50% ciosu ogniem, ten sam wróg co 0,6 s, 35%), Szron Marzanny
+  (krąg 70 px: -25% szybkości i co 0,5 s 15% ciosu mrozem, 25%). Trafienia aur - `ProtoWeapon.aura_hit` (rzut
+  obrażeń broni, premia przeciw elitom, odporność celu, bez krytyków i kamieni).
+- `Game`: `auras` (aura -> poziom), `auras_on`, sygnał `auras_changed`, `add_aura` (nowa / poziom wyżej / 0 na 10.),
+  `toggle_aura`, `aura_problem` - limit 75% i zasada „aury nie zabierają many na najdroższą umiejętność w miejscach”
+  (`priciest_skill`, koszt z poziomem umiejętności, bez kamieni; sprawdzane przy włączaniu), zapis, `reset_hero`;
+  `gear()` zawiera premie aur.
+- `ProtoHero`: `reserved`, `mana_cap()` (mana napełnia się najwyżej do tej granicy), zdrowie, odnowa i rezerwacja
+  z `HeroStats.max_hp`, `max_mana`, `reserved_mana`, `regen`; wyłączona aura nie dolewa many od razu.
+- `ProtoAuras` (`scripts/proto/proto_auras.gd`, dziecko postaci): obracające się kręgi w kolorach aur, piorun, mróz, ognik.
+- Arena: ciemny pas rezerwacji z ikonkami aur na pasku many (`mana_reserved`, `aura_icons`), napis „mana / dostępna”,
+  kamień aury w skrzyni Wodza; `DungeonGoals.chest_items` - w skrzyni-celu. `ProtoLoot`: łup `{"aura": id}`
+  (świeci jak rzadki, napis „Nowa aura” / „poziom N” / „już najwyższy poziom”).
+- Okno umiejętności: zakładka „Aury” (suma rezerwacji, wiersz każdej aury, „Włącz” / „Wyłącz”, powód odmowy w podpowiedzi).
+  Okno „Postać”: mana „150 (wolne 90)”, zdrowie i odnowa z aurami.
+- Test: `tests/test_auras.gd`.
+
 ## 19.11.2026 - szlif efektowności: Sąd Peruna, Rozłupanie Ziemi, Krąg stali, Płonąca bruzda
 
 Wybór autora (ankieta): cztery umiejętności dostają mocniejszy wygląd i „kulminację”. Nowe efekty z darmowego
