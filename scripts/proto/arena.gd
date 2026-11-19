@@ -93,6 +93,11 @@ var mana_bar: ProgressBar
 ## Liczby na paskach („obecne / największe”).
 var health_text: Label
 var mana_text: Label
+## Część paska many zarezerwowana przez aury (ciemna, z prawej) i ikonki włączonych aur na niej.
+var mana_reserved: ColorRect
+var aura_icons: HBoxContainer
+## Kręgi i działanie aur pod postacią (Auras).
+var auras_node: ProtoAuras
 var xp_text: Label
 ## Doświadczenie zdobyte w tej wyprawie i poziom postaci na jej starcie (do podsumowania).
 var run_xp := 0
@@ -206,6 +211,10 @@ func _ready() -> void:
 	weapon.name = "Weapon"
 	weapon.hero = hero
 	weapon.auto_attack = Game.auto_attack
+	auras_node = ProtoAuras.new()
+	auras_node.name = "Auras"
+	auras_node.weapon = weapon
+	hero.add_child(auras_node)
 	gear = _gear()
 	if horde:
 		horde_spawner = ProtoHorde.new()
@@ -237,7 +246,8 @@ func _ready() -> void:
 		hero.mana_changed.connect(func(mana: int, max_mana: int) -> void:
 			mana_bar.max_value = max_mana
 			mana_bar.value = mana
-			mana_text.text = "%d / %d" % [mana, max_mana])
+			mana_text.text = "%d / %d" % [mana, hero.mana_cap()]
+			_show_reserved())
 		hero.set_level(Game.hero_level, gear)
 		hero.died.connect(_on_hero_died)
 		hero.death_avoided.connect(func(n: int) -> void: deaths_label.text = tr("Zgony: %d") % n)
@@ -291,6 +301,8 @@ func _ready() -> void:
 	Game.leveled_up.connect(_on_level_up)
 	Game.skill_unlocked.connect(func(id: String) -> void: hero.skill_unlocked(Skills.name_of(id)))
 	Game.inventory_changed.connect(_on_inventory)
+	_apply_auras()
+	Game.auras_changed.connect(_apply_auras)
 	actions.attack.pressed.connect(func() -> void: weapon.attack_held = true)
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
 	for i in actions.skills.size():
@@ -565,6 +577,20 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	mana_bar.add_theme_stylebox_override("background", mana_bg)
 	mana_bar.add_theme_stylebox_override("fill", mana_fill)
 	box.add_child(mana_bar)
+	mana_reserved = ColorRect.new()  # rezerwacja aur: ciemny pas z prawej strony paska many
+	mana_reserved.color = Color(0.3, 0.32, 0.42, 0.95)  # szaroniebieski - inny niż pusta część paska
+	mana_reserved.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mana_reserved.anchor_top = 0.0
+	mana_reserved.anchor_bottom = 1.0
+	mana_reserved.anchor_right = 1.0
+	mana_reserved.visible = false
+	mana_bar.add_child(mana_reserved)
+	aura_icons = HBoxContainer.new()
+	aura_icons.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	aura_icons.alignment = BoxContainer.ALIGNMENT_END
+	aura_icons.add_theme_constant_override("separation", 1)
+	aura_icons.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mana_reserved.add_child(aura_icons)
 	mana_text = _bar_text(mana_bar, 9)
 	_make_xp_row(box)
 	ember_bar = ProgressBar.new()
@@ -709,8 +735,40 @@ func _on_xp(lvl: int, xp: int, need: int) -> void:
 	xp_text.text = "%d / %d" % [xp, need] if need > 0 else tr("Najwyższy poziom")
 	actions.set_hero_level(lvl, true)
 	_apply_weapon()
-	if hero.max_hp != HeroLevels.max_hp(lvl) + roundi(gear.get("hp", 0.0)) and not hero.dead:
+	if hero.max_hp != HeroStats.max_hp(lvl, gear) and not hero.dead:
 		hero.set_level(lvl, gear)  # np. reset postaci w trybie deweloperskim
+
+
+## Włączone aury (Game.auras_on): kręgi i działanie pod postacią, ikonki na pasku many. Premie przychodzą przez
+## Game.gear() (Auras.apply) razem ze zmianą ekwipunku (Game wysyła też inventory_changed).
+func _apply_auras() -> void:
+	auras_node.on = Game.auras_on.duplicate()
+	auras_node.levels = Game.auras.duplicate()
+	if aura_icons == null:
+		return
+	for c in aura_icons.get_children():
+		c.queue_free()
+	for id in Game.auras_on:
+		var icon := TextureRect.new()
+		icon.texture = Auras.icon_of(id)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(9, 9)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		aura_icons.add_child(icon)
+	_show_reserved()
+
+
+## Ciemny pas rezerwacji aur na pasku many (szerokość - część zarezerwowanej many).
+func _show_reserved() -> void:
+	if mana_reserved == null or hero == null:
+		return
+	mana_reserved.visible = hero.reserved > 0
+	mana_reserved.anchor_left = 1.0 - float(hero.reserved) / maxf(hero.max_mana, 1.0)
+	mana_reserved.offset_left = 0.0
+	mana_reserved.offset_right = 0.0
+	mana_reserved.offset_top = 0.0
+	mana_reserved.offset_bottom = 0.0
 
 
 ## Zmiana ekwipunku (okno „Postać”, łup): nowe cechy postaci i miecza bez leczenia.
@@ -733,6 +791,7 @@ func _apply_weapon() -> void:
 	weapon.cooldown_cut = gear.get("cdr_pct", 0.0) / 100.0
 	weapon.area_bonus = gear.get("area_pct", 0.0)
 	weapon.penetration = gear.get("pen_pct", 0.0) / 100.0
+	weapon.aura_fire = gear.get("aura_fire", 0.0)
 	if horde_spawner:
 		horde_spawner.pickup_mult = 1.0 + gear.get("pickup_pct", 0.0) / 100.0
 		horde_spawner.ember_mult = 1.0 + gear.get("ember_pct", 0.0) / 100.0
@@ -753,6 +812,7 @@ func _swap_weapon() -> void:
 	old.get_parent().add_child(weapon)
 	old.get_parent().remove_child(old)
 	old.queue_free()
+	auras_node.weapon = weapon
 	_apply_weapon()
 	_apply_skills()
 
@@ -803,7 +863,7 @@ func _update_skill_buttons() -> void:
 ## Przedmiot na ziemi (z goblina albo skrzyni) - podniesione liczą się do podsumowania wyprawy.
 func _track_loot(loot: ProtoLoot) -> void:
 	loot.picked.connect(func(item: Dictionary) -> void:
-		if not item.has("gem"):
+		if not item.has("gem") and not item.has("aura"):
 			run_items += 1
 		notify_loot(item, tr("Podniesiono: %s") % ProtoLoot.name_of(item)))
 	loot.sold.connect(func(item: Dictionary, price: int, bag_full: bool) -> void:
@@ -1130,7 +1190,7 @@ func _gear() -> Dictionary:
 	for stat: String in data["stats"]:
 		g[stat] = g.get(stat, 0.0) + float(data["stats"][stat])
 	if data.has("regen_pct"):
-		var max_hp := HeroLevels.max_hp(Game.hero_level) + roundi(g.get("hp", 0.0))
+		var max_hp := HeroStats.max_hp(Game.hero_level, g)
 		g["regen"] = g.get("regen", 0.0) + max_hp * float(data["regen_pct"]) / 100.0
 	return g
 
@@ -1196,6 +1256,9 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	chest.items = Items.roll_chest(level)
 	for id in Gems.roll_chest(level, horde_spawner.loot_mult):
 		chest.items.append({"gem": id})
+	var aura := Auras.roll_chest(level, false, horde_spawner.loot_mult)  # kamień aury (od lochu Auras.MIN_LEVEL)
+	if aura != "":
+		chest.items.append({"aura": aura})
 	chest.loot_spawned.connect(_track_loot)
 	chest.position = at
 	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner.on_chest_ember))

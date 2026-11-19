@@ -11,6 +11,8 @@ extends Node2D
 ## ze złotym błyskiem, napisem „Poziom N!” i dźwiękiem. Przedmioty (`gear` - Items.totals) dokładają zdrowie, manę,
 ## szybkość ruchu, regenerację zdrowia i ochronę (mniej obrażeń od potworów).
 ## Mana odnawia się sama (HeroLevels.mana_regen z poziomu i premia przedmiotów `mana_regen`), a wydają ją umiejętności miecza (`spend_mana`). Skok Mgnienia
+## Aury (Auras) rezerwują część many: `reserved` - tyle many z `max_mana` jest zajęte, mana napełnia się najwyżej do
+## `mana_cap()`. Premie aur (zdrowie, odnowa) przychodzą w `gear` (Auras.apply), kręgi i działanie - dziecko ProtoAuras.
 ## (`teleport`) przenosi postać od razu, zostawia gasnący cień w miejscu startu i daje chwilę nietykalności.
 
 signal health_changed(hp: int, max_hp: int)
@@ -49,6 +51,8 @@ var velocity := Vector2.ZERO
 var max_hp := MAX_HP
 ## Mana (zużywają ją umiejętności miecza).
 var max_mana := HeroLevels.MANA_BASE
+## Mana zarezerwowana przez włączone aury (część max_mana, której nie da się wydać).
+var reserved := 0
 var mana := HeroLevels.MANA_BASE
 var hp := MAX_HP
 var dead := false
@@ -141,12 +145,12 @@ func _process(delta: float) -> void:
 			_regen_acc -= heal
 			hp = mini(hp + heal, max_hp)
 			health_changed.emit(hp, max_hp)
-	if mana < max_mana:
+	if mana < mana_cap():
 		_mana_acc += _mana_regen * delta
 		if _mana_acc >= 1.0:
 			var add := int(_mana_acc)
 			_mana_acc -= add
-			mana = mini(mana + add, max_mana)
+			mana = mini(mana + add, mana_cap())
 			mana_changed.emit(mana, max_mana)
 	else:
 		_mana_acc = 0.0
@@ -302,10 +306,15 @@ func heal(amount: int) -> void:
 
 ## Mana za trafienie (kamień Oszczędność w zwykłym ciosie).
 func add_mana(amount: int) -> void:
-	if dead or amount <= 0 or mana >= max_mana:
+	if dead or amount <= 0 or mana >= mana_cap():
 		return
-	mana = mini(mana + amount, max_mana)
+	mana = mini(mana + amount, mana_cap())
 	mana_changed.emit(mana, max_mana)
+
+
+## Ile many można mieć najwyżej (pełna mana bez rezerwacji aur).
+func mana_cap() -> int:
+	return maxi(max_mana - reserved, 0)
 
 
 ## Wydaje manę na umiejętność. Zwraca false (i nic nie zabiera), gdy jej brakuje.
@@ -350,7 +359,7 @@ func set_level(level: int, items_gear := {}) -> void:
 	apply_gear(level, items_gear)
 	hp = max_hp
 	health_changed.emit(hp, max_hp)
-	mana = max_mana
+	mana = mana_cap()
 	mana_changed.emit(mana, max_mana)
 
 
@@ -359,14 +368,18 @@ func set_level(level: int, items_gear := {}) -> void:
 func apply_gear(level: int, items_gear: Dictionary) -> void:
 	gear = items_gear
 	_mana_regen = HeroLevels.mana_regen(level) + gear.get("mana_regen", 0.0)
-	var new_hp := HeroLevels.max_hp(level) + roundi(gear.get("hp", 0.0))
-	var new_mana := HeroLevels.max_mana(level) + roundi(gear.get("mana", 0.0))
+	var new_hp := HeroStats.max_hp(level, gear)
+	var new_mana := HeroStats.max_mana(level, gear)
+	var new_reserved := HeroStats.reserved_mana(level, gear)
 	hp = clampi(hp + maxi(new_hp - max_hp, 0), 0 if dead else 1, new_hp)
-	mana = clampi(mana + maxi(new_mana - max_mana, 0), 0, new_mana)
+	# wyłączona aura nie dolewa many od razu (inaczej włączanie i wyłączanie w pauzie napełniałoby pasek)
+	mana = clampi(mana + maxi(new_mana - max_mana, 0), 0, new_mana - new_reserved)
 	max_hp = new_hp
 	max_mana = new_mana
+	reserved = new_reserved
+	_mana_regen += new_mana * gear.get("aura_mana_regen_pct", 0.0)
 	move_mult = 1.0 + gear.get("move_pct", 0.0) / 100.0
-	regen = gear.get("regen", 0.0)
+	regen = HeroStats.regen(level, gear)
 	protection = gear.get("protection_pct", 0.0) / 100.0
 	element_res = minf(gear.get("element_res_pct", 0.0) / 100.0, Elements.MAX_RESISTANCE)
 	dodge = gear.get("dodge_pct", 0.0) / 100.0

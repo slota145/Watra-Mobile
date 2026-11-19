@@ -430,13 +430,40 @@ func _on_sell_all(which: String) -> void:
 	_bulk_texts()
 
 
+## Największe zdrowie z poziomu, przedmiotów i aury Krzepa (`aura_hp_pct` - Auras.apply).
+static func max_hp(level: int, gear: Dictionary) -> int:
+	return roundi((HeroLevels.max_hp(level) + roundi(gear.get("hp", 0.0))) * (1.0 + gear.get("aura_hp_pct", 0.0)))
+
+
+## Największa mana z poziomu i przedmiotów (część z niej mogą rezerwować aury - `aura_reserve`).
+static func max_mana(level: int, gear: Dictionary) -> int:
+	return HeroLevels.max_mana(level) + roundi(gear.get("mana", 0.0))
+
+
+## Mana zarezerwowana przez aury (Auras.apply - `aura_reserve`).
+static func reserved_mana(level: int, gear: Dictionary) -> int:
+	return roundi(max_mana(level, gear) * gear.get("aura_reserve", 0.0))
+
+
+## Napis many do okna: „150”, z aurami „150 (wolne 90)”.
+static func mana_text(level: int, gear: Dictionary) -> String:
+	var full := max_mana(level, gear)
+	var reserved := reserved_mana(level, gear)
+	return str(full) if reserved <= 0 else Lang.t("%d (wolne %d)") % [full, full - reserved]
+
+
+## Zdrowie na sekundę: przedmioty i aura Źródło Żywii (część największego zdrowia).
+static func regen(level: int, gear: Dictionary) -> float:
+	return gear.get("regen", 0.0) + max_hp(level, gear) * gear.get("aura_regen_pct", 0.0)
+
+
 ## Statystyki postaci jako napisy do okna (poziom i cechy przedmiotów): hp, mana, damage, speed, move, protection,
 ## regen, xp. Służy też do porównania przed i po założeniu przedmiotu.
 static func summary(level: int, gear: Dictionary) -> Dictionary:
 	var dmg := damage_range(level, gear)
 	return {
-		"hp": str(HeroLevels.max_hp(level) + roundi(gear.get("hp", 0.0))),
-		"mana": str(HeroLevels.max_mana(level) + roundi(gear.get("mana", 0.0))),
+		"hp": str(max_hp(level, gear)),
+		"mana": mana_text(level, gear),
 		"damage": "%d-%d" % [dmg.x, dmg.y],
 		"speed": Lang.t("%.2f /s") % attacks_per_second(gear),
 		"move": str(roundi(ProtoHero.SPEED * (1.0 + gear.get("move_pct", 0.0) / 100.0))),
@@ -444,7 +471,7 @@ static func summary(level: int, gear: Dictionary) -> Dictionary:
 		"element_res": "%d%%" % roundi(gear.get("element_res_pct", 0.0)),
 		"pen": "%d%%" % roundi(gear.get("pen_pct", 0.0)),
 		"mana_on_kill": "+%.1f" % gear.get("mana_on_kill", 0.0),
-		"regen": Lang.t("%.1f /s") % gear.get("regen", 0.0),
+		"regen": Lang.t("%.1f /s") % regen(level, gear),
 		"xp": "+%d%%" % roundi(gear.get("xp_pct", 0.0)),
 		"crit": "%d%%" % roundi(crit_chance(gear)),
 		"crit_dmg": "%d%%" % roundi(crit_damage(gear)),

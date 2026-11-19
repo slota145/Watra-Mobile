@@ -21,6 +21,7 @@ extends Node
 ## w ustawieniach (`last_character`). Ustawienia sterowania wspólne (settings.cfg). Skrzynia w bazie wspólna dla
 ## postaci bez SSF (SHARED_STASH); postać SSF ma własną skrzynię w swoim pliku. Stary pojedynczy zapis (SAVE_PATH)
 ## przechodzi raz na pierwszą postać „Wojciech” (`_migrate_legacy`, razem z trybem deweloperskim z ustawień).
+## Aury (19.11.2026, dane w Auras): `auras` - zdobyte aury (aura -> poziom), `auras_on` - włączone (rezerwują manę).
 ## Testy ustawiają `save_path` na plik testowy - wtedy jedna postać w jednym pliku, skrzynia w nim (bez wspólnej).
 
 ## Zmiana doświadczenia: `xp` na obecnym poziomie, `need` - ile trzeba do awansu (0 na najwyższym poziomie).
@@ -29,6 +30,8 @@ signal xp_changed(level: int, xp: int, need: int)
 signal leveled_up(level: int)
 ## Zmiana torby, założonych przedmiotów albo złota.
 signal inventory_changed
+## Nowa aura, wyższy poziom aury albo włączenie / wyłączenie aury.
+signal auras_changed
 ## Odblokowanie lub ulepszenie umiejętności albo zmiana miejsc umiejętności.
 signal skills_changed
 ## Zmiana mistrzostwa obecnej broni: poziom, doświadczenie na nim i ile trzeba do następnego (0 na najwyższym).
@@ -120,6 +123,9 @@ var skill_gems := {}
 var skill_open := {}
 ## Ulepszenia lochów za złoto (identyfikator DungeonUpgrades -> stopień).
 var upgrades := {}
+## Aury: zdobyte (aura -> poziom 1-Auras.MAX_LEVEL) i włączone.
+var auras := {}
+var auras_on: Array = []
 ## Półka kupca (oferty Shop) i czy był już na niej towar (pierwszy przy pierwszym otwarciu).
 var shop: Array = []
 var shop_ready := false
@@ -321,6 +327,8 @@ func load_game() -> void:
 	skill_gems = {}
 	skill_open = {}
 	upgrades = {}
+	auras = {}
+	auras_on = []
 	shop = []
 	shop_ready = false
 	char_name = DEFAULT_NAME
@@ -441,6 +449,17 @@ func load_game() -> void:
 			for id in raw_up:
 				if DungeonUpgrades.has(id) and int(raw_up[id]) > 0:
 					upgrades[id] = clampi(int(raw_up[id]), 0, DungeonUpgrades.MAX_STEPS)
+		var raw_auras = data.get("auras", {})
+		if raw_auras is Dictionary:
+			for id in raw_auras:
+				if Auras.is_aura(id) and int(raw_auras[id]) > 0:
+					auras[id] = clampi(int(raw_auras[id]), 1, Auras.MAX_LEVEL)
+		var raw_on = data.get("auras_on", [])
+		if raw_on is Array:
+			for id in raw_on:
+				if id is String and auras.has(id) and not auras_on.has(id) \
+						and Auras.reserved_total(auras_on + [id], auras) < Auras.MAX_RESERVED + 0.0001:
+					auras_on.append(id)
 		shop_ready = bool(data.get("shop_ready", false))
 		var raw_shop = data.get("shop", [])
 		if raw_shop is Array:
@@ -471,7 +490,7 @@ func save_game() -> void:
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards,
-				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "shop": shop,
+				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "auras": auras, "auras_on": auras_on, "shop": shop,
 				"shop_ready": shop_ready}))
 
 
@@ -560,16 +579,79 @@ func reset_hero() -> void:
 	shards = 0
 	skill_gems = {}
 	skill_open = {}
+	auras = {}
+	auras_on = []
 	save_game()
 	mastery_changed.emit(mastery_level(), weapon_xp(), mastery_needed())
 	xp_changed.emit(hero_level, hero_xp, xp_needed())
 	inventory_changed.emit()
 	skills_changed.emit()
+	auras_changed.emit()
 
 
 ## Suma cech założonych przedmiotów (Items.totals), w trybie deweloperskim z nadpisanymi statystykami (dev_stats).
 func gear() -> Dictionary:
-	return Items.with_overrides(Items.totals(equipped), dev_stats)
+	return Items.with_overrides(Auras.apply(Items.totals(equipped), auras_on, auras), dev_stats)
+
+
+## Kamień aury podniesiony w lochu: nowa aura (poziom 1) albo poziom wyżej. Zwraca nowy poziom
+## (0 - aura już na najwyższym poziomie, kamień przepada).
+func add_aura(id: String) -> int:
+	if not Auras.is_aura(id):
+		return 0
+	var lvl: int = auras.get(id, 0)
+	if lvl >= Auras.MAX_LEVEL:
+		return 0
+	auras[id] = lvl + 1
+	save_game()
+	auras_changed.emit()
+	inventory_changed.emit()  # premie aur liczy gear() - postać i broń przeliczają cechy
+	return lvl + 1
+
+
+## Największa mana postaci z poziomu i przedmiotów (bez aur).
+func max_mana() -> int:
+	return HeroLevels.max_mana(hero_level) + roundi(Items.totals(equipped).get("mana", 0.0))
+
+
+## Mana na najdroższą umiejętność w miejscach obecnej broni (koszt z poziomem umiejętności, bez kamieni).
+func priciest_skill() -> int:
+	var most := 0
+	for id in skill_slots:
+		if id != "" and Skills.has(id):
+			most = maxi(most, roundi(Skills.mana_of(id) * Skills.level_mana(skill_level(id))))
+	return most
+
+
+## Dlaczego nie da się włączyć aury ("" - da się): limit MAX_RESERVED albo za mało wolnej many na najdroższą
+## założoną umiejętność (decyzja autora 19.11.2026).
+func aura_problem(id: String) -> String:
+	if not auras.has(id) or auras_on.has(id):
+		return ""
+	var after := Auras.reserved_total(auras_on, auras) + Auras.reserve_of(id, auras[id])
+	if after > Auras.MAX_RESERVED + 0.0001:
+		return Lang.t("Aury rezerwują już najwięcej many - wyłącz inną aurę")
+	var free := floori(max_mana() * (1.0 - after))
+	if free < priciest_skill():
+		return Lang.t("Zostałoby %d many, a najdroższa umiejętność kosztuje %d") % [free, priciest_skill()]
+	return ""
+
+
+## Włącza albo wyłącza aurę. Zwraca powód, gdy się nie da ("" - zrobione).
+func toggle_aura(id: String) -> String:
+	if not auras.has(id):
+		return Lang.t("Tej aury jeszcze nie masz")
+	if auras_on.has(id):
+		auras_on.erase(id)
+	else:
+		var problem := aura_problem(id)
+		if problem != "":
+			return problem
+		auras_on.append(id)
+	save_game()
+	auras_changed.emit()
+	inventory_changed.emit()
+	return ""
 
 
 ## Tryb deweloperski: statystyka ustawiona na wartość (zamiast przedmiotów). Zapis przy zamknięciu okna.
