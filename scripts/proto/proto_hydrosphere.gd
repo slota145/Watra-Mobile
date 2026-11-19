@@ -361,7 +361,7 @@ func _spawn_tide(from := Vector2.INF, mult := 1.0) -> void:
 		var fx := _shot_sprite(TIDE_FX, TIDE_FX_FRAMES, TIDE_FX_ANCHOR, ang)
 		fx.global_position = origin
 		fx.scale = Vector2.ONE * _area("h_wave")
-		_shots.append({"fx": fx, "dir": Vector2.from_angle(ang), "left": dist, "speed": WAVE_SPEED, "radius": WAVE_RADIUS,
+		_shots.append({"fx": fx, "dir": Vector2.from_angle(ang), "left": dist, "speed": WAVE_SPEED, "radius": WAVE_RADIUS * _area("h_wave"),
 				"hits": [], "skill": "h_wave", "kind": "wave", "power": mult})
 
 
