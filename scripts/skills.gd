@@ -50,7 +50,7 @@ const DATA := {
 	"slam": {
 		"name": "Rozłupanie Ziemi", "icon": preload("res://assets/watra/skills/ground_slam.png"),
 		"mana": 38, "cooldown": 7.0, "weapon": "sword", "mastery": 10, "main": true, "range": 70.0, "power": 2.2,
-		"description": "Miecz spada z góry na wrogów: fala pęknięć rani wszystkich wokół i na chwilę ich ogłusza.",
+		"description": "Miecz spada z góry na wrogów: fala pęknięć rani wszystkich wokół i ogłusza, a dalej przez tłum biegnie szczelina, z której wyskakują skalne kolce.",
 	},
 	# Krąg stali (pomysł autora i Claude 15.11.2026, zamiast Mgnienia - to zostało przy katanie jako Błysk Peruna):
 	# widmowe miecze krążą wokół postaci, a miecz w ręku walczy normalnie (ProtoWeapon._process_ring). Nie pod „Atak”
@@ -74,7 +74,7 @@ const DATA := {
 	"g_trail": {
 		"name": "Płonąca bruzda", "icon": preload("res://assets/skills/glaive/g_trail.png"),
 		"mana": 30, "cooldown": 7.0, "weapon": "glaive", "mastery": 6, "main": true, "range": 120.0, "power": 1.2, "burn": 0.5,
-		"description": "Glewia wbija się w ziemię i ryje bruzdę do przodu: zostaje pas ognia, który pali wrogów przez 3 s, a w wachlarzu wylatują 3 szybkie cięcia ognia, które przebijają wrogów.",
+		"description": "Glewia wbija się w ziemię i ryje bruzdę do przodu: zostaje rozżarzona szczelina i pas ognia, który pali wrogów przez 3 s; na końcu ze szczeliny bucha słup płomieni, a w wachlarzu wylatują 3 szybkie cięcia ognia, które przebijają wrogów.",
 	},
 	"g_pillar": {
 		"name": "Słup ognia", "icon": preload("res://assets/skills/glaive/g_pillar.png"),
@@ -132,7 +132,7 @@ const DATA := {
 		"name": "Sąd Peruna", "icon": preload("res://assets/skills/katana/k_perun.png"),
 		"mana": 38, "cooldown": 8.0, "weapon": "katana", "mastery": 10, "main": false, "range": 200.0, "power": 2.2,
 		"charge": true,
-		"description": "Przytrzymaj, żeby naładować, i puść: katana tnie w linii prostej ku wrogowi - tym dłużej i szerzej, im dłużej trwało ładowanie. Nie może stać pod dużym przyciskiem.",
+		"description": "Przytrzymaj, żeby naładować, i puść: katana tnie w linii prostej ku najdalszemu wrogowi - tym dłużej i szerzej, im dłużej trwało ładowanie - a po chwili wzdłuż cięcia biją gromy z nieba. Nie może stać pod dużym przyciskiem.",
 	},
 	"k_flash": {
 		"name": "Błysk Peruna", "icon": preload("res://assets/skills/katana/k_flash.png"),
