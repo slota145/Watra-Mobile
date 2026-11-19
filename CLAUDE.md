@@ -151,6 +151,10 @@ Instrukcje SpriteKiln są w bloku na końcu tego pliku (generuje go `spritekiln 
 ## Git
 
 - Zmiany idą na gałąź roboczą, potem pull request do `main`. Autor zwykle prosi o założenie PR i od razu scalenie.
+- **Zawsze na najnowszym `main`** (19.11.2026 jedna sesja wystartowała z kodu sprzed tygodnia): hook startowy
+  `.claude/hooks/session-start.sh` pobiera `origin/main` i przestawia na niego gałąź bez własnej pracy, a przy
+  gałęzi z pracą ostrzega. Gdy pisze „UWAGA”, najpierw `git fetch origin main && git merge --no-edit origin/main`.
+  Przed każdym PR sprawdź `git fetch origin main && git merge-base --is-ancestor origin/main HEAD && echo aktualna`.
 - **Po każdym scaleniu do `main`** uruchom `tools/publish_apk.sh` (buduje apk i paczkę `game.pck`, nadpisuje gałąź `apk`)
   i daj znać autorowi: zwykle wystarczy przycisk „Aktualizuj” w menu gry; gdy podbito `APK_LEVEL`, podaj link do
   pełnej gry: https://github.com/slota145/Watra-Mobile/raw/apk/WatraMobile.apk (prośba autora).
