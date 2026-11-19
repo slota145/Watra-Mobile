@@ -528,7 +528,7 @@ void fragment() {
 "Gejzery","","skills.gd"
 "Glewia dźga daleko przed siebie, rani wszystkich na linii i słabo ich podpala.","","skills.gd"
 "Glewia spada z góry i wbija się w ziemię: wybuch ognia rani wszystkich wokół, a ziemia płonie przez 3 s.","","skills.gd"
-"Glewia wbija się w ziemię i ryje bruzdę do przodu: zostaje pas ognia, który pali wrogów przez 3 s, a rozżarzona szczelina biegnie dalej z płomieniem i iskrami; a w wachlarzu wylatują 3 szybkie cięcia ognia, które przebijają wrogów.","","skills.gd"
+"Glewia wbija się w ziemię i ryje bruzdę do przodu: zostaje pas ognia, który pali wrogów przez 3 s, a w wachlarzu wylatują 3 szybkie cięcia ognia, które przebijają wrogów.","","skills.gd"
 "Glewia zatacza szeroki półokrąg przed tobą i mocno podpala trafionych.","","skills.gd"
 "Idziesz naprzód, tnąc cztery razy cienkimi, prostymi liniami. Po chwili wszystkie naraz wybuchają potężnymi cięciami, a między trafionymi przeskakuje błękitny piorun.","","skills.gd"
 "Katana tnie błyskawicznie po łuku najbliższego wroga. Trafieni są porażeni.","","skills.gd"

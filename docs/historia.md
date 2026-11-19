@@ -16,10 +16,13 @@ kreatora PixelLab (`pixellab_src/vfx/ids.json`, `python tools/vfx_art.py`).
 - Krąg stali (`ProtoWeapon._start_ring`, `_process_ring`, `_clear_ring`): widmowe miecze rozjaśnione (`STEEL_BRIGHT`),
   ze świecącymi smugami (`STEEL_TRAIL` 8 punktów, błękit `STEEL_GLOW`), błysk przy przywołaniu i znikaniu, widoczna
   orbita, błękitne iskry trafień.
-- Płonąca bruzda (`ProtoGlaive._draw_fissure`, `_furrow_runner`): za glewią rośnie rozżarzona szczelina lawy (dwie
-  linie addytywne - brzeg i żar), a po wbiciu biegnie dalej o `FISSURE_RUN` 90 px (x obszar) w 0,35 s z płomieniem
-  na czele (`FISSURE_FLAME`) i iskrami (CPUParticles2D); szczelina żarzy się tyle, ile płonie bruzda, i stygnie.
-  Same efekty - bez zmian siły. (Pierwsza wersja ze słupem płomieni odrzucona przez autora - efekt usunięty.)
+- Płonąca bruzda (`ProtoGlaive._furrow_debris`): za każdym ognistym cięciem bruzdy sypią się iskry (addytywne)
+  i grudki ziemi (`DEBRIS_EARTH`, szybciej opadają) - dwa emitery CPUParticles2D przy ziemi pod cięciem, w układzie
+  świata. Same efekty - bez zmian siły. (Wcześniejsze wersje - słup płomieni, a potem biegnąca szczelina lawy -
+  odrzucone przez autora i usunięte.)
+- Błąd: po zmianie broni lecące efekty (fala miecza, cięcia i płonąca ziemia glewii, pociski i wiry hydrosfery, łuki
+  i pioruny katany) zostawały zamrożone na ekranie. Teraz każda broń zwraca swoje listy w `_world_fx()`, a
+  `ProtoWeapon._exit_tree` usuwa ich węzły (`_free_fx` pomija cele i postać). Test w `test_glaive.gd`.
 - Poprawka po uwadze autora: przy Rozłupaniu Ziemi nie ma już jasnych kolców `ground_slam` przy postaci - uderzenie
   to od razu ciemny kolec fali (echo i wstrząs wtórny też); `ground_slam` został tylko przy wybuchu Młynka.
 - Trafienie miecza (prośba autora): każde trafienie miecza poza Rozłupaniem Ziemi rysuje na celu proste cięcie

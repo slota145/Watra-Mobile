@@ -1,5 +1,5 @@
 extends SceneTree
-## Zrzuty Płonącej bruzdy (szlif 19.11.2026): szczelina lawy i słup płomieni na końcu bruzdy.
+## Zrzuty Płonącej bruzdy (szlif 19.11.2026): iskry i grudki ziemi za cięciami.
 ## Użycie: SCRIPT=tools/furrow_shots.gd tools/screenshot.sh <prefiks>. Pliki: <prefiks>_1_bruzda.png, _2_bruzda.png, _3_bruzda.png
 
 var _prefix := "/tmp/bruzda"

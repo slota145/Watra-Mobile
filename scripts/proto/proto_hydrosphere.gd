@@ -122,6 +122,11 @@ var _lobs: Array = []
 var _shot_target: ProtoTarget
 
 
+## Zmiana broni w trakcie: pociski, fale, wiry, strażnicy, orbity i rzuty znikają razem z hydrosferą.
+func _world_fx() -> Array:
+	return super._world_fx() + [_shots, _vortexes, _guardians, _orbits, _lobs]
+
+
 func _init() -> void:
 	basic = "h_bolt"
 	main_skill = "h_bolt"
