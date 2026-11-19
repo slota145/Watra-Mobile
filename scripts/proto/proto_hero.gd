@@ -19,6 +19,8 @@ signal health_changed(hp: int, max_hp: int)
 signal mana_changed(mana: int, max_mana: int)
 ## Tarcza aury Opieka Mokoszy (pochłania obrażenia przed zdrowiem).
 signal shield_changed(shield: int, shield_max: int)
+## Cios wroga zranił postać (po tarczy, uniku i gardzie) - talizman Żołądź Leszego.
+signal hurt(amount: int)
 signal died
 ## Cios potwora chybił dzięki unikowi.
 signal dodged
@@ -293,6 +295,7 @@ func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 				return
 	hp = maxi(hp - amount, 0)
 	health_changed.emit(hp, max_hp)
+	hurt.emit(amount)
 	_spawn_text("-%d" % amount, Color(1.0, 0.4, 0.35) if element == Elements.PHYSICAL \
 			else Elements.COLORS.get(element, Color.WHITE).lerp(Color(1.0, 0.4, 0.35), 0.3))
 	Input.vibrate_handheld(30)

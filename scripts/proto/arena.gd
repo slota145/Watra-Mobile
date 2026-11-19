@@ -100,6 +100,8 @@ var shield_bar: ColorRect
 var aura_icons: HBoxContainer
 ## Kręgi i działanie aur pod postacią (Auras).
 var auras_node: ProtoAuras
+## Efekty założonych talizmanów (Talismans).
+var talismans_node: ProtoTalismans
 var xp_text: Label
 ## Doświadczenie zdobyte w tej wyprawie i poziom postaci na jej starcie (do podsumowania).
 var run_xp := 0
@@ -217,6 +219,11 @@ func _ready() -> void:
 	auras_node.name = "Auras"
 	auras_node.weapon = weapon
 	hero.add_child(auras_node)
+	talismans_node = ProtoTalismans.new()
+	talismans_node.name = "Talismans"
+	hero.add_child(talismans_node)
+	hero.hurt.connect(func(_amount: int) -> void: talismans_node.on_hurt())
+	_link_talismans()
 	gear = _gear()
 	if horde:
 		horde_spawner = ProtoHorde.new()
@@ -254,7 +261,9 @@ func _ready() -> void:
 			shield_bar.visible = shield > 0
 			shield_bar.anchor_right = float(shield) / maxf(hero.max_hp, 1.0)
 			shield_bar.offset_right = 0.0)
-		horde_spawner.monster_died.connect(func(g: ProtoGoblin) -> void: auras_node.on_monster_died(g))
+		horde_spawner.monster_died.connect(func(g: ProtoGoblin) -> void:
+			auras_node.on_monster_died(g)
+			talismans_node.on_kill(g))
 		hero.set_level(Game.hero_level, gear)
 		hero.died.connect(_on_hero_died)
 		hero.death_avoided.connect(func(n: int) -> void: deaths_label.text = tr("Zgony: %d") % n)
@@ -310,6 +319,7 @@ func _ready() -> void:
 	Game.inventory_changed.connect(_on_inventory)
 	_apply_auras()
 	Game.auras_changed.connect(_apply_auras)
+	Game.talismans_changed.connect(_link_talismans)
 	actions.attack.pressed.connect(func() -> void: weapon.attack_held = true)
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
 	for i in actions.skills.size():
@@ -774,6 +784,15 @@ func _apply_auras() -> void:
 	_show_reserved()
 
 
+## Talizmany: broń w ręku (trafienia, umiejętności) i założone talizmany z poziomami (Game.worn_talismans).
+func _link_talismans() -> void:
+	talismans_node.weapon = weapon
+	weapon.talismans = talismans_node
+	if not weapon.skill_used.is_connected(talismans_node.on_skill):
+		weapon.skill_used.connect(talismans_node.on_skill)
+	talismans_node.worn = Game.worn_talismans()
+
+
 ## Ciemny pas rezerwacji aur na pasku many (szerokość - część zarezerwowanej many).
 func _show_reserved() -> void:
 	if mana_reserved == null or hero == null:
@@ -830,6 +849,7 @@ func _swap_weapon() -> void:
 	old.get_parent().remove_child(old)
 	old.queue_free()
 	auras_node.weapon = weapon
+	_link_talismans()
 	_apply_weapon()
 	_apply_skills()
 
@@ -880,7 +900,7 @@ func _update_skill_buttons() -> void:
 ## Przedmiot na ziemi (z goblina albo skrzyni) - podniesione liczą się do podsumowania wyprawy.
 func _track_loot(loot: ProtoLoot) -> void:
 	loot.picked.connect(func(item: Dictionary) -> void:
-		if not item.has("gem") and not item.has("aura"):
+		if not item.has("gem") and not item.has("aura") and not item.has("talisman"):
 			run_items += 1
 		notify_loot(item, tr("Podniesiono: %s") % ProtoLoot.name_of(item)))
 	loot.sold.connect(func(item: Dictionary, price: int, bag_full: bool) -> void:

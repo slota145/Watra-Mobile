@@ -260,6 +260,11 @@ var skill_levels := {}
 var targets: Array[ProtoTarget] = []
 ## Aura Żar Swaroga (Auras): tyle części każdego trafienia dochodzi jako ogień (z podpaleniem); 0 - brak aury.
 var aura_fire := 0.0
+## Talizmany (ProtoTalismans): węzeł wołany przy każdym trafieniu (`on_hit`), dopłata many za umiejętności (Korona Peruna)
+## i mnożnik obrażeń (Szpon Biesa).
+var talismans: ProtoTalismans
+var mana_tax := 0.0
+var bonus_mult := 1.0
 
 var _state := "follow"
 var _t := 0.0
@@ -575,7 +580,7 @@ func _set_state(state: String) -> void:
 
 ## Obrażenia jednego trafienia: zwykłe cięcie razy `power` (mnożnik umiejętności).
 func _roll(power := 1.0) -> int:
-	return maxi(1, roundi(randi_range(damage.x, damage.y) * damage_mult * power))
+	return maxi(1, roundi(randi_range(damage.x, damage.y) * damage_mult * bonus_mult * power))
 
 
 ## Siła kamienia rodzaju `kind` w umiejętności `skill` (Gems.SUPPORT `values`; 0 - brak kamienia).
@@ -617,7 +622,7 @@ func _strike_speed() -> float:
 
 ## Koszt many umiejętności z kamieniem Oszczędność i poziomem (Mgnienie z kamieniem unikalnym - o połowę mniej).
 func mana_cost(id: String) -> int:
-	var cost := Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0) * Skills.level_mana(level_of(id))
+	var cost := Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0) * Skills.level_mana(level_of(id)) * (1.0 + mana_tax)
 	if id == blink_skill and _unique(id):
 		cost *= 0.5
 	return roundi(cost)
@@ -691,11 +696,12 @@ func _sword_cut_fx(t: ProtoTarget, from: Vector2) -> void:
 
 
 ## Trafienie aury (ProtoAuras: piorun Peruna, mróz Szronu, Błędny Ognik): `power` zwykłego ciosu w żywiole `elem`,
-## z premią przeciw elitom i odpornością celu, bez krytyków i kamieni. Liczba w kolorze żywiołu.
-func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2) -> void:
+## z premią przeciw elitom i odpornością celu, bez krytyków i kamieni. Liczba w kolorze żywiołu. `flat` - stałe
+## obrażenia dodane do rzutu (talizman Korona Peruna - część many).
+func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2, flat := 0) -> void:
 	if not t.alive():
 		return
-	var amount := roundi(_roll(power) * (1.0 + t.pride))
+	var amount := roundi((_roll(power) + flat) * (1.0 + t.pride))
 	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
 		amount = roundi(amount * elite_mult)
 	t.color_next = Elements.color_of(elem)
@@ -713,6 +719,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		t.crit_next = true
 	t.take_damage(amount, from)
 	t.crit_next = false
+	if talismans != null:
+		talismans.on_hit(t)
 	if skill != "slam" and get_script() == ProtoWeapon:
 		_sword_cut_fx(t, from)
 	if aura_fire > 0.0 and t.alive():

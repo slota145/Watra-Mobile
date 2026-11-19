@@ -40,8 +40,8 @@ const COMPARE_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dm
 ## Bazowe trafienie krytyczne postaci (bez przedmiotów): szansa i obrażenia w procentach.
 const CRIT_CHANCE := 5.0
 const CRIT_DAMAGE := 150.0
-const TABS := ["equip", "stats", "pouch"]
-const TAB_NAMES := {"equip": "Ekwipunek", "stats": "Statystyki", "pouch": "Sakwa"}
+const TABS := ["equip", "stats", "pouch", "talismans"]
+const TAB_NAMES := {"equip": "Ekwipunek", "stats": "Statystyki", "pouch": "Sakwa", "talismans": "Talizmany"}
 
 var back_button: Button
 ## Wiersze statystyk: nazwa -> [etykieta wartości, etykieta przyrostu z następnym poziomem].
@@ -107,6 +107,13 @@ var tab := "equip"
 var page_equip: VBoxContainer
 var page_stats: VBoxContainer
 var page_pouch: VBoxContainer
+## Zakładka „Talizmany” (Talismans, 19.11.2026): 3 miejsca u góry, pod nimi zdobyte talizmany z poziomem, działaniem
+## i przyciskiem „Załóż” / „Zdejmij”. Gdy miejsca są zajęte, „Załóż” każe stuknąć miejsce do zamiany (`talisman_pick`).
+var page_talismans: VBoxContainer
+var talisman_slot_buttons: Array[Button] = []
+var talisman_list: VBoxContainer
+var talisman_hint: Label
+var talisman_pick := ""
 var tab_buttons := {}
 var key_stats: Label
 var picker: GemPicker
@@ -232,6 +239,24 @@ func _ready() -> void:
 	page_pouch.add_child(pouch_grid)
 	var pouch_hint := _label(page_pouch, tr("Stuknij kamień: opis, ulepszanie, sprzedaż i gdzie pasuje. Liczba w rogu to poziom kamienia umiejętności, kropki - premie kamienia szlachetnego. Odpryski z rozbitych kamieni idą na ulepszanie."), 11, DIM)
 	pouch_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# zakładka „Talizmany”
+	page_talismans = _page(pages)
+	_label(page_talismans, tr("Założone talizmany"), 13, GOLD)
+	var tslots := HBoxContainer.new()
+	tslots.add_theme_constant_override("separation", 10)
+	tslots.alignment = BoxContainer.ALIGNMENT_CENTER
+	page_talismans.add_child(tslots)
+	for i in Talismans.SLOTS:
+		var tb := _slot_button(tslots)
+		tb.custom_minimum_size = Vector2(60, 60)
+		tb.pressed.connect(_on_talisman_slot.bind(i))
+		talisman_slot_buttons.append(tb)
+	talisman_hint = _label(page_talismans, "", 11, DIM)
+	talisman_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	talisman_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	talisman_list = VBoxContainer.new()
+	talisman_list.add_theme_constant_override("separation", 6)
+	page_talismans.add_child(talisman_list)
 	# pasek sakwy nad zakładkami (pod kciukiem): zaznaczanie kilku kamieni, sprzedaż i rozbijanie
 	pouch_bar = VBoxContainer.new()
 	pouch_bar.add_theme_constant_override("separation", 4)
@@ -271,12 +296,13 @@ func _ready() -> void:
 	_column.add_child(tabs)
 	for t in TABS:
 		var b := _detail_button(tabs, tr(TAB_NAMES[t]))
-		b.add_theme_font_size_override("font_size", 13)
+		b.add_theme_font_size_override("font_size", 12)
+		b.size_flags_stretch_ratio = 1.15 if t == "equip" or t == "talismans" else 1.0  # dłuższe nazwy
 		b.pressed.connect(set_tab.bind(t))
 		tab_buttons[t] = b
 	back_button = _detail_button(tabs, tr("Wróć"))
-	back_button.add_theme_font_size_override("font_size", 13)
-	back_button.size_flags_stretch_ratio = 0.8
+	back_button.add_theme_font_size_override("font_size", 12)
+	back_button.size_flags_stretch_ratio = 0.7
 	back_button.pressed.connect(close)
 	_make_detail()
 	picker = GemPicker.new()
@@ -286,6 +312,9 @@ func _ready() -> void:
 	add_child(picker)
 	set_tab("equip")
 	_game.inventory_changed.connect(func() -> void:
+		if visible:
+			refresh())
+	_game.talismans_changed.connect(func() -> void:
 		if visible:
 			refresh())
 
@@ -304,6 +333,8 @@ func set_tab(t: String) -> void:
 	page_equip.visible = t == "equip"
 	page_stats.visible = t == "stats"
 	page_pouch.visible = t == "pouch"
+	page_talismans.visible = t == "talismans"
+	talisman_pick = ""
 	pouch_select = false
 	pouch_marked.clear()
 	_pouch_armed = ""
@@ -396,6 +427,7 @@ func refresh() -> void:
 		_show_item(bag_buttons[i], _game.bag[i] if i < _game.bag.size() else {}, "")
 	bag_label.text = tr("Torba: %d / %d") % [_game.bag.size(), _game.BAG_SIZE]
 	_refresh_pouch()
+	_refresh_talismans()
 	auto_sell_toggle.set_pressed_no_signal(_game.auto_sell_common)
 	_bulk_armed = ""
 	_bulk_texts()
@@ -652,6 +684,91 @@ func _make_detail() -> void:
 	detail_close = _detail_button(buttons, tr("Zamknij"))
 	detail_close.size_flags_stretch_ratio = 0.8
 	detail_close.pressed.connect(_hide_detail)
+
+
+## Zakładka „Talizmany”: miejsca (ikona i poziom; zamiana - złota ramka) i wiersz każdego zdobytego talizmanu.
+func _refresh_talismans() -> void:
+	for i in Talismans.SLOTS:
+		var id: String = _game.talisman_slots[i]
+		var b := talisman_slot_buttons[i]
+		b.icon = Talismans.icon_of(id) if id != "" else null
+		b.text = "" if id != "" else "+"
+		b.tooltip_text = ""
+		for state in ["normal", "hover", "pressed", "focus"]:
+			var st := b.get_theme_stylebox(state) as StyleBoxFlat
+			if st:
+				st.border_color = GOLD if talisman_pick != "" else (Talismans.color_of(id) if id != "" else Color(0.4, 0.3, 0.2))
+	for c in talisman_list.get_children():
+		c.queue_free()
+	if _game.talismans.is_empty():
+		talisman_hint.text = tr("Nie masz jeszcze talizmanów. Wypadają ze skrzyń na mapie lochu i z Kręgu Żertwy od lochu %d.") % Talismans.MIN_LEVEL
+		return
+	talisman_hint.text = tr("Stuknij miejsce, które ma dostać talizman: %s") % Talismans.name_of(talisman_pick) \
+			if talisman_pick != "" else tr("Kolejny taki sam talizman podnosi jego poziom (do %d).") % Talismans.MAX_LEVEL
+	for id: String in Talismans.ORDER:
+		if not _game.talismans.has(id):
+			continue
+		var lvl: int = _game.talismans[id]
+		var worn: bool = _game.talisman_slots.has(id)
+		var box := PanelContainer.new()
+		var st := _panel_style(6)
+		st.bg_color = Color(0.16, 0.11, 0.08)
+		st.border_color = Talismans.color_of(id) if worn else Color(0.4, 0.3, 0.2)
+		st.set_border_width_all(2 if worn else 1)
+		box.add_theme_stylebox_override("panel", st)
+		talisman_list.add_child(box)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		box.add_child(row)
+		var icon := TextureRect.new()
+		icon.texture = Talismans.icon_of(id)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(40, 40)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(icon)
+		var col := VBoxContainer.new()
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		col.add_theme_constant_override("separation", 1)
+		row.add_child(col)
+		_label(col, tr("%s, poz. %d/%d") % [Talismans.name_of(id), lvl, Talismans.MAX_LEVEL], 14, Talismans.color_of(id))
+		var desc := _label(col, Talismans.effect_text(id, lvl), 11, TEXT)
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var b := Button.new()
+		b.text = tr("Zdejmij") if worn else tr("Załóż")
+		b.custom_minimum_size = Vector2(76, 44)
+		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		b.add_theme_font_size_override("font_size", 13)
+		if worn:
+			_tab_look(b, true)
+		b.pressed.connect(_on_talisman_button.bind(id))
+		row.add_child(b)
+
+
+## „Załóż” / „Zdejmij”: założony schodzi z miejsca; nowy idzie w pierwsze wolne, a bez wolnych - wybór miejsca.
+func _on_talisman_button(id: String) -> void:
+	var at: int = _game.talisman_slots.find(id)
+	if at >= 0:
+		talisman_pick = ""
+		_game.unequip_talisman(at)
+		return
+	var free: int = _game.talisman_slots.find("")
+	if free >= 0:
+		talisman_pick = ""
+		_game.equip_talisman(id, free)
+	else:
+		talisman_pick = id
+		_refresh_talismans()
+
+
+## Stuknięcie miejsca: przy wyborze - zakłada tam talizman (zamiana); zajęte bez wyboru - zdejmuje.
+func _on_talisman_slot(i: int) -> void:
+	if talisman_pick != "":
+		var id := talisman_pick
+		talisman_pick = ""
+		_game.equip_talisman(id, i)
+	elif _game.talisman_slots[i] != "":
+		_game.unequip_talisman(i)
 
 
 func _detail_button(parent: Control, text: String) -> Button:
