@@ -2,6 +2,28 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 19.11.2026 - aury rezerwujące manę, krok 1 (prototyp)
+
+- Lista 21 aur zatwierdzona przez autora (ankiety) - `docs/ROADMAP.md`; 8 żywiołów zapisane w `docs/GDD.md`.
+- `scripts/aura_data.gd` (`AuraData`): nazwy, rezerwacja 15-35% (`reserve_of`, redukcja `Game.aura_reduction`),
+  limit razem `MAX_RESERVED` 75% (`block_reason`), kolory, zasięg kręgu (`radius`), siła na poziomach 1-10 (`POWER`,
+  `power`; na razie zawsze poziom 1), opisy (`effect_text`, `cost_text`), `ready` - czy już działa.
+- Działa 8 aur: Krzepa (+20% zdrowia), Wiatr Strzyboga (+10% ruchu i ataku - `ProtoWeapon` dzieli przerwę),
+  Źródło Żywii (1% zdrowia/s), Źródło Many (2% many/s, bazowo 2%), Żar Swaroga (+15% obrażeń jako osobna
+  pomarańczowa liczba), Gniew Peruna (co 3 s zygzak `Line2D` w najbliższą kukłę do 220 px, 120% średnich obrażeń
+  broni `ProtoWeapon.AVG_DAMAGE`), Błędny Ognik (krąży 40 px, 2,2 s na okrążenie, 50%, ten sam cel co 0,6 s),
+  Szron Marzanny (krąg 70 px, co 0,5 s 15%). Pozostałe 13 rezerwują manę, opis „zadziała w lochach”.
+- `ProtoHero`: `health`, `mana`, `max_health`, `full_mana`, `max_mana` (bez zarezerwowanej), `reserved`, `aura_power`,
+  `auras_changed` (zdrowie zachowuje proporcję). `scripts/proto/proto_auras.gd` (`ProtoAuras`, dziecko postaci):
+  kręgi pod postacią (spłaszczone, obracające się kreski; aury na wrogów w swoim zasięgu, reszta 13 px + 4 px na
+  kolejną), piorun, szron, ognik. `ProtoDummy.take_damage` przyjmuje kolor liczby.
+- `scripts/ui/vitals.gd` (`Vitals`): paski zdrowia i many obok „Menu” (zarezerwowana mana ciemna, kreskowana,
+  po prawej) i kolorowe kropki włączonych aur.
+- Okno pauzy: zakładki „Gra” i „Aury” (`game_tab`, `auras_tab`); lista aur z przełącznikami 44 px (`aura_toggles`),
+  podsumowanie rezerwacji, komunikat przy braku many. Włączone aury: `Game.auras`, zapis `Game.save_game` /
+  `load_game` (JSON w `save_path`).
+- Test `tests/test_auras.gd` (z oknem zapisuje zrzuty zakładki i polany).
+
 ## 12.11.2026 - styl grafiki (wywiad SpriteKiln)
 
 - Odpowiedzi autora zapisane `spritekiln style set` w `spritekiln.toml`: topdown, 36 px (klatka 48, scale 0.04889),

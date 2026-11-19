@@ -34,10 +34,25 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
     Mała premia „redukcja rezerwacji” (np. z poziomu aury albo przedmiotów).
   - **Wygląd:** delikatny, wolno obracający się krąg pod postacią w kolorze aury (kilka aur - kilka pierścieni)
     i małe ikonki przy pasku many.
-  - **Propozycja 6 aur** (do potwierdzenia przy wdrażaniu): Krzepa (+zdrowie, 25%), Wiatr Strzyboga (+szybkość
-    ruchu i ataku, 30%), Żar Swaroga (dodany ogień i podpalenie, 25%), Gniew Peruna (co 3 s piorun w wroga, 35%),
-    Postrach (wrogowie w kręgu słabsi i wolniejsi, 30%), Szron Marzanny - nowa (wrogowie w kręgu zwalniają
-    i dostają rany od mrozu, 25%).
+  - **Limit:** aury rezerwują razem najwyżej 75% many (zawsze zostaje ćwierć na umiejętności) - dzięki temu na start
+    mieszczą się 2 aury (3 tylko najtańsze).
+  - **Lista aur zatwierdzona przez autora 19.11.2026 (21):**
+    - z planu: Krzepa (+zdrowie, 25%), Wiatr Strzyboga (+szybkość ruchu i ataku, 30%), Żar Swaroga (dodany ogień
+      i podpalenie, 25%), Gniew Peruna (co 3 s piorun we wroga, 35%), Postrach (wrogowie w kręgu słabsi i wolniejsi, 30%),
+      Szron Marzanny (wrogowie w kręgu zwalniają i dostają rany od mrozu, 25%);
+    - nowe: Opieka Mokoszy (odnawiana tarcza, 30%), Źródło Żywii (odnowa zdrowia, 20%), Błędny Ognik (ognik krąży
+      i rani wrogów, 35%), Dłoń Welesa (przyciąga łup i doświadczenie, 20%), Mgła Nawii (wrogowie w kręgu czasem chybiają, 30%);
+    - życzenia autora: Źródło Many (odnowa many, 15%), Pieczęć Rodu (+odporność na wszystkie żywioły, 30%),
+      Hart Żywiołów (+maksymalna odporność, 35%);
+    - jak w Path of Exile: Piętno Czarnoboga (Pride - wrogowie w kręgu dostają coraz więcej obrażeń, 30%), Oko Jaryły
+      (Precision - krytyki, 25%), Pancerz Trzygłowa (Determination - pancerz, 30%), Zwiastun Popiołu (Herald of Ash -
+      zabity wróg wybucha ogniem, 25%), Zwiastun Mrozu (Herald of Ice - zamrożony/zabity wróg pęka w odłamki, 25%),
+      Złość Licha (Malevolence - obrażenia w czasie, także od Nawii, mocniejsze i dłuższe, 30%), Kamienna Krew
+      (Petrified Blood - mniej obrażeń przy niskim zdrowiu, 20%).
+    - odrzucone: Łaska Dadźboga (+złoto i łup), Chorągiew Ostoi (sztandar).
+  - Aury żywiołów i odporności czekają na 8 żywiołów (`docs/GDD.md`).
+  - Krok 1 zrobiony 19.11.2026 (`docs/historia.md`): pasek many, zakładka „Aury”, rezerwacja, 8 działających aur
+    w prototypie. Dalej: kamienie aur z łupu i poziomy za duplikaty (z lochami), pozostałe 13 aur (z wrogami i żywiołami).
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

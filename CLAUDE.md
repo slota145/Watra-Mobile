@@ -47,7 +47,8 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
 - `scripts/proto/`: prototyp walki (`arena.gd` - polana i interfejs, `proto_hero.gd` - postać, `proto_weapon.gd` -
   lewitujący miecz, `proto_dummy.gd` - kukła); `scripts/ui/joystick.gd` - pływająca gałka (dotyk wieloma palcami),
   `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
-  `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania (zapis w `Game`, `user://settings.cfg`).
+  `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania (zapis w `Game`, `user://settings.cfg`) i zakładką „Aury”;
+  aury rezerwujące manę: dane `scripts/aura_data.gd`, działanie `scripts/proto/proto_auras.gd`, paski zdrowia i many `scripts/ui/vitals.gd`.
 - `scripts/updater.gd`: autoload `Updater` (pierwszy na liście) - aktualizacja wersji testowej z menu bez całego apk
   (paczka `game.pck` z gałęzi `apk`); przy zmianach project.godot, export_presets.cfg, updater.gd albo wersji Godota
   podbij w nim `APK_LEVEL` (gra poprosi wtedy o pełny apk). Test: `tests/test_updater.gd -- --with-updates`.

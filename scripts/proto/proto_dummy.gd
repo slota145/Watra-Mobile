@@ -46,11 +46,12 @@ func center() -> Vector2:
 	return global_position + Vector2(0, -CENTER_HEIGHT)
 
 
-func take_damage(amount: int, from: Vector2) -> void:
+## Trafienie: liczba nad kukłą (w kolorze `color` - np. ogień, piorun), błysk i przechył.
+func take_damage(amount: int, from: Vector2, color := Color(1.0, 0.95, 0.8)) -> void:
 	_audio.stream = HIT_SOUNDS.pick_random()
 	_audio.pitch_scale = randf_range(0.92, 1.08)
 	_audio.play()
-	_spawn_number(amount)
+	_spawn_number(amount, color)
 	var away := signf(global_position.x - from.x) if absf(global_position.x - from.x) > 1.0 else 1.0
 	var tween := _sprite.create_tween()
 	_sprite.modulate = Color(3, 3, 3)
@@ -88,11 +89,11 @@ func _update_label() -> void:
 	_label.text = tr("%d obrażeń/s") % roundi(recent / span) + "\n" + tr("Suma %d, trafień: %d") % [_total, _count]
 
 
-func _spawn_number(amount: int) -> void:
+func _spawn_number(amount: int, color: Color) -> void:
 	var num := Label.new()
 	num.text = str(amount)
 	num.add_theme_font_size_override("font_size", 12)
-	num.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8))
+	num.add_theme_color_override("font_color", color)
 	num.add_theme_color_override("font_outline_color", Color(0.15, 0.08, 0.05))
 	num.add_theme_constant_override("outline_size", 4)
 	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

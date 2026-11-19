@@ -2,7 +2,8 @@ extends Node2D
 ## Prototyp walki: polana z trawy, Wojciech z lewitującym mieczem i kukły treningowe z Watry.
 ## Chodzenie: przeciągnij palcem w dowolnym miejscu ekranu (pływająca gałka). Atak: trzymaj przycisk miecza
 ## w dolnym rogu (wokół niego 4 puste miejsca na umiejętności). „Menu” otwiera okno pauzy: przyciski po lewej
-## stronie, gest ręką postaci przy ataku, wyjście do menu głównego.
+## stronie, gest ręką postaci przy ataku, aury (zakładka „Aury”), wyjście do menu głównego. U góry paski zdrowia
+## i many z ikonkami aur (Vitals).
 ## Wszystko budowane w kodzie, żeby prototyp łatwo było zmieniać i wyrzucić.
 
 const ARENA := Rect2(-360, -560, 720, 1120)
@@ -14,6 +15,8 @@ var joystick: Joystick
 var menu_button: Button
 var actions: ActionCluster
 var pause_menu: PauseMenu
+var vitals: Vitals
+var auras: ProtoAuras
 
 
 func _ready() -> void:
@@ -30,7 +33,16 @@ func _ready() -> void:
 	hero.joystick = joystick
 	hero.bounds = ARENA.grow(-16)
 	hero.gesture = Game.gesture
+	hero.auras = Game.auras
+	hero.aura_reduction = Game.aura_reduction
+	hero.health = hero.max_health()
+	hero.mana = hero.max_mana()
 	world.add_child(hero)
+	auras = ProtoAuras.new()
+	auras.name = "Auras"
+	hero.add_child(auras)
+	vitals.hero = hero
+	pause_menu.hero = hero
 	var camera := Camera2D.new()
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 8.0
@@ -48,6 +60,7 @@ func _ready() -> void:
 		dummy.position = p
 		world.add_child(dummy)
 		weapon.targets.append(dummy)
+		auras.targets.append(dummy)
 	world.add_child(weapon)
 	actions.attack.pressed.connect(func() -> void: weapon.attack_held = true)
 	actions.attack.released.connect(func() -> void: weapon.attack_held = false)
@@ -90,6 +103,9 @@ func _make_hud() -> void:
 	menu_button.custom_minimum_size = Vector2(72, 44)
 	menu_button.pressed.connect(_open_menu)
 	top.add_child(menu_button)
+	vitals = Vitals.new()
+	vitals.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	top.add_child(vitals)
 	var hint := Label.new()
 	hint.text = tr("Przeciągnij palcem, żeby iść. Trzymaj miecz, żeby atakować.")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

@@ -20,6 +20,11 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
 - Grafika: pixel-art; postacie i potwory można robić w SpriteKiln (z opisu, bez limitu generacji) albo w PixelLab.
 - **Rdzeń gry: czyszczenie lochów z hubem** (12.11.2026). Gracz wraca między lochami do huba (najpewniej Ostoja),
   a w lochach walczy i zdobywa łup.
+- **8 żywiołów** (decyzja autora 19.11.2026): Nawia, lód, woda, ogień, grom (piorun), ziemia, powietrze, natura.
+  Potwory zadają obrażenia żywiołów, gracz ma na nie odporności (sufit 75% jak w Watrze, aury i przedmioty mogą go podnieść).
+  Obrażenia fizyczne zostają osobno (pancerz) - do potwierdzenia. Watra ma tylko 5 rodzajów (fizyczne, ogień, lód, pioruny,
+  Nawia - `../Watra/scripts/elements.gd`), więc pozostałe trzeba będzie zaprojektować (stany, odporności potworów, kolory).
+- **Aury rezerwujące manę** (19.11.2026): szczegóły i lista aur w `docs/ROADMAP.md`.
 
 ## Kierunek wstępny (autor jeszcze nie zdecydował)
 

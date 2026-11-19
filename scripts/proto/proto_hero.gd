@@ -3,12 +3,18 @@ extends Node2D
 ## Postać w prototypie: Wojciech z Watry (arkusz assets/watra/wojciech.png) chodzi gałką.
 ## Arkusz: 8 kolumn = klatki, wiersze = animacja * 5 + kierunek (s, se, e, ne, n; zachód to odbicie).
 ## Bez broni w dłoni - broń lewituje obok (ProtoWeapon). Animacja "slash" z pustą dłonią służy za gest ataku.
+## Zdrowie i mana (pasek u góry - Vitals). Włączone aury (auras - ta sama tablica co Game.auras) rezerwują część
+## maksymalnej many i dają premie (AuraData); aury działające na wrogów obsługuje ProtoAuras.
 
 const ANIMS := ["idle", "walk", "slash"]
 const FPS := {"idle": 6.0, "walk": 14.0, "slash": 18.0}
 const DIRS := 5
 const FRAMES := 8
 const SPEED := 70.0
+const BASE_HEALTH := 100.0
+const BASE_MANA := 100.0
+## Odnowa many bez aur: ułamek pełnej many na sekundę.
+const MANA_REGEN := 0.02
 
 ## Skąd postać bierze kierunek ruchu (gałka).
 var joystick: Joystick
@@ -19,6 +25,12 @@ var gesture := true
 ## Kierunek patrzenia (do gestu i do miejsca, w którym unosi się broń).
 var facing := Vector2.DOWN
 var velocity := Vector2.ZERO
+## Włączone aury (arena podaje tablicę Game.auras).
+var auras: Array[String] = []
+## Redukcja rezerwacji aur (Game.aura_reduction).
+var aura_reduction := 0.0
+var health := BASE_HEALTH
+var mana := BASE_MANA
 
 var _anim := "idle"
 var _time := 0.0
@@ -39,7 +51,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var input := joystick.vector if joystick else Vector2.ZERO
-	velocity = input * SPEED
+	velocity = input * SPEED * (1.0 + aura_power("strzybog"))
+	mana = minf(mana + full_mana() * (MANA_REGEN + aura_power("mana")) * delta, max_mana())
+	health = minf(health + max_health() * aura_power("zywia") * delta, max_health())
 	position = (position + velocity * delta).clamp(bounds.position, bounds.end)
 	if input.length() > 0.05:
 		facing = input.normalized()
@@ -51,6 +65,36 @@ func _process(delta: float) -> void:
 		_play("walk" if input.length() > 0.05 else "idle")
 	_time += delta
 	_update_frame()
+
+
+## Siła włączonej aury (0, gdy wyłączona). Poziom aur na razie 1 (kamienie aur z łupu dojdą z lochami).
+func aura_power(id: String) -> float:
+	return AuraData.power(id) if auras.has(id) else 0.0
+
+
+func max_health() -> float:
+	return BASE_HEALTH * (1.0 + aura_power("krzepa"))
+
+
+## Pełna mana, razem z zarezerwowaną przez aury.
+func full_mana() -> float:
+	return BASE_MANA
+
+
+## Ułamek many zarezerwowany przez aury.
+func reserved() -> float:
+	return AuraData.reserved_total(auras, aura_reduction)
+
+
+## Mana do wydania na umiejętności (pełna bez zarezerwowanej).
+func max_mana() -> float:
+	return full_mana() * (1.0 - reserved())
+
+
+## Po włączeniu albo wyłączeniu aury: zdrowie zachowuje proporcję, mana nie wychodzi ponad wolną.
+func auras_changed(old_max_health: float) -> void:
+	health = clampf(health * max_health() / maxf(old_max_health, 1.0), 1.0, max_health())
+	mana = minf(mana, max_mana())
 
 
 ## Gest ręką w stronę celu - wywołuje broń, gdy zaczyna zamach. Tylko w miejscu (w marszu postać tylko idzie).

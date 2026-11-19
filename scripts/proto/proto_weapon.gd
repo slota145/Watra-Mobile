@@ -27,6 +27,8 @@ const SWING := 0.18
 const RECOVER := 0.08
 const HOVER_HEIGHT := 22.0
 const DAMAGE := Vector2i(14, 20)
+## Średnie obrażenia broni (aury liczą od nich swoje obrażenia).
+const AVG_DAMAGE := (14 + 20) / 2.0
 const SLASH_FX := preload("res://assets/effects/sword_slash.png")
 const SLASH_FRAMES := 5
 ## Promień półksiężyca w klatce efektu (px) - efekt skalujemy tak, żeby łuk pokrywał się z czubkiem ostrza.
@@ -114,7 +116,7 @@ func _process(delta: float) -> void:
 			_place(_angle_at(1.0))
 			if _t >= RECOVER:
 				_set_state("follow")
-				_cooldown = COOLDOWN
+				_cooldown = COOLDOWN / (1.0 + hero.aura_power("strzybog"))
 
 
 ## Miejsce obok postaci, za jej ramieniem (od strony przeciwnej do kierunku patrzenia).
@@ -179,7 +181,11 @@ func _hit_in_arc() -> void:
 	for t in targets:
 		var to := t.center() - _orbit_center()
 		if to.length() <= HILT_RADIUS + BLADE + 6.0 and absf(angle_difference(_aim, to.angle())) <= ARC / 2.0:
-			t.take_damage(randi_range(DAMAGE.x, DAMAGE.y), hero.global_position)
+			var dmg := randi_range(DAMAGE.x, DAMAGE.y)
+			t.take_damage(dmg, hero.global_position)
+			var fire := roundi(dmg * hero.aura_power("swarog"))  # Żar Swaroga: osobna liczba w kolorze ognia
+			if fire > 0:
+				t.take_damage(fire, hero.global_position, AuraData.color_of("swarog"))
 			# błysk tam, gdzie ostrze przecina kukłę (na linii od postaci, nie dalej niż czubek)
 			var at := _orbit_center() + to.limit_length(HILT_RADIUS + BLADE * 0.8)
 			Fx.once(get_parent(), HIT_FX, HIT_FX_FRAMES, HIT_FX_FPS, at.round(), HIT_FX_ANCHOR)
