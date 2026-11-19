@@ -1009,7 +1009,7 @@ func _process_throw(delta: float) -> void:
 			# 5. poziom: odbicie w najbliższego wroga, którego lot nie trafił - potem dopiero powrót
 			_bounced = true
 			var near: ProtoTarget = null
-			var near_d := THROW_BOUNCE_RANGE
+			var near_d := THROW_BOUNCE_RANGE * _area("throw")
 			for t in _live_targets():
 				var d := t.global_position.distance_to(global_position)
 				if not _hit_set.has(t) and d <= near_d:
@@ -1032,7 +1032,7 @@ func _process_throw(delta: float) -> void:
 ## THROW_BOUNCE_RANGE (widmowe miecze rozchodzą się od miejsca odbicia). Zwraca false, gdy nie ma w kogo.
 func _ricochet(from: ProtoTarget) -> bool:
 	var near: ProtoTarget = null
-	var near_d := THROW_BOUNCE_RANGE
+	var near_d := THROW_BOUNCE_RANGE * _area("throw")
 	for t in _live_targets():
 		var d := t.global_position.distance_to(from.global_position)
 		if t != from and not _hit_set.has(t) and d <= near_d:

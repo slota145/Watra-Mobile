@@ -382,6 +382,16 @@ func _test_unique(game: Node) -> void:
 			struck += 1
 	_check(struck >= 5 and weapon._crawlers.is_empty(), "pioruny dopełzły do wrogów (%d)" % struck)
 	game.dev_immortal = false
+	# obszar umiejętności poszerza łuk Gromowego Ostrza (19.11.2026)
+	for f in weapon._sparks_fly:
+		f.node.queue_free()
+	weapon._sparks_fly.clear()
+	weapon.area_bonus = 100.0
+	weapon._aim = 0.0
+	weapon._slash_hit()
+	_check(weapon._sparks_fly.size() == 1 and is_equal_approx(weapon._sparks_fly[0].node.scale.x, weapon._area(weapon.basic)),
+			"obszar poszerza łuk Gromowego Ostrza (x%.1f)" % weapon._area(weapon.basic))
+	weapon.area_bonus = 0.0
 	arena.queue_free()
 	await process_frame
 

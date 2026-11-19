@@ -189,5 +189,12 @@ func _test_combat(game: Node) -> void:
 	await _wait(5.0)
 	_check(weapon._guardians.is_empty(), "po 6 s Strażnik znika")
 	game.dev_immortal = false
+	# obszar umiejętności: fale trafiają szerzej, nie tylko większy obrazek (19.11.2026)
+	weapon.area_bonus = 100.0
+	weapon._spawn_tide(hero.global_position)
+	var waves: Array = weapon._shots.filter(func(sh: Dictionary) -> bool: return sh.kind == "wave")
+	_check(not waves.is_empty() and is_equal_approx(waves[-1].radius, ProtoHydrosphere.WAVE_RADIUS * weapon._area("h_wave"))
+			and weapon._area("h_wave") > 1.9, "fala trafia w promieniu z obszarem (%s)" % ("brak fali" if waves.is_empty() else str(waves[-1].radius)))
+	weapon.area_bonus = 0.0
 	arena.queue_free()
 	await process_frame

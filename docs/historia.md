@@ -2,6 +2,19 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 19.11.2026 - obszar umiejętności w kamieniach unikalnych
+
+Prośba autora: kamienie unikalne, do których to pasuje, mają rosnąć z obszarem umiejętności (np. łuk Gromowego Ostrza).
+Przegląd wszystkich 20 kamieni: większość już używała `_area` (fala cięcia i fale Rozłupania miecza, Wieczny Wir,
+Krąg stali, kontry Riposty, Wędrowne Gromy, Taniec ostrza, Pogorzelisko, Ognisty Deszcz, Bumerang, Rykoszet Płomieni,
+Wodna Orbita, Wędrowny Wir, Erupcja). Poprawione:
+- Kamień Gromowego Ostrza (katana): łuk pioruna jest szerszy i trafia szerzej (`_SparkArc.scale`, `SPARK_RADIUS` x obszar)
+  - wcześniej z obszarem rósł tylko jego zasięg.
+- Kamień Rykoszetu (Rzut): zasięg odbić x obszar (`THROW_BOUNCE_RANGE`; też odbicie z 5. poziomu).
+- Fala hydrosfery (też Kamień Przypływu i echo Strażnika): trafia w promieniu x obszar (`WAVE_RADIUS`) - wcześniej
+  rósł tylko obrazek (błąd także bez kamienia).
+- Testy w `test_katana.gd` i `test_hydrosphere.gd`.
+
 ## 19.11.2026 - koszty many umiejętności, mana z przedmiotów, mana za zabicie
 
 Uwaga autora: umiejętności kosztują za mało - da się nimi spamować bez rozwiniętej odnowy many i bez Oszczędności;

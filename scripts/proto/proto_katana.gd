@@ -357,6 +357,7 @@ func _slash_hit() -> void:
 func _spawn_spark(a: float, power: float) -> void:
 	var node := _SparkArc.new()
 	node.rotation = a
+	node.scale = Vector2.ONE * _area(basic)  # obszar umiejętności: szerszy łuk (19.11.2026)
 	get_parent().add_child(node)
 	node.global_position = _orbit_center() + Vector2.from_angle(a) * (HILT_RADIUS + BLADE * 0.5)
 	_sparks_fly.append({"node": node, "dir": Vector2.from_angle(a), "left": SPARK_DISTANCE * _area(basic),
@@ -370,7 +371,7 @@ func _process_sparks_fly(delta: float) -> void:
 		node.global_position += f.dir * step
 		f.left -= step
 		for t in _live_targets():
-			if not f.hits.has(t) and t.center().distance_to(node.global_position) <= SPARK_RADIUS + t.center_height * 0.4:
+			if not f.hits.has(t) and t.center().distance_to(node.global_position) <= SPARK_RADIUS * _area(basic) + t.center_height * 0.4:
 				f.hits.append(t)
 				_hit(t, f.power, node.global_position, basic, 0)
 				_zap_fx(t.center(), 0.35)
