@@ -218,13 +218,13 @@ func _ready() -> void:
 	_connect_parry()
 
 
-## Zmiana broni w trakcie: lecące łuki i pełzające pioruny (węzły w świecie) znikają razem z kataną.
+## Zmiana broni w trakcie: lecące łuki, pełzające pioruny, linie tańca i ładowania znikają razem z kataną.
+func _world_fx() -> Array:
+	return super._world_fx() + [_sparks_fly, _crawlers, _dance_lines, [_charge_line]]
+
+
 func _exit_tree() -> void:
-	for f in _sparks_fly + _crawlers:
-		if is_instance_valid(f.node):
-			(f.node as Node).queue_free()
-	_sparks_fly.clear()
-	_crawlers.clear()
+	super._exit_tree()
 	_echoes.clear()
 
 

@@ -276,6 +276,19 @@ func _test_unique(game: Node) -> void:
 	side._stunned = 60.0
 	await _wait(1.0)
 	_check(cut.bounces < ProtoGlaive.DANCE_GEM_BOUNCES, "Rykoszet: sierp odbił się (zostało %d)" % cut.bounces)
+	# zmiana broni: lecące cięcia (z iskrami bruzdy) i płonąca ziemia znikają razem z glewią, nie zostają zamrożone
+	weapon._spawn_cut(0.0, "g_trail", hero.global_position)
+	weapon._add_zone(Vector2.ZERO, Vector2(40, 0), 12.0, 5.0, "g_trail")
+	var flying: Node = weapon._cuts.back().fx
+	var burning: Node = weapon._zones.back().node
+	_check(flying.get_child_count() == 2, "cięcie bruzdy sypie iskrami i grudkami ziemi")
+	game.set_weapon("sword")
+	arena._swap_weapon()
+	await process_frame
+	await process_frame
+	_check(not is_instance_valid(flying) and not is_instance_valid(burning) and is_instance_valid(side),
+			"po zmianie broni efekty glewii znikają (cele zostają)")
+	game.set_weapon("glaive")
 	game.dev_immortal = false
 	arena.queue_free()
 	await process_frame

@@ -644,6 +644,33 @@ func _cooldown_base(id: String) -> float:
 ## od wszystkiego, przemoczony - od Gromu i lodu), trafienie krytyczne (złota liczba), obrażenia
 ## i działanie jej kamieni (podpalenie, spowolnienie - na przemoczonym zamrożenie, leczenie, mana,
 ## piorun).
+## Węzły w świecie, którymi broń steruje co klatkę (lecące fale, strefy ognia, wiry...) - listy wpisów; przy zmianie
+## broni (albo wyjściu z lochu) znikają razem z nią, inaczej zostawały zamrożone na ekranie (zgłoszenie autora
+## 19.11.2026). Bronie dopisują swoje listy (super + własne).
+func _world_fx() -> Array:
+	return [_waves]
+
+
+func _exit_tree() -> void:
+	for list in _world_fx():
+		_free_fx(list)
+		if list is Array:
+			list.clear()
+
+
+## Usuwa węzły efektów z `v` (węzeł, lista albo słownik - wpis efektu); pomija cele i postać.
+static func _free_fx(v: Variant) -> void:
+	if v is Object:
+		if is_instance_valid(v) and v is Node and not (v is ProtoTarget or v is ProtoHero):
+			(v as Node).queue_free()
+	elif v is Array:
+		for x in v:
+			_free_fx(x)
+	elif v is Dictionary:
+		for x in v.values():
+			_free_fx(x)
+
+
 ## Proste cięcie na celu `t` (tylko miecz): skośnie w poprzek kierunku od `from`, lekko losowo.
 func _sword_cut_fx(t: ProtoTarget, from: Vector2) -> void:
 	var frame := Engine.get_process_frames()
