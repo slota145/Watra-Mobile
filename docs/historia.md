@@ -2,6 +2,20 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 19.11.2026 - najdalszy cel dla pocisków i linii; nowy Taniec ostrza (cienkie linie, potem wybuch)
+
+Decyzje autora (ankieta): umiejętności, które lecą przez tłum, celują w najdalszego wroga w zasięgu; zwykły cios
+i skoki obronne zostają przy najbliższym. Taniec ostrza wyglądał jak seria szybkich zwykłych ciosów - przebudowa:
+najpierw cienkie, precyzyjne linie, potem w tych samych miejscach naraz grube, efektowne cięcia.
+- Najdalszy (`ProtoWeapon._farthest`): Rzut mieczem, bańka hydrosfery (zwykły atak), Fala (`_spawn_tide`), bruzda
+  i sierpy glewii (`g_trail`, `g_dance`), Sąd Peruna katany. Opisy umiejętności zmienione.
+- Taniec ostrza (`ProtoKatana._dance_line`, `_dance_burst`): każde cięcie to prosta, świecąca linia długości `DANCE_LINE`
+  70 px (x obszar), skośnie o `DANCE_SLANT` 28° na przemian (krzyżują się jak „X”; Kamień Wiru Ostrza - gwiazda dookoła),
+  katana przemyka wzdłuż linii, rani lekko (`DANCE_THIN` 0,3 siły). Po ostatnim cięciu `DANCE_BURST_DELAY` 0,3 s ciszy
+  i wszystkie linie naraz wybuchają grubym cięciem (efekt `katana_dance_burst` z kreatora PixelLab, „Taniec ostrza -
+  wybuch cięcia”), `DANCE_BURST` 0,9 siły w pasie x1,8, drgnięcie telefonu i kamery; potem piorun między trafionymi.
+- Testy poprawione (Rzut i Fala celują w najdalszego); zrzuty `tools/dance_shots.gd`.
+
 ## 19.11.2026 - wiązki piorunów: najdalszy cel, bez powtórek; nowe wyładowanie Błysku Peruna
 
 Prośba autora: wyładowanie z 10. poziomu Błysku Peruna (co 5. skok) zasłaniało postać - ma być wiązką błyskawic

@@ -45,7 +45,7 @@ const DATA := {
 	"throw": {
 		"name": "Rzut mieczem", "icon": preload("res://assets/watra/skills/lunge.png"),
 		"mana": 22, "cooldown": 4.0, "weapon": "sword", "mastery": 6, "main": true, "range": 120.0, "power": 1.5,
-		"description": "Miecz leci w najbliższego wroga, przebija wszystkich po drodze i wraca, raniąc ich drugi raz.",
+		"description": "Miecz leci w najdalszego wroga w zasięgu, przebija wszystkich po drodze i wraca, raniąc ich drugi raz.",
 	},
 	"slam": {
 		"name": "Rozłupanie Ziemi", "icon": preload("res://assets/watra/skills/ground_slam.png"),
@@ -90,7 +90,7 @@ const DATA := {
 	"h_bolt": {
 		"name": "Wodny pocisk", "icon": preload("res://assets/skills/hydro/h_bolt.png"),
 		"mana": 0, "cooldown": 0.0, "weapon": "hydrosphere", "mastery": 1, "main": true, "range": 140.0, "power": 0.9,
-		"description": "Kula wypluwa bańkę wody w najbliższego wroga; rozprysk rani też tych obok. Trafieni są przemoczeni.",
+		"description": "Kula wypluwa bańkę wody w najdalszego wroga w zasięgu; rozprysk rani też tych obok. Trafieni są przemoczeni.",
 	},
 	"h_wave": {
 		"name": "Fala", "icon": preload("res://assets/skills/hydro/h_wave.png"),
@@ -121,7 +121,7 @@ const DATA := {
 	"k_dance": {
 		"name": "Taniec ostrza", "icon": preload("res://assets/skills/katana/k_dance.png"),
 		"mana": 22, "cooldown": 5.0, "weapon": "katana", "mastery": 3, "main": true, "range": 60.0, "power": 0.6,
-		"description": "Idziesz naprzód, tnąc precyzyjnie cztery razy, a potem między wszystkimi trafionymi przeskakuje błękitny piorun.",
+		"description": "Idziesz naprzód, tnąc cztery razy cienkimi, prostymi liniami. Po chwili wszystkie naraz wybuchają potężnymi cięciami, a między trafionymi przeskakuje błękitny piorun.",
 	},
 	"k_riposte": {
 		"name": "Riposta", "icon": preload("res://assets/skills/katana/k_riposte.png"),

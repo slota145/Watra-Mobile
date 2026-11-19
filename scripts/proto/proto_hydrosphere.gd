@@ -179,7 +179,7 @@ func _attack(second := false, full := false) -> void:
 	if not second:
 		_strike_count += 1
 	_swing_power = (1.0 if full else gem_power(basic, "multi") / 100.0) if second else 1.0
-	_shot_target = _nearest(BOLT_RANGE * _area(basic))
+	_shot_target = _farthest(BOLT_RANGE * _area(basic))  # bańka leci przez tłum do najdalszego (19.11.2026)
 	_aim = (_shot_target.center() - _orbit_center()).angle() if _shot_target else hero.facing.angle()
 	_from_pos = position
 	_from_sprite = _sprite.position
@@ -342,11 +342,11 @@ func _spawn_tide(from := Vector2.INF, mult := 1.0) -> void:
 	if hero.dead:
 		return
 	var origin := _orbit_center() if from == Vector2.INF else from
-	var best: ProtoTarget = null
-	var best_d := Skills.DATA.h_wave.range as float
+	var best: ProtoTarget = null  # fala celuje w najdalszego wroga w zasięgu - płynie przez tłum (19.11.2026)
+	var best_d := -1.0
 	for t in _live_targets():
 		var d := t.center().distance_to(origin)
-		if d <= best_d:
+		if d <= Skills.DATA.h_wave.range and d > best_d:
 			best = t
 			best_d = d
 	var a := (best.center() - origin).angle() if best else _aim

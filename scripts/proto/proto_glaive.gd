@@ -267,7 +267,8 @@ func _start(id: String) -> void:
 		return
 	_cd[id] = cooldown_full(id)
 	_hit_done = false
-	var best := _nearest(Skills.DATA[id].range)
+	# bruzda i sierpy lecą przez tłum - celują w najdalszego wroga w zasięgu (decyzja autora 19.11.2026)
+	var best := _farthest(Skills.DATA[id].range) if id in ["g_trail", "g_dance"] else _nearest(Skills.DATA[id].range)
 	_aim = (best.center() - _orbit_center()).angle() if best else hero.facing.angle()
 	match id:
 		"g_sweep":

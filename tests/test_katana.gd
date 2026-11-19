@@ -138,7 +138,9 @@ func _test_combat(game: Node) -> void:
 	hero.position = Vector2.ZERO
 	var from := hero.global_position
 	_check(weapon.cast("k_dance") and weapon._state == "dance", "Taniec ostrza rusza")
-	await _wait(0.9)
+	await _wait(ProtoKatana.DANCE_EVERY * 2.5)
+	_check(weapon._dance_lines.size() >= 2, "Taniec: cięcia zostawiają cienkie linie (%d)" % weapon._dance_lines.size())
+	await _wait(1.0)
 	var struck := 0
 	for i in line.size():
 		if line[i].hp < hps[i]:
@@ -333,7 +335,7 @@ func _test_unique(game: Node) -> void:
 	hero.position = Vector2.ZERO
 	await process_frame
 	weapon.cast("k_dance")
-	await _wait(1.2)
+	await _wait(1.6)
 	var struck := 0
 	for i in around.size():
 		if around[i].hp < hps[i]:
