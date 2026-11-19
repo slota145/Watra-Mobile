@@ -26,7 +26,8 @@ func _run() -> void:
 	game.hero_level = 20
 	game.dungeon_level = 9
 	game.dev_skills()
-	game.auras = {"krzepa": 3, "strzybog": 1, "szron": 5, "ognik": 2, "perun": 1}
+	game.auras = {"krzepa": 3, "strzybog": 1, "szron": 5, "ognik": 2, "perun": 1, "mokosz": 1, "postrach": 2, "jarylo": 1,
+			"popiol": 1}
 	game.auras_on = ["szron", "ognik"]
 	game.save_game()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
@@ -41,7 +42,7 @@ func _run() -> void:
 	win.close()
 	arena.queue_free()
 	await process_frame
-	game.auras_on = ["szron", "ognik"]
+	game.auras_on = ["postrach", "mokosz"]
 	game.save_game()
 	var horde: Node = load("res://scenes/horde.tscn").instantiate()
 	root.add_child(horde)

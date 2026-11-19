@@ -2,7 +2,8 @@ extends SceneTree
 ## Test aur rezerwujących manę (Auras): dane i rezerwacja, zdobywanie z kamienia (poziomy za duplikaty), zapis,
 ## limit 75% i zasada „mana na najdroższą umiejętność”, łup ze skrzyń od lochu 8, premie postaci (Krzepa, Strzybóg,
 ## odnowa), rezerwacja na pasku many, działanie w walce (Swaróg, Perun, Szron, Ognik), podniesienie kamienia z ziemi
-## i zakładka „Aury” w oknie umiejętności.
+## i zakładka „Aury” w oknie umiejętności. Krok 2: pozostałe 13 aur (premie, tarcza, Kamienna Krew, kręgi na wrogów,
+## Zwiastuny, Złość Licha) i premia przedmiotów „mniejsza rezerwacja many”.
 
 var _failed := 0
 
@@ -41,7 +42,7 @@ func _test_data() -> void:
 	for id in Auras.ORDER:
 		ok = ok and Auras.is_aura(id) and Auras.name_of(id) != "" and Auras.effect_text(id, 1) != ""
 		ok = ok and Auras.reserve_of(id, 1) >= 0.15 and Auras.reserve_of(id, 1) <= 0.35
-	_check(ok and Auras.ORDER.size() == 8, "8 aur z nazwą, opisem i rezerwacją 15-35%")
+	_check(ok and Auras.ORDER.size() == 21 and Auras.DATA.size() == 21, "21 aur z nazwą, opisem i rezerwacją 15-35%")
 	_check(Auras.reserve_of("perun", 10) < Auras.reserve_of("perun", 1), "wyższy poziom aury rezerwuje mniej")
 	_check(Auras.power("krzepa", 10) > Auras.power("krzepa", 1), "wyższy poziom - mocniejsza aura")
 	var none := true
@@ -56,6 +57,27 @@ func _test_data() -> void:
 	_check(g.move_pct == Items.CAPS.move_pct and g.attack_speed_pct == 10.0 and g.aura_hp_pct == 0.2,
 			"Strzybóg i Krzepa w cechach postaci (z sufitem szybkości ruchu)")
 	_check(is_equal_approx(g.aura_reserve, 0.55), "rezerwacja dwóch aur: 30% + 25%")
+	g = Auras.apply({"reserve_pct": 20.0}, ["strzybog", "krzepa"], {})
+	_check(is_equal_approx(g.aura_reserve, 0.44), "premia przedmiotów: 20% mniejsza rezerwacja")
+	var gear := Items.totals({})
+	gear.element_res_raw = 90.0
+	gear.element_res_pct = 75.0
+	g = Auras.apply(gear, ["hart"], {"hart": 10})
+	_check(is_equal_approx(g.element_res_pct, 75.0 + Auras.power("hart", 10)) and g.element_res_pct <= 85.0,
+			"Hart Żywiołów: sufit odporności do 85%% (%.1f)" % g.element_res_pct)
+	g = Auras.apply(Items.totals({}), ["pieczec", "jarylo", "trzyglow", "weles"], {})
+	_check(g.element_res_pct == 12.0 and g.crit_pct == 5.0 and g.crit_dmg_pct == 20.0 and g.protection_pct == 8.0
+			and g.pickup_pct == 50.0 and g.xp_pct == 5.0, "Pieczęć, Jaryło, Trzygłów i Weles w cechach postaci")
+	var slots_ok := true
+	var seen := false
+	for i in 600:
+		var item := Items.roll(20, "", "rare")
+		for a in item.affixes:
+			if a.stat == "reserve_pct":
+				seen = true
+				slots_ok = slots_ok and item.slot in ["ring", "amulet"]
+	_check(seen and slots_ok, "premia „mniejsza rezerwacja” tylko na pierścieniu i amulecie")
+	_check(not Items.affix_fits("reserve_pct", "helmet") and Items.affix_fits("hp", "helmet"), "premie według miejsca")
 
 
 func _test_game(game: Node) -> void:
@@ -172,9 +194,90 @@ func _test_combat(game: Node) -> void:
 	drop.magnet = 1000.0
 	await _wait(1.0)
 	_check(game.auras.get("zywia", 0) == 2, "podniesiony kamień aury podnosi poziom")
+	await _test_step2(game, arena, hero, weapon)
 	arena.queue_free()
 	await process_frame
 	game.auras_on = []
+
+
+func _test_step2(game: Node, arena: Node, hero: ProtoHero, weapon: ProtoWeapon) -> void:
+	for t in weapon.targets:  # gobliny z poprzednich sprawdzeń znikają, postać nie może zginąć
+		if t is ProtoGoblin:
+			t.queue_free()
+	weapon.targets = weapon.targets.filter(func(t: ProtoTarget) -> bool: return not t is ProtoGoblin)
+	hero.immortal = true
+	game.auras = {"mokosz": 1, "kamienna_krew": 1, "postrach": 1, "mgla": 1, "czarnobog": 1, "popiol": 1, "mroz": 1,
+			"licho": 1}
+	game.auras_on = ["mokosz", "kamienna_krew"]
+	game.auras_changed.emit()
+	game.inventory_changed.emit()
+	await _wait(0.6)
+	_check(hero.shield_max == roundi(hero.max_hp * 0.15) and hero.shield == hero.shield_max and arena.shield_bar.visible,
+			"Opieka Mokoszy: tarcza 15%% zdrowia (%d) na pasku zdrowia" % hero.shield)
+	hero.protection = 0.0
+	hero.hp = hero.max_hp
+	var hp := hero.hp
+	hero._invulnerable = 0.0
+	hero.take_damage(hero.shield - 1)
+	_check(hero.hp == hp and hero.shield == 1, "tarcza bierze cios na siebie")
+	hero._invulnerable = 0.0
+	hero.take_damage(11)
+	_check(hero.hp == hp - 10 and hero.shield == 0, "nadwyżka ciosu przechodzi na zdrowie")
+	hero._shield_wait = 0.01
+	await _wait(0.1)
+	_check(hero.shield == hero.shield_max, "tarcza odnawia się po chwili bez trafienia")
+	hero.shield = 0
+	hero._shield_wait = 99.0
+	hero.hp = roundi(hero.max_hp * 0.2)
+	hp = hero.hp
+	hero._invulnerable = 0.0
+	hero.take_damage(100)
+	_check(hp - hero.hp == 70, "Kamienna Krew: przy niskim zdrowiu 30%% mniej (%d)" % (hp - hero.hp))
+	hero.hp = hero.max_hp
+	# kręgi na wrogów
+	game.auras_on = ["postrach", "czarnobog"]
+	game.auras_changed.emit()
+	game.inventory_changed.emit()
+	var g := _goblin(arena, hero.position + Vector2(20, 0))
+	g.power = 5000.0
+	g.stun(10.0)
+	await _wait(1.2)
+	_check(g.aura_weak > 0.0 and g.speed_factor() < 1.0, "Postrach: wróg w kręgu słabszy i wolniejszy")
+	_check(g.pride > 0.0 and g.pride < Auras.power("czarnobog"), "Piętno Czarnoboga rośnie w kręgu (%.2f)" % g.pride)
+	hero.shield_max = 0
+	hero._invulnerable = 0.0
+	hp = hero.hp
+	g.hit_hero(hero, 100)
+	_check(hp - hero.hp == 85, "Postrach: cios wroga 15%% słabszy (%d)" % (hp - hero.hp))
+	g.aura_miss = 1.0
+	hero._invulnerable = 0.0
+	hp = hero.hp
+	g.hit_hero(hero, 100)
+	_check(hero.hp == hp, "Mgła Nawii: wróg chybia")
+	g.aura_miss = 0.0
+	g.position = hero.position + Vector2(300, 0)
+	await _wait(1.0)
+	_check(g.pride == 0.0, "Piętno gaśnie poza kręgiem")
+	# Zwiastuny
+	game.auras_on = ["popiol", "mroz"]
+	game.auras_changed.emit()
+	var near := _goblin(arena, hero.position + Vector2(200, 0))
+	near.power = 5000.0
+	var dead := _goblin(arena, hero.position + Vector2(215, 0))
+	await process_frame
+	hp = near.hp
+	arena.auras_node.on_monster_died(dead)
+	await process_frame
+	await process_frame
+	_check(near.hp < hp and near.speed_factor() < 1.0, "Zwiastuny: wybuch zabitego rani i spowalnia sąsiada")
+	# Złość Licha
+	game.auras_on = ["licho"]
+	game.inventory_changed.emit()
+	_check(is_equal_approx(ProtoTarget.burn_power, 1.25) and is_equal_approx(ProtoTarget.burn_length, 1.3),
+			"Złość Licha: mocniejsze i dłuższe podpalenia")
+	game.auras_on = []
+	game.inventory_changed.emit()
+	_check(ProtoTarget.burn_power == 1.0, "bez Licha zwykłe podpalenia")
 
 
 func _test_window(game: Node) -> void:

@@ -64,7 +64,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/elements.gd` - żywioły (8 + fizyczne, odporności, `reduce`); `scripts/weapons.gd` - rodzaje broni (miecz, glewia ognia - `proto_glaive.gd`, hydrosfera - `proto_hydrosphere.gd`, elektryczna katana - `proto_katana.gd`; wszystkie dziedziczą po `proto_weapon.gd`; przemoczenie, porażenie i combo żywiołów - `ProtoTarget.soak`/`shock`, `ProtoWeapon._combo_mult`), kupno, zmiana i mistrzostwo broni (stan w `Game`);
   `scripts/skills.gd` - umiejętności broni (odblokowuje mistrzostwo, poziomy 1-10 za żar z nowym działaniem na 5. i 10.; odblokowane, miejsca i poziomy w `Game`, działanie w `proto_weapon.gd`, okno
   `scripts/ui/skills_window.gd` z polami `skill_slot.gd`, kamień run w bazie);
-  `scripts/auras.gd` - aury rezerwujące manę (dane 8 aur, rezerwacja, kamienie aur z łupu od lochu 8; stan `Game.auras`/`auras_on`, kręgi i działanie `proto_auras.gd`, zakładka „Aury” w oknie umiejętności),
+  `scripts/auras.gd` - aury rezerwujące manę (dane 21 aur, premia przedmiotów `reserve_pct`, ciosy wrogów przez `ProtoTarget.hit_hero`, rezerwacja, kamienie aur z łupu od lochu 8; stan `Game.auras`/`auras_on`, kręgi i działanie `proto_auras.gd`, zakładka „Aury” w oknie umiejętności),
   `scripts/items.gd` - przedmioty (miejsca z kolczykiem z kłem zamiast broni, rzadkości, premie, łup, ceny; torba, założone i złoto w `Game`),
   `scripts/gems.gd` - kamienie w umiejętnościach i przedmiotach (dane, łup, kamienie unikalne umiejętności - `Gems.UNIQUE`; bez stopni: umiejętności
   ulepszane złotem i odpryskami do 10. poziomu, szlachetne z 2-5 losowymi premiami, sprzedaż i rozbijanie na odpryski; sakwa z filtrami, odpryski i gniazda w `Game`, działanie w `proto_weapon.gd`

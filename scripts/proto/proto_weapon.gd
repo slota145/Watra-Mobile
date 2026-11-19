@@ -695,7 +695,7 @@ func _sword_cut_fx(t: ProtoTarget, from: Vector2) -> void:
 func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2) -> void:
 	if not t.alive():
 		return
-	var amount := _roll(power)
+	var amount := roundi(_roll(power) * (1.0 + t.pride))
 	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
 		amount = roundi(amount * elite_mult)
 	t.color_next = Elements.color_of(elem)
@@ -705,6 +705,8 @@ func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2) -> void
 func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
 		amount = roundi(amount * elite_mult)
+	if t.pride > 0.0:  # Piętno Czarnoboga
+		amount = roundi(amount * (1.0 + t.pride))
 	amount = Elements.reduce(amount, t.resist(element, penetration), _combo_mult(t))  # odporność lochu na żywioł broni
 	if randf() < crit_chance:
 		amount = roundi(amount * crit_mult)

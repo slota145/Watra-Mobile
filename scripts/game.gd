@@ -458,7 +458,7 @@ func load_game() -> void:
 		if raw_on is Array:
 			for id in raw_on:
 				if id is String and auras.has(id) and not auras_on.has(id) \
-						and Auras.reserved_total(auras_on + [id], auras) < Auras.MAX_RESERVED + 0.0001:
+						and Auras.reserve_sum(auras_on + [id], auras, aura_cut()) < Auras.MAX_RESERVED + 0.0001:
 					auras_on.append(id)
 		shop_ready = bool(data.get("shop_ready", false))
 		var raw_shop = data.get("shop", [])
@@ -614,6 +614,11 @@ func max_mana() -> int:
 	return HeroLevels.max_mana(hero_level) + roundi(Items.totals(equipped).get("mana", 0.0))
 
 
+## Premia przedmiotów „mniejsza rezerwacja many” (ułamek; Auras.cut_of).
+func aura_cut() -> float:
+	return Auras.cut_of(Items.totals(equipped))
+
+
 ## Mana na najdroższą umiejętność w miejscach obecnej broni (koszt z poziomem umiejętności, bez kamieni).
 func priciest_skill() -> int:
 	var most := 0
@@ -628,7 +633,7 @@ func priciest_skill() -> int:
 func aura_problem(id: String) -> String:
 	if not auras.has(id) or auras_on.has(id):
 		return ""
-	var after := Auras.reserved_total(auras_on, auras) + Auras.reserve_of(id, auras[id])
+	var after := Auras.reserve_sum(auras_on + [id], auras, aura_cut())
 	if after > Auras.MAX_RESERVED + 0.0001:
 		return Lang.t("Aury rezerwują już najwięcej many - wyłącz inną aurę")
 	var free := floori(max_mana() * (1.0 - after))

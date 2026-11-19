@@ -33,25 +33,9 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 ## Pomysły autora (do zrobienia)
 
 - **Duże pomysły autora (19.11.2026) - kolejność proponowana przez Claude, do potwierdzenia:**
-  1. **Aury rezerwujące manę** - krok 1 zrobiony 19.11.2026 (`docs/historia.md`): zakładka „Aury”, rezerwacja,
-     kamienie aur z łupu od lochu 8 (od razu przy podniesieniu, poziomy 1-10 za duplikaty), 8 działających aur.
-     **Krok 2 - pozostałe 13 aur** z listy zatwierdzonej przez autora 19.11.2026, dopasowane do obecnej gry
-     (rezerwacja w nawiasie; dopasowania - propozycja Claude, do potwierdzenia przy kroku 2):
-     - Postrach (30%) - wrogowie w kręgu zadają mniej obrażeń i są wolniejsi;
-     - Mgła Nawii (30%) - wrogowie w kręgu czasem chybiają (jak unik postaci, `ProtoHero.dodge`, ale tylko od nich);
-     - Opieka Mokoszy (30%) - odnawiana tarcza pochłaniająca obrażenia (nowa rzecz: pasek tarczy na zdrowiu);
-     - Piętno Czarnoboga (30%, Pride) - wrogowie w kręgu dostają tym więcej, im dłużej w nim stoją;
-     - Oko Jaryły (25%, Precision) - szansa i obrażenia krytyczne (`crit_pct`, `crit_dmg_pct`);
-     - Pancerz Trzygłowa (30%, Determination) - w grze nie ma pancerza, więc +ochrona (`protection_pct`, sufit 50%);
-     - Kamienna Krew (20%, Petrified Blood) - mniej obrażeń przy niskim zdrowiu;
-     - Zwiastun Popiołu (25%, Herald of Ash) - zabity wróg wybucha ogniem i podpala sąsiadów;
-     - Zwiastun Mrozu (25%, Herald of Ice) - zamrożony (`ProtoTarget.freeze`) albo zabity wróg pęka w odłamki lodu;
-     - Złość Licha (30%, Malevolence) - mocniejsze i dłuższe obrażenia w czasie: teraz podpalenie, później trucizna i Nawia;
-     - Pieczęć Rodu (30%) - postać ma jedną wspólną odporność na żywioły (`element_res_pct`), więc + do niej;
-     - Hart Żywiołów (35%) - podnosi sufit odporności 75% (np. do 85%);
-     - Dłoń Welesa (20%) - dalej przyciągane iskry żaru i łup (`pickup_pct`) i trochę więcej doświadczenia.
-     Odrzucone: Łaska Dadźboga (+złoto i łup), Chorągiew Ostoi (sztandar). Premia „redukcja rezerwacji” z przedmiotów -
-     do decyzji (teraz rezerwację zmniejsza tylko poziom aury, o 2% za poziom).
+  1. ~~**Aury rezerwujące manę**~~ - zrobione 19.11.2026 (krok 1: 8 aur, krok 2: pozostałe 13 i premia przedmiotów
+     „mniejsza rezerwacja many”; szczegóły w `docs/historia.md`). Do oceny na telefonie: siła aur, rezerwacja, szanse
+     kamieni aur (25% skrzynia Wodza, 12% skrzynia na mapie lochu, od lochu 8).
   2. **3 miejsca na przedmioty specjalne** bez statystyk, z efektem (np. fala uderzeniowa po trafieniu, piorun po
      użyciu umiejętności zależny od many i podnoszący jej koszt - jak Archmage w PoE). Forma do ustalenia:
      osobne przedmioty, kamienie w ekwipunku czy efekt na przedmiocie (jak legendy Watry - `legendary_effects.gd`).

@@ -91,7 +91,7 @@ func _jump() -> void:
 ## Lądowanie: rani, jeśli postać wciąż stoi w pasie.
 func _land() -> void:
 	if _leap_line and is_instance_valid(_leap_line) and hero and not hero.dead and _leap_line.contains(hero.global_position):
-		hero.take_damage(roundi(LEAP_DAMAGE * power * damage_mult), element)
+		hit_hero(hero, roundi(LEAP_DAMAGE * power * damage_mult), element)
 	_remove_line()
 	_state = "walk"
 	_cooldown = maxf(_cooldown, 0.5)

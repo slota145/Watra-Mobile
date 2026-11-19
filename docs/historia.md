@@ -2,6 +2,32 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 19.11.2026 - aury rezerwujące manę (krok 2: pozostałe 13 aur, mniejsza rezerwacja)
+
+Decyzje autora (ankieta): dopasowania z ROADMAP bez zmian, premia „mniejsza rezerwacja many” na przedmiotach.
+- `Auras`: 21 aur (`ORDER`, `DATA`), nowe stałe (`CIRCLE_TICK` 0,25 s, `MARK_TIME`, `POSTRACH_SLOW` 10%,
+  `CZARNOBOG_BUILD` 4 s / `CZARNOBOG_FADE`, `MOKOSZ_DELAY` 3 s, `STONE_BELOW` 35%, `HERALD_RADIUS` 45 px, `MROZ_SLOW`,
+  `MROZ_CHILLED` x1,5, `LICHO_TIME` +30%, `JARYLO_CRIT_DMG` x4, `WELES_XP` /10), `reserve_sum` (bez przycinania -
+  sprawdzanie przy włączaniu i wczytaniu; przy kroku 1 wczytanie nie odrzucało nadmiaru), `cut_of`.
+- Nowe aury (siła na 1. poziomie, przyrost za poziom, rezerwacja): Postrach (krąg 80 px: -15% obrażeń wrogów, +1,5;
+  -10% szybkości; 30%), Mgła Nawii (krąg 86 px: 15% chybień, +1,5; 30%), Opieka Mokoszy (tarcza 15% zdrowia, +1,5,
+  pełna po 3 s bez trafienia; 30%), Piętno Czarnoboga (krąg 76 px: do +20% obrażeń, +2, rośnie przez 4 s; 30%),
+  Oko Jaryły (+5 pkt szansy na krytyk i +20% obrażeń krytycznych, +0,5 / +2; 25%), Pancerz Trzygłowa (+8% ochrony,
+  +0,8; 30%), Kamienna Krew (-30% obrażeń poniżej 35% zdrowia, +2; 20%), Zwiastun Popiołu (wybuch zabitego 40%
+  ciosu ogniem + podpalenie, +5; 25%), Zwiastun Mrozu (odłamki 40% ciosu mrozem, x1,5 ze spowolnionego, -30% szybkości;
+  25%), Złość Licha (podpalenia +25% i +30% dłużej, +3; 30%), Pieczęć Rodu (+12% odporności na żywioły, +1,2; 30%),
+  Hart Żywiołów (sufit odporności +5 pkt, do 85% na 10. poziomie; 35%), Dłoń Welesa (+50% zasięgu zbierania i +5%
+  doświadczenia, +5 / +0,5; 20%).
+- Wrogowie: `ProtoTarget.hit_hero` zamiast `hero.take_damage` w potworach i bossach (znaki `aura_weak`, `aura_miss`,
+  `aura_until`; strzały i wybuch elity Lotnej bez zmian), `pride` (mnożnik w `ProtoWeapon._deal` i `aura_hit`),
+  statyczne `burn_power` / `burn_length` (Licho, ustawia `Arena._apply_weapon`).
+- `ProtoHero`: tarcza (`shield`, `shield_max`, sygnał `shield_changed`, jasny pas na dole paska zdrowia - `Arena.shield_bar`),
+  `stone`, `max_res_bonus`, `enemy_missed` (napis „Chybił!”). `Items.totals` zostawia `element_res_raw` (dla Hartu).
+- `ProtoAuras`: `_circle_tick`, `on_monster_died` (z `ProtoHorde.monster_died`, wybuch odroczony), krąg wybuchu `_Burst`.
+- Przedmioty: premia `reserve_pct` („% mniejsza rezerwacja many przez aury”, 2-4% +0,04 na poziom lochu, sufit 20%),
+  tylko pierścień i amulet (`AFFIXES` pole `slots`, `Items.affix_fits` - też u kowala); `Game.aura_cut`.
+- Test: `tests/test_auras.gd` (krok 2 - `_test_step2`).
+
 ## 19.11.2026 - aury rezerwujące manę (krok 1: 8 aur)
 
 Pomysł autora; lista 21 aur zatwierdzona 19.11.2026 (z gałęzi `ccr-23c5ddf4-xminpb`, kod tamtej gałęzi był na starej

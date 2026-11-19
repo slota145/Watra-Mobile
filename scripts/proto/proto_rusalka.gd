@@ -54,7 +54,7 @@ func _strike() -> void:
 	_struck = true
 	if _telegraph and is_instance_valid(_telegraph):
 		if hero and not hero.dead and _telegraph.contains(hero.global_position):
-			hero.take_damage(hit_damage(), element)
+			hit_hero(hero, hit_damage(), element)
 			_hit_hero()
 		var fx := Fx.once(get_parent(), ProtoArrow.WATER_HIT, ProtoArrow.WATER_HIT_FRAMES, 14.0, _telegraph.global_position,
 				ProtoArrow.WATER_HIT_ANCHOR, 20, RING_RADIUS / 18.0)

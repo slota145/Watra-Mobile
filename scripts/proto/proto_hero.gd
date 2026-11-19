@@ -17,6 +17,8 @@ extends Node2D
 
 signal health_changed(hp: int, max_hp: int)
 signal mana_changed(mana: int, max_mana: int)
+## Tarcza aury Opieka Mokoszy (pochłania obrażenia przed zdrowiem).
+signal shield_changed(shield: int, shield_max: int)
 signal died
 ## Cios potwora chybił dzięki unikowi.
 signal dodged
@@ -53,6 +55,14 @@ var max_hp := MAX_HP
 var max_mana := HeroLevels.MANA_BASE
 ## Mana zarezerwowana przez włączone aury (część max_mana, której nie da się wydać).
 var reserved := 0
+## Aura Opieka Mokoszy: tarcza (obecna i pełna) i ile sekund jeszcze do jej odnowienia (Auras.MOKOSZ_DELAY bez trafienia).
+var shield := 0
+var shield_max := 0
+var _shield_wait := 0.0
+## Aura Kamienna Krew: o tyle mniej obrażeń poniżej Auras.STONE_BELOW zdrowia.
+var stone := 0.0
+## Aura Hart Żywiołów: o tyle wyższy sufit odporności na żywioły (ułamek).
+var max_res_bonus := 0.0
 var mana := HeroLevels.MANA_BASE
 var hp := MAX_HP
 var dead := false
@@ -117,6 +127,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_invulnerable -= delta
+	if shield < shield_max and not dead:
+		_shield_wait -= delta
+		if _shield_wait <= 0.0:
+			shield = shield_max
+			shield_changed.emit(shield, shield_max)
 	parry_left -= delta
 	if chill_left > 0.0:
 		chill_left -= delta
@@ -264,7 +279,18 @@ func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 		dodged.emit()
 		return
 	var res := element_res if element != Elements.PHYSICAL else 0.0
-	amount = maxi(1, roundi(amount * (1.0 - protection) * (1.0 - res) * (SHOCK_MULT if shock_left > 0.0 else 1.0)))
+	var guard := 1.0 - stone if stone > 0.0 and hp < max_hp * Auras.STONE_BELOW else 1.0  # Kamienna Krew
+	amount = maxi(1, roundi(amount * (1.0 - protection) * (1.0 - res) * guard * (SHOCK_MULT if shock_left > 0.0 else 1.0)))
+	if shield_max > 0:
+		_shield_wait = Auras.MOKOSZ_DELAY
+		if shield > 0:  # Opieka Mokoszy: tarcza bierze cios na siebie
+			var absorbed := mini(shield, amount)
+			shield -= absorbed
+			amount -= absorbed
+			shield_changed.emit(shield, shield_max)
+			if amount <= 0:
+				_spawn_text("-%d" % absorbed, Auras.color_of("mokosz").lightened(0.3))
+				return
 	hp = maxi(hp - amount, 0)
 	health_changed.emit(hp, max_hp)
 	_spawn_text("-%d" % amount, Color(1.0, 0.4, 0.35) if element == Elements.PHYSICAL \
@@ -274,6 +300,12 @@ func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 	_sprite.modulate = Color(2.2, 0.5, 0.45)
 	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.25)
 	_check_death()
+
+
+## Cios wroga chybił przez aurę Mgła Nawii (ProtoTarget.hit_hero).
+func enemy_missed() -> void:
+	if not dead:
+		_spawn_text(tr("Chybił!"), Auras.color_of("mgla").lightened(0.3))
 
 
 ## Zdrowie spadło do zera: śmierć (albo w trybie nieśmiertelności - złoty błysk i pełne zdrowie).
@@ -381,7 +413,15 @@ func apply_gear(level: int, items_gear: Dictionary) -> void:
 	move_mult = 1.0 + gear.get("move_pct", 0.0) / 100.0
 	regen = HeroStats.regen(level, gear)
 	protection = gear.get("protection_pct", 0.0) / 100.0
-	element_res = minf(gear.get("element_res_pct", 0.0) / 100.0, Elements.MAX_RESISTANCE)
+	max_res_bonus = gear.get("aura_max_res", 0.0) / 100.0
+	element_res = minf(gear.get("element_res_pct", 0.0) / 100.0, Elements.MAX_RESISTANCE + max_res_bonus)
+	stone = gear.get("aura_stone", 0.0)
+	var new_shield := roundi(max_hp * gear.get("aura_shield_pct", 0.0))
+	if new_shield != shield_max:
+		shield_max = new_shield
+		shield = mini(shield, shield_max) if shield_max > 0 else 0
+		_shield_wait = minf(_shield_wait, 0.5)  # nowa tarcza wkrótce się napełni
+		shield_changed.emit(shield, shield_max)
 	dodge = gear.get("dodge_pct", 0.0) / 100.0
 	health_changed.emit(hp, max_hp)
 	mana_changed.emit(mana, max_mana)

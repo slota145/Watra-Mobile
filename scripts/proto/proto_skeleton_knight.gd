@@ -53,7 +53,7 @@ func _strike() -> void:
 	_struck = true
 	if _telegraph and is_instance_valid(_telegraph):
 		if hero and not hero.dead and _telegraph.contains(hero.global_position):
-			hero.take_damage(hit_damage(), element)
+			hit_hero(hero, hit_damage(), element)
 			_hit_hero()
 		var tex := ProtoWeapon.SLASH_FX
 		var anchor := Vector2(tex.get_width() / float(ProtoWeapon.SLASH_FRAMES), tex.get_height()) / 2.0

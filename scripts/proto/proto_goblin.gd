@@ -287,7 +287,7 @@ func _start_attack(to_hero: Vector2) -> void:
 func _strike() -> void:
 	_struck = true
 	if hero and not hero.dead and global_position.distance_to(hero.global_position) <= HIT_RANGE:
-		hero.take_damage(hit_damage(), element)
+		hit_hero(hero, hit_damage(), element)
 		_hit_hero()
 
 

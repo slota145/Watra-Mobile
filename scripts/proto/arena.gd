@@ -95,6 +95,8 @@ var health_text: Label
 var mana_text: Label
 ## Część paska many zarezerwowana przez aury (ciemna, z prawej) i ikonki włączonych aur na niej.
 var mana_reserved: ColorRect
+## Tarcza aury Opieka Mokoszy: jasny pas na dole paska zdrowia.
+var shield_bar: ColorRect
 var aura_icons: HBoxContainer
 ## Kręgi i działanie aur pod postacią (Auras).
 var auras_node: ProtoAuras
@@ -248,6 +250,11 @@ func _ready() -> void:
 			mana_bar.value = mana
 			mana_text.text = "%d / %d" % [mana, hero.mana_cap()]
 			_show_reserved())
+		hero.shield_changed.connect(func(shield: int, _shield_max: int) -> void:
+			shield_bar.visible = shield > 0
+			shield_bar.anchor_right = float(shield) / maxf(hero.max_hp, 1.0)
+			shield_bar.offset_right = 0.0)
+		horde_spawner.monster_died.connect(func(g: ProtoGoblin) -> void: auras_node.on_monster_died(g))
 		hero.set_level(Game.hero_level, gear)
 		hero.died.connect(_on_hero_died)
 		hero.death_avoided.connect(func(n: int) -> void: deaths_label.text = tr("Zgony: %d") % n)
@@ -559,6 +566,14 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	health_bar.add_theme_stylebox_override("background", bg)
 	health_bar.add_theme_stylebox_override("fill", fill)
 	box.add_child(health_bar)
+	shield_bar = ColorRect.new()
+	shield_bar.color = Color(1.0, 0.86, 0.6, 0.9)
+	shield_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shield_bar.anchor_top = 1.0
+	shield_bar.anchor_bottom = 1.0
+	shield_bar.offset_top = -3.0
+	shield_bar.visible = false
+	health_bar.add_child(shield_bar)
 	health_text = _bar_text(health_bar, 10)
 	mana_bar = ProgressBar.new()
 	mana_bar.max_value = HeroLevels.MANA_BASE
@@ -792,6 +807,8 @@ func _apply_weapon() -> void:
 	weapon.area_bonus = gear.get("area_pct", 0.0)
 	weapon.penetration = gear.get("pen_pct", 0.0) / 100.0
 	weapon.aura_fire = gear.get("aura_fire", 0.0)
+	ProtoTarget.burn_power = 1.0 + gear.get("aura_burn", 0.0)  # Złość Licha
+	ProtoTarget.burn_length = 1.0 + (Auras.LICHO_TIME if gear.get("aura_burn", 0.0) > 0.0 else 0.0)
 	if horde_spawner:
 		horde_spawner.pickup_mult = 1.0 + gear.get("pickup_pct", 0.0) / 100.0
 		horde_spawner.ember_mult = 1.0 + gear.get("ember_pct", 0.0) / 100.0

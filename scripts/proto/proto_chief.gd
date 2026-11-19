@@ -215,7 +215,7 @@ func _start_slam() -> void:
 
 func _slam_hit() -> void:
 	if _telegraph and is_instance_valid(_telegraph) and hero and not hero.dead and _telegraph.contains(hero.global_position):
-		hero.take_damage(roundi(SLAM_DAMAGE * power))
+		hit_hero(hero, roundi(SLAM_DAMAGE * power))
 	_remove_telegraph()
 	_sound(SLAM_SOUND, 2.0, randf_range(0.75, 0.85))
 	_shake(4.0, 0.25)
@@ -257,7 +257,7 @@ func _launch_cleaver() -> void:
 
 func _cleaver_landed() -> void:
 	if _telegraph and is_instance_valid(_telegraph) and hero and not hero.dead and _telegraph.contains(hero.global_position):
-		hero.take_damage(roundi(THROW_DAMAGE * power))
+		hit_hero(hero, roundi(THROW_DAMAGE * power))
 		_cleaver_hit = true  # trafiony przy upadku - na powrocie już nie
 	_remove_telegraph()
 	if _cleaver:
@@ -278,7 +278,7 @@ func _update_cleaver() -> void:
 		return
 	if hero and not hero.dead and (hero.global_position + Vector2(0, -12)).distance_to(_cleaver.global_position) <= RETURN_HIT:
 		_cleaver_hit = true
-		hero.take_damage(roundi(RETURN_DAMAGE * power))
+		hit_hero(hero, roundi(RETURN_DAMAGE * power))
 
 
 func _start_roar() -> void:

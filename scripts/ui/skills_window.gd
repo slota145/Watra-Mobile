@@ -663,7 +663,8 @@ var _aura_problem := ""
 func _refresh_auras() -> void:
 	for c in aura_list.get_children():
 		c.queue_free()
-	var reserved := Auras.reserved_total(_game.auras_on, _game.auras)
+	var cut: float = _game.aura_cut()
+	var reserved := Auras.reserved_total(_game.auras_on, _game.auras, cut)
 	var total := _label(aura_list, tr("Aury rezerwują %d%% many (najwięcej %d%%)") % [roundi(reserved * 100),
 			roundi(Auras.MAX_RESERVED * 100)], 12, BLUE)
 	total.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -694,7 +695,7 @@ func _refresh_auras() -> void:
 		row.add_child(col)
 		var title := tr("%s, poz. %d/%d") % [Auras.name_of(id), lvl, Auras.MAX_LEVEL] if lvl > 0 else Auras.name_of(id)
 		_label(col, title, 14, Auras.color_of(id) if lvl > 0 else DIM)
-		_label(col, Auras.cost_text(id, maxi(lvl, 1)), 11, BLUE)
+		_label(col, Auras.cost_text(id, maxi(lvl, 1), cut), 11, BLUE)
 		var desc := _label(col, Auras.effect_text(id, maxi(lvl, 1)), 11, TEXT if lvl > 0 else DIM)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		if lvl == 0:

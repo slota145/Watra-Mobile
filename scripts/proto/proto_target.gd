@@ -23,6 +23,16 @@ var crit_next := false
 var resists := {}
 ## Kolor następnej liczby obrażeń (żywioł kamienia: piorun, szron; przezroczysty - zwykły biały).
 var color_next := Color(0, 0, 0, 0)
+## Aury postaci (Auras, ProtoAuras): Postrach (`aura_weak` - o tyle mniej obrażeń), Mgła Nawii (`aura_miss` - szansa
+## na chybienie) - działają do `aura_until` (czas gry w s; krąg odnawia znak co Auras.CIRCLE_TICK); Piętno Czarnoboga
+## (`pride` - o tyle więcej obrażeń od postaci, rośnie w kręgu).
+var aura_weak := 0.0
+var aura_miss := 0.0
+var aura_until := 0.0
+var pride := 0.0
+## Aura Złość Licha (ustawia arena): podpalenia mocniejsze (`burn_power`) i dłuższe (`burn_length`) - wspólne dla celów.
+static var burn_power := 1.0
+static var burn_length := 1.0
 var _freeze_ready := -INF
 
 
@@ -31,6 +41,17 @@ var _freeze_ready := -INF
 func resist(element: String, pen := 0.0) -> float:
 	var r := clampf(float(resists.get(element, 0.0)), Elements.MIN_RESISTANCE, Elements.MAX_RESISTANCE)
 	return maxf(r - pen, minf(r, 0.0))
+
+
+## Cios tego celu w postać - przez aury postaci: w kręgu Mgły Nawii czasem chybia (napis nad postacią), w kręgu
+## Postrachu zadaje mniej. Potwory wołają to zamiast `hero.take_damage`.
+func hit_hero(hero: ProtoHero, amount: int, element := Elements.PHYSICAL) -> void:
+	if aura_until > Time.get_ticks_msec() / 1000.0:
+		if aura_miss > 0.0 and randf() < aura_miss:
+			hero.enemy_missed()
+			return
+		amount = maxi(1, roundi(amount * (1.0 - aura_weak)))
+	hero.take_damage(amount, element)
 
 
 ## Punkt, w który celuje broń.
@@ -63,6 +84,8 @@ func burn(total: float, time: float, pen := 0.0) -> void:
 	if not alive() or total <= 0.0 or time <= 0.0:
 		return
 	total *= 1.0 - resist(Elements.FIRE, pen)  # podpalenie to ogień
+	total *= burn_power * burn_length  # Złość Licha: dłużej przy tych samych obrażeniach na sekundę, i mocniej
+	time *= burn_length
 	var st := _status()
 	var dps := total / time
 	if dps >= st.burn_dps or st.burn_left <= 0.0:

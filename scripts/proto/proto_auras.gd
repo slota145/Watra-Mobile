@@ -5,6 +5,9 @@ extends Node2D
 ## przy stopach, kolejne coraz szersze). Robi to, czego nie da się zapisać premią postaci: piorun Gniewu Peruna,
 ## mróz Szronu Marzanny i krążący Błędny Ognik (trafienia przez ProtoWeapon.aura_hit, cele - `weapon.targets`).
 ## Premie (zdrowie, szybkość, odnowa, ogień) liczy Auras.apply. Lista włączonych aur: `on` (arena z Game.auras_on).
+## Krok 2: kręgi na wrogów (Postrach, Mgła Nawii, Piętno Czarnoboga) znaczą wrogów w kręgu (ProtoTarget.aura_weak,
+## aura_miss, pride - działają w ProtoTarget.hit_hero i ProtoWeapon), Zwiastuny Popiołu i Mrozu - wybuch zabitego wroga
+## (`on_monster_died`, arena podpina ProtoHorde.monster_died) z rozchodzącym się kręgiem.
 
 ## Broń w ręku (jej cele i siła ciosu); arena podmienia przy zmianie broni.
 var weapon: ProtoWeapon
@@ -16,6 +19,7 @@ var _hero: ProtoHero
 var _spin := 0.0
 var _perun_next := Auras.PERUN_INTERVAL
 var _szron_next := Auras.SZRON_TICK
+var _circle_next := 0.0
 var _ognik_angle := 0.0
 var _ognik_hits := {}  # cel -> czas do kolejnego trafienia
 var _wisp: Node2D
@@ -56,6 +60,98 @@ func _process(delta: float) -> void:
 	_wisp.visible = on.has("ognik")
 	if _wisp.visible:
 		_ognik_update(delta)
+	_circle_next -= delta
+	if _circle_next <= 0.0:
+		_circle_next = Auras.CIRCLE_TICK
+		_circle_tick()
+
+
+## Kręgi na wrogów: Postrach (słabsze ciosy, spowolnienie), Mgła Nawii (chybienia) - znak na Auras.MARK_TIME s;
+## Piętno Czarnoboga - premia rośnie w kręgu przez Auras.CZARNOBOG_BUILD s, poza nim szybko gaśnie.
+func _circle_tick() -> void:
+	var postrach := on.has("postrach")
+	var mgla := on.has("mgla")
+	var czarnobog := on.has("czarnobog")
+	var now := Time.get_ticks_msec() / 1000.0
+	var pride_max := _power("czarnobog")
+	for t: ProtoTarget in weapon.targets:
+		if not is_instance_valid(t) or not t.alive():
+			continue
+		var off := t.global_position - _hero.global_position
+		off.y *= 2.0  # krąg spłaszczony jak na rysunku
+		var d := off.length()
+		if postrach and d <= Auras.radius_of("postrach") or mgla and d <= Auras.radius_of("mgla"):
+			t.aura_until = now + Auras.MARK_TIME
+			t.aura_weak = _power("postrach") if postrach and d <= Auras.radius_of("postrach") else 0.0
+			t.aura_miss = _power("mgla") if mgla and d <= Auras.radius_of("mgla") else 0.0
+			if t.aura_weak > 0.0:
+				t.slow(Auras.POSTRACH_SLOW, Auras.MARK_TIME)
+		if czarnobog and d <= Auras.radius_of("czarnobog"):
+			t.pride = minf(t.pride + pride_max * Auras.CIRCLE_TICK / Auras.CZARNOBOG_BUILD, pride_max)
+		elif t.pride > 0.0:
+			t.pride = maxf(t.pride - pride_max * Auras.CIRCLE_TICK * Auras.CZARNOBOG_FADE / Auras.CZARNOBOG_BUILD, 0.0)
+
+
+## Pokonany potwór: Zwiastun Popiołu (wybuch ognia, podpalenie sąsiadów) i Zwiastun Mrozu (lodowe odłamki,
+## mocniejsze ze spowolnionego albo zamrożonego). Odroczone - łańcuch wybuchów idzie klatka po klatce.
+func on_monster_died(g: ProtoTarget) -> void:
+	if weapon == null or _hero.dead or not (on.has("popiol") or on.has("mroz")) or not is_instance_valid(g):
+		return
+	var at := g.global_position
+	var chilled := g.speed_factor() < 1.0
+	_herald.call_deferred(at, chilled)
+
+
+func _herald(at: Vector2, chilled: bool) -> void:
+	if weapon == null or not is_instance_valid(weapon):
+		return
+	var fire := on.has("popiol")
+	var ice := on.has("mroz")
+	_burst(at, Auras.color_of("popiol" if fire else "mroz"))
+	if fire and ice:
+		_burst(at, Auras.color_of("mroz"), 0.08)
+	for t: ProtoTarget in weapon.targets.duplicate():
+		if not is_instance_valid(t) or not t.alive():
+			continue
+		var off := t.global_position - at
+		off.y *= 2.0
+		if off.length() > Auras.HERALD_RADIUS:
+			continue
+		if fire:
+			weapon.aura_hit(t, _power("popiol"), Elements.FIRE, at)
+			if t.alive():
+				t.burn(weapon._roll(_power("popiol")) * Auras.SWAROG_BURN, ProtoWeapon.BURN_TIME, weapon.penetration)
+		if ice and t.alive():
+			weapon.aura_hit(t, _power("mroz") * (Auras.MROZ_CHILLED if chilled else 1.0), Elements.COLD, at)
+			t.slow(Auras.MROZ_SLOW, 1.5)
+
+
+## Rozchodzący się, gasnący krąg wybuchu Zwiastuna w punkcie `at` (świat).
+func _burst(at: Vector2, color: Color, delay := 0.0) -> void:
+	var ring := _Burst.new()
+	ring.color = color
+	ring.position = at
+	ring.z_index = 5
+	_hero.get_parent().add_child(ring)
+	var tween := ring.create_tween()
+	tween.tween_interval(delay)
+	tween.tween_property(ring, "grow", 1.0, 0.3).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(ring, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN)
+	tween.tween_callback(ring.queue_free)
+
+
+class _Burst extends Node2D:
+	var color := Color.WHITE
+	var grow := 0.0:
+		set(v):
+			grow = v
+			queue_redraw()
+
+	func _draw() -> void:
+		var r := 6.0 + (Auras.HERALD_RADIUS - 6.0) * grow
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.5))
+		draw_circle(Vector2.ZERO, r, Color(color, 0.18 * (1.0 - grow)))
+		draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(color, 0.8), 2.0)
 
 
 func _power(id: String) -> float:
