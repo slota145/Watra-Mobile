@@ -441,6 +441,18 @@ func _nearest(reach := REACH) -> ProtoTarget:
 	return best
 
 
+## Najdalszy żywy wróg w zasięgu `reach` od postaci (pioruny - długa, widoczna wiązka; null - brak).
+func _farthest(reach := REACH) -> ProtoTarget:
+	var best: ProtoTarget = null
+	var best_d := -1.0
+	for t in _live_targets():
+		var d := hero.global_position.distance_to(t.global_position)
+		if d <= reach and d > best_d:
+			best = t
+			best_d = d
+	return best
+
+
 ## Zwykły cios; `second` - drugie cięcie z kamienia Mnożenie (słabsze, bez odpoczynku przed nim), `full` - drugie
 ## cięcie z 5. poziomu (pełna siła).
 func _attack(second := false, full := false) -> void:
@@ -654,27 +666,52 @@ func _combo_mult(t: ProtoTarget) -> float:
 	return mult
 
 
-## Piorun (kamień): z celu `src` przeskakuje na CHAIN_TARGETS najbliższych wrogów w zasięgu - zygzak światła.
-## Z przemoczonego celu (combo z wodą) przeskakuje na Elements.SOAK_CHAIN_EXTRA wrogów więcej i rani mocniej.
+## Wiązka pioruna (kamień Piorun, przeskoki katany): z celu `src` skacze po kolei `count` razy - za każdym razem
+## z ostatnio trafionego (decyzja autora 19.11.2026, żeby wiązkę było widać): do NAJDALSZEGO wroga w zasięgu `range_px`,
+## którego ta wiązka jeszcze nie trafiła; gdy takich nie ma - do najdalszego już trafionego (np. dwóch wrogów: skacze
+## między nimi), nigdy w tego, na którym właśnie jest. Z przemoczonego celu (combo z wodą) Elements.SOAK_CHAIN_EXTRA
+## skoków więcej i mocniej. Zwraca trafionych po kolei (z powtórkami).
 func _chain_from(src: ProtoTarget, amount: int, count := CHAIN_TARGETS, range_px := CHAIN_RANGE) -> Array:
 	if src.is_soaked():
 		count += Elements.SOAK_CHAIN_EXTRA
 		amount = roundi(amount * Elements.SOAK_BONUS)
-	var near: Array = []
-	for t in _live_targets():
-		var d := t.global_position.distance_to(src.global_position)
-		if t != src and d <= range_px:
-			near.append([d, t])
-	near.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
-	var from := src.center()
 	var hit: Array = []
-	for pair in near.slice(0, count):
-		var t: ProtoTarget = pair[1]
-		_bolt(from, t.center())
-		t.color_next = Elements.color_of(Elements.LIGHTNING)
-		t.take_damage(Elements.reduce(maxi(1, amount), t.resist(Elements.LIGHTNING, penetration)), src.global_position)
-		hit.append(t)
+	var visited := {src: true}
+	var current := src
+	for i in count:
+		var next := chain_next(current, visited, range_px)
+		if next == null:
+			break
+		_bolt(current.center(), next.center())
+		next.color_next = Elements.color_of(Elements.LIGHTNING)
+		next.take_damage(Elements.reduce(maxi(1, amount), next.resist(Elements.LIGHTNING, penetration)), current.global_position)
+		hit.append(next)
+		visited[next] = true
+		current = next
 	return hit
+
+
+## Następny cel wiązki z `current`: najdalszy żywy wróg w zasięgu `range_px` spoza `visited`; gdy brak - najdalszy
+## z `visited` (bez `current`); null - nie ma nikogo.
+func chain_next(current: ProtoTarget, visited: Dictionary, range_px: float) -> ProtoTarget:
+	var fresh: ProtoTarget = null
+	var fresh_d := -1.0
+	var old: ProtoTarget = null
+	var old_d := -1.0
+	for t in _live_targets():
+		if t == current:
+			continue
+		var d := t.global_position.distance_to(current.global_position)
+		if d > range_px:
+			continue
+		if visited.has(t):
+			if d > old_d:
+				old = t
+				old_d = d
+		elif d > fresh_d:
+			fresh = t
+			fresh_d = d
+	return fresh if fresh else old
 
 
 ## Zygzak pioruna między dwoma punktami (świat): szeroka niebieska poświata i jasny rdzeń (17.11.2026 - bardziej

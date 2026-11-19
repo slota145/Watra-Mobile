@@ -261,6 +261,28 @@ func _test_combat(game: Node) -> void:
 	far.hp = 1
 	weapon._flicker_jump(far)
 	_check(not far.alive() and hero.mana == 30 + Skills.BLINK_MANA_ON_KILL * 2, "5. poziom: zabicie skokiem zwraca 4 many")
+	# 10. poziom: co 5. skok wiązka piorunów - najpierw najdalszy w zasięgu, potem przeskoki bez powtórek
+	var chain: Array = []
+	for p in [Vector2(60, 0), Vector2(100, 0), Vector2(140, 10), Vector2(170, 0)]:
+		chain.append(_goblin(arena, hero.position + p))
+	await process_frame
+	for g in chain:
+		g._stunned = 60.0
+	var chain_hp: Array = chain.map(func(g: ProtoGoblin) -> int: return g.hp)
+	weapon._flicker_spin()
+	var hurt := 0
+	for i in chain.size():
+		if chain[i].hp < chain_hp[i]:
+			hurt += 1
+	_check(hurt == chain.size(), "wiązka Błysku trafia wszystkich %d wrogów (%d)" % [chain.size(), hurt])
+	# zasada przeskoków: najdalszy nietrafiony; przy dwóch wrogach - tam i z powrotem
+	var hops: Array = weapon._chain_from(chain[0], 1, 3, 1000.0)
+	_check(hops == [chain[3], chain[1], chain[2]], "przeskok do najdalszego, bez powtórek, póki są nietrafieni")
+	for g in chain.slice(2):
+		g.queue_free()
+	await process_frame
+	var two: Array = weapon._chain_from(chain[0], 1, 3, 1000.0)
+	_check(two.size() == 3 and two[0] == chain[1] and two[1] == chain[0] and two[2] == chain[1], "dwóch wrogów: wiązka skacze między nimi")
 	game.dev_immortal = false
 	arena.queue_free()
 	await process_frame

@@ -175,11 +175,11 @@ const PERKS := {
 	"h_vortex": ["Wir kręci się 4 s zamiast 3.", "Na koniec wir wybucha falą wody."],
 	"h_geyser": ["Ogłuszenie 1,5 s zamiast 1.", "Osiem gejzerów zamiast pięciu."],
 	"h_guardian": ["Strażnik zostaje 8 s zamiast 6.", "Pojawiają się dwie kule naraz."],
-	"k_slash": ["Co czwarte cięcie - piorun w najbliższego wroga.", "Cięcie przeskakuje piorunem na dwóch wrogów obok."],
+	"k_slash": ["Co czwarte cięcie - piorun w najdalszego wroga w zasięgu.", "Cięcie przeskakuje piorunem po dwóch kolejnych wrogach."],
 	"k_dance": ["6 cięć zamiast 4.", "Na końcu piorun przeskakuje też na 3 wrogów obok."],
 	"k_riposte": ["Garda czeka 5 s zamiast 3.", "Z precyzyjnego cięcia po okręgu piorun przeskakuje na wrogów obok."],
 	"k_perun": ["Ładuje się o 1/3 szybciej.", "Na końcu cięcia uderza piorun, który rani wszystkich wokół."],
-	"k_flash": ["Zabicie skokiem zwraca dwa razy więcej many.", "Co 5. skok wyładowanie wokół postaci."],
+	"k_flash": ["Zabicie skokiem zwraca dwa razy więcej many.", "Co 5. skok wiązka piorunów przeskakuje po 5 wrogach."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}

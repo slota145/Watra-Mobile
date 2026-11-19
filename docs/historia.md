@@ -2,6 +2,21 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 19.11.2026 - wiązki piorunów: najdalszy cel, bez powtórek; nowe wyładowanie Błysku Peruna
+
+Prośba autora: wyładowanie z 10. poziomu Błysku Peruna (co 5. skok) zasłaniało postać - ma być wiązką błyskawic
+przeskakującą po kilku wrogach. Wszystkie wiązki mają skakać do najdalszego dostępnego wroga (żeby było je widać)
+i nie trafiać drugi raz tego samego, gdy są nietrafieni (dwóch wrogów - wiązka skacze między nimi).
+- `ProtoWeapon._chain_from` to teraz wiązka po kolei (z ostatnio trafionego, nie wachlarz ze źródła): `chain_next` -
+  najdalszy żywy wróg w zasięgu spoza trafionych tą wiązką, inaczej najdalszy z trafionych (nigdy ten, na którym jest).
+  Działa dla kamienia Piorun, przeskoków katany (cięcia, kontry, 10. poziom Tańca) i combo z przemoczeniem.
+- Błysk Peruna 10. poziom (`ProtoKatana._flicker_spin`): piorun z katany w najdalszego wroga w `FLASH_CHAIN_RANGE` 110 px
+  (x obszar), potem `FLASH_CHAIN_JUMPS` 4 przeskoki (zasięg 90 px x obszar), każdy 80% siły, poraża; zabicia zwracają
+  manę jak skok. Zamiast wybuchu wokół postaci.
+- Koniec Tańca ostrza - piorun skacze między trafionymi do najdalszego; 5. poziom cięcia katany - piorun w najdalszego
+  wroga w zasięgu (`ProtoWeapon._farthest`).
+- Testy w `tests/test_katana.gd`, zrzut `tools/chain_shots.gd`.
+
 ## 19.11.2026 - obszar umiejętności w kamieniach unikalnych
 
 Prośba autora: kamienie unikalne, do których to pasuje, mają rosnąć z obszarem umiejętności (np. łuk Gromowego Ostrza).
