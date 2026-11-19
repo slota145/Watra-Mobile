@@ -810,5 +810,20 @@
       24
     ],
     "columns": 4
+  },
+  "katana_dance_burst": {
+    "effect": "a9cfba3e-1387-4181-aa04-0eea74701830",
+    "name": "Taniec ostrza - wybuch cięcia (grube błękitne cięcie)",
+    "frame": [
+      135,
+      38
+    ],
+    "frames": 9,
+    "columns": 3,
+    "fps": 16,
+    "anchor": [
+      62,
+      21
+    ]
   }
 }

@@ -152,7 +152,7 @@ func _test_combat(game: Node) -> void:
 	await _wait(0.3)
 	weapon.reset_cooldowns()
 	hero.mana = hero.max_mana
-	far.position = Vector2(60, 0)
+	far.position = Vector2(84, 0)  # najdalszy w zasięgu - fala celuje w niego (19.11.2026)
 	await _wait(0.05)
 	hp = [far.hp]
 	_check(weapon.cast("h_wave"), "Fala rusza")

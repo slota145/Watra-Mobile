@@ -811,7 +811,7 @@ func _start(id: String) -> void:
 			_ghosts[0].visible = gem_power("whirl", "multi") > 0.0
 			_set_state("whirl")
 		"throw":
-			var best := _nearest(Skills.DATA.throw.range)
+			var best := _farthest(Skills.DATA.throw.range)  # przebija tłum do najdalszego (19.11.2026)
 			_dir = (best.global_position - hero.global_position).normalized() if best else hero.facing.normalized()
 			if _dir == Vector2.ZERO:
 				_dir = Vector2.RIGHT

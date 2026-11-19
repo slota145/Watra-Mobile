@@ -9,7 +9,8 @@ extends ProtoWeapon
 ## więcej i mocniej, a cała katana bije przemoczonych o Elements.SOAK_BONUS mocniej).
 ## - „Błyskawiczne cięcie” (`k_slash`, zwykły cios): szybkie cienkie cięcie po łuku, przez które przelatuje piorun
 ##   (`_ArcBolt`); 5. poziom - co 4. cięcie piorun w najdalszego wroga w zasięgu, 10. - przeskok na dwóch wrogów obok;
-## - „Taniec ostrza” (`k_dance`): postać idzie naprzód (ProtoHero.leap) i tnie DANCE_CUTS razy, na końcu błękitny
+## - „Taniec ostrza” (`k_dance`): postać idzie naprzód (ProtoHero.leap) i tnie DANCE_CUTS razy cienkimi prostymi
+##   liniami, które po chwili naraz wybuchają grubymi cięciami (19.11.2026), na końcu błękitny
 ##   piorun przeskakuje po kolei między wszystkimi trafionymi (5. - 6 cięć, 10. - piorun skacze też na 3 wrogów obok);
 ## - „Riposta” (`k_riposte`): katana w gardzie przez RIPOSTE_WAIT - następny cios nie rani (ProtoHero.parry_left,
 ##   sygnał `parried`), a postać odpowiada: cięcie dookoła, wyskok ku napastnikowi (najbliższemu wrogowi) i cienkie,
@@ -51,8 +52,25 @@ const DANCE_CUTS := 4
 const DANCE_CUTS_PERK := 6
 const DANCE_EVERY := 0.14
 const DANCE_DISTANCE := 80.0
-const DANCE_RADIUS := 40.0
-const DANCE_ARC := deg_to_rad(150.0)
+## Taniec ostrza (przebudowa 19.11.2026, pomysł autora): każde cięcie to cienka, prosta, świecąca linia długości
+## DANCE_LINE (na przemian skośnie o DANCE_SLANT względem marszu - krzyżują się jak „X”), rani lekko (DANCE_THIN siły);
+## po ostatnim cięciu chwila ciszy (DANCE_BURST_DELAY) i wszystkie linie naraz wybuchają grubym cięciem z kreatora
+## efektów (katana_dance_burst; DANCE_BURST siły, szerzej o DANCE_BURST_WIDTH), potem piorun między trafionymi.
+const DANCE_LINE := 70.0
+const DANCE_SLANT := deg_to_rad(28.0)
+const DANCE_WIDTH := 9.0
+const DANCE_THIN := 0.3
+const DANCE_BURST := 0.9
+const DANCE_BURST_WIDTH := 1.8
+const DANCE_BURST_DELAY := 0.3
+## Pogrubienie obrazka wybuchu (mniej niż pas trafienia - mocniej rozciągnięte piksele wyglądały jak klocki).
+const DANCE_BURST_THICK := 1.3
+const DANCE_BURST_FX := preload("res://assets/effects/katana_dance_burst.png")
+const DANCE_BURST_FRAMES := 9
+const DANCE_BURST_ANCHOR := Vector2(62, 21)
+## Długość cięcia w arkuszu efektu i jego pochylenie (w arkuszu lekko wznosi się w prawo).
+const DANCE_BURST_LENGTH := 110.0
+const DANCE_BURST_TILT := 0.13
 const DANCE_BOLT_POWER := 0.5
 const DANCE_EXTRA := 3
 ## Riposta: czas gardy (5. poziom - dłużej), nietykalność kontry, cięcie dookoła (promień), wyskok (odległość, czas,
@@ -147,6 +165,8 @@ var _dance_left := 0
 var _dance_t := 0.0
 var _dance_dir := Vector2.RIGHT
 var _dance_hits: Array = []
+## Cienkie linie tego Tańca: {a, b (świat), node (Line2D)} - czekają na wybuch.
+var _dance_lines: Array = []
 ## Riposta: czas do wyskoku i do okręgu po kontrze (ujemny - brak).
 var _leap_wait := -1.0
 var _ring_wait := -1.0
@@ -415,6 +435,7 @@ func _start(id: String) -> void:
 			_dance_t = 0.0
 			_dance_dir = Vector2.from_angle(_aim)
 			_dance_hits = []
+			_dance_lines = []
 			if _unique(id):
 				_dance_left = maxi(_dance_left, SPIN_CUTS)  # Kamień Wiru Ostrza: w miejscu, cięcia dookoła
 			else:
@@ -437,29 +458,102 @@ func _start(id: String) -> void:
 	skill_used.emit(id)
 
 
-## Taniec ostrza: co DANCE_EVERY cięcie przed postacią w kierunku marszu (na przemian w obie strony), na końcu piorun
-## między trafionymi.
+## Taniec ostrza: co DANCE_EVERY cienka prosta linia cięcia (katana przemyka wzdłuż niej), po ostatniej - chwila ciszy
+## i wybuch wszystkich linii naraz (`_dance_burst`), potem piorun między trafionymi.
 func _process_dance(delta: float) -> void:
-	_place(_angle_at(clampf(_t / DANCE_EVERY, 0.0, 1.0)))
+	if _dance_lines.is_empty():
+		_place(_angle_at(clampf(_t / DANCE_EVERY, 0.0, 1.0)))
+	else:  # katana przemyka wzdłuż ostatniej linii
+		var ln: Dictionary = _dance_lines[-1]
+		var k := clampf(_t / (DANCE_EVERY * 0.7), 0.0, 1.0)
+		position = hero.position
+		_sprite.position = (ln.a as Vector2).lerp(ln.b, k) - global_position
+		_sprite.rotation = ((ln.b as Vector2) - (ln.a as Vector2)).angle()
 	_dance_t -= delta
 	if _dance_t > 0.0:
 		return
 	if _dance_left <= 0:
-		_dance_finish()
+		var lines := _dance_lines.duplicate()
+		_dance_lines = []
 		_end_skill()
+		get_tree().create_timer(DANCE_BURST_DELAY, false).timeout.connect(_dance_burst.bind(lines))
 		return
 	_dance_left -= 1
 	_dance_t = DANCE_EVERY
-	_set_state("dance")  # _t od zera - katana przechodzi łuk cięcia
+	_set_state("dance")
 	_sign = -_sign
 	_aim = _dance_dir.angle()  # cięcia zawsze w kierunku marszu
 	if _unique("k_dance"):
 		_dance_dir = _dance_dir.rotated(SPIN_TURN)  # Kamień Wiru Ostrza: kolejne cięcie obrócone dalej dookoła
-	_start_cut(_area("k_dance"))
-	for t in _arc_hits(_aim, DANCE_RADIUS * _area("k_dance"), DANCE_ARC, _power("k_dance"), "k_dance", 0):
+	_dance_line()
+	Input.vibrate_handheld(10)
+
+
+## Jedna cienka linia Tańca: prosta, skośnie do marszu (na przemian), lekko przed postacią; rani lekko wszystkich
+## na niej i zostaje na ziemi do wybuchu.
+func _dance_line() -> void:
+	var area := _area("k_dance")
+	var length := DANCE_LINE * area
+	var dir := Vector2.from_angle(_aim + DANCE_SLANT * _sign)
+	var c := _orbit_center() + Vector2.from_angle(_aim) * length * 0.15
+	var a := c - dir * length * 0.5
+	var b := c + dir * length * 0.5
+	var glow := Line2D.new()
+	glow.width = 3.0
+	glow.default_color = Color(BOLT, 0.55)
+	glow.z_index = 21
+	glow.points = PackedVector2Array([a, b])
+	var core := Line2D.new()
+	core.width = 1.0
+	core.default_color = BOLT_CORE
+	core.points = glow.points
+	glow.add_child(core)
+	get_parent().add_child(glow)
+	_dance_lines.append({"a": a, "b": b, "node": glow})
+	for t in _line_targets(a, b, DANCE_WIDTH * area):
+		_hit(t, _power("k_dance") * DANCE_THIN, hero.global_position, "k_dance", 0)
 		if not _dance_hits.has(t):
 			_dance_hits.append(t)
-	Input.vibrate_handheld(10)
+
+
+## Wrogowie przy odcinku a-b (świat) w odległości `width` (plus połowa ich wysokości).
+func _line_targets(a: Vector2, b: Vector2, width: float) -> Array:
+	var out: Array = []
+	for t in _live_targets():
+		var c := t.center()
+		if Geometry2D.get_closest_point_to_segment(c, a, b).distance_to(c) <= width + t.center_height * 0.4:
+			out.append(t)
+	return out
+
+
+## Wybuch Tańca: wszystkie cienkie linie naraz zamieniają się w grube cięcia (efekt z kreatora), ranią mocno wszystkich
+## na nich; potem piorun między trafionymi (`_dance_finish`).
+func _dance_burst(lines: Array) -> void:
+	for ln in lines:
+		var node: Node = ln.node
+		if is_instance_valid(node):
+			node.queue_free()
+	if hero == null or hero.dead:
+		return
+	var area := _area("k_dance")
+	for ln in lines:
+		var a: Vector2 = ln.a
+		var b: Vector2 = ln.b
+		var fx := Fx.once(get_parent(), DANCE_BURST_FX, DANCE_BURST_FRAMES, 16.0, (a + b) / 2.0, DANCE_BURST_ANCHOR, 22)
+		fx.rotation = (b - a).angle() + DANCE_BURST_TILT
+		fx.scale = Vector2(a.distance_to(b) / DANCE_BURST_LENGTH * 1.15, DANCE_BURST_THICK)
+		for t in _line_targets(a, b, DANCE_WIDTH * DANCE_BURST_WIDTH * area):
+			_hit(t, _power("k_dance") * DANCE_BURST, hero.global_position, "k_dance", 0)
+			if not _dance_hits.has(t):
+				_dance_hits.append(t)
+	Input.vibrate_handheld(40)
+	var cam := hero.get_viewport().get_camera_2d()
+	if cam:
+		var shake := cam.create_tween()
+		for i in 3:
+			shake.tween_property(cam, "offset", Vector2(randf_range(-2, 2), randf_range(-2, 2)), 0.03)
+		shake.tween_property(cam, "offset", Vector2.ZERO, 0.03)
+	_dance_finish()
 
 
 ## Koniec Tańca: błękitny piorun skacze po kolei między trafionymi (zawsze do najdalszego - 19.11.2026), rani każdego;
@@ -600,7 +694,7 @@ func _process_charge(delta: float) -> void:
 	var full := PERUN_CHARGE_FAST if _perk("k_perun", 0) else PERUN_CHARGE
 	_charge += delta
 	var k := clampf(_charge / full, 0.0, 1.0)
-	var near := _nearest(PERUN_LENGTH.y * _area("k_perun"))
+	var near := _farthest(PERUN_LENGTH.y * _area("k_perun"))  # cięcie w linii przez tłum (19.11.2026)
 	if near:
 		_aim = (near.global_position - hero.global_position).angle()
 	elif hero.velocity.length() > 1.0:

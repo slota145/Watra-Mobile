@@ -365,7 +365,7 @@ func _test_combat(game: Node) -> void:
 	# Rzut mieczem: leci w kukłę z daleka, wraca
 	weapon.reset_cooldowns()
 	hero.mana = hero.max_mana
-	hero.position = dummy.position + Vector2(0, 90)
+	hero.position = dummy.position + Vector2(-90, 0)  # inne kukły poza zasięgiem - Rzut celuje w najdalszego (19.11.2026)
 	await _wait(0.4)
 	total = dummy._count
 	_check(weapon.cast("throw"), "Rzut mieczem rusza")
