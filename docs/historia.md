@@ -22,6 +22,10 @@ kreatora PixelLab (`pixellab_src/vfx/ids.json`, `python tools/vfx_art.py`).
   Same efekty - bez zmian siły. (Pierwsza wersja ze słupem płomieni odrzucona przez autora - efekt usunięty.)
 - Poprawka po uwadze autora: przy Rozłupaniu Ziemi nie ma już jasnych kolców `ground_slam` przy postaci - uderzenie
   to od razu ciemny kolec fali (echo i wstrząs wtórny też); `ground_slam` został tylko przy wybuchu Młynka.
+- Trafienie miecza (prośba autora): każde trafienie miecza poza Rozłupaniem Ziemi rysuje na celu proste cięcie
+  (`ProtoWeapon._sword_cut_fx`, efekt `sword_cut` z kreatora - „Miecz - trafienie prostym cięciem”), w poprzek
+  kierunku od postaci, rozjaśnione, wielkość `SWORD_CUT_FX_SIZE` 0,8; najwyżej 6 na klatkę (tłum przy Młynku).
+  Tylko miecz (`get_script() == ProtoWeapon`) - glewia, hydrosfera i katana mają swoje efekty.
 - Opisy umiejętności zaktualizowane; zrzuty `tools/perun_shots.gd`, `slam_shots.gd`, `ring_shots.gd`, `furrow_shots.gd`.
 
 ## 19.11.2026 - najdalszy cel dla pocisków i linii; nowy Taniec ostrza (cienkie linie, potem wybuch)

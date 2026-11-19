@@ -855,5 +855,20 @@
       30,
       34
     ]
+  },
+  "sword_cut": {
+    "effect": "a87d7864-c785-4837-929e-e03d3a5abc0c",
+    "name": "Miecz - trafienie prostym cięciem",
+    "frame": [
+      78,
+      25
+    ],
+    "frames": 9,
+    "columns": 3,
+    "fps": 16,
+    "anchor": [
+      42,
+      13
+    ]
   }
 }
