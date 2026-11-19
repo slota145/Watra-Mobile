@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dxevfjna6lyw0"
-path="res://.godot/imported/furrow_pillar.png-1f04a3e2dfc20876d8d0af3a17cbb91d.ctex"
+uid="uid://c2u3syad8eki4"
+path="res://.godot/imported/sword_cut.png-c4203c95a782411afe6e99291e0ae2ba.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://pixellab_src/vfx/furrow_pillar.png"
-dest_files=["res://.godot/imported/furrow_pillar.png-1f04a3e2dfc20876d8d0af3a17cbb91d.ctex"]
+source_file="res://assets/effects/sword_cut.png"
+dest_files=["res://.godot/imported/sword_cut.png-c4203c95a782411afe6e99291e0ae2ba.ctex"]
 
 [params]
 

@@ -41,9 +41,9 @@ func _run() -> void:
 	weapon.cast("g_trail")
 	await create_timer(0.25).timeout
 	await _shot("1_bruzda")
-	await create_timer(0.15).timeout
+	await create_timer(0.17).timeout
 	await _shot("2_bruzda")
-	await create_timer(0.3).timeout
+	await create_timer(0.13).timeout
 	await _shot("3_bruzda")
 	DirAccess.remove_absolute(game.save_path)
 	quit()

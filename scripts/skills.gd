@@ -74,7 +74,7 @@ const DATA := {
 	"g_trail": {
 		"name": "Płonąca bruzda", "icon": preload("res://assets/skills/glaive/g_trail.png"),
 		"mana": 30, "cooldown": 7.0, "weapon": "glaive", "mastery": 6, "main": true, "range": 120.0, "power": 1.2, "burn": 0.5,
-		"description": "Glewia wbija się w ziemię i ryje bruzdę do przodu: zostaje rozżarzona szczelina i pas ognia, który pali wrogów przez 3 s; na końcu ze szczeliny bucha słup płomieni, a w wachlarzu wylatują 3 szybkie cięcia ognia, które przebijają wrogów.",
+		"description": "Glewia wbija się w ziemię i ryje bruzdę do przodu: zostaje pas ognia, który pali wrogów przez 3 s, a rozżarzona szczelina biegnie dalej z płomieniem i iskrami; a w wachlarzu wylatują 3 szybkie cięcia ognia, które przebijają wrogów.",
 	},
 	"g_pillar": {
 		"name": "Słup ognia", "icon": preload("res://assets/skills/glaive/g_pillar.png"),

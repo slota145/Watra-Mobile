@@ -856,19 +856,19 @@
       34
     ]
   },
-  "furrow_pillar": {
-    "effect": "47b8b8d3-8357-47ee-ba87-6f0e7773e20f",
-    "name": "Płonąca bruzda - słup płomieni ze szczeliny",
+  "sword_cut": {
+    "effect": "a87d7864-c785-4837-929e-e03d3a5abc0c",
+    "name": "Miecz - trafienie prostym cięciem",
     "frame": [
-      91,
-      90
+      78,
+      25
     ],
-    "frames": 10,
-    "columns": 4,
-    "fps": 12,
+    "frames": 9,
+    "columns": 3,
+    "fps": 16,
     "anchor": [
-      45,
-      71
+      42,
+      13
     ]
   }
 }

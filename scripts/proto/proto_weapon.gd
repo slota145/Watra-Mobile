@@ -61,6 +61,14 @@ const HIT_FX := preload("res://assets/effects/sword_hit.png")
 const HIT_FX_FRAMES := 12
 const HIT_FX_FPS := 20.0
 const HIT_FX_ANCHOR := Vector2(23, 17)
+## Trafienie mieczem (prośba autora 19.11.2026): każde trafienie miecza poza Rozłupaniem Ziemi rysuje na celu proste
+## cięcie (z kreatora efektów) w poprzek kierunku od postaci; najwyżej SWORD_CUT_FX_PER_FRAME naraz (tłum przy Młynku).
+const SWORD_CUT_FX := preload("res://assets/effects/sword_cut.png")
+const SWORD_CUT_FX_FRAMES := 9
+const SWORD_CUT_FX_FPS := 22.0
+const SWORD_CUT_FX_ANCHOR := Vector2(42, 13)
+const SWORD_CUT_FX_SIZE := 0.8
+const SWORD_CUT_FX_PER_FRAME := 6
 
 ## Młynek: czas, prędkość obrotu (obroty na sekundę), co ile sekund trafia i promień trafień od środka postaci.
 const WHIRL_TIME := 3.0
@@ -317,6 +325,9 @@ var _ring_left := 0.0
 var _ring_spin := 0.0
 var _ring_trail: Line2D
 var _ring_drain_acc := 0.0
+## Licznik cięć-trafień w bieżącej klatce (SWORD_CUT_FX_PER_FRAME).
+var _cut_frame := -1
+var _cut_count := 0
 
 
 func _ready() -> void:
@@ -633,6 +644,23 @@ func _cooldown_base(id: String) -> float:
 ## od wszystkiego, przemoczony - od Gromu i lodu), trafienie krytyczne (złota liczba), obrażenia
 ## i działanie jej kamieni (podpalenie, spowolnienie - na przemoczonym zamrożenie, leczenie, mana,
 ## piorun).
+## Proste cięcie na celu `t` (tylko miecz): skośnie w poprzek kierunku od `from`, lekko losowo.
+func _sword_cut_fx(t: ProtoTarget, from: Vector2) -> void:
+	var frame := Engine.get_process_frames()
+	if frame != _cut_frame:
+		_cut_frame = frame
+		_cut_count = 0
+	_cut_count += 1
+	if _cut_count > SWORD_CUT_FX_PER_FRAME or not is_inside_tree():
+		return
+	var dir := t.center() - from
+	var angle := (dir.angle() if dir.length() > 1.0 else 0.0) + PI / 2.0 + randf_range(-0.5, 0.5)
+	var cut := Fx.once(get_parent(), SWORD_CUT_FX, SWORD_CUT_FX_FRAMES, SWORD_CUT_FX_FPS, t.center().round(),
+			SWORD_CUT_FX_ANCHOR, 21, SWORD_CUT_FX_SIZE)
+	cut.rotation = angle
+	cut.self_modulate = Color(1.4, 1.5, 1.7)  # jaśniej - na trawie i goblinach cienka linia ginęła
+
+
 func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
 		amount = roundi(amount * elite_mult)
@@ -642,6 +670,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		t.crit_next = true
 	t.take_damage(amount, from)
 	t.crit_next = false
+	if skill != "slam" and get_script() == ProtoWeapon:
+		_sword_cut_fx(t, from)
 	var sockets: Array = skill_gems.get(skill, [])
 	if sockets.is_empty():
 		return
@@ -1180,10 +1210,11 @@ func _slam_hit(at := global_position, echo := false, aftershock := false) -> voi
 				shocks.append(t)
 	if _unique("slam") and not shocks.is_empty():
 		get_tree().create_timer(0.12, false).timeout.connect(_slam_shocks.bind(shocks))
+	# jasne kolce SLAM_FX przy postaci wyglądały źle (uwaga autora) - uderzenie to od razu ciemny kolec fali
 	if not echo and not aftershock:
 		_slam_crack(at)
-	Fx.once(get_parent(), SLAM_FX, SLAM_FX_FRAMES, SLAM_FX_FPS, at, SLAM_FX_ANCHOR, 6,
-			1.3 * radius / SLAM_RADIUS)
+	else:
+		Fx.once(get_parent(), SLAM_SPIKE_FX, SLAM_SPIKE_FRAMES, 16.0, at.round(), SLAM_SPIKE_ANCHOR, 2, _area("slam"))
 	if not echo and not aftershock and gem_power("slam", "multi") > 0.0:
 		get_tree().create_timer(SLAM_ECHO, false).timeout.connect(_slam_hit.bind(at, true))
 	if not echo and not aftershock and _perk("slam", 1):
@@ -1225,6 +1256,7 @@ func _slam_crack(at: Vector2) -> void:
 	grow.tween_interval(1.0)
 	grow.tween_property(crack, "modulate:a", 0.0, 0.5)
 	grow.tween_callback(crack.queue_free)
+	Fx.once(get_parent(), SLAM_SPIKE_FX, SLAM_SPIKE_FRAMES, 16.0, at.round(), SLAM_SPIKE_ANCHOR, 2, _area("slam"))
 	for i in SLAM_SPIKES:
 		var spot := at + dir * length * (i + 1.0) / SLAM_SPIKES + side * randf_range(-4.0, 4.0)
 		get_tree().create_timer(SLAM_CRACK_TIME * (i + 1.0) / SLAM_SPIKES, false).timeout.connect(_slam_spike.bind(spot))
