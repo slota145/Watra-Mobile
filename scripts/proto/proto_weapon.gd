@@ -1180,10 +1180,11 @@ func _slam_hit(at := global_position, echo := false, aftershock := false) -> voi
 				shocks.append(t)
 	if _unique("slam") and not shocks.is_empty():
 		get_tree().create_timer(0.12, false).timeout.connect(_slam_shocks.bind(shocks))
+	# jasne kolce SLAM_FX przy postaci wyglądały źle (uwaga autora) - uderzenie to od razu ciemny kolec fali
 	if not echo and not aftershock:
 		_slam_crack(at)
-	Fx.once(get_parent(), SLAM_FX, SLAM_FX_FRAMES, SLAM_FX_FPS, at, SLAM_FX_ANCHOR, 6,
-			1.3 * radius / SLAM_RADIUS)
+	else:
+		Fx.once(get_parent(), SLAM_SPIKE_FX, SLAM_SPIKE_FRAMES, 16.0, at.round(), SLAM_SPIKE_ANCHOR, 2, _area("slam"))
 	if not echo and not aftershock and gem_power("slam", "multi") > 0.0:
 		get_tree().create_timer(SLAM_ECHO, false).timeout.connect(_slam_hit.bind(at, true))
 	if not echo and not aftershock and _perk("slam", 1):
@@ -1225,6 +1226,7 @@ func _slam_crack(at: Vector2) -> void:
 	grow.tween_interval(1.0)
 	grow.tween_property(crack, "modulate:a", 0.0, 0.5)
 	grow.tween_callback(crack.queue_free)
+	Fx.once(get_parent(), SLAM_SPIKE_FX, SLAM_SPIKE_FRAMES, 16.0, at.round(), SLAM_SPIKE_ANCHOR, 2, _area("slam"))
 	for i in SLAM_SPIKES:
 		var spot := at + dir * length * (i + 1.0) / SLAM_SPIKES + side * randf_range(-4.0, 4.0)
 		get_tree().create_timer(SLAM_CRACK_TIME * (i + 1.0) / SLAM_SPIKES, false).timeout.connect(_slam_spike.bind(spot))

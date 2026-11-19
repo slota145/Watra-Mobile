@@ -855,20 +855,5 @@
       30,
       34
     ]
-  },
-  "furrow_pillar": {
-    "effect": "47b8b8d3-8357-47ee-ba87-6f0e7773e20f",
-    "name": "Płonąca bruzda - słup płomieni ze szczeliny",
-    "frame": [
-      91,
-      90
-    ],
-    "frames": 10,
-    "columns": 4,
-    "fps": 12,
-    "anchor": [
-      45,
-      71
-    ]
   }
 }

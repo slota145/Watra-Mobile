@@ -7,8 +7,8 @@ extends ProtoWeapon
 ##   zamach w drugą stronę);
 ## - „Płonąca bruzda” (`g_trail`, pomysł autora 14.11.2026 zamiast doskoku): glewia wbija się w ziemię przed postacią
 ##   i ryje bruzdę do przodu - zostaje krótki pas ognia, a w wachlarzu wylatują 3 szybkie pionowe cięcia ognia
-##   (5. poziom - bruzda płonie dłużej, 10. - 5 cięć); za glewią zostaje rozżarzona szczelina lawy (`_fissure`), a na
-##   końcu bruzdy ze szczeliny wybucha słup płomieni (FURROW_PILLAR_FX, szlif 19.11.2026);
+##   (5. poziom - bruzda płonie dłużej, 10. - 5 cięć); za glewią zostaje rozżarzona szczelina lawy (`_fissure`), która
+##   po wbiciu biegnie dalej z płomieniem na czele i iskrami (`_furrow_runner`, szlif 19.11.2026);
 ## - „Słup ognia” (`g_pillar`): glewia wznosi się i spada na wroga, wybuch ognia wokół i płonący krąg na ziemi
 ##   (5. poziom - większy krąg, 10. - drugi wybuch po chwili);
 ## - „Taniec płomieni” (`g_dance`, pomysł autora): seria zamaszystych cięć dookoła postaci pod różnymi kątami (14.11.2026:
@@ -54,13 +54,14 @@ const FURROW_CUTS_PERK := 5
 const FURROW_SPREAD := deg_to_rad(20.0)
 const FURROW_CUT_SPEED := 260.0
 const FURROW_CUT_DISTANCE := 130.0
-## Szczelina lawy za glewią (grubość, kolory od brzegu do żaru) i słup płomieni na końcu bruzdy (z kreatora efektów).
+## Szczelina lawy za glewią (grubość, kolory od brzegu do żaru); po bruździe biegnie dalej o FISSURE_RUN px
+## (x obszar) w FISSURE_RUN_TIME s z płomieniem na czele (FISSURE_FLAME x wielkość płomyka) i iskrami.
 const FISSURE_WIDTH := 4.0
 const FISSURE_EDGE := Color(1.0, 0.35, 0.08)
 const FISSURE_CORE := Color(1.0, 0.85, 0.4)
-const FURROW_PILLAR_FX := preload("res://assets/effects/furrow_pillar.png")
-const FURROW_PILLAR_FRAMES := 10
-const FURROW_PILLAR_ANCHOR := Vector2(45, 71)
+const FISSURE_RUN := 90.0
+const FISSURE_RUN_TIME := 0.35
+const FISSURE_FLAME := 2.2
 ## Słup ognia: wzniesienie, spadek, tkwienie w ziemi, wysokość, promień wybuchu i płonącego kręgu, drugi wybuch.
 const PILLAR_RISE := 0.25
 const PILLAR_FALL := 0.09
@@ -382,7 +383,7 @@ func _process_trail() -> void:
 			var a := _aim + (i - (n - 1) / 2.0) * FURROW_SPREAD
 			_spawn_cut(a, "g_trail", _furrow_to, FURROW_CUT_SPEED, FURROW_CUT_DISTANCE)
 		Fx.once(get_parent(), FIRE_HIT_FX, 12, 16.0, _furrow_to.round(), FIRE_HIT_ANCHOR, 6)
-		_furrow_eruption(_furrow_to, TRAIL_BURN_LONG if _perk("g_trail", 0) else TRAIL_BURN)
+		_furrow_runner(TRAIL_BURN_LONG if _perk("g_trail", 0) else TRAIL_BURN)
 		Input.vibrate_handheld(30)
 		_end_skill()
 
@@ -391,24 +392,35 @@ func _process_trail() -> void:
 ## mieszane addytywnie, lekko poszarpane, żeby wyglądały jak pęknięta ziemia.
 func _draw_fissure(tip: Vector2) -> void:
 	if _fissure == null or not is_instance_valid(_fissure):
-		_fissure = Line2D.new()
-		_fissure.z_index = -1
-		_fissure.width = FISSURE_WIDTH * _area("g_trail")
-		_fissure.default_color = FISSURE_EDGE
-		_fissure.joint_mode = Line2D.LINE_JOINT_ROUND
-		_fissure.begin_cap_mode = Line2D.LINE_CAP_ROUND
-		_fissure.end_cap_mode = Line2D.LINE_CAP_ROUND
-		var glow := CanvasItemMaterial.new()
-		glow.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-		_fissure.material = glow
-		var core := Line2D.new()
-		core.name = "Core"
-		core.width = _fissure.width * 0.4
-		core.default_color = FISSURE_CORE
-		core.use_parent_material = true
-		_fissure.add_child(core)
-		get_parent().add_child(_fissure)
-		_fissure.global_position = Vector2.ZERO
+		_fissure = _new_fissure()
+	_fissure_points(_fissure, tip)
+
+
+## Nowa szczelina: szeroki pomarańczowy brzeg z jasnym żarem w środku (dziecko „Core”).
+func _new_fissure() -> Line2D:
+	var line := Line2D.new()
+	line.z_index = -1
+	line.width = FISSURE_WIDTH * _area("g_trail")
+	line.default_color = FISSURE_EDGE
+	line.joint_mode = Line2D.LINE_JOINT_ROUND
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	var glow := CanvasItemMaterial.new()
+	glow.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	line.material = glow
+	var core := Line2D.new()
+	core.name = "Core"
+	core.width = line.width * 0.4
+	core.default_color = FISSURE_CORE
+	core.use_parent_material = true
+	line.add_child(core)
+	get_parent().add_child(line)
+	line.global_position = Vector2.ZERO
+	return line
+
+
+## Punkty szczeliny `line` od początku bruzdy do `tip`, lekko poszarpane.
+func _fissure_points(line: Line2D, tip: Vector2) -> void:
 	var dir := (_furrow_to - _furrow_from)
 	var side := dir.orthogonal().normalized()
 	var n := maxi(2, int(_furrow_from.distance_to(tip) / 6.0) + 1)
@@ -418,38 +430,65 @@ func _draw_fissure(tip: Vector2) -> void:
 		if i > 0 and i < n:
 			p += side * (1.0 if i % 2 == 0 else -1.0)  # poszarpany brzeg
 		pts.append(p)
-	_fissure.points = pts
-	(_fissure.get_node("Core") as Line2D).points = pts
+	line.points = pts
+	(line.get_node("Core") as Line2D).points = pts
 
 
-## Koniec bruzdy: słup płomieni wyrasta ze szczeliny (szybko w górę, na koniec gaśnie), wstrząs kamery; szczelina
-## żarzy się tyle, ile płonie bruzda (`burn`), i stygnie.
-func _furrow_eruption(at: Vector2, burn: float) -> void:
-	var size := _area("g_trail") * 0.8
-	var pillar := Fx.once(get_parent(), FURROW_PILLAR_FX, FURROW_PILLAR_FRAMES, 12.0, at.round(), FURROW_PILLAR_ANCHOR,
-			6, size)
-	pillar.scale = Vector2(size * 0.6, size * 0.1)
-	var grow := pillar.create_tween()
-	grow.tween_property(pillar, "scale", Vector2(size * 1.1, size * 1.25), 0.1).set_trans(Tween.TRANS_BACK) \
-			.set_ease(Tween.EASE_OUT)
-	grow.tween_property(pillar, "scale", Vector2.ONE * size, 0.15)
-	grow.tween_interval(0.35)
-	grow.tween_property(pillar, "modulate:a", 0.0, 0.2)
-	var cam := hero.get_viewport().get_camera_2d() if hero else null
-	if cam:
-		var shake := cam.create_tween()
-		for i in 3:
-			shake.tween_property(cam, "offset", Vector2(randf_range(-2, 2), randf_range(-2, 2)), 0.03)
-		shake.tween_property(cam, "offset", Vector2.ZERO, 0.03)
-	if _fissure and is_instance_valid(_fissure):
-		var line := _fissure
-		_fissure = null
-		var cool := line.create_tween()
-		cool.tween_property(line, "modulate", Color(1.6, 1.3, 1.0), 0.1)
-		cool.tween_property(line, "modulate", Color.WHITE, 0.3)
-		cool.tween_interval(maxf(0.0, burn - 1.0))
-		cool.tween_property(line, "modulate", Color(0.6, 0.15, 0.05, 0.0), 0.6)
-		cool.tween_callback(line.queue_free)
+## Koniec bruzdy: szczelina biegnie dalej w stronę ataku (FISSURE_RUN), na jej czele płomień sypiący iskrami; potem
+## płomień gaśnie, a szczelina żarzy się tyle, ile płonie bruzda (`burn`), i stygnie. Sam wygląd - bez obrażeń.
+func _furrow_runner(burn: float) -> void:
+	if _fissure == null or not is_instance_valid(_fissure):
+		return
+	var line := _fissure
+	_fissure = null
+	var area := _area("g_trail")
+	var start := _furrow_to
+	var end := _furrow_to + (_furrow_to - _furrow_from).normalized() * FISSURE_RUN * area
+	var head := Node2D.new()
+	head.z_index = 3
+	get_parent().add_child(head)
+	head.global_position = start
+	var flame := Sprite2D.new()
+	flame.texture = GROUND_FX
+	flame.hframes = GROUND_FX_FRAMES
+	flame.centered = false
+	flame.offset = -GROUND_FX_ANCHOR
+	flame.scale = Vector2.ONE * FISSURE_FLAME * area
+	head.add_child(flame)
+	var sparks := CPUParticles2D.new()
+	sparks.amount = 40
+	sparks.lifetime = 0.45
+	sparks.direction = Vector2.UP
+	sparks.spread = 50.0
+	sparks.gravity = Vector2(0, 220)
+	sparks.initial_velocity_min = 40.0
+	sparks.initial_velocity_max = 90.0
+	sparks.scale_amount_min = 2.0
+	sparks.scale_amount_max = 3.0
+	var ramp := Gradient.new()
+	ramp.colors = PackedColorArray([Color(1.0, 0.95, 0.6), Color(1.0, 0.45, 0.1, 0.0)])
+	sparks.color_ramp = ramp
+	var glow := CanvasItemMaterial.new()
+	glow.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	sparks.material = glow
+	head.add_child(sparks)
+	var run := head.create_tween()
+	run.tween_method(func(k: float) -> void:
+		var tip := start.lerp(end, k)
+		head.global_position = tip.round()
+		flame.frame = int(k * 20.0) % GROUND_FX_FRAMES
+		if is_instance_valid(line):
+			_fissure_points(line, tip), 0.0, 1.0, FISSURE_RUN_TIME * area)
+	run.tween_callback(func() -> void: sparks.emitting = false)
+	run.tween_property(flame, "modulate:a", 0.0, 0.25)
+	run.tween_interval(sparks.lifetime)
+	run.tween_callback(head.queue_free)
+	var cool := line.create_tween()
+	cool.tween_property(line, "modulate", Color(1.6, 1.3, 1.0), 0.1)
+	cool.tween_property(line, "modulate", Color.WHITE, 0.3)
+	cool.tween_interval(maxf(0.0, burn - 1.0))
+	cool.tween_property(line, "modulate", Color(0.6, 0.15, 0.05, 0.0), 0.6)
+	cool.tween_callback(line.queue_free)
 
 
 ## Słup ognia: glewia wznosi się nad cel ostrzem w dół, spada, wybuch ognia i płonący krąg; chwilę tkwi w ziemi.
