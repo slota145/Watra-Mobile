@@ -18,6 +18,8 @@ const MANA_BASE := 50
 const MANA_STEP := 8
 ## Mana odnawia się o tyle na sekundę (umiejętności miecza: 15-25 many co kilka sekund).
 const MANA_REGEN := 3.0
+## Odnowa many rośnie o tyle na poziom postaci (19.11.2026; 50. poziom ~7,9/s).
+const MANA_REGEN_STEP := 0.1
 ## Mnożnik obrażeń broni rośnie o tyle na poziom (+8%; było +6%, potem +10% - w głębi za mocno, 17.11.2026).
 const DAMAGE_STEP := 0.08
 ## Na tych poziomach odblokowują się kolejne miejsca na umiejętności (w kolejności od boku ekranu do góry).
@@ -40,6 +42,11 @@ static func max_hp(level: int) -> int:
 ## Największa mana postaci na danym poziomie.
 static func max_mana(level: int) -> int:
 	return MANA_BASE + MANA_STEP * (maxi(level, 1) - 1)
+
+
+## Odnowa many postaci na sekundę na danym poziomie (bez przedmiotów).
+static func mana_regen(level: int) -> float:
+	return MANA_REGEN + MANA_REGEN_STEP * (maxi(level, 1) - 1)
 
 
 ## Mnożnik obrażeń broni na danym poziomie (1. poziom - 1.0).

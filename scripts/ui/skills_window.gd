@@ -514,11 +514,12 @@ func _on_clear() -> void:
 func _show_level(i: int, id: String, lvl: int, owned: bool) -> void:
 	name_labels[i].text = Skills.name_of(id) + ("  " + tr("poz. %d/%d") % [lvl, Skills.MAX_LEVEL] if owned else "")
 	var k := Skills.level_cost(lvl)
-	var mana := roundi(Skills.mana_of(id) * k)
+	var km := Skills.level_mana(lvl)
+	var mana := roundi(Skills.mana_of(id) * km)
 	var cd := Skills.cooldown_of(id) * k
 	var unique: bool = id in ["whirl", "steel_ring", "k_flash"] and Gems.has_unique(_game.skill_sockets(id), id)
 	if unique and id == "k_flash":
-		mana = roundi(Skills.mana_of(id) * k * 0.5)  # kamień unikalny: skoki za pół many
+		mana = roundi(Skills.mana_of(id) * km * 0.5)  # kamień unikalny: skoki za pół many
 	elif unique:
 		cd = 0.0  # kamień unikalny: bez odnowienia
 	if unique and id in ["whirl", "steel_ring"]:

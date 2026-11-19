@@ -69,7 +69,8 @@ const CHEST_ITEMS := 3
 ## umiejętności, elite_dmg_pct - obrażenia przeciw elitom i bossom, mana_regen - mana na sekundę (do HeroLevels.MANA_REGEN),
 ## area_pct - większy obszar cięć i umiejętności, dodge_pct - szansa, że cios potwora nie trafi, pickup_pct - dalej
 ## przyciągane iskry i łup, ember_pct - więcej żaru z iskier (decyzja autora 13.11.2026), pen_pct - przebicie odporności
-## potworów (zmniejsza ich wspólną odporność głębi - DungeonLevels.base_resist; 17.11.2026).
+## potworów (zmniejsza ich wspólną odporność głębi - DungeonLevels.base_resist; 17.11.2026), mana_on_kill - mana za
+## zabicie potwora (nisko, z sufitem CAPS - decyzja autora 19.11.2026).
 const STAT_FORMATS := {
 	"hp": "+%d do zdrowia",
 	"mana": "+%d do many",
@@ -91,13 +92,14 @@ const STAT_FORMATS := {
 	"ember_pct": "+%d%% żaru",
 	"element_res_pct": "+%d%% odporności na żywioły",
 	"pen_pct": "+%d%% przebicia odporności potworów",
+	"mana_on_kill": "+%.1f many za zabicie potwora",
 }
 ## Losowe premie: [najmniej, najwięcej] na 1. poziomie lochu; `scales` - rośnie z siłą lochu (DungeonLevels.power),
 ## inaczej (procenty) rośnie płynnie o `per_level` z każdym poziomem lochu (decyzja autora 12.11.2026 - wcześniej
 ## skokami co stopień, przez co od lochu 17 procenty stawały).
 const AFFIXES := {
 	"hp": {"min": 6.0, "max": 14.0, "scales": true},
-	"mana": {"min": 5.0, "max": 12.0, "scales": true},
+	"mana": {"min": 5.0, "max": 12.0, "per_level": 0.6},
 	"damage_pct": {"min": 4.0, "max": 9.0, "per_level": 0.6},
 	"attack_speed_pct": {"min": 3.0, "max": 7.0, "per_level": 0.4},
 	"move_pct": {"min": 3.0, "max": 6.0, "per_level": 0.2},
@@ -109,7 +111,8 @@ const AFFIXES := {
 	"life_on_kill": {"min": 1.0, "max": 2.0, "scales": true},
 	"cdr_pct": {"min": 3.0, "max": 6.0, "per_level": 0.15},
 	"elite_dmg_pct": {"min": 6.0, "max": 12.0, "per_level": 0.5},
-	"mana_regen": {"min": 0.5, "max": 1.2, "scales": true},
+	"mana_regen": {"min": 0.3, "max": 0.8, "per_level": 0.03},
+	"mana_on_kill": {"min": 0.2, "max": 0.4, "per_level": 0.005},
 	"area_pct": {"min": 4.0, "max": 8.0, "per_level": 0.2},
 	"dodge_pct": {"min": 2.0, "max": 4.0, "per_level": 0.1},
 	"pickup_pct": {"min": 10.0, "max": 20.0, "per_level": 0.5},
@@ -118,7 +121,10 @@ const AFFIXES := {
 	"pen_pct": {"min": 2.0, "max": 5.0, "per_level": 0.1},
 }
 ## Premie z ułamkiem (jedno miejsce po przecinku), reszta - liczby całkowite.
-const DECIMAL_STATS := ["regen", "mana_regen"]
+const DECIMAL_STATS := ["regen", "mana_regen", "mana_on_kill"]
+## Premie many rosły kiedyś z siłą lochu (x152 na 101. poziomie - mana bez końca, uwaga autora 17.11.2026); teraz liniowo.
+## Stare przedmioty i kamienie szlachetne są przycinane do nowej górnej granicy (`clamp_affix`).
+const CLAMPED_STATS := ["mana", "mana_regen"]
 ## Zdrowie za zabicie działa w tylu częściach wartości z przedmiotu (uwaga autora 17.11.2026: setki zabójstw na wyprawę
 ## robiły z postaci nieśmiertelną; było 1-2 za zabicie, teraz 0,25-0,5). Mnożnik zamiast nowych liczb, żeby stare
 ## przedmioty i kamienie szlachetne osłabły tak samo jak nowe.
@@ -134,7 +140,7 @@ static func life_on_kill(gear: Dictionary) -> float:
 ## Unik do 50% (połowa ciosów nadal trafia), obszar do +100%, zasięg zbierania do +200%, żar do +100%.
 const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0, "crit_pct": 95.0, "cdr_pct": 100.0,
 	"dodge_pct": 50.0, "area_pct": 100.0, "pickup_pct": 200.0, "ember_pct": 100.0,
-	"element_res_pct": Elements.MAX_RESISTANCE * 100.0, "pen_pct": 55.0}
+	"element_res_pct": Elements.MAX_RESISTANCE * 100.0, "pen_pct": 55.0, "mana_on_kill": 2.0}
 ## Stała cecha każdego miejsca na 1. poziomie lochu (liczby rosną z siłą lochu, procenty o BASE_PCT_PER_LEVEL).
 ## Kolczyk: obrażenia ciosu (od-do) każdej broni zamiast gołych obrażeń postaci.
 const BASE := {
@@ -194,6 +200,21 @@ static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS
 		sockets.append("")
 	return {"slot": slot, "tier": tier, "level": maxi(level, 1), "rarity": rarity, "base": base, "affixes": affixes,
 			"sockets": sockets}
+
+
+## Najwyższa wartość premii `stat` na poziomie lochu `level` (bez losowania).
+static func affix_max(stat: String, level: int) -> float:
+	var a: Dictionary = AFFIXES[stat]
+	if a.get("scales", false):
+		return a.max * DungeonLevels.power(level)
+	return a.max + a.get("per_level", 0.0) * (maxi(level, 1) - 1)
+
+
+## Premia z CLAMPED_STATS przycięta do górnej granicy z jej poziomu (`mult` - kamienie szlachetne, część premii).
+static func clamp_affix(stat: String, value: float, level: int, mult := 1.0) -> float:
+	if stat not in CLAMPED_STATS:
+		return value
+	return minf(value, snappedf(affix_max(stat, level) * mult, 0.1))
 
 
 ## Wartość losowej premii na danym poziomie lochu.
@@ -332,7 +353,7 @@ static func totals(equipped: Dictionary) -> Dictionary:
 			t[a.stat] += float(a.value)
 		for id in item.get("sockets", []):
 			for gem in Gems.jewel_stats(id):
-				t[gem[0]] += gem[1]
+				t[gem[0]] += clamp_affix(gem[0], gem[1], Gems.jewel_level(id), Gems.JEWEL_MULT)
 	for stat in CAPS:
 		t[stat] = minf(t[stat], CAPS[stat])
 	return t
@@ -389,7 +410,7 @@ static func normalize(data) -> Dictionary:
 	if raw_affixes is Array:
 		for a in raw_affixes:
 			if a is Dictionary and STAT_FORMATS.has(a.get("stat", "")):
-				var v := float(a.get("value", 0))
+				var v := clamp_affix(a.stat, float(a.get("value", 0)), maxi(int(data.get("level", 1)), 1))
 				affixes.append({"stat": a.stat, "value": snappedf(v, 0.1) if a.stat in DECIMAL_STATS else v})
 	var sockets: Array = []
 	var raw_sockets = data.get("sockets", [""])

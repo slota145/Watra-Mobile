@@ -10,7 +10,7 @@ extends Node2D
 ## Poziom postaci (`set_level`, HeroLevels) ustala największe zdrowie; awans (`level_up`) leczy do pełna
 ## ze złotym błyskiem, napisem „Poziom N!” i dźwiękiem. Przedmioty (`gear` - Items.totals) dokładają zdrowie, manę,
 ## szybkość ruchu, regenerację zdrowia i ochronę (mniej obrażeń od potworów).
-## Mana odnawia się sama (HeroLevels.MANA_REGEN i premia przedmiotów `mana_regen`), a wydają ją umiejętności miecza (`spend_mana`). Skok Mgnienia
+## Mana odnawia się sama (HeroLevels.mana_regen z poziomu i premia przedmiotów `mana_regen`), a wydają ją umiejętności miecza (`spend_mana`). Skok Mgnienia
 ## (`teleport`) przenosi postać od razu, zostawia gasnący cień w miejscu startu i daje chwilę nietykalności.
 
 signal health_changed(hp: int, max_hp: int)
@@ -79,6 +79,8 @@ var _chill_color := Color.WHITE
 ## Szansa na unik (0-1, premia przedmiotów): cios potwora nie zadaje obrażeń, nad głową napis „Unik!”.
 var dodge := 0.0
 var _regen_acc := 0.0
+## Odnowa many na sekundę (poziom postaci i przedmioty - apply_gear).
+var _mana_regen := HeroLevels.MANA_REGEN
 var _mana_acc := 0.0
 ## Ostatnio podane cechy z przedmiotów (awans liczy z nimi nowe zdrowie).
 var gear := {}
@@ -140,7 +142,7 @@ func _process(delta: float) -> void:
 			hp = mini(hp + heal, max_hp)
 			health_changed.emit(hp, max_hp)
 	if mana < max_mana:
-		_mana_acc += (HeroLevels.MANA_REGEN + gear.get("mana_regen", 0.0)) * delta
+		_mana_acc += _mana_regen * delta
 		if _mana_acc >= 1.0:
 			var add := int(_mana_acc)
 			_mana_acc -= add
@@ -356,6 +358,7 @@ func set_level(level: int, items_gear := {}) -> void:
 ## największego zdrowia i many dolicza się do obecnych, spadek tylko je przycina.
 func apply_gear(level: int, items_gear: Dictionary) -> void:
 	gear = items_gear
+	_mana_regen = HeroLevels.mana_regen(level) + gear.get("mana_regen", 0.0)
 	var new_hp := HeroLevels.max_hp(level) + roundi(gear.get("hp", 0.0))
 	var new_mana := HeroLevels.max_mana(level) + roundi(gear.get("mana", 0.0))
 	hp = clampi(hp + maxi(new_hp - max_hp, 0), 0 if dead else 1, new_hp)

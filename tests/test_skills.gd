@@ -143,9 +143,10 @@ func _test_levels(game: Node) -> void:
 	await process_frame
 	var hero: ProtoHero = arena.hero
 	var weapon: ProtoWeapon = arena.weapon
-	_check(weapon.level_of("whirl") == 10 and weapon.mana_cost("whirl") == 8 and weapon.cooldown_full("whirl") == 0.0
+	_check(weapon.level_of("whirl") == 10 and weapon.mana_cost("whirl") == roundi(Skills.mana_of("whirl") * Skills.level_mana(10))
+			and weapon.mana_cost("whirl") > Skills.mana_of("whirl") and weapon.cooldown_full("whirl") == 0.0
 			and is_equal_approx(weapon.cooldown_full("throw"), 3.2) and is_equal_approx(weapon._area("slam"), 1.2),
-			"miecz zna poziomy: mniej many, krótsze odnowienie, większy obszar (Młynek bez odnowienia)")
+			"miecz zna poziomy: więcej many (jak w PoE), krótsze odnowienie, większy obszar (Młynek bez odnowienia)")
 	var dummy: ProtoDummy = weapon.targets[0]
 	# Młynek 10. poziomu: wiruje, dopóki trzymany; wybuch co WHIRL_BLAST_EVERY s odpycha goblina
 	var goblin := ProtoGoblin.new()
@@ -270,7 +271,7 @@ func _test_unique(game: Node) -> void:
 	weapon.whirl_held = false
 	await _wait(0.1)
 	weapon.whirl_held = true
-	hero.mana = 12
+	hero.mana = weapon.mana_cost("whirl") + 2  # starczy na start i chwilę wirowania
 	weapon.cast("whirl")
 	_check(is_equal_approx(weapon._whirl_grow(), 1.0), "nowe wirowanie zaczyna od małego wiru")
 	await _wait(3.0)

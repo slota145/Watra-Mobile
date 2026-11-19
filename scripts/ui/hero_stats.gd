@@ -32,11 +32,11 @@ const LEFT_SLOTS := ["helmet", "armor", "boots"]
 const RIGHT_SLOTS := ["earring", "amulet", "ring"]
 ## Kolejność statystyk w oknie; te z EXTRA_STATS pokazują się tylko, gdy przedmioty coś do nich dają.
 const STAT_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "pen", "mana_regen", "protection", "element_res", "regen",
-	"life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp", "slots"]
-const EXTRA_STATS := ["pen", "protection", "element_res", "regen", "life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
+	"life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp", "slots"]
+const EXTRA_STATS := ["pen", "protection", "element_res", "regen", "life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
 ## Statystyki porównywane przy zakładaniu przedmiotu (bez miejsc na umiejętności).
 const COMPARE_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "pen", "mana_regen", "protection", "element_res", "regen",
-	"life_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
+	"life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
 ## Bazowe trafienie krytyczne postaci (bez przedmiotów): szansa i obrażenia w procentach.
 const CRIT_CHANCE := 5.0
 const CRIT_DAMAGE := 150.0
@@ -443,11 +443,12 @@ static func summary(level: int, gear: Dictionary) -> Dictionary:
 		"protection": "%d%%" % roundi(gear.get("protection_pct", 0.0)),
 		"element_res": "%d%%" % roundi(gear.get("element_res_pct", 0.0)),
 		"pen": "%d%%" % roundi(gear.get("pen_pct", 0.0)),
+		"mana_on_kill": "+%.1f" % gear.get("mana_on_kill", 0.0),
 		"regen": Lang.t("%.1f /s") % gear.get("regen", 0.0),
 		"xp": "+%d%%" % roundi(gear.get("xp_pct", 0.0)),
 		"crit": "%d%%" % roundi(crit_chance(gear)),
 		"crit_dmg": "%d%%" % roundi(crit_damage(gear)),
-		"mana_regen": Lang.t("%.1f /s") % (HeroLevels.MANA_REGEN + gear.get("mana_regen", 0.0)),
+		"mana_regen": Lang.t("%.1f /s") % (HeroLevels.mana_regen(level) + gear.get("mana_regen", 0.0)),
 		"life_on_kill": "+%.1f" % Items.life_on_kill(gear),
 		"cdr": "-%d%%" % roundi(gear.get("cdr_pct", 0.0)),
 		"elite_dmg": "+%d%%" % roundi(gear.get("elite_dmg_pct", 0.0)),
@@ -1021,6 +1022,8 @@ func _stat_name(key: String) -> String:
 			return tr("Odporność na żywioły")
 		"pen":
 			return tr("Przebicie odporności")
+		"mana_on_kill":
+			return tr("Mana za zabicie")
 		"regen":
 			return tr("Regeneracja")
 		"crit":
