@@ -92,6 +92,7 @@ var elite_rate := 1.0
 var rare_loot := false
 var _ember_rest := 0.0
 var _heal_acc := 0.0
+var _mana_acc := 0.0
 
 var _next := FIRST_DELAY
 ## Za ile sekund następna elita (ustawia _ready; ujemne - poziom bez elit).
@@ -301,6 +302,12 @@ func _on_died(g: ProtoGoblin) -> void:
 		_heal_acc -= heal
 		if not hero.dead:
 			hero.heal(heal)
+	_mana_acc += hero.gear.get("mana_on_kill", 0.0)  # premia przedmiotów: mana za zabicie (ułamki się zbierają)
+	var mana := floori(_mana_acc)
+	if mana > 0:
+		_mana_acc -= mana
+		if not hero.dead:
+			hero.add_mana(mana)
 	kills += 1
 	kills_changed.emit(kills)
 	monster_died.emit(g)

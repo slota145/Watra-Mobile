@@ -35,6 +35,7 @@ func _run() -> void:
 	await _test_window(game)
 	await _test_new_stats(game)
 	await _test_utility_stats(game)
+	await _test_mana(game)
 	DirAccess.remove_absolute(game.settings_path)
 	DirAccess.remove_absolute(game.save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
@@ -396,3 +397,43 @@ func _test_utility_stats(game: Node) -> void:
 	await process_frame
 	game.equipped = {}
 	game.save_game()
+
+
+## Mana (19.11.2026): premie many rosną liniowo (nie z siłą lochu), stare przedmioty i kamienie szlachetne przycięte
+## do nowej granicy, koszt umiejętności rośnie z poziomem, odnowa many z poziomem postaci, mana za zabicie z sufitem.
+func _test_mana(game: Node) -> void:
+	_check(Items.affix_max("mana", 101) < 100.0 and Items.affix_max("mana_regen", 101) < 5.0,
+			"premie many liniowe: 101. poziom do +%d many i +%.1f/s" % [Items.affix_max("mana", 101), Items.affix_max("mana_regen", 101)])
+	var old := Items.normalize({"slot": "ring", "rarity": "rare", "level": 101, "tier": 4, "base": {},
+			"affixes": [{"stat": "mana", "value": 1800.0}, {"stat": "mana_regen", "value": 140.0}, {"stat": "hp", "value": 1500.0}]})
+	_check(is_equal_approx(old.affixes[0].value, Items.affix_max("mana", 101)) and old.affixes[1].value <= Items.affix_max("mana_regen", 101) + 0.01
+			and old.affixes[2].value == 1500.0, "stary przedmiot: mana przycięta, zdrowie bez zmian")
+	var jewel := Gems.make_jewel("sapphire", 101, [["mana_regen", 90.0]])
+	var t := Items.totals({"ring": {"slot": "ring", "rarity": "rare", "level": 101, "base": {}, "affixes": [], "sockets": [jewel]}})
+	_check(t.mana_regen <= Items.affix_max("mana_regen", 101) * Gems.JEWEL_MULT + 0.05, "stary szafir: odnowa many przycięta (%.1f)" % t.mana_regen)
+	var many := {}
+	for slot in Items.SLOTS:
+		many[slot] = {"slot": slot, "rarity": "rare", "level": 101, "base": {}, "affixes": [{"stat": "mana_on_kill", "value": 5.0}], "sockets": []}
+	_check(Items.totals(many).mana_on_kill == Items.CAPS.mana_on_kill, "mana za zabicie z sufitem %.1f" % Items.CAPS.mana_on_kill)
+	_check(Skills.level_mana(1) == 1.0 and Skills.level_mana(10) > 2.0 and Skills.mana_of("slam") > 30,
+			"koszt rośnie z poziomem umiejętności (10. x%.2f), bazowe koszty wyższe" % Skills.level_mana(10))
+	_check(HeroLevels.mana_regen(50) > HeroLevels.mana_regen(1) + 4.0, "odnowa many rośnie z poziomem postaci")
+	# mana za zabicie w lochu
+	game.dungeon_level = 1
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	var horde: ProtoHorde = arena.horde_spawner
+	horde.running = false
+	hero.gear = {"mana_on_kill": 1.5}
+	hero.mana = 0
+	horde._mana_acc = 0.0
+	for i in 2:
+		var g := horde.spawn_at(hero.position + Vector2(150, 0))
+		await process_frame
+		g.take_damage(1000000, hero.global_position)
+	_check(hero.mana == 3, "mana za zabicie: 2 x 1,5 = 3 (%d)" % hero.mana)
+	arena.queue_free()
+	await process_frame
+

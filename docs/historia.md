@@ -2,6 +2,26 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 19.11.2026 - koszty many umiejętności, mana z przedmiotów, mana za zabicie
+
+Uwaga autora: umiejętności kosztują za mało - da się nimi spamować bez rozwiniętej odnowy many i bez Oszczędności;
+spam ma być możliwy dopiero przy dopracowanym buildzie, a wyższe poziomy umiejętności powinny kosztować więcej (jak w PoE).
+Główna przyczyna: premie „+mana” i „+odnowa many” rosły z siłą lochu jak zdrowie (101. poziom: ~2800 many i ~144/s
+z losowych rzadkich przedmiotów przy kosztach 10-30).
+- Premie many liniowo: `mana` 5-12 + 0,6/poziom lochu, `mana_regen` 0,3-0,8 + 0,03/poziom (101.: do +72 i +3,8/s na
+  premię). Stare przedmioty przycinane przy wczytaniu, stare kamienie szlachetne w sumie cech (`Items.clamp_affix`,
+  `affix_max`, `CLAMPED_STATS`).
+- Koszt many rośnie z poziomem umiejętności: +12% na poziom (`Skills.level_mana`, 10. poziom x2,08); poziomy 3 i 7
+  skracają już tylko odnowienie (`level_cost`). Bazowe koszty x1,5 (np. Młynek 15/s, Rzut 22, Rozłupanie 38, Krąg 45).
+  Okno umiejętności: „+12% many” w opisie następnego poziomu.
+- Odnowa many z poziomem postaci: 3/s + 0,1 na poziom (`HeroLevels.mana_regen`, 50. ~7,9/s; `ProtoHero._mana_regen`).
+- Nowa premia „Mana za zabicie” (`mana_on_kill` 0,2-0,4 + 0,005/poziom, szafiry, sufit 2 na zabicie; ułamki zbierają
+  się w `ProtoHorde._mana_acc`), wiersz w oknie „Postać”.
+- Bilans (średnio z 40 losowań, 4 zabicia/s): 101. loch - losowe przedmioty ~14 many/s, build na manę ~52/s; Młynek
+  10. poziomu ~22/s (z Oszczędnością ~12), trzy umiejętności na odnowieniu ~38/s (z Oszczędnością ~21). Loch 5 -
+  losowe ~5,5/s, Młynek 15/s, trzy umiejętności ~15/s.
+- Testy `_test_mana` w `tests/test_items.gd`, poprawione liczby w `test_skills.gd`.
+
 ## 17.11.2026 - wspólna odporność potworów i przebicie odporności (wariant A)
 
 Pytanie autora: czy dać potworom równe odporności na wszystko (też fizyczne)? Porównanie z Diablo 3 (bez odporności),

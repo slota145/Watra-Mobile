@@ -573,7 +573,7 @@ func _strike_speed() -> float:
 
 ## Koszt many umiejętności z kamieniem Oszczędność i poziomem (Mgnienie z kamieniem unikalnym - o połowę mniej).
 func mana_cost(id: String) -> int:
-	var cost := Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0) * Skills.level_cost(level_of(id))
+	var cost := Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0) * Skills.level_mana(level_of(id))
 	if id == blink_skill and _unique(id):
 		cost *= 0.5
 	return roundi(cost)

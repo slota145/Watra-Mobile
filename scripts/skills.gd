@@ -11,7 +11,8 @@ class_name Skills
 ## Poziomy umiejętności (ustalone z autorem 13.11.2026): 1-MAX_LEVEL, kolejny kupuje się żarem z Watry przy kamieniu
 ## run (`upgrade_price` rośnie z poziomem; do 13.11.2026 złotem), najwyżej połowa poziomu mistrzostwa broni w górę
 ## (`level_cap`). Każdy poziom daje
-## +DAMAGE_STEP obrażeń, poziomy COST_LEVELS - mniej many i krótsze odnowienie (zwykły cios: szybszy), AREA_LEVELS -
+## +DAMAGE_STEP obrażeń i +MANA_LEVEL_STEP kosztu many (jak w PoE - 19.11.2026), poziomy COST_LEVELS - krótsze odnowienie
+## (zwykły cios: szybszy), AREA_LEVELS -
 ## większy obszar i zasięg, PERK_LEVELS - nowe działanie (`PERKS`, opisy dla okna; działanie - ProtoWeapon).
 ## Poziomy trzyma i zapisuje Game (`skill_levels`).
 
@@ -38,17 +39,17 @@ const DATA := {
 	},
 	"whirl": {
 		"name": "Młynek", "icon": preload("res://assets/watra/skills/whirlwind.png"),
-		"mana": 10, "cooldown": 0.0, "weapon": "sword", "mastery": 3, "main": true, "range": 40.0, "power": 0.6,
+		"mana": 15, "cooldown": 0.0, "weapon": "sword", "mastery": 3, "main": true, "range": 40.0, "power": 0.6,
 		"description": "Miecz wiruje wokół ciebie, dopóki trzymasz przycisk, i rani wszystkich dookoła; co sekundę zużywa manę. Możesz przy tym chodzić.",
 	},
 	"throw": {
 		"name": "Rzut mieczem", "icon": preload("res://assets/watra/skills/lunge.png"),
-		"mana": 15, "cooldown": 4.0, "weapon": "sword", "mastery": 6, "main": true, "range": 120.0, "power": 1.5,
+		"mana": 22, "cooldown": 4.0, "weapon": "sword", "mastery": 6, "main": true, "range": 120.0, "power": 1.5,
 		"description": "Miecz leci w najbliższego wroga, przebija wszystkich po drodze i wraca, raniąc ich drugi raz.",
 	},
 	"slam": {
 		"name": "Rozłupanie Ziemi", "icon": preload("res://assets/watra/skills/ground_slam.png"),
-		"mana": 25, "cooldown": 7.0, "weapon": "sword", "mastery": 10, "main": true, "range": 70.0, "power": 2.2,
+		"mana": 38, "cooldown": 7.0, "weapon": "sword", "mastery": 10, "main": true, "range": 70.0, "power": 2.2,
 		"description": "Miecz spada z góry na wrogów: fala pęknięć rani wszystkich wokół i na chwilę ich ogłusza.",
 	},
 	# Krąg stali (pomysł autora i Claude 15.11.2026, zamiast Mgnienia - to zostało przy katanie jako Błysk Peruna):
@@ -56,7 +57,7 @@ const DATA := {
 	# (decyzja autora 15.11.2026 - krąg odpala się osobno, np. razem z Młynkiem pod „Atak”).
 	"steel_ring": {
 		"name": "Krąg stali", "icon": preload("res://assets/skills/sword/steel_ring.png"),
-		"mana": 30, "cooldown": 12.0, "weapon": "sword", "mastery": 15, "main": false, "range": 50.0, "power": 0.6,
+		"mana": 45, "cooldown": 12.0, "weapon": "sword", "mastery": 15, "main": false, "range": 50.0, "power": 0.6,
 		"description": "Przez 6 s wokół ciebie krążą trzy widmowe miecze i tną każdego, kto podejdzie. Twój miecz walczy w tym czasie normalnie. Nie może stać pod dużym przyciskiem.",
 	},	# Glewia ognia (ustalone z autorem 13.11.2026): każde trafienie podpala (ProtoGlaive), "burn" - ile obrażeń
 	# trafienia dopala się przez 3 s.
@@ -67,22 +68,22 @@ const DATA := {
 	},
 	"g_sweep": {
 		"name": "Ognisty zamach", "icon": preload("res://assets/skills/glaive/g_sweep.png"),
-		"mana": 15, "cooldown": 5.0, "weapon": "glaive", "mastery": 3, "main": true, "range": 56.0, "power": 1.3, "burn": 1.0,
+		"mana": 22, "cooldown": 5.0, "weapon": "glaive", "mastery": 3, "main": true, "range": 56.0, "power": 1.3, "burn": 1.0,
 		"description": "Glewia zatacza szeroki półokrąg przed tobą i mocno podpala trafionych.",
 	},
 	"g_trail": {
 		"name": "Płonąca bruzda", "icon": preload("res://assets/skills/glaive/g_trail.png"),
-		"mana": 20, "cooldown": 7.0, "weapon": "glaive", "mastery": 6, "main": true, "range": 120.0, "power": 1.2, "burn": 0.5,
+		"mana": 30, "cooldown": 7.0, "weapon": "glaive", "mastery": 6, "main": true, "range": 120.0, "power": 1.2, "burn": 0.5,
 		"description": "Glewia wbija się w ziemię i ryje bruzdę do przodu: zostaje pas ognia, który pali wrogów przez 3 s, a w wachlarzu wylatują 3 szybkie cięcia ognia, które przebijają wrogów.",
 	},
 	"g_pillar": {
 		"name": "Słup ognia", "icon": preload("res://assets/skills/glaive/g_pillar.png"),
-		"mana": 25, "cooldown": 8.0, "weapon": "glaive", "mastery": 10, "main": true, "range": 80.0, "power": 2.2, "burn": 0.5,
+		"mana": 38, "cooldown": 8.0, "weapon": "glaive", "mastery": 10, "main": true, "range": 80.0, "power": 2.2, "burn": 0.5,
 		"description": "Glewia spada z góry i wbija się w ziemię: wybuch ognia rani wszystkich wokół, a ziemia płonie przez 3 s.",
 	},
 	"g_dance": {
 		"name": "Taniec płomieni", "icon": preload("res://assets/skills/glaive/g_dance.png"),
-		"mana": 30, "cooldown": 10.0, "weapon": "glaive", "mastery": 15, "main": true, "range": 60.0, "power": 0.7, "burn": 0.3,
+		"mana": 45, "cooldown": 10.0, "weapon": "glaive", "mastery": 15, "main": true, "range": 60.0, "power": 0.7, "burn": 0.3,
 		"description": "Przez 3 s glewia tnie zamaszyście dookoła ciebie pod różnymi kątami, a każde cięcie wypuszcza sierp ognia, który powoli leci na zewnątrz i przebija wrogów.",
 	},
 	# Hydrosfera (ustalone z autorem 14.11.2026): walka na dystans, każde trafienie przemacza (ProtoHydrosphere).
@@ -93,22 +94,22 @@ const DATA := {
 	},
 	"h_wave": {
 		"name": "Fala", "icon": preload("res://assets/skills/hydro/h_wave.png"),
-		"mana": 15, "cooldown": 5.0, "weapon": "hydrosphere", "mastery": 3, "main": true, "range": 90.0, "power": 1.2,
+		"mana": 22, "cooldown": 5.0, "weapon": "hydrosphere", "mastery": 3, "main": true, "range": 90.0, "power": 1.2,
 		"description": "Fala wody toczy się łukiem przed tobą, rani i odpycha wrogów.",
 	},
 	"h_vortex": {
 		"name": "Wir", "icon": preload("res://assets/skills/hydro/h_vortex.png"),
-		"mana": 20, "cooldown": 8.0, "weapon": "hydrosphere", "mastery": 6, "main": true, "range": 140.0, "power": 0.35,
+		"mana": 30, "cooldown": 8.0, "weapon": "hydrosphere", "mastery": 6, "main": true, "range": 140.0, "power": 0.35,
 		"description": "Wodny wir w miejscu wroga przez 3 s wciąga wrogów do środka i co chwilę ich rani.",
 	},
 	"h_geyser": {
 		"name": "Gejzery", "icon": preload("res://assets/skills/hydro/h_geyser.png"),
-		"mana": 25, "cooldown": 8.0, "weapon": "hydrosphere", "mastery": 10, "main": true, "range": 120.0, "power": 1.8,
+		"mana": 38, "cooldown": 8.0, "weapon": "hydrosphere", "mastery": 10, "main": true, "range": 120.0, "power": 1.8,
 		"description": "Pod pięcioma najbliższymi wrogami tryskają gejzery: ranią i ogłuszają na 1 s.",
 	},
 	"h_guardian": {
 		"name": "Wodny Strażnik", "icon": preload("res://assets/skills/hydro/h_guardian.png"),
-		"mana": 30, "cooldown": 12.0, "weapon": "hydrosphere", "mastery": 15, "main": true, "range": 110.0, "power": 0.8,
+		"mana": 45, "cooldown": 12.0, "weapon": "hydrosphere", "mastery": 15, "main": true, "range": 110.0, "power": 0.8,
 		"description": "Kula wody pojawia się z wybuchem przy wrogu, zostaje 6 s i strzela wodnymi pociskami w najbliższych wrogów.",
 	},
 	# Elektryczna katana (ustalone z autorem 15.11.2026): najszybsza broń, każde trafienie poraża (ProtoKatana).
@@ -119,23 +120,23 @@ const DATA := {
 	},
 	"k_dance": {
 		"name": "Taniec ostrza", "icon": preload("res://assets/skills/katana/k_dance.png"),
-		"mana": 15, "cooldown": 5.0, "weapon": "katana", "mastery": 3, "main": true, "range": 60.0, "power": 0.6,
+		"mana": 22, "cooldown": 5.0, "weapon": "katana", "mastery": 3, "main": true, "range": 60.0, "power": 0.6,
 		"description": "Idziesz naprzód, tnąc precyzyjnie cztery razy, a potem między wszystkimi trafionymi przeskakuje błękitny piorun.",
 	},
 	"k_riposte": {
 		"name": "Riposta", "icon": preload("res://assets/skills/katana/k_riposte.png"),
-		"mana": 15, "cooldown": 6.0, "weapon": "katana", "mastery": 6, "main": true, "range": 50.0, "power": 1.3,
+		"mana": 22, "cooldown": 6.0, "weapon": "katana", "mastery": 6, "main": true, "range": 50.0, "power": 1.3,
 		"description": "Przez 3 s katana czeka w gardzie: następny cios cię nie rani, a ty odpowiadasz cięciem dookoła, wyskokiem ku napastnikowi i precyzyjnym cięciem po okręgu.",
 	},
 	"k_perun": {
 		"name": "Sąd Peruna", "icon": preload("res://assets/skills/katana/k_perun.png"),
-		"mana": 25, "cooldown": 8.0, "weapon": "katana", "mastery": 10, "main": false, "range": 200.0, "power": 2.2,
+		"mana": 38, "cooldown": 8.0, "weapon": "katana", "mastery": 10, "main": false, "range": 200.0, "power": 2.2,
 		"charge": true,
 		"description": "Przytrzymaj, żeby naładować, i puść: katana tnie w linii prostej ku wrogowi - tym dłużej i szerzej, im dłużej trwało ładowanie. Nie może stać pod dużym przyciskiem.",
 	},
 	"k_flash": {
 		"name": "Błysk Peruna", "icon": preload("res://assets/skills/katana/k_flash.png"),
-		"mana": 7, "cooldown": 0.0, "weapon": "katana", "mastery": 15, "main": false, "range": 0.0, "power": 1.2,
+		"mana": 10, "cooldown": 0.0, "weapon": "katana", "mastery": 15, "main": false, "range": 0.0, "power": 1.2,
 		"description": "Przytrzymaj - przeskakujesz piorunem na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego, dopóki starcza many. Każdy wróg zabity skokiem zwraca 2 many. Nie może stać pod dużym przyciskiem.",
 	},
 }
@@ -145,6 +146,9 @@ const MAX_LEVEL := 10
 const DAMAGE_STEP := 0.1
 const COST_LEVELS := [3, 7]
 const COST_STEP := 0.1
+## Koszt many rośnie z każdym poziomem umiejętności (decyzja autora 19.11.2026; 10. poziom x2,08). Bazowe koszty
+## w DATA podniesione x1,5 tego samego dnia (wcześniej poziomy obniżały koszt).
+const MANA_LEVEL_STEP := 0.12
 const AREA_LEVELS := [4, 8]
 const AREA_STEP := 0.1
 const PERK_LEVELS := [5, 10]
@@ -285,9 +289,14 @@ static func level_damage(level: int) -> float:
 	return 1.0 + DAMAGE_STEP * (maxi(level, 1) - 1)
 
 
-## Mnożnik kosztu many i odnowienia z poziomu (poziomy COST_LEVELS).
+## Mnożnik odnowienia (i szybkości zwykłego ciosu) z poziomu (poziomy COST_LEVELS).
 static func level_cost(level: int) -> float:
 	return 1.0 - COST_STEP * _reached(COST_LEVELS, level)
+
+
+## Mnożnik kosztu many z poziomu umiejętności (+MANA_LEVEL_STEP na poziom).
+static func level_mana(level: int) -> float:
+	return 1.0 + MANA_LEVEL_STEP * (clampi(level, 1, MAX_LEVEL) - 1)
 
 
 ## Mnożnik obszaru i zasięgu z poziomu (poziomy AREA_LEVELS).
@@ -311,8 +320,10 @@ static func next_level_text(id: String, level: int) -> String:
 		return ""
 	var next := level + 1
 	var parts: Array[String] = [Lang.t("+%d%% obrażeń") % roundi(DAMAGE_STEP * 100)]
+	if mana_of(id) > 0:
+		parts.append(Lang.t("+%d%% many") % roundi(MANA_LEVEL_STEP * 100))
 	if next in COST_LEVELS:
-		parts.append(Lang.t("szybszy cios") if id == STRIKE else Lang.t("-%d%% many i odnowienia") % roundi(COST_STEP * 100))
+		parts.append(Lang.t("szybszy cios") if id == STRIKE else Lang.t("-%d%% odnowienia") % roundi(COST_STEP * 100))
 	if next in AREA_LEVELS:
 		parts.append(Lang.t("+%d%% obszaru") % roundi(AREA_STEP * 100))
 	if next in PERK_LEVELS:
