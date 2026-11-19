@@ -23,6 +23,22 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
    sterowanie dotykiem).
 5. **Interfejs dotykowy:** wspólny styl przycisków (duże pola do stukania, min. 44 px gry), wibracje przy trafieniu.
 
+## Ustalone, do zrobienia
+
+- **Aury rezerwujące manę** (pomysł autora 19.11.2026, szczegóły ustalone tego samego dnia): osobna zakładka
+  „Aury” obok broni; gracz włącza tyle aur, na ile starczy many (aura rezerwuje część maksymalnej many na stałe).
+  Wymaga paska many (jeszcze go nie ma). Wzór: `../Watra/scripts/aura_data.gd` i `auras.gd`.
+  - **Zdobywanie:** łup z lochów - rzadki „kamień aury” z bossa lub skrzyni; aura zostaje na zawsze.
+  - **Poziomy 1-10 za duplikaty:** kolejny taki sam kamień podnosi poziom aury.
+  - **Rezerwacja 25-35%:** na start mieszczą się 2 aury, z redukcją rezerwacji 3, w późnej grze 4.
+    Mała premia „redukcja rezerwacji” (np. z poziomu aury albo przedmiotów).
+  - **Wygląd:** delikatny, wolno obracający się krąg pod postacią w kolorze aury (kilka aur - kilka pierścieni)
+    i małe ikonki przy pasku many.
+  - **Propozycja 6 aur** (do potwierdzenia przy wdrażaniu): Krzepa (+zdrowie, 25%), Wiatr Strzyboga (+szybkość
+    ruchu i ataku, 30%), Żar Swaroga (dodany ogień i podpalenie, 25%), Gniew Peruna (co 3 s piorun w wroga, 35%),
+    Postrach (wrogowie w kręgu słabsi i wolniejsi, 30%), Szron Marzanny - nowa (wrogowie w kręgu zwalniają
+    i dostają rany od mrozu, 25%).
+
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
 - Watra jako „serce” ekranu startowego: animowany ogień, który przygasa, gdy długo nie grasz, i rozpala się po powrocie.
