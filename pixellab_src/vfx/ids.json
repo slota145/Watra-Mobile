@@ -930,5 +930,20 @@
       18,
       42
     ]
+  },
+  "earth_tremor": {
+    "effect": "4c615205-28d3-495b-a5d0-0840bddd1425",
+    "name": "Serce Głębin - drżenie ziemi: pęknięcia i fala (Watra Mobile, 9 z 10 klatek)",
+    "frame": [
+      116,
+      48
+    ],
+    "frames": 9,
+    "columns": 4,
+    "fps": 12,
+    "anchor": [
+      58,
+      24
+    ]
   }
 }

@@ -14,6 +14,11 @@ const THORNS_FX := preload("res://assets/effects/thorn_burst.png")
 const THORNS_ANCHOR := Vector2(41, 45)
 const BLOOD_HEAL_FX := preload("res://assets/effects/blood_heal.png")
 const BLOOD_HEAL_ANCHOR := Vector2(18, 42)
+## Serce Głębin: świecące pęknięcia ziemi i fala (kreator efektów, 20.11.2026 - zamiast kolców uderzenia w ziemię).
+const TREMOR_FX := preload("res://assets/effects/earth_tremor.png")
+const TREMOR_ANCHOR := Vector2(58, 24)
+## Promień fali w klatce efektu (do skalowania do Talismans.TREMOR_RADIUS).
+const TREMOR_FX_RADIUS := 55.0
 var worn := {}:
 	set(v):
 		worn = v
@@ -205,8 +210,7 @@ func on_skill(id: String) -> void:
 ## Serce Głębin: ziemia drży wokół postaci.
 func _tremor() -> void:
 	var at := _hero.global_position
-	Fx.once(_world(), ProtoWeapon.SLAM_FX, ProtoWeapon.SLAM_FX_FRAMES, ProtoWeapon.SLAM_FX_FPS, at,
-			ProtoWeapon.SLAM_FX_ANCHOR, 6, Talismans.TREMOR_RADIUS / ProtoWeapon.SLAM_RADIUS)
+	Fx.once(_world(), TREMOR_FX, 9, 14.0, at.round(), TREMOR_ANCHOR, -1, Talismans.TREMOR_RADIUS / TREMOR_FX_RADIUS)
 	for e in _around(at, Talismans.TREMOR_RADIUS):
 		weapon.aura_hit(e, _power("tremor"), Elements.EARTH, at)
 

@@ -65,6 +65,8 @@ var _shield_wait := 0.0
 var stone := 0.0
 ## Aura Hart Żywiołów: o tyle wyższy sufit odporności na żywioły (ułamek).
 var max_res_bonus := 0.0
+## Mnożnik obrażeń od wrogów (próba autora 20.11.2026 - DungeonLevels.enemy_damage): ciosy i podpalenia.
+var enemy_damage := DungeonLevels.enemy_damage
 var mana := HeroLevels.MANA_BASE
 var hp := MAX_HP
 var dead := false
@@ -244,6 +246,7 @@ func ignite(damage: int, time: float) -> void:
 		return
 	if burn_left <= 0.0:
 		_burn_next = BURN_TICK
+	damage = roundi(damage * enemy_damage)
 	burn_damage = maxi(burn_damage if burn_left > 0.0 else 0, damage)
 	burn_left = maxf(burn_left, time)
 
@@ -280,6 +283,7 @@ func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 		_spawn_text(tr("Unik!"), Color(0.75, 0.9, 1.0))
 		dodged.emit()
 		return
+	amount = roundi(amount * enemy_damage)
 	var res := element_res if element != Elements.PHYSICAL else 0.0
 	var guard := 1.0 - stone if stone > 0.0 and hp < max_hp * Auras.STONE_BELOW else 1.0  # Kamienna Krew
 	amount = maxi(1, roundi(amount * (1.0 - protection) * (1.0 - res) * guard * (SHOCK_MULT if shock_left > 0.0 else 1.0)))

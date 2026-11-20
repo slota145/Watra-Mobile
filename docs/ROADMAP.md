@@ -5,6 +5,8 @@ Przed rozpoczęciem większego punktu dopytujemy autora o szczegóły - to luźn
 
 ## Do poprawy
 
+**Próba 20.11.2026 - do oceny przez autora:** wrogowie x3 zdrowia i x2 obrażeń (`DungeonLevels.enemy_hp`, `enemy_damage`).
+
 Poprawki z pierwszej uczciwej wyprawy (17.11.2026) zrobione - szczegóły w `docs/historia.md`. Do oceny na telefonie:
 tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, bossowie x1,5 zdrowia i obrażeń, nietykalność po trafieniu 0,1 s zamiast 0,35 s; awans +8% obrażeń, wspólna odporność potworów z głębią do 55% i premia „Przebicie odporności”, lochy ±20% na żywioły; koszty many x1,5 i +12% za poziom umiejętności, mana z przedmiotów liniowo, „Mana za zabicie”), Młynek trzymany, ilość kamieni, piorun.
 

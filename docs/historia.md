@@ -2,6 +2,14 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - próba: wrogowie x3 zdrowia i x2 obrażeń
+
+Prośba autora (na próbę, do oceny na telefonie): wszyscy wrogowie mają 3 razy więcej zdrowia i zadają 2 razy więcej
+obrażeń. `DungeonLevels.enemy_hp` (3,0, w `hp_mult` - potwory i bossowie) i `enemy_damage` (2,0 - `ProtoHero.enemy_damage`
+w `take_damage` i `ignite`: ciosy, strzały, wybuchy elit, podpalenia). Zmienne statyczne, żeby testy liczące na
+konkretnych liczbach mogły je wyłączyć (test_auras, test_catacombs, test_flooded, test_horde, test_items, test_volcano).
+Do cofnięcia albo zmiany: dwie liczby w `scripts/dungeon_levels.gd`.
+
 ## 20.11.2026 - przewijanie palcem i szerokość okna talizmanów
 
 Zgłoszenie autora: okno talizmanów nie mieściło się na ekranie, a listy przewijały się tylko w wąskich szczelinach
@@ -19,6 +27,8 @@ między wierszami (wiersze i przyciski łapały dotyk), suwaki z boku za wąskie
   i magiczne przedmioty z Watry: Róg Gruzłoga (był Sygnet), Pióro Gromu (Pierścień Gromu), Perła Topieli (Pierścień
   Topieli), Gałąź Leszego (Obręcz), Kora Leszego (Żołądź), Czaszka Biesa (Szpon), Ząb Pożeracza (Szczęka), Kryształ
   Peruna (Korona); Serce Goblina i Serce Głębin bez zmian. Identyfikatory w zapisie te same.
+- Serce Głębin - nowy efekt z kreatora (prośba autora, kolce uderzenia w ziemię się nie podobały): `earth_tremor`
+  (świecące pęknięcia i ziemista fala, 9 z 10 klatek, pod postacią - z_index -1), `ProtoTalismans.TREMOR_FX`.
 
 ## 20.11.2026 - obrażenia od żywiołów, nowe efekty talizmanów i aur
 
