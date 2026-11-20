@@ -2,6 +2,32 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - symulowany rynek: targ w bazie (ROADMAP punkt 5)
+
+Ankieta z autorem (20.11.2026): handel wszystkim, ceny w Runach Szlifu, rynek żyje też offline (do 12 h), osobny
+targ obok kupca, oferty z imionami i nickami „graczy”, opłata targowa 10%, całość naraz. Wzór: rynek Watry.
+- `scripts/market.gd` (Market - dane i symulacja), stan w `Game.market` (zapis „market”), funkcje `Game.market_*`.
+  Niedostępny dla SSF (`Game.market_open`).
+- **Czas**: chwila rynku co 10 min czasu rzeczywistego (`Market.TICK`), nadrabiana przy wejściu do bazy i otwarciu
+  targu (`Game.market_catch_up`); przerwa liczy się najwyżej 12 h (`OFFLINE_MAX`), cofnięty zegar nic nie daje;
+  `Game.market_clock` do testów.
+- **Giełda** (`Market.COMMODITIES`): runy (bez Szlifu - to pieniądz), ruda i odpryski w paczkach po 10, klucz, dłuto,
+  Pieczęć Oręża. Cena błądzi wokół bazowej (0,5-2x), kupno x1,05, skup x0,95 minus 10% opłaty, każda paczka gracza
+  przesuwa cenę o 3%. Runy: kupno nigdy taniej niż rozmiana u kupca, skup nigdy drożej niż kupiec sprzedaje
+  (`Market.ask` / `bid` z identyfikatorem) - bez Szlifów z niczego.
+- **Płacenie**: najpierw Szlify, brakujące z innych run od najtańszej po cenie skupu, reszta w Szlifach
+  (`Game.market_pay`, `market_wealth`); ceny od 10 Szlifów pokazane też w Runach Zmiany (`Market.price_text`).
+- **Oferty innych graczy** (10 naraz, `roll_listing`): przedmioty (60%), kamienie, talizmany od lochu 5, z poziomu
+  okolic najgłębszego przebitego lochu; cena 0,7-1,4 x uczciwej (`fair_price`), okazje („Okazja!”) szybko znikają,
+  stare po 24 chwilach; 24 imiona i nicki (`NAMES`).
+- **Moje oferty** (najwyżej 5): przedmiot z torby (kamienie z gniazd wracają do sakwy) albo kamień z sakwy, cena -/+;
+  sprzedaż z szansą 0,3 x (uczciwa/cena)^2 na chwilę, powyżej 1,5 x uczciwej nikt nie kupi; Szlify po opłacie
+  od razu i wiadomość w oknie („Radomir kupił(a): …”).
+- **Okno** `scripts/ui/market_window.gd`: zakładki Giełda / Oferty / Moje i „Wróć” na dole, w nagłówku Szlify.
+  Targ w bazie: handlarz z Watry (`assets/watra/base/market_trader.png`) ze straganem (`market_stall.png`) między
+  kupcem a kukłami; pasek skrótów ma teraz 6 ikon w dwóch kolumnach (mieści się w dolnej połowie 16:9).
+- Testy: `tests/test_market.gd` (nowy); zrzuty `tools/market_shots.gd`.
+
 ## 20.11.2026 - Napad Hordy i wykuwanie z rudy (ROADMAP punkt 4, krok 3 - koniec punktu)
 
 Decyzje autora (ankieta 20.11.2026): obóz goblinów, wykuwanie za 20 rudy z losową rzadkością z najgłębszego lochu.

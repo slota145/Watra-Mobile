@@ -50,7 +50,9 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
      wymiany u kupca, koszty kamieni w odpryskach x3, szansa Pieczęci Oręża 3%, Napad Hordy (45 s, 3 strony, 6-10 rudy),
      wykuwanie za 20 rudy. W przyszłości (autor): więcej rodzajów rudy, różne rodzaje drewna i wiele rodzajów
      magicznego pyłu.
-  5. **Symulowany rynek** jak w PoE (handel „orbami”), niedostępny w SSF. W Watrze: `scripts/market.gd`. Po punkcie 4.
+  5. ~~**Symulowany rynek**~~ - zrobiony 20.11.2026 jako targ w bazie (szczegóły w `docs/historia.md`). Do oceny na
+     telefonie: tempo rynku (chwila co 10 min, offline do 12 h), ceny bazowe na giełdzie, jak szybko schodzą własne
+     oferty, czy pasek skrótów w dwóch kolumnach jest wygodny.
   - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), **broń magiczna**, wybór broni na start (resztę odblokowuje się jak teraz). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.

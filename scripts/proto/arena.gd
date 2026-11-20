@@ -48,6 +48,9 @@ const RUNE_POS := Vector2(125, -135)
 ## Kowal (z kowadłem po prawej) i kupiec (ze straganem po lewej) po bokach, niżej niż Watra.
 const SMITH_POS := Vector2(-120, 40)
 const SHOP_POS := Vector2(130, 40)
+## Targ (rynek - Market) między kupcem a kukłami; stragan po lewej od handlarza.
+const MARKET_POS := Vector2(50, 105)
+const MARKET_STALL_OFFSET := Vector2(-30, -2)
 const ANVIL_OFFSET := Vector2(24, 4)
 const STALL_OFFSET := Vector2(-32, -2)
 const BASE_SCENE := "res://scenes/prototype.tscn"
@@ -140,6 +143,8 @@ var smith: ProtoStash
 var merchant: ProtoStash
 var smith_window: SmithWindow
 var shop_window: ShopWindow
+var market: ProtoStash
+var market_window: MarketWindow
 var tree_window: DungeonTreeWindow
 ## Drabinka odblokowań (Unlocks) z wyboru poziomu.
 var unlocks_window: UnlocksWindow
@@ -306,6 +311,10 @@ func _ready() -> void:
 		merchant = _npc(world, "Merchant", "Kupiec", preload("res://assets/watra/base/traveling_merchant.png"),
 				SHOP_POS, preload("res://assets/watra/base/stall_goods.png"), STALL_OFFSET)
 		merchant.opened.connect(open_shop)
+		market = _npc(world, "Market", "Targ", preload("res://assets/watra/base/market_trader.png"), MARKET_POS,
+				preload("res://assets/watra/base/market_stall.png"), MARKET_STALL_OFFSET)
+		market.opened.connect(open_market)
+		Game.market_catch_up()  # rynek żyje też, gdy telefon leżał (Market.OFFLINE_MAX)
 		Game.embers_changed.connect(func() -> void: watra.set_embers(Game.embers))
 	world.add_child(weapon)
 	if not horde:
@@ -560,6 +569,9 @@ func _make_hud() -> void:
 		shop_window = ShopWindow.new()
 		shop_window.visible = false
 		safe.add_child(shop_window)
+		market_window = MarketWindow.new()
+		market_window.visible = false
+		safe.add_child(market_window)
 		stash_window = StashWindow.new()
 		stash_window.visible = false
 		safe.add_child(stash_window)
@@ -1443,6 +1455,12 @@ func open_shop() -> void:
 	shop_window.open()
 
 
+## Baza: targ - rynek z innymi „graczami” (Market).
+func open_market() -> void:
+	_release()
+	market_window.open()
+
+
 ## Baza: drzewko lochów (z wyboru poziomu przy Watrze; po zamknięciu wybór wraca).
 func open_upgrades() -> void:
 	_release()
@@ -1462,6 +1480,8 @@ func _on_bar(id: String) -> void:
 			open_smith()
 		"shop":
 			open_shop()
+		"market":
+			open_market()
 
 
 ## Puszcza gałkę i przyciski walki przed otwarciem okna.
@@ -1550,7 +1570,7 @@ func _notification(what: int) -> void:
 		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 			stats_window.back()
 		return
-	for w in [smith_window, shop_window, tree_window, unlocks_window, mods_window]:
+	for w in [smith_window, shop_window, market_window, tree_window, unlocks_window, mods_window]:
 		if w and w.visible:
 			if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 				w.back()
