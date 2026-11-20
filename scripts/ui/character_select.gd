@@ -46,6 +46,7 @@ func _ready() -> void:
 	add_child(column)
 	column.add_child(_label(tr("Wybierz postać"), 24, GOLD))
 	var scroll := ScrollContainer.new()
+	TouchUi.drag_scroll(scroll)  # przewijanie palcem po wierszach i przyciskach
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(scroll)

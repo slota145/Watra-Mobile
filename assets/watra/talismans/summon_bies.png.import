@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dgo04lyxqjkip"
-path="res://.godot/imported/ring_storm.png-96fb61476c0452898f49e588b91587df.ctex"
+uid="uid://c60qnxsobjf14"
+path="res://.godot/imported/summon_bies.png-51e6f8eb4112bcbb6fd34128a2e4f40b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/talismans/ring_storm.png"
-dest_files=["res://.godot/imported/ring_storm.png-96fb61476c0452898f49e588b91587df.ctex"]
+source_file="res://assets/watra/talismans/summon_bies.png"
+dest_files=["res://.godot/imported/summon_bies.png-51e6f8eb4112bcbb6fd34128a2e4f40b.ctex"]
 
 [params]
 

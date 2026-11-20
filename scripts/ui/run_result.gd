@@ -48,6 +48,7 @@ func _ready() -> void:
 	# podsumowanie przewija się i zawija linie - długie „Odblokowano: …” nie wychodzą poza ekran (zgłoszenie autora
 	# 17.11.2026), a przyciski zostają na dole
 	var scroll := ScrollContainer.new()
+	TouchUi.drag_scroll(scroll)  # przewijanie palcem po wierszach i przyciskach
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(scroll)

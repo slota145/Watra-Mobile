@@ -60,6 +60,7 @@ func _ready() -> void:
 	head.add_child(currency_icon)
 	currency_label = label(head, "0", 15, GOLD)
 	scroll = ScrollContainer.new()
+	TouchUi.drag_scroll(scroll)  # przewijanie palcem po wierszach i przyciskach
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(scroll)

@@ -163,6 +163,7 @@ func _ready() -> void:
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_column.add_child(_scroll)
+	TouchUi.drag_scroll(_scroll)  # przewijanie palcem po wierszach i przyciskach
 	var pages := VBoxContainer.new()
 	pages.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.add_child(pages)
@@ -296,13 +297,13 @@ func _ready() -> void:
 	_column.add_child(tabs)
 	for t in TABS:
 		var b := _detail_button(tabs, tr(TAB_NAMES[t]))
-		b.add_theme_font_size_override("font_size", 12)
-		b.size_flags_stretch_ratio = 1.15 if t == "equip" or t == "talismans" else 1.0  # dłuższe nazwy
+		b.add_theme_font_size_override("font_size", 11)
+		b.size_flags_stretch_ratio = 1.2 if t == "equip" or t == "talismans" or t == "stats" else 1.0  # dłuższe nazwy
 		b.pressed.connect(set_tab.bind(t))
 		tab_buttons[t] = b
 	back_button = _detail_button(tabs, tr("Wróć"))
-	back_button.add_theme_font_size_override("font_size", 12)
-	back_button.size_flags_stretch_ratio = 0.7
+	back_button.add_theme_font_size_override("font_size", 11)
+	back_button.size_flags_stretch_ratio = 0.75
 	back_button.pressed.connect(close)
 	_make_detail()
 	picker = GemPicker.new()
@@ -725,19 +726,21 @@ func _refresh_talismans() -> void:
 		icon.texture = Talismans.icon_of(id)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.custom_minimum_size = Vector2(40, 40)
+		icon.custom_minimum_size = Vector2(34, 34)
 		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(icon)
 		var col := VBoxContainer.new()
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		col.add_theme_constant_override("separation", 1)
 		row.add_child(col)
-		_label(col, tr("%s, poz. %d/%d") % [Talismans.name_of(id), lvl, Talismans.MAX_LEVEL], 14, Talismans.color_of(id))
+		var title := _label(col, tr("%s %d/%d") % [Talismans.name_of(id), lvl, Talismans.MAX_LEVEL], 13,
+				Talismans.color_of(id))
+		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # długa nazwa z 10/10 rozpychała okno (zgłoszenie 20.11.2026)
 		var desc := _label(col, Talismans.effect_text(id, lvl), 11, TEXT)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var b := Button.new()
 		b.text = tr("Zdejmij") if worn else tr("Załóż")
-		b.custom_minimum_size = Vector2(76, 44)
+		b.custom_minimum_size = Vector2(70, 44)
 		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		b.add_theme_font_size_override("font_size", 13)
 		if worn:

@@ -77,6 +77,7 @@ func _ready() -> void:
 	title_label = _label(col, "", 16, GOLD, true)  # zawijane - długa nazwa nie rozpycha okna poza ekran
 	sub_label = _label(col, "", 11, DIM, true)
 	scroll = ScrollContainer.new()
+	TouchUi.drag_scroll(scroll)  # przewijanie palcem po wierszach i przyciskach
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	col.add_child(scroll)
 	list = VBoxContainer.new()

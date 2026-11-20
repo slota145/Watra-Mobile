@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cap525ks7q7dm"
-path="res://.godot/imported/earring_bies.png-e4fd20ef11dd10e01ec8421cbe1d373c.ctex"
+uid="uid://ccr4ccvjdw705"
+path="res://.godot/imported/drowned_pearl.png-214db4c31dd89a897a20b86bd69bee3e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/talismans/earring_bies.png"
-dest_files=["res://.godot/imported/earring_bies.png-e4fd20ef11dd10e01ec8421cbe1d373c.ctex"]
+source_file="res://assets/watra/talismans/drowned_pearl.png"
+dest_files=["res://.godot/imported/drowned_pearl.png-214db4c31dd89a897a20b86bd69bee3e.ctex"]
 
 [params]
 

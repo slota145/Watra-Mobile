@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://m1obtn7w1rwn"
-path="res://.godot/imported/ring_leshy.png-893dbcb173fcb1c87ed77dada3db9876.ctex"
+uid="uid://b8dg5ib4mysqo"
+path="res://.godot/imported/storm_feather.png-ddd9bb7264e8295a3af0a1de035efa0f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/talismans/ring_leshy.png"
-dest_files=["res://.godot/imported/ring_leshy.png-893dbcb173fcb1c87ed77dada3db9876.ctex"]
+source_file="res://assets/watra/talismans/storm_feather.png"
+dest_files=["res://.godot/imported/storm_feather.png-ddd9bb7264e8295a3af0a1de035efa0f.ctex"]
 
 [params]
 

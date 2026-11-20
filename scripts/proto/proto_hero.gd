@@ -19,7 +19,7 @@ signal health_changed(hp: int, max_hp: int)
 signal mana_changed(mana: int, max_mana: int)
 ## Tarcza aury Opieka Mokoszy (pochłania obrażenia przed zdrowiem).
 signal shield_changed(shield: int, shield_max: int)
-## Cios wroga zranił postać (po tarczy, uniku i gardzie) - talizman Żołądź Leszego.
+## Cios wroga zranił postać (po tarczy, uniku i gardzie) - talizman Kora Leszego.
 signal hurt(amount: int)
 signal died
 ## Cios potwora chybił dzięki unikowi.

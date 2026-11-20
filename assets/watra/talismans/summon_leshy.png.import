@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://xtmukni5a0sk"
-path="res://.godot/imported/ring_wodnik.png-152449cef130ac289311c3ff7979ab6c.ctex"
+uid="uid://ds1240swmafb3"
+path="res://.godot/imported/summon_leshy.png-57b3cfadbaad76d38685b049a9ba582e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/talismans/ring_wodnik.png"
-dest_files=["res://.godot/imported/ring_wodnik.png-152449cef130ac289311c3ff7979ab6c.ctex"]
+source_file="res://assets/watra/talismans/summon_leshy.png"
+dest_files=["res://.godot/imported/summon_leshy.png-57b3cfadbaad76d38685b049a9ba582e.ctex"]
 
 [params]
 

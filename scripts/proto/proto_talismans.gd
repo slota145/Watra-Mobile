@@ -34,7 +34,7 @@ func _now() -> float:
 	return Time.get_ticks_msec() / 1000.0
 
 
-## Ustawienia broni z założonych talizmanów: droższe umiejętności (Korona Peruna).
+## Ustawienia broni z założonych talizmanów: droższe umiejętności (Kryształ Peruna).
 func _apply() -> void:
 	if weapon == null:
 		return
@@ -108,7 +108,7 @@ func on_hit(t: ProtoTarget) -> void:
 					e.stun(Talismans.roots_time(worn[id]))
 
 
-## Pierścień Gromu: grom Peruna w trafionego i przeskok na najbliższych wrogów.
+## Pióro Gromu: grom Peruna w trafionego i przeskok na najbliższych wrogów.
 func _thunder(first: ProtoTarget) -> void:
 	var hit: Array[ProtoTarget] = [first]
 	var current := first
@@ -131,7 +131,7 @@ func _thunder(first: ProtoTarget) -> void:
 		e.shock(2.0)
 
 
-## Pierścień Topieli: wir w miejscu trafienia - ciągnie wrogów do środka i rani kilka razy.
+## Perła Topieli: wir w miejscu trafienia - ciągnie wrogów do środka i rani kilka razy.
 func _whirlpool(at: Vector2) -> void:
 	Fx.once(_world(), ProtoHydrosphere.VORTEX_FX, ProtoHydrosphere.VORTEX_FX_FRAMES, 10.0, at,
 			ProtoHydrosphere.VORTEX_FX_ANCHOR, 5, Talismans.WHIRL_RADIUS / ProtoHydrosphere.VORTEX_FX_RADIUS * 0.8)
@@ -146,7 +146,7 @@ func _whirlpool(at: Vector2) -> void:
 			weapon.aura_hit(e, _power("whirlpool"), Elements.WATER, at)
 
 
-## Pokonany potwór (ProtoHorde.monster_died): Szpon Biesa, Serce Goblina, Szczęka Pożeracza.
+## Pokonany potwór (ProtoHorde.monster_died): Czaszka Biesa, Serce Goblina, Ząb Pożeracza.
 func on_kill(g: ProtoTarget) -> void:
 	if weapon == null or worn.is_empty() or _hero.dead or not is_instance_valid(g):
 		return
@@ -171,7 +171,7 @@ func _kaboom(at: Vector2) -> void:
 		weapon.aura_hit(e, _power("kaboom"), Elements.FIRE, at)
 
 
-## Rana postaci (ProtoHero.hurt): Żołądź Leszego - ciernie wokół postaci.
+## Rana postaci (ProtoHero.hurt): Kora Leszego - ciernie wokół postaci.
 func on_hurt() -> void:
 	if weapon == null or _hero.dead or not _roll("thorns") or _hit_ready.get("thorns", 0.0) > _now():
 		return
@@ -182,7 +182,7 @@ func on_hurt() -> void:
 		weapon.aura_hit(e, _power("thorns"), Elements.NATURE, at)
 
 
-## Użyta umiejętność (ProtoWeapon.skill_used): Korona Peruna - piorun w najbliższego wroga, siła z pełnej many.
+## Użyta umiejętność (ProtoWeapon.skill_used): Kryształ Peruna - piorun w najbliższego wroga, siła z pełnej many.
 func on_skill(id: String) -> void:
 	if weapon == null or not worn.has("archmage") or _hero.dead or weapon.mana_cost(id) <= 0:
 		return

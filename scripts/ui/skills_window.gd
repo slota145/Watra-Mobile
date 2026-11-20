@@ -156,6 +156,7 @@ func _ready() -> void:
 	tab_auras.custom_minimum_size.y = 44
 	tab_auras.pressed.connect(set_aura_mode)
 	var scroll := ScrollContainer.new()
+	TouchUi.drag_scroll(scroll)  # przewijanie palcem po wierszach i przyciskach
 	skill_scroll = scroll
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -167,6 +168,7 @@ func _ready() -> void:
 	for i in Skills.ORDER.size():
 		_make_row(list, i)
 	aura_scroll = ScrollContainer.new()
+	TouchUi.drag_scroll(aura_scroll)  # przewijanie palcem po wierszach i przyciskach
 	aura_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	aura_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	aura_scroll.visible = false
@@ -321,6 +323,7 @@ func _make_gems(column: VBoxContainer) -> void:
 		cap.custom_minimum_size = Vector2(58, 24)
 		socket_labels.append(cap)
 	var scroll := ScrollContainer.new()
+	TouchUi.drag_scroll(scroll)  # przewijanie palcem po wierszach i przyciskach
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.custom_minimum_size = Vector2(0, 52)
 	gems_box.add_child(scroll)
@@ -693,8 +696,9 @@ func _refresh_auras() -> void:
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		col.add_theme_constant_override("separation", 1)
 		row.add_child(col)
-		var title := tr("%s, poz. %d/%d") % [Auras.name_of(id), lvl, Auras.MAX_LEVEL] if lvl > 0 else Auras.name_of(id)
-		_label(col, title, 14, Auras.color_of(id) if lvl > 0 else DIM)
+		var title := tr("%s %d/%d") % [Auras.name_of(id), lvl, Auras.MAX_LEVEL] if lvl > 0 else Auras.name_of(id)
+		var title_label := _label(col, title, 13, Auras.color_of(id) if lvl > 0 else DIM)
+		title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # długa nazwa z 10/10 nie rozpycha okna
 		_label(col, Auras.cost_text(id, maxi(lvl, 1), cut), 11, BLUE)
 		var desc := _label(col, Auras.effect_text(id, maxi(lvl, 1)), 11, TEXT if lvl > 0 else DIM)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -704,7 +708,7 @@ func _refresh_auras() -> void:
 			continue
 		var b := Button.new()
 		b.text = tr("Wyłącz") if on else tr("Włącz")
-		b.custom_minimum_size = Vector2(76, 44)
+		b.custom_minimum_size = Vector2(70, 44)
 		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		b.add_theme_font_size_override("font_size", 13)
 		if on:
