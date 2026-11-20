@@ -37,10 +37,19 @@ const BOW_COOLDOWN := 0.55
 const SHOT_FAN_COUNT := 5
 const SHOT_FAN := deg_to_rad(12.0)
 const SHOT_FAN_POWER := 0.7
-const SHOT_PAIR := deg_to_rad(6.0)
+const SHOT_PAIR := deg_to_rad(7.0)
+## 10. poziom strzału: co trzeci strzał tyle strzał więcej (też do Wielostrzału - prośba autora 20.11.2026).
+const SHOT_PERK_EXTRA := 2
 ## Poszukująca strzała (jak Strzała tropiąca Watry): prędkość, skręt (rad/s; bez trafienia coraz ciaśniej), zasięg szukania,
 ## czas przelotu przez trafionego, czas życia, trafienia (5. poziom - więcej), rozstaw dwóch strzał z 10.
-const SEEK_SPEED := 230.0
+const SEEK_SPEED := 200.0
+## Lot Poszukującej (prośba autora 20.11.2026): prosto na wroga przyspiesza do SEEK_MAX, przy zawracaniu zwalnia do
+## SEEK_MIN; po przebiciu przez SEEK_COAST s leci prosto i hamuje, potem zawraca i znowu przyspiesza.
+const SEEK_MIN := 90.0
+const SEEK_MAX := 380.0
+const SEEK_ACCEL := 520.0
+const SEEK_BRAKE := 700.0
+const SEEK_COAST := 0.22
 const SEEK_TURN := 5.0
 const SEEK_TURN_MAX := 16.0
 const SEEK_SEARCH := 260.0
@@ -233,16 +242,12 @@ func _process_bow() -> void:
 func _fire_shot() -> void:
 	var from := _sprite.global_position
 	var pierce := 1 if _perk(basic, 0) else 0
-	if _unique(basic):
-		for i in SHOT_FAN_COUNT:
-			var a := _aim + SHOT_FAN * (i - (SHOT_FAN_COUNT - 1) / 2.0)
-			_spawn_arrow(from, a, null, basic, _swing_power * SHOT_FAN_POWER, pierce)
-		return
-	if _perk(basic, 1) and _strike_count % 3 == 0:
-		_spawn_arrow(from, _aim - SHOT_PAIR, _shot_target, basic, _swing_power, pierce)
-		_spawn_arrow(from, _aim + SHOT_PAIR, null, basic, _swing_power, pierce)
-	else:
-		_spawn_arrow(from, _aim, _shot_target, basic, _swing_power, pierce)
+	var bonus := SHOT_PERK_EXTRA if _perk(basic, 1) and _strike_count % 3 == 0 else 0  # 10. poziom (też z Wielostrzałem)
+	var unique := _unique(basic)
+	var count := (SHOT_FAN_COUNT if unique else 1) + bonus
+	var power := _swing_power * (SHOT_FAN_POWER if unique else 1.0) * projectile_mult
+	for a in fan(_aim, count, SHOT_FAN if unique else SHOT_PAIR):
+		_spawn_arrow(from, a, _shot_target if absf(a - _aim) < 0.001 else null, basic, power, pierce)
 
 
 ## Strzała z punktu `from` pod kątem `a` (lekko naprowadzana na `target`); `pierce` - ilu wrogów przebije (-1 - wszystkich).
@@ -285,7 +290,7 @@ func _spawn_seeker(from: Vector2, a: float, mult := 1.0) -> void:
 	var arrow := {"fx": fx, "dir": Vector2.from_angle(a), "speed": SEEK_SPEED, "hits": [], "skill": "b_seeker",
 			"power": mult, "pierce": -1, "target": null, "side": false, "side_acc": 0.0, "left": INF,
 			"seek": true, "life": SEEK_LIFE, "hits_left": SEEK_HITS_PERK if _perk("b_seeker", 0) else SEEK_HITS,
-			"last": null, "since": SEEK_PASS, "turn": SEEK_TURN, "trail": trail}
+			"last": null, "since": SEEK_PASS, "turn": SEEK_TURN, "trail": trail, "coast": 0.0}
 	arrow.target = _seek_target(from, null)
 	_arrows.append(arrow)
 
@@ -323,11 +328,18 @@ func _process_arrows(delta: float) -> void:
 				s.target = _seek_target(fx.global_position, s.last)
 				tgt = s.target
 				alive_tgt = tgt != null
-			if alive_tgt:
+			if s.coast > 0.0:  # po przebiciu: leci prosto dalej i hamuje
+				s.coast -= delta
+				s.speed = maxf(SEEK_MIN, s.speed - SEEK_BRAKE * delta)
+			elif alive_tgt:
 				var want: Vector2 = tgt.center() - fx.global_position
-				var turn := minf(s.turn * delta, absf(s.dir.angle_to(want)))
+				var off := absf(s.dir.angle_to(want))
+				var turn := minf(s.turn * delta, off)
 				s.dir = s.dir.rotated(signf(s.dir.angle_to(want)) * turn).normalized()
 				s.turn = minf(s.turn + delta * 4.0, SEEK_TURN_MAX)  # bez trafienia coraz ciaśniej - nie krąży w kółko
+				# wolno, gdy zawraca; prosto na wroga - przyspiesza (prośba autora 20.11.2026)
+				var want_speed := lerpf(SEEK_MAX, SEEK_MIN, clampf(off / (PI * 0.5), 0.0, 1.0))
+				s.speed = move_toward(s.speed, want_speed, (SEEK_ACCEL if want_speed > s.speed else SEEK_BRAKE) * delta)
 		elif alive_tgt:
 			var want2: Vector2 = (tgt.center() - fx.global_position).normalized()
 			s.dir = s.dir.slerp(want2, minf(1.0, 6.0 * delta)).normalized()
@@ -356,6 +368,7 @@ func _process_arrows(delta: float) -> void:
 				s.since = 0.0
 				s.hits_left -= 1
 				s.turn = SEEK_TURN
+				s.coast = SEEK_COAST
 				s.target = _seek_target(fx.global_position, t)
 				if s.hits_left <= 0:
 					done = true
@@ -445,11 +458,8 @@ func _start(id: String) -> void:
 
 ## Poszukujące z punktu `from` (10. poziom - dwie, rozchylone); `mult` - siła (powtórka balisty słabiej).
 func _seekers(from: Vector2, mult: float) -> void:
-	if _perk("b_seeker", 1):
-		_spawn_seeker(from, _aim - SEEK_PAIR, mult)
-		_spawn_seeker(from, _aim + SEEK_PAIR, mult)
-	else:
-		_spawn_seeker(from, _aim, mult)
+	for a in fan(_aim, 2 if _perk("b_seeker", 1) else 1, SEEK_PAIR):
+		_spawn_seeker(from, a, mult * projectile_mult)
 
 
 # --- Deszcz strzał ---
@@ -655,8 +665,9 @@ func _process_ballistas(delta: float) -> void:
 			if best:
 				if b.turret.has_method("play_anim"):
 					b.turret.call("play_anim", &"shoot", true)
-				_spawn_arrow(muzzle + b.dir * 10.0, b.dir.angle(), best, "b_ballista", 1.0, 1,
-						BALLISTA_RANGE * _area("b_ballista") + 30.0)
+				for a in fan(b.dir.angle(), 1, Auras.ROJ_SPREAD):
+					_spawn_arrow(muzzle + b.dir * 10.0, a, best if absf(a - b.dir.angle()) < 0.001 else null,
+							"b_ballista", projectile_mult, 1, BALLISTA_RANGE * _area("b_ballista") + 30.0)
 		if b.left <= 0.0 or hero.dead:
 			var fade := base.create_tween()
 			fade.tween_property(base, "modulate:a", 0.0, 0.3)

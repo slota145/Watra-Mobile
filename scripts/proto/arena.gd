@@ -828,6 +828,8 @@ func _apply_weapon() -> void:
 	weapon.penetration = gear.get("pen_pct", 0.0) / 100.0
 	weapon.aura_fire = gear.get("aura_fire", 0.0)
 	weapon.elem_mult = 1.0 + gear.get("elem_dmg_pct", 0.0) / 100.0
+	weapon.extra_projectiles = int(gear.get("aura_projectiles", 0))  # Rój Strzyboga
+	weapon.projectile_mult = 1.0 - gear.get("aura_proj_penalty", 0.0)
 	ProtoTarget.burn_power = 1.0 + gear.get("aura_burn", 0.0)  # Złość Licha
 	ProtoTarget.burn_length = 1.0 + (Auras.LICHO_TIME if gear.get("aura_burn", 0.0) > 0.0 else 0.0)
 	if horde_spawner:

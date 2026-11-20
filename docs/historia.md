@@ -2,6 +2,19 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - Rój Strzyboga, dynamiczna Poszukująca, 10. poziom strzału z Wielostrzałem
+
+Prośby autora (pytania: siła, pociski, nazwa).
+- Aura **Rój Strzyboga** (`Auras` "roj", 30% many): +1 pocisk naraz, od 5. poziomu +2 (`roj_extra`), kara obrażeń tych
+  pocisków 10% na 1. poziomie, 0 na 10. (`aura_projectiles`, `aura_proj_penalty` -> `ProtoWeapon.extra_projectiles`,
+  `projectile_mult`). Stożek - `ProtoWeapon.fan(aim, count, spread)`; działa na strzał łuku (też Wielostrzał),
+  Poszukującą (też z przywołania), bańki hydrosfery (zwykły atak, też krążące z kamieniem, i pociski Strażnika)
+  i bełty balisty. Przyszłe pociski - przez `fan`.
+- Poszukująca: prędkość zależy od kąta do celu (prosto - do SEEK_MAX 380, przy zawracaniu do SEEK_MIN 90), po
+  przebiciu SEEK_COAST 0,22 s leci prosto i hamuje (`coast`), potem zawraca i przyspiesza.
+- 10. poziom strzału działał tylko bez kamienia: teraz co trzeci strzał +2 strzały (`SHOT_PERK_EXTRA`) i ze zwykłym
+  strzałem (3 strzały), i z Wielostrzałem (7).
+
 ## 20.11.2026 - łuk (piąta broń, powietrze)
 
 Pomysł i decyzje autora (pytania przed pracą): żywioł powietrze, loch 5 albo 1500 zł (pierwsza broń po mieczu),

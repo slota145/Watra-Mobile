@@ -99,14 +99,24 @@ func _test_combat(game: Node) -> void:
 	_check(bow._arrows.size() == 1, "strzał: strzała w locie")
 	await _wait(0.5)
 	_check(a.hp < hp and bow._arrows.is_empty(), "strzała trafia i znika")
-	# Poszukująca
+	# Poszukująca: przyspiesza na wroga, po przebiciu hamuje
 	hp = a.hp
 	var hpb := b.hp
 	bow._aim = PI / 2.0
 	bow._spawn_seeker(hero.global_position, PI / 2.0)
-	await _wait(2.5)
+	var speeds: Array[float] = []
+	for i in 25:
+		await _wait(0.1)
+		var sk := bow._arrows.filter(func(x: Dictionary) -> bool: return x.has("seek"))
+		if not sk.is_empty():
+			speeds.append(sk[0].speed)
+	_check(speeds.size() > 3 and speeds.max() > ProtoBow.SEEK_SPEED + 60.0 and speeds.min() < ProtoBow.SEEK_SPEED - 40.0,
+			"Poszukująca zmienia prędkość (%d-%d)" % [roundi(speeds.min()), roundi(speeds.max())])
 	_check(a.hp < hp and b.hp < hpb, "Poszukująca: skręca i trafia kolejnych wrogów")
 	# Deszcz strzał
+	for s in bow._arrows:  # Poszukująca mogła jeszcze lecieć
+		s.fx.queue_free()
+	bow._arrows.clear()
 	hp = a.hp
 	hpb = b.hp
 	bow._add_rain(a.global_position, 1.0)
@@ -154,8 +164,35 @@ func _test_unique(game: Node) -> void:
 	for g in [a, b, c]:
 		g._stunned = 60.0
 	bow._aim = 0.0
+	bow._strike_count = 1
 	bow._fire_shot()
 	_check(bow._arrows.size() == ProtoBow.SHOT_FAN_COUNT, "Wielostrzał: 5 strzał w stożku")
+	bow._arrows.clear()
+	game.skill_levels["b_shot"] = 10
+	bow.skill_levels = game.skill_levels
+	bow._strike_count = 3
+	bow._fire_shot()
+	_check(bow._arrows.size() == ProtoBow.SHOT_FAN_COUNT + 2, "10. poziom z Wielostrzałem: co trzeci strzał 7 strzał")
+	for s in bow._arrows:
+		s.fx.queue_free()
+	bow._arrows.clear()
+	# Rój Strzyboga
+	game.auras = {"roj": 5}
+	game.auras_on = ["roj"]
+	game.inventory_changed.emit()
+	await process_frame
+	_check(bow.extra_projectiles == 2 and bow.projectile_mult < 1.0, "Rój Strzyboga: +2 pociski od 5. poziomu")
+	bow._strike_count = 1
+	bow._fire_shot()
+	_check(bow._arrows.size() == ProtoBow.SHOT_FAN_COUNT + 2, "Rój: Wielostrzał z 2 strzałami więcej")
+	for s in bow._arrows:
+		s.fx.queue_free()
+	bow._arrows.clear()
+	game.auras_on = []
+	game.inventory_changed.emit()
+	await process_frame
+	game.skill_levels["b_shot"] = 1
+	bow.skill_levels = game.skill_levels
 	await _wait(0.6)
 	# przywołanie
 	hero.mana = hero.mana_cap()

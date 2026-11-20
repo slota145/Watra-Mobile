@@ -208,7 +208,7 @@ const PERKS := {
 	"k_riposte": ["Garda czeka 5 s zamiast 3.", "Z precyzyjnego cięcia po okręgu piorun przeskakuje na wrogów obok."],
 	"k_perun": ["Ładuje się o 1/3 szybciej.", "Na końcu cięcia uderza piorun, który rani wszystkich wokół."],
 	"k_flash": ["Zabicie skokiem zwraca dwa razy więcej many.", "Co 5. skok wiązka piorunów przeskakuje po 5 wrogach."],
-	"b_shot": ["Strzała przebija pierwszego wroga i leci dalej.", "Co trzeci strzał to dwie strzały."],
+	"b_shot": ["Strzała przebija pierwszego wroga i leci dalej.", "Co trzeci strzał - dwie strzały więcej (też z Wielostrzałem)."],
 	"b_seeker": ["6 trafień zamiast 4.", "Lecą dwie strzały naraz."],
 	"b_rain": ["Krąg deszczu o 30% większy.", "Deszcz pada 2 s zamiast 1."],
 	"b_power": ["Naciąga się o 1/3 szybciej.", "Podmuch ogłusza wrogów na 0,8 s."],
