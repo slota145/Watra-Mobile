@@ -1,6 +1,6 @@
 class_name BaseWindow
 extends Control
-## Wspólny szkielet okien budynków w bazie (ulepszenia lochów przy Watrze, kowal, kupiec): przyciemnione tło,
+## Wspólny szkielet okien budynków w bazie (drzewko lochów przy Watrze, kowal, kupiec): przyciemnione tło,
 ## panel na cały ekran (z marginesem), u góry tytuł i waluta (ikona + liczba - `set_currency`), w środku przewijana
 ## treść (`content`), na dole przycisk „Wróć” (pod kciukiem). Zatrzymuje grę, gdy jest otwarte (PROCESS_MODE_ALWAYS).
 ## Kupno z potwierdzeniem: pierwsze stuknięcie przycisku z ceną pyta („Na pewno?”), drugie kupuje (`confirm`).

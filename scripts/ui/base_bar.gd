@@ -2,7 +2,7 @@ class_name BaseBar
 extends Control
 ## Pasek skrótów w bazie (ustalone z autorem 12.11.2026): pionowa kolumna ikon przy dolnej krawędzi, po drugiej
 ## stronie niż przyciski walki (`left_handed` - po prawej). Każda ikona z podpisem otwiera okno budynku od razu,
-## bez podchodzenia postacią (sygnał `chosen` z identyfikatorem): Watra (wybór poziomu i ulepszenia lochów),
+## bez podchodzenia postacią (sygnał `chosen` z identyfikatorem): Watra (wybór poziomu i drzewko lochów),
 ## Skrzynia, Umiejętności (kamień run), Kowal, Kupiec.
 
 signal chosen(id: String)

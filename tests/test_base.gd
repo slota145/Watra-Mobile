@@ -1,9 +1,9 @@
 extends SceneTree
-## Test bazy: ulepszenia lochów za złoto (ceny 50-1000, premie, zapis, działanie w lochu), kowal (przeróbka jednej premii,
+## Test bazy: drzewko lochów w lochu (premie Hordy, łupu, nauki, zasięgu), kowal (przeróbka jednej premii,
 ## rosnąca cena, zapis przeróbek), kupiec (półka: klucz, dłuto, 2 różne kamienie 1. stopnia, 3 przedmioty; kupno
 ## do sakwy i torby, pełna torba, brak złota, nowa dostawa, zapis), baza (kowal i kupiec otwierają okna, pasek skrótów
 ## w dolnej połowie, min. 44 px, po drugiej stronie niż przyciski walki), kamera przy brzegu polany, okna (potwierdzenie drugim stuknięciem,
-## „Wróć”, „wstecz”, pauza), przycisk ulepszeń w wyborze poziomu przy Watrze.
+## „Wróć”, „wstecz”, pauza), przycisk drzewka w wyborze poziomu przy Watrze (szczegóły drzewka - test_tree).
 
 var _failed := 0
 
@@ -27,7 +27,6 @@ func _run() -> void:
 	var game: Node = root.get_node("Game")
 	DirAccess.remove_absolute(game.save_path)
 	game.load_game()
-	_test_upgrades(game)
 	_test_smith(game)
 	_test_shop(game)
 	await _test_dungeon(game)
@@ -37,29 +36,6 @@ func _run() -> void:
 	DirAccess.remove_absolute(game.save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
 	quit(1 if _failed else 0)
-
-
-func _test_upgrades(game: Node) -> void:
-	_check(DungeonUpgrades.ORDER.size() == 4 and game.upgrade_price("monsters") == 50, "4 ulepszenia, pierwszy stopień za 50 złota")
-	game.gold = 40
-	game.embers = 5000
-	_check(not game.buy_upgrade("monsters") and game.gold == 40 and game.embers == 5000, "za mało złota - nie kupi (żar nie pomaga)")
-	game.gold = 3000
-	var prices: Array = []
-	while game.upgrade_price("monsters") > 0:
-		prices.append(game.upgrade_price("monsters"))
-		game.buy_upgrade("monsters")
-	_check(prices == [50, 120, 250, 500, 1000] and game.gold == 3000 - 1920 and game.embers == 5000, "stopnie za 50, 120, 250, 500, 1000 złota")
-	_check(not game.buy_upgrade("monsters") and game.upgrade_steps("monsters") == 5, "więcej niż 5 stopni się nie kupi")
-	_check(game.upgrade_bonus("monsters") == 50.0 and DungeonUpgrades.bonus("xp", 5) == 40.0
-			and DungeonUpgrades.bonus("loot", 5) == 50.0 and DungeonUpgrades.bonus("reach", 5) == 40.0,
-			"premie: potwory +50%, doświadczenie +40%, łup +50%, zasięg +40 px")
-	_check(DungeonUpgrades.text("monsters", 2) == "+20% potworów", "opis premii („%s”)" % DungeonUpgrades.text("monsters", 2))
-	game.buy_upgrade("reach")
-	game.load_game()
-	_check(game.upgrade_steps("monsters") == 5 and game.upgrade_steps("reach") == 1 and game.gold == 3000 - 1970,
-			"ulepszenia i złoto zapisane")
-	_check(not game.buy_upgrade("nic"), "nieznane ulepszenie")
 
 
 func _test_smith(game: Node) -> void:
@@ -131,21 +107,22 @@ func _test_shop(game: Node) -> void:
 
 
 func _test_dungeon(game: Node) -> void:
-	game.upgrades = {"monsters": 5, "xp": 2, "loot": 3, "reach": 4}
+	game.best_level = 20
+	game.tree = {"horde": 5, "xp": 4, "loot": 5, "reach": 5}
 	var arena: Node = load("res://scenes/horde.tscn").instantiate()
 	root.add_child(arena)
 	await process_frame
 	var horde: ProtoHorde = arena.horde_spawner
-	_check(is_equal_approx(horde.density, 1.5) and is_equal_approx(horde.loot_mult, 1.3) and horde.reach == 32.0,
-			"loch: gęstość 1,5, łup x1,3, zasięg +32 px")
-	_check(is_equal_approx(horde.interval(), ProtoHorde.INTERVAL_START / 1.5) and horde.max_alive() == roundi(ProtoHorde.ALIVE_START * 1.5),
+	_check(is_equal_approx(horde.density, 1.2) and is_equal_approx(horde.loot_mult, 1.2) and horde.reach == 30.0,
+			"loch: gęstość 1,2, łup x1,2, zasięg +30 px")
+	_check(is_equal_approx(horde.interval(), ProtoHorde.INTERVAL_START / 1.2) and horde.max_alive() == roundi(ProtoHorde.ALIVE_START * 1.2),
 			"gęstsza Horda: częściej i więcej naraz (%d)" % horde.max_alive())
 	var xp: int = game.hero_xp
 	arena._gain_xp(100)
 	_check(game.hero_xp - xp == 116 or game.hero_level > 1, "doświadczenie +16%% (%d)" % (game.hero_xp - xp))
 	var loot := horde.drop_item(Items.roll(1), Vector2(500, 500))
 	await process_frame
-	_check(loot.magnet == ProtoLoot.MAGNET + 32.0, "łup przyciąga się z dalszej odległości")
+	_check(loot.magnet == ProtoLoot.MAGNET + 30.0, "łup przyciąga się z dalszej odległości")
 	# kamera bez granic: przy brzegu polany postać zostaje na środku ekranu
 	arena.hero.position = Vector2(-340, 540)
 	await _wait(1.5)
@@ -153,7 +130,8 @@ func _test_dungeon(game: Node) -> void:
 	_check(on_screen.distance_to(root.get_visible_rect().size / 2.0) < 4.0, "w rogu polany postać na środku ekranu (%s)" % on_screen)
 	arena.queue_free()
 	await process_frame
-	game.upgrades = {}
+	game.tree = {}
+	game.best_level = 0
 	game.save_game()
 
 
@@ -203,19 +181,14 @@ func _test_base(game: Node) -> void:
 		w.close()
 	arena.base_bar.buttons["watra"].pressed.emit()
 	_check(arena.picker.visible, "pasek: „Watra” otwiera wybór poziomu")
-	# ulepszenia z wyboru poziomu
+	# drzewko z wyboru poziomu
 	await process_frame
 	var up: Button = arena.picker.upgrades_button
-	_check(up.get_global_rect().size.y >= 44.0 and up.get_global_rect().get_center().y > view.y * 0.5, "„Ulepszenia lochów” pod kciukiem")
+	_check(up.get_global_rect().size.y >= 44.0 and up.get_global_rect().get_center().y > view.y * 0.5, "„Drzewko” pod kciukiem")
 	up.pressed.emit()
-	_check(arena.upgrades_window.visible and not arena.picker.visible and paused, "„Ulepszenia lochów” otwiera okno ulepszeń")
-	var b: Button = arena.upgrades_window.content.find_child("Buy_xp", true, false)
-	b.pressed.emit()
-	arena.upgrades_window.content.find_child("Buy_xp", true, false).pressed.emit()
-	_check(game.upgrade_steps("xp") == 1 and game.gold == 550 and game.embers == 300 and arena.watra.embers_label.text == "Żar Watry: 300",
-			"kupno ulepszenia za złoto, żar Watry nietknięty (%d, %d, %s)" % [game.upgrade_steps("xp"), game.gold, arena.watra.embers_label.text])
-	arena.upgrades_window.back_button.pressed.emit()
-	_check(arena.picker.visible and paused, "po zamknięciu ulepszeń wraca wybór poziomu")
+	_check(arena.tree_window.visible and not arena.picker.visible and paused, "„Drzewko” otwiera drzewko lochów")
+	arena.tree_window.back_button.pressed.emit()
+	_check(arena.picker.visible and paused, "po zamknięciu drzewka wraca wybór poziomu")
 	arena.picker.close()
 	# kowal: przeróbka w oknie
 	game.add_item(Items.roll(3, "ring", "rare"))

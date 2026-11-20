@@ -1,8 +1,8 @@
 extends SceneTree
-## Zrzuty bazy z kowalem i kupcem: okno ulepszeń lochów (żar), kupiec z półką, kowal z opisem przedmiotu
+## Zrzuty bazy z kowalem i kupcem: drzewko lochów, kupiec z półką, kowal z opisem przedmiotu
 ## (premia przed przeróbką uzbrojona - „Na pewno?”).
 ## Użycie: SCRIPT=tools/base_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
-## Pliki: <prefiks>_1_baza.png, _2_ulepszenia.png, _3_kupiec.png, _4_kowal.png
+## Pliki: <prefiks>_1_baza.png, _2_drzewko.png, _3_kupiec.png, _4_kowal.png
 
 var _prefix := "/tmp/baza"
 
@@ -26,7 +26,7 @@ func _run() -> void:
 	game.load_game()
 	game.reset_hero()
 	game.embers = 430
-	game.upgrades = {"monsters": 2, "reach": 1}
+	game.tree = {"horde": 2, "reach": 1}
 	game.best_level = 4
 	game.dungeon_level = 4
 	game.gold = 760
@@ -39,8 +39,8 @@ func _run() -> void:
 	await _shot("1_baza")
 	arena.open_upgrades()
 	await create_timer(0.2).timeout
-	await _shot("2_ulepszenia")
-	arena.upgrades_window.close()
+	await _shot("2_drzewko")
+	arena.tree_window.close()
 	arena.picker.close()
 	arena.open_shop()
 	arena.shop_window._buy(0)  # uzbrojony przycisk klucza

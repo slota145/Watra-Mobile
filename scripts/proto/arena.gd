@@ -6,7 +6,7 @@ extends Node2D
 ## Wszystko budowane w kodzie, żeby prototyp łatwo było zmieniać i wyrzucić.
 ## Dwa tryby: baza (prototype.tscn - kukły i Watra; dotknięcie Watry przenosi do lochu) i loch z Hordą
 ## (horde.tscn, `horde = true` - ciągły strumień goblinów, pasek zdrowia, licznik pokonanych, po śmierci okno wyniku).
-## Żar: iskry z goblinów liczy ProtoHorde i zapełniają pasek żaru (DungeonLevels.summon_cost(level)). Pełny pasek pokazuje
+## Żar: iskry z goblinów liczy ProtoHorde i zapełniają pasek żaru (_summon_cost()). Pełny pasek pokazuje
 ## przycisk „Przyzwij Wodza”: przyzwanie zjada żar z paska, gobliny uciekają, wchodzi Wódz Goblinów (ProtoChief) z własnym
 ## paskiem zdrowia. Po jego śmierci spada skrzynia z żarem (ProtoChest), a po jej otwarciu cały żar z wyprawy trafia do
 ## Watry (`Game.bank_embers`), poziom lochu zostaje przebity (`Game.beat_level`) i pokazuje się okno zwycięstwa.
@@ -25,7 +25,7 @@ extends Node2D
 ## a na przyciskach widać odnowienie i brak many (`_update_skill_buttons`).
 ## Baza i waluty (ustalone 12.11.2026): kowal (postać z Watry przy kowadle, okno SmithWindow - przeróbka premii za złoto)
 ## i kupiec (wędrowny kupiec przy straganie, okno ShopWindow - towar odnawia się po każdym zwycięstwie nad Wodzem),
-## ulepszenia lochów za żar (UpgradesWindow z wyboru poziomu przy Watrze; działanie w lochu - `_apply_upgrades`)
+## drzewko lochów (DungeonTreeWindow z wyboru poziomu przy Watrze; działanie w lochu - `_apply_upgrades`, `_tick_wander`)
 ## i pasek skrótów (BaseBar) otwierający okna budynków bez podchodzenia.
 ## Górny rząd (decyzja autora 13.11.2026): „Menu”, ikonki „Postać” (okno HeroStats) i „Umiejętności” (SkillsWindow;
 ## kupno tylko w bazie) - w bazie i w lochu; oba okna zatrzymują grę.
@@ -140,7 +140,7 @@ var smith: ProtoStash
 var merchant: ProtoStash
 var smith_window: SmithWindow
 var shop_window: ShopWindow
-var upgrades_window: UpgradesWindow
+var tree_window: DungeonTreeWindow
 ## Drabinka odblokowań (Unlocks) z wyboru poziomu.
 var unlocks_window: UnlocksWindow
 var mods_window: ModsWindow
@@ -350,13 +350,26 @@ func _npc(world: Node2D, node_name: String, title: String, sheet: Texture2D, at:
 	return npc
 
 
-## Ulepszenia lochów za żar (Game.upgrades) do strumienia Hordy: gęstość (razy tłum poziomu lochu), szansa łupu, zasięg zbierania.
-## Doświadczenie dolicza `_gain_xp`, szansę na kamienie ze skrzyni Wodza - `_on_chief_died`.
+## Drzewko lochów (Game.tree_value, DungeonTree) do strumienia Hordy: gęstość (razy tłum poziomu lochu), szansa łupu
+## i kamieni, zasięg zbierania, elity. Doświadczenie i mistrzostwo dolicza `_gain_xp`, żar - `_apply_weapon`, złoto -
+## Game.add_gold, koszt przyzwania - `_summon_cost`, nagrody celów i Wędrowne cele - przy celach.
 func _apply_upgrades() -> void:
-	horde_spawner.density = (1.0 + Game.upgrade_bonus("monsters") / 100.0) * DungeonLevels.crowd(Game.dungeon_level) \
+	horde_spawner.density = (1.0 + Game.tree_value("horde") / 100.0) * DungeonLevels.crowd(Game.dungeon_level) \
 			* DungeonMods.mult(mods, "density")
-	horde_spawner.loot_mult = (1.0 + Game.upgrade_bonus("loot") / 100.0) * _gift_value("loot", 1.0) * DungeonMods.mult(mods, "loot")
-	horde_spawner.reach = Game.upgrade_bonus("reach")
+	horde_spawner.loot_mult = (1.0 + Game.tree_value("loot") / 100.0) * _gift_value("loot", 1.0) * DungeonMods.mult(mods, "loot")
+	horde_spawner.gem_mult = 1.0 + Game.tree_value("gems") / 100.0
+	horde_spawner.reach = Game.tree_value("reach")
+	horde_spawner.elite_rate = DungeonMods.mult(mods, "elite_rate") * (1.0 + Game.tree_value("elites") / 100.0)
+
+
+## Żar potrzebny na przyzwanie Wodza (drzewko: Szybkie przyzwanie).
+func _summon_cost() -> int:
+	return maxi(1, roundi(DungeonLevels.summon_cost(level) * (1.0 - Game.tree_value("summon") / 100.0)))
+
+
+## Mnożnik nagród z celów na mapie lochu (drzewko: Szczodre cele).
+func _goal_reward() -> float:
+	return 1.0 + Game.tree_value("rewards") / 100.0
 
 
 ## Trawa z Watry powtarzana na całej polanie, z ciemniejszym brzegiem.
@@ -520,9 +533,9 @@ func _make_hud() -> void:
 		picker.enter.connect(enter_dungeon)
 		picker.upgrades.connect(open_upgrades)
 		safe.add_child(picker)
-		upgrades_window = UpgradesWindow.new()
-		upgrades_window.visible = false
-		upgrades_window.closed.connect(open_picker)
+		tree_window = DungeonTreeWindow.new()
+		tree_window.visible = false
+		tree_window.closed.connect(open_picker)
 		unlocks_window = UnlocksWindow.new()
 		unlocks_window.visible = false
 		unlocks_window.closed.connect(open_picker)
@@ -533,7 +546,7 @@ func _make_hud() -> void:
 		mods_window.closed.connect(open_picker)
 		safe.add_child(mods_window)
 		picker.mods.connect(func() -> void: mods_window.open())
-		safe.add_child(upgrades_window)
+		safe.add_child(tree_window)
 		smith_window = SmithWindow.new()
 		smith_window.visible = false
 		safe.add_child(smith_window)
@@ -619,7 +632,7 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	mana_text = _bar_text(mana_bar, 9)
 	_make_xp_row(box)
 	ember_bar = ProgressBar.new()
-	ember_bar.max_value = DungeonLevels.summon_cost(level)
+	ember_bar.max_value = _summon_cost()
 	ember_bar.value = 0
 	ember_bar.show_percentage = false
 	ember_bar.custom_minimum_size = Vector2(0, 11)
@@ -636,7 +649,7 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	ember_bar.add_theme_stylebox_override("fill", _fill_style)
 	box.add_child(ember_bar)
 	ember_text = _bar_text(ember_bar, 9)
-	ember_text.text = "0 / %d" % DungeonLevels.summon_cost(level)
+	ember_text.text = "0 / %d" % _summon_cost()
 	# dwa krótkie wiersze (w jednym nie mieściły się na 360 px i rozpychały cały interfejs): poziom i czas,
 	# pokonane i żar
 	var row := HBoxContainer.new()
@@ -746,10 +759,10 @@ func _bar_text(bar: ProgressBar, font_size: int) -> Label:
 func _gain_xp(amount: int) -> void:
 	if hero.dead:
 		return
-	amount = roundi(amount * (1.0 + (gear.get("xp_pct", 0.0) + Game.upgrade_bonus("xp")) / 100.0))
+	amount = roundi(amount * (1.0 + (gear.get("xp_pct", 0.0) + Game.tree_value("xp")) / 100.0))
 	run_xp += amount
 	Game.add_xp(amount)
-	Game.add_mastery(amount)
+	Game.add_mastery(roundi(amount * (1.0 + Game.tree_value("mastery") / 100.0)))
 
 
 ## Zmiana doświadczenia w Game: pasek i numer poziomu (na najwyższym poziomie pasek pełny).
@@ -834,7 +847,7 @@ func _apply_weapon() -> void:
 	ProtoTarget.burn_length = 1.0 + (Auras.LICHO_TIME if gear.get("aura_burn", 0.0) > 0.0 else 0.0)
 	if horde_spawner:
 		horde_spawner.pickup_mult = 1.0 + gear.get("pickup_pct", 0.0) / 100.0
-		horde_spawner.ember_mult = 1.0 + gear.get("ember_pct", 0.0) / 100.0
+		horde_spawner.ember_mult = 1.0 + (gear.get("ember_pct", 0.0) + Game.tree_value("embers")) / 100.0
 
 
 ## Zmiana broni w bazie (okno umiejętności): nowy węzeł broni w miejscu starego (te same cele - kukły), statystyki
@@ -1036,10 +1049,33 @@ func _process(delta: float) -> void:
 		fps_label.text = tr("%d kl./s, potwory: %d") % [Engine.get_frames_per_second(), horde_spawner._alive if horde_spawner else 0]
 	if gift != "":
 		_tick_gift(delta)
+	_tick_wander(delta)
 	if summon_button and summon_button.visible:  # pełny pasek pulsuje
 		var k := 0.5 + 0.5 * sin(_time * 6.0)
 		_fill_style.bg_color = EMBER_FILL.lerp(EMBER_FULL, k)
 		summon_button.modulate = Color(1, 1, 1).lerp(Color(1.25, 1.1, 0.85), k)
+
+
+## Wędrowne cele (drzewko, prośba autora 20.11.2026): w trakcie Hordy co DungeonTree.WANDER_EVERY s szansa na cel
+## spoza paska żaru (najwyżej WANDER_MAX naraz, nie wliczają się do progów paska).
+var _wander_goals := 0
+var _wander_acc := 0.0
+var _wander_live: Array = []
+
+
+func _tick_wander(delta: float) -> void:
+	var chance := Game.tree_value("wander") / 100.0
+	if chance <= 0.0 or phase != "horde" or hero == null or hero.dead or horde_spawner == null:
+		return
+	_wander_acc += delta
+	if _wander_acc < DungeonTree.WANDER_EVERY:
+		return
+	_wander_acc = 0.0
+	_wander_live = _wander_live.filter(func(g) -> bool: return is_instance_valid(g))
+	if _wander_live.size() >= DungeonTree.WANDER_MAX or randf() >= chance:
+		return
+	_wander_goals += 1
+	_wander_live.append(spawn_goal(DungeonGoals.roll(level, goal_kinds)))
 
 
 ## Zmiana żaru z wyprawy: licznik, pasek (do kosztu przyzwania) i przycisk przyzwania przy pełnym pasku.
@@ -1047,11 +1083,11 @@ func _on_embers(e: int) -> void:
 	embers_label.text = str(e)
 	if phase != "horde":
 		return
-	ember_bar.value = mini(e, DungeonLevels.summon_cost(level))
-	while goals.size() < DungeonGoals.thresholds_passed(e, DungeonLevels.summon_cost(level)) and not hero.dead:
+	ember_bar.value = mini(e, _summon_cost())
+	while goals.size() - _wander_goals < DungeonGoals.thresholds_passed(e, _summon_cost()) and not hero.dead:
 		spawn_goal(DungeonGoals.roll(level, goal_kinds))
-	ember_text.text = "%d / %d" % [e, DungeonLevels.summon_cost(level)]
-	var full := e >= DungeonLevels.summon_cost(level)
+	ember_text.text = "%d / %d" % [e, _summon_cost()]
+	var full := e >= _summon_cost()
 	summon_button.visible = full and not hero.dead
 	if not full:
 		_fill_style.bg_color = EMBER_FILL
@@ -1072,6 +1108,7 @@ func spawn_goal(kind: String) -> Node2D:
 			spirit.level = level
 			spirit.bounds = ARENA.grow(-24)
 			spirit.gold.connect(func(amount: int) -> void:
+				amount = roundi(amount * _goal_reward())
 				run_skarbnik_gold += amount
 				Game.add_gold(amount))
 			spirit.caught.connect(func(where: Vector2) -> void:
@@ -1111,8 +1148,8 @@ func spawn_goal(kind: String) -> Node2D:
 			var box := ProtoChest.new()
 			box.hero = hero
 			box.hold_time = DungeonGoals.CHEST_HOLD
-			box.embers = DungeonGoals.chest_embers(level)
-			box.items = DungeonGoals.chest_items(level, horde_spawner.loot_mult)
+			box.embers = roundi(DungeonGoals.chest_embers(level) * _goal_reward())
+			box.items = DungeonGoals.chest_items(level, horde_spawner.loot_mult * horde_spawner.gem_mult)
 			box.loot_spawned.connect(_track_loot)
 			box.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner.on_chest_ember))
 			goal = box
@@ -1164,7 +1201,7 @@ func _drop_reward(item: Dictionary, at: Vector2, delay: float) -> void:
 
 ## Kryształ obroniony: kamienie (wg zdrowia, które zostało) i odpryski od razu do sakwy.
 func _on_crystal_defended(at: Vector2, health: float) -> void:
-	var shards := DungeonGoals.crystal_shards(health)
+	var shards := roundi(DungeonGoals.crystal_shards(health) * _goal_reward())
 	Game.add_shards(shards)
 	for i in DungeonGoals.crystal_gems(health):
 		_drop_reward({"gem": Gems.roll(level)}, at, 0.3 + 0.2 * i)
@@ -1189,7 +1226,7 @@ func announce(text: String, color: Color) -> void:
 ## Dar kapliczki: DungeonGoals.GIFT_TIME s (nowy zastępuje poprzedni), cechy od razu w postaci i broni.
 func grant_gift(id: String) -> void:
 	gift = id
-	gift_left = DungeonGoals.GIFT_TIME
+	gift_left = DungeonGoals.GIFT_TIME + Game.tree_value("gift")
 	var data: Dictionary = DungeonGoals.GIFTS[id]
 	announce("%s\n%s" % [tr(data["name"]), tr(data["description"])], data["color"])
 	hero.float_text(tr(data["name"]), -60.0, data["color"].lightened(0.3), 14)
@@ -1238,10 +1275,10 @@ func _gear() -> Dictionary:
 
 ## Przyzwanie Wodza: zjada żar z paska (nadwyżka zostaje), gobliny uciekają, Wódz wchodzi nad postacią.
 func summon_chief() -> void:
-	if phase != "horde" or hero.dead or horde_spawner.embers < DungeonLevels.summon_cost(level):
+	if phase != "horde" or hero.dead or horde_spawner.embers < _summon_cost():
 		return
 	phase = "boss"
-	horde_spawner.embers -= DungeonLevels.summon_cost(level)
+	horde_spawner.embers -= _summon_cost()
 	embers_label.text = str(horde_spawner.embers)
 	summon_button.visible = false
 	ember_bar.visible = false
@@ -1295,9 +1332,9 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	chest.hero = hero
 	chest.embers = DungeonLevels.chest_embers(level)
 	chest.items = Items.roll_chest(level)
-	for id in Gems.roll_chest(level, horde_spawner.loot_mult):
+	for id in Gems.roll_chest(level, horde_spawner.loot_mult * horde_spawner.gem_mult):
 		chest.items.append({"gem": id})
-	var aura := Auras.roll_chest(level, false, horde_spawner.loot_mult)  # kamień aury (od lochu Auras.MIN_LEVEL)
+	var aura := Auras.roll_chest(level, false, horde_spawner.loot_mult * horde_spawner.gem_mult)  # kamień aury (od lochu Auras.MIN_LEVEL)
 	if aura != "":
 		chest.items.append({"aura": aura})
 	chest.loot_spawned.connect(_track_loot)
@@ -1375,10 +1412,10 @@ func open_shop() -> void:
 	shop_window.open()
 
 
-## Baza: ulepszenia lochów za żar (z wyboru poziomu przy Watrze; po zamknięciu wybór wraca).
+## Baza: drzewko lochów (z wyboru poziomu przy Watrze; po zamknięciu wybór wraca).
 func open_upgrades() -> void:
 	_release()
-	upgrades_window.open()
+	tree_window.open()
 
 
 ## Pasek skrótów w bazie: okno budynku od razu.
@@ -1483,7 +1520,7 @@ func _notification(what: int) -> void:
 		if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 			stats_window.back()
 		return
-	for w in [smith_window, shop_window, upgrades_window, unlocks_window, mods_window]:
+	for w in [smith_window, shop_window, tree_window, unlocks_window, mods_window]:
 		if w and w.visible:
 			if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 				w.back()

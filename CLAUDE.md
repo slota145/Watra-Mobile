@@ -72,8 +72,8 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   i `Items.totals`, pole `scripts/ui/gem_slot.gd`, zakładka „Kamienie” w oknie umiejętności, gniazda w opisie przedmiotu w „Postać”,
   wybór kamienia wysuwany od dołu `scripts/ui/gem_picker.gd` - „najpierw gniazdo” i „najpierw kamień”),
   `proto_loot.gd` - przedmiot na ziemi, `proto_stash.gd` - skrzynia w bazie (okno `scripts/ui/stash_window.gd`, pola z przeciąganiem `item_slot.gd`;
-  ten sam skrypt to kamień run, kowal i kupiec); baza i waluty: `scripts/dungeon_upgrades.gd` - ulepszenia lochów za złoto
-  (okno `scripts/ui/upgrades_window.gd` z wyboru poziomu), kowal - przeróbka premii (`Items.reroll_affix`, okno
+  ten sam skrypt to kamień run, kowal i kupiec); baza i waluty: `scripts/dungeon_tree.gd` - drzewko lochów (13 węzłów, punkt za każdy
+  przebity poziom lochu, cofanie za darmo; stan `Game.tree`, okno `scripts/ui/dungeon_tree_window.gd` z wyboru poziomu - „Drzewko”), kowal - przeróbka premii (`Items.reroll_affix`, okno
   `scripts/ui/smith_window.gd`), `scripts/shop.gd` - kupiec (okno `scripts/ui/shop_window.gd`), wspólny szkielet okien
   `scripts/ui/base_window.gd`, pasek skrótów w bazie `scripts/ui/base_bar.gd`;
   `scripts/ui/run_result.gd` - wynik po śmierci i okno zwycięstwa, `scripts/ui/level_picker.gd` - wybór poziomu przy Watrze;

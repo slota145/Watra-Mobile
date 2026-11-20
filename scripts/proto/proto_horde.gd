@@ -10,7 +10,7 @@ extends Node
 ## naraz), od 3. - osiłki (DungeonLevels.brute_share, najwyżej `MAX_BRUTES`; z osiłka wypada `BRUTE_EMBERS` żaru). Rzadko goblin upuszcza przedmiot z poziomu lochu (`level`, Items.roll_goblin).
 ## Od 2. poziomu co jakiś czas przychodzi elita (Elites, ProtoElite: cechy, większa, z napisem) - pokonana daje
 ## pewny przedmiot, iskrę za Elites.EMBERS żaru i sygnał `elite_killed` (arena dolicza doświadczenie).
-## Ulepszenia lochów (DungeonUpgrades, ustawia arena): `density` - gęstszy strumień, `loot_mult` - mnożnik szans łupu,
+## Drzewko lochów (DungeonTree, ustawia arena): `density` - gęstszy strumień, `loot_mult` - mnożnik szans łupu,
 ## `reach` - o tyle pikseli dalej iskry i łup lecą do postaci. Premie przedmiotów (ustawia arena): `pickup_mult` - mnożnik
 ## zasięgu przyciągania, `ember_mult` - mnożnik żaru z iskier (ułamki zbierają się w `_ember_rest`).
 ## Rodzaj lochu (`climate`, Dungeons) wybiera potwory na trzech rolach strumienia (`make_monster`): w Leżu goblinów
@@ -77,9 +77,11 @@ var power := 1.0
 var level := 1
 ## Rodzaj lochu (Dungeons) - jakie potwory idą w strumieniu.
 var climate := Dungeons.GOBLINS
-## Ulepszenia lochów: mnożnik liczby potworów (częściej i więcej naraz), mnożnik szans łupu, dodatkowy zasięg zbierania.
+## Drzewko lochów: mnożnik liczby potworów (częściej i więcej naraz), mnożnik szans łupu, dodatkowy zasięg zbierania.
 var density := 1.0
 var loot_mult := 1.0
+## Drzewko lochów (Kamienie Watry): mnożnik szansy na kamienie z goblinów (razem z loot_mult).
+var gem_mult := 1.0
 var reach := 0.0
 var pickup_mult := 1.0
 var ember_mult := 1.0
@@ -326,7 +328,7 @@ func _on_died(g: ProtoGoblin) -> void:
 			else Items.roll_goblin(level, loot_mult, Items.CHEST_WEIGHTS if rare_loot else Items.GOBLIN_WEIGHTS)
 	if not item.is_empty():
 		drop_item(item, g.position)
-	var gem := Gems.roll_goblin(level, loot_mult)
+	var gem := Gems.roll_goblin(level, loot_mult * gem_mult)
 	if gem != "":
 		drop_item({"gem": gem}, g.position)
 	if g.elite:
