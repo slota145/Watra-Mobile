@@ -72,6 +72,11 @@ func _test_game(game: Node) -> void:
 	_check(game.talisman_slots[1] == "" and game.talismans.has("tremor"), "zdjęty zostaje w kolekcji")
 	game.talismans["thunder"] = Talismans.MAX_LEVEL
 	_check(game.add_talisman("thunder") == 0, "na najwyższym poziomie talizman przepada")
+	var before: Dictionary = game.talismans.duplicate()
+	game.dev_talismans()
+	_check(game.talismans.size() == Talismans.ORDER.size() and game.talismans.devour == before.devour + 1
+			and game.talismans.thunder == Talismans.MAX_LEVEL, "tryb deweloperski: wszystkie talizmany")
+	game.talismans = before
 	game.save_game()
 	game.load_game()
 	_check(game.talismans.thunder == Talismans.MAX_LEVEL and game.talisman_slots == ["devour", "", "thunder"],

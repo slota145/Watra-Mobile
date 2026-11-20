@@ -1466,6 +1466,12 @@ func _return_item_gems(item: Dictionary) -> void:
 
 ## Tryb deweloperski: po kamieniu każdego rodzaju (szlachetne z obecnego poziomu lochu), kamienie unikalne,
 ## 2 klucze, 2 dłuta i 100 odprysków.
+## Tryb deweloperski: wszystkie talizmany - brakujące na 1. poziomie, posiadane o poziom wyżej (do Talismans.MAX_LEVEL).
+func dev_talismans() -> void:
+	for id in Talismans.ORDER:
+		add_talisman(id)
+
+
 func dev_gems() -> void:
 	for kind in Gems.SUPPORT_ORDER:
 		add_gem(Gems.make(kind), 1, false)
