@@ -22,8 +22,8 @@ extends Control
 ## nowe działania z 5. i 10. poziomu (złote - odblokowane) i co da następny poziom. Odblokowana umiejętność ma z prawej
 ## przycisk „Ulepsz” z ceną w żarze (przy kamieniu run, drugie stuknięcie potwierdza; Game.upgrade_skill), a gdy
 ## mistrzostwo nie pozwala - od którego poziomu mistrzostwa (Skills.level_cap).
-## Bronie (13.11.2026): pod mistrzostwem rząd przycisków broni (Weapons.ORDER) - broń w ręku złota; przy kamieniu run
-## stuknięcie dostępnej broni bierze ją do ręki (Game.set_weapon), a niedostępnej - kupuje ją za złoto (drugie stuknięcie
+## Bronie (13.11.2026; od 20.11.2026 lista zamiast rzędu): pod mistrzostwem przycisk z bronią w ręku otwiera listę broni
+## (Weapons.ORDER, `weapon_menu`) - przy kamieniu run stuknięcie dostępnej broni bierze ją do ręki (Game.set_weapon), a niedostępnej - kupuje ją za złoto (drugie stuknięcie
 ## potwierdza; Game.buy_weapon). Lista pokazuje tylko umiejętności broni w ręku.
 ## Zatrzymuje grę, gdy jest otwarte (PROCESS_MODE_ALWAYS).
 
@@ -44,6 +44,11 @@ var embers_label: Label
 var mastery_label: Label
 ## Przyciski broni (identyfikator Weapons -> przycisk) i wiersze listy (do ukrywania umiejętności innych broni).
 var weapon_buttons := {}
+## Broń w ręku na jednym przycisku (prośba autora 20.11.2026 - rząd 5 broni się nie mieścił); stuknięcie otwiera
+## listę broni (`weapon_menu`): ikona, nazwa, żywioł, stan i przycisk „Weź” / „Kup” (to są `weapon_buttons`).
+var weapon_button: Button
+var weapon_menu: Control
+var weapon_rows := {}
 var row_boxes: Array[Control] = []
 var hint: Label
 var list_icons: Array[SkillSlot] = []
@@ -126,23 +131,12 @@ func _ready() -> void:
 	embers_label = _label(head, "0", 15, GOLD)
 	mastery_label = _label(column, "", 12, BLUE)
 	mastery_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # długie nazwy broni nie rozpychają okna
-	var weapons_row := HBoxContainer.new()
-	weapons_row.add_theme_constant_override("separation", 4)
-	column.add_child(weapons_row)
-	for w in Weapons.ORDER:  # ikona nad nazwą - cztery bronie i więcej mieszczą się w jednym rzędzie
-		var wb := _button(weapons_row, Weapons.short_name_of(w))
-		wb.custom_minimum_size = Vector2(0, 44)
-		wb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		wb.icon = Weapons.icon_of(w)
-		wb.expand_icon = true
-		wb.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		wb.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-		wb.add_theme_constant_override("icon_max_width", 18)
-		wb.add_theme_constant_override("h_separation", 0)
-		wb.add_theme_font_size_override("font_size", 11)
-		wb.clip_text = true
-		wb.pressed.connect(_on_weapon.bind(w))
-		weapon_buttons[w] = wb
+	weapon_button = _button(column, "")
+	weapon_button.custom_minimum_size = Vector2(0, 46)
+	weapon_button.expand_icon = true
+	weapon_button.add_theme_constant_override("icon_max_width", 28)
+	weapon_button.add_theme_font_size_override("font_size", 15)
+	weapon_button.pressed.connect(open_weapons)
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 6)
 	column.add_child(tabs)
@@ -193,6 +187,7 @@ func _ready() -> void:
 	picker = GemPicker.new()
 	picker.changed.connect(refresh)
 	add_child(picker)
+	_make_weapon_menu()
 	_game.skills_changed.connect(func() -> void:
 		if visible:
 			refresh())
@@ -387,7 +382,9 @@ func close() -> void:
 
 ## Przycisk „wstecz”: najpierw zamyka wybór kamienia, potem zdejmuje wybór, potem zamyka okno.
 func back() -> void:
-	if picker.visible:
+	if weapon_menu.visible:
+		weapon_menu.visible = false
+	elif picker.visible:
 		picker.close()
 	elif selected_skill != "" or selected_slot >= 0 or selected_gem != "" or selected_socket >= 0:
 		selected_skill = ""
@@ -405,17 +402,9 @@ func refresh() -> void:
 	mastery_label.text = tr("Mistrzostwo: %s, poziom %d (%d/%d)") % [Weapons.name_of(_game.weapon),
 			_game.mastery_level(), _game.weapon_xp(), need] if need > 0 \
 			else tr("Mistrzostwo: %s, poziom %d") % [Weapons.name_of(_game.weapon), _game.mastery_level()]
-	for w in weapon_buttons:
-		var wb: Button = weapon_buttons[w]
-		var ready: bool = _game.weapon_available(w)
-		_tab_look(wb, w == _game.weapon)
-		if _buy_armed == "weapon:" + w:
-			wb.text = tr("Na pewno?")
-		elif ready:
-			wb.text = Weapons.short_name_of(w)
-		else:
-			wb.text = tr("%d zł") % Weapons.price_of(w)
-		wb.modulate = Color.WHITE if ready else Color(0.75, 0.75, 0.75)
+	weapon_button.icon = Weapons.icon_of(_game.weapon)
+	weapon_button.text = tr("%s  ▾ Zmień broń") % Weapons.name_of(_game.weapon)
+	_refresh_weapon_menu()
 	if Skills.weapon_of(gem_skill) != _game.weapon:
 		gem_skill = Skills.basic_of(_game.weapon)
 	for i in Skills.ORDER.size():
@@ -607,6 +596,7 @@ func _on_weapon(w: String) -> void:
 		_buy_armed = ""
 		_game.set_weapon(w)
 		_play(preload("res://assets/watra/ember_pickup_big.ogg"))
+		weapon_menu.visible = false
 	elif _game.gold < Weapons.price_of(w):
 		_buy_armed = ""
 		why = tr("%s: za darmo po pokonaniu Wodza na %d. poziomie lochu albo wcześniej za %d zł.") \
@@ -618,9 +608,119 @@ func _on_weapon(w: String) -> void:
 		_buy_armed = ""
 		if _game.buy_weapon(w):
 			_play(preload("res://assets/watra/handleCoins.ogg"))
+			weapon_menu.visible = false
 	refresh()
 	if why != "":
 		hint.text = why
+		menu_hint.text = why
+
+
+## Lista broni: przyciemnione tło, okno z wierszem każdej broni (przewijane palcem), pod nim podpowiedź i „Wróć”.
+var menu_hint: Label
+
+
+func _make_weapon_menu() -> void:
+	weapon_menu = Control.new()
+	weapon_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	weapon_menu.mouse_filter = Control.MOUSE_FILTER_STOP
+	weapon_menu.visible = false
+	add_child(weapon_menu)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.55)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	weapon_menu.add_child(dim)
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 18)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	weapon_menu.add_child(margin)
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _panel_style(10))
+	margin.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 6)
+	panel.add_child(col)
+	_label(col, tr("Bronie"), 18, GOLD)
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	TouchUi.drag_scroll(scroll)
+	col.add_child(scroll)
+	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 6)
+	scroll.add_child(list)
+	for w in Weapons.ORDER:
+		var box := PanelContainer.new()
+		box.add_theme_stylebox_override("panel", _panel_style(6))
+		list.add_child(box)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		box.add_child(row)
+		var icon := TextureRect.new()
+		icon.texture = Weapons.icon_of(w)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(40, 40)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(icon)
+		var texts := VBoxContainer.new()
+		texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		texts.add_theme_constant_override("separation", 0)
+		row.add_child(texts)
+		var title := _label(texts, Weapons.name_of(w), 15, TEXT)
+		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var element := Weapons.element_of(w)
+		_label(texts, Elements.name_of(element), 11, Elements.color_of(element))
+		var state := _label(texts, "", 11, DIM)
+		state.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var b := Button.new()
+		b.custom_minimum_size = Vector2(84, 44)
+		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		b.add_theme_font_size_override("font_size", 13)
+		b.clip_text = true
+		b.pressed.connect(_on_weapon.bind(w))
+		row.add_child(b)
+		weapon_buttons[w] = b
+		weapon_rows[w] = {"box": box, "state": state}
+	menu_hint = _label(col, "", 11, DIM)
+	menu_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	menu_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var close_b := _button(col, tr("Wróć"))
+	close_b.pressed.connect(func() -> void: weapon_menu.visible = false)
+
+
+## Otwiera listę broni (przycisk z bronią w ręku).
+func open_weapons() -> void:
+	_buy_armed = ""
+	_refresh_weapon_menu()
+	menu_hint.text = "" if can_shop else tr("Broń zmienisz przy kamieniu run w bazie.")
+	weapon_menu.visible = true
+
+
+## Wiersze listy broni: w ręku - złota ramka i „W ręku”; dostępna - „Weź”; zamknięta - od którego lochu i cena.
+func _refresh_weapon_menu() -> void:
+	for w in weapon_rows:
+		var b: Button = weapon_buttons[w]
+		var held: bool = w == _game.weapon
+		var ready: bool = _game.weapon_available(w)
+		var st := _panel_style(6)
+		st.border_color = GOLD if held else Color(0.4, 0.3, 0.2)
+		st.set_border_width_all(2 if held else 1)
+		(weapon_rows[w].box as PanelContainer).add_theme_stylebox_override("panel", st)
+		var state: Label = weapon_rows[w].state
+		if held:
+			state.text = tr("W ręku")
+			b.text = tr("W ręku")
+		elif ready:
+			state.text = tr("Dostępna")
+			b.text = tr("Weź")
+		else:
+			state.text = tr("Za darmo po lochu %d albo za %d zł") % [Weapons.unlock_level(w), Weapons.price_of(w)]
+			b.text = tr("Na pewno?") if _buy_armed == "weapon:" + w else tr("Kup")
+		b.disabled = held
+		_tab_look(b, held)
 
 
 ## Podpowiedź przy nieodblokowanej umiejętności: od którego poziomu mistrzostwa broni.

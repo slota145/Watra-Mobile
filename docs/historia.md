@@ -23,6 +23,9 @@ nasze umiejętności (jak Strażnik hydrosfery); Poszukująca z kamieniem - przy
   z kreatora PixelLab (`bow_arrow`, `bow_hit`, `arrow_rain`, `seeker_trail`, `power_charge`, `power_gust`, `side_gust`).
 - `Weapons`: łuk w `ORDER` zaraz po mieczu; hydrosfera ma krótką nazwę „Hydro” (5 broni w rzędzie okna umiejętności).
 - Test: `tests/test_bow.gd`; zrzuty `tools/bow_shots.gd`.
+- Okno umiejętności (prośba autora): zamiast rzędu przycisków broni jeden przycisk „<broń w ręku> ▾ Zmień broń”
+  otwiera listę broni (`SkillsWindow.weapon_menu`, `open_weapons`): ikona, nazwa, żywioł, stan (w ręku / dostępna /
+  od którego lochu i za ile złota), przycisk „Weź” / „Kup” (drugie stuknięcie potwierdza kupno), przewijana palcem.
 
 ## 20.11.2026 - 10 kamieni wspierających i 10 talizmanów z Path of Exile
 
