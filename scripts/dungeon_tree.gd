@@ -1,8 +1,8 @@
 class_name DungeonTree
 ## Drzewko lochów (ustalone z autorem 20.11.2026, zamiast ulepszeń lochów za złoto - DungeonUpgrades; wzór: atlas
 ## Path of Exile, drzewko Watry `../Watra/scripts/watra_tree.gd`). Watra w środku, 4 gałęzie (HORDA, ŁUP, NAUKA, CELE):
-## w każdej mały węzeł (do 5 punktów - dawne ulepszenia) i za nim duże węzły (10-15 punktów), dostępne, gdy mały ma
-## choć 1 punkt. Punkty: 1 za każdy przebity poziom lochu (`Game.best_level`); cofanie za darmo (decyzja autora).
+## w każdej mały węzeł (do 5 punktów - dawne ulepszenia; Gęstsza Horda do 15 - prośba autora 20.11.2026, wydajność
+## sprawdzona `tools/combat_bench.gd`) i za nim duże węzły (10-15 punktów), dostępne, gdy mały ma choć 1 punkt. Punkty: 1 za każdy przebity poziom lochu (`Game.best_level`); cofanie za darmo (decyzja autora).
 ## Stan (węzeł -> punkty) trzyma i zapisuje `Game.tree`, działanie - `Game.tree_value` w arenie i ProtoHorde.
 
 const ORDER: Array[String] = ["horde", "elites", "summon", "loot", "gold", "gems", "xp", "mastery", "embers",
@@ -11,7 +11,7 @@ const ORDER: Array[String] = ["horde", "elites", "summon", "loot", "gold", "gems
 ## name, icon, branch (gałąź), parent ("" - mały węzeł przy Watrze), max (punkty), step (premia za punkt), text (wzór
 ## z liczbą), pos (miejsce w oknie - kierunek od Watry w stopniach i odległość).
 const NODES := {
-	"horde": {"name": "Gęstsza Horda", "icon": "res://assets/watra/base/goblin_heart.png", "parent": "", "max": 5,
+	"horde": {"name": "Gęstsza Horda", "icon": "res://assets/watra/base/goblin_heart.png", "parent": "", "max": 15,
 		"step": 4.0, "text": "+%d%% potworów", "angle": -135.0, "dist": 80.0},
 	"elites": {"name": "Łowy na elity", "icon": "res://assets/watra/tree/elites.png", "parent": "horde", "max": 15,
 		"step": 5.0, "text": "+%d%% elit", "angle": -155.0, "dist": 165.0},

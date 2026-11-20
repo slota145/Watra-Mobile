@@ -254,6 +254,8 @@ func _process(delta: float) -> void:
 
 ## Błysk pioruna na celu.
 func _zap_fx(at: Vector2, size := K_HIT_SIZE) -> void:
+	if Fx.crowded(K_HIT_FX):
+		return
 	Fx.once(get_parent(), K_HIT_FX, K_HIT_FRAMES, K_HIT_FPS, at.round(), K_HIT_ANCHOR, 21, size)
 
 
@@ -409,8 +411,9 @@ func _process_sparks_fly(delta: float) -> void:
 		var step: float = SPARK_SPEED * delta
 		node.global_position += f.dir * step
 		f.left -= step
-		for t in _live_targets():
-			if not f.hits.has(t) and t.center().distance_to(node.global_position) <= SPARK_RADIUS * _area(basic) + t.center_height * 0.4:
+		var spark_r := SPARK_RADIUS * _area(basic)
+		for t in _near_c(node.global_position, spark_r + 10.0):  # siatka - każda iskra co klatkę
+			if not f.hits.has(t) and t.center().distance_to(node.global_position) <= spark_r + t.center_height * 0.4:
 				f.hits.append(t)
 				_hit(t, f.power, node.global_position, basic, 0)
 				_zap_fx(t.center(), 0.35)
@@ -423,7 +426,7 @@ func _process_sparks_fly(delta: float) -> void:
 func _arc_hits(aim: float, reach: float, arc: float, power: float, skill: String, arcs := ARC_TARGETS,
 		arc_power := ARC_POWER) -> Array:
 	var hit: Array = []
-	for t in _live_targets():
+	for t in _near_c(_orbit_center(), reach):
 		var to := t.center() - _orbit_center()
 		if to.length() <= reach and absf(angle_difference(aim, to.angle())) <= arc / 2.0:
 			_hit(t, power, hero.global_position, skill, arcs, arc_power)
@@ -692,7 +695,7 @@ func _process_echoes(delta: float) -> void:
 		var fx := Fx.once(get_parent(), RIPOSTE_FX, RIPOSTE_FX_FRAMES, 32.0, (at + Vector2(0, -6)).round(),
 				RIPOSTE_FX_ANCHOR, 21, radius / RIPOSTE_FX_RADIUS)
 		fx.modulate.a = 0.85
-		for t in _live_targets():
+		for t in _near(at, radius + 6.0):  # spłaszczony krąg mieści się w zwykłym
 			if t == e.src:
 				continue
 			var to := t.global_position - at
@@ -748,7 +751,7 @@ func _perun_cut(k: float) -> void:
 	fx.scale = Vector2(length / LINE_FX_LENGTH, clampf(width / (LINE_FX_THICK * 1.8), 0.8, 1.5))  # grubsze - kanciaste
 	if _perk("k_perun", 1):
 		_bolt(b + Vector2(0, -40), b)
-		for t in _live_targets():
+		for t in _near_c(b, PERUN_BLAST_RADIUS * _area("k_perun")):
 			if t.center().distance_to(b) <= PERUN_BLAST_RADIUS * _area("k_perun"):
 				_hit(t, _power("k_perun") * PERUN_BLAST_POWER, b, "k_perun", 0)
 		_zap_fx(b, 0.9)
@@ -785,7 +788,7 @@ func _perun_bolt_fx(at: Vector2) -> void:
 func _perun_bolt_hit(at: Vector2, last: bool) -> void:
 	if not is_inside_tree() or hero == null or hero.dead:
 		return
-	for t in _live_targets():
+	for t in _near(at, PERUN_STORM_RADIUS * _area("k_perun") + 10.0):
 		if t.global_position.distance_to(at) <= PERUN_STORM_RADIUS * _area("k_perun") + t.center_height * 0.4:
 			_hit(t, _power("k_perun") * PERUN_STORM_POWER, at, "k_perun", 0)
 			t.shock(SHOCK_TIME)
@@ -821,7 +824,7 @@ func _spawn_crawlers(a: Vector2, b: Vector2, k: float) -> void:
 	var count := roundi(lerpf(CRAWL_COUNT.x, CRAWL_COUNT.y, k))
 	var width := lerpf(PERUN_WIDTH.x, PERUN_WIDTH.y, k) * _area("k_perun")
 	var near: Array = []
-	for t in _live_targets():
+	for t in _near(b, CRAWL_RANGE * _area("k_perun")):
 		var d := t.global_position.distance_to(b)
 		if d > CRAWL_RANGE * _area("k_perun"):
 			continue
@@ -866,7 +869,7 @@ func _free_crawl_target(from: Vector2) -> ProtoTarget:
 		taken.append(c.target)
 	var best: ProtoTarget = null
 	var best_d := CRAWL_RANGE * _area("k_perun")
-	for t in _live_targets():
+	for t in _near(from, best_d):
 		var d := t.global_position.distance_to(from)
 		if d < best_d and not taken.has(t):
 			best = t
@@ -898,7 +901,7 @@ func _flicker_spin() -> void:
 	var range_px := FLASH_CHAIN_RANGE * _area(blink_skill)
 	var first: ProtoTarget = null
 	var best_d := -1.0
-	for t in _live_targets():
+	for t in _near_c(_orbit_center(), range_px):
 		var d := t.center().distance_to(_orbit_center())
 		if d <= range_px and d > best_d:
 			first = t

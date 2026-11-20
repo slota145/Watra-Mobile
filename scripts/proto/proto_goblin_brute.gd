@@ -129,9 +129,10 @@ func take_damage(amount: int, from: Vector2) -> void:
 		return
 	hp -= amount
 	spawn_number(amount)
-	_audio.stream = HIT_SOUNDS.pick_random()
-	_audio.pitch_scale = randf_range(0.8, 0.95)
-	_audio.play()
+	if hit_sound_ok():
+		_audio.stream = HIT_SOUNDS.pick_random()
+		_audio.pitch_scale = randf_range(0.8, 0.95)
+		_audio.play()
 	var tween := create_tween()
 	_sprite.modulate = Color(3, 3, 3)
 	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.12)

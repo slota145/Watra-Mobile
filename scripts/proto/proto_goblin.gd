@@ -42,6 +42,11 @@ static var _scenes := {}
 ## żeby każdy goblin sprawdzał tylko sąsiadów z 9 kratek, a nie cały tłum (inaczej czas rośnie z kwadratem liczby potworów).
 static var _grid := {}
 static var _grid_frame := -1
+## Kierunek grafiki bez zmian, gdy nowy różni się o mniej (iloczyn skalarny, ok. 8°) - _face.
+const FACE_SAME := 0.99
+var _faced := Vector2.ZERO
+var _sep := Vector2.ZERO
+var _sep_phase := randi() % 2
 
 var hero: ProtoHero
 ## Cel ataku zamiast postaci (Kryształ Watry - ProtoCrystal): potwór idzie do niego i go bije, chyba że postać
@@ -236,9 +241,10 @@ func take_damage(amount: int, from: Vector2) -> void:
 		return
 	hp -= amount
 	spawn_number(amount)
-	_audio.stream = HIT_SOUNDS.pick_random()
-	_audio.pitch_scale = randf_range(1.05, 1.25)
-	_audio.play()
+	if hit_sound_ok():
+		_audio.stream = HIT_SOUNDS.pick_random()
+		_audio.pitch_scale = randf_range(1.05, 1.25)
+		_audio.play()
 	_push = (global_position - from).normalized() * KNOCKBACK
 	var tween := create_tween()
 	_sprite.modulate = Color(3, 3, 3)
@@ -367,8 +373,16 @@ func _on_anim_finished(anim: StringName) -> void:
 			_vanish()
 
 
-## Odpychanie od sąsiednich goblinów (żeby tłum się rozkładał, a nie stał w jednym punkcie).
+## Odpychanie od sąsiednich goblinów (żeby tłum się rozkładał, a nie stał w jednym punkcie). Liczone co drugą klatkę
+## (połowa tłumu w parzystych, połowa w nieparzystych) - pomiędzy tym samym wektorem; wydajność przy 150-250 potworach.
 func _separation() -> Vector2:
+	if (Engine.get_process_frames() + _sep_phase) % 2 == 0:
+		return _sep
+	_sep = _crowd_away()
+	return _sep
+
+
+func _crowd_away() -> Vector2:
 	var away := Vector2.ZERO
 	var grid := _crowd_grid(get_tree())
 	var cell := Vector2i((global_position / PERSONAL_SPACE).floor())
@@ -401,11 +415,20 @@ static func _crowd_grid(tree: SceneTree) -> Dictionary:
 	return _grid
 
 
+## Kierunek grafiki. Wydajność w tłumie (tools/combat_bench.gd): ten sam kierunek co ostatnio (różnica do ok. 8°)
+## pomija liczenie - wołane co klatkę dla każdego potwora.
 func _face(dir: Vector2) -> void:
 	if _scene and dir.length() > 0.5:
+		var n := dir.normalized()
+		if n.dot(_faced) > FACE_SAME:
+			return
+		_faced = n
 		_sprite.face(dir)
 
 
+## Animacja (KilnSprite2D). Ta sama, która już gra, bez `restart` - nic (wołane co klatkę dla każdego potwora).
 func _play(anim: StringName, restart := false) -> void:
 	if _scene:
+		if not restart and _sprite.anim == anim and _sprite.is_playing():
+			return
 		_sprite.play_anim(anim, restart)

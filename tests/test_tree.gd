@@ -2,7 +2,7 @@ extends SceneTree
 ## Test drzewka lochów (20.11.2026): dane (13 węzłów, rodzice, ikony, opisy), punkty za przebite poziomy lochu,
 ## dodawanie (zamknięte duże węzły, brak punktów, sufit), cofanie za darmo (ostatni punkt małego węzła zamyka duże),
 ## zapis, porządek po wczytaniu i zwrot złota za dawne ulepszenia lochów; w lochu: tańsze przyzwanie, więcej złota,
-## Wędrowne cele spoza paska żaru; okno (węzły min. 44 px, „+”, „−”, „Od nowa” z potwierdzeniem).
+## Wędrowne cele spoza paska żaru, siatka wrogów (aury i talizmany widzą potwory z lochu), trafienia rozłożone na klatki, limity dźwięków trafień i liczb obrażeń (wydajność); okno (węzły min. 44 px, „+”, „−”, „Od nowa” z potwierdzeniem).
 
 var _failed := 0
 
@@ -24,6 +24,7 @@ func _run() -> void:
 	game.load_game()
 	game.reset_hero()
 	_test_data()
+	_test_perf()
 	_test_points(game)
 	_test_migration(game)
 	await _test_dungeon(game)
@@ -45,13 +46,32 @@ func _test_data() -> void:
 		var p := DungeonTree.parent_of(id)
 		if p == "":
 			small += 1
-			ok = ok and DungeonTree.max_of(id) == 5
+			ok = ok and DungeonTree.max_of(id) == (15 if id == "horde" else 5)
 		else:
 			ok = ok and DungeonTree.parent_of(p) == ""
-	_check(ok and small == 4, "13 węzłów z ikonami, 4 małe po 5 punktów, duże za małymi")
+	_check(ok and small == 4, "13 węzłów z ikonami, 4 małe (Horda 15 punktów, reszta 5), duże za małymi")
 	_check(DungeonTree.text("horde", 2) == "+8% potworów" and DungeonTree.value("summon", 10) == 20.0
-			and DungeonTree.value("horde", 99) == 20.0, "premie i opis („%s”)" % DungeonTree.text("horde", 2))
+			and DungeonTree.value("horde", 99) == 60.0, "premie i opis („%s”)" % DungeonTree.text("horde", 2))
 	_check(DungeonTree.text("wander", 3).begins_with("Co 20 s 15%"), "Wędrowne cele: opis („%s”)" % DungeonTree.text("wander", 3))
+
+
+
+## Wydajność przy gęstszej Hordzie (combat_bench): dźwięk trafienia najwyżej co HIT_SOUND_GAP ms, liczby obrażeń
+## najwyżej MAX_NUMBERS naraz (krytyczne zawsze).
+func _test_perf() -> void:
+	ProtoTarget.hit_sound_ok()
+	_check(not ProtoTarget.hit_sound_ok(), "dźwięk trafienia: wspólny limit wszystkich wrogów")
+	var dummy := ProtoTarget.new()
+	root.add_child(dummy)
+	for i in ProtoTarget.MAX_NUMBERS + 20:
+		dummy.spawn_number(5)
+	var labels := dummy.get_children().filter(func(n: Node) -> bool: return n is Label).size()
+	dummy.crit_next = true
+	dummy.spawn_number(50)
+	var after := dummy.get_children().filter(func(n: Node) -> bool: return n is Label).size()
+	_check(labels <= ProtoTarget.MAX_NUMBERS and after == labels + 1, "liczby obrażeń: najwyżej %d naraz, krytyczne zawsze (%d)" % [ProtoTarget.MAX_NUMBERS, labels])
+	dummy.free()
+	_check(ProtoTarget._numbers == 0, "licznik liczb wraca do zera po zniknięciu napisów")
 
 
 func _test_points(game: Node) -> void:
@@ -112,6 +132,25 @@ func _test_dungeon(game: Node) -> void:
 	for i in 60:
 		arena._tick_wander(DungeonTree.WANDER_EVERY + 0.1)
 	_check(arena._wander_goals == DungeonTree.WANDER_MAX, "najwyżej %d wędrowne cele naraz" % DungeonTree.WANDER_MAX)
+	# siatka wrogów (wydajność) i aury/talizmany na potworach z lochu (nie tylko kukłach z weapon.targets)
+	var weapon: ProtoWeapon = arena.weapon
+	var horde: ProtoHorde = arena.horde_spawner
+	horde.running = false
+	var g := horde.spawn_at(arena.hero.position + Vector2(30, 0))
+	var far := horde.spawn_at(arena.hero.position + Vector2(300, 0))
+	await process_frame
+	var near := weapon.targets_near(g.global_position, 10.0)
+	_check(near.has(g) and not weapon.targets.has(g), "siatka: potwór z lochu (spoza weapon.targets) w pobliżu")
+	_check(weapon.live_targets().has(far), "siatka: wszyscy żywi wrogowie")
+	g._stunned = 60.0
+	var hp := g.hp
+	for i in 30:
+		weapon._later(g, func() -> void: g.take_damage(1, g.global_position))
+	await process_frame
+	var after_one := g.hp
+	await process_frame
+	await process_frame
+	_check(after_one > hp - 30 and g.hp == hp - 30, "trafienia obszarowe rozłożone na klatki (najwyżej %d na klatkę)" % ProtoWeapon.HIT_BUDGET)
 	arena.queue_free()
 	await process_frame
 	game.dev_immortal = false

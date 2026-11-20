@@ -53,6 +53,7 @@ const SEEK_COAST := 0.22
 const SEEK_TURN := 5.0
 const SEEK_TURN_MAX := 16.0
 const SEEK_SEARCH := 260.0
+const SEEK_NEAR := 90.0  # najpierw szuka tak blisko (_seek_target)
 const SEEK_PASS := 0.35
 const SEEK_LIFE := 6.0
 const SEEK_HITS := 4
@@ -199,6 +200,8 @@ func _hit(t: ProtoTarget, power: float, from: Vector2, skill: String, push := AI
 
 
 func _hit_fx(at: Vector2, dir: Vector2, size := 1.0) -> void:
+	if Fx.crowded(HIT_FX_BOW):
+		return
 	var fx := Fx.once(get_parent(), HIT_FX_BOW, HIT_FX_BOW_FRAMES, 18.0, at.round(), HIT_FX_BOW_ANCHOR, 21, size)
 	fx.rotation = dir.angle()
 
@@ -308,18 +311,23 @@ func _seek_target(from: Vector2, skip: ProtoTarget, toward := INF) -> ProtoTarge
 			claimed[s.target] = claimed.get(s.target, 0) + 1
 	var best: ProtoTarget = null
 	var best_d := INF
-	for t in _live_targets():
-		if t == skip:
-			continue
-		var d := t.center().distance_to(from)
-		if d > SEEK_SEARCH:
-			continue
-		var score: float = d + SEEK_CLAIM * int(claimed.get(t, 0))
-		if toward != INF:  # przy wylocie: wrogowie w stronę lotu strzały lepsi
-			score += absf(angle_difference(toward, (t.center() - from).angle())) * 40.0
-		if score < best_d:
-			best = t
-			best_d = score
+	# najpierw blisko, potem cały zasięg: wynik nigdy nie jest mniejszy niż odległość, więc gdy najlepszy z bliska
+	# ma wynik w promieniu SEEK_NEAR, nikt dalszy go nie pobije (wydajność w tłumie - tools/combat_bench.gd)
+	for radius: float in [SEEK_NEAR, SEEK_SEARCH]:
+		for t in _near_c(from, radius):
+			if t == skip:
+				continue
+			var d := t.center().distance_to(from)
+			if d > radius:
+				continue
+			var score: float = d + SEEK_CLAIM * int(claimed.get(t, 0))
+			if toward != INF:  # przy wylocie: wrogowie w stronę lotu strzały lepsi
+				score += absf(angle_difference(toward, (t.center() - from).angle())) * 40.0
+			if score < best_d:
+				best = t
+				best_d = score
+		if best_d <= radius:
+			break
 	if best == null and skip != null and is_instance_valid(skip) and skip.alive():
 		return skip
 	return best
@@ -370,8 +378,10 @@ func _process_arrows(delta: float) -> void:
 				s.side_acc -= SIDE_STEP
 				_side_gust(fx.global_position, s.dir, s.power)
 		var done := false
-		for t in _live_targets():
-			if t.center().distance_to(fx.global_position) > ARROW_RADIUS * _area(s.skill) + t.center_height * 0.3:
+		var hit_r := ARROW_RADIUS * _area(s.skill)
+		var tip := fx.global_position
+		for t in _near_c(tip, hit_r + 8.0):  # siatka - każda strzała co klatkę
+			if t.center().distance_to(tip) > hit_r + t.center_height * 0.3:
 				continue
 			if s.has("seek"):
 				if t == s.last and s.since < SEEK_PASS:
@@ -519,11 +529,11 @@ func _process_rains(delta: float) -> void:
 		r.tick -= delta
 		if r.tick <= 0.0:
 			r.tick += RAIN_TICK
-			for t in _live_targets():
+			for t in _near(r.at, r.radius):
 				var off: Vector2 = t.global_position - r.at
 				off.y *= 2.0  # krąg spłaszczony jak cień
 				if off.length() <= r.radius:
-					_hit(t, _power("b_rain") * r.power, r.at + Vector2(0, -40), "b_rain", 0.0)
+					_later(t, _hit.bind(t, _power("b_rain") * r.power, r.at + Vector2(0, -40), "b_rain", 0.0))
 		if r.left <= 0.0:
 			if is_instance_valid(r.fx):
 				var fade: Tween = r.fx.create_tween()
@@ -596,7 +606,7 @@ func _side_gust(at: Vector2, dir: Vector2, mult: float) -> void:
 	var fx := Fx.once(get_parent(), SIDE_FX, SIDE_FX_FRAMES, 20.0, at.round(), SIDE_FX_ANCHOR, 20, 0.9)
 	fx.rotation = dir.angle()
 	var normal := dir.orthogonal()
-	for t in _live_targets():
+	for t in _near_c(at, SIDE_STEP * 0.6 + SIDE_REACH * _area("b_power")):
 		var off := t.center() - at
 		if absf(off.dot(dir)) > SIDE_STEP * 0.6 or absf(off.dot(normal)) > SIDE_REACH * _area("b_power"):
 			continue
@@ -666,7 +676,7 @@ func _process_ballistas(delta: float) -> void:
 		var muzzle: Vector2 = b.at + Vector2(0, -BALLISTA_MUZZLE)
 		var best: ProtoTarget = null
 		var best_d := BALLISTA_RANGE * _area("b_ballista")
-		for t in _live_targets():
+		for t in _near_c(muzzle, best_d):
 			var d := t.center().distance_to(muzzle)
 			if d <= best_d:
 				best = t
@@ -698,7 +708,7 @@ func _ballista_echo(id: String, k := 1.0) -> void:
 		var muzzle := at + Vector2(0, -BALLISTA_MUZZLE)
 		var best: ProtoTarget = null
 		var best_d := Skills.DATA[id].range as float
-		for t in _live_targets():
+		for t in _near(at, best_d):
 			var d := t.global_position.distance_to(at)
 			if d <= best_d:
 				best = t
