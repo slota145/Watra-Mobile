@@ -10,7 +10,8 @@ extends Node2D
 ## Kamień, klucz albo dłuto (Gems) to łup w postaci {"gem": identyfikator}: zawsze trafia do sakwy (`Game.add_gem`,
 ## bez limitu), świeci kolorem kamienia. Kamień aury ({"aura": identyfikator}, Auras) od razu uczy aury albo podnosi
 ## jej poziom (`Game.add_aura`, napis nad postacią), świeci jak rzadki; talizman ({"talisman": id}, Talismans) - tak samo
-## (`Game.add_talisman`); nazwę, kolor i ikonę każdego łupu dają `name_of`, `color_of`, `icon_of`.
+## (`Game.add_talisman`); runa ({"rune": id}, Runes) trafia do zapasu run (`Game.add_rune`); nazwę, kolor i ikonę
+## każdego łupu dają `name_of`, `color_of`, `icon_of`.
 
 signal picked(item: Dictionary)
 ## Przedmiot sprzedany od razu: auto sprzedaż zwykłych albo pełna torba (`bag_full`, łup ze skrzyni).
@@ -50,6 +51,8 @@ static func name_of(loot: Dictionary) -> String:
 		return Lang.t("Kamień aury: %s") % Auras.name_of(loot.aura)
 	if loot.has("talisman"):
 		return Lang.t("Talizman: %s") % Talismans.name_of(loot.talisman)
+	if loot.has("rune"):
+		return Runes.name_of(loot.rune)
 	return Gems.name_of(loot.gem) if loot.has("gem") else Items.name_of(loot)
 
 
@@ -58,6 +61,8 @@ static func color_of(loot: Dictionary) -> Color:
 		return Auras.color_of(loot.aura)
 	if loot.has("talisman"):
 		return Talismans.color_of(loot.talisman)
+	if loot.has("rune"):
+		return Runes.color_of(loot.rune)
 	return Gems.color_of(loot.gem) if loot.has("gem") else Items.color_of(loot)
 
 
@@ -66,6 +71,8 @@ static func icon_of(loot: Dictionary) -> Texture2D:
 		return Auras.icon_of(loot.aura)
 	if loot.has("talisman"):
 		return Talismans.icon_of(loot.talisman)
+	if loot.has("rune"):
+		return Runes.icon_of(loot.rune)
 	return Gems.icon_of(loot.gem) if loot.has("gem") else Items.icon_of(loot)
 
 
@@ -73,6 +80,8 @@ static func icon_of(loot: Dictionary) -> Texture2D:
 func _rarity() -> String:
 	if item.has("aura") or item.has("talisman"):
 		return "rare"
+	if item.has("rune"):
+		return "rare" if Runes.is_rare(item.rune) else "magic"
 	if item.has("gem"):
 		return "rare" if Gems.is_special(item.gem) else "magic"
 	return item.rarity
@@ -93,7 +102,7 @@ func _ready() -> void:
 		add_child(_Beam.new())
 	_sprite = Sprite2D.new()
 	_sprite.texture = icon_of(item)
-	_sprite.scale = Vector2.ONE * (0.6 if item.has("aura") else ICON_SCALE * (0.75 if item.has("gem") else 1.0))
+	_sprite.scale = Vector2.ONE * (0.6 if item.has("aura") else ICON_SCALE * (0.75 if item.has("gem") or item.has("rune") else 1.0))
 	add_child(_sprite)
 	var land := position + Vector2(randf_range(-spread, spread), randf_range(-spread * 0.3, spread * 0.5))
 	_sprite.position.y = -14.0
@@ -149,6 +158,8 @@ func _take() -> void:
 			_float_text(tr("%s - już najwyższy poziom") % Auras.name_of(item.aura), Color(0.8, 0.75, 0.7))
 	elif item.has("gem"):
 		_game.add_gem(item.gem)
+	elif item.has("rune"):
+		_game.add_rune(item.rune)
 	elif item.rarity == "common" and _game.auto_sell_common:
 		price = _game.sell_loot(item)
 	elif not _game.add_item(item):
@@ -164,7 +175,8 @@ func _take() -> void:
 		sold.emit(item, price, bag_full)
 	else:
 		picked.emit(item)
-	_play(SOUND_RARE if _rarity() == "rare" or item.has("gem") or item.has("aura") or item.has("talisman") else SOUND, -6.0)
+	_play(SOUND_RARE if _rarity() == "rare" or item.has("gem") or item.has("aura") or item.has("talisman") \
+			or item.has("rune") else SOUND, -6.0)
 	for c in get_children():
 		if c is CanvasItem:
 			c.visible = false

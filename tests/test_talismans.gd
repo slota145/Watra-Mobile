@@ -55,8 +55,8 @@ func _test_data() -> void:
 			chest = chest or loot.has("talisman")
 	_check(chest, "skrzynia na mapie lochu daje czasem talizman")
 	var offer := DungeonGoals.zertwa_offer(Talismans.MIN_LEVEL)
-	_check(offer.size() == 4 and offer[2].item.has("talisman") and offer[3].has("embers"), "Krąg Żertwy: talizman do wyboru")
-	_check(DungeonGoals.zertwa_offer(1).size() == 3, "Krąg Żertwy przed lochem 5 bez talizmanu")
+	_check(offer.size() == 5 and offer[3].item.has("talisman") and offer[4].has("embers"), "Krąg Żertwy: talizman do wyboru")
+	_check(DungeonGoals.zertwa_offer(1).size() == 4, "Krąg Żertwy przed lochem 5 bez talizmanu")
 	_check(ProtoLoot.name_of({"talisman": "thunder"}).contains(Talismans.name_of("thunder")), "nazwa talizmanu na ziemi")
 
 

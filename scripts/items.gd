@@ -7,7 +7,7 @@ class_name Items
 ## (`roll_goblin`). Niepotrzebne przedmioty sprzedaje się za złoto (`sell_price`).
 ## Przedmiot to słownik z samymi identyfikatorami i liczbami (nazwy składane przy pokazywaniu - zasady w lang.gd):
 ## {"slot", "tier", "level", "rarity", "base": {cecha: wartość}, "affixes": [{"stat", "value"}], "sockets": [kamień],
-## "rerolls": ile razy kowal przerabiał premię (od tego rośnie cena kolejnej przeróbki - `reroll_price`)}.
+## "rerolls": ile razy przekuto premię (Runa Przekucia - `reroll_affix`)}. Premie zmieniają runy u kowala (Runes).
 ## Gniazda na kamienie szlachetne (Gems): "sockets" - lista identyfikatorów kamieni ("" - puste gniazdo); każdy przedmiot
 ## ma 1 gniazdo, bardzo rzadko 2 (SECOND_SOCKET), drugie dorabia Dłuto Jubilera (Game.add_socket).
 ## Stan (torba, założone, złoto) trzyma i zapisuje `Game`; sumę cech założonych przedmiotów liczy `totals`.
@@ -166,10 +166,6 @@ const SECOND_SOCKET := {"common": 0.0, "magic": 0.01, "rare": 0.03}
 ## Cena sprzedaży: tyle złota za zwykły przedmiot z 1. poziomu lochu, mnożnik rzadkości.
 const SELL_BASE := 5.0
 const SELL_RARITY := {"common": 1.0, "magic": 2.0, "rare": 4.0}
-## Kowal (ustalone z autorem 12.11.2026): przeróbka jednej premii kosztuje REROLL_BASE x cena sprzedaży,
-## a każda kolejna przeróbka tego samego przedmiotu REROLL_GROWTH razy więcej.
-const REROLL_BASE := 2.0
-const REROLL_GROWTH := 1.5
 
 
 ## Stopień przedmiotu (0-4) z poziomu lochu.
@@ -328,12 +324,7 @@ static func sell_price(item: Dictionary) -> int:
 	return maxi(1, roundi(SELL_BASE * DungeonLevels.power(item.level) * SELL_RARITY[item.rarity]))
 
 
-## Cena następnej przeróbki premii u kowala.
-static func reroll_price(item: Dictionary) -> int:
-	return roundi(REROLL_BASE * sell_price(item) * pow(REROLL_GROWTH, int(item.get("rerolls", 0))))
-
-
-## Kowal: premia `index` losowana od nowa - rodzaj (spośród tych, których przedmiot jeszcze nie ma; może wypaść
+## Runa Przekucia (Runes): premia `index` losowana od nowa - rodzaj (spośród tych, których przedmiot jeszcze nie ma; może wypaść
 ## ten sam) i siła z poziomu przedmiotu. Zmienia przedmiot w miejscu i liczy przeróbki. Zwraca false przy złym indeksie.
 static func reroll_affix(item: Dictionary, index: int) -> bool:
 	if index < 0 or index >= item.get("affixes", []).size():

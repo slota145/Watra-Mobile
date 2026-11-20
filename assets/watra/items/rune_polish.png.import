@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dvs4u61camjev"
-path="res://.godot/imported/rune_polish.png-6a90aaa50c8e7181ea8233665c42226f.ctex"
+uid="uid://c2tnxcr2p8ijh"
+path="res://.godot/imported/rune_polish.png-3c01bc0700c72e007de6df20a81b7e75.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/gems/rune_polish.png"
-dest_files=["res://.godot/imported/rune_polish.png-6a90aaa50c8e7181ea8233665c42226f.ctex"]
+source_file="res://assets/watra/items/rune_polish.png"
+dest_files=["res://.godot/imported/rune_polish.png-3c01bc0700c72e007de6df20a81b7e75.ctex"]
 
 [params]
 

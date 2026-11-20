@@ -227,8 +227,8 @@ func _test_zertwa() -> void:
 	await process_frame
 	_check(stump.state == "done" and paused and arena.zertwa_offer.visible, "komplet daniny: gra staje, wybór nagrody")
 	var buttons: Array = arena.zertwa_offer._list.get_children().filter(func(b: Node) -> bool: return not b.is_queued_for_deletion())
-	var expected := 4 if arena.level >= Talismans.MIN_LEVEL else 3  # od lochu 5 także talizman
-	_check(buttons.size() == expected, "%d nagrody do wyboru" % expected)
+	var expected := 5 if arena.level >= Talismans.MIN_LEVEL else 4  # runa zawsze, od lochu 5 także talizman
+	_check(buttons.size() == expected, "%d nagród do wyboru" % expected)
 	var embers_before := horde.embers
 	buttons[-1].pressed.emit()  # żar zawsze ostatni
 	await process_frame

@@ -331,6 +331,9 @@ func _on_died(g: ProtoGoblin) -> void:
 	var gem := Gems.roll_goblin(level, loot_mult * gem_mult)
 	if gem != "":
 		drop_item({"gem": gem}, g.position)
+	var rune := Runes.roll_monster(level, g.elite != null, loot_mult)  # runy - rzadko, elity częściej
+	if rune != "":
+		drop_item({"rune": rune}, g.position)
 	if g.elite:
 		elite_killed.emit(g)
 

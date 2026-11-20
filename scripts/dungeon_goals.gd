@@ -23,8 +23,9 @@ const EDGE_MARGIN := 48.0
 const CHEST_HOLD := 1.5
 ## Żar ze skrzyni-celu - ułamek żaru skrzyni Wodza (DungeonLevels.chest_embers).
 const CHEST_EMBER_SHARE := 0.25
-## Szansa na kamień (Gems.roll) ze skrzyni-celu.
+## Szansa na kamień (Gems.roll) i na runę (Runes.roll) ze skrzyni-celu.
 const CHEST_GEM := 0.2
+const CHEST_RUNE := 0.5
 
 ## Kapliczka: tyle sekund modlitwy (stania na niej) i czas daru.
 const PRAY_TIME := 1.0
@@ -92,11 +93,14 @@ static func spot(area: Rect2, hero_pos: Vector2, others: Array) -> Vector2:
 	return best
 
 
-## Łup skrzyni-celu: jeden przedmiot (wagi skrzyni Wodza), czasem kamień (od Gems.MIN_LEVEL, jak inne kamienie).
+## Łup skrzyni-celu: jeden przedmiot (wagi skrzyni Wodza), czasem kamień (od Gems.MIN_LEVEL, jak inne kamienie)
+## i runa (CHEST_RUNE).
 static func chest_items(level: int, loot_mult := 1.0) -> Array:
 	var items: Array = [Items.roll(level, "", "", Items.CHEST_WEIGHTS)]
 	if level >= Gems.MIN_LEVEL and randf() < CHEST_GEM * loot_mult:
 		items.append({"gem": Gems.roll(level)})
+	if randf() < CHEST_RUNE * loot_mult:
+		items.append({"rune": Runes.roll(level)})
 	var aura := Auras.roll_chest(level, true, loot_mult)  # kamień aury (od lochu Auras.MIN_LEVEL)
 	if aura != "":
 		items.append({"aura": aura})
@@ -133,12 +137,13 @@ const CRYSTAL_SHARDS := Vector2i(6, 12)
 const CRYSTAL_SHARDS_LOST := 3
 
 
-## Nagrody Kręgu Żertwy do wyboru: rzadki przedmiot, kamień albo żar (tyle, ile ze skrzyni Wodza); od lochu
+## Nagrody Kręgu Żertwy do wyboru: rzadki przedmiot, kamień, runa (bez najprostszej Runy Szlifu) albo żar (tyle, ile ze skrzyni Wodza); od lochu
 ## Talismans.MIN_LEVEL także losowy talizman (decyzja autora 19.11.2026).
 static func zertwa_offer(level: int) -> Array[Dictionary]:
 	var offer: Array[Dictionary] = [
 		{"item": Items.roll(level, "", "rare")},
 		{"item": {"gem": Gems.roll(level)}},
+		{"item": {"rune": Runes.roll(level, [Runes.POLISH])}},
 	]
 	if level >= Talismans.MIN_LEVEL:
 		offer.append({"item": {"talisman": Talismans.roll()}})
@@ -153,6 +158,11 @@ static func crystal_shards(health: float) -> int:
 
 static func crystal_gems(health: float) -> int:
 	return 1 + roundi(CRYSTAL_GEMS * clampf(health, 0.0, 1.0))
+
+
+## Runy z obronionego kryształu: jedna, druga przy co najmniej połowie zdrowia.
+static func crystal_runes(health: float) -> int:
+	return 2 if health >= 0.5 else 1
 
 
 ## Losowy dar kapliczki.

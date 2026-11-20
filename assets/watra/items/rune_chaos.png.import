@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://kbcp8aik0lgu"
-path="res://.godot/imported/rune_ascend.png-9701f960e28b9ff06d1efd36fe997862.ctex"
+uid="uid://bxhr42vqrysh5"
+path="res://.godot/imported/rune_chaos.png-340ea70cb0c072f96931943da18a2fd4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/gems/rune_ascend.png"
-dest_files=["res://.godot/imported/rune_ascend.png-9701f960e28b9ff06d1efd36fe997862.ctex"]
+source_file="res://assets/watra/items/rune_chaos.png"
+dest_files=["res://.godot/imported/rune_chaos.png-340ea70cb0c072f96931943da18a2fd4.ctex"]
 
 [params]
 
