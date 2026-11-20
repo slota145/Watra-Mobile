@@ -1,6 +1,6 @@
 extends SceneTree
-## Test bazy: drzewko lochów w lochu (premie Hordy, łupu, nauki, zasięgu), kowal (przeróbka jednej premii,
-## rosnąca cena, zapis przeróbek), kupiec (półka: klucz, dłuto, 2 różne kamienie 1. stopnia, 3 przedmioty; kupno
+## Test bazy: drzewko lochów w lochu (premie Hordy, łupu, nauki, zasięgu), kowal (Runa Przekucia na premii,
+## zużycie runy, zapis przekuć, runy w oknie), kupiec (półka: klucz, dłuto, 2 różne kamienie 1. stopnia, 3 przedmioty; kupno
 ## do sakwy i torby, pełna torba, brak złota, nowa dostawa, zapis), baza (kowal i kupiec otwierają okna, pasek skrótów
 ## w dolnej połowie, min. 44 px, po drugiej stronie niż przyciski walki), kamera przy brzegu polany, okna (potwierdzenie drugim stuknięciem,
 ## „Wróć”, „wstecz”, pauza), przycisk drzewka w wyborze poziomu przy Watrze (szczegóły drzewka - test_tree).
@@ -39,15 +39,13 @@ func _run() -> void:
 
 
 func _test_smith(game: Node) -> void:
-	game.gold = 0
 	var item := Items.roll(4, "ring", "rare")
 	game.add_item(item)
-	var price := Items.reroll_price(item)
-	_check(price == roundi(2.0 * Items.sell_price(item)), "pierwsza przeróbka za 2x cenę sprzedaży (%d)" % price)
-	_check(not game.reroll(game.bag[0], 0), "bez złota kowal nie przekuje")
-	game.gold = 10000
+	_check(not game.use_rune(game.bag[0], Runes.REFORGE, 0), "bez runy kowal nie przekuje")
+	game.add_rune(Runes.REFORGE, 2)
 	var before: Array = item.affixes.duplicate(true)
-	_check(game.reroll(game.bag[0], 1) and game.gold == 10000 - price, "przeróbka kosztuje złoto")
+	_check(game.use_rune(game.bag[0], Runes.REFORGE, 1) and game.runes.get(Runes.REFORGE, 0) == 1,
+			"Runa Przekucia zużyta")
 	var stats: Array = []
 	for a in game.bag[0].affixes:
 		stats.append(a.stat)
@@ -56,14 +54,14 @@ func _test_smith(game: Node) -> void:
 		unique = unique and stats.count(s) == 1
 	_check(unique and game.bag[0].affixes.size() == before.size(), "premie bez powtórzeń, ta sama liczba")
 	_check(game.bag[0].affixes[0] == before[0] and game.bag[0].affixes[2] == before[2], "inne premie zostają")
-	_check(Items.reroll_price(game.bag[0]) == roundi(2.0 * Items.sell_price(item) * 1.5), "następna przeróbka 1,5x droższa")
-	game.reroll(game.bag[0], 1)
+	game.use_rune(game.bag[0], Runes.REFORGE, 1)
 	game.load_game()
-	_check(int(game.bag[0].get("rerolls", 0)) == 2 and Items.reroll_price(game.bag[0]) == roundi(2.0 * Items.sell_price(item) * 2.25),
-			"liczba przeróbek zapisana z przedmiotem")
-	_check(not game.reroll(game.bag[0], 9), "zła premia")
+	_check(int(game.bag[0].get("rerolls", 0)) == 2 and not game.runes.has(Runes.REFORGE),
+			"przekucia i zużyte runy zapisane")
+	game.add_rune(Runes.REFORGE)
+	_check(not game.use_rune(game.bag[0], Runes.REFORGE, 9) and game.runes[Runes.REFORGE] == 1, "zła premia - runa zostaje")
 	var common := Items.roll(4, "boots", "common")
-	_check(not game.reroll(common, 0), "zwykły przedmiot nie ma premii do przekucia")
+	_check(not game.use_rune(common, Runes.REFORGE, 0), "zwykły przedmiot nie ma premii do przekucia")
 	var many := 0
 	for i in 40:
 		var r := Items.roll(3, "amulet", "magic")
@@ -190,17 +188,24 @@ func _test_base(game: Node) -> void:
 	arena.tree_window.back_button.pressed.emit()
 	_check(arena.picker.visible and paused, "po zamknięciu drzewka wraca wybór poziomu")
 	arena.picker.close()
-	# kowal: przeróbka w oknie
-	game.add_item(Items.roll(3, "ring", "rare"))
+	# kowal: runy w oknie
+	game.add_item(Items.roll(3, "ring", "magic"))
+	game.add_rune(Runes.REFORGE)
+	game.add_rune(Runes.ASCEND)
 	arena.open_smith()
 	arena.smith_window.bag_slots[0].pressed.emit()
 	_check(arena.smith_window.detail.visible, "stuknięcie przedmiotu otwiera opis z premiami")
-	var gold: int = game.gold
-	var rr: Button = arena.smith_window.detail.find_child("Reroll_0", true, false)
-	rr.pressed.emit()
-	arena.smith_window.detail.find_child("Reroll_0", true, false).pressed.emit()
-	_check(game.gold < gold and int(game.bag[0].rerolls) == 1 and arena.smith_window.detail.visible,
-			"przeróbka w oknie (drugie stuknięcie), opis zostaje")
+	_check(arena.smith_window.detail.find_child("Use_0", true, false) == null, "bez wybranej runy nie ma „Użyj”")
+	arena.smith_window.detail.find_child("Rune_" + Runes.REFORGE, true, false).pressed.emit()
+	arena.smith_window.detail.find_child("Use_0", true, false).pressed.emit()
+	_check(not game.runes.has(Runes.REFORGE) and int(game.bag[0].rerolls) == 1 and arena.smith_window.detail.visible,
+			"Runa Przekucia przy premii, opis zostaje")
+	arena.smith_window.detail.find_child("Rune_" + Runes.ASCEND, true, false).pressed.emit()
+	arena.smith_window.detail.find_child("UseRune", true, false).pressed.emit()
+	_check(game.bag[0].rarity == "magic", "runa na cały przedmiot pyta „Na pewno?”")
+	arena.smith_window.detail.find_child("UseRune", true, false).pressed.emit()
+	_check(game.bag[0].rarity == "rare" and game.bag[0].affixes.size() >= 3 and not game.runes.has(Runes.ASCEND),
+			"drugie stuknięcie: przedmiot rzadki, premie dolosowane")
 	arena.smith_window.back()
 	_check(not arena.smith_window.detail.visible and arena.smith_window.visible, "„wstecz” najpierw zamyka opis")
 	arena.smith_window.back()

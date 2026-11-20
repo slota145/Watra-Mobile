@@ -1,0 +1,28 @@
+spritekiln: 1
+# Runa Zmiany (Runes.CHAOS): fioletowy kamień Nawii, błękitny znak - Sowilo (zygzak błyskawicy):
+# wszystkie premie od nowa.
+name: rune_chaos
+extends: rune_base.yaml
+ramps:
+  rstone: ["#0b0a0f", "#2c2645", "#433d74", "#5a4f8e", "#7a6aa8", "#9a8cc0"]
+  rglyph: ["#14243a", "#3d7fc0", "#6fc8f0", "#d0f4ff", "#ffffff"]
+materials:
+  glyph: {glow: {color: "#6fc8f0"}}
+parts:
+  stone:
+    # znak wyryty w kamieniu: rowek nieco szerszy niż świecące kreski (odłupane ukosy jak w rune_base)
+    cut:
+      - plane: {n: [0.75, 0.62, 0.2], at: 0.43}
+      - plane: {n: [-0.8, -0.55, 0.15], at: 0.45}
+      - box: {c: [-0.025, 0.15, 0.17], half: [0.05, 0.16, 0.06], rot: [0, 0, 0.76]}
+      - box: {c: [0, 0, 0.17], half: [0.05, 0.11, 0.06], rot: [0, 0, 2.191]}
+      - box: {c: [0.025, -0.15, 0.17], half: [0.05, 0.16, 0.06], rot: [0, 0, 0.76]}
+  glyph:
+    material: glyph
+    space: face
+    priority: 3
+    prims:
+      # zygzak przez punkty (-0.12, 0.25) -> (0.07, 0.05) -> (-0.07, -0.05) -> (0.12, -0.25)
+      - box: {c: [-0.025, 0.15, 0], half: [0.03, 0.15, 0.02], rot: [0, 0, 0.76]}
+      - box: {c: [0, 0, 0], half: [0.03, 0.1, 0.02], rot: [0, 0, 2.191]}
+      - box: {c: [0.025, -0.15, 0], half: [0.03, 0.15, 0.02], rot: [0, 0, 0.76]}

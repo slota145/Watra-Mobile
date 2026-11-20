@@ -234,9 +234,9 @@ const JEWELS := {
 const JEWEL_ORDER := ["ruby", "sapphire", "emerald", "onyx"]
 
 const SPECIAL := {
-	KEY: {"name": "Klucz Runiczny", "icon": "res://assets/watra/gems/rune_ascend.png", "color": Color(1.0, 0.8, 0.35),
+	KEY: {"name": "Klucz Runiczny", "icon": "res://assets/watra/gems/key_rune.png", "color": Color(1.0, 0.8, 0.35),
 		"text": "Otwiera kolejne gniazdo wybranej umiejętności (okno umiejętności)."},
-	CHISEL: {"name": "Dłuto Jubilera", "icon": "res://assets/watra/gems/rune_polish.png", "color": Color(0.7, 0.85, 1.0),
+	CHISEL: {"name": "Dłuto Jubilera", "icon": "res://assets/watra/gems/chisel.png", "color": Color(0.7, 0.85, 1.0),
 		"text": "Dorabia drugie gniazdo w przedmiocie (opis przedmiotu w oknie „Postać”)."},
 }
 const SOCKET_ICON := preload("res://assets/watra/gems/socket.png")

@@ -2,6 +2,36 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - runy zamiast złota u kowala (ROADMAP punkt 4, krok 1)
+
+Ankieta z autorem (ustalenia całego punktu w `docs/ROADMAP.md`, punkt 4). Krok 1: runy i kowal; złoto w innych
+miejscach zostaje na krok 2.
+- `scripts/runes.gd` (Runes): 6 run z Watry (`../Watra/scripts/item_craft.gd`, ikony w `assets/watra/items/rune_*.png`):
+  Szlifu (nowa wartość wybranej premii), Przekucia (premia od nowa - `Items.reroll_affix`), Przydania (+premia do 2
+  w magicznym / 4 w rzadkim), Wyniesienia (zwykły -> magiczny -> rzadki, brakujące premie dolosowane), Zmiany
+  (wszystkie premie od nowa w liczbie rzadkości), Pieczęci (wybrana zostaje, reszta od nowa). Wagi 10/7/5/3/3/0,8,
+  Wyniesienia od lochu 3, Pieczęci od 20. Kurs (`value`, w Runach Szlifu): 1/2/3/6/5/20 - dla kupca i rynku.
+  `Runes.blocker` - czemu runy nie da się użyć (napis dla gracza), `Runes.apply` - działanie.
+- Stan `Game.runes` (runa -> ile, zapis „runes”), `Game.use_rune` (zużywa jedną), `Game.add_rune` (łup), `Game.dev_runes`
+  (+5 każdej, przycisk „+runy” w oknie deweloperskim). Usunięte: `Game.reroll`, `Items.reroll_price`, REROLL_* (kowal
+  nie bierze już złota).
+- Łup (propozycja Claude - do oceny): potwór 0,2% (`Runes.MONSTER`), elita 8%, skrzynia Wodza 2 runy + 50% na trzecią,
+  skrzynia-cel 50% (`DungeonGoals.CHEST_RUNE`), Kryształ Watry 1-2 (`crystal_runes`, druga przy połowie zdrowia), Krąg
+  Żertwy - runa (bez Szlifu) jako nowa nagroda do wyboru. Mnożnik łupu (drzewko, modyfikatory) działa na szanse.
+  Na ziemi runa to {"rune": id} (`ProtoLoot`, poświata magiczna; Wyniesienia, Zmiany i Pieczęci - ze słupem światła).
+- Okno kowala (`scripts/ui/smith_window.gd`): u góry zapas run, po stuknięciu przedmiotu opis z premiami i siatką
+  6 run (nazwa i liczba); wybrana runa pokazuje opis; runy na premię dodają „Użyj” przy premiach, pozostałe -
+  „Użyj runy” z potwierdzeniem. Zmienione premie błyskają.
+- Klucz Runiczny i Dłuto Jubilera dostały nowe ikony (dawniej ikony Runy Wyniesienia i Szlifu): klucz - fioletowy
+  kryształ z Watry (`gems/key_rune.png`, dawna Runa Zatarcia), dłuto - Runa Szlifu z zielonym znakiem (`gems/chisel.png`).
+- Testy: `tests/test_runes.gd` (nowy), `test_base.gd` (kowal na runach), `test_goals.gd` (5 nagród Żertwy).
+- Ikony run ze SpriteKiln (prośba autora: spójniejszy wygląd niż mieszanka ikon z Watry): wspólny kamień runiczny
+  `art/specs/props/runes/rune_base.yaml` (64 px, 1 kierunek, kamień odchylony do kamery, światło z lewej góry, kamera
+  bliżej niż w postaciach - ikona) i 6 specyfikacji `rune_<id>.yaml` (`extends`; kolor kamienia, świecący wyryty znak):
+  Szlif - szary z jasnoniebieskim rombem, Przekucie - ciemny z pomarańczowym młotem (T), Przydanie - zielony z kiełkiem
+  (Algiz), Wyniesienie - bursztynowy ze strzałą w górę, Zmiana - fioletowy (Nawia) z zygzakiem, Pieczęć - czarny ze
+  złotą obręczą i kręgiem z krzyżem. Wynik w `assets/runes/` (render `out/rune_<id>/rune_<id>.png`, skopiowany ręcznie).
+
 ## 20.11.2026 - wydajność walki, część 2: siatka wrogów, łuk, glewia, hydrosfera; naprawa aur i talizmanów
 
 Prośba autora: ten sam pomiar dla Poszukującej strzały (5 naraz, nieskończona mana, spam) przy 150 i 200-250

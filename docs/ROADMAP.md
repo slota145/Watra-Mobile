@@ -46,7 +46,28 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
      poziom lochu, szczegóły w `docs/historia.md`). Do oceny na telefonie: siła węzłów, czy Wędrowne cele nie za częste.
   4. **Bez złota - waluta-przedmioty jak orby w PoE**, kowal wykuwa przedmioty z surowców, surowce z wydarzeń na
      mapie lochu (fala potworów, po wygranej kupka surowców). Największa zmiana - dotyka sklepu, kowala, ulepszeń
-     kamieni, Skarbnika i drzewka lochów; przed startem plan i ankieta.
+     kamieni, Skarbnika i drzewka lochów. Ankieta z autorem 20.11.2026 - ustalone:
+     - waluty: 6 run z Watry (`../Watra/scripts/item_craft.gd`, ikony w `../Watra/assets/items/rune_*.png`): Szlifu
+       (nowa wartość premii), Przekucia (jedna premia od nowa - zastępuje dzisiejszego kowala), Zmiany (wszystkie od
+       nowa), Przydania (+premia, gdy jest miejsce), Wyniesienia (rzadkość w górę), Pieczęci (jedna zostaje, reszta od
+       nowa; najrzadsza, od dalszych lochów); runy mają od razu „kurs” (wartość - Szlifu najtańsza, Pieczęci
+       najdroższa) dla wymiany u kupca, a potem rynku (punkt 5);
+     - surowiec: na razie jedna ruda żelaza (ikona `../Watra/assets/items/iron_ore.png`); kowal wykuwa z niej
+       przedmioty (wybór miejsca, poziom = najgłębszy przebity loch);
+     - przedmioty: rozbijanie zamiast sprzedaży (ruda, rzadki czasem okruch runy); auto sprzedaż -> auto rozbijanie;
+     - kupiec: wymiana run (słabsze na lepsze wg kursu), Klucz Runiczny i Dłuto Jubilera za runy;
+     - zakładki skrzyni: za darmo za przebite lochy (np. 5/15/30/50, na drabince odblokowań);
+     - broń przed progiem: Pieczęć Oręża - rzadki przedmiot odblokowujący dowolną broń (np. skrzynia Wodza ~2-3%);
+     - kamienie: ulepszanie tylko za odpryski (więcej niż teraz), sprzedaż znika - zostaje rozbijanie;
+     - Skarbnik: trafienia wybijają rudę, złapanie - garść run i kamień; Skarbiec w drzewku -> „+% run i rudy”;
+     - runy wypadają: skrzynia Wodza, skrzynie-cele, Kryształ Watry, Krąg Żertwy (nowa opcja w wyborze 1 z 3),
+       rzadko z potworów, Skarbnik i nowy cel **Napad Hordy** (od 5. poziomu lochu, fala 45 s, nagroda: ruda + szansa
+       na runy);
+     - stary zapis: złoto przeliczone (propozycja: 100 zł = 1 ruda, 500 zł = losowa runa bez Pieczęci).
+     Kolejność: (1) ~~runy i kowal~~ - zrobione 20.11.2026 (szczegóły w `docs/historia.md`; do oceny na telefonie:
+     jak często wypadają runy, wygoda okna kowala), (2) wymiana złota w pozostałych miejscach i przejście zapisu, (3) Napad Hordy
+     i wykuwanie z rudy.
+     W przyszłości (autor): więcej rodzajów rudy, różne rodzaje drewna i wiele rodzajów magicznego pyłu.
   5. **Symulowany rynek** jak w PoE (handel „orbami”), niedostępny w SSF. W Watrze: `scripts/market.gd`. Po punkcie 4.
   - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), **broń magiczna**, wybór broni na start (resztę odblokowuje się jak teraz). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.

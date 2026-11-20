@@ -1,10 +1,11 @@
 class_name SmithWindow
 extends BaseWindow
-## Okno kowala w bazie (ustalone z autorem 12.11.2026): przeróbka jednej wybranej premii przedmiotu za złoto
-## (Items.reroll_affix, cena Items.reroll_price - każda kolejna przeróbka tego przedmiotu droższa).
-## U góry założone przedmioty, niżej torba (ItemSlot). Stuknięcie w przedmiot otwiera opis przy dolnej krawędzi:
-## stała cecha i premie, przy każdej premii przycisk z ceną (drugie stuknięcie przerabia, nowa premia błyska).
-## Opis zostaje otwarty, żeby można było przerabiać dalej. Zwykły przedmiot nie ma premii do przerobienia.
+## Okno kowala w bazie: runy zmieniają premie przedmiotu (Runes, ustalone z autorem 20.11.2026 - zamiast przeróbki
+## za złoto). U góry zapas run, niżej założone przedmioty i torba (ItemSlot). Stuknięcie w przedmiot otwiera opis
+## przy dolnej krawędzi: stała cecha, premie i 6 run (ikona, liczba sztuk). Stuknięcie w runę ją wybiera i pokazuje
+## opis; runa na wybraną premię (Szlifu, Przekucia, Pieczęci) dodaje przy premiach przyciski „Użyj”, pozostałe -
+## przycisk „Użyj runy” (pierwsze stuknięcie pyta „Na pewno?”). Zmienione premie błyskają. Opis zostaje otwarty,
+## żeby można było pracować dalej.
 
 const SLOT := 46.0
 const SOUND := preload("res://assets/watra/base/anvil_1.ogg")
@@ -20,12 +21,29 @@ var _detail_icon: TextureRect
 var _detail_lines: VBoxContainer
 ## Wybrany przedmiot (słownik z torby albo założony - zmienia się w miejscu) i premia do błysku po przeróbce.
 var selected: Dictionary = {}
-var _flash := -1
+## Wybrana runa ("" - żadna) i premie do błysku po jej użyciu (indeksy; -2 - wszystkie).
+var rune := ""
+var _flash: Array = []
+## Zapas run w oknie (runa -> napis z liczbą).
+var _stock: Dictionary = {}
 
 
 func _build() -> void:
 	title_label.text = tr("Kowal")
-	label(content, tr("Stuknij przedmiot i wybierz premię do przekucia."), 12, DIM, true)
+	label(content, tr("Stuknij przedmiot, potem runę, którą chcesz go zmienić."), 12, DIM, true)
+	var stock := HBoxContainer.new()
+	stock.add_theme_constant_override("separation", 2)
+	stock.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	content.add_child(stock)
+	for id in Runes.ORDER:
+		var tex := TextureRect.new()
+		tex.texture = Runes.icon_of(id)
+		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex.custom_minimum_size = Vector2(26, 26)
+		stock.add_child(tex)
+		_stock[id] = label(stock, "0", 13, TEXT)
+		_stock[id].custom_minimum_size.x = 22
 	label(content, tr("Założone"), 13, GOLD)
 	var row_box := HBoxContainer.new()
 	row_box.add_theme_constant_override("separation", 4)
@@ -55,7 +73,11 @@ func _build() -> void:
 
 
 func refresh() -> void:
-	set_currency(COIN, _game.gold)
+	currency_icon.visible = false
+	currency_label.text = ""
+	for id in Runes.ORDER:
+		_stock[id].text = str(int(_game.runes.get(id, 0)))
+		_stock[id].modulate.a = 1.0 if _game.runes.get(id, 0) > 0 else 0.45
 	for i in Items.SLOTS.size():
 		var item: Dictionary = _game.equipped.get(Items.SLOTS[i], {})
 		equipped_slots[i].show_item(item)
@@ -93,7 +115,8 @@ func _select_bag(index: int) -> void:
 func _select(item: Dictionary) -> void:
 	selected = item
 	armed = ""
-	_flash = -1
+	rune = ""
+	_flash = []
 	_show_detail()
 	detail.visible = true
 
@@ -109,41 +132,103 @@ func _show_detail() -> void:
 		c.queue_free()
 	for line in Items.base_lines(item):
 		label(_detail_lines, line, 13, TEXT)
+	var per_stat := Runes.needs_stat(rune)
 	if item.affixes.is_empty():
-		label(_detail_lines, tr("Zwykły przedmiot nie ma premii do przekucia."), 12, DIM, true)
-		return
-	var price := Items.reroll_price(item)
+		label(_detail_lines, tr("Zwykły przedmiot - bez premii."), 12, DIM, true)
 	for i in item.affixes.size():
 		var box := HBoxContainer.new()
 		box.add_theme_constant_override("separation", 6)
 		_detail_lines.add_child(box)
 		var l := label(box, Items.stat_text(item.affixes[i].stat, item.affixes[i].value), 14, Items.RARITY_COLORS.magic)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		if i == _flash:
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		if i in _flash or -2 in _flash:
 			l.modulate = Color(2.2, 2.0, 1.2)
 			l.create_tween().tween_property(l, "modulate", Color.WHITE, 0.9)
-		var b := price_button(box, "affix_%d" % i, price, COIN, _game.gold >= price)
-		b.name = "Reroll_%d" % i
-		b.pressed.connect(_reroll.bind(i))
-	var rerolls := int(item.get("rerolls", 0))
-	if rerolls > 0:
-		label(_detail_lines, tr("Przekuto już: %d") % rerolls, 11, DIM)
-
-
-func _reroll(index: int) -> void:
-	if not confirm("affix_%d" % index):
+		if per_stat:
+			var b := button(box, tr("Użyj"))
+			b.name = "Use_%d" % i
+			b.custom_minimum_size = Vector2(80, 44)
+			b.size_flags_horizontal = Control.SIZE_SHRINK_END
+			b.disabled = not _can_use(i)
+			b.pressed.connect(_use.bind(i))
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 4)
+	_detail_lines.add_child(grid)
+	for id in Runes.ORDER:
+		var b := button(grid, "%s %d" % [Runes.short_of(id), int(_game.runes.get(id, 0))])
+		b.name = "Rune_" + id
+		b.icon = Runes.icon_of(id)
+		b.expand_icon = true
+		b.add_theme_constant_override("icon_max_width", 18)
+		b.add_theme_constant_override("h_separation", 2)
+		b.add_theme_font_size_override("font_size", 10)
+		b.toggle_mode = true
+		b.button_pressed = id == rune
+		if id == rune:
+			b.add_theme_color_override("font_color", GOLD)
+			b.add_theme_color_override("font_pressed_color", GOLD)
+		elif _game.runes.get(id, 0) <= 0:
+			b.modulate.a = 0.5
+		b.pressed.connect(_pick_rune.bind(id))
+	if rune == "":
+		label(_detail_lines, tr("Wybierz runę."), 12, DIM, true)
 		return
-	if _game.reroll(selected, index):
-		_flash = index
+	label(_detail_lines, Runes.name_of(rune), 13, Runes.color_of(rune))
+	label(_detail_lines, Runes.text_of(rune), 12, DIM, true)
+	var why := "" if _game.runes.get(rune, 0) > 0 else tr("Nie masz tej runy.")
+	if why == "":
+		why = Runes.blocker(item, rune, 0 if per_stat else -1)
+	if why != "":
+		label(_detail_lines, why, 12, Color(1, 0.55, 0.4), true)
+	elif per_stat:
+		label(_detail_lines, tr("Stuknij „Użyj” przy premii."), 12, DIM, true)
+	if not per_stat:
+		var use := button(_detail_lines, tr("Na pewno?") if armed == "rune" else tr("Użyj runy"))
+		use.name = "UseRune"
+		use.disabled = why != ""
+		if armed == "rune":
+			use.add_theme_color_override("font_color", GOLD)
+		use.pressed.connect(_use.bind(-1))
+
+
+## Czy wybraną runę da się użyć na premii `index` (jest runa i działanie ma sens).
+func _can_use(index: int) -> bool:
+	return _game.runes.get(rune, 0) > 0 and Runes.blocker(selected, rune, index) == ""
+
+
+func _pick_rune(id: String) -> void:
+	rune = "" if rune == id else id
+	armed = ""
+	_flash = []
+	_show_detail()
+
+
+## Użycie wybranej runy (`index` - premia; -1 - runa na cały przedmiot, z potwierdzeniem).
+func _use(index: int) -> void:
+	if index < 0 and not confirm("rune"):
+		return
+	var before: Array = selected.affixes.duplicate(true)
+	if _game.use_rune(selected, rune, index):
+		_flash = [index] if index >= 0 and rune != Runes.SEAL else [-2]
+		if rune == Runes.SEAL:
+			_flash = range(1, selected.affixes.size())
+		elif rune == Runes.GROWTH:
+			_flash = [selected.affixes.size() - 1]
+		elif rune == Runes.ASCEND:
+			_flash = range(before.size(), selected.affixes.size())
 		play(SOUND, -4.0)
 	refresh()
-	_flash = -1
+	_flash = []
 
 
 func _hide_detail() -> void:
 	if detail:
 		detail.visible = false
 	selected = {}
+	rune = ""
 	armed = ""
 
 

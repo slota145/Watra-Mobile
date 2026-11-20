@@ -12,7 +12,7 @@ extends Node
 ## Gems.SKILL_SOCKETS identyfikatorów, "" - puste) i otwarte gniazda (`skill_open`); kamienie w przedmiotach
 ## leżą w samych przedmiotach ("sockets"). Baza (ustalone 12.11.2026): drzewko lochów (`tree`: węzeł DungeonTree -> punkty;
 ## od 20.11.2026 zamiast ulepszeń lochów za złoto), półka kupca (`shop`: oferty Shop, `shop_ready` - był już towar;
-## odnawia się po każdym pokonanym bossie) i kowal (`reroll` - przeróbka jednej premii przedmiotu za złoto).
+## odnawia się po każdym pokonanym bossie) i kowal (`use_rune` - runy zmieniają premie przedmiotu; `runes`: identyfikator runy -> ile sztuk, Runes).
 ## Żywioły i mistrzostwo (13.11.2026): umiejętności odblokowuje mistrzostwo broni, ulepsza się je żarem, a ulepszenia
 ## lochów kupuje się złotem. Stary zapis (bez `mastery`) przechodzi raz (`_migrate_mastery`): mistrzostwo miecza = poziom
 ## postaci, kupione umiejętności i poziomy zostają, a wydane na nie złoto i żar wydany na ulepszenia lochów wracają.
@@ -121,6 +121,8 @@ var skill_levels := {}
 var gems := {}
 ## Odpryski z rozbitych kamieni - waluta ulepszania kamieni (razem ze złotem).
 var shards := 0
+## Runy (Runes, 20.11.2026 - waluta-przedmioty zamiast złota u kowala): identyfikator -> ile sztuk.
+var runes := {}
 ## Kamienie w gniazdach umiejętności i liczba otwartych gniazd (brak wpisu - Gems.SKILL_OPEN).
 var skill_gems := {}
 var skill_open := {}
@@ -334,6 +336,7 @@ func load_game() -> void:
 	skill_levels = {}
 	gems = {}
 	shards = 0
+	runes = {}
 	skill_gems = {}
 	skill_open = {}
 	tree = {}
@@ -369,6 +372,12 @@ func load_game() -> void:
 		hero_xp = maxi(int(data.get("hero_xp", 0)), 0)
 		gold = maxi(int(data.get("gold", 0)), 0)
 		shards = maxi(int(data.get("shards", 0)), 0)
+		runes = {}
+		var raw_runes = data.get("runes", {})
+		if raw_runes is Dictionary:
+			for id in raw_runes:
+				if Runes.valid(str(id)) and int(raw_runes[id]) > 0:
+					runes[str(id)] = int(raw_runes[id])
 		var raw_bag = data.get("bag", [])
 		if raw_bag is Array:
 			for raw in raw_bag:
@@ -519,7 +528,7 @@ func save_game() -> void:
 				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
-				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards,
+				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes,
 				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots, "shop": shop,
 				"shop_ready": shop_ready}))
 
@@ -607,6 +616,7 @@ func reset_hero() -> void:
 	skill_levels = {}
 	gems = {}
 	shards = 0
+	runes = {}
 	skill_gems = {}
 	skill_open = {}
 	auras = {}
@@ -1633,16 +1643,31 @@ func buy_offer(index: int) -> bool:
 	return true
 
 
-## Kowal: przerabia premię `index` przedmiotu (z torby albo założonego - zmienia się w miejscu) za złoto.
-## Zwraca false, gdy brakuje złota albo nie ma takiej premii.
-func reroll(item: Dictionary, index: int) -> bool:
-	if item.is_empty() or index < 0 or index >= item.affixes.size():
+## Kowal: używa runy `id` na przedmiocie (z torby albo założonego - zmienia się w miejscu; `index` - wybrana premia
+## dla Run Szlifu, Przekucia i Pieczęci). Zużywa jedną runę. Zwraca false, gdy brak runy albo nie da się jej użyć.
+func use_rune(item: Dictionary, id: String, index := -1) -> bool:
+	if int(runes.get(id, 0)) <= 0 or not Runes.apply(item, id, index):
 		return false
-	var price := Items.reroll_price(item)
-	if gold < price:
-		return false
-	gold -= price
-	Items.reroll_affix(item, index)
+	runes[id] = int(runes[id]) - 1
+	if runes[id] <= 0:
+		runes.erase(id)
 	save_game()
 	inventory_changed.emit()
 	return true
+
+
+## Runy z lochu (łup) - zapis przy najbliższym `save_if_dirty`.
+func add_rune(id: String, amount := 1) -> void:
+	if not Runes.valid(id) or amount <= 0:
+		return
+	runes[id] = int(runes.get(id, 0)) + amount
+	_dirty = true
+	inventory_changed.emit()
+
+
+## Tryb deweloperski: po 5 sztuk każdej runy.
+func dev_runes() -> void:
+	for id in Runes.ORDER:
+		runes[id] = int(runes.get(id, 0)) + 5
+	save_game()
+	inventory_changed.emit()

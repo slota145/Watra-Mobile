@@ -1,0 +1,27 @@
+spritekiln: 1
+# Runa Wyniesienia (Runes.ASCEND): bursztynowo-złoty kamień, biało-złoty znak - Tiwaz (strzała w górę):
+# przedmiot wchodzi na wyższą rzadkość.
+name: rune_ascend
+extends: rune_base.yaml
+ramps:
+  rstone: ["#1c1006", "#4d2f0e", "#7a4e14", "#a8731e", "#cf9a35", "#e8c04e"]
+  rglyph: ["#4d2f0e", "#e8c04e", "#fff0a0", "#fffbe0", "#ffffff"]
+materials:
+  glyph: {glow: {color: "#fff0a0"}}
+parts:
+  stone:
+    # znak wyryty w kamieniu: rowek nieco szerszy niż świecące kreski (odłupane ukosy jak w rune_base)
+    cut:
+      - plane: {n: [0.75, 0.62, 0.2], at: 0.43}
+      - plane: {n: [-0.8, -0.55, 0.15], at: 0.45}
+      - box: {c: [0, -0.02, 0.17], half: [0.05, 0.27, 0.06]}
+      - box: {c: [0.1, 0.12, 0.17], half: [0.05, 0.16, 0.06], rot: [0, 0, 0.75]}
+      - box: {c: [-0.1, 0.12, 0.17], half: [0.05, 0.16, 0.06], rot: [0, 0, -0.75]}
+  glyph:
+    material: glyph
+    space: face
+    priority: 3
+    prims:
+      - box: {c: [0, -0.02, 0], half: [0.03, 0.25, 0.02]}
+      - box: {c: [0.1, 0.12, 0], half: [0.03, 0.14, 0.02], rot: [0, 0, 0.75]}
+      - box: {c: [-0.1, 0.12, 0], half: [0.03, 0.14, 0.02], rot: [0, 0, -0.75]}

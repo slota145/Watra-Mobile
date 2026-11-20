@@ -13,7 +13,7 @@ signal dropped(gem: String, from_area: String, from_index: int)
 
 const FRAME := Color(0.45, 0.35, 0.25)
 const GOLD := Color(1.0, 0.78, 0.35)
-const KEY_ICON := preload("res://assets/watra/gems/rune_ascend.png")
+const KEY_ICON := preload("res://assets/watra/gems/key_rune.png")
 
 var area := "socket"
 var index := 0

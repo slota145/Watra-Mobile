@@ -1,0 +1,57 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+# Kamień runiczny - wspólna baza ikon run (Runes, waluta kowala). Każda runa (rune_<id>.yaml) dziedziczy ten kształt
+# i zmienia tylko rampy kamienia i znaku oraz bryły znaku (part "glyph"). Ikona 64 px, jeden kierunek, kamień
+# odchylony do kamery, żeby znak było widać z przodu. Nie renderuje się sama (bez znaku).
+name: rune_base
+kind: prop
+view: topdown
+size: 64
+directions: 1
+palette: "watra"
+# ikona, nie postać w świecie: kamera bliżej niż camera.scale stylu (0.04889), żeby kamień wypełnił ramkę 64 px
+camera: {pitch: 38, scale: 0.021, center: [0, 0.55, 0]}
+shadow: null
+# światło z lewej góry, bardziej z boku niż w postaciach: gładkie lico kamienia dostaje przejście tonów zamiast
+# jednej jasnej plamy (ikona, nie stoi w świecie obok postaci)
+light: {dir: [-0.9, 0.75, 0.35], ambient: 0.1}
+
+brief:
+  summary: >
+    a rounded river runestone tilted back towards the viewer, a glowing carved rune on its face; one shared
+    shape for every rune of the set (stone colour and glyph change per rune)
+  must_keep:
+    - the stone fills most of the 64 px frame, the glyph is readable at 26 px in the UI
+    - the glyph glows (emissive) and has the brightest values of the icon
+  decisions:
+    - the stone leans back ~35 degrees so its face looks at the 38 degree camera
+    - the glyph is raised a hair above the face (strokes of boxes about 2 px wide)
+
+materials:
+  stone: {ramp: rstone, finish: matte, bands: [1, 4], gamma: 1.35, edge_highlight: true, crease: true}
+  glyph: {ramp: rglyph, emissive: true, band: 3, glow: {color: "#9cc0dc", mix: 0.45, radius: 1}}
+
+ramps:
+  rstone: ["#0e0c0c", "#3c3633", "#645c54", "#898274", "#a8a499", "#c5c4bc"]
+  rglyph: ["#202838", "#6a90b4", "#9cc0dc", "#e2f0fa", "#ffffff"]
+
+bones:
+  stone: {parent: root, pos: [0, 0.55, 0], rot: [-0.62, 0, 0]}
+  face:  {parent: stone, pos: [0, 0, 0.14]}
+
+parts:
+  stone:
+    material: stone
+    space: stone
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.46, 0.56, 0.2]}
+      - ellipsoid: {c: [0.05, -0.12, -0.02], r: [0.44, 0.42, 0.19]}
+    cut:
+      # odłupane ukosy - kamień nie jest idealnie gładki
+      - plane: {n: [0.75, 0.62, 0.2], at: 0.43}
+      - plane: {n: [-0.8, -0.55, 0.15], at: 0.45}
+
+animations:
+  # ikona: jedna nieruchoma klatka (render potrzebuje animacji)
+  idle: {frames: 1, ms: 1000, channels: {}}

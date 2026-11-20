@@ -1,8 +1,8 @@
 extends SceneTree
 ## Zrzuty bazy z kowalem i kupcem: drzewko lochów, kupiec z półką, kowal z opisem przedmiotu
-## (premia przed przeróbką uzbrojona - „Na pewno?”).
+## (wybrana Runa Przekucia - przyciski „Użyj” przy premiach) i kowal z Runą Zmiany (_5_kowal_runa).
 ## Użycie: SCRIPT=tools/base_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
-## Pliki: <prefiks>_1_baza.png, _2_drzewko.png, _3_kupiec.png, _4_kowal.png
+## Pliki: <prefiks>_1_baza.png, _2_drzewko.png, _3_kupiec.png, _4_kowal.png, _5_kowal_runa.png
 
 var _prefix := "/tmp/baza"
 
@@ -33,6 +33,7 @@ func _run() -> void:
 	game.dev_items(6)
 	game.equip(0)
 	game.restock_shop(4)
+	game.dev_runes()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
 	root.add_child(arena)
 	await create_timer(1.0).timeout
@@ -53,9 +54,13 @@ func _run() -> void:
 		if game.bag[i].rarity == "rare":
 			idx = i
 	arena.smith_window.bag_slots[idx].pressed.emit()
-	arena.smith_window._reroll(1)
+	arena.smith_window._pick_rune(Runes.REFORGE)
+	arena.smith_window._use(1)
 	await create_timer(0.2).timeout
 	await _shot("4_kowal")
+	arena.smith_window._pick_rune(Runes.CHAOS)
+	await create_timer(0.2).timeout
+	await _shot("5_kowal_runa")
 	game.reset_hero()
 	DirAccess.remove_absolute(game.save_path)
 	quit()

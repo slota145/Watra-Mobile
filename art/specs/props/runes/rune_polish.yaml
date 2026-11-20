@@ -1,0 +1,26 @@
+spritekiln: 1
+# Runa Szlifu (Runes.POLISH): szary kamień, jasnoniebieski znak - romb (Inguz: szlif, oszlifowany kamień).
+name: rune_polish
+extends: rune_base.yaml
+ramps:
+  rstone: ["#0d0c0d", "#38373b", "#5d5c63", "#818088", "#a6a5aa", "#c9c8cb"]
+  rglyph: ["#202838", "#6a90b4", "#9cc0dc", "#e2f0fa", "#ffffff"]
+parts:
+  stone:
+    # znak wyryty w kamieniu: rowek nieco szerszy niż świecące kreski (odłupane ukosy jak w rune_base)
+    cut:
+      - plane: {n: [0.75, 0.62, 0.2], at: 0.43}
+      - plane: {n: [-0.8, -0.55, 0.15], at: 0.45}
+      - box: {c: [0.11, 0.11, 0.17], half: [0.05, 0.18, 0.06], rot: [0, 0, 0.785]}
+      - box: {c: [-0.11, 0.11, 0.17], half: [0.05, 0.18, 0.06], rot: [0, 0, -0.785]}
+      - box: {c: [0.11, -0.11, 0.17], half: [0.05, 0.18, 0.06], rot: [0, 0, -0.785]}
+      - box: {c: [-0.11, -0.11, 0.17], half: [0.05, 0.18, 0.06], rot: [0, 0, 0.785]}
+  glyph:
+    material: glyph
+    space: face
+    priority: 3
+    prims:
+      - box: {c: [0.11, 0.11, 0], half: [0.03, 0.16, 0.02], rot: [0, 0, 0.785]}
+      - box: {c: [-0.11, 0.11, 0], half: [0.03, 0.16, 0.02], rot: [0, 0, -0.785]}
+      - box: {c: [0.11, -0.11, 0], half: [0.03, 0.16, 0.02], rot: [0, 0, -0.785]}
+      - box: {c: [-0.11, -0.11, 0], half: [0.03, 0.16, 0.02], rot: [0, 0, 0.785]}

@@ -1,0 +1,37 @@
+spritekiln: 1
+# Runa Pieczęci (Runes.SEAL) - najrzadsza: czarny kamień w złotej obręczy, czerwono-złoty znak - krąg z krzyżem
+# (pieczęć; krzyż nie dotyka kręgu, żeby znak nie zlał się w tarczę): wybrana premia zostaje, reszta od nowa.
+name: rune_seal
+extends: rune_base.yaml
+ramps:
+  rstone: ["#0a0708", "#1e1619", "#33272b", "#4a3b3f", "#62525a", "#7b6b72"]
+  rglyph: ["#3a0712", "#a3182a", "#ff6a3d", "#ffd27a", "#fff4b0"]
+  rgold:  ["#1c1006", "#4d2f0e", "#8a5a16", "#c48c22", "#e8c04e", "#fff0a0"]
+materials:
+  glyph: {glow: {color: "#ff6a3d"}}
+  gold:  {ramp: rgold, finish: metal}
+bones:
+  # obręcz: pierścień spłaszczony w głąb kamienia, żeby przylegał do jego owalu
+  belt: {parent: stone, pos: [0, -0.3, 0], scale: [1, 1, 0.5]}
+parts:
+  stone:
+    # znak wyryty w kamieniu: rowek nieco szerszy niż świecące kreski (odłupane ukosy jak w rune_base)
+    cut:
+      - plane: {n: [0.75, 0.62, 0.2], at: 0.43}
+      - plane: {n: [-0.8, -0.55, 0.15], at: 0.45}
+      - torus: {c: [0, 0, 0.17], R: 0.21, r: 0.045, rot: [1.5708, 0, 0]}
+      - box: {c: [0, 0, 0.17], half: [0.045, 0.12, 0.06]}
+      - box: {c: [0, 0, 0.17], half: [0.12, 0.045, 0.06]}
+  glyph:
+    material: glyph
+    space: face
+    priority: 3
+    prims:
+      - torus: {c: [0, 0, 0], R: 0.21, r: 0.026, rot: [1.5708, 0, 0]}
+      - box: {c: [0, 0, 0], half: [0.028, 0.1, 0.02]}
+      - box: {c: [0, 0, 0], half: [0.1, 0.028, 0.02]}
+  band:            # złota obręcz opasująca dół kamienia - najrzadsza runa
+    material: gold
+    space: belt
+    prims:
+      - torus: {c: [0, 0, 0], R: 0.42, r: 0.04}

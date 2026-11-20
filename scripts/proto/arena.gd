@@ -23,7 +23,7 @@ extends Node2D
 ## otwiera okno umiejętności z kupowaniem (SkillsWindow). Przyciski walki pokazują umiejętności z miejsc
 ## (Game.skill_slots): duży przycisk - `weapon.main_skill`, małe - stuknięcie używa umiejętności (`weapon.cast`),
 ## a na przyciskach widać odnowienie i brak many (`_update_skill_buttons`).
-## Baza i waluty (ustalone 12.11.2026): kowal (postać z Watry przy kowadle, okno SmithWindow - przeróbka premii za złoto)
+## Baza i waluty (ustalone 12.11.2026): kowal (postać z Watry przy kowadle, okno SmithWindow - runy zmieniają premie, Runes)
 ## i kupiec (wędrowny kupiec przy straganie, okno ShopWindow - towar odnawia się po każdym zwycięstwie nad Wodzem),
 ## drzewko lochów (DungeonTreeWindow z wyboru poziomu przy Watrze; działanie w lochu - `_apply_upgrades`, `_tick_wander`)
 ## i pasek skrótów (BaseBar) otwierający okna budynków bez podchodzenia.
@@ -917,7 +917,7 @@ func _update_skill_buttons() -> void:
 ## Przedmiot na ziemi (z goblina albo skrzyni) - podniesione liczą się do podsumowania wyprawy.
 func _track_loot(loot: ProtoLoot) -> void:
 	loot.picked.connect(func(item: Dictionary) -> void:
-		if not item.has("gem") and not item.has("aura") and not item.has("talisman"):
+		if not item.has("gem") and not item.has("aura") and not item.has("talisman") and not item.has("rune"):
 			run_items += 1
 		notify_loot(item, tr("Podniesiono: %s") % ProtoLoot.name_of(item)))
 	loot.sold.connect(func(item: Dictionary, price: int, bag_full: bool) -> void:
@@ -1199,12 +1199,14 @@ func _drop_reward(item: Dictionary, at: Vector2, delay: float) -> void:
 	loot.delay = delay
 
 
-## Kryształ obroniony: kamienie (wg zdrowia, które zostało) i odpryski od razu do sakwy.
+## Kryształ obroniony: kamienie i runy (wg zdrowia, które zostało) oraz odpryski od razu do sakwy.
 func _on_crystal_defended(at: Vector2, health: float) -> void:
 	var shards := roundi(DungeonGoals.crystal_shards(health) * _goal_reward())
 	Game.add_shards(shards)
 	for i in DungeonGoals.crystal_gems(health):
 		_drop_reward({"gem": Gems.roll(level)}, at, 0.3 + 0.2 * i)
+	for i in DungeonGoals.crystal_runes(health):
+		_drop_reward({"rune": Runes.roll(level)}, at, 0.4 + 0.2 * i)
 	announce(tr("Kryształ obroniony! +%d odprysków") % shards, Color(1.0, 0.7, 0.35))
 
 
@@ -1334,6 +1336,8 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	chest.items = Items.roll_chest(level)
 	for id in Gems.roll_chest(level, horde_spawner.loot_mult * horde_spawner.gem_mult):
 		chest.items.append({"gem": id})
+	for id in Runes.roll_chest(level, horde_spawner.loot_mult):
+		chest.items.append({"rune": id})
 	var aura := Auras.roll_chest(level, false, horde_spawner.loot_mult * horde_spawner.gem_mult)  # kamień aury (od lochu Auras.MIN_LEVEL)
 	if aura != "":
 		chest.items.append({"aura": aura})

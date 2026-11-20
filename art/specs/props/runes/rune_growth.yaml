@@ -1,0 +1,27 @@
+spritekiln: 1
+# Runa Przydania (Runes.GROWTH): omszały zielony kamień, jasnozielony znak - Algiz (kreska z dwiema gałązkami
+# w górę, jak kiełek): przedmiot dostaje nową premię.
+name: rune_growth
+extends: rune_base.yaml
+ramps:
+  rstone: ["#09100c", "#1f3326", "#2f4d36", "#476a48", "#668a5e", "#8aa97c"]
+  rglyph: ["#0e2a12", "#3f8f3a", "#7fd068", "#c8f5a8", "#f4ffe8"]
+materials:
+  glyph: {glow: {color: "#7fd068"}}
+parts:
+  stone:
+    # znak wyryty w kamieniu: rowek nieco szerszy niż świecące kreski (odłupane ukosy jak w rune_base)
+    cut:
+      - plane: {n: [0.75, 0.62, 0.2], at: 0.43}
+      - plane: {n: [-0.8, -0.55, 0.15], at: 0.45}
+      - box: {c: [0, -0.02, 0.17], half: [0.05, 0.27, 0.06]}
+      - box: {c: [0.1, 0.11, 0.17], half: [0.05, 0.16, 0.06], rot: [0, 0, -0.62]}
+      - box: {c: [-0.1, 0.11, 0.17], half: [0.05, 0.16, 0.06], rot: [0, 0, 0.62]}
+  glyph:
+    material: glyph
+    space: face
+    priority: 3
+    prims:
+      - box: {c: [0, -0.02, 0], half: [0.03, 0.25, 0.02]}
+      - box: {c: [0.1, 0.11, 0], half: [0.03, 0.14, 0.02], rot: [0, 0, -0.62]}
+      - box: {c: [-0.1, 0.11, 0], half: [0.03, 0.14, 0.02], rot: [0, 0, 0.62]}
