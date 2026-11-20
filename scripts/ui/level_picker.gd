@@ -3,8 +3,8 @@ extends Control
 ## Wybór poziomu lochu po dotknięciu Watry w bazie (jak wybór poziomu szczeliny w Diablo 3): strzałki ◀ ▶ zmieniają
 ## poziom od 1 do najwyższego odblokowanego (`Game.unlocked_level`), pod spodem siła potworów i nagroda ze skrzyni
 ## Wodza, na dole duże przyciski „Wejdź” i „Anuluj” (pod kciukiem). Zatrzymuje grę na czas wyboru.
-## Wybrany poziom trafia do `Game.dungeon_level` (zapisywany z grą). Nad „Wejdź” przycisk „Ulepszenia lochów”
-## (sygnał `upgrades` - arena chowa wybór i otwiera UpgradesWindow; po jego zamknięciu wybór wraca).
+## Wybrany poziom trafia do `Game.dungeon_level` (zapisywany z grą). Nad „Wejdź” przycisk „Drzewko”
+## (sygnał `upgrades` - arena chowa wybór i otwiera DungeonTreeWindow - drzewko lochów; po jego zamknięciu wybór wraca).
 ## Drabinka odblokowań (Unlocks): pod opisem poziomu nowości od tego poziomu, a na najwyższym dostępnym - najbliższe
 ## odblokowanie (który boss i co da); przycisk „Drabinka odblokowań” (sygnał `ladder` - arena otwiera UnlocksWindow, po zamknięciu wybór wraca).
 ## Przy ponad 10 dostępnych poziomach (np. tryb deweloperski „wszystkie poziomy”) dochodzą skoki o 10 (−10 / +10).
@@ -87,7 +87,7 @@ func _ready() -> void:
 	mods_button.pressed.connect(func() -> void:
 		visible = false
 		mods.emit())
-	upgrades_button = _button(extra, tr("Ulepszenia"), Vector2(106, 48))
+	upgrades_button = _button(extra, tr("Drzewko"), Vector2(106, 48))
 	upgrades_button.icon = preload("res://assets/watra/ember_icon.png")
 	upgrades_button.add_theme_constant_override("icon_max_width", 20)
 	upgrades_button.add_theme_font_size_override("font_size", 16)

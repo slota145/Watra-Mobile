@@ -2,6 +2,28 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - drzewko lochów (zamiast ulepszeń lochów za złoto)
+
+Prośba autora: ROADMAP punkt 3, drzewko jak atlas w PoE. Decyzje autora: punkt za każdy **pierwszy raz przebity**
+poziom lochu (`Game.tree_total` = `best_level`), stare ulepszenia znikają ze **zwrotem złota** (50/120/250/500/1000 za
+stopień - `Game._fix_tree`), **rysowane drzewko** przesuwane palcem, cofanie **za darmo**, zestaw węzłów zaproponowany
+przez Claude plus węzeł autora - cele spoza paska żaru.
+- Dane `scripts/dungeon_tree.gd` (`DungeonTree`): Watra w środku, 4 gałęzie, w każdej mały węzeł (5 punktów) i dwa duże
+  (10-15), otwarte po 1 punkcie w małym. HORDA: Gęstsza Horda +4% potworów → Łowy na elity +5% elit (15), Szybkie
+  przyzwanie -2% żaru na Wodza (10). ŁUP: Hojność Watry +4% łupu → Skarbiec +4% złota (15, w `Game.add_gold`), Kamienie
+  Watry +6% kamieni, aur i talizmanów (10, `ProtoHorde.gem_mult`). NAUKA: Nauka z walki +4% doświadczenia → Mistrzostwo
+  +4% (15), Żar Watry +5% żaru (10). CELE: Długie ręce +6 px zasięgu → Hojne bóstwa +6 s daru kapliczki (10), Szczodre
+  cele +5% nagród celów (15 - żar skrzyń, złoto Skarbnika, odpryski Kryształu), **Wędrowne cele** (10, pomysł autora):
+  co 20 s 5% szansy za punkt na dodatkowy cel na mapie niezależnie od paska żaru, najwyżej 2 naraz (`arena._tick_wander`,
+  nie wliczają się do progów paska).
+- Stan `Game.tree` (zapis `"tree"`), `tree_add`/`tree_remove` (ostatni punkt małego węzła zabiera duże za nim)/
+  `tree_reset`, `tree_add_problem`; po wczytaniu nieznane i zamknięte węzły znikają, a gdy punktów jest więcej niż
+  przebitych poziomów - drzewko od nowa. Działanie: `arena._apply_upgrades`, `_summon_cost`, `_goal_reward`.
+- Okno `scripts/ui/dungeon_tree_window.gd` (przycisk „Drzewko” w wyborze poziomu): węzły 48 px z liczbą punktów,
+  linie od Watry świecą przy węzłach z punktami, przesuwanie palcem, na dole opis wybranego węzła (teraz i następny
+  punkt) z „−” i „+”, „Od nowa” z potwierdzeniem. Ikony z Watry w `assets/watra/tree/`.
+- Usunięte `scripts/dungeon_upgrades.gd` i `scripts/ui/upgrades_window.gd`. Test `tests/test_tree.gd`.
+
 ## 20.11.2026 - Rój Strzyboga, dynamiczna Poszukująca, 10. poziom strzału z Wielostrzałem
 
 Prośby autora (pytania: siła, pociski, nazwa).

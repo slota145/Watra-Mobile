@@ -35,8 +35,8 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
     (rosnące ceny kolejnych stopni zamiast niewidocznych +1%).
 
 - **Baza i waluty** (ustalone 12.11.2026):
-  - **żar** idzie tylko na **ulepszenia lochów** przy Watrze (wspólne dla wszystkich lochów, kilka stopni z rosnącą
-    ceną): więcej potworów, więcej doświadczenia, więcej łupu, większy zasięg zbierania (iskry i przedmioty);
+  - **drzewko lochów** przy Watrze (od 20.11.2026 zamiast ulepszeń lochów za złoto, jak atlas w PoE): punkt za każdy
+    przebity poziom lochu, 4 gałęzie - Horda, łup, nauka, cele na mapie; cofanie punktów za darmo;
   - **złoto:** zakładki skrzyni, umiejętności, **kowal** - przerabia **jedną wybraną premię** przedmiotu (losuje w jej
     miejsce inną: rodzaj i siłę), każda kolejna przeróbka tego przedmiotu droższa; **kupiec** - klucze, dłuta,
     kamienie najniższego stopnia i kilka przedmiotów, **towar w ograniczonej liczbie, odnawia się po każdym pokonanym bossie**;

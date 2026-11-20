@@ -10,8 +10,8 @@ extends Node
 ## (`skills_owned` - odblokowane, `skill_slots` - co stoi w miejscach, `skill_levels` - poziomy; dane w Skills), kamienie (Gems):
 ## sakwa (`gems`: identyfikator -> ile sztuk), odpryski (`shards`), kamienie w umiejętnościach (`skill_gems`: umiejętność -> lista
 ## Gems.SKILL_SOCKETS identyfikatorów, "" - puste) i otwarte gniazda (`skill_open`); kamienie w przedmiotach
-## leżą w samych przedmiotach ("sockets"). Baza (ustalone 12.11.2026): ulepszenia lochów za złoto (`upgrades`:
-## identyfikator DungeonUpgrades -> kupione stopnie), półka kupca (`shop`: oferty Shop, `shop_ready` - był już towar;
+## leżą w samych przedmiotach ("sockets"). Baza (ustalone 12.11.2026): drzewko lochów (`tree`: węzeł DungeonTree -> punkty;
+## od 20.11.2026 zamiast ulepszeń lochów za złoto), półka kupca (`shop`: oferty Shop, `shop_ready` - był już towar;
 ## odnawia się po każdym pokonanym bossie) i kowal (`reroll` - przeróbka jednej premii przedmiotu za złoto).
 ## Żywioły i mistrzostwo (13.11.2026): umiejętności odblokowuje mistrzostwo broni, ulepsza się je żarem, a ulepszenia
 ## lochów kupuje się złotem. Stary zapis (bez `mastery`) przechodzi raz (`_migrate_mastery`): mistrzostwo miecza = poziom
@@ -124,8 +124,12 @@ var shards := 0
 ## Kamienie w gniazdach umiejętności i liczba otwartych gniazd (brak wpisu - Gems.SKILL_OPEN).
 var skill_gems := {}
 var skill_open := {}
-## Ulepszenia lochów za złoto (identyfikator DungeonUpgrades -> stopień).
-var upgrades := {}
+## Drzewko lochów (DungeonTree, 20.11.2026 - zamiast ulepszeń lochów za złoto): węzeł -> punkty.
+var tree := {}
+## Dawne ulepszenia lochów z wczytanego zapisu (tylko do zwrotu przy przejściu na drzewko).
+var _old_upgrades := {}
+## Ceny stopni dawnych ulepszeń lochów (złoto; od 13.11.2026, wcześniej żar) - zwrot przy przejściu na drzewko.
+const OLD_UPGRADE_PRICES := [50, 120, 250, 500, 1000]
 ## Aury: zdobyte (aura -> poziom 1-Auras.MAX_LEVEL) i włączone.
 var auras := {}
 var auras_on: Array = []
@@ -332,7 +336,8 @@ func load_game() -> void:
 	shards = 0
 	skill_gems = {}
 	skill_open = {}
-	upgrades = {}
+	tree = {}
+	_old_upgrades = {}
 	auras = {}
 	auras_on = []
 	talismans = {}
@@ -455,8 +460,14 @@ func load_game() -> void:
 		var raw_up = data.get("upgrades", {})
 		if raw_up is Dictionary:
 			for id in raw_up:
-				if DungeonUpgrades.has(id) and int(raw_up[id]) > 0:
-					upgrades[id] = clampi(int(raw_up[id]), 0, DungeonUpgrades.MAX_STEPS)
+				if int(raw_up[id]) > 0:
+					_old_upgrades[id] = clampi(int(raw_up[id]), 0, OLD_UPGRADE_PRICES.size())
+		var raw_tree = data.get("tree", {})
+		if raw_tree is Dictionary:
+			for id in raw_tree:
+				if DungeonTree.has(id) and int(raw_tree[id]) > 0:
+					tree[id] = clampi(int(raw_tree[id]), 0, DungeonTree.max_of(id))
+		_fix_tree()
 		var raw_auras = data.get("auras", {})
 		if raw_auras is Dictionary:
 			for id in raw_auras:
@@ -509,7 +520,7 @@ func save_game() -> void:
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards,
-				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots, "shop": shop,
+				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots, "shop": shop,
 				"shop_ready": shop_ready}))
 
 
@@ -842,7 +853,7 @@ func sell_all(rarities: Array) -> int:
 func add_gold(amount: int) -> void:
 	if amount <= 0:
 		return
-	gold += amount
+	gold += roundi(amount * (1.0 + tree_value("gold") / 100.0))  # drzewko lochów: Skarbiec
 	_dirty = true
 
 
@@ -1083,9 +1094,7 @@ func _migrate_mastery() -> void:
 		gold += Skills.LEGACY_PRICE.get(id, 0)
 		for lvl in range(1, skill_level(id)):
 			gold += Skills.upgrade_price(id, lvl)
-	for id in upgrades:
-		for step in upgrades[id]:
-			embers += DungeonUpgrades.price(step)
+	# dawne ulepszenia lochów oddaje już _fix_tree (złotem)
 
 
 ## Poziom umiejętności (1 - nieulepszona albo niekupiona).
@@ -1496,34 +1505,90 @@ func dev_gems() -> void:
 	inventory_changed.emit()
 
 
-# --- Baza: ulepszenia lochów, kupiec i kowal (złoto) ---
+# --- Baza: drzewko lochów, kupiec i kowal ---
 
-## Kupione stopnie ulepszenia lochów.
-func upgrade_steps(id: String) -> int:
-	return upgrades.get(id, 0)
-
-
-## Premia ulepszenia lochów (procenty albo piksele - DungeonUpgrades.bonus).
-func upgrade_bonus(id: String) -> float:
-	return DungeonUpgrades.bonus(id, upgrade_steps(id))
+## Punkty drzewka lochów razem: 1 za każdy przebity poziom lochu (decyzja autora 20.11.2026).
+func tree_total() -> int:
+	return best_level
 
 
-## Cena następnego stopnia ulepszenia (0 - wszystkie kupione).
-func upgrade_price(id: String) -> int:
-	return DungeonUpgrades.price(upgrade_steps(id))
+## Wolne punkty drzewka.
+func tree_free() -> int:
+	return maxi(tree_total() - DungeonTree.spent(tree), 0)
 
 
-## Kupuje następny stopień ulepszenia za złoto (do 13.11.2026 za żar). Zwraca false, gdy brakuje złota albo
-## kupiono wszystkie.
-func buy_upgrade(id: String) -> bool:
-	var price := upgrade_price(id)
-	if not DungeonUpgrades.has(id) or price == 0 or gold < price:
+func tree_points(id: String) -> int:
+	return tree.get(id, 0)
+
+
+## Premia węzła drzewka (procenty, piksele albo sekundy - DungeonTree.value).
+func tree_value(id: String) -> float:
+	return DungeonTree.value(id, tree_points(id))
+
+
+## Dlaczego nie da się dodać punktu do węzła ("" - da się).
+func tree_add_problem(id: String) -> String:
+	if not DungeonTree.has(id):
+		return "unknown"
+	if tree_points(id) >= DungeonTree.max_of(id):
+		return "max"
+	var parent := DungeonTree.parent_of(id)
+	if parent != "" and tree_points(parent) <= 0:
+		return "locked"
+	if tree_free() <= 0:
+		return "points"
+	return ""
+
+
+## +1 punkt w węźle. Zwraca false, gdy się nie da (tree_add_problem).
+func tree_add(id: String) -> bool:
+	if tree_add_problem(id) != "":
 		return false
-	gold -= price
-	upgrades[id] = upgrade_steps(id) + 1
+	tree[id] = tree_points(id) + 1
 	save_game()
 	inventory_changed.emit()
 	return true
+
+
+## -1 punkt z węzła (cofanie za darmo - decyzja autora). Ostatni punkt małego węzła zabiera też punkty z dużych
+## węzłów za nim (bez niego są zamknięte). Zwraca false, gdy w węźle nie ma punktów.
+func tree_remove(id: String) -> bool:
+	if tree_points(id) <= 0:
+		return false
+	tree[id] = tree_points(id) - 1
+	if tree[id] == 0:
+		tree.erase(id)
+		for child in DungeonTree.children_of(id):
+			tree.erase(child)
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Cofa wszystkie punkty drzewka (za darmo).
+func tree_reset() -> void:
+	tree = {}
+	save_game()
+	inventory_changed.emit()
+
+
+## Porządek po wczytaniu: duże węzły bez punktu w małym - zamknięte; więcej punktów niż przebitych lochów (np. po
+## zmianie danych) - drzewko od nowa. Dawne ulepszenia lochów za złoto znikają, złoto wraca (decyzja autora 20.11.2026).
+func _fix_tree() -> void:
+	for id in tree.keys():
+		var parent := DungeonTree.parent_of(id)
+		if not DungeonTree.has(id) or parent != "" and tree_points(parent) <= 0:
+			tree.erase(id)
+	if DungeonTree.spent(tree) > tree_total():
+		tree = {}
+	var refund := 0
+	for id in _old_upgrades:
+		for step in _old_upgrades[id]:
+			refund += OLD_UPGRADE_PRICES[step]
+	if refund > 0:
+		gold += refund
+		_dirty = true
+	_old_upgrades = {}
 
 
 ## Półka kupca; przy pierwszym otwarciu dostaje pierwszy towar.

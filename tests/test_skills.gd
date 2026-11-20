@@ -83,7 +83,7 @@ func _test_game(game: Node) -> void:
 			"postać od nowa zeruje umiejętności i mistrzostwo")
 
 
-## Stary zapis (sprzed mistrzostwa): mistrzostwo = poziom postaci, kupione zostają, złoto i żar wracają.
+## Stary zapis (sprzed mistrzostwa): mistrzostwo = poziom postaci, kupione zostają, złoto wraca (też za dawne ulepszenia lochów).
 func _test_migration(game: Node) -> void:
 	var f := FileAccess.open(game.save_path, FileAccess.WRITE)
 	f.store_string(JSON.stringify({"hero_level": 7, "gold": 10, "embers": 5, "skills_owned": ["strike", "whirl"],
@@ -91,15 +91,15 @@ func _test_migration(game: Node) -> void:
 			"upgrades": {"xp": 2}}))
 	f.close()
 	game.load_game()
-	# złoto: Młynek 100 + poziomy zwykłego ciosu 40 + 80 + Młynka 60; żar: ulepszenie 50 + 120
-	_check(game.mastery_level() == 7 and game.gold == 10 + 100 + 40 + 80 + 60 and game.embers == 5 + 50 + 120,
+	# złoto: Młynek 100 + poziomy zwykłego ciosu 40 + 80 + Młynka 60 + dawne ulepszenie lochów 50 + 120 (zastąpiło je drzewko)
+	_check(game.mastery_level() == 7 and game.gold == 10 + 100 + 40 + 80 + 60 + 50 + 120 and game.embers == 5,
 			"stary zapis: mistrzostwo 7, zwrot złota (%d) i żaru (%d)" % [game.gold, game.embers])
-	_check(game.skills_owned == ["strike", "whirl", "throw"] and game.skill_level("strike") == 3 and game.upgrade_steps("xp") == 2
+	_check(game.skills_owned == ["strike", "whirl", "throw"] and game.skill_level("strike") == 3 and game.tree.is_empty()
 			and game.skill_slots == ["strike", "whirl", "throw", "", ""],
 			"kupione i poziomy zostają, Rzut mieczem (mistrz. 6) odblokowany")
 	game.save_game()
 	game.load_game()
-	_check(game.gold == 290 and game.embers == 175, "zwrot tylko raz")
+	_check(game.gold == 460 and game.embers == 5, "zwrot tylko raz")
 	game.reset_hero()
 
 
