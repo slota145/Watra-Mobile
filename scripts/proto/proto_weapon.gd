@@ -264,6 +264,9 @@ var aura_fire := 0.0
 ## i mnożnik obrażeń (Szpon Biesa).
 var talismans: ProtoTalismans
 var mana_tax := 0.0
+## Premia przedmiotów „+% obrażeń od żywiołów” (Items elem_dmg_pct): mnożnik każdego trafienia żywiołem (broń
+## żywiołu, kamienie Żar / Szron / Piorun, ogień Swaroga, aury, talizmany); obrażenia fizyczne bez zmian.
+var elem_mult := 1.0
 var bonus_mult := 1.0
 
 var _state := "follow"
@@ -704,6 +707,8 @@ func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2, flat :=
 	var amount := roundi((_roll(power) + flat) * (1.0 + t.pride))
 	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
 		amount = roundi(amount * elite_mult)
+	if elem != Elements.PHYSICAL:
+		amount = roundi(amount * elem_mult)
 	t.color_next = Elements.color_of(elem)
 	t.take_damage(Elements.reduce(amount, t.resist(elem, penetration)), from)
 
@@ -713,6 +718,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		amount = roundi(amount * elite_mult)
 	if t.pride > 0.0:  # Piętno Czarnoboga
 		amount = roundi(amount * (1.0 + t.pride))
+	var boost := elem_mult if element != Elements.PHYSICAL else 1.0  # premia żywiołów (broń żywiołu)
+	amount = roundi(amount * boost)
 	amount = Elements.reduce(amount, t.resist(element, penetration), _combo_mult(t))  # odporność lochu na żywioł broni
 	if randf() < crit_chance:
 		amount = roundi(amount * crit_mult)
@@ -723,8 +730,10 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		talismans.on_hit(t)
 	if skill != "slam" and get_script() == ProtoWeapon:
 		_sword_cut_fx(t, from)
+	# ogień Swaroga i kamienie żywiołów liczą się od ciosu bez premii broni, za to z premią żywiołów raz
+	var elem_base := amount / boost * elem_mult
 	if aura_fire > 0.0 and t.alive():
-		var fire := amount * aura_fire
+		var fire := elem_base * aura_fire
 		t.color_next = Elements.color_of(Elements.FIRE)
 		t.take_damage(Elements.reduce(maxi(1, roundi(fire)), t.resist(Elements.FIRE, penetration)), from)
 		t.burn(fire * Auras.SWAROG_BURN, BURN_TIME, penetration)
@@ -733,7 +742,7 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		return
 	var p := Gems.skill_power(sockets, "ember")
 	if p > 0.0:
-		t.burn(amount * p / 100.0, BURN_TIME, penetration)
+		t.burn(elem_base * p / 100.0, BURN_TIME, penetration)
 	p = Gems.skill_power(sockets, "rime")
 	if p > 0.0:
 		var soaked := t.is_soaked()
@@ -742,7 +751,7 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		t.slow(p / 100.0, SLOW_TIME)
 		if t.alive():  # Szron rani też lodem (decyzja autora 17.11.2026): RIME_DAMAGE siły spowolnienia, combo z wodą
 			t.color_next = Elements.color_of(Elements.COLD)
-			t.take_damage(Elements.reduce(roundi(amount * p / 100.0 * RIME_DAMAGE), t.resist(Elements.COLD, penetration),
+			t.take_damage(Elements.reduce(roundi(elem_base * p / 100.0 * RIME_DAMAGE), t.resist(Elements.COLD, penetration),
 					Elements.soak_bonus(Elements.COLD, soaked)), from)
 	p = Gems.skill_power(sockets, "leech")
 	if p > 0.0:
@@ -758,7 +767,7 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	p = Gems.skill_power(sockets, "discharge")
 	if p > 0.0 and not _chained:
 		_chained = true
-		for n in _chain_from(t, maxi(1, roundi(amount * p / 100.0))):
+		for n in _chain_from(t, maxi(1, roundi(elem_base * p / 100.0))):
 			n.shock(DISCHARGE_SHOCK)  # piorun z kamienia poraża jak katana (decyzja autora 17.11.2026)
 
 

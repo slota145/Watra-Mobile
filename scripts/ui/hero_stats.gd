@@ -31,11 +31,11 @@ const BAG_COLUMNS := 5
 const LEFT_SLOTS := ["helmet", "armor", "boots"]
 const RIGHT_SLOTS := ["earring", "amulet", "ring"]
 ## Kolejność statystyk w oknie; te z EXTRA_STATS pokazują się tylko, gdy przedmioty coś do nich dają.
-const STAT_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "pen", "mana_regen", "protection", "element_res", "regen",
+const STAT_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "elem_dmg", "pen", "mana_regen", "protection", "element_res", "regen",
 	"life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp", "slots"]
-const EXTRA_STATS := ["pen", "protection", "element_res", "regen", "life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
+const EXTRA_STATS := ["elem_dmg", "pen", "protection", "element_res", "regen", "life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
 ## Statystyki porównywane przy zakładaniu przedmiotu (bez miejsc na umiejętności).
-const COMPARE_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "pen", "mana_regen", "protection", "element_res", "regen",
+const COMPARE_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "elem_dmg", "pen", "mana_regen", "protection", "element_res", "regen",
 	"life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
 ## Bazowe trafienie krytyczne postaci (bez przedmiotów): szansa i obrażenia w procentach.
 const CRIT_CHANCE := 5.0
@@ -502,6 +502,7 @@ static func summary(level: int, gear: Dictionary) -> Dictionary:
 		"protection": "%d%%" % roundi(gear.get("protection_pct", 0.0)),
 		"element_res": "%d%%" % roundi(gear.get("element_res_pct", 0.0)),
 		"pen": "%d%%" % roundi(gear.get("pen_pct", 0.0)),
+		"elem_dmg": "+%d%%" % roundi(gear.get("elem_dmg_pct", 0.0)),
 		"mana_on_kill": "+%.1f" % gear.get("mana_on_kill", 0.0),
 		"regen": Lang.t("%.1f /s") % regen(level, gear),
 		"xp": "+%d%%" % roundi(gear.get("xp_pct", 0.0)),
@@ -1166,6 +1167,8 @@ func _stat_name(key: String) -> String:
 			return tr("Odporność na żywioły")
 		"pen":
 			return tr("Przebicie odporności")
+		"elem_dmg":
+			return tr("Obrażenia od żywiołów")
 		"mana_on_kill":
 			return tr("Mana za zabicie")
 		"regen":

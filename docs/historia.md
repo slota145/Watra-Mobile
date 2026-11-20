@@ -2,6 +2,20 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - obrażenia od żywiołów, nowe efekty talizmanów i aur
+
+Decyzje autora: premia przedmiotów „+% obrażeń od żywiołów” wzmacnia też talizmany (sposób 1 - talizmany zostają bez
+statystyk), nowe efekty z kreatora PixelLab tam, gdzie gra używała zastępczych.
+- `Items`: premia `elem_dmg_pct` („+%d%% obrażeń od żywiołów”, 6-12% +0,8 na poziom lochu, bez sufitu), okno „Postać”
+  - wiersz „Obrażenia od żywiołów”. `ProtoWeapon.elem_mult` (arena z sumy cech): mnoży trafienia żywiołem - broń żywiołu
+  (glewia, hydrosfera, katana), ogień Swaroga, kamienie Żar / Szron / Piorun (liczone od ciosu bez premii broni, żeby
+  nie mnożyć jej dwa razy - `elem_base`), `aura_hit` (aury i talizmany), podpalenie Zwiastuna Popiołu; fizyczne bez zmian.
+- Sygnet Gruzłoga rani teraz żywiołem ziemi (wcześniej fizycznie).
+- Nowe efekty z kreatora (`pixellab_src/vfx/ids.json`, `python tools/vfx_art.py`, w „My effects” autora):
+  `frost_shatter` (Zwiastun Mrozu - kolce lodu, krąg i odłamki; większy ze spowolnionego), `roots_snare` (Obręcz
+  Leszego - brązowe korzenie), `thorn_burst` (Żołądź Leszego - wieniec cierni), `blood_heal` (Szczęka Pożeracza -
+  czerwone plusy leczenia, 12 z 14 klatek). Zwiastun Popiołu - wybuch glewii zamiast rysowanego kręgu (`_Burst` usunięty).
+
 ## 19.11.2026 - talizmany (przedmioty specjalne)
 
 Pomysł autora (3 miejsca na przedmioty bez statystyk, z efektem). Decyzje z ankiety: forma - talizmany w 3 miejscach,

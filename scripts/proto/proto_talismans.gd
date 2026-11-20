@@ -7,6 +7,13 @@ extends Node2D
 ## talizmanów ponownie) i używają gotowych animacji gry (fala, grom Peruna, wir, kolce, wybuch, leczenie).
 
 var weapon: ProtoWeapon
+## Efekty z kreatora efektów PixelLab (20.11.2026, pixellab_src/vfx/ids.json): korzenie, wieniec cierni, krwawe leczenie.
+const ROOTS_FX := preload("res://assets/effects/roots_snare.png")
+const ROOTS_ANCHOR := Vector2(29, 35)
+const THORNS_FX := preload("res://assets/effects/thorn_burst.png")
+const THORNS_ANCHOR := Vector2(41, 45)
+const BLOOD_HEAL_FX := preload("res://assets/effects/blood_heal.png")
+const BLOOD_HEAL_ANCHOR := Vector2(18, 42)
 var worn := {}:
 	set(v):
 		worn = v
@@ -88,15 +95,14 @@ func on_hit(t: ProtoTarget) -> void:
 				Fx.once(_world(), ProtoWeapon.SHOCK_FX, 9, 18.0, at, ProtoWeapon.SHOCK_FX_ANCHOR, 6,
 						Talismans.SHOCK_RADIUS / ProtoWeapon.SHOCK_FX_RADIUS)
 				for e in _around(at, Talismans.SHOCK_RADIUS):
-					weapon.aura_hit(e, _power(id), Elements.PHYSICAL, at)
+					weapon.aura_hit(e, _power(id), Elements.EARTH, at)  # fala jak trzęsienie ziemi - żywioł ziemi
 					e.stun(Talismans.SHOCK_STUN)
 			"thunder":
 				_thunder(t)
 			"whirlpool":
 				_whirlpool(at)
 			"roots":
-				Fx.once(_world(), ProtoWeapon.SLAM_SPIKE_FX, ProtoWeapon.SLAM_SPIKE_FRAMES, 24.0, at,
-						ProtoWeapon.SLAM_SPIKE_ANCHOR, 6, Talismans.ROOTS_RADIUS / ProtoWeapon.SLAM_SPIKE_RADIUS)
+				Fx.once(_world(), ROOTS_FX, 14, 16.0, at.round(), ROOTS_ANCHOR, 6, 1.2)
 				for e in _around(at, Talismans.ROOTS_RADIUS):
 					weapon.aura_hit(e, _power(id), Elements.NATURE, at)
 					e.stun(Talismans.roots_time(worn[id]))
@@ -153,8 +159,7 @@ func on_kill(g: ProtoTarget) -> void:
 		_kaboom.call_deferred(at)  # łańcuch wybuchów idzie klatka po klatce
 	if _roll("devour"):
 		_hero.heal(maxi(1, roundi(_hero.max_hp * _power("devour"))))
-		Fx.once(_world(), ProtoNecromancer.HEAL_FX, 10, 14.0, _hero.global_position + Vector2(0, -18),
-				ProtoNecromancer.HEAL_ANCHOR, 21)
+		Fx.once(_world(), BLOOD_HEAL_FX, 12, 14.0, _hero.global_position.round(), BLOOD_HEAL_ANCHOR, 21)
 
 
 func _kaboom(at: Vector2) -> void:
@@ -172,8 +177,7 @@ func on_hurt() -> void:
 		return
 	_hit_ready["thorns"] = _now() + Talismans.HIT_GAP
 	var at := _hero.global_position
-	Fx.once(_world(), ProtoWeapon.SLAM_SPIKE_FX, ProtoWeapon.SLAM_SPIKE_FRAMES, 24.0, at, ProtoWeapon.SLAM_SPIKE_ANCHOR,
-			6, Talismans.THORNS_RADIUS / ProtoWeapon.SLAM_SPIKE_RADIUS)
+	Fx.once(_world(), THORNS_FX, 16, 20.0, at.round(), THORNS_ANCHOR, 6, 1.2)
 	for e in _around(at, Talismans.THORNS_RADIUS):
 		weapon.aura_hit(e, _power("thorns"), Elements.NATURE, at)
 

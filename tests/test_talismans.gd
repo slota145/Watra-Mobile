@@ -170,6 +170,27 @@ func _test_combat(game: Node) -> void:
 	_wear(game, [])
 	await process_frame
 	_check(weapon.mana_tax == 0.0 and weapon.bonus_mult == 1.0, "bez talizmanów broń jak zwykle")
+	# premia przedmiotów „+% obrażeń od żywiołów” (20.11.2026)
+	_check(Items.STAT_FORMATS.has("elem_dmg_pct") and Items.AFFIXES.has("elem_dmg_pct"), "premia „+% obrażeń od żywiołów”")
+	game.equipped = {"ring": {"slot": "ring", "tier": 0, "level": 1, "rarity": "magic", "base": {}, "sockets": [],
+			"affixes": [{"stat": "elem_dmg_pct", "value": 100.0}]}}
+	game.inventory_changed.emit()
+	_check(is_equal_approx(weapon.elem_mult, 2.0), "broń dostaje premię żywiołów z przedmiotów")
+	var dummy := _goblin(arena, hero.position + Vector2(250, 0), 50000.0)
+	dummy.stun(10.0)
+	await process_frame
+	var fire_sum := 0
+	var phys_sum := 0
+	for i in 40:
+		var h := dummy.hp
+		weapon.aura_hit(dummy, 1.0, Elements.FIRE, hero.global_position)
+		fire_sum += h - dummy.hp
+		h = dummy.hp
+		weapon.aura_hit(dummy, 1.0, Elements.PHYSICAL, hero.global_position)
+		phys_sum += h - dummy.hp
+	_check(fire_sum > phys_sum * 1.6, "żywioł x2, fizyczne bez zmian (%d / %d)" % [fire_sum, phys_sum])
+	game.equipped = {}
+	game.inventory_changed.emit()
 	# talizman z ziemi
 	var drop: ProtoLoot = arena.horde_spawner.drop_item({"talisman": "roots"}, hero.position + Vector2(10, 0))
 	drop.magnet = 1000.0
