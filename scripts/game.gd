@@ -22,6 +22,7 @@ extends Node
 ## postaci bez SSF (SHARED_STASH); postać SSF ma własną skrzynię w swoim pliku. Stary pojedynczy zapis (SAVE_PATH)
 ## przechodzi raz na pierwszą postać „Wojciech” (`_migrate_legacy`, razem z trybem deweloperskim z ustawień).
 ## Aury (19.11.2026, dane w Auras): `auras` - zdobyte aury (aura -> poziom), `auras_on` - włączone (rezerwują manę).
+## Talizmany (19.11.2026, dane w Talismans): `talismans` - zdobyte (talizman -> poziom), `talisman_slots` - 3 miejsca.
 ## Testy ustawiają `save_path` na plik testowy - wtedy jedna postać w jednym pliku, skrzynia w nim (bez wspólnej).
 
 ## Zmiana doświadczenia: `xp` na obecnym poziomie, `need` - ile trzeba do awansu (0 na najwyższym poziomie).
@@ -32,6 +33,8 @@ signal leveled_up(level: int)
 signal inventory_changed
 ## Nowa aura, wyższy poziom aury albo włączenie / wyłączenie aury.
 signal auras_changed
+## Nowy talizman, wyższy poziom albo zmiana w miejscach na talizmany.
+signal talismans_changed
 ## Odblokowanie lub ulepszenie umiejętności albo zmiana miejsc umiejętności.
 signal skills_changed
 ## Zmiana mistrzostwa obecnej broni: poziom, doświadczenie na nim i ile trzeba do następnego (0 na najwyższym).
@@ -126,6 +129,9 @@ var upgrades := {}
 ## Aury: zdobyte (aura -> poziom 1-Auras.MAX_LEVEL) i włączone.
 var auras := {}
 var auras_on: Array = []
+## Talizmany: zdobyte (talizman -> poziom 1-Talismans.MAX_LEVEL) i założone ("" - puste miejsce).
+var talismans := {}
+var talisman_slots: Array = ["", "", ""]
 ## Półka kupca (oferty Shop) i czy był już na niej towar (pierwszy przy pierwszym otwarciu).
 var shop: Array = []
 var shop_ready := false
@@ -329,6 +335,8 @@ func load_game() -> void:
 	upgrades = {}
 	auras = {}
 	auras_on = []
+	talismans = {}
+	talisman_slots = ["", "", ""]
 	shop = []
 	shop_ready = false
 	char_name = DEFAULT_NAME
@@ -460,6 +468,17 @@ func load_game() -> void:
 				if id is String and auras.has(id) and not auras_on.has(id) \
 						and Auras.reserve_sum(auras_on + [id], auras, aura_cut()) < Auras.MAX_RESERVED + 0.0001:
 					auras_on.append(id)
+		var raw_tal = data.get("talismans", {})
+		if raw_tal is Dictionary:
+			for id in raw_tal:
+				if Talismans.is_talisman(id) and int(raw_tal[id]) > 0:
+					talismans[id] = clampi(int(raw_tal[id]), 1, Talismans.MAX_LEVEL)
+		var raw_ts = data.get("talisman_slots", [])
+		if raw_ts is Array:
+			for i in mini(raw_ts.size(), Talismans.SLOTS):
+				var id = raw_ts[i]
+				if id is String and talismans.has(id) and not talisman_slots.has(id):
+					talisman_slots[i] = id
 		shop_ready = bool(data.get("shop_ready", false))
 		var raw_shop = data.get("shop", [])
 		if raw_shop is Array:
@@ -490,7 +509,7 @@ func save_game() -> void:
 				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards,
-				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "auras": auras, "auras_on": auras_on, "shop": shop,
+				"skill_gems": skill_gems, "skill_open": skill_open, "upgrades": upgrades, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots, "shop": shop,
 				"shop_ready": shop_ready}))
 
 
@@ -581,12 +600,15 @@ func reset_hero() -> void:
 	skill_open = {}
 	auras = {}
 	auras_on = []
+	talismans = {}
+	talisman_slots = ["", "", ""]
 	save_game()
 	mastery_changed.emit(mastery_level(), weapon_xp(), mastery_needed())
 	xp_changed.emit(hero_level, hero_xp, xp_needed())
 	inventory_changed.emit()
 	skills_changed.emit()
 	auras_changed.emit()
+	talismans_changed.emit()
 
 
 ## Suma cech założonych przedmiotów (Items.totals), w trybie deweloperskim z nadpisanymi statystykami (dev_stats).
@@ -609,6 +631,55 @@ func add_aura(id: String) -> int:
 	return lvl + 1
 
 
+## Talizman podniesiony w lochu: nowy (poziom 1, sam wskakuje w pierwsze wolne miejsce) albo poziom wyżej.
+## Zwraca nowy poziom (0 - już najwyższy, talizman przepada).
+func add_talisman(id: String) -> int:
+	if not Talismans.is_talisman(id):
+		return 0
+	var lvl: int = talismans.get(id, 0)
+	if lvl >= Talismans.MAX_LEVEL:
+		return 0
+	talismans[id] = lvl + 1
+	if lvl == 0:
+		var free := talisman_slots.find("")
+		if free >= 0:
+			talisman_slots[free] = id
+	save_game()
+	talismans_changed.emit()
+	return lvl + 1
+
+
+## Zakłada talizman w miejsce `slot` (był w innym miejscu - zamieniają się). Zwraca false przy złych danych.
+func equip_talisman(id: String, slot: int) -> bool:
+	if not talismans.has(id) or slot < 0 or slot >= Talismans.SLOTS:
+		return false
+	var from := talisman_slots.find(id)
+	if from >= 0:
+		talisman_slots[from] = talisman_slots[slot]
+	talisman_slots[slot] = id
+	save_game()
+	talismans_changed.emit()
+	return true
+
+
+## Zdejmuje talizman z miejsca `slot` (zostaje w kolekcji).
+func unequip_talisman(slot: int) -> void:
+	if slot < 0 or slot >= Talismans.SLOTS or talisman_slots[slot] == "":
+		return
+	talisman_slots[slot] = ""
+	save_game()
+	talismans_changed.emit()
+
+
+## Założone talizmany z poziomami (talizman -> poziom).
+func worn_talismans() -> Dictionary:
+	var worn := {}
+	for id in talisman_slots:
+		if id != "" and talismans.has(id):
+			worn[id] = talismans[id]
+	return worn
+
+
 ## Największa mana postaci z poziomu i przedmiotów (bez aur).
 func max_mana() -> int:
 	return HeroLevels.max_mana(hero_level) + roundi(Items.totals(equipped).get("mana", 0.0))
@@ -622,9 +693,10 @@ func aura_cut() -> float:
 ## Mana na najdroższą umiejętność w miejscach obecnej broni (koszt z poziomem umiejętności, bez kamieni).
 func priciest_skill() -> int:
 	var most := 0
+	var tax := Talismans.archmage_cost(talismans["archmage"]) if talisman_slots.has("archmage") else 0.0  # Korona Peruna
 	for id in skill_slots:
 		if id != "" and Skills.has(id):
-			most = maxi(most, roundi(Skills.mana_of(id) * Skills.level_mana(skill_level(id))))
+			most = maxi(most, roundi(Skills.mana_of(id) * Skills.level_mana(skill_level(id)) * (1.0 + tax)))
 	return most
 
 
@@ -1394,6 +1466,12 @@ func _return_item_gems(item: Dictionary) -> void:
 
 ## Tryb deweloperski: po kamieniu każdego rodzaju (szlachetne z obecnego poziomu lochu), kamienie unikalne,
 ## 2 klucze, 2 dłuta i 100 odprysków.
+## Tryb deweloperski: wszystkie talizmany - brakujące na 1. poziomie, posiadane o poziom wyżej (do Talismans.MAX_LEVEL).
+func dev_talismans() -> void:
+	for id in Talismans.ORDER:
+		add_talisman(id)
+
+
 func dev_gems() -> void:
 	for kind in Gems.SUPPORT_ORDER:
 		add_gem(Gems.make(kind), 1, false)

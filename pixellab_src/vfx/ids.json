@@ -870,5 +870,65 @@
       42,
       13
     ]
+  },
+  "frost_shatter": {
+    "effect": "aa0af34c-d2dd-4bf5-b767-70363ef07fc5",
+    "name": "Zwiastun Mrozu - pękający lód (Watra Mobile)",
+    "frame": [
+      64,
+      78
+    ],
+    "frames": 10,
+    "columns": 4,
+    "fps": 12,
+    "anchor": [
+      31,
+      29
+    ]
+  },
+  "roots_snare": {
+    "effect": "6a2ac8a5-c3c0-4092-97e1-c83c8fbb62bc",
+    "name": "Obręcz Leszego - korzenie (Watra Mobile)",
+    "frame": [
+      59,
+      47
+    ],
+    "frames": 14,
+    "columns": 4,
+    "fps": 12,
+    "anchor": [
+      29,
+      35
+    ]
+  },
+  "thorn_burst": {
+    "effect": "6cf4837a-0942-45ac-8b3a-7c5cc76e7e29",
+    "name": "Żołądź Leszego - ciernie (Watra Mobile)",
+    "frame": [
+      83,
+      73
+    ],
+    "frames": 16,
+    "columns": 4,
+    "fps": 14,
+    "anchor": [
+      41,
+      45
+    ]
+  },
+  "blood_heal": {
+    "effect": "493f018d-6d25-4623-a0bd-c7407b13c9cd",
+    "name": "Szczęka Pożeracza - krwawe leczenie (Watra Mobile, 12 z 14 klatek)",
+    "frame": [
+      36,
+      60
+    ],
+    "frames": 12,
+    "columns": 4,
+    "fps": 14,
+    "anchor": [
+      18,
+      42
+    ]
   }
 }

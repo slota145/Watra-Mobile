@@ -100,6 +100,9 @@ static func chest_items(level: int, loot_mult := 1.0) -> Array:
 	var aura := Auras.roll_chest(level, true, loot_mult)  # kamień aury (od lochu Auras.MIN_LEVEL)
 	if aura != "":
 		items.append({"aura": aura})
+	var talisman := Talismans.roll_chest(level, loot_mult)  # talizman (od lochu Talismans.MIN_LEVEL)
+	if talisman != "":
+		items.append({"talisman": talisman})
 	return items
 
 
@@ -130,13 +133,17 @@ const CRYSTAL_SHARDS := Vector2i(6, 12)
 const CRYSTAL_SHARDS_LOST := 3
 
 
-## Nagrody Kręgu Żertwy do wyboru: rzadki przedmiot, kamień albo żar (tyle, ile ze skrzyni Wodza).
+## Nagrody Kręgu Żertwy do wyboru: rzadki przedmiot, kamień albo żar (tyle, ile ze skrzyni Wodza); od lochu
+## Talismans.MIN_LEVEL także losowy talizman (decyzja autora 19.11.2026).
 static func zertwa_offer(level: int) -> Array[Dictionary]:
-	return [
+	var offer: Array[Dictionary] = [
 		{"item": Items.roll(level, "", "rare")},
 		{"item": {"gem": Gems.roll(level)}},
-		{"embers": DungeonLevels.chest_embers(level)},
 	]
+	if level >= Talismans.MIN_LEVEL:
+		offer.append({"item": {"talisman": Talismans.roll()}})
+	offer.append({"embers": DungeonLevels.chest_embers(level)})
+	return offer
 
 
 ## Odpryski z obronionego kryształu (wg zdrowia, które zostało: 0-1).

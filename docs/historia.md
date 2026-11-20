@@ -2,6 +2,48 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - obrażenia od żywiołów, nowe efekty talizmanów i aur
+
+Decyzje autora: premia przedmiotów „+% obrażeń od żywiołów” wzmacnia też talizmany (sposób 1 - talizmany zostają bez
+statystyk), nowe efekty z kreatora PixelLab tam, gdzie gra używała zastępczych.
+- `Items`: premia `elem_dmg_pct` („+%d%% obrażeń od żywiołów”, 6-12% +0,8 na poziom lochu, bez sufitu), okno „Postać”
+  - wiersz „Obrażenia od żywiołów”. `ProtoWeapon.elem_mult` (arena z sumy cech): mnoży trafienia żywiołem - broń żywiołu
+  (glewia, hydrosfera, katana), ogień Swaroga, kamienie Żar / Szron / Piorun (liczone od ciosu bez premii broni, żeby
+  nie mnożyć jej dwa razy - `elem_base`), `aura_hit` (aury i talizmany), podpalenie Zwiastuna Popiołu; fizyczne bez zmian.
+- Sygnet Gruzłoga rani teraz żywiołem ziemi (wcześniej fizycznie).
+- Nowe efekty z kreatora (`pixellab_src/vfx/ids.json`, `python tools/vfx_art.py`, w „My effects” autora):
+  `frost_shatter` (Zwiastun Mrozu - kolce lodu, krąg i odłamki; większy ze spowolnionego), `roots_snare` (Obręcz
+  Leszego - brązowe korzenie), `thorn_burst` (Żołądź Leszego - wieniec cierni), `blood_heal` (Szczęka Pożeracza -
+  czerwone plusy leczenia, 12 z 14 klatek). Zwiastun Popiołu - wybuch glewii zamiast rysowanego kręgu (`_Burst` usunięty).
+
+## 19.11.2026 - talizmany (przedmioty specjalne)
+
+Pomysł autora (3 miejsca na przedmioty bez statystyk, z efektem). Decyzje z ankiety: forma - talizmany w 3 miejscach,
+wypadają ze skrzyń na mapie lochu i z Kręgu Żertwy, 10 efektów od lochu 5, poziomy 1-10 za duplikaty (jak aury).
+- `scripts/talismans.gd` (`Talismans`): `SLOTS` 3, `MAX_LEVEL` 10, `MIN_LEVEL` 5, `CHEST_CHANCE` 10% (razy mnożnik łupu),
+  dane 10 talizmanów (`DATA`: nazwa, ikona z Watry w `assets/watra/talismans/`, kolor, kiedy działa - `trigger`,
+  szansa i siła [poziom 1, przyrost]), opisy (`effect_text`), `roll_chest`, `roll`.
+- 10 efektów (szansa / siła na 1. poziomie): Sygnet Gruzłoga (10%: fala 40 px, 80% ciosu, ogłuszenie 0,6 s),
+  Pierścień Gromu (10%: grom Peruna 100% ciosu i przeskok na 2 wrogów w 70 px, porażenie), Pierścień Topieli (8%: wir
+  60 px ciągnie wrogów, 4 razy po 25% ciosu wodą, przemoczenie), Obręcz Leszego (10%: korzenie 35 px, 40% ciosu,
+  oplątanie 1,5 s +0,1/poz.), Żołądź Leszego (35% przy ranie: ciernie 45 px, 100% ciosu), Szpon Biesa (30% przy
+  zabójstwie: +6% obrażeń na 5 s, do 5 razy - `ProtoWeapon.bonus_mult`), Serce Goblina (20%: wybuch pokonanego 45 px,
+  60% ciosu ogniem), Szczęka Pożeracza (10%: leczy 2% zdrowia), Serce Głębin (co 3 s, -0,1 s/poz.: drżenie ziemi
+  60 px, 50% ciosu), Korona Peruna (Archmage z PoE: każda umiejętność z kosztem many ciska piorun w najbliższego
+  wroga - 30% ciosu + 15% pełnej many; umiejętności droższe o 25%, -1 pkt/poz. - `ProtoWeapon.mana_tax`).
+  Efekty przy trafieniu najwyżej raz na 0,25 s (`HIT_GAP`); ranią przez `ProtoWeapon.aura_hit` (nowy parametr `flat`).
+- `ProtoTalismans` (`scripts/proto/proto_talismans.gd`, dziecko postaci): `on_hit` (z `ProtoWeapon._deal`), `on_kill`
+  (`ProtoHorde.monster_died`), `on_hurt` (nowy sygnał `ProtoHero.hurt`), `on_skill` (`ProtoWeapon.skill_used`),
+  drżenie co kilka sekund; animacje z gry (fala z Watry, grom Peruna katany, wir hydrosfery, kolce Rozłupania,
+  wybuch glewii, leczenie Nekromanty, uderzenie w ziemię). Arena: `talismans_node`, `_link_talismans`.
+- `Game`: `talismans` (talizman -> poziom), `talisman_slots`, sygnał `talismans_changed`, `add_talisman` (nowy sam
+  wskakuje w wolne miejsce), `equip_talisman` (zamiana miejsc), `unequip_talisman`, `worn_talismans`, zapis;
+  `priciest_skill` liczy dopłatę Korony Peruna. `ProtoLoot`: łup `{"talisman": id}`. `DungeonGoals.chest_items`
+  i `zertwa_offer` (od lochu 5 czwarta nagroda - talizman, żar zawsze ostatni).
+- Okno „Postać”: zakładka „Talizmany” (3 miejsca, lista z poziomem i działaniem, „Załóż” / „Zdejmij”; przy pełnych
+  miejscach „Załóż” każe stuknąć miejsce do zamiany).
+- Test: `tests/test_talismans.gd`.
+
 ## 19.11.2026 - aury rezerwujące manę (krok 2: pozostałe 13 aur, mniejsza rezerwacja)
 
 Decyzje autora (ankieta): dopasowania z ROADMAP bez zmian, premia „mniejsza rezerwacja many” na przedmiotach.

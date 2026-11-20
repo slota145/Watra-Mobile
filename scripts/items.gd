@@ -71,7 +71,8 @@ const CHEST_ITEMS := 3
 ## przyciągane iskry i łup, ember_pct - więcej żaru z iskier (decyzja autora 13.11.2026), pen_pct - przebicie odporności
 ## potworów (zmniejsza ich wspólną odporność głębi - DungeonLevels.base_resist; 17.11.2026), mana_on_kill - mana za
 ## zabicie potwora (nisko, z sufitem CAPS - decyzja autora 19.11.2026), reserve_pct - aury rezerwują o tyle procent
-## mniej many (tylko pierścień i amulet, sufit 20% - decyzja autora 19.11.2026).
+## mniej many (tylko pierścień i amulet, sufit 20% - decyzja autora 19.11.2026), elem_dmg_pct - więcej obrażeń od
+## wszystkich żywiołów (broń żywiołu, kamienie Żar / Szron / Piorun, aury, talizmany; nie fizyczne - decyzja autora 20.11.2026).
 const STAT_FORMATS := {
 	"hp": "+%d do zdrowia",
 	"mana": "+%d do many",
@@ -95,6 +96,7 @@ const STAT_FORMATS := {
 	"pen_pct": "+%d%% przebicia odporności potworów",
 	"mana_on_kill": "+%.1f many za zabicie potwora",
 	"reserve_pct": "%d%% mniejsza rezerwacja many przez aury",
+	"elem_dmg_pct": "+%d%% obrażeń od żywiołów",
 }
 ## Losowe premie: [najmniej, najwięcej] na 1. poziomie lochu; `scales` - rośnie z siłą lochu (DungeonLevels.power),
 ## inaczej (procenty) rośnie płynnie o `per_level` z każdym poziomem lochu (decyzja autora 12.11.2026 - wcześniej
@@ -122,6 +124,7 @@ const AFFIXES := {
 	"element_res_pct": {"min": 5.0, "max": 10.0, "per_level": 0.3},
 	"pen_pct": {"min": 2.0, "max": 5.0, "per_level": 0.1},
 	"reserve_pct": {"min": 2.0, "max": 4.0, "per_level": 0.04, "slots": ["ring", "amulet"]},
+	"elem_dmg_pct": {"min": 6.0, "max": 12.0, "per_level": 0.8},
 }
 ## Premie z ułamkiem (jedno miejsce po przecinku), reszta - liczby całkowite.
 const DECIMAL_STATS := ["regen", "mana_regen", "mana_on_kill"]

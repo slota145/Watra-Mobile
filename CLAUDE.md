@@ -65,6 +65,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/skills.gd` - umiejętności broni (odblokowuje mistrzostwo, poziomy 1-10 za żar z nowym działaniem na 5. i 10.; odblokowane, miejsca i poziomy w `Game`, działanie w `proto_weapon.gd`, okno
   `scripts/ui/skills_window.gd` z polami `skill_slot.gd`, kamień run w bazie);
   `scripts/auras.gd` - aury rezerwujące manę (dane 21 aur, premia przedmiotów `reserve_pct`, ciosy wrogów przez `ProtoTarget.hit_hero`, rezerwacja, kamienie aur z łupu od lochu 8; stan `Game.auras`/`auras_on`, kręgi i działanie `proto_auras.gd`, zakładka „Aury” w oknie umiejętności),
+  `scripts/talismans.gd` - talizmany (3 miejsca, 10 efektów z poziomami za duplikaty, łup ze skrzyń na mapie lochu i Kręgu Żertwy od lochu 5; stan `Game.talismans`/`talisman_slots`, działanie `proto_talismans.gd`, zakładka „Talizmany” w oknie „Postać”),
   `scripts/items.gd` - przedmioty (miejsca z kolczykiem z kłem zamiast broni, rzadkości, premie, łup, ceny; torba, założone i złoto w `Game`),
   `scripts/gems.gd` - kamienie w umiejętnościach i przedmiotach (dane, łup, kamienie unikalne umiejętności - `Gems.UNIQUE`; bez stopni: umiejętności
   ulepszane złotem i odpryskami do 10. poziomu, szlachetne z 2-5 losowymi premiami, sprzedaż i rozbijanie na odpryski; sakwa z filtrami, odpryski i gniazda w `Game`, działanie w `proto_weapon.gd`
@@ -80,7 +81,7 @@ bez żargonu, i podawaj gotowe komendy do skopiowania. W odpowiedziach używaj f
   `scripts/ui/action_cluster.gd` i `action_button.gd` - przycisk ataku i miejsca na umiejętności w dolnym rogu,
   `scripts/ui/pause_menu.gd` - okno pauzy z ustawieniami sterowania i auto atakiem (zapis w `Game`, `user://settings.cfg`)
   i przyciskiem trybu deweloperskiego - okno `scripts/ui/dev_window.gd` (nieśmiertelność, wszystkie poziomy lochu bez przebijania
-  - `Game.dev_all_levels`, skróty: +1 poziom, +5000 żaru, +5 przedmiotów, +umiejętności, +kamienie, postać od nowa, poziom postaci
+  - `Game.dev_all_levels`, skróty: +1 poziom, +5000 żaru, +5 przedmiotów, +umiejętności, +kamienie, +talizmany, postać od nowa, poziom postaci
   wprost, każda statystyka suwakiem do sufitu - `Game.dev_stats`), `scripts/ui/hero_stats.gd` -
   okno „Postać” z zakładkami Ekwipunek / Statystyki / Sakwa (ikonka portretu w górnym rzędzie, obok niej ikonka umiejętności).
 - `scripts/updater.gd`: autoload `Updater` (pierwszy na liście) - aktualizacja wersji testowej z menu bez całego apk

@@ -36,9 +36,15 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   1. ~~**Aury rezerwujące manę**~~ - zrobione 19.11.2026 (krok 1: 8 aur, krok 2: pozostałe 13 i premia przedmiotów
      „mniejsza rezerwacja many”; szczegóły w `docs/historia.md`). Do oceny na telefonie: siła aur, rezerwacja, szanse
      kamieni aur (25% skrzynia Wodza, 12% skrzynia na mapie lochu, od lochu 8).
-  2. **3 miejsca na przedmioty specjalne** bez statystyk, z efektem (np. fala uderzeniowa po trafieniu, piorun po
-     użyciu umiejętności zależny od many i podnoszący jej koszt - jak Archmage w PoE). Forma do ustalenia:
-     osobne przedmioty, kamienie w ekwipunku czy efekt na przedmiocie (jak legendy Watry - `legendary_effects.gd`).
+  2. ~~**3 miejsca na przedmioty specjalne**~~ - zrobione 19.11.2026 jako **talizmany** (10 efektów, poziomy 1-10 za
+     duplikaty, skrzynie na mapie lochu i Krąg Żertwy od lochu 5; szczegóły w `docs/historia.md`). Do oceny na
+     telefonie: siła i szanse efektów, jak często wypadają. Pomysły na kolejne efekty (z legend Watry): echo (Kieł Alfy),
+     jad (Pierścień Królowej), pajączki z zabitych (Jedwabny Kokon), strach (Róg Biesa), ślad piorunów przy skoku.
+  2b. **Nowości z Path of Exile** (pomysł autora 20.11.2026, propozycje Claude - do wyboru; premia „+% obrażeń od
+     żywiołów” zrobiona 20.11.2026): talizmany wzorowane na drzewku
+     PoE (Elemental Overload, Avatar of Fire, Blood Magic, Mind over Matter, Culling Strike, Onslaught, Arcane Surge,
+     Point Blank, Pain Attunement, rozprzestrzenianie podpalenia); kamienie wspierające z PoE (Multistrike/Spell Echo,
+     Concentrated Effect, Melee Splash, Pierce, Knockback, Culling Strike, Hypothermia, Combustion, krytyki, Fortify).
   3. **Drzewko lochów zamiast ulepszeń lochów** (jak atlas w PoE): mało węzłów, w każdy 10-20 punktów, kilka małych.
      W Watrze: `scripts/watra_tree.gd`.
   4. **Bez złota - waluta-przedmioty jak orby w PoE**, kowal wykuwa przedmioty z surowców, surowce z wydarzeń na

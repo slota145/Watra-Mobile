@@ -7,10 +7,13 @@ extends Node2D
 ## Premie (zdrowie, szybkość, odnowa, ogień) liczy Auras.apply. Lista włączonych aur: `on` (arena z Game.auras_on).
 ## Krok 2: kręgi na wrogów (Postrach, Mgła Nawii, Piętno Czarnoboga) znaczą wrogów w kręgu (ProtoTarget.aura_weak,
 ## aura_miss, pride - działają w ProtoTarget.hit_hero i ProtoWeapon), Zwiastuny Popiołu i Mrozu - wybuch zabitego wroga
-## (`on_monster_died`, arena podpina ProtoHorde.monster_died) z rozchodzącym się kręgiem.
+## (`on_monster_died`, arena podpina ProtoHorde.monster_died): wybuch ognia glewii i pękający lód z kreatora efektów.
 
 ## Broń w ręku (jej cele i siła ciosu); arena podmienia przy zmianie broni.
 var weapon: ProtoWeapon
+## Zwiastun Mrozu: pękający lód z odłamkami (kreator efektów PixelLab, pixellab_src/vfx/ids.json "frost_shatter").
+const FROST_SHATTER_FX := preload("res://assets/effects/frost_shatter.png")
+const FROST_SHATTER_ANCHOR := Vector2(31, 29)
 ## Włączone aury i ich poziomy (Game.auras_on, Game.auras).
 var on: Array = []
 var levels := {}
@@ -107,9 +110,12 @@ func _herald(at: Vector2, chilled: bool) -> void:
 		return
 	var fire := on.has("popiol")
 	var ice := on.has("mroz")
-	_burst(at, Auras.color_of("popiol" if fire else "mroz"))
-	if fire and ice:
-		_burst(at, Auras.color_of("mroz"), 0.08)
+	var world := _hero.get_parent()
+	if fire:  # wybuch ognia (ten sam co wybuch glewii)
+		Fx.once(world, ProtoGlaive.BLAST_FX, 12, 16.0, at.round(), ProtoGlaive.BLAST_FX_ANCHOR, 6,
+				Auras.HERALD_RADIUS / ProtoGlaive.BLAST_FX_RADIUS)
+	if ice:  # pękający lód (kreator efektów PixelLab, 20.11.2026)
+		Fx.once(world, FROST_SHATTER_FX, 10, 16.0, at.round(), FROST_SHATTER_ANCHOR, 7, 1.4 if chilled else 1.1)
 	for t: ProtoTarget in weapon.targets.duplicate():
 		if not is_instance_valid(t) or not t.alive():
 			continue
@@ -120,38 +126,10 @@ func _herald(at: Vector2, chilled: bool) -> void:
 		if fire:
 			weapon.aura_hit(t, _power("popiol"), Elements.FIRE, at)
 			if t.alive():
-				t.burn(weapon._roll(_power("popiol")) * Auras.SWAROG_BURN, ProtoWeapon.BURN_TIME, weapon.penetration)
+				t.burn(weapon._roll(_power("popiol")) * weapon.elem_mult * Auras.SWAROG_BURN, ProtoWeapon.BURN_TIME, weapon.penetration)
 		if ice and t.alive():
 			weapon.aura_hit(t, _power("mroz") * (Auras.MROZ_CHILLED if chilled else 1.0), Elements.COLD, at)
 			t.slow(Auras.MROZ_SLOW, 1.5)
-
-
-## Rozchodzący się, gasnący krąg wybuchu Zwiastuna w punkcie `at` (świat).
-func _burst(at: Vector2, color: Color, delay := 0.0) -> void:
-	var ring := _Burst.new()
-	ring.color = color
-	ring.position = at
-	ring.z_index = 5
-	_hero.get_parent().add_child(ring)
-	var tween := ring.create_tween()
-	tween.tween_interval(delay)
-	tween.tween_property(ring, "grow", 1.0, 0.3).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(ring, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN)
-	tween.tween_callback(ring.queue_free)
-
-
-class _Burst extends Node2D:
-	var color := Color.WHITE
-	var grow := 0.0:
-		set(v):
-			grow = v
-			queue_redraw()
-
-	func _draw() -> void:
-		var r := 6.0 + (Auras.HERALD_RADIUS - 6.0) * grow
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.5))
-		draw_circle(Vector2.ZERO, r, Color(color, 0.18 * (1.0 - grow)))
-		draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(color, 0.8), 2.0)
 
 
 func _power(id: String) -> float:
