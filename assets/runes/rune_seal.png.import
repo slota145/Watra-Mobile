@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dnd6cyigvnd4g"
-path="res://.godot/imported/rune_seal.png-47f0e3902225d5022e32fdec20393381.ctex"
+uid="uid://dq1ejhrmh8hus"
+path="res://.godot/imported/rune_seal.png-612ff4745efe8e0a2e9dc916838f363c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/items/rune_seal.png"
-dest_files=["res://.godot/imported/rune_seal.png-47f0e3902225d5022e32fdec20393381.ctex"]
+source_file="res://assets/runes/rune_seal.png"
+dest_files=["res://.godot/imported/rune_seal.png-612ff4745efe8e0a2e9dc916838f363c.ctex"]
 
 [params]
 

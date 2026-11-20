@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://clgryidpif5n"
-path="res://.godot/imported/rune_growth.png-1d531430039c192f5551ce8451c807a2.ctex"
+uid="uid://drmtxm4m4x3hc"
+path="res://.godot/imported/rune_growth.png-616948df0c270656460e0a2a9ddea320.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/items/rune_growth.png"
-dest_files=["res://.godot/imported/rune_growth.png-1d531430039c192f5551ce8451c807a2.ctex"]
+source_file="res://assets/runes/rune_growth.png"
+dest_files=["res://.godot/imported/rune_growth.png-616948df0c270656460e0a2a9ddea320.ctex"]
 
 [params]
 

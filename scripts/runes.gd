@@ -69,7 +69,7 @@ static func color_of(id: String) -> Color:
 
 
 static func icon_of(id: String) -> Texture2D:
-	return load("res://assets/watra/items/%s.png" % id)
+	return load("res://assets/runes/%s.png" % id)
 
 
 static func is_rare(id: String) -> bool:

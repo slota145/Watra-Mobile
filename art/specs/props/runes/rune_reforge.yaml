@@ -1,0 +1,25 @@
+spritekiln: 1
+# Runa Przekucia (Runes.REFORGE): ciemny kamień, pomarańczowy żar w znaku - młot Peruna (kreska z poprzeczką),
+# premia przekuta na kowadle od nowa.
+name: rune_reforge
+extends: rune_base.yaml
+ramps:
+  rstone: ["#0e0c0c", "#332a26", "#54463d", "#76655a", "#968577", "#b3a496"]
+  rglyph: ["#3a0a04", "#c2300e", "#ff7a1a", "#ffc23d", "#fff4b0"]
+materials:
+  glyph: {glow: {color: "#ff7a1a"}}
+parts:
+  stone:
+    # znak wyryty w kamieniu: rowek nieco szerszy niż świecące kreski (odłupane ukosy jak w rune_base)
+    cut:
+      - plane: {n: [0.75, 0.62, 0.2], at: 0.43}
+      - plane: {n: [-0.8, -0.55, 0.15], at: 0.45}
+      - box: {c: [0, -0.04, 0.17], half: [0.05, 0.25, 0.06]}
+      - box: {c: [0, 0.2, 0.17], half: [0.2, 0.07, 0.06]}
+  glyph:
+    material: glyph
+    space: face
+    priority: 3
+    prims:
+      - box: {c: [0, -0.04, 0], half: [0.03, 0.23, 0.02]}
+      - box: {c: [0, 0.2, 0], half: [0.18, 0.05, 0.02]}

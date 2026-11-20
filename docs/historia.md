@@ -25,6 +25,12 @@ miejscach zostaje na krok 2.
 - Klucz Runiczny i Dłuto Jubilera dostały nowe ikony (dawniej ikony Runy Wyniesienia i Szlifu): klucz - fioletowy
   kryształ z Watry (`gems/key_rune.png`, dawna Runa Zatarcia), dłuto - Runa Szlifu z zielonym znakiem (`gems/chisel.png`).
 - Testy: `tests/test_runes.gd` (nowy), `test_base.gd` (kowal na runach), `test_goals.gd` (5 nagród Żertwy).
+- Ikony run ze SpriteKiln (prośba autora: spójniejszy wygląd niż mieszanka ikon z Watry): wspólny kamień runiczny
+  `art/specs/props/runes/rune_base.yaml` (64 px, 1 kierunek, kamień odchylony do kamery, światło z lewej góry, kamera
+  bliżej niż w postaciach - ikona) i 6 specyfikacji `rune_<id>.yaml` (`extends`; kolor kamienia, świecący wyryty znak):
+  Szlif - szary z jasnoniebieskim rombem, Przekucie - ciemny z pomarańczowym młotem (T), Przydanie - zielony z kiełkiem
+  (Algiz), Wyniesienie - bursztynowy ze strzałą w górę, Zmiana - fioletowy (Nawia) z zygzakiem, Pieczęć - czarny ze
+  złotą obręczą i kręgiem z krzyżem. Wynik w `assets/runes/` (render `out/rune_<id>/rune_<id>.png`, skopiowany ręcznie).
 
 ## 20.11.2026 - wydajność walki, część 2: siatka wrogów, łuk, glewia, hydrosfera; naprawa aur i talizmanów
 
