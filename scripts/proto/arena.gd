@@ -895,7 +895,7 @@ func _update_skill_buttons() -> void:
 		if id == "" or b.locked_level > 0:
 			b.set_state(0.0, 0.0, false)
 			continue
-		b.set_state(weapon.cooldown_left(id), weapon.cooldown_full(id), hero.mana < weapon.mana_cost(id))
+		b.set_state(weapon.cooldown_left(id), weapon.cooldown_full(id), not hero.can_pay(weapon.mana_cost(id)))
 
 
 ## Przedmiot na ziemi (z goblina albo skrzyni) - podniesione liczą się do podsumowania wyprawy.

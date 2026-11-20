@@ -692,6 +692,8 @@ func aura_cut() -> float:
 
 ## Mana na najdroższą umiejętność w miejscach obecnej broni (koszt z poziomem umiejętności, bez kamieni).
 func priciest_skill() -> int:
+	if talisman_slots.has("blood_magic"):
+		return 0  # Krwawe Serce: umiejętności płacą zdrowiem - aury mogą zająć całą dozwoloną manę
 	var most := 0
 	var tax := Talismans.archmage_cost(talismans["archmage"]) if talisman_slots.has("archmage") else 0.0  # Kryształ Peruna
 	for id in skill_slots:
@@ -1346,6 +1348,8 @@ func skill_socket_problem(skill: String, index: int, id: String) -> String:
 		return "kind"
 	if Gems.is_unique(id) and Gems.unique_skill(id) != skill:
 		return "skill"
+	if not Gems.fits(id, skill):
+		return "basic"
 	if gem_count(id) <= 0:
 		return "none"
 	var sockets := skill_sockets(skill)

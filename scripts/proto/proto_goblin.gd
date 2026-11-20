@@ -55,6 +55,8 @@ var power := 1.0
 ## Liczby tego rodzaju goblina (podklasy, np. łucznik, ustawiają inne w `_init`).
 var scene_path := SCENE_PATH
 var max_hp := MAX_HP
+## Pełne zdrowie po wejściu do lochu (z siłą lochu i elitą) - do `health_fraction`.
+var full_hp := MAX_HP
 ## Dodatkowy mnożnik zdrowia z głębokości lochu (DungeonLevels.hp_mult - ustawia ProtoHorde).
 var hp_mult := 1.0
 var speed := SPEED
@@ -91,6 +93,7 @@ var _audio: AudioStreamPlayer2D
 func _ready() -> void:
 	center_height = 12.0
 	hp = roundi(max_hp * power * hp_mult)
+	full_hp = maxi(hp, 1)
 	add_to_group(ProtoWeapon.TARGETS)
 	var shadow := Sprite2D.new()
 	shadow.texture = ProtoHero._shadow_texture()
@@ -214,6 +217,15 @@ func speed_factor() -> float:
 ## Tarcza elity pochłania obrażenia; zwraca, ile przechodzi dalej (0 - całe trafienie na tarczy).
 func _absorb(amount: int) -> int:
 	return elite.absorb(amount) if elite else amount
+
+
+## Ile zdrowia zostało (0-1, ProtoTarget.health_fraction).
+func health_fraction() -> float:
+	return clampf(float(hp) / full_hp, 0.0, 1.0)
+
+
+func remaining_hp() -> int:
+	return maxi(hp, 0) + (ceili(elite.shield) if elite else 0)
 
 
 func take_damage(amount: int, from: Vector2) -> void:

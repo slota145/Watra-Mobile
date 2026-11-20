@@ -874,6 +874,8 @@ func _put(id: String, i: int) -> void:
 		hint.text = tr("%s ma już kamień tego rodzaju.") % Skills.name_of(gem_skill)
 	elif problem == "skill":
 		hint.text = tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(id))
+	elif problem == "basic":
+		hint.text = tr("Nie działa w zwykłym ciosie.")
 
 
 func _on_dropped_to_socket(gem: String, from_area: String, from_index: int, i: int) -> void:

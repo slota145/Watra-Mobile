@@ -21,6 +21,8 @@ signal mana_changed(mana: int, max_mana: int)
 signal shield_changed(shield: int, shield_max: int)
 ## Cios wroga zranił postać (po tarczy, uniku i gardzie) - talizman Kora Leszego.
 signal hurt(amount: int)
+## Umiejętność kosztowała manę (talizman Świeca Wiedźmy liczy wydaną).
+signal mana_spent(amount: int)
 signal died
 ## Cios potwora chybił dzięki unikowi.
 signal dodged
@@ -67,6 +69,16 @@ var stone := 0.0
 var max_res_bonus := 0.0
 ## Mnożnik obrażeń od wrogów (próba autora 20.11.2026 - DungeonLevels.enemy_damage): ciosy i podpalenia.
 var enemy_damage := DungeonLevels.enemy_damage
+## Kamień Twardość: o tyle mniej obrażeń jeszcze przez `fortify_left` s.
+var fortify_pct := 0.0
+var fortify_left := 0.0
+## Talizmany (ProtoTalismans ustawia): Krwawe Serce - umiejętności płacą zdrowiem (`blood_magic` - ile zdrowia za 1 manę,
+## 0 - zwykła mana); Nić Mokoszy - tyle obrażeń bierze mana (`mana_shield`); Poroże Jelenia - szybszy ruch
+## (`move_bonus`); Świeca Wiedźmy - szybsza odnowa many (`mana_regen_bonus`).
+var blood_magic := 0.0
+var mana_shield := 0.0
+var move_bonus := 0.0
+var mana_regen_bonus := 0.0
 var mana := HeroLevels.MANA_BASE
 var hp := MAX_HP
 var dead := false
@@ -131,6 +143,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_invulnerable -= delta
+	fortify_left -= delta
 	if shield < shield_max and not dead:
 		_shield_wait -= delta
 		if _shield_wait <= 0.0:
@@ -165,7 +178,7 @@ func _process(delta: float) -> void:
 			hp = mini(hp + heal, max_hp)
 			health_changed.emit(hp, max_hp)
 	if mana < mana_cap():
-		_mana_acc += _mana_regen * delta
+		_mana_acc += _mana_regen * (1.0 + mana_regen_bonus) * delta
 		if _mana_acc >= 1.0:
 			var add := int(_mana_acc)
 			_mana_acc -= add
@@ -177,7 +190,7 @@ func _process(delta: float) -> void:
 		_process_leap(delta)
 		return
 	var input := joystick.vector if joystick else Vector2.ZERO
-	velocity = input * SPEED * move_mult * (1.0 - chill)
+	velocity = input * SPEED * move_mult * (1.0 + move_bonus) * (1.0 - chill)
 	position = _push_out((position + velocity * delta).clamp(bounds.position, bounds.end))
 	if input.length() > 0.05:
 		facing = input.normalized()
@@ -286,7 +299,18 @@ func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 	amount = roundi(amount * enemy_damage)
 	var res := element_res if element != Elements.PHYSICAL else 0.0
 	var guard := 1.0 - stone if stone > 0.0 and hp < max_hp * Auras.STONE_BELOW else 1.0  # Kamienna Krew
+	if fortify_left > 0.0:  # kamień Twardość
+		guard *= 1.0 - fortify_pct
 	amount = maxi(1, roundi(amount * (1.0 - protection) * (1.0 - res) * guard * (SHOCK_MULT if shock_left > 0.0 else 1.0)))
+	if mana_shield > 0.0 and mana > 0:  # Nić Mokoszy: część ciosu bierze mana
+		var from_mana := mini(roundi(amount * mana_shield), mana)
+		if from_mana > 0:
+			mana -= from_mana
+			amount -= from_mana
+			mana_changed.emit(mana, max_mana)
+			if amount <= 0:
+				_spawn_text("-%d" % from_mana, Color(0.45, 0.65, 1.0))
+				return
 	if shield_max > 0:
 		_shield_wait = Auras.MOKOSZ_DELAY
 		if shield > 0:  # Opieka Mokoszy: tarcza bierze cios na siebie
@@ -356,12 +380,35 @@ func mana_cap() -> int:
 	return maxi(max_mana - reserved, 0)
 
 
-## Wydaje manę na umiejętność. Zwraca false (i nic nie zabiera), gdy jej brakuje.
+## Kamień Twardość: przez `time` s o `pct` mniej obrażeń (silniejsza wygrywa, czas się odnawia).
+func fortify(pct: float, time: float) -> void:
+	if fortify_left <= 0.0 or pct >= fortify_pct:
+		fortify_pct = pct
+	fortify_left = maxf(fortify_left, time)
+
+
+## Czy stać postać na umiejętność za `cost` many (z Krwawym Sercem - zdrowiem; zawsze musi zostać choć 1 zdrowia).
+func can_pay(cost: int) -> bool:
+	if blood_magic > 0.0:
+		return hp > roundi(cost * blood_magic)
+	return mana >= cost
+
+
+## Wydaje manę na umiejętność (z Krwawym Sercem - zdrowie). Zwraca false (i nic nie zabiera), gdy jej brakuje.
 func spend_mana(amount: int) -> bool:
+	if blood_magic > 0.0:
+		var life := roundi(amount * blood_magic)
+		if life >= hp:
+			return false
+		hp -= life
+		health_changed.emit(hp, max_hp)
+		mana_spent.emit(amount)
+		return true
 	if amount > mana:
 		return false
 	mana -= amount
 	mana_changed.emit(mana, max_mana)
+	mana_spent.emit(amount)
 	return true
 
 

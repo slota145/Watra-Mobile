@@ -40,11 +40,8 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
      duplikaty, skrzynie na mapie lochu i Krąg Żertwy od lochu 5; szczegóły w `docs/historia.md`). Do oceny na
      telefonie: siła i szanse efektów, jak często wypadają. Pomysły na kolejne efekty (z legend Watry): echo (Kieł Alfy),
      jad (Pierścień Królowej), pajączki z zabitych (Jedwabny Kokon), strach (Róg Biesa), ślad piorunów przy skoku.
-  2b. **Nowości z Path of Exile** (pomysł autora 20.11.2026, propozycje Claude - do wyboru; premia „+% obrażeń od
-     żywiołów” zrobiona 20.11.2026): talizmany wzorowane na drzewku
-     PoE (Elemental Overload, Avatar of Fire, Blood Magic, Mind over Matter, Culling Strike, Onslaught, Arcane Surge,
-     Point Blank, Pain Attunement, rozprzestrzenianie podpalenia); kamienie wspierające z PoE (Multistrike/Spell Echo,
-     Concentrated Effect, Melee Splash, Pierce, Knockback, Culling Strike, Hypothermia, Combustion, krytyki, Fortify).
+  2b. ~~**Nowości z Path of Exile**~~ - zrobione 20.11.2026 (10 kamieni wspierających i 10 talizmanów, szczegóły
+     w `docs/historia.md`). Do oceny na telefonie: siła, czy nie za dużo naraz w łupie.
   3. **Drzewko lochów zamiast ulepszeń lochów** (jak atlas w PoE): mało węzłów, w każdy 10-20 punktów, kilka małych.
      W Watrze: `scripts/watra_tree.gd`.
   4. **Bez złota - waluta-przedmioty jak orby w PoE**, kowal wykuwa przedmioty z surowców, surowce z wydarzeń na
