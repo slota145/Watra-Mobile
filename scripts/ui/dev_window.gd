@@ -69,6 +69,7 @@ func _ready() -> void:
 	panel.add_theme_stylebox_override("panel", style)
 	center.add_child(panel)
 	_scroll = ScrollContainer.new()
+	TouchUi.drag_scroll(_scroll)  # przewijanie palcem po wierszach i przyciskach
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	panel.add_child(_scroll)
 	var margin := MarginContainer.new()  # miejsce na pasek przewijania z prawej

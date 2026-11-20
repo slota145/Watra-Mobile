@@ -2,6 +2,20 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - przewijanie palcem i szerokość okna talizmanów
+
+Zgłoszenie autora: okno talizmanów nie mieściło się na ekranie, a listy przewijały się tylko w wąskich szczelinach
+między wierszami (wiersze i przyciski łapały dotyk), suwaki z boku za wąskie.
+- `TouchUi.drag_scroll(scroll)`: kontrolki w środku listy (też dodawane później - `SceneTree.node_added`) dostają
+  MOUSE_FILTER_PASS, więc przeciągnięcie po wierszu i przycisku przewija listę, a stuknięcie dalej działa (przycisk przy
+  przewijaniu się nie wciska); pasek przewijania szerszy (`SCROLLBAR_WIDTH` 10 px). Podpięte we wszystkich 10 listach
+  (okno „Postać”, umiejętności z zakładkami Kamienie i Aury, wybór kamienia, okna bazy, pauza, tryb deweloperski,
+  wybór postaci, wynik wyprawy).
+- Okno talizmanów i zakładka „Aury”: tytuł „Nazwa 10/10” (bez „poz.”, czcionka 13) zawija się zamiast rozpychać okno
+  (Szczęka Pożeracza 10/10 wypychała „Wróć” za ekran), mniejsza ikona (34 px) i przycisk (70 px). Dolny pasek zakładek
+  okna „Postać” - czcionka 11, szersze „Ekwipunek”, „Statystyki”, „Talizmany”.
+- Test: `tests/test_touch_ui.gd` (przeciąganie przez Input.parse_input_event).
+
 ## 20.11.2026 - obrażenia od żywiołów, nowe efekty talizmanów i aur
 
 Decyzje autora: premia przedmiotów „+% obrażeń od żywiołów” wzmacnia też talizmany (sposób 1 - talizmany zostają bez
