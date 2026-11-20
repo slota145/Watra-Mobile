@@ -113,6 +113,28 @@ func _test_combat(game: Node) -> void:
 	_check(speeds.size() > 3 and speeds.max() > ProtoBow.SEEK_SPEED + 60.0 and speeds.min() < ProtoBow.SEEK_SPEED - 40.0,
 			"Poszukująca zmienia prędkość (%d-%d)" % [roundi(speeds.min()), roundi(speeds.max())])
 	_check(a.hp < hp and b.hp < hpb, "Poszukująca: skręca i trafia kolejnych wrogów")
+	# kilka Poszukujących naraz: różne cele, stożek
+	for s in bow._arrows:
+		s.fx.queue_free()
+	bow._arrows.clear()
+	var c2 := _goblin(arena, Vector2(0, -100))
+	await process_frame
+	c2._stunned = 60.0
+	bow._aim = 0.0
+	for an in bow.fan(0.0, 3, ProtoBow.SEEK_PAIR, false):
+		bow._spawn_seeker(hero.global_position, an)
+	var tg := {}
+	var starts: Array[Vector2] = []
+	for s in bow._arrows:
+		tg[s.target] = true
+		starts.append((s.fx as Node2D).global_position)
+	_check(tg.size() == 3 and starts[0].distance_to(starts[2]) > 5.0,
+			"3 Poszukujące: każda na innego wroga, wylatują w stożku")
+	for s in bow._arrows:
+		s.fx.queue_free()
+	bow._arrows.clear()
+	c2.queue_free()
+	await process_frame
 	# Deszcz strzał
 	for s in bow._arrows:  # Poszukująca mogła jeszcze lecieć
 		s.fx.queue_free()
