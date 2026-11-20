@@ -21,6 +21,11 @@ const BOSS_POWER := 1.5
 ## Zdrowie potworów i bossów może rosnąć szybciej niż obrażenia: dodatkowo x HP_GROWTH na poziom. Przez chwilę 1,008
 ## (17.11.2026), potem zastąpione wspólną odpornością głębi (RESIST_STEP) - zostaje 1,0, haczyk na później.
 const HP_GROWTH := 1.0
+## Próba autora 20.11.2026: wszyscy wrogowie (potwory i bossowie) mają tyle razy więcej zdrowia i zadają tyle razy
+## więcej obrażeń (ProtoHero.enemy_damage - ciosy, strzały, wybuchy, podpalenia). Do oceny na telefonie.
+## Zmienne, nie stałe: testy liczące na konkretnych liczbach ustawiają je na 1.
+static var enemy_hp := 3.0
+static var enemy_damage := 2.0
 ## Wspólna odporność potworów na wszystko (też fizyczne) rośnie o tyle na poziom lochu do RESIST_MAX (decyzja autora
 ## 17.11.2026; 10. ~5%, 50. ~27%, 101. 55%). Zmniejsza ją premia „Przebicie odporności” (Items `pen_pct`).
 const RESIST_STEP := 0.0055
@@ -58,7 +63,7 @@ static func base_resist(level: int) -> float:
 
 ## Dodatkowy mnożnik zdrowia potworów i bossów na danym poziomie (ponad `power`).
 static func hp_mult(level: int) -> float:
-	return pow(HP_GROWTH, maxi(level, 1) - 1)
+	return pow(HP_GROWTH, maxi(level, 1) - 1) * enemy_hp
 
 
 ## Liniowy przyrost (stara krzywa siły) - doświadczenie za potwory, żeby postać nie awansowała lawinowo w głębi.
