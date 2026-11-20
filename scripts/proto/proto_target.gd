@@ -26,6 +26,7 @@ const FREEZE_IMMUNE := 2.0
 
 ## Następna liczba obrażeń to trafienie krytyczne (ustawia miecz tuż przed take_damage; liczba złota, większa, z „!”).
 var crit_next := false
+var _st: _Status = null  # węzeł stanu (_status, _st_live)
 ## Odporności na żywioły (Dungeons.RESISTS lochu; żywioł -> ułamek, ujemny - wrażliwość).
 var resists := {}
 ## Kolor następnej liczby obrażeń (żywioł kamienia: piorun, szron; przezroczysty - zwykły biały).
@@ -122,7 +123,7 @@ func soak(amount: float, time: float) -> void:
 
 ## Czy wróg jest przemoczony.
 func is_soaked() -> bool:
-	var st := get_node_or_null(^"_Status") as _Status
+	var st := _st_live()
 	return st != null and st.soak_left > 0.0
 
 
@@ -148,7 +149,7 @@ func freeze(time: float) -> bool:
 
 ## Czy wróg płonie (podpalenie trwa) - kamień Spalenie, talizman Lont Pożogi.
 func is_burning() -> bool:
-	var st := get_node_or_null(^"_Status") as _Status
+	var st := _st_live()
 	return st != null and st.burn_left > 0.0
 
 
@@ -164,13 +165,13 @@ func remaining_hp() -> int:
 
 ## Czy wróg jest porażony.
 func is_shocked() -> bool:
-	var st := get_node_or_null(^"_Status") as _Status
+	var st := _st_live()
 	return st != null and st.shock_left > 0.0
 
 
 ## Mnożnik prędkości potwora (spowolnienie Szronem; 1.0 - bez).
 func speed_factor() -> float:
-	var st := get_node_or_null(^"_Status") as _Status
+	var st := _st_live()
 	return 1.0 - st.slow if st and st.slow_left > 0.0 else 1.0
 
 
@@ -180,16 +181,25 @@ func burn_tick(amount: int) -> void:
 
 
 func _status() -> _Status:
-	var st := get_node_or_null(^"_Status") as _Status
-	if st and st.is_queued_for_deletion():
-		st.name = "_StatusOld"
-		st = null
+	var st := _st_live()
 	if st == null:
+		var old := get_node_or_null(^"_Status")
+		if old:
+			old.name = "_StatusOld"  # znikający - nowy dostaje swoją nazwę
 		st = _Status.new()
 		st.name = "_Status"
 		st.target = self
 		add_child(st)
+		_st = st
 	return st
+
+
+## Węzeł stanu, jeśli trwa (zapamiętany w polu - pytają o niego trafienia i ruch potwora co klatkę, a szukanie
+## węzła po nazwie było wyraźnie droższe; tools/combat_bench.gd).
+func _st_live() -> _Status:
+	if _st != null and is_instance_valid(_st) and not _st.is_queued_for_deletion():
+		return _st
+	return null
 
 
 ## Liczba obrażeń wyskakująca nad celem.
@@ -199,7 +209,7 @@ func spawn_number(amount: int, color := Color(1.0, 0.95, 0.8)) -> void:
 	if color_next.a > 0.0:
 		color = color_next
 		color_next = Color(0, 0, 0, 0)
-	if _numbers >= MAX_NUMBERS and not crit:
+	if _numbers >= (MAX_NUMBERS + MAX_NUMBERS / 2 if crit else MAX_NUMBERS):  # krytyczne mają trochę zapasu
 		return
 	_numbers += 1
 	var num := Label.new()

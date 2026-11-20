@@ -175,6 +175,8 @@ func _process(delta: float) -> void:
 
 ## Błysk trafienia ogniem na celu.
 func _fire_hit(t: ProtoTarget) -> void:
+	if Fx.crowded(FIRE_HIT_FX):
+		return
 	Fx.once(get_parent(), FIRE_HIT_FX, 12, 16.0, t.center().round(), FIRE_HIT_ANCHOR, 21, 0.75)
 
 
@@ -328,7 +330,7 @@ func _process_sweep() -> void:
 	if not _hit_done and k >= 0.5:
 		_hit_done = true
 		var radius := SWEEP_RADIUS * _area("g_sweep")
-		for t in _live_targets():
+		for t in _near_c(_orbit_center(), radius):
 			var to := t.center() - _orbit_center()
 			if to.length() <= radius and absf(angle_difference(_aim, to.angle())) <= SWEEP_ARC / 2.0:
 				_hit(t, _power("g_sweep"), hero.global_position, "g_sweep")
@@ -435,7 +437,7 @@ func _pillar_hit(at: Vector2) -> void:
 
 ## Wybuch ognia w punkcie `at`: rani i podpala wszystkich w promieniu (elipsa jak przy Rozłupaniu - rzut z góry).
 func _blast(at: Vector2, radius: float, power: float, skill: String) -> void:
-	for t in _live_targets():
+	for t in _near(at, radius):
 		var d := t.global_position - at
 		if Vector2(d.x, d.y * 1.6).length() <= radius:
 			_hit(t, power, at, skill)
@@ -536,7 +538,7 @@ func _process_cuts(delta: float) -> void:
 		c.left -= step
 		fx.modulate.a = 1.0 if c.get("returning", false) else clampf(c.left / 30.0, 0.0, 1.0)
 		var reach := CUT_RADIUS * _area(c.skill)
-		for t in _live_targets():
+		for t in _near_c(fx.global_position, reach):  # siatka - każde cięcie co klatkę
 			if not c.hits.has(t) and t.center().distance_to(fx.global_position) <= reach:
 				c.hits.append(t)
 				_hit(t, _power(c.skill), fx.global_position - c.dir * 10.0, c.skill)
@@ -564,7 +566,7 @@ func _process_cuts(delta: float) -> void:
 func _bounce_target(at: Vector2, hits: Array) -> ProtoTarget:
 	var best: ProtoTarget = null
 	var best_d := DANCE_GEM_RANGE * _area("g_dance")
-	for t in _live_targets():
+	for t in _near_c(at, best_d):  # siatka - przy każdym odbiciu
 		var d := t.center().distance_to(at)
 		if not hits.has(t) and d <= best_d:
 			best = t
@@ -645,9 +647,9 @@ func _process_zones(delta: float) -> void:
 		z.tick -= delta
 		if z.tick <= 0.0:
 			z.tick += ZONE_TICK
-			for t in _live_targets():
+			for t in _zone_near(z):
 				if _in_zone(z, t.global_position):
-					_hit(t, _power(z.skill) * ZONE_POWER, t.global_position, z.skill)
+					_later(t, _hit.bind(t, _power(z.skill) * ZONE_POWER, t.global_position, z.skill))
 		if z.left <= 0.0:
 			z.node.queue_free()
 			_zones.remove_at(i)
@@ -658,6 +660,22 @@ func _process_zones(delta: float) -> void:
 
 
 ## Czy punkt `p` (stopy wroga) stoi w ogniu strefy `z` (odległość od odcinka, rzut z góry - spłaszczony pion).
+## Wrogowie, którzy mogą być w strefie `z` (siatka - okrąg obejmujący strefę; dokładnie sprawdza _in_zone).
+func _zone_near(z: Dictionary) -> Array[ProtoTarget]:
+	if z.has("circles"):
+		var mid := Vector2.ZERO
+		for c: Vector2 in z.circles:
+			mid += c
+		mid /= maxf(z.circles.size(), 1)
+		var span := 0.0
+		for c: Vector2 in z.circles:
+			span = maxf(span, c.distance_to(mid))
+		return _near(mid, span + z.radius)
+	var a: Vector2 = z.a
+	var b: Vector2 = z.b
+	return _near((a + b) * 0.5, a.distance_to(b) * 0.5 + z.radius)
+
+
 static func _in_zone(z: Dictionary, p: Vector2) -> bool:
 	if z.has("circles"):
 		for c in z.circles:

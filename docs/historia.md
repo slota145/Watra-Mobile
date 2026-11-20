@@ -2,6 +2,35 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - wydajność walki, część 2: siatka wrogów, łuk, glewia, hydrosfera; naprawa aur i talizmanów
+
+Prośba autora: ten sam pomiar dla Poszukującej strzały (5 naraz, nieskończona mana, spam) przy 150 i 200-250
+potworach, optymalizacja i przegląd innych broni (np. odbijające się cięcia Tańca glewii).
+- `tools/combat_bench.gd`: WEAPON, SKILL, EVERY, ONLY_SKILL, PROJ (np. `WEAPON=bow SKILL=b_seeker EVERY=0.1 ONLY_SKILL=1
+  PROJ=3` - Poszukująca 10. poziomu, 2 + 3 = 5 strzał co 0,1 s).
+- **Siatka wrogów raz na klatkę** (`ProtoWeapon._frame_targets` układa cele w kratki 40 px; `_near(punkt, promień)`
+  i `_near_c` dla środka celu zwracają tylko wrogów z kratek dookoła). Przepięte pętle wykonywane co klatkę albo przy
+  każdym trafieniu: strzały w locie i szukanie celu Poszukującej (najpierw 90 px, potem cały zasięg), deszcz strzał,
+  podmuchy, balista; cięcia i odbicia Tańca glewii, płonące strefy, wybuchy; pociski, wiry, kule i Strażnicy
+  hydrosfery; iskry, łuki, burza i pełzające pioruny katany; przeskoki piorunów (`chain_next`), skok Mgnienia/Błysku,
+  rozprysk, Młynek, rzut, fale, Rozłupanie, cios miecza; aury i talizmany.
+- **Błąd z wcześniejszych etapów:** aury (Szron, Postrach, Mgła, Czarnobóg, Ognik, Gniew Peruna, Zwiastuny) i talizmany
+  obszarowe (Serce Goblina, Lont Pożogi, Serce Głębin, ciernie, pioruny...) przeglądały samo `weapon.targets`, a w lochu
+  potworów tam nie ma (są w grupie TARGETS) - raniły tylko kukły w bazie. Testy tego nie wyłapały, bo same dopisywały
+  gobliny do tej listy. Teraz `weapon.live_targets()` / `targets_near()`. W lochu aury i talizmany zaczną działać
+  naprawdę - do sprawdzenia balans.
+- Trafienia obszarowe rozłożone na klatki (`ProtoWeapon._later`, najwyżej 24 na klatkę): tyknięcia wiru, deszczu
+  strzał i płonących stref; skok Błysku - 12 trafień od razu, reszta w kolejnych klatkach.
+- Limity efektów: `Fx.crowded` - najwyżej 40 drobnych efektów trafienia jednego rodzaju naraz (rozbryzgi hydrosfery
+  dochodziły do 560), krytyczne liczby obrażeń najwyżej 90.
+- Mniej pracy goblinów co klatkę: rozpychanie co drugą klatkę (`_sep_phase`), bez ponownego ustawiania tej samej
+  animacji i prawie tego samego kierunku (`_play`, `_face`); węzeł stanu celu zapamiętany w polu (`ProtoTarget._st`),
+  zasięg umiejętności na klatkę (`ProtoWeapon._area`).
+- Wyniki (logika w klatce, komputer w chmurze, pełna walka - 22 aury, 3 talizmany, 4 modyfikatory): łuk 250 potworów
+  10,6 → ok. 7 ms, 150 - 6,5 → ok. 4,5 ms; katana 150 - ok. 3,3 ms; glewia (Taniec) 250 - ok. 5 ms; najcięższa
+  hydrosfera z wirem (wciąga tłum w jedną kulę) 45. poziom 150 - ok. 7 ms. Gra trzyma najwyżej 150 potworów
+  (ProtoHorde.ALIVE_CAP), więc 250 to zapas.
+
 ## 20.11.2026 - Gęstsza Horda do 15 punktów i wydajność ciężkiej walki
 
 Prośba autora: więcej punktów w Gęstszej Hordzie - 15 (do +60% potworów, `DungeonTree.NODES.horde`), i pomiar

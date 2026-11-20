@@ -19,6 +19,8 @@ extends ProtoWeapon
 ## Grafika: kula assets/weapons/hydrosphere.png (24 px w skali 0,5; narysowana w narzędziu pikseli PixelLab), efekty z kreatora
 ## (assets/effects/hydro_*.png, pixellab_src/vfx/ids.json).
 
+## Wir z kamieniem unikalnym szuka najbliższego wroga najpierw w tym promieniu (siatka), potem wszędzie.
+const VORTEX_SEEK_NEAR := 160.0
 const ORB_TEXTURE := preload("res://assets/weapons/hydrosphere.png")
 ## Przemoczenie: spowolnienie i jego czas.
 const SOAK_SLOW := 0.2
@@ -173,6 +175,8 @@ func _splash_fx(at: Vector2, size := 1.0) -> void:
 
 ## Rozbryzg w kierunku `dir` (pocisk, rozprysk, fala, wybuch wiru): krople i strugi tryskają dalej, w stronę uderzenia.
 func _spray_fx(at: Vector2, dir: Vector2, size := 1.0) -> void:
+	if Fx.crowded(SPRAY_FX):
+		return
 	var fx := Fx.once(get_parent(), SPRAY_FX, 9, 16.0, at.round(), SPRAY_FX_ANCHOR, 21, size)
 	fx.rotation = dir.angle()
 
@@ -271,7 +275,7 @@ func _process_shots(delta: float) -> void:
 			fx.modulate.a = clampf(s.left / 30.0, 0.0, 1.0)
 		var reach: float = s.radius * _area(s.skill)
 		var popped := false
-		for t in _live_targets():
+		for t in _near_c(fx.global_position, reach):  # siatka - każdy pocisk co klatkę
 			if s.hits.has(t) or t.center().distance_to(fx.global_position) > reach:
 				continue
 			s.hits.append(t)
@@ -297,7 +301,7 @@ func _process_shots(delta: float) -> void:
 ## w kierunku lotu pocisku (`dir`).
 func _bolt_splash(at: Vector2, hit: ProtoTarget, dir: Vector2) -> void:
 	var k := SPLASH_PERK if _perk(basic, 0) else 1.0
-	for t in _live_targets():
+	for t in _near_c(at, SPLASH_RADIUS * k * _area(basic)):
 		if t != hit and t.center().distance_to(at) <= SPLASH_RADIUS * k * _area(basic):
 			_hit(t, _power(basic) * SPLASH_POWER * k, at, basic)
 			_spray_fx(t.center(), t.center() - at, 0.5)  # mały rozbryzg od trafionego na sąsiada
@@ -396,24 +400,27 @@ func _process_vortexes(delta: float) -> void:
 		if v.wander:  # kamień unikalny: wir płynie ku najbliższemu wrogowi
 			var goal: ProtoTarget = null
 			var gd := INF
-			for t in _live_targets():
-				var dd: float = t.global_position.distance_to(v.at)
-				if dd < gd:
-					goal = t
-					gd = dd
+			for pool: Array[ProtoTarget] in [_near(v.at, VORTEX_SEEK_NEAR), _live_targets()]:  # najpierw blisko (siatka)
+				for t in pool:
+					var dd: float = t.global_position.distance_to(v.at)
+					if dd < gd:
+						goal = t
+						gd = dd
+				if gd <= VORTEX_SEEK_NEAR:
+					break
 			if goal and gd > 4.0:
 				v.at = (v.at as Vector2).move_toward(goal.global_position, VORTEX_WANDER * delta)
 				node.global_position = (v.at as Vector2).round()
 		node.frame = int(_clock * 12.0) % VORTEX_FX_FRAMES
 		node.modulate.a = clampf(v.left / 0.4, 0.0, 1.0)
-		for t in _live_targets():
+		for t in _near(v.at, v.radius):  # siatka - każdy wir co klatkę
 			var d: Vector2 = t.global_position - v.at
 			if Vector2(d.x, d.y * 1.6).length() > v.radius:
 				continue
 			if d.length() > 4.0:  # wciąganie: odpychanie od punktu po drugiej stronie celu
 				t.push_away(t.global_position + d.normalized() * 10.0, VORTEX_PULL)
 			if v.tick <= 0.0:
-				_hit(t, _power("h_vortex") * v.mult, v.at, "h_vortex")
+				_later(t, _hit.bind(t, _power("h_vortex") * v.mult, v.at, "h_vortex"))
 		if v.tick <= 0.0:
 			v.tick += VORTEX_TICK
 		if v.left <= 0.0:
@@ -425,7 +432,7 @@ func _process_vortexes(delta: float) -> void:
 
 ## Wybuch wody (koniec wiru z 10. poziomem, pojawienie się Strażnika): rani, przemacza i odpycha w promieniu.
 func _water_blast(at: Vector2, radius: float, power: float, skill := "h_vortex") -> void:
-	for t in _live_targets():
+	for t in _near(at, radius):
 		var d := t.global_position - at
 		if Vector2(d.x, d.y * 1.6).length() <= radius:
 			_hit(t, power, at, skill)
@@ -439,7 +446,7 @@ func _water_blast(at: Vector2, radius: float, power: float, skill := "h_vortex")
 ## przemacza i ogłusza w promieniu.
 func _geysers(origin: Vector2, mult := 1.0) -> void:
 	var near: Array = []
-	for t in _live_targets():
+	for t in _near(origin, Skills.DATA.h_geyser.range * _area("h_geyser")):
 		var d := origin.distance_to(t.global_position)
 		if d <= Skills.DATA.h_geyser.range * _area("h_geyser"):
 			near.append([d, t])
@@ -465,7 +472,7 @@ func _geyser_burst(at: Vector2, target: ProtoTarget, mult := 1.0) -> void:
 		at = target.global_position
 	var radius := GEYSER_RADIUS * _area("h_geyser")
 	var stun_time := GEYSER_STUN_LONG if _perk("h_geyser", 0) else GEYSER_STUN
-	for t in _live_targets():
+	for t in _near(at, radius):
 		var d := t.global_position - at
 		if Vector2(d.x, d.y * 1.6).length() <= radius:
 			_hit(t, _power("h_geyser") * mult, at, "h_geyser")
@@ -507,7 +514,7 @@ func _process_guardians(delta: float) -> void:
 			g.acc -= GUARD_EVERY
 			var best: ProtoTarget = null
 			var best_d := GUARD_RANGE * _area("h_guardian")
-			for t in _live_targets():
+			for t in _near_c(from, best_d):
 				var d := t.center().distance_to(from)
 				if d <= best_d:
 					best = t
@@ -532,7 +539,7 @@ func _echo(id: String) -> void:
 			"h_vortex":
 				var best: ProtoTarget = null
 				var best_d := Skills.DATA.h_vortex.range as float
-				for t in _live_targets():
+				for t in _near(at, best_d):
 					var d := t.global_position.distance_to(at)
 					if d <= best_d:
 						best = t
@@ -580,7 +587,7 @@ func _process_orbits(delta: float) -> void:
 		o.holder.modulate.a = clampf(o.left / 0.3, 0.0, 1.0)
 		for t in o.hits.keys():
 			o.hits[t] -= delta
-		for t in _live_targets():
+		for t in _near_c(at, BOLT_RADIUS * _area(basic)):  # siatka - każda kula co klatkę
 			if t.center().distance_to(at) <= BOLT_RADIUS * _area(basic) and o.hits.get(t, 0.0) <= 0.0:
 				o.hits[t] = ORBIT_REHIT
 				_hit(t, _power(basic) * _swing_power, at, basic)
@@ -610,7 +617,7 @@ func _process_lobs(delta: float) -> void:
 		fx.frame = int(_clock * 12.0 + i) % 8
 		if k >= 1.0:
 			var radius := LOB_RADIUS * _area("h_geyser")
-			for t in _live_targets():
+			for t in _near(l.to, radius):
 				var off: Vector2 = t.global_position - (l.to as Vector2)
 				if Vector2(off.x, off.y * 1.6).length() <= radius:
 					_hit(t, _power("h_geyser") * LOB_POWER * l.mult, l.to, "h_geyser")

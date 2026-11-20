@@ -3,7 +3,7 @@ extends Node2D
 ## Aury w walce - dziecko postaci (ProtoHero), wzór: ../Watra/scripts/auras.gd. Rysuje pod postacią delikatne,
 ## wolno obracające się kręgi włączonych aur (aura na wrogów - krąg w jej zasięgu, aura na postać - mały pierścień
 ## przy stopach, kolejne coraz szersze). Robi to, czego nie da się zapisać premią postaci: piorun Gniewu Peruna,
-## mróz Szronu Marzanny i krążący Błędny Ognik (trafienia przez ProtoWeapon.aura_hit, cele - `weapon.targets`).
+## mróz Szronu Marzanny i krążący Błędny Ognik (trafienia przez ProtoWeapon.aura_hit, cele - `weapon.live_targets`/`targets_near`).
 ## Premie (zdrowie, szybkość, odnowa, ogień) liczy Auras.apply. Lista włączonych aur: `on` (arena z Game.auras_on).
 ## Krok 2: kręgi na wrogów (Postrach, Mgła Nawii, Piętno Czarnoboga) znaczą wrogów w kręgu (ProtoTarget.aura_weak,
 ## aura_miss, pride - działają w ProtoTarget.hit_hero i ProtoWeapon), Zwiastuny Popiołu i Mrozu - wybuch zabitego wroga
@@ -77,9 +77,7 @@ func _circle_tick() -> void:
 	var czarnobog := on.has("czarnobog")
 	var now := Time.get_ticks_msec() / 1000.0
 	var pride_max := _power("czarnobog")
-	for t: ProtoTarget in weapon.targets:
-		if not is_instance_valid(t) or not t.alive():
-			continue
+	for t: ProtoTarget in weapon.live_targets():  # wszyscy - Piętno Czarnoboga gaśnie też poza kręgiem
 		var off := t.global_position - _hero.global_position
 		off.y *= 2.0  # krąg spłaszczony jak na rysunku
 		var d := off.length()
@@ -116,7 +114,7 @@ func _herald(at: Vector2, chilled: bool) -> void:
 				Auras.HERALD_RADIUS / ProtoGlaive.BLAST_FX_RADIUS)
 	if ice:  # pękający lód (kreator efektów PixelLab, 20.11.2026)
 		Fx.once(world, FROST_SHATTER_FX, 10, 16.0, at.round(), FROST_SHATTER_ANCHOR, 7, 1.4 if chilled else 1.1)
-	for t: ProtoTarget in weapon.targets.duplicate():
+	for t: ProtoTarget in weapon.targets_near(at, Auras.HERALD_RADIUS):
 		if not is_instance_valid(t) or not t.alive():
 			continue
 		var off := t.global_position - at
@@ -166,9 +164,7 @@ func _draw_ring(radius: float, color: Color, clockwise: bool) -> void:
 func _nearest(range_px: float) -> ProtoTarget:
 	var best: ProtoTarget = null
 	var best_d := range_px
-	for t in weapon.targets:
-		if not is_instance_valid(t) or not t.alive():
-			continue
+	for t in weapon.targets_near(_hero.global_position, range_px):
 		var d := t.global_position.distance_to(_hero.global_position)
 		if d <= best_d:
 			best = t
@@ -209,7 +205,7 @@ func _perun_strike() -> void:
 ## Szron Marzanny: wrogowie w kręgu zwalniają i dostają rany od mrozu.
 func _szron_tick() -> void:
 	var p := _power("szron")
-	for t: ProtoTarget in weapon.targets.duplicate():
+	for t: ProtoTarget in weapon.targets_near(_hero.global_position, Auras.radius_of("szron")):
 		if not is_instance_valid(t) or not t.alive():
 			continue
 		var off := t.global_position - _hero.global_position
@@ -231,7 +227,7 @@ func _ognik_update(delta: float) -> void:
 		if _ognik_hits[t] <= 0.0 or not is_instance_valid(t):
 			_ognik_hits.erase(t)
 	var at := _hero.global_position + ground
-	for t: ProtoTarget in weapon.targets.duplicate():
+	for t: ProtoTarget in weapon.targets_near(at, 14.0):
 		if _ognik_hits.has(t) or not is_instance_valid(t) or not t.alive():
 			continue
 		if t.global_position.distance_to(at) < 14.0:

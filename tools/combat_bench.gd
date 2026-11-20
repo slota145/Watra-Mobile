@@ -7,6 +7,8 @@ extends SceneTree
 ##   [talizmany po przecinku]
 ## Przykład: godot --headless --path . -s res://tools/combat_bench.gd -- 45 150 full kaboom,thunder,shockwave
 ## Zmienne do szukania winnego (wyłączają część): NO_AURA, ONLY_AURA=perun,szron, NO_TAL, NO_MODS, NO_CAST, NO_AUTO.
+## Inna broń i umiejętność: WEAPON=bow SKILL=b_seeker EVERY=0.1 (co ile s), ONLY_SKILL=1 (bez reszty umiejętności),
+## PROJ=3 (dodatkowe pociski na stałe, np. Poszukująca 10. poziomu: 2 + 3 = 5 strzał naraz).
 ## Na końcu wypisuje najliczniejsze węzły (Label<proto_goblin.gd - liczby obrażeń nad potworami itd.).
 ## Wyniki 20.11.2026 (poziom 5, 136 potworów): przed poprawkami 20 ms średnio, najgorsza klatka 198 ms; po nich ok. 4,3 ms
 ## i 14 ms (wspólny limit dźwięków trafień i liczb obrażeń - ProtoTarget, spis celów raz na klatkę - ProtoWeapon).
@@ -71,9 +73,14 @@ func _run() -> void:
 	game.best_level = level
 	game.dungeon_level = level
 	game.dev_immortal = true
-	game.set_weapon("katana")
+	var weapon_id := OS.get_environment("WEAPON") if OS.has_environment("WEAPON") else "katana"
+	var spam := OS.get_environment("SKILL") if OS.has_environment("SKILL") else "k_flash"
+	var every := float(OS.get_environment("EVERY")) if OS.has_environment("EVERY") else 0.25
+	var others := not OS.has_environment("ONLY_SKILL")
+	var proj := int(OS.get_environment("PROJ")) if OS.has_environment("PROJ") else -1
+	game.set_weapon(weapon_id)
 	game.dev_skills()
-	for id in Skills.of_weapon("katana"):
+	for id in Skills.of_weapon(weapon_id):
 		game.skill_levels[id] = 10
 	if full:
 		for i in 10:
@@ -122,13 +129,15 @@ func _run() -> void:
 		t += 1.0 / 60.0
 		hero.mana = hero.mana_cap()
 		nodes_max = maxi(nodes_max, root.get_tree().get_node_count())
-		if t >= 0.25 and not OS.has_environment("NO_CAST"):
+		if proj >= 0:
+			weapon.extra_projectiles = proj
+		if t >= every and not OS.has_environment("NO_CAST"):
 			t = 0.0
 			weapon.reset_cooldowns()
-			if weapon.cast("k_flash"):
+			if weapon.cast(spam):
 				casts += 1
-			for id in game.skill_slots:
-				if id != "" and id != "k_flash":
+			for id in game.skill_slots if others else []:
+				if id != "" and id != spam:
 					weapon.cast(id)
 		# tłum ma zostać - dosypuje, gdy ktoś padnie
 		deaths += maxi(count - horde._alive, 0)
@@ -154,7 +163,7 @@ func _run() -> void:
 			"pełna walka" if full else "bez dodatków", game.talisman_slots, game.auras_on.size(), game.dungeon_mods.size()])
 	print("  _process: %s" % _stats(b.times))
 	print("  _physics: %s" % _stats(pb.times))
-	print("  Błysków Peruna: %d, węzłów najwięcej: %d, klatek: %d" % [casts, nodes_max, b.times.size()])
+	print("  %s %s co %.2f s: %d użyć, węzłów najwięcej: %d, klatek: %d" % [weapon_id, spam, every, casts, nodes_max, b.times.size()])
 	arena.queue_free()
 	await process_frame
 	game.reset_hero()

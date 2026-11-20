@@ -220,6 +220,20 @@ var element := Elements.PHYSICAL
 var blink_skill := ""
 var _live_cache: Array[ProtoTarget] = []  # spis celów z tej klatki (_live_targets)
 var _live_frame := -1
+var _live_count := -1
+var _area_cache := {}  # _area z tej klatki
+var _area_frame := -1
+var _grid := {}  # kratka (Vector2i) -> cele z tej klatki (_frame_targets, _near)
+## Siatka celów (`_near`): bok kratki i zapas na ruch potworów od początku klatki (odrzut, skok).
+const GRID_CELL := 40.0
+const GRID_SLACK := 24.0
+## Najwyżej tyle odłożonych trafień obszarowych na klatkę (_later).
+const HIT_BUDGET := 24
+## Skok Mgnienia/Błysku: tyle trafień od razu, reszta przez _later.
+const FLICKER_HITS_NOW := 12
+var _hit_queue: Array = []
+const CENTER_PAD := 32.0  # najwyższy środek celu nad stopami (center_height) z zapasem
+const _NO_CELL: Array = []
 static var _bolt_glow: CanvasItemMaterial
 var flicker_trail: Texture2D = FLICKER_TRAIL
 ## Czy skok pokazuje na celu cięcie Mgnienia miecza (katana ma własne cięcie - bez podwójnego efektu).
@@ -405,6 +419,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_clock += delta
 	_chained = false
+	_drain_hits()
 	var sp := _strike_speed() if _state in STRIKE_STATES else speed_mult * (1.0 + speed_bonus)
 	_cooldown -= delta * sp
 	_t += delta * sp
@@ -492,7 +507,7 @@ func _follow(delta: float) -> void:
 func _nearest(reach := REACH) -> ProtoTarget:
 	var best: ProtoTarget = null
 	var best_d := reach
-	for t in _live_targets():
+	for t in _near(hero.global_position, reach):
 		var d := hero.global_position.distance_to(t.global_position)
 		if d <= best_d:
 			best = t
@@ -504,7 +519,7 @@ func _nearest(reach := REACH) -> ProtoTarget:
 func _farthest(reach := REACH) -> ProtoTarget:
 	var best: ProtoTarget = null
 	var best_d := -1.0
-	for t in _live_targets():
+	for t in _near(hero.global_position, reach):
 		var d := hero.global_position.distance_to(t.global_position)
 		if d <= reach and d > best_d:
 			best = t
@@ -559,7 +574,7 @@ func _hit_in_arc() -> void:
 	var hit: Array = []
 	var power := _swing_power * _power(Skills.STRIKE)
 	var reach := (HILT_RADIUS + BLADE + 6.0) * _area(Skills.STRIKE)
-	for t in _live_targets():
+	for t in _near_c(_orbit_center(), reach):
 		var to := t.center() - _orbit_center()
 		if to.length() <= reach and absf(angle_difference(_aim, to.angle())) <= ARC / 2.0:
 			_deal(t, _roll(power), hero.global_position, Skills.STRIKE)
@@ -572,7 +587,7 @@ func _hit_in_arc() -> void:
 	if not hit.is_empty() and _perk(Skills.STRIKE, 1):
 		var near: ProtoTarget = null
 		var near_d := reach + STRIKE_CLEAVE_RANGE
-		for t in _live_targets():
+		for t in _near_c(_orbit_center(), near_d):
 			var d := t.center().distance_to(_orbit_center())
 			if not hit.has(t) and d <= near_d:
 				near = t
@@ -596,18 +611,82 @@ func _live_targets() -> Array[ProtoTarget]:
 
 
 ## Spis celów z tej klatki bez kopiowania (mogą w nim być polegli - sprawdzaj is_instance_valid i alive).
+## Przy okazji układa cele w siatkę (`_near`).
 func _frame_targets() -> Array[ProtoTarget]:
 	var frame := Engine.get_process_frames()
-	if frame != _live_frame:
+	var count := get_tree().get_node_count_in_group(TARGETS) + targets.size()  # nowy wróg w tej klatce - od nowa
+	if frame != _live_frame or count != _live_count:
 		_live_frame = frame
+		_live_count = count
 		_live_cache.clear()
+		_grid.clear()
 		var seen := {}
 		for list: Array in [targets, get_tree().get_nodes_in_group(TARGETS)]:
 			for t in list:
 				if is_instance_valid(t) and t is ProtoTarget and not seen.has(t):
 					seen[t] = true
 					_live_cache.append(t)
+					var key := Vector2i((t.global_position / GRID_CELL).floor())
+					if _grid.has(key):
+						_grid[key].append(t)
+					else:
+						_grid[key] = [t]
 	return _live_cache
+
+
+## Żywe cele w pobliżu `at`: wszyscy, których pozycja (stopy) jest najwyżej `radius` od `at`, i może kilku dalszych -
+## odległość sprawdza wołający. Z siatki tej klatki (wydajność przy tłumie 150-250 potworów - pętle w każdej klatce
+## i przy każdym trafieniu przeglądają tylko kratki dookoła, a nie wszystkich wrogów; `tools/combat_bench.gd`).
+func _near(at: Vector2, radius: float) -> Array[ProtoTarget]:
+	_frame_targets()
+	var out: Array[ProtoTarget] = []
+	var r := radius + GRID_SLACK
+	var c0 := Vector2i(((at - Vector2(r, r)) / GRID_CELL).floor())
+	var c1 := Vector2i(((at + Vector2(r, r)) / GRID_CELL).floor())
+	if (c1.x - c0.x + 1) * (c1.y - c0.y + 1) > _grid.size():  # ogromny promień - taniej przejrzeć wszystkich
+		return _live_targets()
+	for x in range(c0.x, c1.x + 1):
+		for y in range(c0.y, c1.y + 1):
+			var cell: Array = _grid.get(Vector2i(x, y), _NO_CELL)
+			for t: ProtoTarget in cell:
+				if is_instance_valid(t) and t.alive():
+					out.append(t)
+	return out
+
+
+## Trafienie obszarowe odłożone na później (wir, deszcz strzał, płonąca strefa, wybuch wody): `hit` woła się
+## w jednej z najbliższych klatek, najwyżej HIT_BUDGET na klatkę - gdy kilka obszarów naraz trafia dziesiątki
+## wrogów, praca rozkłada się na kilka klatek zamiast jednego przycięcia (tools/combat_bench.gd, 20.11.2026).
+func _later(t: ProtoTarget, hit: Callable) -> void:
+	_hit_queue.append([t, hit])
+
+
+func _drain_hits() -> void:
+	if _hit_queue.is_empty():
+		return
+	var n := mini(HIT_BUDGET, _hit_queue.size())
+	var batch := _hit_queue.slice(0, n)
+	_hit_queue = _hit_queue.slice(n)
+	for e: Array in batch:
+		var t = e[0]
+		if is_instance_valid(t) and t.alive() and hero and not hero.dead:
+			(e[1] as Callable).call()
+
+
+## Żywe cele dla aur i talizmanów (ProtoAuras, ProtoTalismans): wszystkie i w pobliżu punktu (siatka). Do 20.11.2026
+## aury i talizmany przeglądały samo `targets` - w lochu potworów tam nie ma (są w grupie TARGETS), więc ich
+## działania obszarowe raniły tylko kukły w bazie (znalezione przy pomiarze `tools/combat_bench.gd`).
+func live_targets() -> Array[ProtoTarget]:
+	return _live_targets()
+
+
+func targets_near(at: Vector2, radius: float) -> Array[ProtoTarget]:
+	return _near(at, radius)
+
+
+## Jak `_near`, ale dla odległości od środka celu (`center()` - wyżej niż stopy o center_height).
+func _near_c(at: Vector2, radius: float) -> Array[ProtoTarget]:
+	return _near(at + Vector2(0, CENTER_PAD * 0.5), radius + CENTER_PAD * 0.5)
 
 
 func _set_state(state: String) -> void:
@@ -647,8 +726,20 @@ func _power(skill: String) -> float:
 
 ## Mnożnik zasięgu umiejętności (kamień Szerokość, premia przedmiotów i poziom; Skupienie zmniejsza).
 func _area(skill: String) -> float:
+	# zapamiętane na klatkę (strzały i pętle po wrogach pytają setki razy); klucz z premią i kamieniami - zmiana
+	# w tej samej klatce (testy, okno) liczy od nowa
+	var frame := Engine.get_process_frames()
+	if frame != _area_frame:
+		_area_frame = frame
+		_area_cache.clear()
+	var key := [skill, area_bonus, skill_gems.get(skill, []), level_of(skill)]
+	var hit = _area_cache.get(key)
+	if hit != null:
+		return hit
 	var focus := Gems.FOCUS_AREA if gem_power(skill, "focus") > 0.0 else 1.0
-	return (1.0 + (gem_power(skill, "area") + area_bonus) / 100.0) * Skills.level_area(level_of(skill)) * focus
+	var area := (1.0 + (gem_power(skill, "area") + area_bonus) / 100.0) * Skills.level_area(level_of(skill)) * focus
+	_area_cache[key] = area
+	return area
 
 
 ## Szybkość zwykłego ciosu: premia szybkości ataku, kamień Pośpiech i poziomy zwykłego ciosu (mniejszy „koszt” -
@@ -874,7 +965,7 @@ func _support_hit(t: ProtoTarget, amount: int, from: Vector2, elem: String, pen:
 	p = Gems.skill_power(sockets, "splash")
 	if p > 0.0 and not _splashing:
 		_splashing = true
-		for e in _live_targets():
+		for e in _near(t.global_position, Gems.SPLASH_RADIUS):
 			if e != t and e.global_position.distance_to(t.global_position) <= Gems.SPLASH_RADIUS:
 				e.color_next = Elements.color_of(elem) if elem != Elements.PHYSICAL else Color(0, 0, 0, 0)
 				e.take_damage(Elements.reduce(maxi(1, roundi(amount * p / 100.0)), e.resist(elem, pen)), from)
@@ -924,8 +1015,8 @@ func chain_next(current: ProtoTarget, visited: Dictionary, range_px: float) -> P
 	var old_d := -1.0
 	var from := current.global_position
 	var range_sq := range_px * range_px
-	for t in _frame_targets():  # bez kopiowania listy - wołane przy każdym przeskoku pioruna
-		if t == current or not is_instance_valid(t) or not t.alive():
+	for t in _near(from, range_px):  # siatka - wołane przy każdym przeskoku pioruna
+		if t == current:
 			continue
 		var d := t.global_position.distance_squared_to(from)
 		if d > range_sq:
@@ -1223,7 +1314,7 @@ func _process_whirl(delta: float) -> void:
 		var hit := false
 		var extra := gem_power("whirl", "multi") / 100.0
 		var power := _power("whirl") * _whirl_grow()
-		for t in _live_targets():
+		for t in _near_c(_orbit_center(), _whirl_radius()):
 			if t.center().distance_to(_orbit_center()) <= _whirl_radius():
 				_deal(t, _roll(power), hero.global_position, "whirl")
 				if extra > 0.0 and t.alive():
@@ -1265,7 +1356,7 @@ func _whirl_radius() -> float:
 func _whirl_blast() -> void:
 	whirl_blasts += 1
 	var radius := _whirl_radius() * 1.2
-	for t in _live_targets():
+	for t in _near_c(_orbit_center(), radius):
 		if t.center().distance_to(_orbit_center()) <= radius:
 			_deal(t, _roll(_power("whirl")), hero.global_position, "whirl")
 			t.push_away(hero.global_position, WHIRL_BLAST_PUSH)
@@ -1282,7 +1373,7 @@ func _process_throw(delta: float) -> void:
 	position = position.move_toward(target, speed * delta)
 	var tip := _sprite.global_position
 	var reach := THROW_HIT * _area("throw")
-	for t in _live_targets():
+	for t in _near_c(tip, reach):
 		if not _hit_set.has(t) and t.center().distance_to(tip) <= reach + t.center_height * 0.5:
 			_hit_set.append(t)
 			_deal(t, _roll(_power("throw")), global_position - _dir * 10.0, "throw")
@@ -1302,7 +1393,7 @@ func _process_throw(delta: float) -> void:
 			var power: float = _power("throw") * (1.0 if i == 0 and _perk("throw", 1) else gem)
 			g.global_position = anchor + (tip - anchor).rotated(THROW_SPREAD * (1.0 if i == 0 else -1.0))
 			g.rotation = _sprite.rotation
-			for t in _live_targets():
+			for t in _near_c(g.global_position, reach):
 				if not _ghost_hits[i].has(t) and t.center().distance_to(g.global_position) <= reach + t.center_height * 0.5:
 					_ghost_hits[i].append(t)
 					_deal(t, _roll(power), g.global_position, "throw")
@@ -1312,7 +1403,7 @@ func _process_throw(delta: float) -> void:
 			_bounced = true
 			var near: ProtoTarget = null
 			var near_d := THROW_BOUNCE_RANGE * _area("throw")
-			for t in _live_targets():
+			for t in _near(global_position, near_d):
 				var d := t.global_position.distance_to(global_position)
 				if not _hit_set.has(t) and d <= near_d:
 					near = t
@@ -1335,7 +1426,7 @@ func _process_throw(delta: float) -> void:
 func _ricochet(from: ProtoTarget) -> bool:
 	var near: ProtoTarget = null
 	var near_d := THROW_BOUNCE_RANGE * _area("throw")
-	for t in _live_targets():
+	for t in _near(from.global_position, near_d):
 		var d := t.global_position.distance_to(from.global_position)
 		if t != from and not _hit_set.has(t) and d <= near_d:
 			near = t
@@ -1378,7 +1469,7 @@ func _slam_hit(at := global_position, echo := false, aftershock := false) -> voi
 	var power: float = _power("slam") * (gem_power("slam", "multi") / 100.0 if echo else 1.0)
 	var stun_time := SLAM_STUN_LONG if _perk("slam", 0) else SLAM_STUN
 	var shocks: Array = []
-	for t in _live_targets():
+	for t in _near(at, radius):
 		var d := t.global_position - at
 		if Vector2(d.x, d.y * 1.6).length() <= radius:
 			_deal(t, _roll(power), at, "slam")
@@ -1446,7 +1537,7 @@ func _slam_spike(spot: Vector2) -> void:
 		return
 	var area := _area("slam")
 	Fx.once(get_parent(), SLAM_SPIKE_FX, SLAM_SPIKE_FRAMES, 16.0, spot.round(), SLAM_SPIKE_ANCHOR, 2, area)
-	for t in _live_targets():
+	for t in _near(spot, SLAM_SPIKE_RADIUS * area + 6.0):
 		var d := t.global_position - spot
 		if Vector2(d.x, d.y * 1.6).length() <= SLAM_SPIKE_RADIUS * area + 6.0:
 			_deal(t, _roll(_power("slam") * SLAM_SPIKE_POWER), spot, "slam")
@@ -1463,7 +1554,7 @@ func _slam_shocks(sources: Array) -> void:
 		if not is_instance_valid(src):
 			continue
 		var at: Vector2 = src.global_position
-		for t in _live_targets():
+		for t in _near(at, radius):
 			var d := t.global_position - at
 			if t != src and Vector2(d.x, d.y * 1.6).length() <= radius:
 				_deal(t, _roll(power), at, "slam")
@@ -1501,7 +1592,7 @@ func _process_waves(delta: float) -> void:
 		fx.frame = int(_clock * 16.0) % WAVE_FX_FRAMES
 		fx.modulate.a = clampf(w.left / 30.0, 0.0, 1.0)
 		var reach := STRIKE_WAVE_RADIUS * _area(Skills.STRIKE)
-		for t in _live_targets():
+		for t in _near_c(fx.global_position, reach):
 			if not w.hits.has(t) and t.center().distance_to(fx.global_position) <= reach + t.center_height * 0.5:
 				w.hits.append(t)
 				_deal(t, _roll(w.power), fx.global_position - w.dir * 10.0, Skills.STRIKE)
@@ -1548,7 +1639,7 @@ func _process_flicker(delta: float) -> void:
 func _flicker_target() -> ProtoTarget:
 	var best: ProtoTarget = null
 	var best_d := INF
-	for t in _live_targets():
+	for t in _near(hero.global_position, FLICKER_RANGE):
 		var d := hero.global_position.distance_to(t.global_position)
 		if d > FLICKER_RANGE:
 			continue
@@ -1590,14 +1681,19 @@ func _flicker_jump(best: ProtoTarget) -> void:
 				<= FLICKER_PATH_WIDTH * area + t.center_height * 0.5
 		if on_path or c.distance_to(best.center()) <= FLICKER_HIT_RADIUS * area:
 			hit.append(t)
-			_deal(t, _roll(_power(blink_skill)), spot, blink_skill)
-			_blink_kill(t)
+			if hit.size() <= FLICKER_HITS_NOW:
+				_deal(t, _roll(_power(blink_skill)), spot, blink_skill)
+				_blink_kill(t)
+			else:  # skok przez dużą kulę wrogów: reszta trafień w kolejnych klatkach (_later)
+				_later(t, func() -> void:
+					_deal(t, _roll(_power(blink_skill)), spot, blink_skill)
+					_blink_kill(t))
 	var extra := gem_power(blink_skill, "multi") / 100.0
 	if extra > 0.0:
 		# Mnożenie: dodatkowe cięcie najbliższego wroga, którego skok nie trafił
 		var near: ProtoTarget = null
 		var near_d := FLICKER_EXTRA_RANGE
-		for t in _live_targets():
+		for t in _near(spot, near_d):
 			var d := t.global_position.distance_to(spot)
 			if not hit.has(t) and d <= near_d:
 				near = t
@@ -1629,7 +1725,7 @@ func _blink_kill(t: ProtoTarget) -> void:
 func _flicker_spin() -> void:
 	_blink_spins += 1
 	var radius := WHIRL_RADIUS * _area(blink_skill)
-	for t in _live_targets():
+	for t in _near_c(_orbit_center(), radius):
 		if t.center().distance_to(_orbit_center()) <= radius:
 			_deal(t, _roll(_power(blink_skill) * FLICKER_SPIN_POWER), hero.global_position, blink_skill)
 			_blink_kill(t)

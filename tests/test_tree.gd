@@ -2,7 +2,7 @@ extends SceneTree
 ## Test drzewka lochów (20.11.2026): dane (13 węzłów, rodzice, ikony, opisy), punkty za przebite poziomy lochu,
 ## dodawanie (zamknięte duże węzły, brak punktów, sufit), cofanie za darmo (ostatni punkt małego węzła zamyka duże),
 ## zapis, porządek po wczytaniu i zwrot złota za dawne ulepszenia lochów; w lochu: tańsze przyzwanie, więcej złota,
-## Wędrowne cele spoza paska żaru, limity dźwięków trafień i liczb obrażeń (wydajność); okno (węzły min. 44 px, „+”, „−”, „Od nowa” z potwierdzeniem).
+## Wędrowne cele spoza paska żaru, siatka wrogów (aury i talizmany widzą potwory z lochu), trafienia rozłożone na klatki, limity dźwięków trafień i liczb obrażeń (wydajność); okno (węzły min. 44 px, „+”, „−”, „Od nowa” z potwierdzeniem).
 
 var _failed := 0
 
@@ -132,6 +132,25 @@ func _test_dungeon(game: Node) -> void:
 	for i in 60:
 		arena._tick_wander(DungeonTree.WANDER_EVERY + 0.1)
 	_check(arena._wander_goals == DungeonTree.WANDER_MAX, "najwyżej %d wędrowne cele naraz" % DungeonTree.WANDER_MAX)
+	# siatka wrogów (wydajność) i aury/talizmany na potworach z lochu (nie tylko kukłach z weapon.targets)
+	var weapon: ProtoWeapon = arena.weapon
+	var horde: ProtoHorde = arena.horde_spawner
+	horde.running = false
+	var g := horde.spawn_at(arena.hero.position + Vector2(30, 0))
+	var far := horde.spawn_at(arena.hero.position + Vector2(300, 0))
+	await process_frame
+	var near := weapon.targets_near(g.global_position, 10.0)
+	_check(near.has(g) and not near.has(far) and not weapon.targets.has(g), "siatka: potwór z lochu w pobliżu, daleki nie")
+	_check(weapon.live_targets().has(far), "siatka: wszyscy żywi wrogowie")
+	g._stunned = 60.0
+	var hp := g.hp
+	for i in 30:
+		weapon._later(g, func() -> void: g.take_damage(1, g.global_position))
+	await process_frame
+	var after_one := g.hp
+	await process_frame
+	await process_frame
+	_check(after_one > hp - 30 and g.hp == hp - 30, "trafienia obszarowe rozłożone na klatki (najwyżej %d na klatkę)" % ProtoWeapon.HIT_BUDGET)
 	arena.queue_free()
 	await process_frame
 	game.dev_immortal = false

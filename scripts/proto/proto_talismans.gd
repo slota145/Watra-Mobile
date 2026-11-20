@@ -112,7 +112,7 @@ func _power(id: String) -> float:
 ## Żywi wrogowie w promieniu `radius` od `at` (krąg spłaszczony jak cień: w pionie połowa).
 func _around(at: Vector2, radius: float) -> Array[ProtoTarget]:
 	var found: Array[ProtoTarget] = []
-	for t: ProtoTarget in weapon.targets:
+	for t: ProtoTarget in weapon.targets_near(at, radius):  # siatka broni (dawniej samo `targets` - bez potworów)
 		if not is_instance_valid(t) or not t.alive():
 			continue
 		var off := t.global_position - at
