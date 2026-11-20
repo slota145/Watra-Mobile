@@ -167,6 +167,10 @@ const SECOND_SOCKET := {"common": 0.0, "magic": 0.01, "rare": 0.03}
 ## dodatkowo z szansą SCRAP_RUNE daje Runę Szlifu (obie liczby rosną ze Skarbcem drzewka lochów - Game.treasury_mult).
 const ORE := {"common": 1, "magic": 2, "rare": 4}
 const SCRAP_RUNE := 0.15
+## Wykuwanie u kowala (decyzja autora 20.11.2026): FORGE_ORE rudy za przedmiot z wybranego miejsca, z najgłębszego
+## przebitego lochu, rzadkość losowana wagami FORGE_WEIGHTS (jak skrzynia Wodza) - Game.forge.
+const FORGE_ORE := 20
+const FORGE_WEIGHTS := {"common": 35, "magic": 45, "rare": 20}
 
 
 ## Stopień przedmiotu (0-4) z poziomu lochu.

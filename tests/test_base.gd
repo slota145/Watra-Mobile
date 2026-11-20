@@ -202,6 +202,20 @@ func _test_base(game: Node) -> void:
 	arena.smith_window.detail.find_child("UseRune", true, false).pressed.emit()
 	_check(game.bag[0].rarity == "rare" and game.bag[0].affixes.size() >= 3 and not game.runes.has(Runes.ASCEND),
 			"drugie stuknięcie: przedmiot rzadki, premie dolosowane")
+	# wykuwanie z rudy w oknie kowala
+	game.ore = 25
+	game.best_level = 3
+	arena.smith_window._hide_detail()
+	arena.smith_window.refresh()
+	var fb: Button = arena.smith_window.forge_buttons["boots"]
+	_check(not fb.disabled and fb.size.x >= 44.0, "przycisk wykuwania butów aktywny (min. 44 px)")
+	var bag_before: int = game.bag.size()
+	fb.pressed.emit()
+	_check(game.bag.size() == bag_before and fb.text == tr("Wykuć?"), "wykuwanie najpierw pyta")
+	fb.pressed.emit()
+	_check(game.bag.size() == bag_before + 1 and game.ore == 5 and arena.smith_window.detail.visible
+			and arena.smith_window.selected.slot == "boots", "drugie stuknięcie wykuwa buty i otwiera ich opis")
+	_check(arena.smith_window.forge_buttons["ring"].disabled, "bez 20 rudy przyciski nieaktywne")
 	arena.smith_window.back()
 	_check(not arena.smith_window.detail.visible and arena.smith_window.visible, "„wstecz” najpierw zamyka opis")
 	arena.smith_window.back()

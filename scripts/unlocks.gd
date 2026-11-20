@@ -15,7 +15,7 @@ const ICONS := {"monster": preload("res://assets/watra/base/goblin_heart.png"), 
 		"dungeon": preload("res://assets/watra/base/status_watra.png")}
 const GOAL_ICONS := {"chest": preload("res://assets/watra/chest.png"), "shrine": preload("res://assets/watra/shrine.png"),
 		"skarbnik": preload("res://assets/watra/skarbnik.png"), "zertwa": preload("res://assets/watra/zertwa_stump.png"),
-		"crystal": preload("res://assets/watra/watra_crystal.png")}
+		"crystal": preload("res://assets/watra/watra_crystal.png"), "raid": preload("res://assets/watra/raid_cart.png")}
 const KINDS_COLOR := {"monster": Color(1.0, 0.55, 0.45), "loot": Color(0.6, 0.85, 1.0), "goal": Color(1.0, 0.85, 0.4),
 		"dungeon": Color(0.75, 1.0, 0.6), "weapon": Color(1.0, 0.7, 0.35), "stash": Color(0.95, 0.8, 0.55)}
 
@@ -32,7 +32,7 @@ static func all() -> Array[Dictionary]:
 	_add(out, Elites.THREE_TRAITS_FROM, "monster", "Elity z trzema cechami")
 	var goals := {"chest": "Cel na mapie: skrzynia", "shrine": "Cel na mapie: kapliczka z darem bóstwa",
 			"skarbnik": "Cel na mapie: Skarbnik", "zertwa": "Cel na mapie: Krąg Żertwy",
-			"crystal": "Cel na mapie: Kryształ Watry"}
+			"crystal": "Cel na mapie: Kryształ Watry", "raid": "Cel na mapie: Napad Hordy (ruda żelaza)"}
 	for kind: String in DungeonGoals.KINDS:
 		_add(out, int(DungeonGoals.KINDS[kind]), "goal", goals.get(kind, kind), [], GOAL_ICONS.get(kind))
 	for id: String in Dungeons.ORDER:

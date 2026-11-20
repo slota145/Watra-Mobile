@@ -878,6 +878,30 @@ func dismantle_loot(item: Dictionary) -> Dictionary:
 	return got
 
 
+## Kowal wykuwa przedmiot z miejsca `slot` za Items.FORGE_ORE rudy: poziom najgłębszego przebitego lochu, rzadkość
+## losowa (Items.FORGE_WEIGHTS), trafia do torby. Zwraca przedmiot (pusty - brak rudy, pełna torba albo złe miejsce).
+func forge(slot: String) -> Dictionary:
+	if forge_problem(slot) != "":
+		return {}
+	ore -= Items.FORGE_ORE
+	var item := Items.roll(maxi(best_level, 1), slot, "", Items.FORGE_WEIGHTS)
+	bag.append(item)
+	save_game()
+	inventory_changed.emit()
+	return item
+
+
+## Czemu nie da się wykuć ("" - da się): "ore" (za mało rudy), "bag" (pełna torba), "slot" (złe miejsce).
+func forge_problem(slot: String) -> String:
+	if not slot in Items.SLOTS:
+		return "slot"
+	if ore < Items.FORGE_ORE:
+		return "ore"
+	if bag.size() >= BAG_SIZE:
+		return "bag"
+	return ""
+
+
 ## Ruda (i czasem runa) z jednego przedmiotu - dopisuje do zapasów.
 func _scrap(item: Dictionary) -> Dictionary:
 	var amount := ore_gain(Items.ore_value(item))

@@ -2,6 +2,20 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - Napad Hordy i wykuwanie z rudy (ROADMAP punkt 4, krok 3 - koniec punktu)
+
+Decyzje autora (ankieta 20.11.2026): obóz goblinów, wykuwanie za 20 rudy z losową rzadkością z najgłębszego lochu.
+- **Napad Hordy** (`scripts/proto/proto_raid.gd`, `DungeonGoals.KINDS` "raid" od 5. poziomu): obóz (namiot kobolda
+  i przewrócony wóz z rudą z Watry - `assets/watra/raid_tent.png`, `raid_cart.png`, `raid_ore.png`) pod słupem światła;
+  przy postaci zaczyna się napad - RAID_TIME 45 s, co 4 s z 3 stron paczka 4-6 potworów goniących postać; czas płynie
+  tylko w kręgu obozu (RAID_RADIUS 85, spłaszczony, poza nim „Wróć do kręgu obozu!” i miga krąg), łuk postępu na kręgu.
+  Odparty: 6-10 rudy (x nagrody celów z drzewka, potem Skarbiec) i 40% na runę (x Skarbiec) - `arena._on_raid_looted`.
+  Na drabince odblokowań; zrzuty `tools/raid_shots.gd`.
+- **Wykuwanie** u kowala (`Game.forge`, `forge_problem`, `Items.FORGE_ORE` 20, `FORGE_WEIGHTS` 35/45/20 jak skrzynia
+  Wodza): w oknie kowala pod torbą rząd 6 przycisków z ikonami miejsc (pierwsze stuknięcie „Wykuć?”, drugie wykuwa
+  i otwiera opis nowego przedmiotu - od razu można go zmieniać runami); ruda w nagłówku okna kowala.
+- Testy: `test_goals` (Napad Hordy), `test_runes` (wykuwanie), `test_base` (wykuwanie w oknie).
+
 ## 20.11.2026 - gra bez złota: ruda, wymiana run, Pieczęć Oręża (ROADMAP punkt 4, krok 2)
 
 Liczby z ankiety z autorem (20.11.2026). Złoto zniknęło ze wszystkich miejsc w grze.

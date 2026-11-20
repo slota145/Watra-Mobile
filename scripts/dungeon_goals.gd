@@ -6,12 +6,13 @@ extends RefCounted
 ## (gdy pula jest mniejsza niż liczba progów, powtórki są dozwolone). Niezrobiony cel zostaje po przyzwaniu Wodza.
 ## Na razie: skrzynia (ProtoChest z `hold_time` - stań przy niej), kapliczka (ProtoShrine - dar bóstwa na GIFT_TIME s)
 ## Skarbnik (ProtoSkarbnik - uciekający duch, trafienia wybijają rudę, złapany daje runy), Krąg Żertwy (ProtoZertwa - danina z potworów
-## zabitych w kręgu, nagroda do wyboru 1 z 3 - ZertwaOffer) i Kryształ Watry (ProtoCrystal - obrona przed falami).
+## zabitych w kręgu, nagroda do wyboru 1 z 3 - ZertwaOffer), Kryształ Watry (ProtoCrystal - obrona przed falami)
+## i Napad Hordy (ProtoRaid - obóz goblinów: przetrwaj fale w kręgu, nagroda ruda i czasem runa).
 ## Pokazanie graczowi: słup światła nad celem, strzałka przy krawędzi ekranu (GoalArrows), napis i dźwięk.
 
 const THRESHOLDS: Array[float] = [0.25, 0.5, 0.75]
 ## Rodzaj celu -> od którego poziomu lochu jest w puli (pula rośnie co 5 poziomów - decyzja autora).
-const KINDS := {"chest": 1, "shrine": 5, "skarbnik": 10, "zertwa": 15, "crystal": 20}
+const KINDS := {"chest": 1, "shrine": 5, "raid": 5, "skarbnik": 10, "zertwa": 15, "crystal": 20}
 ## Cel pojawia się w takiej odległości od postaci (piksele gry; ekran ma 360 px szerokości).
 const MIN_DIST := 200.0
 const MAX_DIST := 420.0
@@ -122,6 +123,18 @@ const ZER_TIME := 75.0
 const ZER_RADIUS := 110.0
 const ZER_PACK_EVERY := 2.5
 const ZER_PACK := Vector2i(4, 6)
+
+## Napad Hordy (decyzja autora 20.11.2026): RAID_TIME s w kręgu obozu (RAID_RADIUS, spłaszczony jak cień; poza nim
+## czas stoi), co RAID_WAVE_EVERY s z RAID_SIDES stron paczka RAID_PACK potworów (RAID_SPAWN_DIST px od obozu).
+## Nagroda: RAID_ORE rudy (razy nagrody celów z drzewka, potem Skarbiec) i z szansą RAID_RUNE runa (razy Skarbiec).
+const RAID_TIME := 45.0
+const RAID_RADIUS := 85.0
+const RAID_WAVE_EVERY := 4.0
+const RAID_SIDES := 3
+const RAID_PACK := Vector2i(4, 6)
+const RAID_SPAWN_DIST := 230.0
+const RAID_ORE := Vector2i(6, 10)
+const RAID_RUNE := 0.4
 
 ## Kryształ Watry: obrona przez CRYSTAL_TIME s, fale co CRYSTAL_WAVE_EVERY s z CRYSTAL_SIDES stron po CRYSTAL_PACK
 ## potworów (CRYSTAL_SPAWN_DIST px od kryształu); zdrowie CRYSTAL_HP x siła poziomu. Nagroda: kamienie

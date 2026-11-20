@@ -4,9 +4,10 @@ extends SceneTree
 ## poza kadrem, skrzynia-cel otwiera się dopiero po staniu przy niej (odejście cofa postęp), kapliczka daje dar
 ## (cechy w postaci i broni, napis z czasem), dar gaśnie po czasie, cel zostaje po przyzwaniu Wodza.
 ## Skarbnik: budzi się, gdy postać podejdzie, ucieka, trafienia wybijają rudę (nie częściej niż HIT_GAP), po
-## CATCH_HITS złapany (garść złota i kamień), po czasie ucieczki znika.
+## CATCH_HITS złapany (runy i kamień), po czasie ucieczki znika.
 ## Krąg Żertwy: zapala się przy pniu, wypuszcza paczki, liczy tylko zabitych w kręgu, komplet - pauza i wybór nagrody,
 ## po czasie gaśnie. Kryształ Watry: budzi się, fale biją kryształ, obroniony - kamienie i odpryski, rozbity - garść odprysków.
+## Napad Hordy: od 5. poziomu, obóz zaczyna napad przy postaci, fale, czas płynie tylko w kręgu, odparty - ruda.
 
 var _failed := 0
 
@@ -32,6 +33,7 @@ func _run() -> void:
 	await _test_skarbnik()
 	await _test_zertwa()
 	await _test_crystal()
+	await _test_raid()
 	DirAccess.remove_absolute(root.get_node("Game").save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
 	quit(1 if _failed else 0)
@@ -42,9 +44,9 @@ func _test_data() -> void:
 	_check(DungeonGoals.pool(5).has("shrine") and not DungeonGoals.pool(4).has("shrine"), "kapliczka od 5. poziomu")
 	_check(DungeonGoals.pool(10).has("skarbnik") and not DungeonGoals.pool(9).has("skarbnik"), "Skarbnik od 10. poziomu")
 	var used: Array[String] = []
-	for i in 2:
+	for i in 3:
 		used.append(DungeonGoals.roll(5, used))
-	_check(used.has("chest") and used.has("shrine"), "bez powtórek, póki pula pozwala")
+	_check(used.has("chest") and used.has("shrine") and used.has("raid"), "bez powtórek, póki pula pozwala")
 	_check(DungeonGoals.roll(1, ["chest"]) == "chest", "mała pula - powtórka dozwolona")
 	_check(DungeonGoals.thresholds_passed(24, 100) == 0 and DungeonGoals.thresholds_passed(25, 100) == 1
 			and DungeonGoals.thresholds_passed(80, 100) == 3, "progi 25/50/75%")
@@ -283,6 +285,36 @@ func _test_crystal() -> void:
 	shards_before = game.shards
 	weak.take_hit(weak.hp)
 	_check(weak.state == "broken" and game.shards == shards_before + DungeonGoals.CRYSTAL_SHARDS_LOST, "rozbity: garść odprysków")
+	arena.queue_free()
+	await process_frame
+	game.dev_immortal = false
+
+
+func _test_raid() -> void:
+	var game: Node = root.get_node("Game")
+	var arena: Node = await _arena(6)
+	var hero: ProtoHero = arena.hero
+	_check(DungeonGoals.pool(5).has("raid") and not DungeonGoals.pool(4).has("raid"), "Napad Hordy od 5. poziomu")
+	var camp: ProtoRaid = arena.spawn_goal("raid")
+	camp.position = hero.position + Vector2(0, 30)
+	await _wait(0.3)
+	_check(camp.state == "active" and camp.inside and camp.time_left < DungeonGoals.RAID_TIME, "napad zaczyna się przy obozie, czas płynie w kręgu")
+	var monsters := 0
+	for n in arena.get_node("World").get_children():
+		if n is ProtoGoblin and n.global_position.distance_to(camp.global_position) > 150.0:
+			monsters += 1
+	_check(monsters >= DungeonGoals.RAID_PACK.x, "fala potworów nadbiega (%d)" % monsters)
+	hero.position = camp.position + Vector2(200, 0)
+	await _wait(0.2)
+	var left := camp.time_left
+	await _wait(0.3)
+	_check(not camp.inside and is_equal_approx(camp.time_left, left), "poza kręgiem czas stoi")
+	hero.position = camp.position
+	var ore_before: int = game.ore
+	camp.time_left = 0.05
+	await _wait(0.2)
+	_check(camp.state == "done" and not camp.goal_active() and game.ore >= ore_before + DungeonGoals.RAID_ORE.x
+			and arena.run_ore >= DungeonGoals.RAID_ORE.x, "odparty: ruda (+%d)" % (game.ore - ore_before))
 	arena.queue_free()
 	await process_frame
 	game.dev_immortal = false

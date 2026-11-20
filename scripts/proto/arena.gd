@@ -1136,6 +1136,13 @@ func spawn_goal(kind: String) -> Node2D:
 			stump.failed.connect(func() -> void: announce(tr("Krąg Żertwy zgasł"), Color(0.8, 0.6, 0.55)))
 			goal = stump
 			announce(tr("Na polanie stoi Krąg Żertwy - złóż daninę!"), stump.goal_color)
+		"raid":
+			var camp := ProtoRaid.new()
+			camp.hero = hero
+			camp.wave.connect(func(where: Vector2, count: int) -> void: horde_spawner.spawn_pack(where, count))
+			camp.looted.connect(_on_raid_looted)
+			goal = camp
+			announce(tr("Na polanie rozbiła się Horda - ograb jej obóz!"), camp.goal_color)
 		"crystal":
 			var crystal := ProtoCrystal.new()
 			crystal.hero = hero
@@ -1178,6 +1185,15 @@ func spawn_goal(kind: String) -> Node2D:
 	add_child(ping)
 	ping.play()
 	return goal
+
+
+## Napad Hordy odparty: ruda od razu do zapasu (nagrody celów z drzewka, Skarbiec) i z szansą runa na ziemi.
+func _on_raid_looted(at: Vector2) -> void:
+	var got := Game.add_ore(roundi(randi_range(DungeonGoals.RAID_ORE.x, DungeonGoals.RAID_ORE.y) * _goal_reward()))
+	run_ore += got
+	if randf() < DungeonGoals.RAID_RUNE * horde_spawner.rune_mult:
+		_drop_reward({"rune": Runes.roll(level)}, at, 0.3)
+	announce(tr("Napad odparty! +%d rudy żelaza") % got, Color(0.95, 0.6, 0.4))
 
 
 ## Krąg Żertwy dopełniony: gra staje, wybór nagrody 1 z 3.
