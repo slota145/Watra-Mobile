@@ -8,7 +8,8 @@ Prośba autora (na próbę, do oceny na telefonie): wszyscy wrogowie mają 3 raz
 obrażeń. `DungeonLevels.enemy_hp` (3,0, w `hp_mult` - potwory i bossowie) i `enemy_damage` (2,0 - `ProtoHero.enemy_damage`
 w `take_damage` i `ignite`: ciosy, strzały, wybuchy elit, podpalenia). Zmienne statyczne, żeby testy liczące na
 konkretnych liczbach mogły je wyłączyć (test_auras, test_catacombs, test_flooded, test_horde, test_items, test_volcano).
-Do cofnięcia albo zmiany: dwie liczby w `scripts/dungeon_levels.gd`.
+Ocena autora po testach na telefonie: „jest super - czuć, że trzeba pofarmić, a postęp daje więcej satysfakcji” -
+zostaje na stałe. Zmiana: dwie liczby w `scripts/dungeon_levels.gd`.
 
 ## 20.11.2026 - przewijanie palcem i szerokość okna talizmanów
 
