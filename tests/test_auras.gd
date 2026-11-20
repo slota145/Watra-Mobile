@@ -44,7 +44,7 @@ func _test_data() -> void:
 	for id in Auras.ORDER:
 		ok = ok and Auras.is_aura(id) and Auras.name_of(id) != "" and Auras.effect_text(id, 1) != ""
 		ok = ok and Auras.reserve_of(id, 1) >= 0.15 and Auras.reserve_of(id, 1) <= 0.35
-	_check(ok and Auras.ORDER.size() == 21 and Auras.DATA.size() == 21, "21 aur z nazwą, opisem i rezerwacją 15-35%")
+	_check(ok and Auras.ORDER.size() == 22 and Auras.DATA.size() == 22, "22 aury z nazwą, opisem i rezerwacją 15-35%")
 	_check(Auras.reserve_of("perun", 10) < Auras.reserve_of("perun", 1), "wyższy poziom aury rezerwuje mniej")
 	_check(Auras.power("krzepa", 10) > Auras.power("krzepa", 1), "wyższy poziom - mocniejsza aura")
 	var none := true

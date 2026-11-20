@@ -218,14 +218,14 @@ func _process_orb() -> void:
 ## Wystrzał: jedna bańka (10. poziom - co trzeci strzał trzy w wachlarzu); z kamieniem unikalnym bańki krążą wokół
 ## postaci (`_orbits`).
 func _fire_bolts() -> void:
-	var angles := [_aim]
-	if _perk(basic, 1) and _strike_count % 3 == 0:
-		angles = [_aim - BOLT_FAN, _aim, _aim + BOLT_FAN]
+	# 10. poziom - co trzeci strzał trzy bańki; aura Rój Strzyboga dokłada bańki w stożku (fan)
+	var angles := fan(_aim, 3 if _perk(basic, 1) and _strike_count % 3 == 0 else 1, BOLT_FAN)
 	for a in angles:
 		if _unique(basic):
 			_add_orbit(a)
 			continue
-		_spawn_bolt(_sprite.global_position, a, _shot_target if a == _aim else null, basic, _swing_power, true)
+		_spawn_bolt(_sprite.global_position, a, _shot_target if absf(a - _aim) < 0.001 else null, basic,
+				_swing_power * projectile_mult, true)
 
 
 ## Bańka w locie z punktu `from` pod kątem `a` (lekko naprowadzana na `target`), siła umiejętności `skill` razy `mult`;
@@ -513,7 +513,9 @@ func _process_guardians(delta: float) -> void:
 					best = t
 					best_d = d
 			if best:
-				_spawn_bolt(from, (best.center() - from).angle(), best, "h_guardian")
+				var aim := (best.center() - from).angle()
+				for a in fan(aim, 1, Auras.ROJ_SPREAD):
+					_spawn_bolt(from, a, best if absf(a - aim) < 0.001 else null, "h_guardian", projectile_mult)
 		if g.left <= 0.0 or hero.dead:
 			_splash_fx(g.at, 0.7)
 			node.queue_free()

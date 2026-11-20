@@ -274,6 +274,9 @@ var elem_extra := 0.0
 var fire_convert := false
 var fire_convert_bonus := 0.0
 var point_blank := 0.0
+## Aura Rój Strzyboga (Auras, arena ustawia): tyle pocisków więcej naraz i mnożnik ich obrażeń (kara aury).
+var extra_projectiles := 0
+var projectile_mult := 1.0
 ## Talizman Poroże Jelenia: chwilowo szybszy atak (część; mnoży speed_mult).
 var speed_bonus := 0.0
 ## Kamień Echo: umiejętność, której powtórka czeka (za darmo - mana_cost 0); Rozprysk: trwa rozprysk (bez łańcucha).
@@ -732,6 +735,15 @@ func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2, flat :=
 ## Premia żywiołów razem: przedmioty (elem_mult) i talizman Łuska Żmija (elem_extra).
 func elem_total() -> float:
 	return elem_mult * (1.0 + elem_extra)
+
+
+## Kąty `count` pocisków (plus dodatkowe z aury Rój Strzyboga - `extra`) w stożku wokół `aim`, co `spread` radianów.
+func fan(aim: float, count: int, spread: float, extra := true) -> Array[float]:
+	var n := count + (extra_projectiles if extra else 0)
+	var out: Array[float] = []
+	for i in n:
+		out.append(aim + spread * (i - (n - 1) / 2.0))
+	return out
 
 
 ## Elita albo boss (premia przeciw elitom, słabsze dobijanie).

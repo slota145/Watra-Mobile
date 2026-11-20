@@ -29,7 +29,7 @@ const GOAL_CHEST_CHANCE := 0.12
 
 ## Kolejność na liście w zakładce „Aury” (najpierw gotowe).
 const ORDER: Array[String] = [
-	"krzepa", "strzybog", "zywia", "mana", "mokosz", "kamienna_krew", "trzyglow", "pieczec", "hart", "jarylo", "weles",
+	"krzepa", "strzybog", "roj", "zywia", "mana", "mokosz", "kamienna_krew", "trzyglow", "pieczec", "hart", "jarylo", "weles",
 	"swarog", "perun", "ognik", "popiol", "mroz", "licho", "szron", "postrach", "mgla", "czarnobog",
 ]
 
@@ -51,6 +51,9 @@ const DATA := {
 		"power": [0.5, 0.06]},
 	"szron": {"name": "Szron Marzanny", "reserve": 0.25, "color": Color8(170, 230, 255), "radius": 70.0,
 		"power": [0.15, 0.03]},
+	# 20.11.2026 (pomysł autora): więcej pocisków naraz - strzały łuku, Poszukujące, bańki hydrosfery, bełty balisty
+	"roj": {"name": "Rój Strzyboga", "reserve": 0.30, "color": Color8(200, 240, 225), "radius": 0.0,
+		"power": [0.10, -0.01112]},
 	# krok 2 (procenty jako ułamki, punkty statystyk jako liczby - opis w `effect_text`)
 	"postrach": {"name": "Postrach", "reserve": 0.30, "color": Color8(170, 70, 200), "radius": 80.0,
 		"power": [0.15, 0.015]},
@@ -112,6 +115,12 @@ const MROZ_CHILLED := 1.5
 const LICHO_TIME := 0.3
 ## Oko Jaryły: obrażenia krytyczne = tyle razy premia do szansy na krytyk.
 const JARYLO_CRIT_DMG := 4.0
+## Rój Strzyboga: dodatkowe pociski (od ROJ_MORE_LEVEL - ROJ_MORE), rozstaw w stożku; siła aury (`power`) to kara
+## obrażeń tych pocisków (10% na 1. poziomie, 0 na 10.).
+const ROJ_EXTRA := 1
+const ROJ_MORE := 2
+const ROJ_MORE_LEVEL := 5
+const ROJ_SPREAD := deg_to_rad(9.0)
 ## Dłoń Welesa: doświadczenie = zasięg zbierania / tyle.
 const WELES_XP := 10.0
 
@@ -197,6 +206,9 @@ static func apply(gear: Dictionary, on: Array, levels: Dictionary) -> Dictionary
 				g["aura_shield_pct"] = p
 			"kamienna_krew":
 				g["aura_stone"] = p
+			"roj":
+				g["aura_projectiles"] = roj_extra(levels.get(id, 1))
+				g["aura_proj_penalty"] = maxf(p, 0.0)  # 10. poziom - bez kary
 			"licho":
 				g["aura_burn"] = p
 			"jarylo":
@@ -237,6 +249,10 @@ static func effect_text(id: String, level := 1) -> String:
 			return Lang.t("Ognik krąży wokół ciebie i rani wrogów: %d%% obrażeń broni") % roundi(v * 100)
 		"szron":
 			return Lang.t("Wrogowie w kręgu zwalniają i co pół sekundy dostają %d%% obrażeń broni od mrozu") % roundi(v * 100)
+		"roj":
+			var more := Lang.n(roj_extra(level), "+%d pocisk", "+%d pociski", "+%d pocisków") % roj_extra(level)
+			return Lang.t("%s naraz w stożku (strzały, bańki, bełty); pociski o %d%% słabsze") % [more, roundi(v * 100)] \
+					if v > 0.005 else Lang.t("%s naraz w stożku (strzały, bańki, bełty)") % more
 		"postrach":
 			return Lang.t("Wrogowie w kręgu zadają %d%% mniej obrażeń i są wolniejsi") % roundi(v * 100)
 		"mgla":
@@ -266,6 +282,11 @@ static func effect_text(id: String, level := 1) -> String:
 		"weles":
 			return Lang.t("+%d%% zasięgu zbierania i +%s%% doświadczenia") % [roundi(v), decimal(v / WELES_XP)]
 	return ""
+
+
+## Rój Strzyboga: ile dodatkowych pocisków na danym poziomie aury.
+static func roj_extra(level := 1) -> int:
+	return ROJ_MORE if level >= ROJ_MORE_LEVEL else ROJ_EXTRA
 
 
 ## Liczba z jednym miejscem po przecinku (po polsku przecinek: „1,5”).
