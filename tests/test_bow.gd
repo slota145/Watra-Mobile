@@ -1,5 +1,5 @@
 extends SceneTree
-## Test łuku (20.11.2026): dostępność (loch 5 albo 1500 zł), powietrze, zmiana broni (węzeł ProtoBow, strzał pod „Atak”),
+## Test łuku (20.11.2026): dostępność (loch 5 albo Pieczęć Oręża), powietrze, zmiana broni (węzeł ProtoBow, strzał pod „Atak”),
 ## a w walce: strzał (leci, trafia, odpycha), Poszukująca strzała (skręca, przebija, szuka kolejnych), Deszcz strzał
 ## (rani w kręgu), Potężny strzał (ładowanie, podmuch odpycha, strzała przebija), Balista (stoi, obraca się, strzela);
 ## kamienie unikalne (wielostrzał, przywołanie z rezerwacją many, 3 deszcze, podmuch na boki, powtórki balisty).
@@ -42,8 +42,8 @@ func _run() -> void:
 func _test_unlock(game: Node) -> void:
 	game.reset_hero()
 	game.best_level = 4
-	_check(Weapons.element_of("bow") == Elements.AIR and Weapons.unlock_level("bow") == 5 and Weapons.price_of("bow") == 1500,
-			"łuk: powietrze, loch 5 albo 1500 zł")
+	_check(Weapons.element_of("bow") == Elements.AIR and Weapons.unlock_level("bow") == 5,
+			"łuk: powietrze, loch 5")
 	_check(Skills.of_weapon("bow").size() == 5 and Skills.basic_of("bow") == "b_shot" and Skills.is_charged("b_power"),
 			"5 umiejętności, zwykły strzał, Potężny strzał ładowany")
 	var unique_ok := true

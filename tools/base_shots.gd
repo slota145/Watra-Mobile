@@ -2,7 +2,7 @@ extends SceneTree
 ## Zrzuty bazy z kowalem i kupcem: drzewko lochów, kupiec z półką, kowal z opisem przedmiotu
 ## (wybrana Runa Przekucia - przyciski „Użyj” przy premiach) i kowal z Runą Zmiany (_5_kowal_runa).
 ## Użycie: SCRIPT=tools/base_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
-## Pliki: <prefiks>_1_baza.png, _2_drzewko.png, _3_kupiec.png, _4_kowal.png, _5_kowal_runa.png
+## Pliki: <prefiks>_1_baza.png, _2_drzewko.png, _3_kupiec.png, _4_kowal.png, _5_kowal_runa.png, _6_wykuwanie.png
 
 var _prefix := "/tmp/baza"
 
@@ -29,10 +29,9 @@ func _run() -> void:
 	game.tree = {"horde": 2, "reach": 1}
 	game.best_level = 4
 	game.dungeon_level = 4
-	game.gold = 760
+	game.ore = 76
 	game.dev_items(6)
 	game.equip(0)
-	game.restock_shop(4)
 	game.dev_runes()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
 	root.add_child(arena)
@@ -44,7 +43,7 @@ func _run() -> void:
 	arena.tree_window.close()
 	arena.picker.close()
 	arena.open_shop()
-	arena.shop_window._buy(0)  # uzbrojony przycisk klucza
+	arena.shop_window._buy(0)  # uzbrojony przycisk pierwszej wymiany
 	await create_timer(0.2).timeout
 	await _shot("3_kupiec")
 	arena.shop_window.close()
@@ -61,6 +60,11 @@ func _run() -> void:
 	arena.smith_window._pick_rune(Runes.CHAOS)
 	await create_timer(0.2).timeout
 	await _shot("5_kowal_runa")
+	arena.smith_window._hide_detail()
+	arena.smith_window._forge("boots")  # uzbrojony przycisk wykuwania butów
+	arena.smith_window.scroll.scroll_vertical = 10000
+	await create_timer(0.2).timeout
+	await _shot("6_wykuwanie")
 	game.reset_hero()
 	DirAccess.remove_absolute(game.save_path)
 	quit()

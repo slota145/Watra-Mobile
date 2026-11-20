@@ -4,13 +4,13 @@ class_name Items
 ## Siła przedmiotu zależy od poziomu lochu, z którego wypadł (`level`): od niego rośnie stała cecha miejsca
 ## (np. zdrowie z hełmu) i wartości premii, a co `LEVELS_PER_TIER` poziomów zmienia się wygląd i nazwa (5 stopni
 ## z Watry: żelazny, stalowy, mithrilowy, runiczny, smoczy). Łup: skrzynia Wodza (`roll_chest`) i rzadko gobliny
-## (`roll_goblin`). Niepotrzebne przedmioty sprzedaje się za złoto (`sell_price`).
+## (`roll_goblin`). Niepotrzebne przedmioty rozbija się na rudę żelaza (`ore_value`; rzadki - czasem Runa Szlifu).
 ## Przedmiot to słownik z samymi identyfikatorami i liczbami (nazwy składane przy pokazywaniu - zasady w lang.gd):
 ## {"slot", "tier", "level", "rarity", "base": {cecha: wartość}, "affixes": [{"stat", "value"}], "sockets": [kamień],
 ## "rerolls": ile razy przekuto premię (Runa Przekucia - `reroll_affix`)}. Premie zmieniają runy u kowala (Runes).
 ## Gniazda na kamienie szlachetne (Gems): "sockets" - lista identyfikatorów kamieni ("" - puste gniazdo); każdy przedmiot
 ## ma 1 gniazdo, bardzo rzadko 2 (SECOND_SOCKET), drugie dorabia Dłuto Jubilera (Game.add_socket).
-## Stan (torba, założone, złoto) trzyma i zapisuje `Game`; sumę cech założonych przedmiotów liczy `totals`.
+## Stan (torba, założone, ruda) trzyma i zapisuje `Game`; sumę cech założonych przedmiotów liczy `totals`.
 ## Ikony: assets/watra/items/ (skopiowane z Watry, wersje _magic i _rare).
 
 ## Kolczyk z kłem (decyzja autora 13.11.2026) zastąpił miejsce „Broń”: daje obrażenia każdej broni (Weapons), więc
@@ -163,9 +163,14 @@ const BASE_PCT_PER_LEVEL := 0.2
 ## Gniazda: najwięcej w przedmiocie i szansa na drugie od razu (według rzadkości - bardzo rzadko).
 const MAX_SOCKETS := 2
 const SECOND_SOCKET := {"common": 0.0, "magic": 0.01, "rare": 0.03}
-## Cena sprzedaży: tyle złota za zwykły przedmiot z 1. poziomu lochu, mnożnik rzadkości.
-const SELL_BASE := 5.0
-const SELL_RARITY := {"common": 1.0, "magic": 2.0, "rare": 4.0}
+## Rozbicie przedmiotu (decyzja autora 20.11.2026, zamiast sprzedaży za złoto): ruda według rzadkości, rzadki
+## dodatkowo z szansą SCRAP_RUNE daje Runę Szlifu (obie liczby rosną ze Skarbcem drzewka lochów - Game.treasury_mult).
+const ORE := {"common": 1, "magic": 2, "rare": 4}
+const SCRAP_RUNE := 0.15
+## Wykuwanie u kowala (decyzja autora 20.11.2026): FORGE_ORE rudy za przedmiot z wybranego miejsca, z najgłębszego
+## przebitego lochu, rzadkość losowana wagami FORGE_WEIGHTS (jak skrzynia Wodza) - Game.forge.
+const FORGE_ORE := 20
+const FORGE_WEIGHTS := {"common": 35, "magic": 45, "rare": 20}
 
 
 ## Stopień przedmiotu (0-4) z poziomu lochu.
@@ -319,9 +324,9 @@ static func affix_lines(item: Dictionary) -> Array[String]:
 	return lines
 
 
-## Ile złota daje sprzedaż.
-static func sell_price(item: Dictionary) -> int:
-	return maxi(1, roundi(SELL_BASE * DungeonLevels.power(item.level) * SELL_RARITY[item.rarity]))
+## Ile rudy daje rozbicie (bez premii Skarbca).
+static func ore_value(item: Dictionary) -> int:
+	return ORE.get(item.get("rarity", "common"), 1)
 
 
 ## Runa Przekucia (Runes): premia `index` losowana od nowa - rodzaj (spośród tych, których przedmiot jeszcze nie ma; może wypaść

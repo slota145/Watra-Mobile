@@ -1,7 +1,7 @@
 extends SceneTree
-## Test skrzyni w bazie: zakładki (pierwsza za darmo, kolejne za złoto, najwyżej 5), przenoszenie między torbą
+## Test skrzyni w bazie: zakładki (pierwsza od razu, kolejne za przebite lochy 5, 15, 30, 50), przenoszenie między torbą
 ## a skrzynią (pełne miejsca), zapis, skrzynia w bazie otwiera okno (podejście i stuknięcie), okno: zakładki,
-## kupno z potwierdzeniem, opis z „Do skrzyni” / „Do torby”, przeciąganie (ItemSlot), „Wszystko do skrzyni”,
+## napis o następnej zakładce, opis z „Do skrzyni” / „Do torby”, przeciąganie (ItemSlot), „Wszystko do skrzyni”,
 ## pola 44 px, „wstecz” i pauza gry.
 
 var _failed := 0
@@ -35,15 +35,18 @@ func _run() -> void:
 
 
 func _test_game(game: Node) -> void:
-	_check(game.stash.size() == 1 and game.next_tab_price() == 100, "na start 1 zakładka, następna za 100")
-	_check(not game.buy_stash_tab(), "bez złota nie da się kupić")
-	game.gold = 5000
-	var prices: Array = []
-	while game.next_tab_price() > 0:
-		prices.append(game.next_tab_price())
-		game.buy_stash_tab()
-	_check(prices == [100, 300, 800, 2000] and game.stash.size() == 5 and game.gold == 5000 - 3200, "zakładki za 100, 300, 800, 2000 (zostało %d złota)" % game.gold)
-	_check(not game.buy_stash_tab(), "więcej niż 5 zakładek się nie kupi")
+	_check(game.stash.size() == 1 and game.next_tab_level() == 5, "na start 1 zakładka, następna po lochu 5")
+	var levels: Array = []
+	for lvl in range(1, 61):
+		var before: int = game.stash.size()
+		game.beat_level(lvl)
+		if game.stash.size() > before:
+			levels.append(lvl)
+	_check(levels == [5, 15, 30, 50] and game.stash.size() == 5 and game.next_tab_level() == 0,
+			"zakładki za przebite lochy 5, 15, 30, 50 (%s)" % [levels])
+	game.best_level = 0
+	game.load_game()
+	_check(game.stash.size() == 5, "wczytanie nie zabiera zakładek")
 	var item := Items.roll(2, "helmet", "rare")
 	game.add_item(item)
 	_check(game.to_stash(0, 2) and game.bag.is_empty() and game.stash[2] == [item], "z torby do 3. zakładki")
@@ -71,9 +74,9 @@ func _test_base(game: Node) -> void:
 	arena.hero.position = stash.position + Vector2(0, 18)
 	await _wait(0.2)
 	_check(win.visible and paused, "podejście otwiera okno skrzyni i zatrzymuje grę")
-	_check(win.tab_buttons.size() == 1 and win.buy_button != null and win.buy_button.disabled, "jedna zakładka, kupno nieaktywne bez złota")
+	_check(win.tab_buttons.size() == 1 and win.next_tab_label != null, "jedna zakładka i napis o następnej")
 	var small := false
-	for b in win.stash_slots + win.bag_slots + win.tab_buttons + [win.buy_button, win.stash_all_button, win.back_button]:
+	for b in win.stash_slots + win.bag_slots + win.tab_buttons + [win.stash_all_button, win.back_button]:
 		var r: Rect2 = b.get_global_rect()
 		small = small or r.size.x < 44.0 or r.size.y < 44.0
 	_check(not small, "pola i przyciski co najmniej 44 px")
@@ -82,16 +85,18 @@ func _test_base(game: Node) -> void:
 	_check(not paused, "zamknięcie wznawia grę")
 	await _wait(0.2)
 	_check(not win.visible, "stojąc przy skrzyni okno nie otwiera się od razu ponownie")
-	# kupno zakładki z potwierdzeniem
-	game.gold = 150
+	# napis o następnej zakładce
 	game.add_item(Items.roll(1, "ring", "magic"))
 	game.add_item(Items.roll(1, "boots", "common"))
 	game.add_item(Items.roll(1, "armor", "rare"))
 	arena.open_stash()
-	win.buy_button.pressed.emit()
-	_check(game.stash.size() == 1 and win.buy_button.text == tr("Kupić za %d?") % 100, "kupno pyta")
-	win.buy_button.pressed.emit()
-	_check(game.stash.size() == 2 and win.tab == 1 and game.gold == 50 and win.tab_buttons.size() == 2, "kupiona zakładka 2, otwarta")
+	_check(win.next_tab_label != null and win.next_tab_label.text == tr("Następna zakładka po lochu %d") % 5,
+			"napis: następna zakładka po lochu 5")
+	game.best_level = 5
+	game._sync_stash_tabs()
+	win.refresh()
+	win._select_tab(1)
+	_check(game.stash.size() == 2 and win.tab == 1 and win.tab_buttons.size() == 2, "po lochu 5 zakładka 2, otwarta")
 	# stuknięcie: opis i „Do skrzyni”
 	var ring: Dictionary = game.bag[0]
 	win.bag_slots[0].pressed.emit()

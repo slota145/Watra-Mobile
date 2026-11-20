@@ -1,6 +1,7 @@
 extends SceneTree
 ## Test run (Runes): działanie każdej runy na premiach przedmiotu, kiedy runy nie da się użyć, losowanie z poziomu
-## lochu (Pieczęć dopiero od 20.), łup ze skrzyni Wodza, zapis zapasu run w Game i nagrody celów (Żertwa, Kryształ).
+## lochu (Pieczęć dopiero od 20.), łup ze skrzyni Wodza, zapis zapasu run w Game i nagrody celów (Żertwa, Kryształ),
+## przeliczenie złota ze starego zapisu na runy i rudę, rozbijanie przedmiotów hurtem, wykuwanie z rudy.
 
 var _failed := 0
 
@@ -128,3 +129,39 @@ func _test_save(game: Node) -> void:
 	_check(game.use_rune(it, Runes.POLISH, 0) and game.runes[Runes.POLISH] == 2, "użycie zabiera jedną runę")
 	game.dev_runes()
 	_check(game.runes[Runes.CHAOS] == 5 and game.runes[Runes.POLISH] == 7, "tryb deweloperski: +5 każdej runy")
+	# stary zapis ze złotem: runy (1000 zł za runę, najwyżej 20, bez Pieczęci) i ruda z reszty (100 zł, najwyżej 100)
+	for case in [[3450, 3, 4], [25350, 20, 53], [999999, 20, 100]]:
+		var f := FileAccess.open(game.save_path, FileAccess.WRITE)
+		f.store_string(JSON.stringify({"best_level": 30, "gold": case[0]}))
+		f.close()
+		game.load_game()
+		var count := 0
+		for id in game.runes:
+			count += game.runes[id]
+		_check(count == case[1] and game.ore == case[2] and not game.runes.has(Runes.SEAL) and game.gold == 0
+				and game.gold_converted == Vector2i(case[1], case[2]), "%d zł -> %d run i %d rudy" % case)
+	game.save_game()
+	game.load_game()
+	_check(game.gold_converted == Vector2i.ZERO and game.ore == 100, "przeliczenie tylko raz, „ore” w zapisie")
+	game.dismantle_all(["common"])
+	game.bag = [Items.roll(5, "ring", "rare"), Items.roll(5, "ring", "common")]
+	var got: Dictionary = game.dismantle_all(["common", "magic", "rare"])
+	_check(got.ore == 5 and game.ore == 105 and game.bag.is_empty(), "rozbijanie hurtem: 4 + 1 rudy")
+	# wykuwanie: 20 rudy, wybrane miejsce, najgłębszy przebity loch, losowa rzadkość
+	game.best_level = 12
+	var first: Dictionary = game.forge("boots")
+	_check(first.slot == "boots" and first.level == 12 and game.bag.has(first), "wykuty: buty z lochu 12 (%s)" % first.rarity)
+	for i in 4:
+		game.forge("boots")
+	_check(game.ore == 105 - 5 * Items.FORGE_ORE and game.bag.size() == 5, "każde wykucie zabiera 20 rudy")
+	game.ore = 19
+	_check(game.forge_problem("ring") == "ore" and game.forge("ring").is_empty(), "za mało rudy")
+	game.ore = 500
+	while game.bag.size() < game.BAG_SIZE:
+		game.add_item(Items.roll(1))
+	_check(game.forge_problem("ring") == "bag" and game.forge("helmet").is_empty() and game.ore == 500, "pełna torba - bez wykuwania")
+	_check(game.forge_problem("nic") == "slot", "złe miejsce")
+	var spread := {}
+	for i in 300:
+		spread[Items.roll(5, "ring", "", Items.FORGE_WEIGHTS).rarity] = true
+	_check(spread.size() == 3, "rzadkość losowa: zwykłe, magiczne i rzadkie")

@@ -1,7 +1,7 @@
 class_name StashWindow
 extends Control
-## Okno skrzyni w bazie (prośba autora 12.11.2026): u góry zakładki (pierwsza za darmo, kolejne za złoto -
-## Game.STASH_TAB_PRICES; przycisk „+” z ceną, drugie stuknięcie kupuje), pod nimi siatka zakładki 5x4, niżej torba 5x4.
+## Okno skrzyni w bazie (prośba autora 12.11.2026): u góry zakładki (pierwsza od razu, kolejne za przebite lochy -
+## Game.STASH_TAB_LEVELS; obok napis, po którym lochu dojdzie następna), pod nimi siatka zakładki 5x4, niżej torba 5x4.
 ## Przenoszenie: stuknięcie w przedmiot otwiera opis przy dolnej krawędzi z przyciskiem „Do skrzyni” / „Do torby”,
 ## albo przeciągnięcie palcem na drugą siatkę (ItemSlot). „Wszystko do skrzyni” przenosi całą torbę do otwartej
 ## zakładki. Stan trzyma i zapisuje Game. Zatrzymuje grę, gdy jest otwarte (PROCESS_MODE_ALWAYS).
@@ -17,10 +17,11 @@ const COLUMNS := 5
 ## Otwarta zakładka.
 var tab := 0
 var tab_buttons: Array[Button] = []
-var buy_button: Button
+## Napis „następna zakładka po lochu N” (null - są już wszystkie).
+var next_tab_label: Label
 var stash_slots: Array[ItemSlot] = []
 var bag_slots: Array[ItemSlot] = []
-var gold_label: Label
+var ore_label: Label
 var bag_label: Label
 var stash_all_button: Button
 var back_button: Button
@@ -35,7 +36,6 @@ var _tabs_row: HBoxContainer
 ## Wybrany przedmiot: siatka ("bag" / "stash") i pole.
 var _sel_area := ""
 var _sel_index := -1
-var _buy_armed := false
 var _game: Node
 
 
@@ -65,12 +65,12 @@ func _ready() -> void:
 	var title := _label(head, tr("Skrzynia"), 18, GOLD)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var coin := TextureRect.new()
-	coin.texture = preload("res://assets/watra/items/coin.png")
+	coin.texture = preload("res://assets/watra/items/iron_ore.png")
 	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	coin.custom_minimum_size = Vector2(18, 18)
 	head.add_child(coin)
-	gold_label = _label(head, "0", 15, GOLD)
+	ore_label = _label(head, "0", 15, GOLD)
 	_tabs_row = HBoxContainer.new()
 	_tabs_row.add_theme_constant_override("separation", 4)
 	column.add_child(_tabs_row)
@@ -94,7 +94,6 @@ func _ready() -> void:
 ## Otwiera okno (na ostatnio oglądanej zakładce) i zatrzymuje grę.
 func open() -> void:
 	_hide_detail()
-	_buy_armed = false
 	tab = clampi(tab, 0, _game.stash.size() - 1)
 	refresh()
 	visible = true
@@ -117,7 +116,7 @@ func back() -> void:
 
 
 func refresh() -> void:
-	gold_label.text = str(_game.gold)
+	ore_label.text = str(_game.ore)
 	_build_tabs()
 	var items: Array = _game.stash[tab]
 	for i in stash_slots.size():
@@ -128,14 +127,14 @@ func refresh() -> void:
 	stash_all_button.disabled = _game.bag.is_empty() or items.size() >= _game.STASH_TAB_SIZE
 
 
-## Zakładki 1..N i przycisk kupna następnej („+ 100”), dopóki są do kupienia.
+## Zakładki 1..N i napis, po którym lochu dojdzie następna (dopóki są jeszcze jakieś).
 func _build_tabs() -> void:
 	for b in tab_buttons:
 		b.queue_free()
 	tab_buttons.clear()
-	if buy_button:
-		buy_button.queue_free()
-		buy_button = null
+	if next_tab_label:
+		next_tab_label.queue_free()
+		next_tab_label = null
 	for i in _game.stash.size():
 		var b := Button.new()
 		b.text = str(i + 1)
@@ -145,38 +144,16 @@ func _build_tabs() -> void:
 		b.pressed.connect(_select_tab.bind(i))
 		_tabs_row.add_child(b)
 		tab_buttons.append(b)
-	var price: int = _game.next_tab_price()
-	if price > 0:
-		buy_button = Button.new()
-		buy_button.custom_minimum_size = Vector2(0, 44)
-		buy_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		buy_button.add_theme_font_size_override("font_size", 13)
-		buy_button.icon = preload("res://assets/watra/items/coin.png")
-		buy_button.expand_icon = true
-		buy_button.add_theme_constant_override("icon_max_width", 16)
-		buy_button.text = tr("Kupić za %d?") % price if _buy_armed else tr("+ zakładka %d") % price
-		buy_button.disabled = _game.gold < price
-		buy_button.pressed.connect(_on_buy)
-		_tabs_row.add_child(buy_button)
+	var next: int = _game.next_tab_level()
+	if next > 0:
+		next_tab_label = _label(_tabs_row, tr("Następna zakładka po lochu %d") % next, 11, Color(1, 0.85, 0.6, 0.8))
+		next_tab_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		next_tab_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 
 func _select_tab(i: int) -> void:
 	tab = i
-	_buy_armed = false
 	_hide_detail()
-	refresh()
-
-
-## Kupno zakładki: pierwsze stuknięcie pyta, drugie kupuje i otwiera nową zakładkę.
-func _on_buy() -> void:
-	if not _buy_armed:
-		_buy_armed = true
-		refresh()
-		return
-	_buy_armed = false
-	if _game.buy_stash_tab():
-		tab = _game.stash.size() - 1
-		_play(preload("res://assets/watra/handleCoins.ogg"))
 	refresh()
 
 

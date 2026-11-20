@@ -3,16 +3,16 @@ extends Node
 ## Ustawienia (np. przyciski po lewej) leżą osobno od zapisu gry, w user://settings.cfg.
 ## Zapis gry (JSON w `save_path`): żar zgromadzony w Watrze (`embers`), najwyższy przebity poziom lochu (`best_level`)
 ## i postać - poziom i doświadczenie (`hero_level`, `hero_xp`; dane poziomów w HeroLevels), przedmioty w torbie
-## (`bag`, najwyżej BAG_SIZE), założone (`equipped`: miejsce -> przedmiot) i złoto ze sprzedaży (`gold`; dane w Items),
-## skrzynia w bazie (`stash`: zakładki po STASH_TAB_SIZE miejsc; kolejne zakładki za złoto - STASH_TAB_PRICES),
+## (`bag`, najwyżej BAG_SIZE), założone (`equipped`: miejsce -> przedmiot) i ruda żelaza z rozbitych przedmiotów (`ore`;
+## gra nie ma złota od 20.11.2026 - stare złoto przelicza się raz na runy i rudę, `_convert_gold`),
+## skrzynia w bazie (`stash`: zakładki po STASH_TAB_SIZE miejsc; kolejne za przebite lochy - STASH_TAB_LEVELS),
 ## broń i mistrzostwo (`weapon`, `mastery` - broń -> poziom, `mastery_xp`, `weapons_bought` - kupione przed progiem,
 ## `weapon_slots` - miejsca umiejętności każdej broni; dane w Weapons), umiejętności
 ## (`skills_owned` - odblokowane, `skill_slots` - co stoi w miejscach, `skill_levels` - poziomy; dane w Skills), kamienie (Gems):
 ## sakwa (`gems`: identyfikator -> ile sztuk), odpryski (`shards`), kamienie w umiejętnościach (`skill_gems`: umiejętność -> lista
 ## Gems.SKILL_SOCKETS identyfikatorów, "" - puste) i otwarte gniazda (`skill_open`); kamienie w przedmiotach
 ## leżą w samych przedmiotach ("sockets"). Baza (ustalone 12.11.2026): drzewko lochów (`tree`: węzeł DungeonTree -> punkty;
-## od 20.11.2026 zamiast ulepszeń lochów za złoto), półka kupca (`shop`: oferty Shop, `shop_ready` - był już towar;
-## odnawia się po każdym pokonanym bossie) i kowal (`use_rune` - runy zmieniają premie przedmiotu; `runes`: identyfikator runy -> ile sztuk, Runes).
+## od 20.11.2026 zamiast ulepszeń lochów za złoto), kupiec (stała wymiana run - Shop, `buy_offer`) i kowal (`use_rune` - runy zmieniają premie przedmiotu; `runes`: identyfikator runy -> ile sztuk, Runes).
 ## Żywioły i mistrzostwo (13.11.2026): umiejętności odblokowuje mistrzostwo broni, ulepsza się je żarem, a ulepszenia
 ## lochów kupuje się złotem. Stary zapis (bez `mastery`) przechodzi raz (`_migrate_mastery`): mistrzostwo miecza = poziom
 ## postaci, kupione umiejętności i poziomy zostają, a wydane na nie złoto i żar wydany na ulepszenia lochów wracają.
@@ -50,7 +50,14 @@ signal embers_changed
 const BAG_SIZE := 20
 ## Skrzynia w bazie: miejsca w zakładce i ceny kolejnych zakładek (pierwsza za darmo; razem najwyżej 5).
 const STASH_TAB_SIZE := 20
-const STASH_TAB_PRICES := [100, 300, 800, 2000]
+## Kolejne zakładki skrzyni dochodzą za darmo po przebiciu tych poziomów lochu (decyzja autora 20.11.2026).
+const STASH_TAB_LEVELS := [5, 15, 30, 50]
+## Przeliczenie złota ze starego zapisu (decyzja autora 20.11.2026): losowa runa (bez Pieczęci) za GOLD_PER_RUNE złota,
+## najwyżej GOLD_RUNES_MAX run, reszta w rudzie - 1 za GOLD_PER_ORE złota, najwyżej GOLD_ORE_MAX.
+const GOLD_PER_RUNE := 1000
+const GOLD_RUNES_MAX := 20
+const GOLD_PER_ORE := 100
+const GOLD_ORE_MAX := 100
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
 ## Stary zapis jednej postaci (sprzed wielu postaci) - przenoszony na pierwszą postać.
@@ -100,14 +107,19 @@ var hero_xp := 0
 ## Przedmioty w torbie (kolejność jak w siatce) i założone (miejsce -> przedmiot) - słowniki z Items.roll.
 var bag: Array = []
 var equipped := {}
+## Ruda żelaza (z rozbijania przedmiotów i Skarbnika) - surowiec kowala.
+var ore := 0
+## Złoto ze starego zapisu i dawnych zwrotów - tylko przy wczytaniu, zaraz przeliczane na runy i rudę (`_convert_gold`).
 var gold := 0
+## Co dało przeliczenie złota przy tym wczytaniu: Vector2i(runy, ruda) - arena pokazuje napis w bazie i zeruje.
+var gold_converted := Vector2i.ZERO
 ## Skrzynia w bazie: lista zakładek, każda to lista przedmiotów (najwyżej STASH_TAB_SIZE).
 var stash: Array = [[]]
 ## Broń w ręku (Weapons) i mistrzostwo każdej broni (broń -> poziom; brak wpisu - 1. poziom) z doświadczeniem.
 var weapon := Weapons.SWORD
 var mastery := {}
 var mastery_xp := {}
-## Bronie kupione za złoto przed progiem odblokowania i miejsca umiejętności broni, których nie ma w ręku
+## Bronie odblokowane Pieczęcią Oręża przed progiem odblokowania i miejsca umiejętności broni, których nie ma w ręku
 ## (broń -> lista jak `skill_slots`; obecna broń ma swoje w `skill_slots`).
 var weapons_bought: Array = []
 var weapon_slots := {}
@@ -119,7 +131,7 @@ var skill_slots: Array = _default_slots()
 var skill_levels := {}
 ## Sakwa z kamieniami, kluczami i dłutami (identyfikator Gems -> liczba sztuk).
 var gems := {}
-## Odpryski z rozbitych kamieni - waluta ulepszania kamieni (razem ze złotem).
+## Odpryski z rozbitych kamieni - waluta ulepszania kamieni.
 var shards := 0
 ## Runy (Runes, 20.11.2026 - waluta-przedmioty zamiast złota u kowala): identyfikator -> ile sztuk.
 var runes := {}
@@ -138,9 +150,6 @@ var auras_on: Array = []
 ## Talizmany: zdobyte (talizman -> poziom 1-Talismans.MAX_LEVEL) i założone ("" - puste miejsce).
 var talismans := {}
 var talisman_slots: Array = ["", "", ""]
-## Półka kupca (oferty Shop) i czy był już na niej towar (pierwszy przy pierwszym otwarciu).
-var shop: Array = []
-var shop_ready := false
 ## Doświadczenie dopisane od ostatniego zapisu (zapis przy końcu wyprawy, pauzie i przełączeniu aplikacji).
 var _dirty := false
 ## Atak i umiejętności w lewym dolnym rogu (dla osób, które wolą trzymać je lewym kciukiem).
@@ -149,7 +158,7 @@ var left_handed := false
 var gesture := true
 ## Auto atak: umiejętność spod dużego przycisku (zwykle zwykły cios) rusza sama, gdy potwór jest w zasięgu.
 var auto_attack := false
-## Zwykłe przedmioty podniesione w lochu od razu zamieniają się w złoto (przełącznik w oknie „Postać”).
+## Zwykłe przedmioty podniesione w lochu od razu rozbijają się na rudę (przełącznik w oknie „Postać”).
 var auto_sell_common := false
 ## Tryb deweloperski (okno pauzy): nieśmiertelność - zdrowie schodzi, ale zamiast śmierci wraca do pełna.
 var dev_immortal := false
@@ -325,6 +334,7 @@ func load_game() -> void:
 	bag = []
 	equipped = {}
 	gold = 0
+	ore = 0
 	stash = [[]]
 	weapon = Weapons.SWORD
 	mastery = {}
@@ -345,8 +355,6 @@ func load_game() -> void:
 	auras_on = []
 	talismans = {}
 	talisman_slots = ["", "", ""]
-	shop = []
-	shop_ready = false
 	char_name = DEFAULT_NAME
 	ssf = false
 	_read_dev({})
@@ -371,6 +379,7 @@ func load_game() -> void:
 		hero_level = clampi(int(data.get("hero_level", 1)), 1, HeroLevels.MAX_LEVEL)
 		hero_xp = maxi(int(data.get("hero_xp", 0)), 0)
 		gold = maxi(int(data.get("gold", 0)), 0)
+		ore = maxi(int(data.get("ore", 0)), 0)
 		shards = maxi(int(data.get("shards", 0)), 0)
 		runes = {}
 		var raw_runes = data.get("runes", {})
@@ -387,7 +396,7 @@ func load_game() -> void:
 		var raw_stash = data.get("stash", [])
 		if raw_stash is Array and not raw_stash.is_empty():
 			stash = []
-			for raw_tab in raw_stash.slice(0, STASH_TAB_PRICES.size() + 1):
+			for raw_tab in raw_stash.slice(0, STASH_TAB_LEVELS.size() + 1):
 				var tab: Array = []
 				if raw_tab is Array:
 					for raw in raw_tab:
@@ -499,16 +508,11 @@ func load_game() -> void:
 				var id = raw_ts[i]
 				if id is String and talismans.has(id) and not talisman_slots.has(id):
 					talisman_slots[i] = id
-		shop_ready = bool(data.get("shop_ready", false))
-		var raw_shop = data.get("shop", [])
-		if raw_shop is Array:
-			for raw in raw_shop:
-				var offer := Shop.normalize(raw)
-				if not offer.is_empty():
-					shop.append(offer)
 		if not data.has("mastery"):
 			_migrate_mastery()
 		_unlock_skills()
+		_sync_stash_tabs()
+		_convert_gold()
 
 
 func save_game() -> void:
@@ -526,11 +530,10 @@ func save_game() -> void:
 	if f:
 		f.store_string(JSON.stringify({"name": char_name, "ssf": ssf, "created": created, "dev": _dev_data(),
 				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
-				"hero_level": hero_level, "hero_xp": hero_xp, "gold": gold, "bag": bag, "equipped": equipped,
+				"hero_level": hero_level, "hero_xp": hero_xp, "ore": ore, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes,
-				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots, "shop": shop,
-				"shop_ready": shop_ready}))
+				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots}))
 
 
 ## Czy obecna postać korzysta ze wspólnej skrzyni (postać z listy, nie SSF; zapis testowy - nie).
@@ -597,13 +600,14 @@ func dev_level_up() -> void:
 	add_xp(xp_needed() - hero_xp)
 
 
-## Tryb deweloperski: postać od nowa (1. poziom, bez doświadczenia, przedmiotów i złota).
+## Tryb deweloperski: postać od nowa (1. poziom, bez doświadczenia, przedmiotów i rudy).
 func reset_hero() -> void:
 	hero_level = 1
 	hero_xp = 0
 	bag = []
 	equipped = {}
 	gold = 0
+	ore = 0
 	if not _uses_shared_stash():  # wspólna skrzynia należy też do innych postaci
 		stash = [[]]
 	weapon = Weapons.SWORD
@@ -822,49 +826,111 @@ func unequip(slot: String) -> bool:
 	return true
 
 
-## Sprzedaje przedmiot z torby za złoto. Zwraca, ile złota dał.
-func sell(index: int) -> int:
+## Rozbija przedmiot z torby na rudę (kamienie z gniazd wracają do sakwy; rzadki czasem daje Runę Szlifu).
+## Zwraca {"ore": ile rudy, "rune": runa albo ""} (puste - zły indeks).
+func dismantle(index: int) -> Dictionary:
 	if index < 0 or index >= bag.size():
-		return 0
-	var price := Items.sell_price(bag[index])
-	_return_item_gems(bag[index])
+		return {}
+	var item: Dictionary = bag[index]
+	_return_item_gems(item)
 	bag.remove_at(index)
-	gold += price
+	var got := _scrap(item)
 	save_game()
 	inventory_changed.emit()
-	return price
+	return got
 
 
-## Ile złota dałaby sprzedaż wszystkich przedmiotów z torby o podanych rzadkościach (np. ["common"]).
-func sell_all_price(rarities: Array) -> int:
+## Ile rudy dałoby rozbicie wszystkich przedmiotów z torby o podanych rzadkościach (np. ["common"]).
+func dismantle_all_ore(rarities: Array) -> int:
 	var total := 0
 	for item in bag:
 		if item.rarity in rarities:
-			total += Items.sell_price(item)
+			total += ore_gain(Items.ore_value(item))
 	return total
 
 
-## Sprzedaje wszystkie przedmioty z torby o podanych rzadkościach. Zwraca, ile złota dały.
-func sell_all(rarities: Array) -> int:
-	var total := sell_all_price(rarities)
-	if total == 0:
-		return 0
+## Rozbija wszystkie przedmioty z torby o podanych rzadkościach. Zwraca {"ore": razem rudy, "runes": ile run}.
+func dismantle_all(rarities: Array) -> Dictionary:
+	var got := {"ore": 0, "runes": 0}
+	var keep: Array = []
 	for item in bag:
 		if item.rarity in rarities:
 			_return_item_gems(item)
-	bag = bag.filter(func(item: Dictionary) -> bool: return not item.rarity in rarities)
-	gold += total
+			var one := _scrap(item)
+			got.ore += one.ore
+			got.runes += 1 if one.rune != "" else 0
+		else:
+			keep.append(item)
+	if keep.size() == bag.size():
+		return got
+	bag = keep
 	save_game()
 	inventory_changed.emit()
-	return total
+	return got
 
 
-## Złoto z lochu (Skarbnik) - zapis przy najbliższym `save_if_dirty`, jak doświadczenie.
-func add_gold(amount: int) -> void:
+## Rozbija przedmiot, który nie trafia do torby (auto rozbijanie zwykłych, pełna torba przy skrzyni).
+## Zwraca {"ore", "rune"} jak `dismantle`.
+func dismantle_loot(item: Dictionary) -> Dictionary:
+	var got := _scrap(item)
+	save_game()
+	inventory_changed.emit()
+	return got
+
+
+## Kowal wykuwa przedmiot z miejsca `slot` za Items.FORGE_ORE rudy: poziom najgłębszego przebitego lochu, rzadkość
+## losowa (Items.FORGE_WEIGHTS), trafia do torby. Zwraca przedmiot (pusty - brak rudy, pełna torba albo złe miejsce).
+func forge(slot: String) -> Dictionary:
+	if forge_problem(slot) != "":
+		return {}
+	ore -= Items.FORGE_ORE
+	var item := Items.roll(maxi(best_level, 1), slot, "", Items.FORGE_WEIGHTS)
+	bag.append(item)
+	save_game()
+	inventory_changed.emit()
+	return item
+
+
+## Czemu nie da się wykuć ("" - da się): "ore" (za mało rudy), "bag" (pełna torba), "slot" (złe miejsce).
+func forge_problem(slot: String) -> String:
+	if not slot in Items.SLOTS:
+		return "slot"
+	if ore < Items.FORGE_ORE:
+		return "ore"
+	if bag.size() >= BAG_SIZE:
+		return "bag"
+	return ""
+
+
+## Ruda (i czasem runa) z jednego przedmiotu - dopisuje do zapasów.
+func _scrap(item: Dictionary) -> Dictionary:
+	var amount := ore_gain(Items.ore_value(item))
+	ore += amount
+	var rune := ""
+	if item.rarity == "rare" and randf() < Items.SCRAP_RUNE * treasury_mult():
+		rune = Runes.POLISH
+		runes[rune] = int(runes.get(rune, 0)) + 1
+	return {"ore": amount, "rune": rune}
+
+
+## Drzewko lochów - Skarbiec: mnożnik rudy i szans na runy.
+func treasury_mult() -> float:
+	return 1.0 + tree_value("gold") / 100.0
+
+
+## Ruda po premii Skarbca.
+func ore_gain(amount: int) -> int:
+	return roundi(amount * treasury_mult())
+
+
+## Ruda z lochu (Skarbnik) - z premią Skarbca; zapis przy najbliższym `save_if_dirty`. Zwraca, ile doszło.
+func add_ore(amount: int) -> int:
 	if amount <= 0:
-		return
-	gold += roundi(amount * (1.0 + tree_value("gold") / 100.0))  # drzewko lochów: Skarbiec
+		return 0
+	var got := ore_gain(amount)
+	ore += got
 	_dirty = true
+	return got
 
 
 ## Odpryski z lochu (Kryształ Watry) - zapis przy najbliższym `save_if_dirty`.
@@ -875,31 +941,41 @@ func add_shards(amount: int) -> void:
 	_dirty = true
 
 
-## Złoto za przedmiot bez wkładania go do torby (auto sprzedaż, pełna torba przy skrzyni).
-func sell_loot(item: Dictionary) -> int:
-	var price := Items.sell_price(item)
-	gold += price
-	save_game()
-	inventory_changed.emit()
-	return price
-
-
-## Cena następnej zakładki skrzyni (0 - kupiono już wszystkie).
-func next_tab_price() -> int:
+## Poziom lochu, po którego przebiciu dojdzie następna zakładka skrzyni (0 - są już wszystkie).
+func next_tab_level() -> int:
 	var i := stash.size() - 1
-	return STASH_TAB_PRICES[i] if i < STASH_TAB_PRICES.size() else 0
+	return STASH_TAB_LEVELS[i] if i < STASH_TAB_LEVELS.size() else 0
 
 
-## Kupuje kolejną zakładkę skrzyni za złoto. Zwraca false, gdy brakuje złota albo kupiono wszystkie.
-func buy_stash_tab() -> bool:
-	var price := next_tab_price()
-	if price == 0 or gold < price:
-		return false
-	gold -= price
-	stash.append([])
-	save_game()
-	inventory_changed.emit()
-	return true
+## Ile zakładek skrzyni należy się za przebite lochy.
+func earned_tabs() -> int:
+	return 1 + STASH_TAB_LEVELS.filter(func(l: int) -> bool: return best_level >= l).size()
+
+
+## Dokłada zakładki skrzyni za przebite lochy (nigdy nie zabiera - wspólna skrzynia mogła je dostać od innej postaci).
+## Zwraca true, gdy doszła nowa.
+func _sync_stash_tabs() -> bool:
+	var added := false
+	while stash.size() < earned_tabs():
+		stash.append([])
+		added = true
+	return added
+
+
+## Przeliczenie złota ze starego zapisu (i dawnych zwrotów) na runy i rudę - raz, przy wczytaniu.
+func _convert_gold() -> void:
+	gold_converted = Vector2i.ZERO
+	if gold <= 0:
+		return
+	var count := mini(gold / GOLD_PER_RUNE, GOLD_RUNES_MAX)
+	for i in count:
+		var id := Runes.roll(maxi(best_level, 1), [Runes.SEAL])
+		runes[id] = int(runes.get(id, 0)) + 1
+	var amount := mini((gold - count * GOLD_PER_RUNE) / GOLD_PER_ORE, GOLD_ORE_MAX)
+	ore += amount
+	gold_converted = Vector2i(count, amount)
+	gold = 0
+	_dirty = true
 
 
 ## Przenosi przedmiot z torby do zakładki skrzyni. Zwraca false, gdy zakładka jest pełna.
@@ -972,6 +1048,7 @@ func beat_level(level: int) -> bool:
 	if level <= best_level:
 		return false
 	best_level = level
+	_sync_stash_tabs()  # nowa zakładka skrzyni za przebity loch (STASH_TAB_LEVELS)
 	save_game()
 	return true
 
@@ -1000,16 +1077,24 @@ static func _default_slots(w := Weapons.SWORD) -> Array:
 
 # --- Bronie i mistrzostwo (Weapons) ---
 
-## Czy broń można wziąć do ręki: miecz zawsze, inne po przebiciu progu lochu albo kupione za złoto.
+## Czy broń można wziąć do ręki: miecz zawsze, inne po przebiciu progu lochu albo odblokowane Pieczęcią Oręża.
 func weapon_available(id: String) -> bool:
 	return Weapons.has(id) and (Weapons.unlocked_by(id, best_level) or weapons_bought.has(id))
 
 
-## Kupuje broń za złoto przed progiem odblokowania. Zwraca false, gdy już dostępna, nieznana albo brakuje złota.
-func buy_weapon(id: String) -> bool:
-	if not Weapons.has(id) or weapon_available(id) or gold < Weapons.price_of(id):
+## Czy ze skrzyni Wodza wypada Pieczęć Oręża: z szansą Gems.CHEST_WEAPON_SEAL x `chance_mult`, tylko gdy jakaś broń
+## nie jest jeszcze dostępna, a gracz nie ma już pieczęci w sakwie.
+func roll_weapon_seal(chance_mult := 1.0) -> bool:
+	if gem_count(Gems.WEAPON_SEAL) > 0 or Weapons.ORDER.all(func(w: String) -> bool: return weapon_available(w)):
 		return false
-	gold -= Weapons.price_of(id)
+	return randf() < Gems.CHEST_WEAPON_SEAL * chance_mult
+
+
+## Odblokowuje broń Pieczęcią Oręża (Gems.WEAPON_SEAL z sakwy) przed progiem lochu. Zwraca false, gdy broń jest już
+## dostępna, nieznana albo brak pieczęci.
+func unseal_weapon(id: String) -> bool:
+	if not Weapons.has(id) or weapon_available(id) or not _take_gem(Gems.WEAPON_SEAL):
+		return false
 	weapons_bought.append(id)
 	save_game()
 	inventory_changed.emit()
@@ -1266,13 +1351,13 @@ static func _gem_rank(id: String) -> int:
 
 # --- ulepszanie, sprzedaż i rozbijanie kamieni ---
 
-## Czy stać na ulepszenie kamienia (złoto i odpryski).
+## Czy stać na ulepszenie kamienia (odpryski).
 func can_afford_upgrade(id: String) -> bool:
 	var cost := Gems.upgrade_cost(id)
-	return cost != Vector2i.ZERO and gold >= cost.x and shards >= cost.y
+	return cost > 0 and shards >= cost
 
 
-## Ulepsza kamień za złoto i odpryski: sztukę z sakwy (`skill` i `item` puste), kamień w gnieździe `index`
+## Ulepsza kamień za odpryski: sztukę z sakwy (`skill` i `item` puste), kamień w gnieździe `index`
 ## umiejętności `skill` albo przedmiotu `item`. Zwraca nowy identyfikator ("" - nie da się).
 func upgrade_gem(id: String, skill := "", item: Dictionary = {}, index := -1) -> String:
 	if not can_afford_upgrade(id):
@@ -1288,8 +1373,7 @@ func upgrade_gem(id: String, skill := "", item: Dictionary = {}, index := -1) ->
 		return ""
 	var cost := Gems.upgrade_cost(id)
 	var new_id := Gems.upgraded(id)
-	gold -= cost.x
-	shards -= cost.y
+	shards -= cost
 	if skill != "":
 		var list := skill_sockets(skill).duplicate()
 		list[index] = new_id
@@ -1306,36 +1390,33 @@ func upgrade_gem(id: String, skill := "", item: Dictionary = {}, index := -1) ->
 	return new_id
 
 
-## Złoto i odpryski za sprzedaż / rozbicie wszystkich sztuk kamieni `ids` z sakwy: Vector2i(złoto, odpryski).
-func gems_value(ids: Array, shatter: bool) -> Vector2i:
+## Odpryski za rozbicie wszystkich sztuk kamieni `ids` z sakwy (klucze, dłuta i pieczęcie się pomija).
+func gems_value(ids: Array) -> int:
 	var total := 0
 	for id in ids:
-		if Gems.can_sell(id):
-			total += (Gems.shard_value(id) if shatter else Gems.sell_price(id)) * gem_count(id)
-	return Vector2i(0, total) if shatter else Vector2i(total, 0)
+		if Gems.can_shatter(id):
+			total += Gems.shard_value(id) * gem_count(id)
+	return total
 
 
-## Sprzedaje (`shatter` false - za złoto) albo rozbija na odpryski wszystkie sztuki kamieni `ids` z sakwy (klucze
-## i dłuta się pomija). Zwraca Vector2i(złoto, odpryski).
-func sell_gems(ids: Array, shatter := false) -> Vector2i:
-	var got := gems_value(ids, shatter)
+## Rozbija na odpryski wszystkie sztuki kamieni `ids` z sakwy. Zwraca, ile odprysków dały.
+func shatter_gems(ids: Array) -> int:
+	var got := gems_value(ids)
 	for id in ids:
-		if Gems.can_sell(id):
+		if Gems.can_shatter(id):
 			gems.erase(id)
-	gold += got.x
-	shards += got.y
+	shards += got
 	save_game()
 	inventory_changed.emit()
 	return got
 
 
-## Sprzedaje albo rozbija jedną sztukę kamienia z sakwy. Zwraca Vector2i(złoto, odpryski) (zero - nie da się).
-func sell_gem(id: String, shatter := false) -> Vector2i:
-	if not Gems.can_sell(id) or not _take_gem(id):
-		return Vector2i.ZERO
-	var got := Vector2i(0, Gems.shard_value(id)) if shatter else Vector2i(Gems.sell_price(id), 0)
-	gold += got.x
-	shards += got.y
+## Rozbija jedną sztukę kamienia z sakwy. Zwraca, ile odprysków dała (0 - nie da się).
+func shatter_gem(id: String) -> int:
+	if not Gems.can_shatter(id) or not _take_gem(id):
+		return 0
+	var got := Gems.shard_value(id)
+	shards += got
 	save_game()
 	inventory_changed.emit()
 	return got
@@ -1506,7 +1587,7 @@ func dev_gems() -> void:
 		add_gem(Gems.make(kind), 1, false)
 	for kind in Gems.JEWEL_ORDER:
 		add_gem(Gems.roll_jewel(kind, dungeon_level), 1, false)
-	shards += 100
+	shards += 300
 	for skill in Gems.UNIQUE:
 		add_gem(Gems.unique_of(skill), 1, false)
 	add_gem(Gems.KEY, 2, false)
@@ -1583,7 +1664,8 @@ func tree_reset() -> void:
 
 
 ## Porządek po wczytaniu: duże węzły bez punktu w małym - zamknięte; więcej punktów niż przebitych lochów (np. po
-## zmianie danych) - drzewko od nowa. Dawne ulepszenia lochów za złoto znikają, złoto wraca (decyzja autora 20.11.2026).
+## zmianie danych) - drzewko od nowa. Dawne ulepszenia lochów za złoto znikają, złoto wraca (decyzja autora 20.11.2026;
+## od razu przeliczane na runy i rudę - `_convert_gold`).
 func _fix_tree() -> void:
 	for id in tree.keys():
 		var parent := DungeonTree.parent_of(id)
@@ -1601,43 +1683,29 @@ func _fix_tree() -> void:
 	_old_upgrades = {}
 
 
-## Półka kupca; przy pierwszym otwarciu dostaje pierwszy towar.
-func shop_offers() -> Array:
-	if not shop_ready:
-		restock_shop()
-	return shop
-
-
-## Nowa dostawa u kupca (po pokonaniu bossa): przedmioty z najwyższego przebitego lochu (najmniej z `level`).
-func restock_shop(level := 1) -> void:
-	shop = Shop.stock(maxi(maxi(best_level, level), 1))
-	shop_ready = true
-	save_game()
-	inventory_changed.emit()
-
-
-## Czemu oferty nie da się kupić ("" - da się): "gold" (za mało złota), "bag" (pełna torba), "none" (nie ma jej).
+## Czemu wymiany u kupca nie da się zrobić ("" - da się): "price" (za mało run), "none" (nie ma takiej oferty).
 func shop_problem(index: int) -> String:
-	if index < 0 or index >= shop.size():
+	if index < 0 or index >= Shop.offers().size():
 		return "none"
-	if gold < shop[index].price:
-		return "gold"
-	if shop[index].has("item") and bag.size() >= BAG_SIZE:
-		return "bag"
+	var offer: Dictionary = Shop.offers()[index]
+	if int(runes.get(offer.pay, 0)) < offer.cost:
+		return "price"
 	return ""
 
 
-## Kupuje ofertę z półki: kamień (klucz, dłuto) do sakwy, przedmiot do torby. Zwraca false, gdy się nie da.
+## Wymiana u kupca (Shop.offers): oddaje `cost` run `pay`, dostaje `count` sztuk `item` (runa albo klucz / dłuto do
+## sakwy). Zwraca false, gdy się nie da.
 func buy_offer(index: int) -> bool:
 	if shop_problem(index) != "":
 		return false
-	var offer: Dictionary = shop[index]
-	gold -= offer.price
-	if offer.has("gem"):
-		add_gem(offer.gem, 1, false)
+	var offer: Dictionary = Shop.offers()[index]
+	runes[offer.pay] = int(runes[offer.pay]) - offer.cost
+	if runes[offer.pay] <= 0:
+		runes.erase(offer.pay)
+	if Runes.valid(offer.item):
+		runes[offer.item] = int(runes.get(offer.item, 0)) + offer.count
 	else:
-		bag.append(offer.item)
-	shop.remove_at(index)
+		add_gem(offer.item, offer.count, false)
 	save_game()
 	inventory_changed.emit()
 	return true

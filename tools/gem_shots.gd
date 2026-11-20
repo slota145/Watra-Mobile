@@ -35,7 +35,7 @@ func _run() -> void:
 	game.add_gem("leech:9")
 	game.add_gem(Gems.roll_jewel("ruby", 9, 3))
 	game.add_gem(Gems.roll_jewel("emerald", 9, 5))
-	game.gold = 2400
+	game.shards = 120
 	game.shards = 37
 	game.open_skill_socket("throw")
 	game.socket_skill("throw", 0, "multi:3")

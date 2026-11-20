@@ -5,7 +5,9 @@ extends BaseWindow
 ## przy dolnej krawędzi: stała cecha, premie i 6 run (ikona, liczba sztuk). Stuknięcie w runę ją wybiera i pokazuje
 ## opis; runa na wybraną premię (Szlifu, Przekucia, Pieczęci) dodaje przy premiach przyciski „Użyj”, pozostałe -
 ## przycisk „Użyj runy” (pierwsze stuknięcie pyta „Na pewno?”). Zmienione premie błyskają. Opis zostaje otwarty,
-## żeby można było pracować dalej.
+## żeby można było pracować dalej. Pod torbą wykuwanie (krok 3 punktu 4, decyzja autora 20.11.2026): przycisk z ikoną
+## każdego miejsca - za Items.FORGE_ORE rudy nowy przedmiot z najgłębszego przebitego lochu o losowej rzadkości
+## (Game.forge; pierwsze stuknięcie pyta, drugie wykuwa i od razu otwiera opis nowego przedmiotu). Ruda w nagłówku.
 
 const SLOT := 46.0
 const SOUND := preload("res://assets/watra/base/anvil_1.ogg")
@@ -26,6 +28,9 @@ var rune := ""
 var _flash: Array = []
 ## Zapas run w oknie (runa -> napis z liczbą).
 var _stock: Dictionary = {}
+## Przyciski wykuwania (miejsce -> przycisk) i napis pod nimi.
+var forge_buttons: Dictionary = {}
+var forge_label: Label
 
 
 func _build() -> void:
@@ -69,12 +74,42 @@ func _build() -> void:
 		s.pressed.connect(_select_bag.bind(i))
 		grid.add_child(s)
 		bag_slots.append(s)
+	label(content, tr("Wykuj nowy przedmiot"), 13, GOLD)
+	var forge_row := HBoxContainer.new()
+	forge_row.add_theme_constant_override("separation", 4)
+	forge_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	content.add_child(forge_row)
+	for slot in Items.SLOTS:
+		var b := Button.new()
+		b.name = "Forge_" + slot
+		b.custom_minimum_size = Vector2(SLOT, SLOT)
+		b.icon = Items.slot_icon(slot)
+		b.expand_icon = true
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		b.add_theme_font_size_override("font_size", 11)
+		b.pressed.connect(_forge.bind(slot))
+		forge_row.add_child(b)
+		forge_buttons[slot] = b
+	forge_label = label(content, "", 11, DIM, true)
 	_make_detail()
 
 
 func refresh() -> void:
-	currency_icon.visible = false
-	currency_label.text = ""
+	currency_icon.visible = true
+	set_currency(ORE, _game.ore)
+	for slot in forge_buttons:
+		var b: Button = forge_buttons[slot]
+		var key: String = "forge_" + slot
+		b.text = tr("Wykuć?") if armed == key else ""
+		b.icon = null if armed == key else Items.slot_icon(slot)
+		b.disabled = _game.forge_problem(slot) != ""
+	var why: String = _game.forge_problem(Items.SLOTS[0])
+	forge_label.text = tr("%d rudy za przedmiot z lochu %d, rzadkość losowa (masz %d rudy).") \
+			% [Items.FORGE_ORE, maxi(_game.best_level, 1), _game.ore]
+	if why == "ore":
+		forge_label.text += " " + tr("Rudę daje rozbijanie przedmiotów, Skarbnik i Napad Hordy.")
+	elif why == "bag":
+		forge_label.text += " " + tr("Torba pełna.")
 	for id in Runes.ORDER:
 		_stock[id].text = str(int(_game.runes.get(id, 0)))
 		_stock[id].modulate.a = 1.0 if _game.runes.get(id, 0) > 0 else 0.45
@@ -88,6 +123,19 @@ func refresh() -> void:
 	bag_label.text = tr("Torba: %d / %d") % [_game.bag.size(), _game.BAG_SIZE]
 	if detail.visible:
 		_show_detail()
+
+
+## Wykuwanie: pierwsze stuknięcie pyta, drugie wykuwa i otwiera opis nowego przedmiotu.
+func _forge(slot: String) -> void:
+	if not confirm("forge_" + slot):
+		return
+	var item: Dictionary = _game.forge(slot)
+	if item.is_empty():
+		refresh()
+		return
+	play(SOUND, -2.0)
+	_select(item)
+	refresh()
 
 
 func back() -> void:

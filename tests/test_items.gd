@@ -1,6 +1,6 @@
 extends SceneTree
 ## Test przedmiotów: losowanie (rzadkości i liczba premii, stopnie z poziomu lochu, siła rośnie z lochem), suma cech
-## z sufitami, cena sprzedaży, torba, zakładanie, zdejmowanie, sprzedaż i zapis (Game), przedmiot z goblina leci
+## z sufitami, ruda z rozbicia, torba, zakładanie, zdejmowanie, rozbijanie i zapis (Game), przedmiot z goblina leci
 ## do torby (pełna torba - odskakuje), cechy przedmiotów działają na postać i miecz w lochu (także po zmianie
 ## w pauzie), okno „Postać” z ekwipunkiem i torbą (opis przedmiotu, „Załóż”, „Sprzedaj” z potwierdzeniem, pola
 ## 44 px, „wstecz”) i skrót deweloperski „+5 przedm.”. Nowe premie (13.11.2026): krytyki (złota liczba z „!”), zdrowie
@@ -74,7 +74,8 @@ func _test_data() -> void:
 	var t := Items.totals({"helmet": {"slot": "helmet", "base": {"hp": 10}, "affixes": [{"stat": "protection_pct", "value": 40.0}]},
 			"armor": {"slot": "armor", "base": {"hp": 20}, "affixes": [{"stat": "protection_pct", "value": 40.0}]}})
 	_check(is_equal_approx(t.hp, 30.0) and is_equal_approx(t.protection_pct, Items.CAPS.protection_pct), "suma cech z sufitem ochrony")
-	_check(Items.sell_price(Items.roll(1, "", "rare")) > Items.sell_price(Items.roll(1, "", "common")), "rzadki droższy")
+	_check(Items.ore_value(Items.roll(1, "", "rare")) == 4 and Items.ore_value(Items.roll(1, "", "magic")) == 2
+			and Items.ore_value(Items.roll(1, "", "common")) == 1, "rozbicie: ruda 1/2/4 według rzadkości")
 	var chest := Items.roll_chest(2)
 	_check(chest.size() == Items.CHEST_ITEMS and chest[0].rarity != "common", "skrzynia: %d przedmioty, pierwszy co najmniej magiczny" % chest.size())
 	_check(Items.stat_text("hp", 12) == "+12 do zdrowia" and Items.stat_text("regen", 0.8) == "+0.8 zdrowia na sekundę", "opisy premii")
@@ -109,8 +110,8 @@ func _test_game(game: Node) -> void:
 	_check(game.equipped.helmet == other and game.bag == [item], "zamiana - stary hełm wraca do torby")
 	game.load_game()
 	_check(game.equipped.helmet == other and game.bag == [item], "torba i ekwipunek w zapisie")
-	var price := Items.sell_price(item)
-	_check(game.sell(0) == price and game.gold == price and game.bag.is_empty(), "sprzedaż za złoto (%d)" % price)
+	var got: Dictionary = game.dismantle(0)
+	_check(got.ore == Items.ore_value(item) and game.ore == got.ore and game.bag.is_empty(), "rozbicie na rudę (%d)" % got.ore)
 	_check(game.unequip("helmet") and game.bag.size() == 1 and not game.equipped.has("helmet"), "zdjęcie do torby")
 	for i in game.BAG_SIZE:
 		game.add_item(Items.roll(1))
@@ -119,7 +120,7 @@ func _test_game(game: Node) -> void:
 	game.add_item(Items.roll(1))
 	_check(not game.unequip(game.equipped.keys()[0]), "przy pełnej torbie nie da się zdjąć")
 	game.reset_hero()
-	_check(game.bag.is_empty() and game.equipped.is_empty() and game.gold == 0, "postać od nowa czyści przedmioty")
+	_check(game.bag.is_empty() and game.equipped.is_empty() and game.ore == 0, "postać od nowa czyści przedmioty i rudę")
 	game.dungeon_level = 4
 	_check(game.dev_items(5) == 5 and game.bag[0].level == 4, "skrót deweloperski: 5 przedmiotów z obecnego lochu")
 	game.reset_hero()
@@ -174,15 +175,16 @@ func _test_dungeon(game: Node) -> void:
 	for p in arena.loot_feed.get_children():
 		feed_text += p.get_child(0).get_child(1).text
 	_check(feed_text.contains(tr("Podniesiono: %s") % ""), "powiadomienie o podniesionym przedmiocie: " + feed_text)
-	# auto sprzedaż zwykłych: złoto zamiast torby, także przy pełnej torbie
+	# auto rozbijanie zwykłych: ruda zamiast torby, także przy pełnej torbie
 	game.auto_sell_common = true
-	var gold_before: int = game.gold
+	var ore_before: int = game.ore
 	var common := Items.roll(1, "boots", "common")
 	horde.drop_item(common, hero.position + Vector2(20, 0))
 	await _wait(0.9)
-	_check(game.gold == gold_before + Items.sell_price(common) and arena.run_sold_gold == Items.sell_price(common), "auto sprzedaż zwykłego (+%d złota)" % (game.gold - gold_before))
+	_check(game.ore == ore_before + Items.ore_value(common) and arena.run_ore == Items.ore_value(common),
+			"auto rozbijanie zwykłego (+%d rudy)" % (game.ore - ore_before))
 	var last: Label = arena.loot_feed.get_child(arena.loot_feed.get_child_count() - 1).get_child(0).get_child(1)
-	_check(last.text.begins_with(tr("Sprzedano: %s (+%d złota)").split(":")[0]), "powiadomienie o sprzedaży: " + last.text)
+	_check(last.text.begins_with(tr("Rozbito: %s (+%d rudy)").split(":")[0]), "powiadomienie o rozbiciu: " + last.text)
 	game.auto_sell_common = false
 	var g := horde.spawn_at(hero.position + Vector2(200, 0))
 	await process_frame
@@ -258,29 +260,29 @@ func _test_window(game: Node) -> void:
 	stats.sell_button.pressed.emit()
 	_check(game.bag.size() == n and stats.sell_button.text == tr("Na pewno?"), "rzadki - „Na pewno?”")
 	stats.sell_button.pressed.emit()
-	_check(game.bag.size() == n - 1 and game.gold > 0 and stats.gold_label.text == str(game.gold), "sprzedany, złoto w oknie (%d)" % game.gold)
+	_check(game.bag.size() == n - 1 and game.ore > 0 and stats.ore_label.text == str(game.ore), "rozbity, ruda w oknie (%d)" % game.ore)
 	stats.equip_buttons["earring"].pressed.emit()
-	_check(stats.detail.visible and stats.equip_button.text == tr("Zdejmij") and not stats.sell_button.visible, "założony: „Zdejmij” bez sprzedaży")
+	_check(stats.detail.visible and stats.equip_button.text == tr("Zdejmij") and not stats.sell_button.visible, "założony: „Zdejmij” bez rozbijania")
 	stats.equip_button.pressed.emit()
 	_check(not game.equipped.has("earring"), "zdjęty")
 	arena._notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 	_check(not stats.visible and not paused, "„wstecz” zamyka okno „Postać” i wznawia grę")
-	# sprzedaż hurtem: zwykłe osobno, magiczne i rzadkie osobno, z potwierdzeniem
+	# rozbijanie hurtem: zwykłe osobno, magiczne i rzadkie osobno, z potwierdzeniem
 	game.bag.clear()
 	for rar in ["common", "common", "magic", "rare"]:
 		game.add_item(Items.roll(2, "", rar))
 	stats.open()
-	var common_price: int = game.sell_all_price(["common"])
-	var gold_start: int = game.gold
+	var common_ore: int = game.dismantle_all_ore(["common"])
+	var ore_start: int = game.ore
 	stats.sell_common_button.pressed.emit()
-	_check(game.bag.size() == 4 and stats.sell_common_button.text == tr("Na pewno? +%d złota") % common_price, "„Sprzedaj zwykłe” pyta i podaje cenę")
+	_check(game.bag.size() == 4 and stats.sell_common_button.text == tr("Na pewno? +%d rudy") % common_ore, "„Rozbij zwykłe” pyta i podaje rudę")
 	stats.sell_common_button.pressed.emit()
-	_check(game.bag.size() == 2 and game.gold == gold_start + common_price and stats.sell_common_button.disabled, "zwykłe sprzedane, przycisk nieaktywny")
+	_check(game.bag.size() == 2 and game.ore == ore_start + common_ore and stats.sell_common_button.disabled, "zwykłe rozbite, przycisk nieaktywny")
 	stats.sell_better_button.pressed.emit()
 	stats.sell_better_button.pressed.emit()
-	_check(game.bag.is_empty(), "magiczne i rzadkie sprzedane")
+	_check(game.bag.is_empty(), "magiczne i rzadkie rozbite")
 	stats.auto_sell_toggle.button_pressed = true
-	_check(game.auto_sell_common, "przełącznik auto sprzedaży")
+	_check(game.auto_sell_common, "przełącznik auto rozbijania")
 	stats.auto_sell_toggle.button_pressed = false
 	stats.close()
 	menu.close()

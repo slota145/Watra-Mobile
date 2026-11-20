@@ -13,14 +13,14 @@ class_name Gems
 ##   bez limitu skoków, odbicia Rzutu, fale z trafionych Rozłupaniem, fala cięcia zwykłego ciosu); rzadko ze skrzyni
 ##   Wodza od UNIQUE_MIN_LEVEL; identyfikator "unique:<umiejętność>"; działanie - ProtoWeapon (`Gems.has_unique`).
 ## Bez stopni (przebudowa ustalona z autorem 15.11.2026): kamień umiejętności wypada na 1. poziomie i ulepsza się
-## go złotem i odpryskami do MAX_LEVEL (`upgrade_cost`, siła rośnie płynnie - `support_value`); kamień szlachetny
+## go odpryskami do MAX_LEVEL (do 20.11.2026 także złotem) (`upgrade_cost`, siła rośnie płynnie - `support_value`); kamień szlachetny
 ## wypada z 2-3 losowymi premiami z puli swojego rodzaju (JEWELS `pool`, te same w każdym miejscu przedmiotu, siła
 ## z poziomu lochu jak premie przedmiotów), a ulepszenie dokłada mu kolejną losową premię (do JEWEL_MAX). Niepotrzebny
-## kamień sprzedaje się za złoto (`sell_price`) albo rozbija na odpryski (`shard_value`; odpryski w `Game.shards`).
+## kamień rozbija się na odpryski (`shard_value`; odpryski w `Game.shards`; sprzedaży za złoto już nie ma).
 ## Kamienie leżą w osobnej sakwie (`Game.gems`: identyfikator -> ile sztuk; takie same kamienie leżą na stosie),
 ## więc nie zajmują torby. Identyfikatory: kamień umiejętności "rodzaj:poziom" (np. "ember:3"), szlachetny
-## "rodzaj:poziom lochu:cecha=wartość,cecha=wartość" (np. "ruby:7:damage_pct=5,hp=18"), klucz i dłuto - KEY i CHISEL.
-## Wkładanie i wyjmowanie (za darmo), ulepszanie, sprzedaż i rozbijanie - Game, okna SkillsWindow, HeroStats i GemPicker.
+## "rodzaj:poziom lochu:cecha=wartość,cecha=wartość" (np. "ruby:7:damage_pct=5,hp=18"), klucz, dłuto i Pieczęć Oręża - KEY, CHISEL, WEAPON_SEAL (SPECIAL).
+## Wkładanie i wyjmowanie (za darmo), ulepszanie i rozbijanie - Game, okna SkillsWindow, HeroStats i GemPicker.
 
 ## Najwyższy poziom ulepszenia kamienia umiejętności; najwięcej premii kamienia szlachetnego (wypada z 2-3).
 const MAX_LEVEL := 10
@@ -29,23 +29,14 @@ const JEWEL_MAX := 5
 const JEWEL_THREE := 0.35
 ## Siła premii kamienia szlachetnego względem takiej samej premii przedmiotu z tego poziomu lochu.
 const JEWEL_MULT := 0.6
-## Ulepszenie kamienia umiejętności z poziomu L: złoto UPGRADE_GOLD x UPGRADE_GROWTH^(L-1) (zaokrąglone do 10),
-## odpryski UPGRADE_SHARDS x L. Kamień szlachetny: dołożenie premii nr 3, 4, 5 - JEWEL_GOLD / JEWEL_SHARDS (złoto
-## rośnie o 5% na poziom lochu kamienia).
-const UPGRADE_GOLD := 80.0
-const UPGRADE_GROWTH := 1.45
-const UPGRADE_SHARDS := 2.25
-const JEWEL_GOLD := {3: 300, 4: 900, 5: 2000}
-const JEWEL_SHARDS := {3: 5, 4: 10, 5: 20}
-## Sprzedaż: kamień umiejętności SELL_SUPPORT + SELL_SHARE włożonego złota, szlachetny SELL_JEWEL za premię
-## (+5% na poziom lochu), unikalny SELL_UNIQUE. Rozbicie: SHATTER_BASE odprysków + SELL_SHARE włożonych
-## (szlachetny liczony od 2 premii), unikalny SHATTER_UNIQUE.
-const SELL_SUPPORT := 15
-const SELL_JEWEL := 10
-const SELL_UNIQUE := 200
-const SELL_SHARE := 0.5
-const SHATTER_BASE := 2
-const SHATTER_UNIQUE := 15
+## Ulepszenie (decyzja autora 20.11.2026 - bez złota, odpryski x3): kamień umiejętności z poziomu L - UPGRADE_SHARDS x L
+## odprysków; szlachetny - dołożenie premii nr 3, 4, 5 za JEWEL_SHARDS.
+const UPGRADE_SHARDS := 6.75
+const JEWEL_SHARDS := {3: 15, 4: 30, 5: 60}
+## Rozbicie: SHATTER_BASE odprysków + SHATTER_SHARE włożonych (szlachetny liczony od 2 premii), unikalny SHATTER_UNIQUE.
+const SHATTER_SHARE := 0.5
+const SHATTER_BASE := 6
+const SHATTER_UNIQUE := 45
 ## Kamienie wypadają od tego poziomu lochu (decyzja autora: najpierw przedmioty i umiejętności).
 const MIN_LEVEL := 3
 ## Gniazda umiejętności: razem i otwarte na start.
@@ -53,6 +44,10 @@ const SKILL_SOCKETS := 5
 const SKILL_OPEN := 2
 const KEY := "skill_key"
 const CHISEL := "chisel"
+## Pieczęć Oręża (decyzja autora 20.11.2026 - zamiast kupowania broni za złoto): odblokowuje dowolną broń przed progiem.
+## Wypada ze skrzyni Wodza z szansą CHEST_WEAPON_SEAL, gdy jest jeszcze broń do odblokowania (Game.roll_weapon_seal).
+const WEAPON_SEAL := "weapon_seal"
+const CHEST_WEAPON_SEAL := 0.03
 ## Łup (17.11.2026 - ok. 3x mniej, uwaga autora: za dużo kamieni na początku): szansa na kamień z goblina, na kamień ze skrzyni Wodza (dwie próby), na klucz i dłuto ze skrzyni
 ## (rośnie z poziomem lochu do sufitu) i z goblina.
 const GOBLIN_GEM := 0.004
@@ -238,6 +233,8 @@ const SPECIAL := {
 		"text": "Otwiera kolejne gniazdo wybranej umiejętności (okno umiejętności)."},
 	CHISEL: {"name": "Dłuto Jubilera", "icon": "res://assets/watra/gems/chisel.png", "color": Color(0.7, 0.85, 1.0),
 		"text": "Dorabia drugie gniazdo w przedmiocie (opis przedmiotu w oknie „Postać”)."},
+	WEAPON_SEAL: {"name": "Pieczęć Oręża", "icon": "res://assets/watra/gems/weapon_seal.png", "color": Color(1.0, 0.75, 0.3),
+		"text": "Odblokowuje dowolną broń przed progiem lochu (lista broni przy kamieniu run w oknie umiejętności)."},
 }
 const SOCKET_ICON := preload("res://assets/watra/gems/socket.png")
 
@@ -528,15 +525,14 @@ static func can_upgrade(id: String) -> bool:
 	return is_support(id) and not is_unique(id) and level_of(id) < MAX_LEVEL
 
 
-## Koszt następnego ulepszenia: Vector2i(złoto, odpryski); Vector2i.ZERO - nie da się.
-static func upgrade_cost(id: String) -> Vector2i:
+## Koszt następnego ulepszenia w odpryskach; 0 - nie da się.
+static func upgrade_cost(id: String) -> int:
 	if not can_upgrade(id):
-		return Vector2i.ZERO
+		return 0
 	var lvl := level_of(id)
 	if is_jewel(id):
-		var gold := roundi(JEWEL_GOLD[lvl + 1] * (1.0 + 0.05 * (jewel_level(id) - 1)) / 10.0) * 10
-		return Vector2i(gold, JEWEL_SHARDS[lvl + 1])
-	return Vector2i(roundi(UPGRADE_GOLD * pow(UPGRADE_GROWTH, lvl - 1) / 10.0) * 10, roundi(UPGRADE_SHARDS * lvl))
+		return JEWEL_SHARDS[lvl + 1]
+	return roundi(UPGRADE_SHARDS * lvl)
 
 
 ## Kamień po ulepszeniu: kamień umiejętności o poziom wyżej, szlachetny z dołożoną losową premią z puli
@@ -556,40 +552,29 @@ static func upgraded(id: String) -> String:
 	return make_jewel(kind_of(id), jewel_level(id), stats)
 
 
-## Ile złota i odprysków włożono w ulepszenia kamienia (Vector2i; szlachetny liczony od 2 premii).
-static func invested(id: String) -> Vector2i:
-	var total := Vector2i.ZERO
+## Ile odprysków włożono w ulepszenia kamienia (szlachetny liczony od 2 premii).
+static func invested(id: String) -> int:
+	var total := 0
 	if is_jewel(id):
 		for n in range(3, level_of(id) + 1):
-			total += Vector2i(roundi(JEWEL_GOLD[n] * (1.0 + 0.05 * (jewel_level(id) - 1)) / 10.0) * 10, JEWEL_SHARDS[n])
+			total += JEWEL_SHARDS[n]
 	elif is_support(id) and not is_unique(id):
 		for lvl in range(1, level_of(id)):
 			total += upgrade_cost(make(kind_of(id), lvl))
 	return total
 
 
-## Czy kamień można sprzedać albo rozbić (klucze i dłuta nie).
-static func can_sell(id: String) -> bool:
+## Czy kamień można rozbić (klucze, dłuta i pieczęcie nie).
+static func can_shatter(id: String) -> bool:
 	return is_support(id) or is_jewel(id)
-
-
-## Ile złota daje sprzedaż sztuki kamienia.
-static func sell_price(id: String) -> int:
-	if is_unique(id):
-		return SELL_UNIQUE
-	if is_jewel(id):
-		return roundi(SELL_JEWEL * level_of(id) * (1.0 + 0.05 * (jewel_level(id) - 1)))
-	if is_support(id):
-		return SELL_SUPPORT + roundi(invested(id).x * SELL_SHARE)
-	return 0
 
 
 ## Ile odprysków daje rozbicie sztuki kamienia.
 static func shard_value(id: String) -> int:
 	if is_unique(id):
 		return SHATTER_UNIQUE
-	if can_sell(id):
-		return SHATTER_BASE + roundi(invested(id).y * SELL_SHARE)
+	if can_shatter(id):
+		return SHATTER_BASE + roundi(invested(id) * SHATTER_SHARE)
 	return 0
 
 

@@ -83,7 +83,8 @@ func _test_game(game: Node) -> void:
 			"postać od nowa zeruje umiejętności i mistrzostwo")
 
 
-## Stary zapis (sprzed mistrzostwa): mistrzostwo = poziom postaci, kupione zostają, złoto wraca (też za dawne ulepszenia lochów).
+## Stary zapis (sprzed mistrzostwa): mistrzostwo = poziom postaci, kupione zostają, złoto wraca (też za dawne ulepszenia lochów)
+## i od razu zamienia się w rudę (Game._convert_gold - gry bez złota).
 func _test_migration(game: Node) -> void:
 	var f := FileAccess.open(game.save_path, FileAccess.WRITE)
 	f.store_string(JSON.stringify({"hero_level": 7, "gold": 10, "embers": 5, "skills_owned": ["strike", "whirl"],
@@ -92,14 +93,15 @@ func _test_migration(game: Node) -> void:
 	f.close()
 	game.load_game()
 	# złoto: Młynek 100 + poziomy zwykłego ciosu 40 + 80 + Młynka 60 + dawne ulepszenie lochów 50 + 120 (zastąpiło je drzewko)
-	_check(game.mastery_level() == 7 and game.gold == 10 + 100 + 40 + 80 + 60 + 50 + 120 and game.embers == 5,
-			"stary zapis: mistrzostwo 7, zwrot złota (%d) i żaru (%d)" % [game.gold, game.embers])
+	# 460 złota -> 0 run (1000 za runę) i 4 rudy (100 za rudę)
+	_check(game.mastery_level() == 7 and game.gold == 0 and game.ore == 4 and game.runes.is_empty() and game.embers == 5,
+			"stary zapis: mistrzostwo 7, zwrot złota jako ruda (%d) i żar (%d)" % [game.ore, game.embers])
 	_check(game.skills_owned == ["strike", "whirl", "throw"] and game.skill_level("strike") == 3 and game.tree.is_empty()
 			and game.skill_slots == ["strike", "whirl", "throw", "", ""],
 			"kupione i poziomy zostają, Rzut mieczem (mistrz. 6) odblokowany")
 	game.save_game()
 	game.load_game()
-	_check(game.gold == 460 and game.embers == 5, "zwrot tylko raz")
+	_check(game.ore == 4 and game.embers == 5, "zwrot tylko raz")
 	game.reset_hero()
 
 
@@ -113,7 +115,6 @@ func _test_levels(game: Node) -> void:
 	game.embers = 39
 	_check(game.skill_upgrade_problem("strike") == "embers", "bez żaru się nie ulepszy (poziom postaci nie pomaga)")
 	game.embers = 1000
-	game.gold = 0
 	_check(game.upgrade_skill("strike") and game.skill_level("strike") == 2 and game.embers == 960, "zwykły cios na 2. poziom za 40 żaru")
 	_check(game.skill_upgrade_problem("strike") == "mastery" and not game.upgrade_skill("strike"), "3. poziom dopiero od 5. mistrzostwa")
 	_check(Skills.upgrade_price("strike", 2) == 80 and Skills.upgrade_price("steel_ring", 9) == 1800 and Skills.upgrade_price("steel_ring", 10) == 0,

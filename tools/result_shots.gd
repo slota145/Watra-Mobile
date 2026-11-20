@@ -41,8 +41,7 @@ func _run() -> void:
 	arena.result.show_victory(4, 87, 5, 264, 97.0)
 	arena.result.add_unlock_lines(Unlocks.on_beat(4))
 	arena.result.add_xp_lines(904, 0)
-	arena.result.add_loot_lines(6, 117)
-	arena.result.add_gold_line(54)
+	arena.result.add_loot_lines(6, 3, 17)
 	await create_timer(0.3).timeout
 	await _shot("1_wynik")
 	DirAccess.remove_absolute(game.save_path)

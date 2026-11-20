@@ -4,11 +4,12 @@ extends ProtoTarget
 ## z Kryształu Watry, assets/watra/skarbnik.png, shader zjawy shaders/ghost.gdshader - jak Skarbnik w Watrze, ale
 ## działa inaczej: zamiast oferty z falami - pościg). Czeka pod słupem światła; gdy postać podejdzie bliżej niż WAKE,
 ## budzi się i ucieka (trochę wolniej niż postać, z zakosami, ślizga się wzdłuż brzegu polany). Każde trafienie bronią
-## wybija złoto (sygnał `gold`, najwyżej co HIT_GAP s) - złote liczby „+N”, brzęk monet. Po CATCH_HITS trafieniach
-## jest złapany: wielka garść złota (JACKPOT) i kamień (sygnał `caught`). Po FLEE_TIME s ucieczki zapada się pod ziemię
+## wybija rudę żelaza (sygnał `ore`, ORE_HIT za trafienie, najwyżej co HIT_GAP s; decyzja autora 20.11.2026 - wcześniej
+## złoto) - liczby „+N” w kolorze rudy, brzęk. Po CATCH_HITS trafieniach jest złapany: arena daje CATCH_RUNES run
+## i kamień (sygnał `caught`). Po FLEE_TIME s ucieczki zapada się pod ziemię
 ## (sygnał `escaped`). Strzałka przy krawędzi ekranu - grupa GoalArrows.GROUP.
 
-signal gold(amount: int)
+signal ore(amount: int)
 signal caught(at: Vector2)
 signal escaped
 
@@ -29,10 +30,9 @@ const HIT_GAP := 0.2
 ## Po trafieniu zwalnia na chwilę (podstawowy atak to około 1 cios na sekundę).
 const STAGGER_SLOW := 0.5
 const STAGGER_TIME := 0.5
-## Złoto za trafienie: ułamek ceny zwykłego przedmiotu z tego poziomu (Items.SELL_BASE x DungeonLevels.power).
-const GOLD_HIT := 0.8
-## Złapanie: tyle razy złoto za trafienie.
-const JACKPOT := 10
+## Ruda za trafienie (przed premią Skarbca i nagród celów) i runy za złapanie.
+const ORE_HIT := 1
+const CATCH_RUNES := 2
 
 var hero: ProtoHero
 var level := 1
@@ -43,7 +43,7 @@ var goal_icon: Texture2D = TEXTURE
 var state := "sleep"
 var hits := 0
 var flee_left := FLEE_TIME
-var gold_total := 0
+var ore_total := 0
 
 var _sprite: Sprite2D
 var _beam: GoalBeam
@@ -100,11 +100,6 @@ func alive() -> bool:
 
 func goal_active() -> bool:
 	return state != "gone"
-
-
-## Złoto za jedno trafienie na poziomie `lvl`.
-static func gold_per_hit(lvl: int) -> int:
-	return maxi(1, roundi(Items.SELL_BASE * DungeonLevels.power(lvl) * GOLD_HIT))
 
 
 func _process(delta: float) -> void:
@@ -185,23 +180,23 @@ func take_damage(_amount: int, _from: Vector2) -> void:
 	_audio.pitch_scale = randf_range(0.95, 1.2)
 	_audio.play()
 	if hits >= CATCH_HITS:
-		_pay(gold_per_hit(level) * JACKPOT, 16)
+		_pay(ORE_HIT, 16)
 		state = "gone"
 		_label.text = tr("Złapany!")
 		_label.modulate.a = 1.0
 		caught.emit(global_position)
 		_fade(0.8)
 	else:
-		_pay(gold_per_hit(level), 12)
+		_pay(ORE_HIT, 12)
 
 
 func _pay(amount: int, size: int) -> void:
-	gold_total += amount
-	gold.emit(amount)
+	ore_total += amount
+	ore.emit(amount)
 	var num := Label.new()
 	num.text = "+%d" % amount
 	num.add_theme_font_size_override("font_size", size)
-	num.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	num.add_theme_color_override("font_color", Color(0.95, 0.6, 0.4))  # kolor rudy żelaza
 	num.add_theme_color_override("font_outline_color", Color(0.2, 0.1, 0.0))
 	num.add_theme_constant_override("outline_size", 4)
 	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

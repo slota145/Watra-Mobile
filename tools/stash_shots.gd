@@ -22,8 +22,9 @@ func _shot(name: String) -> void:
 func _run() -> void:
 	var game: Node = root.get_node("Game")
 	game.reset_hero()
-	game.gold = 260
-	game.buy_stash_tab()
+	game.ore = 26
+	game.best_level = 5
+	game._sync_stash_tabs()
 	game.dungeon_level = 4
 	game.dev_items(14)
 	game.stash_all(0)
