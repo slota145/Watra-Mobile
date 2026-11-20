@@ -21,7 +21,7 @@ const DATA := {
 		"icon": preload("res://assets/watra/iron_sword_icon.png")},
 	"glaive": {"name": "Glewia ognia", "short": "Glewia", "element": Elements.FIRE, "unlock": 10, "price": 3000,
 		"icon": preload("res://assets/skills/glaive/g_thrust.png")},
-	"hydrosphere": {"name": "Hydrosfera", "element": Elements.WATER, "unlock": 15, "price": 4500,
+	"hydrosphere": {"name": "Hydrosfera", "short": "Hydro", "element": Elements.WATER, "unlock": 15, "price": 4500,
 		"icon": preload("res://assets/skills/hydro/h_bolt.png")},
 	"katana": {"name": "Elektryczna katana", "short": "Katana", "element": Elements.LIGHTNING, "unlock": 20, "price": 6000,
 		"icon": preload("res://assets/skills/katana/k_slash.png")},

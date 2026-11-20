@@ -93,25 +93,25 @@ const BALLISTA_TURRET_SCENE := "res://assets/spritekiln/ballista_turret/ballista
 const BALLISTA_FALLBACK := preload("res://assets/watra/ballista.png")
 ## Efekty z kreatora PixelLab (pixellab_src/vfx/ids.json): klatki, fps, zaczepienie.
 const ARROW_FX := preload("res://assets/effects/bow_arrow.png")
-const ARROW_FX_FRAMES := 8
-const ARROW_FX_ANCHOR := Vector2(16, 6)
+const ARROW_FX_FRAMES := 6
+const ARROW_FX_ANCHOR := Vector2(31, 8)
 const HIT_FX_BOW := preload("res://assets/effects/bow_hit.png")
 const HIT_FX_BOW_FRAMES := 8
-const HIT_FX_BOW_ANCHOR := Vector2(16, 16)
+const HIT_FX_BOW_ANCHOR := Vector2(21, 22)
 const RAIN_FX := preload("res://assets/effects/arrow_rain.png")
-const RAIN_FX_FRAMES := 12
-const RAIN_FX_ANCHOR := Vector2(50, 60)
+const RAIN_FX_FRAMES := 16
+const RAIN_FX_ANCHOR := Vector2(50, 70)
 const RAIN_FX_RADIUS := 40.0
 const TRAIL_FX := preload("res://assets/effects/seeker_trail.png")
-const TRAIL_FX_FRAMES := 8
-const TRAIL_FX_ANCHOR := Vector2(28, 6)
+const TRAIL_FX_FRAMES := 6
+const TRAIL_FX_ANCHOR := Vector2(31, 8)
 const CHARGE_FX := preload("res://assets/effects/power_charge.png")
 const CHARGE_FX_FRAMES := 8
 const CHARGE_FX_ANCHOR := Vector2(20, 20)
 const GUST_FX := preload("res://assets/effects/power_gust.png")
 const GUST_FX_FRAMES := 9
-const GUST_FX_ANCHOR := Vector2(4, 20)
-const GUST_FX_LENGTH := 120.0
+const GUST_FX_ANCHOR := Vector2(2, 20)
+const GUST_FX_LENGTH := 110.0
 const GUST_FX_THICK := 40.0
 const SIDE_FX := preload("res://assets/effects/side_gust.png")
 const SIDE_FX_FRAMES := 9
@@ -529,8 +529,8 @@ func _process_charge(delta: float) -> void:
 		_charge_line.width = lerpf(POWER_WIDTH.x, POWER_WIDTH.y, k) * _area("b_power")
 		_charge_line.set_point_position(0, _charge_line.to_local(hero.global_position))
 		_charge_line.set_point_position(1, _charge_line.to_local(hero.global_position + dir * length))
-		_charge_line.default_color = Color(Elements.color_of(Elements.AIR), 0.12 + 0.15 * k \
-				+ (0.08 * sin(_clock * 20.0) if k >= 1.0 else 0.0))
+		_charge_line.default_color = Color(Elements.color_of(Elements.AIR), 0.06 + 0.08 * k \
+				+ (0.05 * sin(_clock * 20.0) if k >= 1.0 else 0.0))  # delikatnie - nie zasłania wrogów
 	position = hero.position + dir * 10.0
 	_sprite.position = Vector2(0, -ORBIT_HEIGHT - 4.0) + Vector2(randf_range(-1, 1), randf_range(-1, 1)) * k
 	_sprite.rotation = _aim

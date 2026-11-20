@@ -2,6 +2,28 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - łuk (piąta broń, powietrze)
+
+Pomysł i decyzje autora (pytania przed pracą): żywioł powietrze, loch 5 albo 1500 zł (pierwsza broń po mieczu),
+kolejność odblokowania (mistrzostwo 3/6/10/15) - Poszukująca, Deszcz, Potężny, Balista; balista z kamieniem powtarza
+nasze umiejętności (jak Strażnik hydrosfery); Poszukująca z kamieniem - przywołanie rezerwujące manę jak aura.
+- `scripts/proto/proto_bow.gd` (`ProtoBow`): każde trafienie strzałą lekko odpycha (`AIR_PUSH`). Strzał (`b_shot`,
+  najdalszy wróg, 5. - przebija pierwszego, 10. - co trzeci dwie strzały; kamień Wielostrzału - 5 strzał w stożku po
+  70%), Poszukująca strzała (`b_seeker`, jak Strzała tropiąca Watry: stała prędkość, skręt łukiem, przelot przez
+  trafionego, 4/6 trafień, z 10. dwie; kamień Wiernego Tropiciela - przywołanie `_SummonArrow` krąży przy postaci,
+  co 1,5 s strzela, rezerwuje 20% many - `ProtoHero.summon_reserved`, `apply_reserve`, drugie użycie odwołuje),
+  Deszcz strzał (`b_rain`, krąg 40 px przez 1 s co 0,2 s; 5. - x1,3, 10. - 2 s; kamień Ulewy - 3 deszcze na
+  oddalonych wrogów), Potężny strzał (`b_power`, ładowany: pas 80-150 x 20-46 px, podmuch rani i odpycha, strzała
+  280 px przebija wszystkich; 5. - szybciej, 10. - ogłusza; kamień Wichury - co 36 px toru podmuch na boki),
+  Balista (`b_ballista`, 8/11 s, co 0,6 s bełt, 10. - dwie; kamień Oblężnika - `_ballista_echo` powtarza
+  Poszukującą, Deszcz i Potężny siłą 0,5).
+- Grafika: łuk `assets/weapons/bow.png` (Łuk Burzy z Watry), ikony umiejętności z Watry (`assets/skills/bow/`), ikony
+  kamieni unikalnych (`tools/unique_gem_art.py`), balista ze SpriteKiln (`art/specs/props/ballista_base` i
+  `ballista_turret` - podstawa stoi, górna część `face(dir)` i animacja `shoot`; zapas - obrazek z Watry), efekty
+  z kreatora PixelLab (`bow_arrow`, `bow_hit`, `arrow_rain`, `seeker_trail`, `power_charge`, `power_gust`, `side_gust`).
+- `Weapons`: łuk w `ORDER` zaraz po mieczu; hydrosfera ma krótką nazwę „Hydro” (5 broni w rzędzie okna umiejętności).
+- Test: `tests/test_bow.gd`; zrzuty `tools/bow_shots.gd`.
+
 ## 20.11.2026 - 10 kamieni wspierających i 10 talizmanów z Path of Exile
 
 Decyzja autora (ankieta): obie dziesiątki naraz. Działają z każdą bronią - podpięte we wspólnym trafieniu
