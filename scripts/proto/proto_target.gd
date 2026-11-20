@@ -11,6 +11,13 @@ extends Node2D
 ## Kolor i wielkość liczby trafienia krytycznego.
 const CRIT_COLOR := Color(1.0, 0.82, 0.25)
 const CRIT_SIZE := 15
+## Wydajność w tłumie (pomiar `tools/combat_bench.gd`, 20.11.2026): najwyżej tyle liczb obrażeń naraz (krytyczne
+## zawsze), a dźwięk trafienia najwyżej co HIT_SOUND_GAP ms dla wszystkich wrogów razem - każde uruchomienie dźwięku
+## kosztowało ok. 0,7 ms, a przy pełnej walce trafień jest kilkanaście na klatkę.
+const MAX_NUMBERS := 60
+const HIT_SOUND_GAP := 45
+static var _numbers := 0
+static var _next_hit_sound := 0
 
 ## Wysokość środka celu nad ziemią (tam celuje broń i wyskakują liczby).
 var center_height := 18.0
@@ -192,6 +199,9 @@ func spawn_number(amount: int, color := Color(1.0, 0.95, 0.8)) -> void:
 	if color_next.a > 0.0:
 		color = color_next
 		color_next = Color(0, 0, 0, 0)
+	if _numbers >= MAX_NUMBERS and not crit:
+		return
+	_numbers += 1
 	var num := Label.new()
 	num.text = str(amount) + ("!" if crit else "")
 	if crit:
@@ -209,6 +219,16 @@ func spawn_number(amount: int, color := Color(1.0, 0.95, 0.8)) -> void:
 	tween.tween_property(num, "position:y", num.position.y - 18, 0.6).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	tween.parallel().tween_property(num, "modulate:a", 0.0, 0.3).set_delay(0.35)
 	tween.tween_callback(num.queue_free)
+	num.tree_exiting.connect(func() -> void: _numbers -= 1)
+
+
+## Czy wolno teraz zagrać dźwięk trafienia (wspólny limit wszystkich wrogów - HIT_SOUND_GAP).
+static func hit_sound_ok() -> bool:
+	var now := Time.get_ticks_msec()
+	if now < _next_hit_sound:
+		return false
+	_next_hit_sound = now + HIT_SOUND_GAP
+	return true
 
 
 ## Podpalenie, spowolnienie, przemoczenie i porażenie celu: odlicza czas, zadaje obrażenia podpalenia, pokazuje

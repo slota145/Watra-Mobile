@@ -402,10 +402,11 @@ func _shake(strength: float, duration: float) -> void:
 
 
 func _audio_hit() -> void:
-	_audio.stream = HIT_SOUNDS.pick_random()
-	_audio.pitch_scale = randf_range(0.7, 0.85)
-	_audio.volume_db = -8.0
-	_audio.play()
+	if hit_sound_ok():
+		_audio.stream = HIT_SOUNDS.pick_random()
+		_audio.pitch_scale = randf_range(0.7, 0.85)
+		_audio.volume_db = -8.0
+		_audio.play()
 
 
 func _sound(stream: AudioStream, db: float, pitch: float) -> void:

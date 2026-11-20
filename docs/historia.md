@@ -2,6 +2,25 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - Gęstsza Horda do 15 punktów i wydajność ciężkiej walki
+
+Prośba autora: więcej punktów w Gęstszej Hordzie - 15 (do +60% potworów, `DungeonTree.NODES.horde`), i pomiar
+płynności przy Błysku Peruna z aurami, talizmanami i modyfikatorami, a gdy spada - optymalizacja.
+- Nowe narzędzie `tools/combat_bench.gd`: tłum (np. 150 potworów), katana z Błyskiem Peruna co 0,25 s i resztą
+  umiejętności, 22 aury, 3 talizmany na 10. poziomie, 4 modyfikatory lochu; czas logiki w klatce (średni, 95%,
+  najgorszy, ile klatek ponad 16,7 ms), najliczniejsze węzły; zmienne NO_AURA, ONLY_AURA, NO_TAL, NO_MODS, NO_CAST.
+- Wynik przed poprawkami (komputer w chmurze, poziom 5, 136 potworów): średnio 20 ms, najgorsza klatka 198 ms.
+  Winni: każde trafienie od nowa uruchamiało dźwięk potwora (ok. 0,7 ms, kilkanaście trafień na klatkę), ponad 800
+  liczb obrażeń naraz, a `ProtoWeapon._live_targets` sprawdzał powtórki każdy z każdym i katana wołała go przy
+  każdym przeskoku pioruna.
+- Poprawki: wspólny limit dźwięku trafienia wszystkich wrogów (`ProtoTarget.hit_sound_ok`, co 45 ms - goblin, osiłek,
+  bossowie), najwyżej 60 liczb obrażeń naraz (`ProtoTarget.MAX_NUMBERS`, krytyczne zawsze), spis celów raz na klatkę
+  (`ProtoWeapon._frame_targets`), szukanie następnego celu pioruna bez kopiowania listy (`chain_next`), jeden
+  wspólny materiał piorunów (`_bolt`).
+- Po poprawkach: poziom 5, 136 potworów - średnio ok. 4,3 ms, najgorsza 14 ms; poziom 45 - ok. 4,2 ms, pojedyncze
+  klatki do ok. 25 ms przy skoku Błysku w środek kuli 40-70 wrogów (każde trafienie z przeskokiem pioruna).
+  Dla porównania przed poprawkami przy 102 potworach (stary limit +20%): 6-9 ms.
+
 ## 20.11.2026 - drzewko lochów (zamiast ulepszeń lochów za złoto)
 
 Prośba autora: ROADMAP punkt 3, drzewko jak atlas w PoE. Decyzje autora: punkt za każdy **pierwszy raz przebity**

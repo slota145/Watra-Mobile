@@ -218,6 +218,9 @@ var element := Elements.PHYSICAL
 ## Umiejętność skoków jak Mgnienie (miecz - „blink”, katana - Błysk Peruna), smuga skoku i kolor piorunów
 ## (zygzaki `_bolt`) - ustawia podklasa.
 var blink_skill := ""
+var _live_cache: Array[ProtoTarget] = []  # spis celów z tej klatki (_live_targets)
+var _live_frame := -1
+static var _bolt_glow: CanvasItemMaterial
 var flicker_trail: Texture2D = FLICKER_TRAIL
 ## Czy skok pokazuje na celu cięcie Mgnienia miecza (katana ma własne cięcie - bez podwójnego efektu).
 var flicker_cut := true
@@ -581,15 +584,30 @@ func _hit_in_arc() -> void:
 		Input.vibrate_handheld(15)
 
 
-## Cele, które da się jeszcze trafić: lista `targets` i potwory z grupy TARGETS.
+## Cele, które da się jeszcze trafić: lista `targets` i potwory z grupy TARGETS. Spis zbiera się raz na klatkę
+## (wydajność, pomiar `tools/combat_bench.gd` 20.11.2026: przy 150 potworach katana wołała to przy każdym przeskoku
+## pioruna, a dawne sprawdzanie powtórek porównywało każdego z każdym), przy każdym wywołaniu bez poległych.
 func _live_targets() -> Array[ProtoTarget]:
-	var all: Array = targets.duplicate()
-	all.append_array(get_tree().get_nodes_in_group(TARGETS))
 	var out: Array[ProtoTarget] = []
-	for t in all:
-		if is_instance_valid(t) and t is ProtoTarget and t.alive() and not out.has(t):
+	for t in _frame_targets():
+		if is_instance_valid(t) and t.alive():
 			out.append(t)
 	return out
+
+
+## Spis celów z tej klatki bez kopiowania (mogą w nim być polegli - sprawdzaj is_instance_valid i alive).
+func _frame_targets() -> Array[ProtoTarget]:
+	var frame := Engine.get_process_frames()
+	if frame != _live_frame:
+		_live_frame = frame
+		_live_cache.clear()
+		var seen := {}
+		for list: Array in [targets, get_tree().get_nodes_in_group(TARGETS)]:
+			for t in list:
+				if is_instance_valid(t) and t is ProtoTarget and not seen.has(t):
+					seen[t] = true
+					_live_cache.append(t)
+	return _live_cache
 
 
 func _set_state(state: String) -> void:
@@ -904,11 +922,13 @@ func chain_next(current: ProtoTarget, visited: Dictionary, range_px: float) -> P
 	var fresh_d := -1.0
 	var old: ProtoTarget = null
 	var old_d := -1.0
-	for t in _live_targets():
-		if t == current:
+	var from := current.global_position
+	var range_sq := range_px * range_px
+	for t in _frame_targets():  # bez kopiowania listy - wołane przy każdym przeskoku pioruna
+		if t == current or not is_instance_valid(t) or not t.alive():
 			continue
-		var d := t.global_position.distance_to(current.global_position)
-		if d > range_px:
+		var d := t.global_position.distance_squared_to(from)
+		if d > range_sq:
 			continue
 		if visited.has(t):
 			if d > old_d:
@@ -928,9 +948,10 @@ func _bolt(a: Vector2, b: Vector2) -> void:
 	glow.default_color = Color(bolt_color, 0.55)
 	glow.z_index = 21
 	glow.joint_mode = Line2D.LINE_JOINT_ROUND
-	var add := CanvasItemMaterial.new()
-	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	glow.material = add
+	if _bolt_glow == null:  # jeden materiał dla wszystkich piorunów (przy wiązkach jest ich dużo naraz)
+		_bolt_glow = CanvasItemMaterial.new()
+		_bolt_glow.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	glow.material = _bolt_glow
 	var core := Line2D.new()
 	core.width = 1.5
 	core.default_color = bolt_core
