@@ -12,6 +12,9 @@ Prośby autora (pytania: siła, pociski, nazwa).
   i bełty balisty. Przyszłe pociski - przez `fan`.
 - Poszukująca: prędkość zależy od kąta do celu (prosto - do SEEK_MAX 380, przy zawracaniu do SEEK_MIN 90), po
   przebiciu SEEK_COAST 0,22 s leci prosto i hamuje (`coast`), potem zawraca i przyspiesza.
+- Kilka Poszukujących naraz (zgłoszenie autora - leciały gęsiego na tego samego wroga): wybierając cel, liczą wroga
+  ściganego już przez inną strzałę jak dalszego o SEEK_CLAIM 140 px (`_seek_target`), przy wylocie wolą wrogów
+  w stronę swojego lotu; stożek szerszy (SEEK_PAIR 32°) i każda startuje odsunięta o SEEK_SPAWN 10 px w swoją stronę.
 - 10. poziom strzału działał tylko bez kamienia: teraz co trzeci strzał +2 strzały (`SHOT_PERK_EXTRA`) i ze zwykłym
   strzałem (3 strzały), i z Wielostrzałem (7).
 

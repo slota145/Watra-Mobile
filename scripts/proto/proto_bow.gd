@@ -57,7 +57,11 @@ const SEEK_PASS := 0.35
 const SEEK_LIFE := 6.0
 const SEEK_HITS := 4
 const SEEK_HITS_PERK := 6
-const SEEK_PAIR := deg_to_rad(25.0)
+const SEEK_PAIR := deg_to_rad(32.0)
+## Kilka Poszukujących naraz (prośba autora 20.11.2026): wybierają różnych wrogów - wróg, na którego leci już inna
+## strzała, liczy się jak dalszy o SEEK_CLAIM px; wylatują w stożku, każda odsunięta o SEEK_SPAWN px w swoją stronę.
+const SEEK_CLAIM := 140.0
+const SEEK_SPAWN := 10.0
 ## Przywołanie (kamień Wiernego Tropiciela): co ile strzał, rezerwacja many (część pełnej), promień i czas okrążenia.
 const SUMMON_EVERY := 1.5
 const SUMMON_RESERVE := 0.2
@@ -277,6 +281,7 @@ func _arrow_sprite(a: float) -> Sprite2D:
 ## Poszukująca strzała z punktu `from`, pierwszy kierunek `a`; `mult` - siła, `hits` - ile trafień.
 func _spawn_seeker(from: Vector2, a: float, mult := 1.0) -> void:
 	var fx := _arrow_sprite(a)
+	from += Vector2.from_angle(a) * SEEK_SPAWN  # stożek od razu widać - strzały nie startują z jednego punktu
 	fx.global_position = from
 	fx.modulate = Color(1.2, 1.35, 1.25)
 	var trail := Sprite2D.new()
@@ -291,21 +296,30 @@ func _spawn_seeker(from: Vector2, a: float, mult := 1.0) -> void:
 			"power": mult, "pierce": -1, "target": null, "side": false, "side_acc": 0.0, "left": INF,
 			"seek": true, "life": SEEK_LIFE, "hits_left": SEEK_HITS_PERK if _perk("b_seeker", 0) else SEEK_HITS,
 			"last": null, "since": SEEK_PASS, "turn": SEEK_TURN, "trail": trail, "coast": 0.0}
-	arrow.target = _seek_target(from, null)
+	arrow.target = _seek_target(from, null, a)
 	_arrows.append(arrow)
 
 
 ## Cel Poszukującej: najbliższy żywy wróg w zasięgu szukania, inny niż `skip` (gdy jest tylko on - on).
-func _seek_target(from: Vector2, skip: ProtoTarget) -> ProtoTarget:
+func _seek_target(from: Vector2, skip: ProtoTarget, toward := INF) -> ProtoTarget:
+	var claimed := {}  # wróg -> ile Poszukujących już na niego leci
+	for s in _arrows:
+		if s.has("seek") and s.target != null and is_instance_valid(s.target):
+			claimed[s.target] = claimed.get(s.target, 0) + 1
 	var best: ProtoTarget = null
-	var best_d := SEEK_SEARCH
+	var best_d := INF
 	for t in _live_targets():
 		if t == skip:
 			continue
 		var d := t.center().distance_to(from)
-		if d <= best_d:
+		if d > SEEK_SEARCH:
+			continue
+		var score: float = d + SEEK_CLAIM * int(claimed.get(t, 0))
+		if toward != INF:  # przy wylocie: wrogowie w stronę lotu strzały lepsi
+			score += absf(angle_difference(toward, (t.center() - from).angle())) * 40.0
+		if score < best_d:
 			best = t
-			best_d = d
+			best_d = score
 	if best == null and skip != null and is_instance_valid(skip) and skip.alive():
 		return skip
 	return best
