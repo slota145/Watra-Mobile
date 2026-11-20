@@ -87,6 +87,11 @@ func _test_game(game: Node) -> void:
 	game.auras["krzepa"] = Auras.MAX_LEVEL
 	_check(game.add_aura("krzepa") == 0, "na najwyższym poziomie kamień przepada")
 	_check(game.add_aura("nie_ma") == 0, "nieznana aura - nic")
+	var before: Dictionary = game.auras.duplicate()
+	game.dev_auras()
+	_check(game.auras.size() == Auras.ORDER.size() and game.auras.krzepa == Auras.MAX_LEVEL,
+			"tryb deweloperski: wszystkie aury")
+	game.auras = before
 	game.auras["krzepa"] = 1
 	# 1. poziom: 50 many, zwykły cios nic nie kosztuje - jedna aura wchodzi
 	_check(game.toggle_aura("krzepa") == "" and game.auras_on.has("krzepa"), "włączenie aury")

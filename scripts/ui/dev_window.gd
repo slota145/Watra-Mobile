@@ -29,6 +29,8 @@ var skills_dev_button: Button
 var gems_dev_button: Button
 ## Tryb deweloperski: każdy talizman o poziom wyżej (nowe - poziom 1, Game.dev_talismans).
 var talismans_dev_button: Button
+## Tryb deweloperski: każda aura o poziom wyżej (nowe - poziom 1, Game.dev_auras).
+var auras_dev_button: Button
 var reset_button: Button
 var hero_level_label: Label
 var clear_stats_button: Button
@@ -105,6 +107,8 @@ func _ready() -> void:
 	row = _row()
 	talismans_dev_button = _button(row, tr("+talizmany"))
 	talismans_dev_button.pressed.connect(func() -> void: _game.dev_talismans())
+	auras_dev_button = _button(row, tr("+aury"))
+	auras_dev_button.pressed.connect(func() -> void: _game.dev_auras())
 	reset_button = _button(row, tr("Od nowa"))
 	reset_button.pressed.connect(_on_reset)
 	_make_level_row()

@@ -87,6 +87,7 @@
 "Graj","Play","character_select.gd, main_menu.tscn"
 "+%d łupu","+%d loot","dev_window.gd"
 "+1 poz.","+1 lv.","dev_window.gd"
+"+aury","","dev_window.gd"
 "+kamienie","","dev_window.gd"
 "+talizmany","","dev_window.gd"
 "+umiejętności","+skills","dev_window.gd"
