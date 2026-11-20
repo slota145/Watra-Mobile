@@ -87,6 +87,9 @@ func _test_base(game: Node) -> void:
 	arena.skills_window.open(true)
 	await process_frame
 	var win: SkillsWindow = arena.skills_window
+	win.open_weapons()
+	await process_frame
+	_check(win.weapon_menu.visible and win.weapon_button.get_global_rect().size.y >= 44.0, "przycisk broni otwiera listę broni")
 	var gb: Button = win.weapon_buttons["glaive"]
 	_check(gb.get_global_rect().size.y >= 44.0 and win.row_boxes[0].visible and not win.row_boxes[Skills.ORDER.find("g_thrust")].visible,
 			"przyciski broni min. 44 px, lista tylko umiejętności miecza")
@@ -100,6 +103,7 @@ func _test_base(game: Node) -> void:
 	_check(arena.weapon.targets.size() == arena.DUMMIES.size(), "glewia zna kukły")
 	win.close()
 	arena.skills_window.open(false)
+	win.open_weapons()
 	win.weapon_buttons["sword"].pressed.emit()
 	_check(game.weapon == "glaive", "z pauzy (bez kamienia run) broni się nie zmienia")
 	win.close()

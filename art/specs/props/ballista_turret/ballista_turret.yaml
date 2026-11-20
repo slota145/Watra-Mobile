@@ -1,0 +1,193 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: ballista_turret
+kind: prop
+view: topdown
+# the same camera (center too) and frame as ballista_base: the pivot (ground point) is the same pixel in both,
+# so the game draws both sprites at one node position and this one sits on the base's pin (pivot bone at 0.66)
+camera: {pitch: 38, scale: 0.04889, center: [0, 0.45, 0]}
+palette: "watra"
+size: 48
+directions: 8
+
+# Balista - obracająca się górna część: korpus (łoże z prowadnicą) na widełkach nad czopem podstawy,
+# z przodu łuk (dwa ramiona z okuciami) i cięciwa, na prowadnicy bełt z żelaznym grotem i jasnymi lotkami
+# (żywioł powietrza), z tyłu kołowrót z korbami. Kierunek renderu = kierunek strzału (+Z to przód).
+brief:
+  summary: >
+    the turning upper part of a Slavic folk ballista (a skill of the air bow): a dark oak stock with a groove
+    on a bronze fork over the base's pivot pin, a wide bow at the front (two arms of dark wood bound with iron,
+    bronze tips) with a pale sinew string drawn back to the trigger claw, a bolt with an iron head and pale
+    sky-blue fletchings (the air element) lying in the groove, and a windlass with two crank handles at the back
+  must_keep:
+    - the bow arms are the widest shape and read in every direction (about 30-34 px tip to tip in s and n)
+    - the string and the bolt are visible in s, n and the diagonals, the bolt head points where it shoots
+    - the pivot (fork) stays on the Y axis at height 0.66, so it sits on ballista_base's pin
+  simplify:
+    - the trigger is one iron claw block, the windlass a drum with two spokes
+    - the string is two straight segments from the arm tips to the claw
+  decisions:
+    - the render direction is the shooting direction (+Z = front), the game picks the direction to the target
+    - the stock is raised a little at the front (a slight aim upward) to show the groove and bolt from s
+    - pale sky-blue fletchings are the only hint of the air element; the rest is wood, iron and bronze
+    - "shoot: the bolt leaves on frame 1 (event hit), the string snaps forward, the arms flex, the stock
+      kicks back, then the windlass draws it again and a new bolt lies in the groove (ends as idle)"
+
+shadow: null
+
+ramps:
+  oak:    ["#0d0806", "#2a1810", "#462a19", "#654024", "#835a33", "#a07648"]
+  # the bow arms: a slightly lighter, warmer ash so they read against the stock
+  ash:    ["#100906", "#33200f", "#553619", "#7a5228", "#9c7038", "#bb9156"]
+  bronze: ["#140b05", "#45280f", "#76481a", "#a66f2b", "#cf9b48", "#efcb82"]
+  iron:   ["#0d0c0d", "#36343a", "#5a5860", "#7f7e86", "#a5a4aa", "#c9c8cb"]
+  sinew:  ["#1a1410", "#4a3c30", "#76654f", "#9c8a6c", "#bba98a", "#d8cbb0"]
+  shaft:  ["#140c07", "#4e3119", "#7c5429", "#a57a3c", "#c9a060", "#e2c48a"]
+  # the air element: pale sky fletchings
+  fletch: ["#141a24", "#3d5a78", "#6a90b4", "#9cc0dc", "#cfe4f2", "#f2f8fc"]
+
+materials:
+  oak:    {ramp: oak, finish: soft, crease: true}
+  ash:    {ramp: ash, finish: soft}
+  bronze: {ramp: bronze, finish: metal}
+  iron:   {ramp: iron, finish: metal}
+  iron_dull: {ramp: iron, finish: matte, bands: [1, 3]}   # the claw: no highlight (it read as a glowing dot)
+  sinew:  {ramp: sinew, finish: matte, bands: [2, 4]}
+  shaft:  {ramp: shaft, finish: soft, bands: [2, 5]}
+  fletch: {ramp: fletch, finish: matte, bands: [2, 4]}
+
+channels:
+  draw: 1        # 1: string pulled back to the claw; 0: released (rest, just behind the arm tips); <0 overshoot
+  flex: 0        # arm tips thrown forward after the release
+  recoil: 0      # the stock kicks back along -Z
+  kick: 0        # extra upward pitch of the stock on recoil
+  bolt: 1        # 1: a bolt lies in the groove
+  bolt_z: 0      # the bolt slides forward along the groove (the frame it leaves)
+  crank: 0       # windlass handle angle
+  hum: 0         # tiny idle tremor of the string (z)
+
+bones:
+  pivot: {parent: root, pos: [0, 0.66, 0]}
+  # the stock: over the pivot, a little raised at the front; recoil moves it back
+  stock: {parent: pivot, pos: "[0, 0.14, -0.05 - recoil]", rot: "[-0.10 - kick, 0, 0]"}
+  head:  {parent: stock, pos: [0, 0.02, 0.38]}
+
+parts:
+  fork:            # bronze collar on the pin and the fork cheeks holding the stock
+    material: bronze
+    space: pivot
+    blend: 0.015
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.05, 0], r: 0.13, round: 0.015}
+      - box: {c: [0.105, 0.11, -0.03], half: [0.025, 0.08, 0.08], round: 0.015}
+      - box: {c: [-0.105, 0.11, -0.03], half: [0.025, 0.08, 0.08], round: 0.015}
+  stock:           # the long body with the groove on top
+    material: oak
+    space: stock
+    blend: {mode: chamfer, k: 0.015}
+    prims:
+      - box: {c: [0, 0, -0.02], half: [0.08, 0.055, 0.56], round: 0.015}
+    cut:
+      - box: {c: [0, 0.06, 0.0], half: [0.022, 0.025, 0.62]}
+  bands:           # iron bands round the stock
+    material: iron
+    space: stock
+    prims:
+      - box: {c: [0, 0, 0.24], half: [0.09, 0.065, 0.025]}
+      - box: {c: [0, 0, -0.42], half: [0.09, 0.065, 0.025]}
+  frame:           # the bow's head block across the front of the stock
+    material: oak
+    space: head
+    blend: {mode: chamfer, k: 0.015}
+    prims:
+      - box: {c: [0, 0, 0], half: [0.17, 0.09, 0.07], round: 0.02}
+    cut:
+      - box: {c: [0, 0.06, 0.0], half: [0.022, 0.05, 0.2]}
+  frame_iron:      # iron plates on the head block
+    material: iron
+    space: head
+    prims:
+      - box: {c: [0.13, 0, 0], half: [0.03, 0.10, 0.08], round: 0.01}
+      - box: {c: [-0.13, 0, 0], half: [0.03, 0.10, 0.08], round: 0.01}
+  arm_L:           # a bow arm curving out and back; flex throws its tip forward
+    material: ash
+    space: head
+    prims:
+      - tube: {pts: [[0.15, 0, 0.0], [0.42, 0, 0.02], "[0.70, 0, -0.16 + 0.14*flex - 0.06*draw]"], r: [0.065, 0.04]}
+  arm_band_L:      # iron binding on the arm
+    material: iron
+    space: head
+    prims:
+      - cylinder: {a: [0.24, 0, 0.01], b: [0.29, 0, 0.012], r: 0.055}
+  tip_L:           # bronze nock cap
+    material: bronze
+    space: head
+    prims:
+      - sphere: {c: "[0.70, 0, -0.16 + 0.14*flex - 0.06*draw]", r: 0.045}
+  string_L:        # from the arm tip to the claw (draw 1) or to just behind the head (draw 0)
+    material: sinew
+    space: head
+    priority: 2
+    min_cover: 2
+    prims:
+      - cylinder: {a: "[0.69, 0.0, -0.16 + 0.14*flex - 0.06*draw]", b: "[0, 0.065, -0.14 - 0.62*draw + hum]", r: 0.016}
+  claw:            # the iron trigger claw that holds the string
+    material: iron_dull
+    space: stock
+    prims:
+      - box: {c: [0, 0.075, -0.40], half: [0.045, 0.035, 0.04], round: 0.01}
+  windlass:        # drum across the back with two crank spokes
+    material: oak
+    space: stock
+    prims:
+      - cylinder: {a: [-0.15, 0.0, -0.53], b: [0.15, 0.0, -0.53], r: 0.055}
+  cranks:
+    material: iron
+    space: stock
+    prims:
+      - cylinder: {a: [0.16, 0.0, -0.53], b: "[0.16, 0.12*cos(crank), -0.53 + 0.12*sin(crank)]", r: 0.022}
+      - cylinder: {a: [-0.16, 0.0, -0.53], b: "[-0.16, -0.12*cos(crank), -0.53 - 0.12*sin(crank)]", r: 0.022}
+  bolt_shaft:
+    material: shaft
+    space: stock
+    when: "bolt > 0.5"
+    priority: 2
+    min_cover: 2
+    prims:
+      - cylinder: {a: "[0, 0.075, -0.36 + bolt_z]", b: "[0, 0.075, 0.58 + bolt_z]", r: 0.027}
+  bolt_head:
+    material: iron
+    space: stock
+    when: "bolt > 0.5"
+    priority: 2
+    prims:
+      - cone: {a: "[0, 0.075, 0.56 + bolt_z]", b: "[0, 0.075, 0.74 + bolt_z]", r: [0.06, 0.01]}
+  bolt_fletch:
+    material: fletch
+    space: stock
+    when: "bolt > 0.5"
+    priority: 2
+    prims:
+      - box: {c: "[0, 0.12, -0.22 + bolt_z]", half: [0.014, 0.045, 0.08], round: 0.008}
+      - box: {c: "[0.045, 0.085, -0.22 + bolt_z]", half: [0.04, 0.014, 0.08], round: 0.008}
+      - box: {c: "[-0.045, 0.085, -0.22 + bolt_z]", half: [0.04, 0.014, 0.08], round: 0.008}
+
+sockets:
+  bolt: {bone: stock, offset: [0, 0.075, 0.74]}   # where the game spawns the flying bolt
+
+animations:
+  idle:
+    frames: 4
+    ms: 160
+    channels: {hum: "0.012*sin(p)", flex: "0.03*sin(p)"}
+  shoot:
+    loop: false
+    keys:
+      - {ms: 110, event: windup, set: {draw: 1.08, kick: 0.02}}
+      - {ms: 50, event: hit, set: {draw: 0, flex: 0.9, recoil: 0.05, kick: 0.04, bolt_z: 0.35}}
+      - {ms: 60, set: {draw: -0.12, flex: 1.0, recoil: 0.11, kick: 0.07, bolt: 0}}
+      - {ms: 80, set: {draw: 0.05, flex: 0.35, recoil: 0.05, kick: 0.03, bolt: 0}}
+      - {ms: 90, set: {draw: 0.5, flex: 0, recoil: 0.0, crank: 2.1, bolt: 0}}
+      - {ms: 100, set: {draw: 1, crank: 4.2}}
+
+timing: {shoot: {hit: 110ms, total: 490ms}}

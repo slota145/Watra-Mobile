@@ -945,5 +945,113 @@
       58,
       24
     ]
+  },
+  "bow_arrow": {
+    "effect": "3e64ab6e-e89b-4b52-9f74-fee2068544cd",
+    "name": "Łuk powietrza - strzała w locie (pętla, grot w prawo, smuga wiatru z lewej)",
+    "frame": [
+      44,
+      16
+    ],
+    "frames": 6,
+    "columns": 3,
+    "fps": 16,
+    "loop": true,
+    "anchor": [
+      31,
+      8
+    ]
+  },
+  "bow_hit": {
+    "effect": "e75ebe64-a625-44f3-9c97-94cc6434381e",
+    "name": "Łuk powietrza - trafienie strzałą (gwiazdka i podmuch)",
+    "frame": [
+      45,
+      43
+    ],
+    "frames": 8,
+    "columns": 3,
+    "fps": 21,
+    "anchor": [
+      21,
+      22
+    ]
+  },
+  "arrow_rain": {
+    "effect": "268126a1-9b16-4a4a-8bb1-a62eab9165ce",
+    "name": "Łuk powietrza - deszcz strzał na obszar (kotwica = środek obszaru na ziemi)",
+    "frame": [
+      100,
+      100
+    ],
+    "frames": 16,
+    "columns": 4,
+    "fps": 16,
+    "anchor": [
+      50,
+      70
+    ]
+  },
+  "seeker_trail": {
+    "effect": "4b412927-61b0-474c-82a9-5d421c5a202f",
+    "name": "Łuk powietrza - smuga strzały tropiącej (pętla, strzała w prawo, smuga w lewo)",
+    "frame": [
+      34,
+      16
+    ],
+    "frames": 6,
+    "columns": 3,
+    "fps": 16,
+    "loop": true,
+    "anchor": [
+      31,
+      8
+    ]
+  },
+  "power_charge": {
+    "effect": "ee848ae2-dcd8-4dc3-8eea-0529b7a46206",
+    "name": "Łuk powietrza - ładowanie potężnego strzału (pętla, wir wiatru)",
+    "frame": [
+      40,
+      40
+    ],
+    "frames": 8,
+    "columns": 3,
+    "fps": 16,
+    "loop": true,
+    "anchor": [
+      20,
+      20
+    ]
+  },
+  "power_gust": {
+    "effect": "19c74ef3-cb0f-4b91-a78d-b3bec2b33faf",
+    "name": "Łuk powietrza - podmuch potężnego strzału (fala w prawo)",
+    "frame": [
+      124,
+      40
+    ],
+    "frames": 9,
+    "columns": 3,
+    "fps": 18,
+    "anchor": [
+      2,
+      20
+    ]
+  },
+  "side_gust": {
+    "effect": "794a9eaf-2754-451c-9ed9-72981a5a35c1",
+    "name": "Łuk powietrza - podmuch na boki z toru strzały (w górę i w dół)",
+    "frame": [
+      60,
+      60
+    ],
+    "frames": 9,
+    "columns": 3,
+    "fps": 18,
+    "anchor": [
+      30,
+      30
+    ]
   }
 }

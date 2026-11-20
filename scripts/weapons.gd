@@ -13,6 +13,7 @@ const SWORD := "sword"
 const GLAIVE := "glaive"
 const HYDROSPHERE := "hydrosphere"
 const KATANA := "katana"
+const BOW := "bow"
 ## name - nazwa, element - żywioł obrażeń (Elements), unlock - poziom lochu, po którego przebiciu broń jest za darmo
 ## (0 - od początku), price - złoto za wcześniejsze odblokowanie.
 const DATA := {
@@ -20,12 +21,15 @@ const DATA := {
 		"icon": preload("res://assets/watra/iron_sword_icon.png")},
 	"glaive": {"name": "Glewia ognia", "short": "Glewia", "element": Elements.FIRE, "unlock": 10, "price": 3000,
 		"icon": preload("res://assets/skills/glaive/g_thrust.png")},
-	"hydrosphere": {"name": "Hydrosfera", "element": Elements.WATER, "unlock": 15, "price": 4500,
+	"hydrosphere": {"name": "Hydrosfera", "short": "Hydro", "element": Elements.WATER, "unlock": 15, "price": 4500,
 		"icon": preload("res://assets/skills/hydro/h_bolt.png")},
 	"katana": {"name": "Elektryczna katana", "short": "Katana", "element": Elements.LIGHTNING, "unlock": 20, "price": 6000,
 		"icon": preload("res://assets/skills/katana/k_slash.png")},
+	# łuk (ustalone z autorem 20.11.2026): żywioł powietrze, loch 5 albo 1500 zł - pierwsza broń po mieczu
+	"bow": {"name": "Łuk", "element": Elements.AIR, "unlock": 5, "price": 1500,
+		"icon": preload("res://assets/skills/bow/b_shot.png")},
 }
-const ORDER := ["sword", "glaive", "hydrosphere", "katana"]
+const ORDER := ["sword", "bow", "glaive", "hydrosphere", "katana"]
 ## Najwyższy poziom mistrzostwa (jak poziom postaci).
 const MAX_MASTERY := 50
 
@@ -71,6 +75,8 @@ static func script_of(id: String) -> Script:
 			return ProtoHydrosphere
 		KATANA:
 			return ProtoKatana
+		BOW:
+			return ProtoBow
 	return ProtoWeapon
 
 

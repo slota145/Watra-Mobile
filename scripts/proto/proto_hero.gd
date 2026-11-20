@@ -59,6 +59,8 @@ var max_hp := MAX_HP
 var max_mana := HeroLevels.MANA_BASE
 ## Mana zarezerwowana przez włączone aury (część max_mana, której nie da się wydać).
 var reserved := 0
+## Mana zarezerwowana przez przywołanie (kamień Wiernego Tropiciela łuku - ProtoBow), osobno od aur.
+var summon_reserved := 0
 ## Aura Opieka Mokoszy: tarcza (obecna i pełna) i ile sekund jeszcze do jej odnowienia (Auras.MOKOSZ_DELAY bez trafienia).
 var shield := 0
 var shield_max := 0
@@ -377,7 +379,13 @@ func add_mana(amount: int) -> void:
 
 ## Ile many można mieć najwyżej (pełna mana bez rezerwacji aur).
 func mana_cap() -> int:
-	return maxi(max_mana - reserved, 0)
+	return maxi(max_mana - reserved - summon_reserved, 0)
+
+
+## Po zmianie rezerwacji przywołania: mana przycięta do nowej granicy, pasek odświeżony.
+func apply_reserve() -> void:
+	mana = mini(mana, mana_cap())
+	mana_changed.emit(mana, max_mana)
 
 
 ## Kamień Twardość: przez `time` s o `pct` mniej obrażeń (silniejsza wygrywa, czas się odnawia).

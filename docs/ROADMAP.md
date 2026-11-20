@@ -48,7 +48,7 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
      mapie lochu (fala potworów, po wygranej kupka surowców). Największa zmiana - dotyka sklepu, kowala, ulepszeń
      kamieni, Skarbnika i drzewka lochów; przed startem plan i ankieta.
   5. **Symulowany rynek** jak w PoE (handel „orbami”), niedostępny w SSF. W Watrze: `scripts/market.gd`. Po punkcie 4.
-  - **Nowe bronie: łuk i broń magiczna**, wybór broni na start (resztę odblokowuje się jak teraz). Każda broń to duża
+  - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), **broń magiczna**, wybór broni na start (resztę odblokowuje się jak teraz). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.
 
