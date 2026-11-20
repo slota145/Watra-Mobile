@@ -19,6 +19,8 @@ między wierszami (wiersze i przyciski łapały dotyk), suwaki z boku za wąskie
   i magiczne przedmioty z Watry: Róg Gruzłoga (był Sygnet), Pióro Gromu (Pierścień Gromu), Perła Topieli (Pierścień
   Topieli), Gałąź Leszego (Obręcz), Kora Leszego (Żołądź), Czaszka Biesa (Szpon), Ząb Pożeracza (Szczęka), Kryształ
   Peruna (Korona); Serce Goblina i Serce Głębin bez zmian. Identyfikatory w zapisie te same.
+- Serce Głębin - nowy efekt z kreatora (prośba autora, kolce uderzenia w ziemię się nie podobały): `earth_tremor`
+  (świecące pęknięcia i ziemista fala, 9 z 10 klatek, pod postacią - z_index -1), `ProtoTalismans.TREMOR_FX`.
 
 ## 20.11.2026 - obrażenia od żywiołów, nowe efekty talizmanów i aur
 
