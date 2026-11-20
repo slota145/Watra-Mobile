@@ -139,6 +139,33 @@ const DATA := {
 		"mana": 10, "cooldown": 0.0, "weapon": "katana", "mastery": 15, "main": false, "range": 0.0, "power": 1.2,
 		"description": "Przytrzymaj - przeskakujesz piorunem na wylot przez najbliższego wroga, tnąc wszystkich po drodze, potem przez kolejnego, dopóki starcza many. Każdy wróg zabity skokiem zwraca 2 many. Nie może stać pod dużym przyciskiem.",
 	},
+	# Łuk (ustalone z autorem 20.11.2026): żywioł powietrze - trafienia lekko odpychają (ProtoBow).
+	"b_shot": {
+		"name": "Strzał", "icon": preload("res://assets/skills/bow/b_shot.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "bow", "mastery": 1, "main": true, "range": 170.0, "power": 0.85,
+		"description": "Łuk strzela w najdalszego wroga w zasięgu. Strzała lekko odpycha trafionego.",
+	},
+	"b_seeker": {
+		"name": "Poszukująca strzała", "icon": preload("res://assets/skills/bow/b_seeker.png"),
+		"mana": 18, "cooldown": 2.2, "weapon": "bow", "mastery": 3, "main": true, "range": 200.0, "power": 0.9,
+		"description": "Strzała sama szuka wrogów: skręca łukiem ku celowi, przebija go na wylot i leci do kolejnego - 4 trafienia.",
+	},
+	"b_rain": {
+		"name": "Deszcz strzał", "icon": preload("res://assets/skills/bow/b_rain.png"),
+		"mana": 30, "cooldown": 6.0, "weapon": "bow", "mastery": 6, "main": true, "range": 170.0, "power": 0.35,
+		"description": "Na najbliższego wroga spada deszcz strzał - przez sekundę rani wszystkich w kręgu.",
+	},
+	"b_power": {
+		"name": "Potężny strzał", "icon": preload("res://assets/skills/bow/b_power.png"),
+		"mana": 38, "cooldown": 7.0, "weapon": "bow", "mastery": 10, "main": false, "range": 200.0, "power": 2.4,
+		"charge": true,
+		"description": "Przytrzymaj, żeby naciągnąć, i puść: podmuch odpycha wrogów w pasie przed tobą (im dłużej ładujesz, tym szerzej i dalej), a strzała leci daleko i przebija wszystkich. Nie może stać pod dużym przyciskiem.",
+	},
+	"b_ballista": {
+		"name": "Balista", "icon": preload("res://assets/skills/bow/b_ballista.png"),
+		"mana": 45, "cooldown": 12.0, "weapon": "bow", "mastery": 15, "main": true, "range": 120.0, "power": 0.6,
+		"description": "Stawiasz balistę przy wrogu: stoi 8 s, obraca się ku celom i strzela bełtami w najbliższych wrogów.",
+	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
 ## (o COST_STEP każdy), z większym obszarem (o AREA_STEP każdy) i z nowym działaniem.
@@ -157,7 +184,8 @@ const PERK_LEVELS := [5, 10]
 const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "steel_ring": 200,
 		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200,
 		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200,
-		"k_slash": 40, "k_dance": 60, "k_riposte": 90, "k_perun": 140, "k_flash": 200}
+		"k_slash": 40, "k_dance": 60, "k_riposte": 90, "k_perun": 140, "k_flash": 200,
+		"b_shot": 40, "b_seeker": 60, "b_rain": 90, "b_power": 140, "b_ballista": 200}
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
@@ -180,12 +208,18 @@ const PERKS := {
 	"k_riposte": ["Garda czeka 5 s zamiast 3.", "Z precyzyjnego cięcia po okręgu piorun przeskakuje na wrogów obok."],
 	"k_perun": ["Ładuje się o 1/3 szybciej.", "Na końcu cięcia uderza piorun, który rani wszystkich wokół."],
 	"k_flash": ["Zabicie skokiem zwraca dwa razy więcej many.", "Co 5. skok wiązka piorunów przeskakuje po 5 wrogach."],
+	"b_shot": ["Strzała przebija pierwszego wroga i leci dalej.", "Co trzeci strzał to dwie strzały."],
+	"b_seeker": ["6 trafień zamiast 4.", "Lecą dwie strzały naraz."],
+	"b_rain": ["Krąg deszczu o 30% większy.", "Deszcz pada 2 s zamiast 1."],
+	"b_power": ["Naciąga się o 1/3 szybciej.", "Podmuch ogłusza wrogów na 0,8 s."],
+	"b_ballista": ["Balista stoi 11 s zamiast 8.", "Stawiasz dwie balisty naraz."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 ## Kolejność w oknie umiejętności.
 const ORDER := ["strike", "whirl", "throw", "slam", "steel_ring", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
-		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash"]
+		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash",
+		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista"]
 
 
 static func has(id: String) -> bool:

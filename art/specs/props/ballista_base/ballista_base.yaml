@@ -1,0 +1,89 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: ballista_base
+kind: prop
+view: topdown
+# the same camera (center too) and frame as ballista_turret: both sprites share the pivot (the ground point
+# under the pivot pin), so the turret drawn at the same node position sits on this base's pin
+camera: {pitch: 38, scale: 0.04889, center: [0, 0.45, 0]}
+palette: "watra"
+size: 48
+directions: 8
+
+# Balista - nieruchoma podstawa: dwie skrzyżowane belki na ziemi (X), krótki słupek z obejmami i brązowe
+# łożysko z czopem na górze, cztery ukośne zastrzały od belek do słupka. Górna część (ballista_turret)
+# obraca się na czopie; jej oś obrotu to oś Y tego modelu, łożysko kończy się na wysokości 0.66.
+brief:
+  summary: >
+    the fixed base of a Slavic folk ballista (a skill of the air bow): two dark oak beams crossed in an X on
+    the ground with iron caps on the ends, a squat round post bound with iron hoops, four diagonal struts
+    from the beams to the post, and a bronze bearing ring with the pivot pin on top (the turret turns on it)
+  must_keep:
+    - the X of beams reads in s (the game shows only s), about 30-34 px wide
+    - the bronze bearing on top, at y 0.59-0.66, where the turret's pivot sits on it
+  simplify:
+    - no pegs, nails or carvings, only iron caps and hoops
+  decisions:
+    - an X of beams rather than a tripod, as it reads wider and steadier under the turning turret, and looks
+      the same in every direction
+    - dark oak (cooler and darker than Ostoja's wood) so that the bronze and iron fittings pop
+
+shadow: {rx: 15, ry: 5, alpha: 110}
+
+ramps:
+  # dark oak, deep tones a little cool
+  oak:    ["#0d0806", "#2a1810", "#462a19", "#654024", "#835a33", "#a07648"]
+  bronze: ["#140b05", "#45280f", "#76481a", "#a66f2b", "#cf9b48", "#efcb82"]
+  iron:   ["#0d0c0d", "#36343a", "#5a5860", "#7f7e86", "#a5a4aa", "#c9c8cb"]
+
+materials:
+  oak:    {ramp: oak, finish: soft, crease: true}
+  bronze: {ramp: bronze, finish: metal}
+  iron:   {ramp: iron, finish: metal}
+
+bones:
+  beam_a: {parent: root, rot: [0, 0.7854, 0]}
+  beam_b: {parent: root, rot: [0, -0.7854, 0]}
+
+parts:
+  beams:
+    material: oak
+    blend: {mode: chamfer, k: 0.02}
+    prims:
+      - box: {c: [0, 0.07, 0], half: [0.09, 0.07, 0.86], round: 0.02, rot: [0, 0.7854, 0]}
+      - box: {c: [0, 0.07, 0], half: [0.09, 0.07, 0.86], round: 0.02, rot: [0, -0.7854, 0]}
+  caps:            # iron shoes on the four beam ends
+    material: iron
+    prims:
+      - box: {c: [0.61, 0.07, 0.61], half: [0.10, 0.08, 0.06], round: 0.015, rot: [0, 0.7854, 0]}
+      - box: {c: [-0.61, 0.07, 0.61], half: [0.10, 0.08, 0.06], round: 0.015, rot: [0, -0.7854, 0]}
+      - box: {c: [0.61, 0.07, -0.61], half: [0.10, 0.08, 0.06], round: 0.015, rot: [0, -0.7854, 0]}
+      - box: {c: [-0.61, 0.07, -0.61], half: [0.10, 0.08, 0.06], round: 0.015, rot: [0, 0.7854, 0]}
+  struts:          # diagonal braces from the beams to the post
+    material: oak
+    prims:
+      - cylinder: {a: [0.36, 0.12, 0.36], b: [0.08, 0.50, 0.08], r: 0.045}
+      - cylinder: {a: [-0.36, 0.12, 0.36], b: [-0.08, 0.50, 0.08], r: 0.045}
+      - cylinder: {a: [0.36, 0.12, -0.36], b: [0.08, 0.50, -0.08], r: 0.045}
+      - cylinder: {a: [-0.36, 0.12, -0.36], b: [-0.08, 0.50, -0.08], r: 0.045}
+  post:
+    material: oak
+    prims:
+      - cylinder: {a: [0, 0.10, 0], b: [0, 0.60, 0], r: 0.14, round: 0.02}
+  hoops:           # iron bands round the post
+    material: iron
+    prims:
+      - cylinder: {a: [0, 0.17, 0], b: [0, 0.22, 0], r: 0.165}
+      - cylinder: {a: [0, 0.50, 0], b: [0, 0.55, 0], r: 0.165}
+  bearing:         # bronze bearing ring and the pivot pin
+    material: bronze
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0, 0.59, 0], b: [0, 0.64, 0], r: 0.19, round: 0.015}
+      - cylinder: {a: [0, 0.63, 0], b: [0, 0.69, 0], r: 0.07, round: 0.02}
+
+animations:
+  idle:
+    frames: 1
+    ms: 500
+    channels: {}

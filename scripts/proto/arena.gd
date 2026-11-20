@@ -797,8 +797,9 @@ func _link_talismans() -> void:
 func _show_reserved() -> void:
 	if mana_reserved == null or hero == null:
 		return
-	mana_reserved.visible = hero.reserved > 0
-	mana_reserved.anchor_left = 1.0 - float(hero.reserved) / maxf(hero.max_mana, 1.0)
+	var reserved := hero.reserved + hero.summon_reserved  # aury i przywołanie łuku
+	mana_reserved.visible = reserved > 0
+	mana_reserved.anchor_left = 1.0 - float(reserved) / maxf(hero.max_mana, 1.0)
 	mana_reserved.offset_left = 0.0
 	mana_reserved.offset_right = 0.0
 	mana_reserved.offset_top = 0.0

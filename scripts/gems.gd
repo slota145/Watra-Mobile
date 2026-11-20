@@ -170,6 +170,17 @@ const UNIQUE := {
 		"text": "Krąg stali nie znika po czasie i nie ma odnowienia: krąży, dopóki go nie wyłączysz (drugie stuknięcie) albo nie skończy się mana - zużywa ją co sekundę."},
 	"k_flash": {"name": "Kamień Nieskończonej Mgły", "short": "Skoki za pół many",
 		"text": "Każdy skok Błysku Peruna kosztuje o połowę mniej many."},
+	# łuk (ustalone z autorem 20.11.2026)
+	"b_shot": {"name": "Kamień Wielostrzału", "short": "Wielostrzał",
+		"text": "Zamiast jednej strzały wypuszczasz 5 w stożku przed sobą (każda 70% obrażeń)."},
+	"b_seeker": {"name": "Kamień Wiernego Tropiciela", "short": "Przywołanie",
+		"text": "Poszukująca strzała staje się przywołaniem: widmowa strzała krąży przy tobie i co 1,5 s wypuszcza Poszukującą strzałę. Rezerwuje 20% many; drugie stuknięcie ją odwołuje."},
+	"b_rain": {"name": "Kamień Ulewy", "short": "3 deszcze",
+		"text": "Spadają 3 deszcze strzał: na najbliższego wroga i na dwóch innych, oddalonych od siebie."},
+	"b_power": {"name": "Kamień Wichury", "short": "Podmuch na boki",
+		"text": "Za strzałą wzdłuż całego toru wiatr bije na boki - rani i odpycha wrogów od toru strzały (50% siły)."},
+	"b_ballista": {"name": "Kamień Oblężnika", "short": "Powtarza umiejętności",
+		"text": "Balista powtarza ze swojego miejsca twoją Poszukującą strzałę, Deszcz strzał i Potężny strzał - za darmo, z połową siły."},
 	# glewia ognia (ustalone z autorem 14.11.2026)
 	"g_thrust": {"name": "Kamień Trójzęba", "short": "3 pchnięcia",
 		"text": "Glewia dźga trzy razy naraz w wąskim stożku przed sobą - każdy wróg obrywa raz."},
