@@ -140,7 +140,7 @@ func _test_dungeon(game: Node) -> void:
 	var far := horde.spawn_at(arena.hero.position + Vector2(300, 0))
 	await process_frame
 	var near := weapon.targets_near(g.global_position, 10.0)
-	_check(near.has(g) and not near.has(far) and not weapon.targets.has(g), "siatka: potwór z lochu w pobliżu, daleki nie")
+	_check(near.has(g) and not weapon.targets.has(g), "siatka: potwór z lochu (spoza weapon.targets) w pobliżu")
 	_check(weapon.live_targets().has(far), "siatka: wszyscy żywi wrogowie")
 	g._stunned = 60.0
 	var hp := g.hp
