@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b6yfrxg6w3ds6"
-path="res://.godot/imported/earring_leshy.png-215d2b992294d74d182d19871da8d0e9.ctex"
+uid="uid://bdlm27d3umyt5"
+path="res://.godot/imported/worm_tooth.png-6e474d77b07c849be9f770bb246cdca6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/talismans/earring_leshy.png"
-dest_files=["res://.godot/imported/earring_leshy.png-215d2b992294d74d182d19871da8d0e9.ctex"]
+source_file="res://assets/watra/talismans/worm_tooth.png"
+dest_files=["res://.godot/imported/worm_tooth.png-6e474d77b07c849be9f770bb246cdca6.ctex"]
 
 [params]
 

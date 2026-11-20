@@ -1,5 +1,5 @@
 extends SceneTree
-## Zrzuty talizmanów: zakładka „Talizmany” w oknie „Postać” i walka w lochu (fala Sygnetu Gruzłoga, grom Pierścienia
+## Zrzuty talizmanów: zakładka „Talizmany” w oknie „Postać” i walka w lochu (fala Rogu Gruzłoga, grom Pióra
 ## Gromu, drżenie Serca Głębin).
 ## Użycie: SCRIPT=tools/talisman_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
 ## Pliki: <prefiks>_1_zakladka.png, <prefiks>_2_walka.png

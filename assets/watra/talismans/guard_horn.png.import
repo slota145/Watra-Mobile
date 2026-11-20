@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dtbglj8ip8q65"
-path="res://.godot/imported/legend_devourer_helm.png-7bee6ca09cb7be70bef31c903b4a581e.ctex"
+uid="uid://dv6xyehqesmse"
+path="res://.godot/imported/guard_horn.png-ac00444da1260680c6bbe807badf2c7c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/talismans/legend_devourer_helm.png"
-dest_files=["res://.godot/imported/legend_devourer_helm.png-7bee6ca09cb7be70bef31c903b4a581e.ctex"]
+source_file="res://assets/watra/talismans/guard_horn.png"
+dest_files=["res://.godot/imported/guard_horn.png-ac00444da1260680c6bbe807badf2c7c.ctex"]
 
 [params]
 

@@ -1,7 +1,8 @@
 class_name Talismans
 ## Talizmany - przedmioty specjalne bez statystyk, z jednym efektem (pomysł autora 19.11.2026; ustalenia z ankiety
 ## tego dnia): 3 miejsca na talizmany (okno „Postać”, zakładka „Talizmany”), 10 efektów wzorowanych na legendarnej
-## biżuterii Watry (../Watra/scripts/legendary_effects.gd, ikony z Watry w assets/watra/talismans/).
+## biżuterii Watry (../Watra/scripts/legendary_effects.gd); ikony - trofea i magiczne przedmioty z Watry
+## (assets/watra/talismans/; nie biżuteria - zgłoszenie autora 20.11.2026: pierścienie myliły się z ekwipunkiem).
 ## - wypadają od poziomu lochu MIN_LEVEL ze skrzyń na mapie lochu (`roll_chest`) i jako nagroda Kręgu Żertwy;
 ## - po podniesieniu talizman od razu jest w kolekcji (Game.add_talisman, bez torby) i sam wskakuje w wolne miejsce;
 ## - kolejny taki sam podnosi jego poziom (1-MAX_LEVEL): większa szansa i siła efektu.
@@ -21,48 +22,48 @@ const ORDER: Array[String] = ["shockwave", "thunder", "whirlpool", "roots", "tho
 ## hurt - rana postaci, skill - użyta umiejętność, passive - co `every` s), chance - [szansa na 1. poziomie, przyrost
 ## za poziom], power - [siła na 1. poziomie, przyrost] (zwykle część ciosu broni).
 const DATA := {
-	"shockwave": {"name": "Sygnet Gruzłoga", "icon": preload("res://assets/watra/talismans/ring_gruzlog.png"),
+	"shockwave": {"name": "Róg Gruzłoga", "icon": preload("res://assets/watra/talismans/guard_horn.png"),
 		"color": Color8(230, 190, 110), "trigger": "hit", "chance": [0.10, 0.008], "power": [0.8, 0.1]},
-	"thunder": {"name": "Pierścień Gromu", "icon": preload("res://assets/watra/talismans/ring_storm.png"),
+	"thunder": {"name": "Pióro Gromu", "icon": preload("res://assets/watra/talismans/storm_feather.png"),
 		"color": Color8(120, 170, 255), "trigger": "hit", "chance": [0.10, 0.008], "power": [1.0, 0.12]},
-	"whirlpool": {"name": "Pierścień Topieli", "icon": preload("res://assets/watra/talismans/ring_wodnik.png"),
+	"whirlpool": {"name": "Perła Topieli", "icon": preload("res://assets/watra/talismans/drowned_pearl.png"),
 		"color": Color8(80, 150, 255), "trigger": "hit", "chance": [0.08, 0.006], "power": [0.25, 0.03]},
-	"roots": {"name": "Obręcz Leszego", "icon": preload("res://assets/watra/talismans/ring_leshy.png"),
+	"roots": {"name": "Gałąź Leszego", "icon": preload("res://assets/watra/talismans/summon_leshy.png"),
 		"color": Color8(120, 200, 90), "trigger": "hit", "chance": [0.10, 0.008], "power": [0.4, 0.05]},
-	"thorns": {"name": "Żołądź Leszego", "icon": preload("res://assets/watra/talismans/earring_leshy.png"),
+	"thorns": {"name": "Kora Leszego", "icon": preload("res://assets/watra/talismans/ancient_bark.png"),
 		"color": Color8(150, 210, 80), "trigger": "hurt", "chance": [0.35, 0.03], "power": [1.0, 0.12]},
-	"bloodlust": {"name": "Szpon Biesa", "icon": preload("res://assets/watra/talismans/earring_bies.png"),
+	"bloodlust": {"name": "Czaszka Biesa", "icon": preload("res://assets/watra/talismans/summon_bies.png"),
 		"color": Color8(230, 60, 50), "trigger": "kill", "chance": [0.30, 0.03], "power": [0.06, 0.006]},
 	"kaboom": {"name": "Serce Goblina", "icon": preload("res://assets/watra/talismans/goblin_heart.png"),
 		"color": Color8(255, 130, 50), "trigger": "kill", "chance": [0.20, 0.02], "power": [0.6, 0.07]},
-	"devour": {"name": "Szczęka Pożeracza", "icon": preload("res://assets/watra/talismans/legend_devourer_helm.png"),
+	"devour": {"name": "Ząb Pożeracza", "icon": preload("res://assets/watra/talismans/worm_tooth.png"),
 		"color": Color8(220, 90, 120), "trigger": "kill", "chance": [0.10, 0.01], "power": [0.02, 0.002]},
 	"tremor": {"name": "Serce Głębin", "icon": preload("res://assets/watra/talismans/crystal_heart.png"),
 		"color": Color8(190, 140, 90), "trigger": "passive", "chance": [1.0, 0.0], "power": [0.5, 0.06]},
-	"archmage": {"name": "Korona Peruna", "icon": preload("res://assets/watra/talismans/legend_perun_crown.png"),
+	"archmage": {"name": "Kryształ Peruna", "icon": preload("res://assets/watra/talismans/summon_storm_eagle.png"),
 		"color": Color8(150, 200, 255), "trigger": "skill", "chance": [1.0, 0.0], "power": [0.15, 0.02]},
 }
 
 ## Przerwa po zadziałaniu efektu przy trafieniu (umiejętności trafiające wielu wrogów naraz nie sypią efektami).
 const HIT_GAP := 0.25
-## Sygnet Gruzłoga: promień fali i ogłuszenie.
+## Róg Gruzłoga: promień fali i ogłuszenie.
 const SHOCK_RADIUS := 40.0
 const SHOCK_STUN := 0.6
-## Pierścień Gromu: piorun przeskakuje na tylu wrogów w tym zasięgu.
+## Pióro Gromu: piorun przeskakuje na tylu wrogów w tym zasięgu.
 const THUNDER_CHAIN := 2
 const THUNDER_RANGE := 70.0
-## Pierścień Topieli: wir ciągnie wrogów z promienia, rani co WHIRL_TICK s, WHIRL_TICKS razy.
+## Perła Topieli: wir ciągnie wrogów z promienia, rani co WHIRL_TICK s, WHIRL_TICKS razy.
 const WHIRL_RADIUS := 60.0
 const WHIRL_TICK := 0.3
 const WHIRL_TICKS := 4
 const WHIRL_PULL := 120.0
-## Obręcz Leszego: korzenie oplątują wrogów w promieniu na ROOTS_TIME s (+ROOTS_TIME_STEP za poziom).
+## Gałąź Leszego: korzenie oplątują wrogów w promieniu na ROOTS_TIME s (+ROOTS_TIME_STEP za poziom).
 const ROOTS_RADIUS := 35.0
 const ROOTS_TIME := 1.5
 const ROOTS_TIME_STEP := 0.1
-## Żołądź Leszego: ciernie wokół postaci.
+## Kora Leszego: ciernie wokół postaci.
 const THORNS_RADIUS := 45.0
-## Szpon Biesa: najwięcej tylu ładunków, każdy trwa tyle sekund (nowy odświeża czas).
+## Czaszka Biesa: najwięcej tylu ładunków, każdy trwa tyle sekund (nowy odświeża czas).
 const BLOODLUST_STACKS := 5
 const BLOODLUST_TIME := 5.0
 ## Serce Goblina: promień wybuchu pokonanego.
@@ -71,7 +72,7 @@ const KABOOM_RADIUS := 45.0
 const TREMOR_EVERY := 3.0
 const TREMOR_STEP := 0.1
 const TREMOR_RADIUS := 60.0
-## Korona Peruna (jak Archmage w Path of Exile): piorun po umiejętności - część ciosu + część pełnej many;
+## Kryształ Peruna (jak Archmage w Path of Exile): piorun po umiejętności - część ciosu + część pełnej many;
 ## umiejętności kosztują więcej many (ARCHMAGE_COST, mniej o ARCHMAGE_COST_STEP za poziom).
 const ARCHMAGE_HIT := 0.3
 const ARCHMAGE_RANGE := 200.0
@@ -118,12 +119,12 @@ static func tremor_every(level := 1) -> float:
 	return TREMOR_EVERY - TREMOR_STEP * (clampi(level, 1, MAX_LEVEL) - 1)
 
 
-## Korona Peruna: o tyle droższe umiejętności (ułamek).
+## Kryształ Peruna: o tyle droższe umiejętności (ułamek).
 static func archmage_cost(level := 1) -> float:
 	return ARCHMAGE_COST - ARCHMAGE_COST_STEP * (clampi(level, 1, MAX_LEVEL) - 1)
 
 
-## Obręcz Leszego: czas oplątania.
+## Gałąź Leszego: czas oplątania.
 static func roots_time(level := 1) -> float:
 	return ROOTS_TIME + ROOTS_TIME_STEP * (clampi(level, 1, MAX_LEVEL) - 1)
 

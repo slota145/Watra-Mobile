@@ -15,6 +15,10 @@ między wierszami (wiersze i przyciski łapały dotyk), suwaki z boku za wąskie
   (Szczęka Pożeracza 10/10 wypychała „Wróć” za ekran), mniejsza ikona (34 px) i przycisk (70 px). Dolny pasek zakładek
   okna „Postać” - czcionka 11, szersze „Ekwipunek”, „Statystyki”, „Talizmany”.
 - Test: `tests/test_touch_ui.gd` (przeciąganie przez Input.parse_input_event).
+- Nowe ikony i nazwy talizmanów (zgłoszenie autora: pierścienie myliły się z pierścieniami ekwipunku) - trofea
+  i magiczne przedmioty z Watry: Róg Gruzłoga (był Sygnet), Pióro Gromu (Pierścień Gromu), Perła Topieli (Pierścień
+  Topieli), Gałąź Leszego (Obręcz), Kora Leszego (Żołądź), Czaszka Biesa (Szpon), Ząb Pożeracza (Szczęka), Kryształ
+  Peruna (Korona); Serce Goblina i Serce Głębin bez zmian. Identyfikatory w zapisie te same.
 
 ## 20.11.2026 - obrażenia od żywiołów, nowe efekty talizmanów i aur
 

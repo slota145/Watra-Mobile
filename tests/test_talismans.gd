@@ -146,7 +146,7 @@ func _test_combat(game: Node) -> void:
 		arena.talismans_node._hit_ready.clear()
 		hero._invulnerable = 0.0
 		hero.take_damage(1)
-	_check(g.hp < hp, "Żołądź Leszego: ciernie, gdy postać dostaje cios")
+	_check(g.hp < hp, "Kora Leszego: ciernie, gdy postać dostaje cios")
 	# zabójstwa
 	_wear(game, ["bloodlust", "devour", "kaboom"])
 	var near := _goblin(arena, hero.position + Vector2(10, 0))
@@ -157,21 +157,21 @@ func _test_combat(game: Node) -> void:
 		arena.talismans_node.on_kill(g)
 	await process_frame
 	await process_frame
-	_check(weapon.bonus_mult > 1.0, "Szpon Biesa: więcej obrażeń po zabójstwach (x%.2f)" % weapon.bonus_mult)
-	_check(hero.hp > hero_hp, "Szczęka Pożeracza: pokonany wróg leczy")
+	_check(weapon.bonus_mult > 1.0, "Czaszka Biesa: więcej obrażeń po zabójstwach (x%.2f)" % weapon.bonus_mult)
+	_check(hero.hp > hero_hp, "Ząb Pożeracza: pokonany wróg leczy")
 	_check(near.hp < hp, "Serce Goblina: pokonany wróg wybucha")
-	# Serce Głębin i Korona Peruna
+	# Serce Głębin i Kryształ Peruna
 	_wear(game, ["tremor", "archmage"])
 	await process_frame
 	_check(weapon.mana_tax > 0.0 and weapon.mana_cost("whirl") > roundi(Skills.mana_of("whirl")),
-			"Korona Peruna: umiejętności droższe")
+			"Kryształ Peruna: umiejętności droższe")
 	hp = near.hp
 	arena.talismans_node._tremor_next = 0.0
 	await _wait(0.1)
 	_check(near.hp < hp, "Serce Głębin: drżenie ziemi rani wrogów wokół")
 	hp = near.hp
 	arena.talismans_node.on_skill("whirl")
-	_check(near.hp < hp and near.is_shocked(), "Korona Peruna: umiejętność ciska piorun")
+	_check(near.hp < hp and near.is_shocked(), "Kryształ Peruna: umiejętność ciska piorun")
 	_wear(game, [])
 	await process_frame
 	_check(weapon.mana_tax == 0.0 and weapon.bonus_mult == 1.0, "bez talizmanów broń jak zwykle")

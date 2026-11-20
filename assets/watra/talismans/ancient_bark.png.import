@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://vy8vabkmj4ha"
-path="res://.godot/imported/legend_perun_crown.png-4062a152c6664cf4089df067d6cb4d2a.ctex"
+uid="uid://c2ygn5tllrttk"
+path="res://.godot/imported/ancient_bark.png-ff49a8ed522418792c69689d0ba49ded.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/talismans/legend_perun_crown.png"
-dest_files=["res://.godot/imported/legend_perun_crown.png-4062a152c6664cf4089df067d6cb4d2a.ctex"]
+source_file="res://assets/watra/talismans/ancient_bark.png"
+dest_files=["res://.godot/imported/ancient_bark.png-ff49a8ed522418792c69689d0ba49ded.ctex"]
 
 [params]
 

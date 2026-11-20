@@ -693,7 +693,7 @@ func aura_cut() -> float:
 ## Mana na najdroższą umiejętność w miejscach obecnej broni (koszt z poziomem umiejętności, bez kamieni).
 func priciest_skill() -> int:
 	var most := 0
-	var tax := Talismans.archmage_cost(talismans["archmage"]) if talisman_slots.has("archmage") else 0.0  # Korona Peruna
+	var tax := Talismans.archmage_cost(talismans["archmage"]) if talisman_slots.has("archmage") else 0.0  # Kryształ Peruna
 	for id in skill_slots:
 		if id != "" and Skills.has(id):
 			most = maxi(most, roundi(Skills.mana_of(id) * Skills.level_mana(skill_level(id)) * (1.0 + tax)))

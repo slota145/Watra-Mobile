@@ -260,8 +260,8 @@ var skill_levels := {}
 var targets: Array[ProtoTarget] = []
 ## Aura Żar Swaroga (Auras): tyle części każdego trafienia dochodzi jako ogień (z podpaleniem); 0 - brak aury.
 var aura_fire := 0.0
-## Talizmany (ProtoTalismans): węzeł wołany przy każdym trafieniu (`on_hit`), dopłata many za umiejętności (Korona Peruna)
-## i mnożnik obrażeń (Szpon Biesa).
+## Talizmany (ProtoTalismans): węzeł wołany przy każdym trafieniu (`on_hit`), dopłata many za umiejętności (Kryształ Peruna)
+## i mnożnik obrażeń (Czaszka Biesa).
 var talismans: ProtoTalismans
 var mana_tax := 0.0
 ## Premia przedmiotów „+% obrażeń od żywiołów” (Items elem_dmg_pct): mnożnik każdego trafienia żywiołem (broń
@@ -700,7 +700,7 @@ func _sword_cut_fx(t: ProtoTarget, from: Vector2) -> void:
 
 ## Trafienie aury (ProtoAuras: piorun Peruna, mróz Szronu, Błędny Ognik): `power` zwykłego ciosu w żywiole `elem`,
 ## z premią przeciw elitom i odpornością celu, bez krytyków i kamieni. Liczba w kolorze żywiołu. `flat` - stałe
-## obrażenia dodane do rzutu (talizman Korona Peruna - część many).
+## obrażenia dodane do rzutu (talizman Kryształ Peruna - część many).
 func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2, flat := 0) -> void:
 	if not t.alive():
 		return
