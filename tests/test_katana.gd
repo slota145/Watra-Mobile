@@ -1,5 +1,5 @@
 extends SceneTree
-## Test elektrycznej katany i combo z przemoczeniem (15.11.2026): dostępność (Wódz 20. poziomu albo 6000 zł), zmiana
+## Test elektrycznej katany i combo z przemoczeniem (15.11.2026): dostępność (Wódz 20. poziomu albo Pieczęć Oręża), zmiana
 ## broni (węzeł ProtoKatana), porażenie (+15% obrażeń, przeskok na sąsiada), przemoczenie (krople, +30% od Gromu,
 ## dłuższy przeskok, zamrożenie lodem z odpornością), a w walce: cięcie, Taniec ostrza, Riposta (garda, kontra),
 ## ładowany Sąd Peruna, Błysk Peruna.
@@ -41,8 +41,8 @@ func _run() -> void:
 func _test_unlock(game: Node) -> void:
 	game.reset_hero()
 	game.best_level = 15
-	_check(Weapons.element_of("katana") == Elements.LIGHTNING and Weapons.unlock_level("katana") == 20
-			and Weapons.price_of("katana") == 6000, "katana: Grom, Wódz 20. poziomu albo 6000 zł")
+	_check(Weapons.element_of("katana") == Elements.LIGHTNING and Weapons.unlock_level("katana") == 20,
+			"katana: Grom, Wódz 20. poziomu")
 	_check(Skills.of_weapon("katana").size() == 5 and Skills.basic_of("katana") == "k_slash",
 			"5 umiejętności, zwykły cios - błyskawiczne cięcie")
 	_check(not game.weapon_available("katana") and game.weapon_available("hydrosphere"), "po 15. poziomie bez katany")

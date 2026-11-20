@@ -1,5 +1,5 @@
 extends SceneTree
-## Test glewii ognia (13.11.2026): dostępność (próg Wodza 10. poziomu albo 3000 zł), kupno, zmiana broni (osobne
+## Test glewii ognia (13.11.2026): dostępność (próg Wodza 10. poziomu albo Pieczęć Oręża), odblokowanie pieczęcią, zmiana broni (osobne
 ## miejsca umiejętności i mistrzostwo, odblokowanie zwykłego ciosu glewii), podmiana węzła broni w bazie, przyciski
 ## broni w oknie umiejętności, a w walce: pchnięcie na linii z podpaleniem, Ognisty zamach w łuku, Płonący ślad
 ## (doskok i pas ognia, który rani), Słup ognia (wybuch i płonący krąg) i Taniec płomieni (lecące cięcia).
@@ -42,19 +42,22 @@ func _run() -> void:
 func _test_unlock(game: Node) -> void:
 	game.reset_hero()
 	game.best_level = 0
-	_check(Weapons.element_of("glaive") == Elements.FIRE and Weapons.unlock_level("glaive") == 10
-			and Weapons.price_of("glaive") == 3000, "glewia ognia: ogień, Wódz 10. poziomu albo 3000 zł")
+	_check(Weapons.element_of("glaive") == Elements.FIRE and Weapons.unlock_level("glaive") == 10,
+			"glewia ognia: ogień, Wódz 10. poziomu")
 	_check(Skills.of_weapon("glaive").size() == 5 and Skills.basic_of("glaive") == "g_thrust" and Skills.is_basic("g_thrust")
 			and not Skills.is_basic("g_sweep"), "5 umiejętności glewii, zwykły cios - pchnięcie")
 	_check(not game.weapon_available("glaive") and not game.set_weapon("glaive"), "na start glewii nie ma")
-	game.gold = 2999
-	_check(not game.buy_weapon("glaive") and game.gold == 2999, "za mało złota - nie kupi")
+	_check(not game.unseal_weapon("glaive"), "bez Pieczęci Oręża nie odblokuje")
 	game.best_level = 10
 	_check(game.weapon_available("glaive"), "po przebiciu 10. poziomu glewia za darmo")
 	game.best_level = 0
-	game.gold = 3500
-	_check(game.buy_weapon("glaive") and game.gold == 500 and game.weapon_available("glaive"), "kupno glewii za 3000 zł")
-	_check(not game.buy_weapon("glaive") and game.gold == 500, "drugi raz się nie kupi")
+	game.add_gem(Gems.WEAPON_SEAL, 2, false)
+	_check(game.unseal_weapon("glaive") and game.gem_count(Gems.WEAPON_SEAL) == 1 and game.weapon_available("glaive"),
+			"Pieczęć Oręża odblokowuje glewię")
+	_check(not game.unseal_weapon("glaive") and game.gem_count(Gems.WEAPON_SEAL) == 1, "drugi raz pieczęć zostaje")
+	_check(game.roll_weapon_seal(1000.0) == false, "z pieczęcią w sakwie nowa nie wypada")
+	game._take_gem(Gems.WEAPON_SEAL)
+	_check(game.roll_weapon_seal(1000.0), "bez pieczęci, gdy jest broń do odblokowania - wypada")
 	game.hero_level = 15
 	game.mastery["sword"] = 6
 	game._unlock_skills()

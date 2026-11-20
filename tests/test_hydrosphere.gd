@@ -1,5 +1,5 @@
 extends SceneTree
-## Test hydrosfery (14.11.2026): dostępność (Wódz 15. poziomu albo 4500 zł), zmiana broni (węzeł ProtoHydrosphere,
+## Test hydrosfery (14.11.2026): dostępność (Wódz 15. poziomu albo Pieczęć Oręża), zmiana broni (węzeł ProtoHydrosphere,
 ## pocisk pod „Atak”), a w walce: wodny pocisk (leci, trafia, rozprysk, przemoczenie), Fala (przebija, odpycha),
 ## Wir (rani co chwilę), Gejzery (ogłuszają), Wodny Strażnik (wybuch, strzela); kamienie unikalne (krążące bańki,
 ## fale dookoła, wędrujący wir, kule z gejzerów, echo Strażnika).
@@ -92,8 +92,8 @@ func _test_unique(game: Node) -> void:
 func _test_unlock(game: Node) -> void:
 	game.reset_hero()
 	game.best_level = 10
-	_check(Weapons.element_of("hydrosphere") == Elements.WATER and Weapons.unlock_level("hydrosphere") == 15
-			and Weapons.price_of("hydrosphere") == 4500, "hydrosfera: woda, Wódz 15. poziomu albo 4500 zł")
+	_check(Weapons.element_of("hydrosphere") == Elements.WATER and Weapons.unlock_level("hydrosphere") == 15,
+			"hydrosfera: woda, Wódz 15. poziomu")
 	_check(Skills.of_weapon("hydrosphere").size() == 5 and Skills.basic_of("hydrosphere") == "h_bolt",
 			"5 umiejętności, zwykły cios - wodny pocisk")
 	_check(not game.weapon_available("hydrosphere") and game.weapon_available("glaive"), "po 10. poziomie tylko glewia")

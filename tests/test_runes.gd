@@ -1,6 +1,7 @@
 extends SceneTree
 ## Test run (Runes): działanie każdej runy na premiach przedmiotu, kiedy runy nie da się użyć, losowanie z poziomu
-## lochu (Pieczęć dopiero od 20.), łup ze skrzyni Wodza, zapis zapasu run w Game i nagrody celów (Żertwa, Kryształ).
+## lochu (Pieczęć dopiero od 20.), łup ze skrzyni Wodza, zapis zapasu run w Game i nagrody celów (Żertwa, Kryształ),
+## przeliczenie złota ze starego zapisu na runy i rudę, rozbijanie przedmiotów hurtem.
 
 var _failed := 0
 
@@ -128,3 +129,21 @@ func _test_save(game: Node) -> void:
 	_check(game.use_rune(it, Runes.POLISH, 0) and game.runes[Runes.POLISH] == 2, "użycie zabiera jedną runę")
 	game.dev_runes()
 	_check(game.runes[Runes.CHAOS] == 5 and game.runes[Runes.POLISH] == 7, "tryb deweloperski: +5 każdej runy")
+	# stary zapis ze złotem: runy (1000 zł za runę, najwyżej 20, bez Pieczęci) i ruda z reszty (100 zł, najwyżej 100)
+	for case in [[3450, 3, 4], [25350, 20, 53], [999999, 20, 100]]:
+		var f := FileAccess.open(game.save_path, FileAccess.WRITE)
+		f.store_string(JSON.stringify({"best_level": 30, "gold": case[0]}))
+		f.close()
+		game.load_game()
+		var count := 0
+		for id in game.runes:
+			count += game.runes[id]
+		_check(count == case[1] and game.ore == case[2] and not game.runes.has(Runes.SEAL) and game.gold == 0
+				and game.gold_converted == Vector2i(case[1], case[2]), "%d zł -> %d run i %d rudy" % case)
+	game.save_game()
+	game.load_game()
+	_check(game.gold_converted == Vector2i.ZERO and game.ore == 100, "przeliczenie tylko raz, „ore” w zapisie")
+	game.dismantle_all(["common"])
+	game.bag = [Items.roll(5, "ring", "rare"), Items.roll(5, "ring", "common")]
+	var got: Dictionary = game.dismantle_all(["common", "magic", "rare"])
+	_check(got.ore == 5 and game.ore == 105 and game.bag.is_empty(), "rozbijanie hurtem: 4 + 1 rudy")

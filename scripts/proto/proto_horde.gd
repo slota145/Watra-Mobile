@@ -80,6 +80,8 @@ var climate := Dungeons.GOBLINS
 ## Drzewko lochów: mnożnik liczby potworów (częściej i więcej naraz), mnożnik szans łupu, dodatkowy zasięg zbierania.
 var density := 1.0
 var loot_mult := 1.0
+## Drzewko lochów (Skarbiec, ustawia arena - Game.treasury_mult): mnożnik szansy na runy (razem z loot_mult).
+var rune_mult := 1.0
 ## Drzewko lochów (Kamienie Watry): mnożnik szansy na kamienie z goblinów (razem z loot_mult).
 var gem_mult := 1.0
 var reach := 0.0
@@ -331,7 +333,7 @@ func _on_died(g: ProtoGoblin) -> void:
 	var gem := Gems.roll_goblin(level, loot_mult * gem_mult)
 	if gem != "":
 		drop_item({"gem": gem}, g.position)
-	var rune := Runes.roll_monster(level, g.elite != null, loot_mult)  # runy - rzadko, elity częściej
+	var rune := Runes.roll_monster(level, g.elite != null, loot_mult * rune_mult)  # runy - rzadko, elity częściej
 	if rune != "":
 		drop_item({"rune": rune}, g.position)
 	if g.elite:

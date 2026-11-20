@@ -54,13 +54,13 @@ func _test_slots(game: Node) -> void:
 	_check(list.size() == 3 and list[0].name == "Ala" and list[2].ssf, "trzy postacie, kolejność tworzenia, SSF")
 	game.select_character(a)
 	_check(game.character == a and game.char_name == "Ala" and game.hero_level == 1, "wybór postaci wczytuje jej zapis")
-	game.gold = 500
+	game.ore = 500
 	game.hero_level = 7
 	game.stash[0].append(Items.roll(5))
 	game.dev_immortal = true
 	game.save_settings()
 	game.select_character(b)
-	_check(game.gold == 0 and game.hero_level == 1 and not game.dev_immortal, "druga postać osobno: złoto, poziom, tryb deweloperski")
+	_check(game.ore == 0 and game.hero_level == 1 and not game.dev_immortal, "druga postać osobno: ruda, poziom, tryb deweloperski")
 	_check(game.stash[0].size() == 1, "wspólna skrzynia: przedmiot postaci Ala widać u Bolka")
 	game.select_character(c)
 	_check(game.ssf and game.stash[0].is_empty(), "SSF: własna, pusta skrzynia")
@@ -71,7 +71,7 @@ func _test_slots(game: Node) -> void:
 	game.reset_hero()
 	_check(game.stash[0].size() == 1, "„postać od nowa” nie czyści wspólnej skrzyni")
 	game.select_character(a)
-	_check(game.gold == 500 and game.hero_level == 7 and game.dev_immortal, "powrót do Ali: wszystko zostało")
+	_check(game.ore == 500 and game.hero_level == 7 and game.dev_immortal, "powrót do Ali: wszystko zostało")
 	_check(game.last_character == a, "ostatnia postać zapamiętana")
 	var info: Dictionary = game.list_characters()[0]
 	_check(info.level == 7 and info.dev, "karta: poziom i znaczek trybu deweloperskiego")
@@ -90,7 +90,8 @@ func _test_migrate(game: Node) -> void:
 	game._migrate_legacy()
 	_check(not FileAccess.file_exists(LEGACY) and FileAccess.file_exists(DIR + "c0.json"), "stary zapis przeniesiony na postać")
 	game.select_character("c0")
-	_check(game.char_name == Game.DEFAULT_NAME and game.hero_level == 12 and game.gold == 77, "przeniesiona postać: Wojciech, poziom i złoto")
+	_check(game.char_name == Game.DEFAULT_NAME and game.hero_level == 12 and game.ore == 0 and game.gold == 0,
+			"przeniesiona postać: Wojciech, poziom; 77 złota to za mało na rudę")
 
 
 func _test_menu(game: Node) -> void:

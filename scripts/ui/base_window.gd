@@ -11,7 +11,7 @@ signal closed
 const GOLD := Color(1, 0.78, 0.35)
 const TEXT := Color(1, 0.92, 0.78)
 const DIM := Color(1, 0.85, 0.6, 0.8)
-const COIN := preload("res://assets/watra/items/coin.png")
+const ORE := preload("res://assets/watra/items/iron_ore.png")
 const EMBER := preload("res://assets/watra/ember_icon.png")
 
 var title_label: Label
@@ -53,7 +53,7 @@ func _ready() -> void:
 	title_label = label(head, "", 18, GOLD)
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	currency_icon = TextureRect.new()
-	currency_icon.texture = COIN
+	currency_icon.texture = ORE
 	currency_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	currency_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	currency_icon.custom_minimum_size = Vector2(18, 18)
@@ -113,7 +113,7 @@ func back() -> void:
 	close()
 
 
-## Waluta w nagłówku: ikona (złoto albo żar) i liczba.
+## Waluta w nagłówku: ikona (ruda, runa albo żar) i liczba.
 func set_currency(icon: Texture2D, amount: int) -> void:
 	currency_icon.texture = icon
 	currency_label.text = str(amount)

@@ -1,7 +1,7 @@
 extends SceneTree
 ## Test kamieni (Gems): dane i łup (od 3. poziomu lochu), sakwa, gniazda umiejętności (2 otwarte z 5, Klucz Runiczny,
 ## jeden rodzaj raz, wyjmowanie za darmo), gniazda przedmiotów (premia według miejsca, Dłuto Jubilera, stare zapisy,
-## sprzedaż oddaje kamienie), zapis, działanie w walce (koszt many, odnowienie, podpalenie, spowolnienie, leczenie,
+## rozbicie oddaje kamienie), zapis, działanie w walce (koszt many, odnowienie, podpalenie, spowolnienie, leczenie,
 ## piorun, Mnożenie, Szerokość), podnoszenie kamienia z ziemi, okno umiejętności (zakładka „Kamienie”) i okno „Postać”.
 
 var _failed := 0
@@ -33,7 +33,7 @@ func _run() -> void:
 	_test_data()
 	_test_skill_sockets(game)
 	_test_item_sockets(game)
-	_test_upgrade_sell(game)
+	_test_upgrade_shatter(game)
 	await _test_combat(game)
 	await _test_windows(game)
 	await _test_window_width(game)
@@ -84,15 +84,16 @@ func _test_data() -> void:
 	_check(pool_ok and counts[2] > 200 and counts[3] > 80 and counts.size() == 2,
 			"szlachetny wypada z 2-3 różnymi premiami z puli (%d / %d)" % [counts[2], counts[3]])
 	# ulepszanie: koszt, kamień umiejętności o poziom wyżej, szlachetny z nową premią
-	_check(Gems.upgrade_cost("ember:1") == Vector2i(80, 2) and Gems.upgrade_cost("ember:9").x > 1000
-			and Gems.upgrade_cost("ember:10") == Vector2i.ZERO, "koszt ulepszenia rośnie, 10. poziom to koniec")
+	_check(Gems.upgrade_cost("ember:1") == 7 and Gems.upgrade_cost("ember:9") == 61
+			and Gems.upgrade_cost("ember:10") == 0, "koszt ulepszenia w odpryskach rośnie (7 -> 61), 10. poziom to koniec")
 	_check(Gems.upgraded("ember:4") == "ember:5" and not Gems.can_upgrade(Gems.unique_of("strike")), "ulepszenie kamienia umiejętności")
 	var up := Gems.upgraded(RUBY)
 	_check(Gems.level_of(up) == 3 and Gems.jewel_stats(up).slice(0, 2) == Gems.jewel_stats(RUBY), "ulepszenie dokłada premię szlachetnemu")
 	var full := Gems.roll_jewel("onyx", 5, 5)
-	_check(not Gems.can_upgrade(full) and Gems.upgrade_cost(full) == Vector2i.ZERO, "najwyżej 5 premii")
-	_check(Gems.sell_price("ember:5") > Gems.sell_price("ember:1") and Gems.shard_value("ember:5") > Gems.shard_value("ember:1")
-			and Gems.sell_price(Gems.KEY) == 0 and not Gems.can_sell(Gems.CHISEL), "sprzedaż i odpryski rosną z ulepszeniem; klucz nie na sprzedaż")
+	_check(not Gems.can_upgrade(full) and Gems.upgrade_cost(full) == 0, "najwyżej 5 premii")
+	_check(Gems.shard_value("ember:5") > Gems.shard_value("ember:1") and Gems.shard_value(Gems.KEY) == 0
+			and not Gems.can_shatter(Gems.CHISEL) and not Gems.can_shatter(Gems.WEAPON_SEAL),
+			"odpryski z rozbicia rosną z ulepszeniem; klucza, dłuta i pieczęci nie rozbija się")
 	var low := true
 	for i in 300:
 		low = low and Gems.roll_goblin(2) == "" and Gems.roll_chest(2).is_empty()
@@ -197,52 +198,50 @@ func _test_item_sockets(game: Node) -> void:
 	game.load_game()
 	_check(game.equipped.helmet.sockets == [RUBY, ""], "kamienie przedmiotu w zapisie")
 	_check(game.unequip("helmet"), "zdjęcie hełmu z kamieniem")
-	game.sell(0)
-	_check(game.gem_count(RUBY) == 1, "sprzedaż przedmiotu oddaje kamień do sakwy")
+	game.dismantle(0)
+	_check(game.gem_count(RUBY) == 1, "rozbicie przedmiotu oddaje kamień do sakwy")
 	var it2 := Items.roll(3, "ring", "common")
 	it2.sockets = [""]
 	game.bag = [it2]
 	game.socket_item(game.bag[0], 0, RUBY)
-	game.sell_all(["common"])
-	_check(game.gem_count(RUBY) == 1 and game.bag.is_empty(), "sprzedaż hurtem też oddaje kamienie")
+	game.dismantle_all(["common"])
+	_check(game.gem_count(RUBY) == 1 and game.bag.is_empty(), "rozbijanie hurtem też oddaje kamienie")
 	game.reset_hero()
 
 
-## Ulepszanie (sakwa, gniazdo umiejętności, gniazdo przedmiotu), sprzedaż i rozbijanie, sortowanie i filtr sakwy.
-func _test_upgrade_sell(game: Node) -> void:
+## Ulepszanie za odpryski (sakwa, gniazdo umiejętności, gniazdo przedmiotu), rozbijanie, sortowanie i filtr sakwy.
+func _test_upgrade_shatter(game: Node) -> void:
 	game.reset_hero()
 	game.add_gem("ember:1", 2)
-	_check(game.upgrade_gem("ember:1") == "", "bez złota i odprysków nie ma ulepszenia")
-	game.gold = 1000
-	game.shards = 10
-	_check(game.upgrade_gem("ember:1") == "ember:2" and game.gold == 920 and game.shards == 8
-			and game.gem_count("ember:1") == 1 and game.gem_count("ember:2") == 1, "ulepszenie sztuki ze stosu: złoto i odpryski")
+	_check(game.upgrade_gem("ember:1") == "", "bez odprysków nie ma ulepszenia")
+	game.shards = 30
+	_check(game.upgrade_gem("ember:1") == "ember:2" and game.shards == 23
+			and game.gem_count("ember:1") == 1 and game.gem_count("ember:2") == 1, "ulepszenie sztuki ze stosu za odpryski")
 	game.socket_skill("strike", 0, "ember:2")
 	_check(game.upgrade_gem("ember:2", "strike", {}, 0) == "ember:3" and game.skill_sockets("strike")[0] == "ember:3",
 			"ulepszenie kamienia w gnieździe umiejętności")
 	var item := Items.roll(5, "helmet", "magic")
 	item.sockets = [RUBY]
 	game.bag = [item]
-	game.gold = 5000
 	game.shards = 50
 	var up: String = game.upgrade_gem(RUBY, "", game.bag[0], 0)
 	_check(Gems.level_of(up) == 3 and game.bag[0].sockets[0] == up, "ulepszenie kamienia w gnieździe przedmiotu")
 	game.load_game()
-	_check(game.shards == 45, "odpryski w zapisie (%d)" % game.shards)
+	_check(game.shards == 35, "odpryski w zapisie (%d)" % game.shards)
 	_check(game.skill_sockets("strike")[0] == "ember:3" and game.bag[0].sockets[0] == up, "ulepszone kamienie w zapisie")
-	# sprzedaż i rozbijanie
+	# rozbijanie
 	game.add_gem("rime:1", 3)
 	game.add_gem(ONYX)
 	game.add_gem(Gems.KEY)
-	var gold: int = game.gold
-	var got: Vector2i = game.sell_gems(["rime:1", Gems.KEY])
-	_check(got.x == Gems.sell_price("rime:1") * 3 and game.gold == gold + got.x and game.gem_count("rime:1") == 0
-			and game.gem_count(Gems.KEY) == 1, "sprzedaż kilku naraz: cały stos, klucz zostaje")
 	var shards: int = game.shards
-	got = game.sell_gems([ONYX], true)
-	_check(got.y == Gems.shard_value(ONYX) and game.shards == shards + got.y and game.gem_count(ONYX) == 0, "rozbicie na odpryski")
+	var got: int = game.shatter_gems(["rime:1", Gems.KEY])
+	_check(got == Gems.shard_value("rime:1") * 3 and game.shards == shards + got and game.gem_count("rime:1") == 0
+			and game.gem_count(Gems.KEY) == 1, "rozbicie kilku naraz: cały stos, klucz zostaje")
+	shards = game.shards
+	got = game.shatter_gems([ONYX])
+	_check(got == Gems.shard_value(ONYX) and game.shards == shards + got and game.gem_count(ONYX) == 0, "rozbicie na odpryski")
 	game.add_gem("haste:1", 2)
-	_check(game.sell_gem("haste:1", true).y == Gems.SHATTER_BASE and game.gem_count("haste:1") == 1, "rozbicie jednej sztuki")
+	_check(game.shatter_gem("haste:1") == Gems.SHATTER_BASE and game.gem_count("haste:1") == 1, "rozbicie jednej sztuki")
 	# sortowanie i filtr poziomu
 	game.gems = {}
 	for id in ["ember:2", "ember:9", "area:5", RUBY, Gems.KEY, Gems.unique_of("strike")]:
@@ -547,25 +546,24 @@ func _test_windows(game: Node) -> void:
 	_check(stats.picker.visible and stats.picker.actions.has("item_0"), "kamień z sakwy: lista przedmiotów, gdzie pasuje")
 	stats.picker.actions["item_0"].pressed.emit()
 	_check(game.equipped.earring.sockets[0] == SAPPHIRE, "„Włóż” w pierwsze wolne gniazdo przedmiotu")
-	# sakwa: ulepszanie z okna kamienia, filtry, zaznaczanie kilku i sprzedaż
-	game.gold = 3000
+	# sakwa: ulepszanie z okna kamienia, filtry, zaznaczanie kilku i rozbijanie
 	game.shards = 40
 	game.add_gem("ember:1", 2)
 	game.add_gem("rime:4")
 	game.add_gem(ONYX)
 	stats.set_tab("pouch")
-	_check(stats.pouch_bar.visible and stats.pouch_select_button.visible and not stats.pouch_sell_button.get_parent().visible,
+	_check(stats.pouch_bar.visible and stats.pouch_select_button.visible and not stats.pouch_shatter_button.get_parent().visible,
 			"pasek sakwy nad zakładkami: „Zaznacz kilka”")
 	stats.picker.open_gem("ember:1")
-	_check(stats.picker.actions.has("upgrade") and stats.picker.actions.has("sell") and stats.picker.actions.has("shatter"),
-			"okno kamienia: Ulepsz, Sprzedaj, Rozbij")
+	_check(stats.picker.actions.has("upgrade") and not stats.picker.actions.has("sell") and stats.picker.actions.has("shatter"),
+			"okno kamienia: Ulepsz i Rozbij (bez sprzedaży)")
 	stats.picker.actions["upgrade"].pressed.emit()
-	_check(stats.picker.visible and stats.picker.gem == "ember:2" and game.gem_count("ember:2") == 1 and game.shards == 38,
+	_check(stats.picker.visible and stats.picker.gem == "ember:2" and game.gem_count("ember:2") == 1 and game.shards == 33,
 			"„Ulepsz” zostawia okno otwarte z ulepszonym kamieniem")
-	stats.picker.actions["sell"].pressed.emit()
-	_check(game.gem_count("ember:2") == 1, "„Sprzedaj” najpierw pyta")
-	stats.picker.actions["sell"].pressed.emit()
-	_check(game.gem_count("ember:2") == 0 and not stats.picker.visible, "druga sprzedaż sprzedaje ostatnią sztukę i zamyka okno")
+	stats.picker.actions["shatter"].pressed.emit()
+	_check(game.gem_count("ember:2") == 1, "„Rozbij” najpierw pyta")
+	stats.picker.actions["shatter"].pressed.emit()
+	_check(game.gem_count("ember:2") == 0 and not stats.picker.visible, "drugie stuknięcie rozbija ostatnią sztukę i zamyka okno")
 	stats.pouch_kind_buttons["jewel"].pressed.emit()
 	_check(stats.pouch_grid.get_children().filter(func(c: Node) -> bool: return not c.is_queued_for_deletion()).size()
 			== game.gem_list("jewel").size(), "filtr: tylko szlachetne")
@@ -577,13 +575,13 @@ func _test_windows(game: Node) -> void:
 	var marked: Array = stats.pouch_marked.keys()
 	_check(stats.pouch_select and marked.has("ember:1") and marked.has(ONYX) and not marked.has("rime:4")
 			and not marked.has(Gems.CHISEL), "„Zaznacz widoczne” bierze kamienie z filtra (bez kluczy i dłut)")
-	var gold_before: int = game.gold
-	var expect: int = game.gems_value(marked, false).x
-	stats.pouch_sell_button.pressed.emit()
-	_check(stats.pouch_sell_button.text.contains("Na pewno"), "sprzedaż kilku: pierwsze stuknięcie pyta")
-	stats.pouch_sell_button.pressed.emit()
-	_check(game.gold == gold_before + expect and game.gem_count("ember:1") == 0 and game.gem_count(ONYX) == 0
-			and game.gem_count("rime:4") == 1 and not stats.pouch_select, "sprzedaż kilku naraz")
+	var shards_before: int = game.shards
+	var expect: int = game.gems_value(marked)
+	stats.pouch_shatter_button.pressed.emit()
+	_check(stats.pouch_shatter_button.text.contains("Na pewno"), "rozbicie kilku: pierwsze stuknięcie pyta")
+	stats.pouch_shatter_button.pressed.emit()
+	_check(game.shards == shards_before + expect and game.gem_count("ember:1") == 0 and game.gem_count(ONYX) == 0
+			and game.gem_count("rime:4") == 1 and not stats.pouch_select, "rozbicie kilku naraz")
 	stats.close()
 	arena.pause_menu.visible = false
 	paused = false

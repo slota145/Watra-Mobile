@@ -4,9 +4,9 @@ extends Node2D
 ## (rzadki - dodatkowo słup światła, żeby było go widać z daleka), a gdy postać podejdzie bliżej niż `magnet`, leci do niej
 ## i trafia do torby (`Game.add_item`, sygnał `picked`). Przy pełnej torbie odskakuje, pokazuje „Torba pełna!”
 ## i czeka, aż postać odejdzie i wróci (można zrobić miejsce w oknie „Postać” w pauzie). Łup ze skrzyni Wodza
-## (`sell_if_full`) przy pełnej torbie sprzedaje się od razu za złoto, żeby nie przepadł po oknie zwycięstwa.
-## Z włączoną auto sprzedażą (`Game.auto_sell_common`) zwykły przedmiot od razu zamienia się w złoto.
-## Arena pokazuje powiadomienie o każdym podniesionym i sprzedanym przedmiocie (sygnały `picked`, `sold`).
+## (`sell_if_full`) przy pełnej torbie rozbija się od razu na rudę, żeby nie przepadł po oknie zwycięstwa.
+## Z włączonym auto rozbijaniem (`Game.auto_sell_common`) zwykły przedmiot od razu rozbija się na rudę.
+## Arena pokazuje powiadomienie o każdym podniesionym i rozbitym przedmiocie (sygnały `picked`, `scrapped`).
 ## Kamień, klucz albo dłuto (Gems) to łup w postaci {"gem": identyfikator}: zawsze trafia do sakwy (`Game.add_gem`,
 ## bez limitu), świeci kolorem kamienia. Kamień aury ({"aura": identyfikator}, Auras) od razu uczy aury albo podnosi
 ## jej poziom (`Game.add_aura`, napis nad postacią), świeci jak rzadki; talizman ({"talisman": id}, Talismans) - tak samo
@@ -14,8 +14,9 @@ extends Node2D
 ## każdego łupu dają `name_of`, `color_of`, `icon_of`.
 
 signal picked(item: Dictionary)
-## Przedmiot sprzedany od razu: auto sprzedaż zwykłych albo pełna torba (`bag_full`, łup ze skrzyni).
-signal sold(item: Dictionary, price: int, bag_full: bool)
+## Przedmiot rozbity od razu: auto rozbijanie zwykłych albo pełna torba (`bag_full`, łup ze skrzyni);
+## `got` - {"ore", "rune"} jak Game.dismantle.
+signal scrapped(item: Dictionary, got: Dictionary, bag_full: bool)
 
 const MAGNET := 36.0
 const PICKUP := 6.0
@@ -31,7 +32,7 @@ var magnet := MAGNET
 var spread := 12.0
 ## Przez tyle sekund po wypadnięciu przedmiot leży (wysyp ze skrzyni).
 var delay := 0.0
-## Przy pełnej torbie sprzedaj od razu (łup ze skrzyni).
+## Przy pełnej torbie rozbij od razu (łup ze skrzyni).
 var sell_if_full := false
 
 var _sprite: Sprite2D
@@ -137,7 +138,7 @@ func _process(delta: float) -> void:
 
 
 func _take() -> void:
-	var price := 0
+	var got := {}
 	var bag_full := false
 	if item.has("talisman"):
 		var tl: int = _game.add_talisman(item.talisman)
@@ -161,18 +162,18 @@ func _take() -> void:
 	elif item.has("rune"):
 		_game.add_rune(item.rune)
 	elif item.rarity == "common" and _game.auto_sell_common:
-		price = _game.sell_loot(item)
+		got = _game.dismantle_loot(item)
 	elif not _game.add_item(item):
 		if not sell_if_full:
 			_full()
 			return
 		bag_full = true
-		price = _game.sell_loot(item)
-	if price > 0:
-		_float_text(tr("+%d złota") % price, Color(1, 0.85, 0.4))
+		got = _game.dismantle_loot(item)
+	if not got.is_empty():
+		_float_text(tr("+%d rudy") % got.ore, Color(0.95, 0.6, 0.4))
 	_taken = true
-	if price > 0:
-		sold.emit(item, price, bag_full)
+	if not got.is_empty():
+		scrapped.emit(item, got, bag_full)
 	else:
 		picked.emit(item)
 	_play(SOUND_RARE if _rarity() == "rare" or item.has("gem") or item.has("aura") or item.has("talisman") \

@@ -5,8 +5,8 @@ class_name Weapons
 ## (próg w Skills, pole "mastery") oraz pozwala ulepszać je wyżej (Skills.level_cap). Stan: `Game.weapon`,
 ## `Game.mastery` (broń -> poziom), `Game.mastery_xp` (broń -> doświadczenie na tym poziomie).
 ## Nowe rodzaje broni (łuk, hydrosfera, mroczna kosa…) odblokowuje postęp: pokonanie Wodza na poziomie `unlock`
-## (za darmo), a wcześniej można je kupić za `price` złota (decyzja autora 13.11.2026). Zmiana broni w oknie
-## umiejętności przy kamieniu run (Game.set_weapon, Game.buy_weapon). Węzeł broni w lochu: miecz - ProtoWeapon,
+## (za darmo), a wcześniej odblokowuje je Pieczęć Oręża (Gems.WEAPON_SEAL, decyzja autora 20.11.2026; do tego dnia
+## kupno za złoto). Zmiana broni w oknie umiejętności przy kamieniu run (Game.set_weapon, Game.unseal_weapon). Węzeł broni w lochu: miecz - ProtoWeapon,
 ## glewia ognia - ProtoGlaive, hydrosfera - ProtoHydrosphere, elektryczna katana - ProtoKatana (`make`).
 
 const SWORD := "sword"
@@ -15,18 +15,18 @@ const HYDROSPHERE := "hydrosphere"
 const KATANA := "katana"
 const BOW := "bow"
 ## name - nazwa, element - żywioł obrażeń (Elements), unlock - poziom lochu, po którego przebiciu broń jest za darmo
-## (0 - od początku), price - złoto za wcześniejsze odblokowanie.
+## (0 - od początku).
 const DATA := {
-	"sword": {"name": "Miecz", "element": Elements.PHYSICAL, "unlock": 0, "price": 0,
+	"sword": {"name": "Miecz", "element": Elements.PHYSICAL, "unlock": 0,
 		"icon": preload("res://assets/watra/iron_sword_icon.png")},
-	"glaive": {"name": "Glewia ognia", "short": "Glewia", "element": Elements.FIRE, "unlock": 10, "price": 3000,
+	"glaive": {"name": "Glewia ognia", "short": "Glewia", "element": Elements.FIRE, "unlock": 10,
 		"icon": preload("res://assets/skills/glaive/g_thrust.png")},
-	"hydrosphere": {"name": "Hydrosfera", "short": "Hydro", "element": Elements.WATER, "unlock": 15, "price": 4500,
+	"hydrosphere": {"name": "Hydrosfera", "short": "Hydro", "element": Elements.WATER, "unlock": 15,
 		"icon": preload("res://assets/skills/hydro/h_bolt.png")},
-	"katana": {"name": "Elektryczna katana", "short": "Katana", "element": Elements.LIGHTNING, "unlock": 20, "price": 6000,
+	"katana": {"name": "Elektryczna katana", "short": "Katana", "element": Elements.LIGHTNING, "unlock": 20,
 		"icon": preload("res://assets/skills/katana/k_slash.png")},
-	# łuk (ustalone z autorem 20.11.2026): żywioł powietrze, loch 5 albo 1500 zł - pierwsza broń po mieczu
-	"bow": {"name": "Łuk", "element": Elements.AIR, "unlock": 5, "price": 1500,
+	# łuk (ustalone z autorem 20.11.2026): żywioł powietrze, loch 5 - pierwsza broń po mieczu
+	"bow": {"name": "Łuk", "element": Elements.AIR, "unlock": 5,
 		"icon": preload("res://assets/skills/bow/b_shot.png")},
 }
 const ORDER := ["sword", "bow", "glaive", "hydrosphere", "katana"]
@@ -83,10 +83,6 @@ static func script_of(id: String) -> Script:
 ## Nowy węzeł broni do walki.
 static func make(id: String) -> ProtoWeapon:
 	return script_of(id).new()
-
-
-static func price_of(id: String) -> int:
-	return DATA[id].price if DATA.has(id) else 0
 
 
 ## Doświadczenie mistrzostwa potrzebne do następnego poziomu (ta sama krzywa co poziomy postaci).

@@ -1,7 +1,7 @@
 extends SceneTree
 ## Test bazy: drzewko lochów w lochu (premie Hordy, łupu, nauki, zasięgu), kowal (Runa Przekucia na premii,
-## zużycie runy, zapis przekuć, runy w oknie), kupiec (półka: klucz, dłuto, 2 różne kamienie 1. stopnia, 3 przedmioty; kupno
-## do sakwy i torby, pełna torba, brak złota, nowa dostawa, zapis), baza (kowal i kupiec otwierają okna, pasek skrótów
+## zużycie runy, zapis przekuć, runy w oknie), kupiec (wymiana run po kursie, rozmiana, klucz i dłuto za runy, brak run,
+## zapis), baza (kowal i kupiec otwierają okna, pasek skrótów
 ## w dolnej połowie, min. 44 px, po drugiej stronie niż przyciski walki), kamera przy brzegu polany, okna (potwierdzenie drugim stuknięciem,
 ## „Wróć”, „wstecz”, pauza), przycisk drzewka w wyborze poziomu przy Watrze (szczegóły drzewka - test_tree).
 
@@ -72,34 +72,28 @@ func _test_smith(game: Node) -> void:
 
 
 func _test_shop(game: Node) -> void:
-	game.best_level = 4
-	var offers: Array = game.shop_offers()
-	_check(game.shop_ready and offers.size() == 7, "pierwsze otwarcie: towar na półce (%d)" % offers.size())
-	_check(offers[0].get("gem") == Gems.KEY and offers[0].price == 400 and offers[1].get("gem") == Gems.CHISEL
-			and offers[1].price == 250, "klucz za 400, dłuto za 250")
-	var fresh := func(id: String) -> bool:
-		return Gems.level_of(id) == 1 if Gems.is_support(id) else Gems.is_jewel(id) and Gems.jewel_level(id) == 4
-	_check(fresh.call(offers[2].gem) and fresh.call(offers[3].gem) and offers[2].price == 60
-			and Gems.kind_of(offers[2].gem) != Gems.kind_of(offers[3].gem), "2 różne kamienie po 60 (umiejętności 1. poziomu, szlachetne z lochu 4)")
-	var items_ok := true
-	for o in offers.slice(4):
-		items_ok = items_ok and o.has("item") and o.item.rarity in ["magic", "rare"] and o.item.level == 4 \
-				and o.price == Items.sell_price(o.item) * 4
-	_check(items_ok, "3 przedmioty magiczne albo rzadkie z lochu 4, za 4x cenę sprzedaży")
-	game.gold = 100
-	_check(game.shop_problem(0) == "gold" and not game.buy_offer(0), "za mało złota")
-	game.gold = 5000
-	_check(game.buy_offer(0) and game.gem_count(Gems.KEY) == 1 and game.gold == 4600 and game.shop.size() == 6,
-			"klucz kupiony do sakwy, znika z półki")
-	var item: Dictionary = game.shop[3].item
-	_check(game.buy_offer(3) and game.bag.size() == 1 and game.bag[0] == item, "przedmiot kupiony do torby")
-	game.dev_items(30)
-	_check(game.shop_problem(3) == "bag" and not game.buy_offer(3), "pełna torba - przedmiotu nie kupi")
-	_check(game.buy_offer(0), "dłuto kupi i przy pełnej torbie")
+	game.reset_hero()
+	var offers: Array = Shop.offers()
+	var buys := offers.filter(func(o: Dictionary) -> bool: return o.kind == "buy")
+	var changes := offers.filter(func(o: Dictionary) -> bool: return o.kind == "change")
+	_check(buys.size() == 5 and changes.size() == 5 and offers.size() == 12, "5 run do kupienia, 5 do rozmiany, klucz i dłuto")
+	_check(Shop.buy_cost(Runes.CHAOS) == 8 and Shop.buy_cost(Runes.REFORGE) == 3 and Shop.buy_cost(Runes.SEAL) == 30,
+			"kupno po kursie x1,5 w górę (Zmiana 8, Przekucie 3, Pieczęć 30 Szlifu)")
+	var ci := offers.find(changes.filter(func(o: Dictionary) -> bool: return o.pay == Runes.CHAOS)[0])
+	var bi := offers.find(buys.filter(func(o: Dictionary) -> bool: return o.item == Runes.CHAOS)[0])
+	var ki := offers.find(offers.filter(func(o: Dictionary) -> bool: return o.item == Gems.KEY)[0])
+	var di := offers.find(offers.filter(func(o: Dictionary) -> bool: return o.item == Gems.CHISEL)[0])
+	_check(game.shop_problem(bi) == "price" and not game.buy_offer(bi), "bez Run Szlifu nie kupi")
+	game.add_rune(Runes.POLISH, 10)
+	_check(game.buy_offer(bi) and game.runes[Runes.POLISH] == 2 and game.runes[Runes.CHAOS] == 1, "Runa Zmiany za 8 Szlifu")
+	_check(game.buy_offer(ci) and game.runes[Runes.POLISH] == 7 and not game.runes.has(Runes.CHAOS), "rozmiana: Zmiana -> 5 Szlifu")
+	game.add_rune(Runes.CHAOS, 2)
+	game.add_rune(Runes.ASCEND, 1)
+	_check(game.buy_offer(ki) and game.gem_count(Gems.KEY) == 1 and not game.runes.has(Runes.CHAOS), "klucz za 2 Runy Zmiany")
+	_check(game.buy_offer(di) and game.gem_count(Gems.CHISEL) == 1 and not game.runes.has(Runes.ASCEND), "dłuto za Runę Wyniesienia")
+	_check(game.shop_problem(99) == "none", "zła oferta")
 	game.load_game()
-	_check(game.shop.size() == 4 and game.shop_ready and game.gem_count(Gems.CHISEL) == 1, "półka zapisana")
-	game.restock_shop(2)
-	_check(game.shop.size() == 7 and game.shop[4].item.level == 4, "nowa dostawa: pełna półka, przedmioty z najwyższego lochu")
+	_check(game.runes == {Runes.POLISH: 7} and game.gem_count(Gems.CHISEL) == 1, "wymiany zapisane")
 	game.reset_hero()
 	game.best_level = 0
 
@@ -134,7 +128,7 @@ func _test_dungeon(game: Node) -> void:
 
 
 func _test_base(game: Node) -> void:
-	game.gold = 1000
+	game.runes = {Runes.POLISH: 10}
 	game.embers = 300
 	game.save_game()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
@@ -159,14 +153,14 @@ func _test_base(game: Node) -> void:
 	_touch(arena.merchant.get_global_transform_with_canvas() * Vector2(0, -20))
 	await process_frame
 	_check(arena.shop_window.visible, "stuknięcie w kupca otwiera kupca")
-	# zakup z potwierdzeniem (klucz, 400)
+	# wymiana z potwierdzeniem (Runa Przekucia za 3 Szlifu)
 	var buy: Button = arena.shop_window.content.find_child("Buy_0", true, false)
 	buy.pressed.emit()
-	_check(game.gold == 1000 and arena.shop_window.armed == "offer_0", "pierwsze stuknięcie pyta „Na pewno?”")
+	_check(game.runes[Runes.POLISH] == 10 and arena.shop_window.armed == "offer_0", "pierwsze stuknięcie pyta „Na pewno?”")
 	buy = arena.shop_window.content.find_child("Buy_0", true, false)
 	_check(buy.text == "Na pewno?", "przycisk pyta („%s”)" % buy.text)
 	buy.pressed.emit()
-	_check(game.gold == 600 and game.gem_count(Gems.KEY) == 1, "drugie stuknięcie kupuje klucz")
+	_check(game.runes[Runes.POLISH] == 7 and game.runes.get(Runes.REFORGE, 0) == 1, "drugie stuknięcie wymienia")
 	arena._notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 	_check(not arena.shop_window.visible and not paused, "„wstecz” zamyka kupca")
 	# pasek skrótów
@@ -190,6 +184,8 @@ func _test_base(game: Node) -> void:
 	arena.picker.close()
 	# kowal: runy w oknie
 	game.add_item(Items.roll(3, "ring", "magic"))
+	game.runes.erase(Runes.REFORGE)
+	game.runes.erase(Runes.ASCEND)
 	game.add_rune(Runes.REFORGE)
 	game.add_rune(Runes.ASCEND)
 	arena.open_smith()

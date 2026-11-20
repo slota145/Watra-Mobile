@@ -108,12 +108,14 @@ func add_xp_lines(xp: int, new_level := 0) -> void:
 
 
 
-## Dopisuje do podsumowania podniesione przedmioty i złoto za łup sprzedany od razu (auto sprzedaż, pełna torba).
-func add_loot_lines(items: int, sold_gold := 0) -> void:
+## Dopisuje do podsumowania podniesione przedmioty, runy i rudę (z przedmiotów rozbitych od razu i ze Skarbnika).
+func add_loot_lines(items: int, runes := 0, ore := 0) -> void:
 	if items > 0:
 		_summary.text += "\n" + tr("Przedmioty: %d") % items
-	if sold_gold > 0:
-		_summary.text += "\n" + tr("Łup sprzedany od razu: +%d złota") % sold_gold
+	if runes > 0:
+		_summary.text += "\n" + tr("Runy: %d") % runes
+	if ore > 0:
+		_summary.text += "\n" + tr("Ruda żelaza: +%d") % ore
 
 
 ## Co odblokowało pokonanie tego bossa (drabinka - Unlocks.on_beat), złotym kolorem w podsumowaniu.
@@ -121,11 +123,6 @@ func add_unlock_lines(entries: Array) -> void:
 	for e: Dictionary in entries:
 		_summary.text += "\n" + tr("Odblokowano: %s") % e.text
 
-
-## Złoto wybite ze Skarbnika w tej wyprawie.
-func add_gold_line(amount: int) -> void:
-	if amount > 0:
-		_summary.text += "\n" + tr("Złoto Skarbnika: +%d") % amount
 
 
 func _button(parent: Control, text: String) -> Button:

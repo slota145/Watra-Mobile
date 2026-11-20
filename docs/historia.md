@@ -2,6 +2,35 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - gra bez złota: ruda, wymiana run, Pieczęć Oręża (ROADMAP punkt 4, krok 2)
+
+Liczby z ankiety z autorem (20.11.2026). Złoto zniknęło ze wszystkich miejsc w grze.
+- **Ruda żelaza** (`Game.ore`, ikona z Watry `assets/watra/items/iron_ore.png`): rozbijanie przedmiotów zamiast sprzedaży
+  (`Items.ore_value`: zwykły 1, magiczny 2, rzadki 4; rzadki 15% na Runę Szlifu - `Items.SCRAP_RUNE`), `Game.dismantle`,
+  `dismantle_all`, `dismantle_loot` (auto rozbijanie zwykłych - dawne `auto_sell_common` - i pełna torba przy skrzyni,
+  sygnał `ProtoLoot.scrapped`). Ruda pokazana w oknie „Postać” i w skrzyni; na razie zbierana pod wykuwanie (krok 3).
+- **Skarbnik**: trafienie wybija 1 rudę (`ProtoSkarbnik.ORE_HIT`, sygnał `ore`), złapanie - 2 runy (`CATCH_RUNES`) i kamień.
+- **Skarbiec** (węzeł `gold` drzewka lochów, 15 x 4%): `Game.treasury_mult` - więcej rudy (rozbijanie, Skarbnik) i większa
+  szansa na runy (potwory - `ProtoHorde.rune_mult`, skrzynia Wodza, skrzynie-cele, runa z rozbicia rzadkiego).
+- **Kupiec** (`scripts/shop.gd`, okno `shop_window.gd`): stała wymiana bez limitu - runa za Runy Szlifu po kursie x1,5
+  w górę (Przekucie 3, Przydanie 5, Zmiana 8, Wyniesienie 9, Pieczęć 30), rozmiana run na Szlify po kursie, Klucz Runiczny
+  za 2 Runy Zmiany, Dłuto Jubilera za Runę Wyniesienia (`Game.buy_offer`, `shop_problem`). Półka z dostawami po bossie
+  (`Game.shop`, `restock_shop`) usunięta.
+- **Kamienie**: ulepszanie tylko za odpryski x3 (`Gems.UPGRADE_SHARDS` 6,75 x poziom; szlachetne 15/30/60), rozbijanie
+  x3 (`SHATTER_BASE` 6, unikalny 45), Kryształ Watry daje 18-36 odprysków (zniszczony 9); sprzedaż kamieni usunięta
+  (`Game.shatter_gems`, `shatter_gem`, `Gems.can_shatter`).
+- **Zakładki skrzyni** za przebite lochy 5/15/30/50 (`Game.STASH_TAB_LEVELS`, `_sync_stash_tabs` przy `beat_level`
+  i wczytaniu; nigdy nie zabiera), w oknie napis „Następna zakładka po lochu N”, na drabince odblokowań (rodzaj `stash`).
+- **Pieczęć Oręża** (`Gems.WEAPON_SEAL`, ikona Runy Pieczęci z Watry `gems/weapon_seal.png`): 3% ze skrzyni Wodza, gdy
+  jest broń do odblokowania i gracz nie ma już pieczęci (`Game.roll_weapon_seal`); w liście broni przycisk „Pieczęć”
+  (`Game.unseal_weapon`). Ceny broni w złocie (`Weapons.price_of`) usunięte.
+- **Stary zapis**: złoto (z zapisem i dawnymi zwrotami) przelicza się raz przy wczytaniu (`Game._convert_gold`):
+  losowa runa bez Pieczęci za 1000 zł (najwyżej 20), reszta 1 ruda za 100 zł (najwyżej 100); w bazie napis zamiast
+  podpowiedzi sterowania (`Game.gold_converted`).
+- Okno wyniku: „Runy: N” i „Ruda żelaza: +N” zamiast złota.
+- Testy: `test_runes` (przeliczenie złota, rozbijanie hurtem), `test_base` (wymiana u kupca), `test_items`, `test_gems`,
+  `test_stash`, `test_goals` (Skarbnik), `test_glaive` (Pieczęć Oręża), `test_skills`, `test_tree`, `test_characters`.
+
 ## 20.11.2026 - runy zamiast złota u kowala (ROADMAP punkt 4, krok 1)
 
 Ankieta z autorem (ustalenia całego punktu w `docs/ROADMAP.md`, punkt 4). Krok 1: runy i kowal; złoto w innych

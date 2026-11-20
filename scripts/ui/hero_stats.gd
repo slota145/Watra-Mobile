@@ -1,12 +1,12 @@
 class_name HeroStats
 extends Control
 ## Okno „Postać” (ikonka portretu w górnym rzędzie areny) na cały ekran, z zakładkami na dole pod kciukiem (ustalone z autorem 13.11.2026):
-## u góry poziom, doświadczenie i złoto; „Ekwipunek” - 6 miejsc wokół Wojciecha (po lewej hełm, zbroja, buty; po prawej
+## u góry poziom, doświadczenie i ruda żelaza; „Ekwipunek” - 6 miejsc wokół Wojciecha (po lewej hełm, zbroja, buty; po prawej
 ## kolczyk, amulet, pierścień), pod postacią zdrowie, obrażenia i ochrona, niżej torba 5x4 i sprzedaż hurtem;
 ## „Statystyki” - pełna lista z poziomu i przedmiotów (zielona kolumna - co da następny awans); „Sakwa” - kamienie. Stuknięcie w przedmiot otwiera opis przy dolnej krawędzi ekranu (pod kciukiem): cechy, zmiana
 ## statystyk po założeniu i przyciski „Załóż” / „Zdejmij” i „Sprzedaj” (magiczny i rzadki - drugie stuknięcie „Na pewno?”).
 ## Pod torbą: „Sprzedaj zwykłe” i „Sprzedaj magiczne i rzadkie” (drugie stuknięcie potwierdza i pokazuje cenę)
-## oraz przełącznik auto sprzedaży zwykłych przedmiotów podniesionych w lochu (`Game.auto_sell_common`).
+## oraz przełącznik auto rozbijania zwykłych przedmiotów podniesionych w lochu na rudę (`Game.auto_sell_common`).
 ## Kamienie szlachetne (Gems): w opisie przedmiotu rząd jego gniazd, pod każdym krótko, co daje kamień; stuknięcie
 ## gniazda otwiera GemPicker z pasującymi kamieniami i ich premią w tym miejscu („Włóż”, „Wymień”, „Wyjmij”);
 ## „Dłuto” dorabia drugie gniazdo (drugie stuknięcie potwierdza). Zakładka „Sakwa” (15.11.2026): kamienie, klucze
@@ -49,7 +49,7 @@ var rows := {}
 ## Przyciski miejsc ekwipunku (miejsce -> przycisk) i pól torby (kolejno).
 var equip_buttons := {}
 var bag_buttons: Array[Button] = []
-var gold_label: Label
+var ore_label: Label
 var bag_label: Label
 ## Opis wybranego przedmiotu (przy dolnej krawędzi).
 var detail: Control
@@ -80,7 +80,7 @@ var pouch_label: Label
 var pouch_grid: GridContainer
 ## Sakwa: rodzaj ("", "support", "jewel"), sortowanie ("kind", "level"), filtr poziomu (indeks w
 ## Game.GEM_LEVEL_RANGES, -1 - wszystkie), tryb zaznaczania, zaznaczone kamienie (identyfikator -> true)
-## i akcja czekająca na potwierdzenie ("sell", "shatter" albo "").
+## i akcja czekająca na potwierdzenie ("shatter" albo "").
 var pouch_filter := ""
 var pouch_sort := "kind"
 var pouch_range := -1
@@ -95,7 +95,6 @@ var pouch_bar: VBoxContainer
 var pouch_select_button: Button
 var pouch_all_button: Button
 var pouch_cancel_button: Button
-var pouch_sell_button: Button
 var pouch_shatter_button: Button
 var socket_row: HBoxContainer
 var gem_hint: Label
@@ -152,13 +151,13 @@ func _ready() -> void:
 	_title = _label(names, "", 18, GOLD)
 	_xp_label = _label(names, "", 11, TEXT)
 	var coin := TextureRect.new()
-	coin.texture = preload("res://assets/watra/items/coin.png")
+	coin.texture = preload("res://assets/watra/items/iron_ore.png")
 	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	coin.custom_minimum_size = Vector2(20, 20)
 	head.add_child(coin)
-	gold_label = _label(head, "0", 15, GOLD)
-	gold_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ore_label = _label(head, "0", 15, GOLD)
+	ore_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_scroll = ScrollContainer.new()
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -197,7 +196,7 @@ func _ready() -> void:
 		bb.add_theme_font_size_override("font_size", 12)
 		bb.custom_minimum_size.y = 44
 	auto_sell_toggle = CheckButton.new()
-	auto_sell_toggle.text = tr("Sprzedawaj zwykłe od razu po podniesieniu")
+	auto_sell_toggle.text = tr("Rozbijaj zwykłe na rudę od razu po podniesieniu")
 	auto_sell_toggle.custom_minimum_size = Vector2(0, 44)
 	auto_sell_toggle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	auto_sell_toggle.add_theme_font_size_override("font_size", 12)
@@ -274,7 +273,7 @@ func _ready() -> void:
 	pouch_all_button = _pouch_button(bar1, tr("Zaznacz widoczne"))
 	pouch_all_button.pressed.connect(func() -> void:
 		for id in _pouch_list():
-			if Gems.can_sell(id):
+			if Gems.can_shatter(id):
 				pouch_marked[id] = true
 		_pouch_armed = ""
 		refresh())
@@ -287,10 +286,8 @@ func _ready() -> void:
 	var bar2 := HBoxContainer.new()
 	bar2.add_theme_constant_override("separation", 4)
 	pouch_bar.add_child(bar2)
-	pouch_sell_button = _pouch_button(bar2, "")
-	pouch_sell_button.pressed.connect(_on_pouch_sell.bind(false))
 	pouch_shatter_button = _pouch_button(bar2, "")
-	pouch_shatter_button.pressed.connect(_on_pouch_sell.bind(true))
+	pouch_shatter_button.pressed.connect(_on_pouch_shatter)
 	# zakładki na dole, pod kciukiem, i „Wróć”
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 4)
@@ -420,7 +417,7 @@ func refresh() -> void:
 			next_slot = tr("na poz. %d") % l
 			break
 	_put("slots", "%d / %d" % [slots, HeroLevels.SKILL_SLOT_LEVELS.size()], next_slot, next_slot == "")
-	gold_label.text = str(_game.gold)
+	ore_label.text = str(_game.ore)
 	key_stats.text = tr("Zdrowie %s\nObrażenia %s\nOchrona %s") % [s.hp, s.damage, s.protection]
 	for slot in Items.SLOTS:
 		_show_item(equip_buttons[slot], _game.equipped.get(slot, {}), slot)
@@ -434,30 +431,30 @@ func refresh() -> void:
 	_bulk_texts()
 
 
-## Rzadkości sprzedawane jednym przyciskiem.
+## Rzadkości rozbijane jednym przyciskiem.
 static func bulk_rarities(which: String) -> Array:
 	return ["common"] if which == "common" else ["magic", "rare"]
 
 
-## Napisy przycisków sprzedaży hurtem; nieaktywne, gdy nie ma czego sprzedać.
+## Napisy przycisków rozbijania hurtem; nieaktywne, gdy nie ma czego rozbić.
 func _bulk_texts() -> void:
 	for which in ["common", "better"]:
 		var b := sell_common_button if which == "common" else sell_better_button
-		var price: int = _game.sell_all_price(bulk_rarities(which))
+		var amount: int = _game.dismantle_all_ore(bulk_rarities(which))
 		if _bulk_armed == which:
-			b.text = tr("Na pewno? +%d złota") % price
+			b.text = tr("Na pewno? +%d rudy") % amount
 		else:
-			b.text = tr("Sprzedaj zwykłe") if which == "common" else tr("Sprzedaj magiczne i rzadkie")
-		b.disabled = price == 0
+			b.text = tr("Rozbij zwykłe") if which == "common" else tr("Rozbij magiczne i rzadkie")
+		b.disabled = amount == 0
 
 
-## Sprzedaż hurtem: pierwsze stuknięcie pyta (z ceną), drugie sprzedaje.
+## Rozbijanie hurtem: pierwsze stuknięcie pyta (z ilością rudy), drugie rozbija.
 func _on_sell_all(which: String) -> void:
 	if _bulk_armed != which:
 		_bulk_armed = which
 		_bulk_texts()
 		return
-	if _game.sell_all(bulk_rarities(which)) > 0:
+	if _game.dismantle_all(bulk_rarities(which)).ore > 0:
 		_play_coins()
 	_bulk_armed = ""
 	_bulk_texts()
@@ -679,7 +676,7 @@ func _make_detail() -> void:
 	equip_button.pressed.connect(_on_equip)
 	sell_button = _detail_button(buttons, "")
 	sell_button.size_flags_stretch_ratio = 1.3
-	sell_button.icon = preload("res://assets/watra/items/coin.png")
+	sell_button.icon = preload("res://assets/watra/items/iron_ore.png")
 	sell_button.expand_icon = true
 	sell_button.add_theme_constant_override("icon_max_width", 18)
 	sell_button.pressed.connect(_on_sell)
@@ -836,7 +833,7 @@ func _show_detail(item: Dictionary, in_bag: bool) -> void:
 	equip_button.text = tr("Załóż") if in_bag else tr("Zdejmij")
 	equip_button.disabled = not in_bag and _game.bag.size() >= _game.BAG_SIZE
 	sell_button.visible = in_bag
-	sell_button.text = tr("Sprzedaj %d") % Items.sell_price(item)
+	sell_button.text = tr("Rozbij: %d") % _game.ore_gain(Items.ore_value(item))
 	_show_sockets(item)
 	detail.visible = true
 
@@ -875,7 +872,7 @@ func _on_equip() -> void:
 	_hide_detail()
 
 
-## Sprzedaż: magiczny i rzadki przedmiot wymaga drugiego stuknięcia.
+## Rozbicie na rudę: magiczny i rzadki przedmiot wymaga drugiego stuknięcia.
 func _on_sell() -> void:
 	if _sel_index < 0 or _sel_index >= _game.bag.size():
 		return
@@ -884,7 +881,7 @@ func _on_sell() -> void:
 		_sell_armed = true
 		sell_button.text = tr("Na pewno?")
 		return
-	_game.sell(_sel_index)
+	_game.dismantle(_sel_index)
 	_play_coins()
 	_hide_detail()
 
@@ -948,7 +945,7 @@ func _refresh_pouch() -> void:
 		var slot := GemSlot.new(SLOT_SIZE)
 		slot.area = "pouch"
 		slot.show_gem(id, _game.gem_count(id), false, false, pouch_marked.has(id))
-		if pouch_select and not Gems.can_sell(id):
+		if pouch_select and not Gems.can_shatter(id):
 			slot.modulate = Color(1, 1, 1, 0.4)
 		slot.pressed.connect(_on_pouch_gem.bind(id))
 		pouch_grid.add_child(slot)
@@ -960,7 +957,7 @@ func _on_pouch_gem(id: String) -> void:
 	if not pouch_select:
 		picker.open_gem(id)
 		return
-	if not Gems.can_sell(id):
+	if not Gems.can_shatter(id):
 		return
 	if pouch_marked.has(id):
 		pouch_marked.erase(id)
@@ -970,7 +967,7 @@ func _on_pouch_gem(id: String) -> void:
 	refresh()
 
 
-## Pasek nad zakładkami: widoczny w „Sakwie”; ceny sprzedaży i rozbicia zaznaczonych.
+## Pasek nad zakładkami: widoczny w „Sakwie”; ile odprysków da rozbicie zaznaczonych.
 func _refresh_pouch_bar() -> void:
 	if pouch_bar == null:
 		return
@@ -978,35 +975,28 @@ func _refresh_pouch_bar() -> void:
 	pouch_select_button.visible = not pouch_select
 	pouch_all_button.visible = pouch_select
 	pouch_cancel_button.visible = pouch_select
-	pouch_sell_button.get_parent().visible = pouch_select
+	pouch_shatter_button.get_parent().visible = pouch_select
 	var ids: Array = pouch_marked.keys()
 	var pieces := 0
 	for id in ids:
 		pieces += _game.gem_count(id)
-	var gold: int = _game.gems_value(ids, false).x
-	var dust: int = _game.gems_value(ids, true).y
-	pouch_sell_button.text = tr("Na pewno? +%d zł") % gold if _pouch_armed == "sell" \
-			else tr("Sprzedaj %d: %d zł") % [pieces, gold]
+	var dust: int = _game.gems_value(ids)
 	pouch_shatter_button.text = tr("Na pewno? +%d odpr.") % dust if _pouch_armed == "shatter" \
 			else tr("Rozbij %d: %d odpr.") % [pieces, dust]
-	pouch_sell_button.disabled = ids.is_empty()
 	pouch_shatter_button.disabled = ids.is_empty()
 
 
-## Sprzedaż (`shatter` false) albo rozbicie zaznaczonych: pierwsze stuknięcie pyta, drugie wykonuje.
-func _on_pouch_sell(shatter: bool) -> void:
-	var key := "shatter" if shatter else "sell"
+## Rozbicie zaznaczonych na odpryski: pierwsze stuknięcie pyta, drugie wykonuje.
+func _on_pouch_shatter() -> void:
+	var key := "shatter"
 	if pouch_marked.is_empty():
 		return
 	if _pouch_armed != key:
 		_pouch_armed = key
 		_refresh_pouch_bar()
 		return
-	_game.sell_gems(pouch_marked.keys(), shatter)
-	if shatter:
-		_play_gem()
-	else:
-		_play_coins()
+	_game.shatter_gems(pouch_marked.keys())
+	_play_gem()
 	pouch_marked.clear()
 	pouch_select = false
 	_pouch_armed = ""

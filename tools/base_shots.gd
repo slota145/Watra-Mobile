@@ -29,10 +29,9 @@ func _run() -> void:
 	game.tree = {"horde": 2, "reach": 1}
 	game.best_level = 4
 	game.dungeon_level = 4
-	game.gold = 760
+	game.ore = 76
 	game.dev_items(6)
 	game.equip(0)
-	game.restock_shop(4)
 	game.dev_runes()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
 	root.add_child(arena)
@@ -44,7 +43,7 @@ func _run() -> void:
 	arena.tree_window.close()
 	arena.picker.close()
 	arena.open_shop()
-	arena.shop_window._buy(0)  # uzbrojony przycisk klucza
+	arena.shop_window._buy(0)  # uzbrojony przycisk pierwszej wymiany
 	await create_timer(0.2).timeout
 	await _shot("3_kupiec")
 	arena.shop_window.close()

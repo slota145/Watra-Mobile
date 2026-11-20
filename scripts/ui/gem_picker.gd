@@ -9,7 +9,7 @@ extends Control
 ##   (w pierwsze wolne gniazdo). Klucz Runiczny - umiejętności z zamkniętymi gniazdami („Otwórz”), Dłuto Jubilera -
 ##   przedmioty z jednym gniazdem („Dorób”); oba z potwierdzeniem drugim stuknięciem.
 ## Kamień z sakwy ma też na górze „Ulepsz” (złoto + odpryski; okno zostaje otwarte z ulepszonym kamieniem),
-## „Sprzedaj” i „Rozbij” (jedna sztuka, potwierdzenie drugim stuknięciem); kamień w gnieździe - „Ulepsz” w miejscu.
+## „Rozbij” (jedna sztuka, potwierdzenie drugim stuknięciem); kamień w gnieździe - „Ulepsz” w miejscu.
 ## Każdy przycisk ma co najmniej 44 px, „Zamknij” na dole pod kciukiem. Po włożeniu okno zamyka się (sygnał `changed`).
 ## Stan trzyma i zapisuje Game. Działa przy zatrzymanej grze.
 
@@ -218,17 +218,19 @@ func _build_gem() -> void:
 	title_label.text = Gems.name_of(gem)
 	title_label.add_theme_color_override("font_color", Gems.color_of(gem))
 	sub_label.text = Gems.kind_line(gem) + "  ·  " + tr("Sztuk: %d") % _game.gem_count(gem)
-	if Gems.can_sell(gem):
+	if Gems.can_shatter(gem):
 		for line in Gems.description(gem):
 			_label(list, line, 12, TEXT, true)
 		_upgrade_row(gem, func() -> String: return _game.upgrade_gem(gem))
-		_sell_row(false)
-		_sell_row(true)
+		_shatter_row()
 		list.add_child(HSeparator.new())
 	if gem == Gems.KEY:
 		_build_key()
 	elif gem == Gems.CHISEL:
 		_build_chisel()
+	elif gem == Gems.WEAPON_SEAL:  # Pieczęć Oręża używa się na liście broni (okno umiejętności, kamień run)
+		for line in Gems.description(gem):
+			_label(list, line, 12, TEXT, true)
 	elif Gems.is_support(gem):
 		_label(list, tr("Gdzie włożyć:"), 12, GOLD)
 		var any := false
@@ -318,7 +320,7 @@ func _item_rows(reason_of: Callable, effect_of: Callable, action_text: String, a
 				_done(sound))
 
 
-# --- ulepszanie, sprzedaż, rozbijanie ---
+# --- ulepszanie i rozbijanie ---
 
 ## Wiersz „Ulepsz”: co da ulepszenie i koszt; `act` ulepsza i zwraca nowy identyfikator. Okno zostaje otwarte:
 ## w trybie kamienia pokazuje ulepszony kamień, w gnieździe - gniazdo z nim.
@@ -336,9 +338,9 @@ func _upgrade_row(id: String, act: Callable) -> void:
 			effect = tr("Poziom %d -> %d: %s") % [Gems.level_of(id), Gems.level_of(next), Gems.short_text(next, skill)]
 		else:
 			effect = tr("Dokłada losową premię (%d -> %d).") % [Gems.level_of(id), Gems.level_of(id) + 1]
-		effect += "\n" + tr("Koszt: %d zł i %d odprysków (masz %d zł i %d).") % [cost.x, cost.y, _game.gold, _game.shards]
+		effect += "\n" + tr("Koszt: %d odprysków (masz %d).") % [cost, _game.shards]
 		if not _game.can_afford_upgrade(id):
-			reason = tr("Za mało złota.") if _game.gold < cost.x else tr("Za mało odprysków - rozbij niepotrzebne kamienie.")
+			reason = tr("Za mało odprysków - rozbij niepotrzebne kamienie.")
 	var b := _row("upgrade", Gems.icon_of(id), tr("Ulepsz"), GOLD, effect, reason, tr("Ulepsz"))
 	b.disabled = reason != "" or not Gems.can_upgrade(id)
 	b.pressed.connect(func() -> void:
@@ -353,20 +355,18 @@ func _upgrade_row(id: String, act: Callable) -> void:
 		_build())
 
 
-## Wiersz „Sprzedaj” (`shatter` false) albo „Rozbij”: jedna sztuka, potwierdzenie drugim stuknięciem.
-func _sell_row(shatter: bool) -> void:
-	var key := "shatter" if shatter else "sell"
-	var effect := tr("+%d odprysków (ulepszają kamienie)") % Gems.shard_value(gem) if shatter \
-			else tr("+%d zł") % Gems.sell_price(gem)
-	var title := tr("Rozbij sztukę") if shatter else tr("Sprzedaj sztukę")
-	var b := _row(key, Gems.icon_of(gem), title, Gems.color_of(gem), effect, "",
-			tr("Na pewno?") if armed == key else (tr("Rozbij") if shatter else tr("Sprzedaj")))
+## Wiersz „Rozbij”: jedna sztuka na odpryski, potwierdzenie drugim stuknięciem.
+func _shatter_row() -> void:
+	var key := "shatter"
+	var effect := tr("+%d odprysków (ulepszają kamienie)") % Gems.shard_value(gem)
+	var b := _row(key, Gems.icon_of(gem), tr("Rozbij sztukę"), Gems.color_of(gem), effect, "",
+			tr("Na pewno?") if armed == key else tr("Rozbij"))
 	b.pressed.connect(func() -> void:
 		if armed != key:
 			armed = key
 			_build()
 			return
-		if _game.sell_gem(gem, shatter) == Vector2i.ZERO:
+		if _game.shatter_gem(gem) == 0:
 			return
 		armed = ""
 		if _game.gem_count(gem) > 0:

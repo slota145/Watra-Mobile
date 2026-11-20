@@ -1,10 +1,12 @@
 class_name ShopWindow
 extends BaseWindow
-## Okno kupca w bazie (Shop, półka w Game.shop): rząd na każdą ofertę - ikona, nazwa w kolorze rzadkości, opis
-## (premie przedmiotu, działanie kamienia) i przycisk z ceną w złocie (drugie stuknięcie kupuje). Kamienie, klucze
-## i dłuta idą do sakwy, przedmioty do torby (pełna torba - przycisk nieaktywny i napis). Pod listą: kiedy nowy towar.
+## Okno kupca w bazie - wymiana run (Shop.offers, ustalone z autorem 20.11.2026). W nagłówku liczba Run Szlifu
+## (nimi się płaci). Trzy części: „Kup runę” (za Runy Szlifu), „Rozmień na Runy Szlifu” i „Klucz i dłuto”. Rząd oferty:
+## ikona, nazwa (z liczbą sztuk), ile masz tego i czym się płaci, przycisk z ceną i ikoną runy (drugie stuknięcie
+## wymienia - BaseWindow.confirm).
 
 const BUY_SOUND := preload("res://assets/watra/handleCoins.ogg")
+const SECTIONS := {"buy": "Kup runę za Runy Szlifu", "change": "Rozmień na Runy Szlifu", "gem": "Klucz i dłuto"}
 
 
 func _build() -> void:
@@ -12,34 +14,29 @@ func _build() -> void:
 
 
 func refresh() -> void:
-	set_currency(COIN, _game.gold)
+	currency_icon.visible = true
+	set_currency(Runes.icon_of(Runes.POLISH), int(_game.runes.get(Runes.POLISH, 0)))
 	clear_content()
-	var offers: Array = _game.shop_offers()
-	label(content, tr("Torba: %d / %d") % [_game.bag.size(), _game.BAG_SIZE], 12, DIM)
+	var offers: Array = Shop.offers()
+	var section := ""
 	for i in offers.size():
 		var offer: Dictionary = offers[i]
-		var loot := Shop.loot_of(offer)
-		var box := row(ProtoLoot.icon_of(loot), ProtoLoot.color_of(loot).darkened(0.3))
+		if offer.kind != section:
+			section = offer.kind
+			label(content, tr(SECTIONS[section]), 13, GOLD)
+		var box := row(Shop.icon_of(offer), Shop.color_of(offer).darkened(0.3))
 		var col := text_column(box)
-		label(col, ProtoLoot.name_of(loot), 14, ProtoLoot.color_of(loot), true)
-		var lines: Array[String] = []
-		if offer.has("gem"):
-			lines = Gems.description(offer.gem)
-		else:
-			lines.append(Items.kind_line(offer.item))
-			lines.append_array(Items.base_lines(offer.item))
-			lines.append_array(Items.affix_lines(offer.item))
-		for line in lines:
-			label(col, line, 11, TEXT, true)
-		var problem: String = _game.shop_problem(i)
-		if problem == "bag":
-			label(col, tr("Torba pełna"), 11, Color(1, 0.45, 0.35))
-		var b := price_button(box, "offer_%d" % i, offer.price, COIN, problem == "")
+		var title := Shop.name_of(offer)
+		if offer.count > 1:
+			title = tr("%s x%d") % [title, offer.count]
+		label(col, title, 14, Shop.color_of(offer), true)
+		var have: int = _game.runes.get(offer.item, 0) if Runes.valid(offer.item) else _game.gem_count(offer.item)
+		label(col, tr("Masz: %d") % have, 11, TEXT)
+		label(col, tr("Płacisz: %s (masz %d)") % [Runes.name_of(offer.pay), int(_game.runes.get(offer.pay, 0))], 11, DIM, true)
+		var b := price_button(box, "offer_%d" % i, offer.cost, Runes.icon_of(offer.pay), _game.shop_problem(i) == "")
 		b.name = "Buy_%d" % i
 		b.pressed.connect(_buy.bind(i))
-	if offers.is_empty():
-		label(content, tr("Półka pusta."), 14, TEXT)
-	label(content, tr("Nowy towar po każdym pokonanym Wodzu."), 12, DIM, true)
+	label(content, tr("Kurs run (w Runach Szlifu): kupiec sprzedaje półtora razy drożej, niż skupuje."), 11, DIM, true)
 
 
 func _buy(index: int) -> void:

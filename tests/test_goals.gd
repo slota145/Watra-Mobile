@@ -3,7 +3,7 @@ extends SceneTree
 ## powtórek, progi paska żaru wywołują cele, cel z dala od postaci w polanie, strzałka przy krawędzi ekranu dla celu
 ## poza kadrem, skrzynia-cel otwiera się dopiero po staniu przy niej (odejście cofa postęp), kapliczka daje dar
 ## (cechy w postaci i broni, napis z czasem), dar gaśnie po czasie, cel zostaje po przyzwaniu Wodza.
-## Skarbnik: budzi się, gdy postać podejdzie, ucieka, trafienia wybijają złoto (nie częściej niż HIT_GAP), po
+## Skarbnik: budzi się, gdy postać podejdzie, ucieka, trafienia wybijają rudę (nie częściej niż HIT_GAP), po
 ## CATCH_HITS złapany (garść złota i kamień), po czasie ucieczki znika.
 ## Krąg Żertwy: zapala się przy pniu, wypuszcza paczki, liczy tylko zabitych w kręgu, komplet - pauza i wybór nagrody,
 ## po czasie gaśnie. Kryształ Watry: budzi się, fale biją kryształ, obroniony - kamienie i odpryski, rozbity - garść odprysków.
@@ -157,23 +157,26 @@ func _test_skarbnik() -> void:
 	await _wait(0.5)
 	_check(spirit.state == "flee" and spirit.position.distance_to(hero.position) > d0 + 10.0,
 			"budzi się i ucieka (%.0f -> %.0f px)" % [d0, spirit.position.distance_to(hero.position)])
-	var gold_before: int = game.gold
+	var ore_before: int = game.ore
 	spirit.take_damage(10, hero.position)
 	spirit.take_damage(10, hero.position)
-	var per := ProtoSkarbnik.gold_per_hit(12)
-	_check(spirit.hits == 1 and game.gold == gold_before + per, "trafienie wybija złoto (+%d), drugie od razu się nie liczy" % per)
+	var per: int = game.ore - ore_before
+	_check(spirit.hits == 1 and per >= ProtoSkarbnik.ORE_HIT, "trafienie wybija rudę (+%d), drugie od razu się nie liczy" % per)
 	for i in ProtoSkarbnik.CATCH_HITS - 1:
 		spirit._hit_ready = 0.0
 		spirit.take_damage(10, hero.position)
 	_check(spirit.state == "gone" and not spirit.goal_active(), "po %d trafieniach złapany" % ProtoSkarbnik.CATCH_HITS)
-	_check(game.gold == gold_before + per * (ProtoSkarbnik.CATCH_HITS - 1 + ProtoSkarbnik.JACKPOT)
-			and arena.run_skarbnik_gold == game.gold - gold_before, "złapanie: garść złota (razem %d)" % (game.gold - gold_before))
+	_check(game.ore == ore_before + per * ProtoSkarbnik.CATCH_HITS and arena.run_ore == game.ore - ore_before,
+			"każde trafienie to ruda (razem %d)" % (game.ore - ore_before))
 	await process_frame
 	var gem := false
+	var runes := 0
 	for n in arena.get_node("World").get_children():
 		if n is ProtoLoot and n.item.has("gem"):
 			gem = true
-	_check(gem, "złapany Skarbnik zostawia kamień")
+		if n is ProtoLoot and n.item.has("rune"):
+			runes += 1
+	_check(gem and runes == ProtoSkarbnik.CATCH_RUNES, "złapany Skarbnik zostawia kamień i %d runy" % runes)
 	var runner: ProtoSkarbnik = arena.spawn_goal("skarbnik")
 	runner.position = hero.position + Vector2(60, 0)
 	await _wait(0.2)
@@ -182,7 +185,7 @@ func _test_skarbnik() -> void:
 	_check(runner.state == "gone" and not runner.is_in_group(ProtoWeapon.TARGETS), "po czasie ucieczki Skarbnik znika")
 	arena.queue_free()
 	await process_frame
-	game.gold = gold_before
+	game.ore = ore_before
 	game.dev_immortal = false
 
 

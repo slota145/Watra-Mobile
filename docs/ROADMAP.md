@@ -65,7 +65,9 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
        na runy);
      - stary zapis: złoto przeliczone (propozycja: 100 zł = 1 ruda, 500 zł = losowa runa bez Pieczęci).
      Kolejność: (1) ~~runy i kowal~~ - zrobione 20.11.2026 (szczegóły w `docs/historia.md`; do oceny na telefonie:
-     jak często wypadają runy, wygoda okna kowala), (2) wymiana złota w pozostałych miejscach i przejście zapisu, (3) Napad Hordy
+     jak często wypadają runy, wygoda okna kowala), (2) ~~wymiana złota w pozostałych miejscach i przejście zapisu~~ - zrobione 20.11.2026 (do oceny na
+     telefonie: ile rudy i run zbiera się na wyprawę, kurs wymiany u kupca, koszty kamieni w odpryskach x3, szansa
+     Pieczęci Oręża 3%), (3) Napad Hordy
      i wykuwanie z rudy.
      W przyszłości (autor): więcej rodzajów rudy, różne rodzaje drewna i wiele rodzajów magicznego pyłu.
   5. **Symulowany rynek** jak w PoE (handel „orbami”), niedostępny w SSF. W Watrze: `scripts/market.gd`. Po punkcie 4.

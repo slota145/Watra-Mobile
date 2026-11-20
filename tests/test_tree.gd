@@ -101,22 +101,22 @@ func _test_migration(game: Node) -> void:
 			"tree": {"horde": 1, "loot": 1, "gold": 1, "nic": 3}}))
 	f.close()
 	game.load_game()
-	_check(game.gold == 10 + 50 + 120 + 50, "dawne ulepszenia lochów wracają złotem (%d)" % game.gold)
+	_check(game.gold == 0 and game.ore == 2, "dawne ulepszenia lochów wracają złotem (230), a ono rudą (%d)" % game.ore)
 	_check(game.tree.is_empty(), "więcej punktów niż przebitych poziomów - drzewko od nowa (%s)" % game.tree)
 	f = FileAccess.open(game.save_path, FileAccess.WRITE)
 	f.store_string(JSON.stringify({"best_level": 5, "gold": 0, "tree": {"loot": 0, "gold": 2, "xp": 1}}))
 	f.close()
 	game.load_game()
-	_check(game.tree == {"xp": 1} and game.gold == 0, "duży węzeł bez małego się zamyka (%s)" % game.tree)
+	_check(game.tree == {"xp": 1} and game.ore == 0, "duży węzeł bez małego się zamyka (%s)" % game.tree)
 
 
 func _test_dungeon(game: Node) -> void:
 	game.best_level = 40
 	game.dungeon_level = 1
 	game.tree = {"horde": 1, "summon": 10, "loot": 1, "gold": 10, "reach": 1, "wander": 10}
-	game.gold = 0
-	game.add_gold(100)
-	_check(game.gold == 140, "Skarbiec: +40%% złota (%d)" % game.gold)
+	game.ore = 0
+	game.add_ore(10)
+	_check(game.ore == 14 and is_equal_approx(game.treasury_mult(), 1.4), "Skarbiec: +40%% rudy i szans na runy (%d)" % game.ore)
 	game.dev_immortal = true
 	game.save_game()
 	var arena: Node = load("res://scenes/horde.tscn").instantiate()

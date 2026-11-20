@@ -1,50 +1,43 @@
 class_name Shop
-## Kupiec w bazie (ustalone z autorem 12.11.2026): towar w ograniczonej liczbie, odnawia się po każdym pokonanym
-## bossie (`Game.restock_shop` przy zwycięstwie; pierwszy towar przy pierwszym otwarciu). Na półce: Klucz Runiczny,
-## Dłuto Jubilera, kamienie (umiejętności na 1. poziomie, szlachetne z premiami z poziomu lochu) i kilka przedmiotów (magiczne albo rzadkie) z poziomu
-## najwyższego przebitego lochu. Oferta to słownik {"gem": identyfikator, "price"} albo {"item": przedmiot, "price"};
-## kupiona znika z półki do następnej dostawy. Stan trzyma i zapisuje `Game.shop`, okno - `scripts/ui/shop_window.gd`.
+## Kupiec w bazie - wymiana run (ustalone z autorem 20.11.2026, ROADMAP punkt 4; wcześniej półka za złoto).
+## Stała lista ofert (`offers`), bez limitu sztuk: każdą runę kupuje się za Runy Szlifu po kursie x BUY_MARKUP
+## (zaokrąglone w górę - kupiec bierze swoje) i rozmienia na Runy Szlifu po kursie (Runes.value_of). Klucz Runiczny
+## i Dłuto Jubilera (Gems) kupuje się za runy (KEY_PRICE, CHISEL_PRICE). Oferta to {"pay": runa, "cost": ile,
+## "item": runa albo identyfikator Gems, "count": ile sztuk, "kind": "buy" / "change" / "gem"}.
+## Wymianę robi Game.buy_offer, okno - scripts/ui/shop_window.gd.
 
-## Ceny kluczy, dłut i kamieni (złoto).
-const KEY_PRICE := 400
-const CHISEL_PRICE := 250
-const GEM_PRICE := 60
-## Ile kamieni i przedmiotów na półce po dostawie.
-const GEMS := 2
-const ITEMS := 3
-## Przedmiot kosztuje tyle razy więcej, niż daje jego sprzedaż.
-const ITEM_MARKUP := 4
-## Szansa, że przedmiot na półce jest rzadki (inaczej magiczny).
-const RARE_CHANCE := 0.25
+const BUY_MARKUP := 1.5
+const KEY_PRICE := {"pay": Runes.CHAOS, "cost": 2}
+const CHISEL_PRICE := {"pay": Runes.ASCEND, "cost": 1}
 
 
-## Nowy towar na półce; przedmioty z poziomu lochu `level`.
-static func stock(level: int) -> Array:
-	var offers: Array = [{"gem": Gems.KEY, "price": KEY_PRICE}, {"gem": Gems.CHISEL, "price": CHISEL_PRICE}]
-	var kinds: Array = Gems.SUPPORT_ORDER + Gems.JEWEL_ORDER
-	kinds.shuffle()  # różne rodzaje kamieni
-	for i in GEMS:
-		var gem: String = Gems.roll_jewel(kinds[i], level) if Gems.JEWELS.has(kinds[i]) else Gems.make(kinds[i])
-		offers.append({"gem": gem, "price": GEM_PRICE})
-	for i in ITEMS:
-		var item := Items.roll(level, "", "rare" if randf() < RARE_CHANCE else "magic")
-		offers.append({"item": item, "price": Items.sell_price(item) * ITEM_MARKUP})
-	return offers
+## Wszystkie oferty: kupno run za Szlify, rozmiana run na Szlify, klucz i dłuto.
+static func offers() -> Array:
+	var out: Array = []
+	for id in Runes.ORDER:
+		if id != Runes.POLISH:
+			out.append({"pay": Runes.POLISH, "cost": buy_cost(id), "item": id, "count": 1, "kind": "buy"})
+	for id in Runes.ORDER:
+		if id != Runes.POLISH:
+			out.append({"pay": id, "cost": 1, "item": Runes.POLISH, "count": Runes.value_of(id), "kind": "change"})
+	out.append({"pay": KEY_PRICE.pay, "cost": KEY_PRICE.cost, "item": Gems.KEY, "count": 1, "kind": "gem"})
+	out.append({"pay": CHISEL_PRICE.pay, "cost": CHISEL_PRICE.cost, "item": Gems.CHISEL, "count": 1, "kind": "gem"})
+	return out
 
 
-## Oferta wczytana z zapisu (zły wpis - pusty słownik).
-static func normalize(raw) -> Dictionary:
-	if not raw is Dictionary or int(raw.get("price", 0)) <= 0:
-		return {}
-	if raw.has("gem") and Gems.valid(raw.gem):
-		return {"gem": raw.gem, "price": int(raw.price)}
-	if raw.has("item"):
-		var item := Items.normalize(raw.item)
-		if not item.is_empty():
-			return {"item": item, "price": int(raw.price)}
-	return {}
+## Ile Run Szlifu kosztuje runa `id` u kupca.
+static func buy_cost(id: String) -> int:
+	return ceili(Runes.value_of(id) * BUY_MARKUP)
 
 
-## Łup oferty w postaci jak ProtoLoot (do nazwy, koloru i ikony).
-static func loot_of(offer: Dictionary) -> Dictionary:
-	return {"gem": offer.gem} if offer.has("gem") else offer.item
+## Nazwa, ikona i kolor tego, co daje oferta (runa albo klucz / dłuto).
+static func name_of(offer: Dictionary) -> String:
+	return Runes.name_of(offer.item) if Runes.valid(offer.item) else Gems.name_of(offer.item)
+
+
+static func icon_of(offer: Dictionary) -> Texture2D:
+	return Runes.icon_of(offer.item) if Runes.valid(offer.item) else Gems.icon_of(offer.item)
+
+
+static func color_of(offer: Dictionary) -> Color:
+	return Runes.color_of(offer.item) if Runes.valid(offer.item) else Gems.color_of(offer.item)

@@ -23,8 +23,8 @@ extends Control
 ## przycisk „Ulepsz” z ceną w żarze (przy kamieniu run, drugie stuknięcie potwierdza; Game.upgrade_skill), a gdy
 ## mistrzostwo nie pozwala - od którego poziomu mistrzostwa (Skills.level_cap).
 ## Bronie (13.11.2026; od 20.11.2026 lista zamiast rzędu): pod mistrzostwem przycisk z bronią w ręku otwiera listę broni
-## (Weapons.ORDER, `weapon_menu`) - przy kamieniu run stuknięcie dostępnej broni bierze ją do ręki (Game.set_weapon), a niedostępnej - kupuje ją za złoto (drugie stuknięcie
-## potwierdza; Game.buy_weapon). Lista pokazuje tylko umiejętności broni w ręku.
+## (Weapons.ORDER, `weapon_menu`) - przy kamieniu run stuknięcie dostępnej broni bierze ją do ręki (Game.set_weapon), a niedostępnej - odblokowuje ją Pieczęcią Oręża z sakwy
+## (drugie stuknięcie potwierdza; Game.unseal_weapon - od 20.11.2026 zamiast kupna za złoto). Lista pokazuje tylko umiejętności broni w ręku.
 ## Zatrzymuje grę, gdy jest otwarte (PROCESS_MODE_ALWAYS).
 
 signal closed
@@ -580,8 +580,8 @@ func _show_perks(i: int, id: String, lvl: int, owned: bool) -> void:
 	next_labels[i].text = tr("Następny poziom: %s") % Skills.next_level_text(id, lvl)
 
 
-## Stuknięcie broni: dostępną bierze do ręki (tylko przy kamieniu run), niedostępną kupuje za złoto (drugie stuknięcie).
-## Bez kamienia run i przy braku złota - podpowiedź, skąd ją wziąć.
+## Stuknięcie broni: dostępną bierze do ręki (tylko przy kamieniu run), niedostępną odblokowuje Pieczęcią Oręża
+## (drugie stuknięcie). Bez kamienia run i bez pieczęci - podpowiedź, skąd ją wziąć.
 func _on_weapon(w: String) -> void:
 	selected_skill = ""
 	selected_slot = -1
@@ -597,17 +597,17 @@ func _on_weapon(w: String) -> void:
 		_game.set_weapon(w)
 		_play(preload("res://assets/watra/ember_pickup_big.ogg"))
 		weapon_menu.visible = false
-	elif _game.gold < Weapons.price_of(w):
+	elif _game.gem_count(Gems.WEAPON_SEAL) <= 0:
 		_buy_armed = ""
-		why = tr("%s: za darmo po pokonaniu Wodza na %d. poziomie lochu albo wcześniej za %d zł.") \
-				% [Weapons.name_of(w), Weapons.unlock_level(w), Weapons.price_of(w)]
+		why = tr("%s: po pokonaniu Wodza na %d. poziomie lochu albo wcześniej Pieczęcią Oręża (rzadko ze skrzyni Wodza).") \
+				% [Weapons.name_of(w), Weapons.unlock_level(w)]
 	elif _buy_armed != "weapon:" + w:
 		_buy_armed = "weapon:" + w
-		why = tr("Kupić: %s za %d zł? Stuknij jeszcze raz.") % [Weapons.name_of(w), Weapons.price_of(w)]
+		why = tr("Odblokować %s Pieczęcią Oręża? Stuknij jeszcze raz.") % Weapons.name_of(w)
 	else:
 		_buy_armed = ""
-		if _game.buy_weapon(w):
-			_play(preload("res://assets/watra/handleCoins.ogg"))
+		if _game.unseal_weapon(w):
+			_play(preload("res://assets/watra/ember_pickup_big.ogg"))
 			weapon_menu.visible = false
 	refresh()
 	if why != "":
@@ -699,7 +699,8 @@ func open_weapons() -> void:
 	weapon_menu.visible = true
 
 
-## Wiersze listy broni: w ręku - złota ramka i „W ręku”; dostępna - „Weź”; zamknięta - od którego lochu i cena.
+## Wiersze listy broni: w ręku - złota ramka i „W ręku”; dostępna - „Weź”; zamknięta - od którego lochu (i przycisk
+## Pieczęci Oręża, gdy jest w sakwie).
 func _refresh_weapon_menu() -> void:
 	for w in weapon_rows:
 		var b: Button = weapon_buttons[w]
@@ -717,8 +718,8 @@ func _refresh_weapon_menu() -> void:
 			state.text = tr("Dostępna")
 			b.text = tr("Weź")
 		else:
-			state.text = tr("Za darmo po lochu %d albo za %d zł") % [Weapons.unlock_level(w), Weapons.price_of(w)]
-			b.text = tr("Na pewno?") if _buy_armed == "weapon:" + w else tr("Kup")
+			state.text = tr("Po lochu %d albo Pieczęcią Oręża") % Weapons.unlock_level(w)
+			b.text = tr("Na pewno?") if _buy_armed == "weapon:" + w else tr("Pieczęć")
 		b.disabled = held
 		_tab_look(b, held)
 

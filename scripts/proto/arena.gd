@@ -31,7 +31,7 @@ extends Node2D
 ## kupno tylko w bazie) - w bazie i w lochu; oba okna zatrzymują grę.
 ## Cele na mapie lochu (DungeonGoals, 16.11.2026): przy progach paska żaru (25/50/75%) na polanie pojawia się cel -
 ## skrzynia (ProtoChest z `hold_time`), kapliczka (ProtoShrine - dar bóstwa na 60 s doliczany do cech
-## z przedmiotów w `_gear`), Skarbnik (ProtoSkarbnik - złoto za trafienia, `Game.add_gold`), Krąg Żertwy (ProtoZertwa -
+## z przedmiotów w `_gear`), Skarbnik (ProtoSkarbnik - ruda za trafienia, `Game.add_ore`, runy za złapanie), Krąg Żertwy (ProtoZertwa -
 ## paczki potworów, danina z zabitych w kręgu, wybór nagrody ZertwaOffer) albo Kryształ Watry (ProtoCrystal - fale
 ## potworów bijących kryształ, kamienie i odpryski); napis na środku ekranu (`announce`), strzałki przy krawędzi (GoalArrows), nazwa daru
 ## z pozostałym czasem pod paskami (`gift_label`). Niezrobiony cel zostaje po przyzwaniu Wodza.
@@ -106,11 +106,11 @@ var xp_text: Label
 ## Doświadczenie zdobyte w tej wyprawie i poziom postaci na jej starcie (do podsumowania).
 var run_xp := 0
 var _start_hero_level := 1
-## Przedmioty podniesione w tej wyprawie i złoto za sprzedane od razu (pełna torba przy skrzyni).
+## Przedmioty i runy podniesione w tej wyprawie oraz ruda (przedmioty rozbite od razu - auto rozbijanie, pełna torba
+## przy skrzyni - i Skarbnik).
 var run_items := 0
-var run_sold_gold := 0
-## Złoto ze Skarbnika (cel na mapie lochu) w tej wyprawie.
-var run_skarbnik_gold := 0
+var run_runes := 0
+var run_ore := 0
 ## Powiadomienia o łupie (pod paskami u góry, znikają same) i ich największa liczba naraz.
 var loot_feed: VBoxContainer
 const FEED_MAX := 4
@@ -352,11 +352,12 @@ func _npc(world: Node2D, node_name: String, title: String, sheet: Texture2D, at:
 
 ## Drzewko lochów (Game.tree_value, DungeonTree) do strumienia Hordy: gęstość (razy tłum poziomu lochu), szansa łupu
 ## i kamieni, zasięg zbierania, elity. Doświadczenie i mistrzostwo dolicza `_gain_xp`, żar - `_apply_weapon`, złoto -
-## Game.add_gold, koszt przyzwania - `_summon_cost`, nagrody celów i Wędrowne cele - przy celach.
+## Game.add_ore, koszt przyzwania - `_summon_cost`, nagrody celów i Wędrowne cele - przy celach.
 func _apply_upgrades() -> void:
 	horde_spawner.density = (1.0 + Game.tree_value("horde") / 100.0) * DungeonLevels.crowd(Game.dungeon_level) \
 			* DungeonMods.mult(mods, "density")
 	horde_spawner.loot_mult = (1.0 + Game.tree_value("loot") / 100.0) * _gift_value("loot", 1.0) * DungeonMods.mult(mods, "loot")
+	horde_spawner.rune_mult = Game.treasury_mult()  # drzewko lochów: Skarbiec
 	horde_spawner.gem_mult = 1.0 + Game.tree_value("gems") / 100.0
 	horde_spawner.reach = Game.tree_value("reach")
 	horde_spawner.elite_rate = DungeonMods.mult(mods, "elite_rate") * (1.0 + Game.tree_value("elites") / 100.0)
@@ -491,6 +492,12 @@ func _make_hud() -> void:
 		hint.add_theme_constant_override("outline_size", 3)
 		hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		column.add_child(hint)
+		if Game.gold_converted != Vector2i.ZERO:  # stary zapis: złoto zamienione na runy i rudę (raz)
+			hint.text = tr("Złota już nie ma - zamieniono je na %d run i %d rudy żelaza (kowal, kupiec).") \
+					% [Game.gold_converted.x, Game.gold_converted.y]
+			hint.add_theme_font_size_override("font_size", 13)
+			hint.add_theme_color_override("font_color", Color(1, 0.82, 0.4))
+			Game.gold_converted = Vector2i.ZERO
 	var fill := Control.new()
 	fill.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -917,13 +924,16 @@ func _update_skill_buttons() -> void:
 ## Przedmiot na ziemi (z goblina albo skrzyni) - podniesione liczą się do podsumowania wyprawy.
 func _track_loot(loot: ProtoLoot) -> void:
 	loot.picked.connect(func(item: Dictionary) -> void:
-		if not item.has("gem") and not item.has("aura") and not item.has("talisman") and not item.has("rune"):
+		if item.has("rune"):
+			run_runes += 1
+		elif not item.has("gem") and not item.has("aura") and not item.has("talisman"):
 			run_items += 1
 		notify_loot(item, tr("Podniesiono: %s") % ProtoLoot.name_of(item)))
-	loot.sold.connect(func(item: Dictionary, price: int, bag_full: bool) -> void:
-		run_sold_gold += price
-		var text := tr("Torba pełna - sprzedano: %s (+%d złota)") if bag_full else tr("Sprzedano: %s (+%d złota)")
-		notify_loot(item, text % [Items.name_of(item), price]))
+	loot.scrapped.connect(func(item: Dictionary, got: Dictionary, bag_full: bool) -> void:
+		run_ore += int(got.ore)
+		run_runes += 1 if got.rune != "" else 0
+		var text := tr("Torba pełna - rozbito: %s (+%d rudy)") if bag_full else tr("Rozbito: %s (+%d rudy)")
+		notify_loot(item, text % [Items.name_of(item), got.ore]))
 
 
 ## Powiadomienie o łupie pod paskami u góry: ikona i napis w kolorze rzadkości, po chwili gaśnie.
@@ -1107,12 +1117,12 @@ func spawn_goal(kind: String) -> Node2D:
 			spirit.hero = hero
 			spirit.level = level
 			spirit.bounds = ARENA.grow(-24)
-			spirit.gold.connect(func(amount: int) -> void:
-				amount = roundi(amount * _goal_reward())
-				run_skarbnik_gold += amount
-				Game.add_gold(amount))
+			spirit.ore.connect(func(amount: int) -> void:
+				run_ore += Game.add_ore(maxi(1, roundi(amount * _goal_reward()))))
 			spirit.caught.connect(func(where: Vector2) -> void:
 				announce(tr("Skarbnik złapany!"), spirit.goal_color)
+				for i in ProtoSkarbnik.CATCH_RUNES:
+					horde_spawner.drop_item({"rune": Runes.roll(level)}, where)
 				horde_spawner.drop_item({"gem": Gems.roll(level)}, where))
 			spirit.escaped.connect(func() -> void: announce(tr("Skarbnik zapadł się pod ziemię"), Color(0.8, 0.75, 0.6)))
 			goal = spirit
@@ -1149,7 +1159,8 @@ func spawn_goal(kind: String) -> Node2D:
 			box.hero = hero
 			box.hold_time = DungeonGoals.CHEST_HOLD
 			box.embers = roundi(DungeonGoals.chest_embers(level) * _goal_reward())
-			box.items = DungeonGoals.chest_items(level, horde_spawner.loot_mult * horde_spawner.gem_mult)
+			box.items = DungeonGoals.chest_items(level, horde_spawner.loot_mult * horde_spawner.gem_mult,
+					horde_spawner.rune_mult)
 			box.loot_spawned.connect(_track_loot)
 			box.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner.on_chest_ember))
 			goal = box
@@ -1336,8 +1347,10 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	chest.items = Items.roll_chest(level)
 	for id in Gems.roll_chest(level, horde_spawner.loot_mult * horde_spawner.gem_mult):
 		chest.items.append({"gem": id})
-	for id in Runes.roll_chest(level, horde_spawner.loot_mult):
+	for id in Runes.roll_chest(level, horde_spawner.loot_mult * horde_spawner.rune_mult):
 		chest.items.append({"rune": id})
+	if Game.roll_weapon_seal(horde_spawner.loot_mult):  # Pieczęć Oręża - gdy jest jeszcze broń do odblokowania
+		chest.items.append({"gem": Gems.WEAPON_SEAL})
 	var aura := Auras.roll_chest(level, false, horde_spawner.loot_mult * horde_spawner.gem_mult)  # kamień aury (od lochu Auras.MIN_LEVEL)
 	if aura != "":
 		chest.items.append({"aura": aura})
@@ -1365,14 +1378,12 @@ func victory() -> void:
 	var banked := horde_spawner.embers
 	_bank()
 	var unlocked := level + 1 if Game.beat_level(level) else 0
-	Game.restock_shop(level)  # kupiec ma nowy towar po każdym pokonanym Wodzu
 	Game.save_if_dirty()
 	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time, hero.deaths)
 	if unlocked > 0:
 		result.add_unlock_lines(Unlocks.on_beat(level))
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
-	result.add_loot_lines(run_items, run_sold_gold)
-	result.add_gold_line(run_skarbnik_gold)
+	result.add_loot_lines(run_items, run_runes, run_ore)
 	get_tree().paused = true
 
 
@@ -1471,8 +1482,7 @@ func _on_hero_died() -> void:
 	Game.save_if_dirty()
 	result.show_result(horde_spawner.kills, horde_spawner.time, horde_spawner.embers)
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
-	result.add_loot_lines(run_items, run_sold_gold)
-	result.add_gold_line(run_skarbnik_gold)
+	result.add_loot_lines(run_items, run_runes, run_ore)
 	get_tree().paused = true
 
 
