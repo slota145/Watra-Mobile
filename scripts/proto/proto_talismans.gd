@@ -29,24 +29,58 @@ var _hit_ready := {}  # talizman -> czas gry, od którego znowu może zadziała�
 var _tremor_next := 0.0
 var _bloodlust := 0
 var _bloodlust_left := 0.0
+## Talizmany z Path of Exile (20.11.2026): czas do końca premii Łuski Żmija, Poroża Jelenia i Świecy Wiedźmy,
+## wydana mana (Świeca).
+var _overload_left := 0.0
+var _onslaught_left := 0.0
+var _arcane_left := 0.0
+var _mana_spent := 0
 
 
 func _ready() -> void:
 	_hero = get_parent() as ProtoHero
+	_hero.mana_spent.connect(_on_mana_spent)
 
 
 func _now() -> float:
 	return Time.get_ticks_msec() / 1000.0
 
 
-## Ustawienia broni z założonych talizmanów: droższe umiejętności (Kryształ Peruna).
+## Ustawienia broni i postaci z założonych talizmanów: droższe umiejętności (Kryształ Peruna), ogień zamiast
+## fizycznych (Krzesiwo Swaroga), z bliska więcej (Kieł Niedźwiedzia), zdrowie zamiast many (Krwawe Serce),
+## mana bierze część ciosów (Nić Mokoszy).
 func _apply() -> void:
 	if weapon == null:
 		return
 	weapon.mana_tax = Talismans.archmage_cost(worn["archmage"]) if worn.has("archmage") else 0.0
+	weapon.fire_convert = worn.has("avatar")
+	weapon.fire_convert_bonus = _power("avatar") if worn.has("avatar") else 0.0
+	weapon.point_blank = _power("point_blank") if worn.has("point_blank") else 0.0
+	if _hero:
+		_hero.blood_magic = _power("blood_magic") if worn.has("blood_magic") else 0.0
+		_hero.mana_shield = _power("mom") if worn.has("mom") else 0.0
 	if not worn.has("bloodlust"):
 		_bloodlust = 0
-		weapon.bonus_mult = 1.0
+	_update_buffs()
+
+
+## Premie na chwilę i zależne od stanu (Czaszka Biesa, Świeca Wiedźmy, Szpon Upiora, Łuska Żmija, Poroże Jelenia):
+## mnożnik obrażeń broni, premia żywiołów, szybkość ruchu i ataku, odnowa many.
+func _update_buffs() -> void:
+	if weapon == null:
+		return
+	var mult := 1.0 + _power("bloodlust") * _bloodlust if worn.has("bloodlust") else 1.0
+	if _arcane_left > 0.0 and worn.has("arcane"):
+		mult *= 1.0 + _power("arcane")
+	if worn.has("pain") and _hero and _hero.hp < _hero.max_hp * Talismans.PAIN_BELOW:
+		mult *= 1.0 + _power("pain")
+	weapon.bonus_mult = mult
+	weapon.elem_extra = _power("overload") if _overload_left > 0.0 and worn.has("overload") else 0.0
+	var rush := _power("onslaught") if _onslaught_left > 0.0 and worn.has("onslaught") else 0.0
+	weapon.speed_bonus = rush
+	if _hero:
+		_hero.move_bonus = rush
+		_hero.mana_regen_bonus = Talismans.ARCANE_REGEN if _arcane_left > 0.0 and worn.has("arcane") else 0.0
 
 
 func _process(delta: float) -> void:
@@ -56,7 +90,10 @@ func _process(delta: float) -> void:
 		_bloodlust_left -= delta
 		if _bloodlust_left <= 0.0:
 			_bloodlust = 0
-			weapon.bonus_mult = 1.0
+	_overload_left -= delta
+	_onslaught_left -= delta
+	_arcane_left -= delta
+	_update_buffs()
 	if worn.has("tremor"):
 		_tremor_next -= delta
 		if _tremor_next <= 0.0:
@@ -106,6 +143,10 @@ func on_hit(t: ProtoTarget) -> void:
 				_thunder(t)
 			"whirlpool":
 				_whirlpool(at)
+			"cull":
+				if t.alive() and t.health_fraction() < _power(id) * (0.5 if ProtoWeapon._tough(t) else 1.0):
+					weapon.execute(t, _hero.global_position)
+					_hero.float_text(tr("Cios łaski!"), -46.0, Talismans.color_of(id), 11, 0.8)
 			"roots":
 				Fx.once(_world(), ROOTS_FX, 14, 16.0, at.round(), ROOTS_ANCHOR, 6, 1.2)
 				for e in _around(at, Talismans.ROOTS_RADIUS):
@@ -159,12 +200,46 @@ func on_kill(g: ProtoTarget) -> void:
 	if _roll("bloodlust"):
 		_bloodlust = mini(_bloodlust + 1, Talismans.BLOODLUST_STACKS)
 		_bloodlust_left = Talismans.BLOODLUST_TIME
-		weapon.bonus_mult = 1.0 + _power("bloodlust") * _bloodlust
+		_update_buffs()
 	if _roll("kaboom"):
 		_kaboom.call_deferred(at)  # łańcuch wybuchów idzie klatka po klatce
+	if _roll("onslaught"):
+		_onslaught_left = Talismans.ONSLAUGHT_TIME
+		_update_buffs()
+	if worn.has("pyre") and g.is_burning():  # Lont Pożogi: ogień przechodzi na sąsiadów
+		_pyre.call_deferred(at)
 	if _roll("devour"):
 		_hero.heal(maxi(1, roundi(_hero.max_hp * _power("devour"))))
 		Fx.once(_world(), BLOOD_HEAL_FX, 12, 14.0, _hero.global_position.round(), BLOOD_HEAL_ANCHOR, 21)
+
+
+func _pyre(at: Vector2) -> void:
+	if weapon == null or not is_instance_valid(weapon):
+		return
+	Fx.once(_world(), ProtoGlaive.BLAST_FX, 12, 18.0, at.round(), ProtoGlaive.BLAST_FX_ANCHOR, 6, 0.8)
+	for e in _around(at, Talismans.PYRE_RADIUS):
+		e.burn(weapon._roll(_power("pyre")) * weapon.elem_total(), ProtoWeapon.BURN_TIME, weapon.penetration)
+
+
+## Trafienie krytyczne (ProtoWeapon._deal): Łuska Żmija - premia żywiołów na chwilę.
+func on_crit() -> void:
+	if worn.has("overload"):
+		if _overload_left <= 0.0:
+			_hero.float_text(tr("Przeciążenie!"), -46.0, Talismans.color_of("overload"), 11, 0.8)
+		_overload_left = Talismans.OVERLOAD_TIME
+		_update_buffs()
+
+
+## Wydana mana (ProtoHero.mana_spent): Świeca Wiedźmy - po ARCANE_MANA premia na chwilę.
+func _on_mana_spent(amount: int) -> void:
+	if not worn.has("arcane"):
+		return
+	_mana_spent += amount
+	if _mana_spent >= Talismans.ARCANE_MANA:
+		_mana_spent = 0
+		_arcane_left = Talismans.ARCANE_TIME
+		_hero.float_text(tr("Przypływ many!"), -46.0, Talismans.color_of("arcane"), 11, 0.8)
+		_update_buffs()
 
 
 func _kaboom(at: Vector2) -> void:

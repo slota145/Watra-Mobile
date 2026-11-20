@@ -298,12 +298,12 @@ func _ready() -> void:
 	for t in TABS:
 		var b := _detail_button(tabs, tr(TAB_NAMES[t]))
 		b.add_theme_font_size_override("font_size", 11)
-		b.size_flags_stretch_ratio = 1.2 if t == "equip" or t == "talismans" or t == "stats" else 1.0  # dłuższe nazwy
+		b.size_flags_stretch_ratio = 1.2  # dłuższe nazwy (wszystkie tak samo, „Wróć” węższy)
 		b.pressed.connect(set_tab.bind(t))
 		tab_buttons[t] = b
 	back_button = _detail_button(tabs, tr("Wróć"))
 	back_button.add_theme_font_size_override("font_size", 11)
-	back_button.size_flags_stretch_ratio = 0.75
+	back_button.size_flags_stretch_ratio = 0.7
 	back_button.pressed.connect(close)
 	_make_detail()
 	picker = GemPicker.new()
@@ -934,7 +934,7 @@ func _refresh_pouch() -> void:
 	pouch_label.text = tr("Kamienie: %d  ·  Odpryski: %d") % [total, _game.shards] if total > 0 \
 			else tr("Sakwa pusta - kamienie wypadają w lochach od poziomu %d.") % Gems.MIN_LEVEL \
 			+ "  " + tr("Odpryski: %d") % _game.shards
-	tab_buttons["pouch"].text = tr("Sakwa (%d)") % total if total > 0 else tr("Sakwa")
+	tab_buttons["pouch"].text = tr("Sakwa %d") % total if total > 0 else tr("Sakwa")  # bez nawiasów - mieści się
 	for k in pouch_kind_buttons:
 		_tab_look(pouch_kind_buttons[k], k == pouch_filter)
 	pouch_sort_button.text = tr("Sortuj: rodzaj") if pouch_sort == "kind" else tr("Sortuj: poziom")

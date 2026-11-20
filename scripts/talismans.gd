@@ -16,7 +16,8 @@ const MIN_LEVEL := 5
 const CHEST_CHANCE := 0.10
 
 const ORDER: Array[String] = ["shockwave", "thunder", "whirlpool", "roots", "thorns", "bloodlust", "kaboom", "devour",
-		"tremor", "archmage"]
+		"tremor", "archmage", "overload", "cull", "onslaught", "arcane", "pyre", "blood_magic", "mom", "avatar",
+		"point_blank", "pain"]
 
 ## name, icon, color (poświata i napisy), trigger - kiedy działa (hit - trafienie wroga, kill - pokonany wróg,
 ## hurt - rana postaci, skill - użyta umiejętność, passive - co `every` s), chance - [szansa na 1. poziomie, przyrost
@@ -42,6 +43,27 @@ const DATA := {
 		"color": Color8(190, 140, 90), "trigger": "passive", "chance": [1.0, 0.0], "power": [0.5, 0.06]},
 	"archmage": {"name": "Kryształ Peruna", "icon": preload("res://assets/watra/talismans/summon_storm_eagle.png"),
 		"color": Color8(150, 200, 255), "trigger": "skill", "chance": [1.0, 0.0], "power": [0.15, 0.02]},
+	# wzorowane na węzłach drzewka Path of Exile (decyzja autora 20.11.2026)
+	"overload": {"name": "Łuska Żmija", "icon": preload("res://assets/watra/talismans/hydra_scale.png"),
+		"color": Color8(90, 220, 140), "trigger": "crit", "chance": [1.0, 0.0], "power": [0.30, 0.03]},
+	"cull": {"name": "Hak Kata", "icon": preload("res://assets/watra/talismans/summon_giant_worm.png"),
+		"color": Color8(190, 60, 70), "trigger": "hit", "chance": [1.0, 0.0], "power": [0.08, 0.004]},
+	"onslaught": {"name": "Poroże Jelenia", "icon": preload("res://assets/watra/talismans/antlers.png"),
+		"color": Color8(200, 170, 110), "trigger": "kill", "chance": [0.25, 0.02], "power": [0.15, 0.015]},
+	"arcane": {"name": "Świeca Wiedźmy", "icon": preload("res://assets/watra/talismans/summon_necromancer.png"),
+		"color": Color8(120, 220, 140), "trigger": "mana", "chance": [1.0, 0.0], "power": [0.15, 0.015]},
+	"pyre": {"name": "Lont Pożogi", "icon": preload("res://assets/watra/talismans/kobold_fuse.png"),
+		"color": Color8(255, 120, 40), "trigger": "kill", "chance": [1.0, 0.0], "power": [0.6, 0.06]},
+	"blood_magic": {"name": "Krwawe Serce", "icon": preload("res://assets/watra/talismans/summon_chief.png"),
+		"color": Color8(210, 40, 50), "trigger": "passive", "chance": [1.0, 0.0], "power": [1.0, -0.03]},
+	"mom": {"name": "Nić Mokoszy", "icon": preload("res://assets/watra/talismans/spider_silk.png"),
+		"color": Color8(110, 150, 255), "trigger": "passive", "chance": [1.0, 0.0], "power": [0.20, 0.015]},
+	"avatar": {"name": "Krzesiwo Swaroga", "icon": preload("res://assets/watra/talismans/great_flint.png"),
+		"color": Color8(255, 150, 60), "trigger": "passive", "chance": [1.0, 0.0], "power": [0.10, 0.02]},
+	"point_blank": {"name": "Kieł Niedźwiedzia", "icon": preload("res://assets/watra/talismans/beast_fang.png"),
+		"color": Color8(220, 200, 160), "trigger": "passive", "chance": [1.0, 0.0], "power": [0.25, 0.025]},
+	"pain": {"name": "Szpon Upiora", "icon": preload("res://assets/watra/talismans/ghoul_claw.png"),
+		"color": Color8(120, 160, 120), "trigger": "passive", "chance": [1.0, 0.0], "power": [0.30, 0.03]},
 }
 
 ## Przerwa po zadziałaniu efektu przy trafieniu (umiejętności trafiające wielu wrogów naraz nie sypią efektami).
@@ -78,6 +100,21 @@ const ARCHMAGE_HIT := 0.3
 const ARCHMAGE_RANGE := 200.0
 const ARCHMAGE_COST := 0.25
 const ARCHMAGE_COST_STEP := 0.01
+## Łuska Żmija (Elemental Overload): po trafieniu krytycznym premia żywiołów na tyle sekund.
+const OVERLOAD_TIME := 8.0
+## Poroże Jelenia (Onslaught): szybszy ruch i atak na tyle sekund po zabójstwie.
+const ONSLAUGHT_TIME := 4.0
+## Świeca Wiedźmy (Arcane Surge): po wydaniu tyle many - premia obrażeń i odnowy many (+ARCANE_REGEN) na ARCANE_TIME s.
+const ARCANE_MANA := 50
+const ARCANE_TIME := 4.0
+const ARCANE_REGEN := 0.5
+## Lont Pożogi: płonący pokonany wróg przekazuje ogień sąsiadom w tym promieniu.
+const PYRE_RADIUS := 50.0
+## Kieł Niedźwiedzia (Point Blank): pełna premia do tej odległości, kara (połowa premii) od tej.
+const POINT_BLANK_NEAR := 60.0
+const POINT_BLANK_FAR := 130.0
+## Szpon Upiora (Pain Attunement): działa poniżej tej części zdrowia.
+const PAIN_BELOW := 0.5
 
 
 static func is_talisman(id: String) -> bool:
@@ -158,6 +195,28 @@ static func effect_text(id: String, level := 1) -> String:
 		"archmage":
 			return Lang.t("Każda umiejętność ciska piorun: %d%% many jako obrażenia; umiejętności kosztują %d%% więcej many") % [
 					roundi(p * 100), roundi(archmage_cost(level) * 100)]
+		"overload":
+			return Lang.t("Trafienie krytyczne: +%d%% obrażeń od żywiołów na %d s") % [roundi(p * 100), roundi(OVERLOAD_TIME)]
+		"cull":
+			return Lang.t("Trafiony wróg poniżej %s%% zdrowia ginie (elity i bossowie - poniżej połowy tego)") % Auras.decimal(p * 100)
+		"onslaught":
+			return Lang.t("%d%% szans przy pokonaniu wroga: +%d%% szybkości ruchu i ataku na %d s") % [c, roundi(p * 100),
+					roundi(ONSLAUGHT_TIME)]
+		"arcane":
+			return Lang.t("Po wydaniu %d many: +%d%% obrażeń i +%d%% odnowy many na %d s") % [ARCANE_MANA, roundi(p * 100),
+					roundi(ARCANE_REGEN * 100), roundi(ARCANE_TIME)]
+		"pyre":
+			return Lang.t("Płonący wróg, który zginie, podpala sąsiadów (%d%% obrażeń broni)") % roundi(p * 100)
+		"blood_magic":
+			return Lang.t("Umiejętności kosztują zdrowie zamiast many (%d%% kosztu) - cała mana na aury") % roundi(p * 100)
+		"mom":
+			return Lang.t("%d%% obrażeń, które dostajesz, bierze mana") % roundi(p * 100)
+		"avatar":
+			return Lang.t("Obrażenia fizyczne zamieniają się w ogień i są o %d%% większe") % roundi(p * 100)
+		"point_blank":
+			return Lang.t("Wrogowie blisko ciebie dostają +%d%% obrażeń, daleko - o połowę tego mniej") % roundi(p * 100)
+		"pain":
+			return Lang.t("Poniżej połowy zdrowia: +%d%% obrażeń") % roundi(p * 100)
 	return ""
 
 

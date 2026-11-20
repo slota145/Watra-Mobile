@@ -28,6 +28,7 @@ func _run() -> void:
 	_test_data()
 	_test_game(game)
 	await _test_combat(game)
+	await _test_poe(game)
 	await _test_window(game)
 	game.reset_hero()
 	DirAccess.remove_absolute(game.save_path)
@@ -39,8 +40,11 @@ func _test_data() -> void:
 	var ok := true
 	for id in Talismans.ORDER:
 		ok = ok and Talismans.name_of(id) != "" and Talismans.icon_of(id) != null and Talismans.effect_text(id, 1) != ""
-		ok = ok and Talismans.chance(id, 10) >= Talismans.chance(id, 1) and Talismans.power(id, 10) > Talismans.power(id, 1)
-	_check(ok and Talismans.ORDER.size() == 10, "10 talizmanów z nazwą, ikoną, opisem i siłą rosnącą z poziomem")
+		ok = ok and Talismans.chance(id, 10) >= Talismans.chance(id, 1)
+		# Krwawe Serce: wyższy poziom - mniejszy koszt zdrowia
+		ok = ok and (Talismans.power(id, 10) < Talismans.power(id, 1) if id == "blood_magic" \
+				else Talismans.power(id, 10) > Talismans.power(id, 1))
+	_check(ok and Talismans.ORDER.size() == 20, "20 talizmanów z nazwą, ikoną, opisem i siłą rosnącą z poziomem")
 	var none := true
 	for i in 200:
 		none = none and Talismans.roll_chest(Talismans.MIN_LEVEL - 1, 10.0) == ""
@@ -201,6 +205,151 @@ func _test_combat(game: Node) -> void:
 	drop.magnet = 1000.0
 	await _wait(1.0)
 	_check(game.talismans.get("roots", 0) == 1 and game.talisman_slots[0] == "roots", "podniesiony talizman od razu założony")
+	arena.queue_free()
+	await process_frame
+
+
+## Średnie obrażenia `n` trafień umiejętności `skill` w cel `t` (bez krytyków).
+func _avg_hit(weapon: ProtoWeapon, t: ProtoGoblin, skill: String, n := 30) -> float:
+	var sum := 0
+	for i in n:
+		var h := t.hp
+		weapon._deal(t, 100, weapon.hero.global_position, skill)
+		sum += h - t.hp
+	return float(sum) / n
+
+
+## Kamienie wspierające i talizmany wzorowane na Path of Exile (20.11.2026).
+func _test_poe(game: Node) -> void:
+	game.hero_level = 15
+	game.dev_skills()
+	game.talismans = {}
+	game.talisman_slots = ["", "", ""]
+	game.save_game()
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var hero: ProtoHero = arena.hero
+	var weapon: ProtoWeapon = arena.weapon
+	hero.immortal = true
+	hero.position = Vector2.ZERO
+	weapon.crit_chance = 0.0
+	var g := _goblin(arena, hero.position + Vector2(20, 0), 50000.0)
+	g.stun(60.0)
+	await process_frame
+	var base := _avg_hit(weapon, g, "whirl")
+	weapon.skill_gems = {"whirl": ["focus:10"]}
+	_check(_avg_hit(weapon, g, "whirl") > base * 1.4 and weapon._area("whirl") < 1.0 * Skills.level_area(1) + 0.001,
+			"Skupienie: więcej obrażeń, mniejszy obszar")
+	weapon.skill_gems = {"whirl": ["hypothermia:10"]}
+	g.slow(0.5, 30.0)
+	_check(_avg_hit(weapon, g, "whirl") > base * 1.3, "Hipotermia: więcej przeciw spowolnionym")
+	weapon.skill_gems = {"whirl": ["combustion:10"]}
+	g.burn(10.0, 30.0)
+	_check(_avg_hit(weapon, g, "whirl") > base * 1.3, "Spalenie: więcej przeciw płonącym")
+	g.resists = {Elements.PHYSICAL: 0.5}
+	weapon.skill_gems = {}
+	var resisted := _avg_hit(weapon, g, "whirl")
+	weapon.skill_gems = {"whirl": ["pen:10"]}
+	_check(_avg_hit(weapon, g, "whirl") > resisted * 1.3, "Przebicie: mniejsza odporność trafionych")
+	g.resists = {}
+	weapon.skill_gems = {"whirl": ["keen:10"]}
+	var crits := 0
+	for i in 100:
+		var h := g.hp
+		weapon._deal(g, 100, hero.global_position, "whirl")
+		crits += 1 if h - g.hp > base * 1.8 else 0
+	_check(crits > 3, "Bystre Oko: krytyki mimo zerowej szansy postaci (%d/100)" % crits)
+	weapon.skill_gems = {"whirl": ["fortify:10", "knockback:10"]}
+	hero.fortify_left = 0.0
+	weapon._deal(g, 100, hero.global_position, "whirl")
+	_check(hero.fortify_left > 0.0 and is_equal_approx(hero.fortify_pct, 0.2), "Twardość: mniej obrażeń po trafieniu")
+	_check(g._push.length() > 0.0, "Odrzut: odpycha trafionego")
+	var b := _goblin(arena, g.position + Vector2(10, 0), 50000.0)
+	b.stun(60.0)
+	await process_frame
+	var hb := b.hp
+	weapon.skill_gems = {"whirl": ["splash:10"]}
+	weapon._deal(g, 100, hero.global_position, "whirl")
+	_check(b.hp < hb, "Rozprysk: rani wroga obok celu")
+	var weak := _goblin(arena, hero.position + Vector2(-20, 0), 50.0)
+	await process_frame
+	weak.hp = maxi(1, roundi(weak.full_hp * 0.1))
+	weapon.skill_gems = {"whirl": ["execute:10"]}
+	weapon._deal(weak, 1, hero.global_position, "whirl")
+	_check(not weak.alive(), "Egzekucja: dobija osłabionego")
+	# Echo: powtórka umiejętności za darmo
+	weapon.skill_gems = {"slam": ["echo:10"]}
+	var used := [0]
+	weapon.skill_used.connect(func(_id: String) -> void: used[0] += 1)
+	for i in 12:
+		weapon._on_skill_used("slam")
+	await _wait(0.6)
+	_check(used[0] >= 1, "Echo: umiejętność powtarza się sama")
+	weapon._echo_pending = "slam"
+	_check(weapon.mana_cost("slam") == 0, "Echo: powtórka bez many")
+	weapon._echo_pending = ""
+	weapon.skill_gems = {}
+	await _wait(1.5)
+	# talizmany
+	var tal: ProtoTalismans = arena.talismans_node
+	_wear(game, ["overload", "cull", "onslaught"])
+	await process_frame
+	tal.on_crit()
+	_check(weapon.elem_extra > 0.0, "Łuska Żmija: krytyk daje premię żywiołów")
+	var weak2 := _goblin(arena, hero.position + Vector2(-25, 0), 50.0)
+	await process_frame
+	weak2.hp = maxi(1, roundi(weak2.full_hp * 0.05))
+	tal.on_hit(weak2)
+	_check(not weak2.alive(), "Hak Kata: dobija wroga z małym zdrowiem")
+	for i in 30:
+		tal.on_kill(g)
+	await process_frame
+	_check(hero.move_bonus > 0.0 and weapon.speed_bonus > 0.0, "Poroże Jelenia: szybszy ruch i atak po zabójstwie")
+	_wear(game, ["arcane", "pain", "mom"])
+	await process_frame
+	hero.mana = hero.mana_cap()
+	hero.spend_mana(Talismans.ARCANE_MANA)
+	await process_frame
+	_check(weapon.bonus_mult > 1.0 and hero.mana_regen_bonus > 0.0, "Świeca Wiedźmy: premia po wydaniu many")
+	var mana_before := hero.mana
+	hero.hp = hero.max_hp
+	hero._invulnerable = 0.0
+	hero.take_damage(20)
+	_check(hero.mana < mana_before, "Nić Mokoszy: część ciosu bierze mana")
+	tal._arcane_left = 0.0
+	hero.hp = roundi(hero.max_hp * 0.3)
+	await process_frame
+	_check(weapon.bonus_mult > 1.0, "Szpon Upiora: więcej obrażeń przy niskim zdrowiu")
+	hero.hp = hero.max_hp
+	_wear(game, ["blood_magic", "avatar", "point_blank"])
+	await process_frame
+	var mana := hero.mana
+	var hp := hero.hp
+	_check(hero.spend_mana(20) and hero.mana == mana and hero.hp == hp - roundi(20 * hero.blood_magic), "Krwawe Serce: umiejętność płaci zdrowiem")
+	_check(game.priciest_skill() == 0, "Krwawe Serce: aury mogą zająć całą dozwoloną manę")
+	_check(weapon.fire_convert and weapon.fire_convert_bonus > 0.0, "Krzesiwo Swaroga: fizyczne zamieniają się w ogień")
+	g.resists = {Elements.FIRE: 0.75}
+	var fire_hit := _avg_hit(weapon, g, "whirl")
+	g.resists = {}
+	_check(fire_hit < base * 0.6, "Krzesiwo Swaroga: cios liczy się jako ogień (odporność na ogień działa)")
+	var far := _goblin(arena, hero.position + Vector2(200, 0), 50000.0)
+	far.stun(60.0)
+	await process_frame
+	_check(_avg_hit(weapon, g, "whirl") > _avg_hit(weapon, far, "whirl") * 1.3, "Kieł Niedźwiedzia: z bliska więcej")
+	# Lont Pożogi
+	_wear(game, ["pyre"])
+	var burning := _goblin(arena, hero.position + Vector2(0, 60), 50000.0)
+	var neighbour := _goblin(arena, hero.position + Vector2(15, 60), 50000.0)
+	await process_frame
+	burning.burn(50.0, 10.0)
+	tal.on_kill(burning)
+	await process_frame
+	await process_frame
+	_check(neighbour.is_burning(), "Lont Pożogi: płonący pokonany podpala sąsiadów")
+	_wear(game, [])
+	await process_frame
+	_check(not hero.blood_magic and not weapon.fire_convert and weapon.bonus_mult == 1.0, "bez talizmanów wszystko jak zwykle")
 	arena.queue_free()
 	await process_frame
 

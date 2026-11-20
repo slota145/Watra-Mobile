@@ -298,6 +298,15 @@ func _summon() -> void:
 	_set_state("recover")
 
 
+## Ile zdrowia zostało (0-1, ProtoTarget.health_fraction).
+func health_fraction() -> float:
+	return clampf(float(hp) / maxf(max_hp, 1.0), 0.0, 1.0)
+
+
+func remaining_hp() -> int:
+	return maxi(hp, 0)
+
+
 func take_damage(amount: int, _from: Vector2) -> void:
 	if not alive() or state == "enter":
 		return

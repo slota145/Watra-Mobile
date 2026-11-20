@@ -139,6 +139,22 @@ func freeze(time: float) -> bool:
 	return true
 
 
+## Czy wróg płonie (podpalenie trwa) - kamień Spalenie, talizman Lont Pożogi.
+func is_burning() -> bool:
+	var st := get_node_or_null(^"_Status") as _Status
+	return st != null and st.burn_left > 0.0
+
+
+## Ile zdrowia zostało (0-1) - kamień Egzekucja i talizman Hak Kata. Kukła i inne cele bez zdrowia - zawsze pełne.
+func health_fraction() -> float:
+	return 1.0
+
+
+## Ile obrażeń trzeba, żeby wróg padł (z tarczą elity) - dobijanie (Egzekucja, Hak Kata). 0 - nie da się dobić.
+func remaining_hp() -> int:
+	return 0
+
+
 ## Czy wróg jest porażony.
 func is_shocked() -> bool:
 	var st := get_node_or_null(^"_Status") as _Status

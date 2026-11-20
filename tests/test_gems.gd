@@ -45,7 +45,14 @@ func _run() -> void:
 
 
 func _test_data() -> void:
-	_check(Gems.SUPPORT_ORDER.size() == 8 and Gems.JEWEL_ORDER.size() == 4, "8 kamieni umiejętności i 4 szlachetne")
+	_check(Gems.SUPPORT_ORDER.size() == 18 and Gems.JEWEL_ORDER.size() == 4, "18 kamieni umiejętności i 4 szlachetne")
+	var icons := true
+	for kind in Gems.SUPPORT_ORDER:
+		icons = icons and Gems.icon_of(Gems.make(kind)) != null and Gems.support_text(Gems.make(kind)) != "" \
+				and Gems.short_text(Gems.make(kind), "whirl") != ""
+	_check(icons, "każdy kamień umiejętności ma ikonę, opis i krótki opis")
+	_check(not Gems.fits(Gems.make("echo"), Skills.STRIKE) and Gems.fits(Gems.make("echo"), "whirl"),
+			"Echo nie pasuje do zwykłego ciosu")
 	for kind in Gems.SUPPORT_ORDER:
 		_check(Gems.SUPPORT[kind].values.size() == 2 and Gems.icon_of(Gems.make(kind)) != null, "kamień %s: siła 1. i 10. poziomu, ikona" % kind)
 	for kind in Gems.JEWEL_ORDER:

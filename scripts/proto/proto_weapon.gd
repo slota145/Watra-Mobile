@@ -267,6 +267,18 @@ var mana_tax := 0.0
 ## Premia przedmiotów „+% obrażeń od żywiołów” (Items elem_dmg_pct): mnożnik każdego trafienia żywiołem (broń
 ## żywiołu, kamienie Żar / Szron / Piorun, ogień Swaroga, aury, talizmany); obrażenia fizyczne bez zmian.
 var elem_mult := 1.0
+## Talizmany (ProtoTalismans ustawia): dodatkowa premia żywiołów na chwilę (Łuska Żmija), zamiana obrażeń fizycznych
+## na ogień (Krzesiwo Swaroga - `fire_convert` i premia `fire_convert_bonus`), premia z bliska / kara z daleka (Kieł
+## Niedźwiedzia - `point_blank`).
+var elem_extra := 0.0
+var fire_convert := false
+var fire_convert_bonus := 0.0
+var point_blank := 0.0
+## Talizman Poroże Jelenia: chwilowo szybszy atak (część; mnoży speed_mult).
+var speed_bonus := 0.0
+## Kamień Echo: umiejętność, której powtórka czeka (za darmo - mana_cost 0); Rozprysk: trwa rozprysk (bez łańcucha).
+var _echo_pending := ""
+var _splashing := false
 var bonus_mult := 1.0
 
 var _state := "follow"
@@ -341,6 +353,7 @@ var _cut_count := 0
 
 
 func _ready() -> void:
+	skill_used.connect(_on_skill_used)
 	var shadow := Sprite2D.new()
 	shadow.texture = ProtoHero._shadow_texture()
 	shadow.scale = Vector2(0.7, 0.7)
@@ -386,7 +399,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_clock += delta
 	_chained = false
-	var sp := _strike_speed() if _state in STRIKE_STATES else speed_mult
+	var sp := _strike_speed() if _state in STRIKE_STATES else speed_mult * (1.0 + speed_bonus)
 	_cooldown -= delta * sp
 	_t += delta * sp
 	for id in _cd:
@@ -611,20 +624,23 @@ func _power(skill: String) -> float:
 	return Skills.DATA[skill].power * Skills.level_damage(level_of(skill))
 
 
-## Mnożnik zasięgu umiejętności (kamień Szerokość, premia przedmiotów i poziom).
+## Mnożnik zasięgu umiejętności (kamień Szerokość, premia przedmiotów i poziom; Skupienie zmniejsza).
 func _area(skill: String) -> float:
-	return (1.0 + (gem_power(skill, "area") + area_bonus) / 100.0) * Skills.level_area(level_of(skill))
+	var focus := Gems.FOCUS_AREA if gem_power(skill, "focus") > 0.0 else 1.0
+	return (1.0 + (gem_power(skill, "area") + area_bonus) / 100.0) * Skills.level_area(level_of(skill)) * focus
 
 
 ## Szybkość zwykłego ciosu: premia szybkości ataku, kamień Pośpiech i poziomy zwykłego ciosu (mniejszy „koszt” -
 ## szybszy cios).
 func _strike_speed() -> float:
-	return speed_mult * (1.0 + gem_power(basic, "haste") / 100.0) \
+	return speed_mult * (1.0 + speed_bonus) * (1.0 + gem_power(basic, "haste") / 100.0) \
 			* (2.0 - Skills.level_cost(level_of(basic)))
 
 
 ## Koszt many umiejętności z kamieniem Oszczędność i poziomem (Mgnienie z kamieniem unikalnym - o połowę mniej).
 func mana_cost(id: String) -> int:
+	if id == _echo_pending:
+		return 0  # powtórka kamienia Echo jest za darmo
 	var cost := Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0) * Skills.level_mana(level_of(id)) * (1.0 + mana_tax)
 	if id == blink_skill and _unique(id):
 		cost *= 0.5
@@ -705,39 +721,79 @@ func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2, flat :=
 	if not t.alive():
 		return
 	var amount := roundi((_roll(power) + flat) * (1.0 + t.pride))
-	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
+	if _tough(t):
 		amount = roundi(amount * elite_mult)
 	if elem != Elements.PHYSICAL:
-		amount = roundi(amount * elem_mult)
+		amount = roundi(amount * elem_total())
 	t.color_next = Elements.color_of(elem)
 	t.take_damage(Elements.reduce(amount, t.resist(elem, penetration)), from)
 
 
+## Premia żywiołów razem: przedmioty (elem_mult) i talizman Łuska Żmija (elem_extra).
+func elem_total() -> float:
+	return elem_mult * (1.0 + elem_extra)
+
+
+## Elita albo boss (premia przeciw elitom, słabsze dobijanie).
+static func _tough(t: ProtoTarget) -> bool:
+	return t is ProtoChief or (t is ProtoGoblin and t.elite != null)
+
+
+## Dobija wroga (kamień Egzekucja, talizman Hak Kata): ciemnoczerwona liczba z resztą jego zdrowia.
+func execute(t: ProtoTarget, from: Vector2) -> void:
+	var rest := t.remaining_hp()
+	if rest <= 0 or not t.alive():
+		return
+	t.color_next = Color(0.75, 0.1, 0.15)
+	t.take_damage(rest, from)
+
+
 func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
-	if t is ProtoChief or (t is ProtoGoblin and t.elite != null):
+	var sockets: Array = skill_gems.get(skill, [])
+	var elem := element
+	if fire_convert and elem == Elements.PHYSICAL:  # Krzesiwo Swaroga: fizyczne -> ogień
+		elem = Elements.FIRE
+		amount = roundi(amount * (1.0 + fire_convert_bonus))
+		t.color_next = Elements.color_of(Elements.FIRE)
+	if _tough(t):
 		amount = roundi(amount * elite_mult)
 	if t.pride > 0.0:  # Piętno Czarnoboga
 		amount = roundi(amount * (1.0 + t.pride))
-	var boost := elem_mult if element != Elements.PHYSICAL else 1.0  # premia żywiołów (broń żywiołu)
+	var mult := 1.0 + Gems.skill_power(sockets, "focus") / 100.0  # Skupienie
+	if t.speed_factor() < 1.0:
+		mult += Gems.skill_power(sockets, "hypothermia") / 100.0
+	if t.is_burning():
+		mult += Gems.skill_power(sockets, "combustion") / 100.0
+	if point_blank > 0.0:  # Kieł Niedźwiedzia: z bliska więcej, z daleka mniej
+		var d := t.global_position.distance_to(hero.global_position)
+		mult *= 1.0 + point_blank if d <= Talismans.POINT_BLANK_NEAR else (1.0 - point_blank * 0.5 \
+				if d >= Talismans.POINT_BLANK_FAR else 1.0)
+	amount = roundi(amount * mult)
+	var boost := elem_total() if elem != Elements.PHYSICAL else 1.0  # premia żywiołów (broń żywiołu)
 	amount = roundi(amount * boost)
-	amount = Elements.reduce(amount, t.resist(element, penetration), _combo_mult(t))  # odporność lochu na żywioł broni
-	if randf() < crit_chance:
-		amount = roundi(amount * crit_mult)
+	var pen := penetration + Gems.skill_power(sockets, "pen") / 100.0  # Przebicie
+	amount = Elements.reduce(amount, t.resist(elem, pen), _combo_mult(t, elem))  # odporność lochu na żywioł broni
+	var keen := Gems.skill_power(sockets, "keen") / 100.0  # Bystre Oko
+	var crit := randf() < crit_chance + keen
+	if crit:
+		amount = roundi(amount * (crit_mult + keen * Gems.KEEN_DAMAGE))
 		t.crit_next = true
 	t.take_damage(amount, from)
 	t.crit_next = false
 	if talismans != null:
 		talismans.on_hit(t)
+		if crit:
+			talismans.on_crit()
+	_support_hit(t, amount, from, elem, pen, sockets)
 	if skill != "slam" and get_script() == ProtoWeapon:
 		_sword_cut_fx(t, from)
 	# ogień Swaroga i kamienie żywiołów liczą się od ciosu bez premii broni, za to z premią żywiołów raz
-	var elem_base := amount / boost * elem_mult
+	var elem_base := amount / boost * elem_total()
 	if aura_fire > 0.0 and t.alive():
 		var fire := elem_base * aura_fire
 		t.color_next = Elements.color_of(Elements.FIRE)
 		t.take_damage(Elements.reduce(maxi(1, roundi(fire)), t.resist(Elements.FIRE, penetration)), from)
 		t.burn(fire * Auras.SWAROG_BURN, BURN_TIME, penetration)
-	var sockets: Array = skill_gems.get(skill, [])
 	if sockets.is_empty():
 		return
 	var p := Gems.skill_power(sockets, "ember")
@@ -771,10 +827,34 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 			n.shock(DISCHARGE_SHOCK)  # piorun z kamienia poraża jak katana (decyzja autora 17.11.2026)
 
 
+## Kamienie z Path of Exile po trafieniu (20.11.2026): Odrzut, Twardość, Egzekucja, Rozprysk (wrogowie obok celu
+## dostają część obrażeń - bez kolejnego rozprysku i efektów).
+func _support_hit(t: ProtoTarget, amount: int, from: Vector2, elem: String, pen: float, sockets: Array) -> void:
+	if sockets.is_empty():
+		return
+	var p := Gems.skill_power(sockets, "knockback")
+	if p > 0.0 and t.alive():
+		t.push_away(hero.global_position, p)
+	p = Gems.skill_power(sockets, "fortify")
+	if p > 0.0:
+		hero.fortify(p / 100.0, Gems.FORTIFY_TIME)
+	p = Gems.skill_power(sockets, "execute")
+	if p > 0.0 and t.alive() and t.health_fraction() < p / 100.0 * (0.5 if _tough(t) else 1.0):
+		execute(t, from)
+	p = Gems.skill_power(sockets, "splash")
+	if p > 0.0 and not _splashing:
+		_splashing = true
+		for e in _live_targets():
+			if e != t and e.global_position.distance_to(t.global_position) <= Gems.SPLASH_RADIUS:
+				e.color_next = Elements.color_of(elem) if elem != Elements.PHYSICAL else Color(0, 0, 0, 0)
+				e.take_damage(Elements.reduce(maxi(1, roundi(amount * p / 100.0)), e.resist(elem, pen)), from)
+		_splashing = false
+
+
 ## Mnożnik combo żywiołów na celu `t`: porażony - +Elements.SHOCK_BONUS od wszystkiego, przemoczony - Grom i lód
 ## mocniej (Elements.soak_bonus).
-func _combo_mult(t: ProtoTarget) -> float:
-	var mult := Elements.soak_bonus(element, t.is_soaked())
+func _combo_mult(t: ProtoTarget, elem := "") -> float:
+	var mult := Elements.soak_bonus(elem if elem != "" else element, t.is_soaked())
 	if t.is_shocked():
 		mult *= 1.0 + Elements.SHOCK_BONUS
 	return mult
@@ -867,7 +947,7 @@ func can_use(id: String) -> bool:
 	if id == "steel_ring" and _unique(id) and ring_left() > 0.0:
 		return false  # krąg bez końca już krąży - auto atak tnie zwykłym ciosem
 	var cost := _blink_cost() if id == blink_skill else mana_cost(id)
-	return Skills.has(id) and cooldown_left(id) <= 0.0 and hero.mana >= cost and not hero.dead
+	return Skills.has(id) and cooldown_left(id) <= 0.0 and hero.can_pay(cost) and not hero.dead
 
 
 ## Użycie umiejętności z małego przycisku. W trakcie innego ruchu miecza czeka w kolejce. Zwraca false (i wysyła
@@ -883,7 +963,7 @@ func cast(id: String) -> bool:
 	if cooldown_left(id) > 0.0:
 		cast_failed.emit(id, "cooldown")
 		return false
-	if hero.mana < (_blink_cost() if id == blink_skill else mana_cost(id)):
+	if not hero.can_pay(_blink_cost() if id == blink_skill else mana_cost(id)):
 		cast_failed.emit(id, "mana")
 		return false
 	if id == blink_skill:
@@ -1410,7 +1490,7 @@ func _process_flicker(delta: float) -> void:
 		return
 	_flicker_once = false
 	var cost := _blink_cost()
-	if hero.mana < cost:
+	if not hero.can_pay(cost):
 		cast_failed.emit(blink_skill, "mana")
 		_flicker_timer = 0.3
 		return
@@ -1535,6 +1615,33 @@ func _end_skill() -> void:
 	_slash.visible = false
 	_set_state("follow")
 	_cooldown = maxf(_cooldown, COOLDOWN * 0.5)
+
+
+## Kamień Echo: po użyciu umiejętności z szansą jej powtórka za GEM_ECHO_DELAY s - bez many (mana_cost 0 dla
+## `_echo_pending`) i od nowa z pełnym odnowieniem. Nie dla zwykłego ciosu, skoków, ładowanych, trzymanych i kręgu.
+const GEM_ECHO_DELAY := 0.35
+
+
+func _on_skill_used(id: String) -> void:
+	if id == _echo_pending:
+		_echo_pending = ""  # to była powtórka - bez kolejnej
+		return
+	var p := gem_power(id, "echo")
+	if p <= 0.0 or id == basic or id == blink_skill or Skills.is_charged(id) or id in ["whirl", "steel_ring"] \
+			or randf() >= p / 100.0:
+		return
+	await get_tree().create_timer(GEM_ECHO_DELAY, false).timeout
+	if hero.dead or not is_inside_tree() or _echo_pending != "":
+		return
+	_echo_pending = id
+	_cd.erase(id)
+	hero.float_text(tr("Echo!"), -46.0, Gems.color_of(Gems.make("echo")), 11, 0.8)
+	if not cast(id):
+		_echo_pending = ""
+		return
+	await get_tree().create_timer(2.0, false).timeout  # bezpiecznik: powtórka nie ruszyła - koniec darmowej many
+	if _echo_pending == id:
+		_echo_pending = ""
 
 
 ## Tryb deweloperski i testy: zeruje odnowienia.

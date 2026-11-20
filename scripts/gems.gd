@@ -113,6 +113,37 @@ const SUPPORT := {
 	"leech": {"name": "Krwiopijca", "icon": "brutal", "color": Color(0.95, 0.35, 0.35), "unit": "pct",
 		"values": [2, 8],
 		"text": "Leczy %d%% zadanych obrażeń."},
+	# wzorowane na kamieniach wspierających Path of Exile (decyzja autora 20.11.2026; działanie - ProtoWeapon)
+	"echo": {"name": "Echo", "icon": "herald", "color": Color(0.85, 0.6, 0.45), "unit": "pct",
+		"values": [15, 40], "not_basic": true,
+		"text": "%d%% szans, że umiejętność powtórzy się za darmo (nie w zwykłym ciosie)."},
+	"focus": {"name": "Skupienie", "icon": "focus", "color": Color(0.9, 0.3, 0.3), "unit": "pct",
+		"values": [25, 60],
+		"text": "+%d%% obrażeń, ale obszar o 25%% mniejszy."},
+	"splash": {"name": "Rozprysk", "icon": "fury", "color": Color(0.85, 0.55, 0.35), "unit": "pct",
+		"values": [20, 55],
+		"text": "Trafienie rani też wrogów tuż obok celu (%d%% obrażeń)."},
+	"pen": {"name": "Przebicie", "icon": "pierce", "color": Color(0.7, 0.75, 0.85), "unit": "pct",
+		"values": [8, 25],
+		"text": "Odporność trafionych mniejsza o %d%% (nie spada poniżej zera)."},
+	"knockback": {"name": "Odrzut", "icon": "momentum", "color": Color(0.45, 0.85, 0.5), "unit": "pct",
+		"values": [60, 150],
+		"text": "Odpycha trafionych (siła %d; bossowie stoją)."},
+	"execute": {"name": "Egzekucja", "icon": "execute", "color": Color(0.7, 0.15, 0.2), "unit": "pct",
+		"values": [6, 15],
+		"text": "Dobija wrogów poniżej %d%% zdrowia (elity i bossów - poniżej połowy tej liczby)."},
+	"hypothermia": {"name": "Hipotermia", "icon": "frost_edge", "color": Color(0.5, 0.8, 1.0), "unit": "pct",
+		"values": [20, 50],
+		"text": "+%d%% obrażeń przeciw spowolnionym i zamrożonym."},
+	"combustion": {"name": "Spalenie", "icon": "fire_edge", "color": Color(1.0, 0.5, 0.2), "unit": "pct",
+		"values": [20, 50],
+		"text": "+%d%% obrażeń przeciw płonącym."},
+	"keen": {"name": "Bystre Oko", "icon": "storm_edge", "color": Color(0.95, 0.85, 0.3), "unit": "pct",
+		"values": [5, 15],
+		"text": "+%d%% szansy na krytyk i 4 razy tyle obrażeń krytycznych."},
+	"fortify": {"name": "Twardość", "icon": "warlord", "color": Color(0.65, 0.5, 0.85), "unit": "pct",
+		"values": [8, 20],
+		"text": "Po trafieniu przez 3 s dostajesz o %d%% mniej obrażeń."},
 }
 ## Kamienie unikalne (klucz - umiejętność): nazwa, kolor, krótki opis pod gniazdem i pełny opis. Ikony -
 ## assets/watra/unique_gems/<umiejętność>.png (tools/unique_gem_art.py).
@@ -166,7 +197,14 @@ const UNIQUE_COLOR := Color(1.0, 0.82, 0.35)
 ## Dawne identyfikatory kamieni -> obecne (wczytanie starego zapisu): kamień unikalny Mgnienia miecza przeszedł
 ## na Błysk Peruna katany (15.11.2026).
 const LEGACY := {"unique:blink": "unique:k_flash"}
-const SUPPORT_ORDER := ["multi", "area", "ember", "rime", "discharge", "haste", "thrift", "leech"]
+const SUPPORT_ORDER := ["multi", "area", "ember", "rime", "discharge", "haste", "thrift", "leech", "echo", "focus",
+		"splash", "pen", "knockback", "execute", "hypothermia", "combustion", "keen", "fortify"]
+## Bystre Oko: obrażenia krytyczne = tyle razy szansa; Twardość - czas działania (s); Skupienie - obszar razy tyle;
+## Rozprysk - promień wokół celu (px).
+const KEEN_DAMAGE := 4.0
+const FORTIFY_TIME := 3.0
+const FOCUS_AREA := 0.75
+const SPLASH_RADIUS := 32.0
 ## Oszczędność w zwykłym ciosie: many za trafienie na 1. i MAX_LEVEL poziomie.
 const THRIFT_STRIKE := [1, 4]
 
@@ -331,6 +369,16 @@ const SHORT := {
 	"haste": "-%d%% odnowienia",
 	"thrift": "-%d%% many",
 	"leech": "Leczy %d%%",
+	"echo": "Powtórka %d%%",
+	"focus": "+%d%% obrażeń",
+	"splash": "Rozprysk %d%%",
+	"pen": "-%d%% odporności",
+	"knockback": "Odpycha",
+	"execute": "Dobija %d%%",
+	"hypothermia": "+%d%% na wolnych",
+	"combustion": "+%d%% na płonących",
+	"keen": "+%d%% krytyka",
+	"fortify": "-%d%% obrażeń",
 }
 const SHORT_STRIKE := {"haste": "+%d%% szybkości", "thrift": "+%d many za cios"}
 
@@ -532,6 +580,13 @@ static func shard_value(id: String) -> int:
 	if can_sell(id):
 		return SHATTER_BASE + roundi(invested(id).y * SELL_SHARE)
 	return 0
+
+
+## Czy kamień umiejętności pasuje do umiejętności `skill` (Echo nie działa w zwykłym ciosie - "not_basic").
+static func fits(id: String, skill: String) -> bool:
+	if not is_support(id) or is_unique(id):
+		return true
+	return not (SUPPORT[kind_of(id)].get("not_basic", false) and Skills.is_basic(skill))
 
 
 ## Siła kamienia umiejętności rodzaju `kind` w gniazdach (lista identyfikatorów; 0 - brak).

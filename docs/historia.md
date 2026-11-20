@@ -2,13 +2,37 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 20.11.2026 - 10 kamieni wspierających i 10 talizmanów z Path of Exile
+
+Decyzja autora (ankieta): obie dziesiątki naraz. Działają z każdą bronią - podpięte we wspólnym trafieniu
+(`ProtoWeapon._deal`, nowe `_support_hit`, `execute`, `elem_total`, `_tough`) i sygnale `skill_used`.
+- Kamienie (`Gems.SUPPORT`, ikony z Watry w `assets/watra/supports/`, `focus` i `execute` przebarwione): Echo (15-40%
+  szans na powtórkę umiejętności za darmo po 0,35 s - `_on_skill_used`, `_echo_pending`; nie w zwykłym ciosie -
+  `Gems.fits`, problem gniazda "basic"), Skupienie (+25-60% obrażeń, obszar x0,75), Rozprysk (20-55% obrażeń wrogom
+  w 32 px od celu), Przebicie (-8-25 pkt odporności trafionych; zamiast przelatywania pocisków - to trzeba by pisać
+  osobno dla każdej broni), Odrzut (push_away siła 60-150), Egzekucja (dobija poniżej 6-15% zdrowia, elity i bossów
+  poniżej połowy - `ProtoTarget.health_fraction`, `remaining_hp`), Hipotermia (+20-50% na spowolnionych), Spalenie
+  (+20-50% na płonących - `ProtoTarget.is_burning`), Bystre Oko (+5-15 pkt krytyka i 4 razy tyle obrażeń
+  krytycznych), Twardość (po trafieniu 8-20% mniej obrażeń na 3 s - `ProtoHero.fortify`).
+- Talizmany (`Talismans.DATA`, ikony - trofea z Watry): Łuska Żmija (krytyk - +30% obrażeń od żywiołów na 8 s,
+  `elem_extra`), Hak Kata (dobija poniżej 8%), Poroże Jelenia (25% przy zabójstwie - +15% ruchu i ataku na 4 s,
+  `speed_bonus`, `move_bonus`), Świeca Wiedźmy (po 50 wydanej many +15% obrażeń i +50% odnowy many na 4 s, sygnał
+  `ProtoHero.mana_spent`), Lont Pożogi (płonący pokonany podpala sąsiadów w 50 px), Krwawe Serce (umiejętności płacą
+  zdrowiem 100% -> 73% kosztu, `ProtoHero.blood_magic`, `can_pay`; aury bez limitu „mana na najdroższą
+  umiejętność”), Nić Mokoszy (20-33% obrażeń bierze mana, `mana_shield`), Krzesiwo Swaroga (fizyczne -> ogień, +10-28%,
+  `fire_convert`), Kieł Niedźwiedzia (do 60 px +25%, od 130 px -12,5%, `point_blank`), Szpon Upiora (poniżej połowy
+  zdrowia +30%). Premie na chwilę liczy `ProtoTalismans._update_buffs` (mnożnik `bonus_mult` z Czaszką Biesa).
+- Okno „Postać”: zakładka „Sakwa 126” bez nawiasów (z nawiasem ucinało się przy 10+ kamieniach).
+- Testy: `test_talismans.gd` (`_test_poe` - każdy kamień i talizman w walce), `test_gems.gd`.
+
 ## 20.11.2026 - próba: wrogowie x3 zdrowia i x2 obrażeń
 
 Prośba autora (na próbę, do oceny na telefonie): wszyscy wrogowie mają 3 razy więcej zdrowia i zadają 2 razy więcej
 obrażeń. `DungeonLevels.enemy_hp` (3,0, w `hp_mult` - potwory i bossowie) i `enemy_damage` (2,0 - `ProtoHero.enemy_damage`
 w `take_damage` i `ignite`: ciosy, strzały, wybuchy elit, podpalenia). Zmienne statyczne, żeby testy liczące na
 konkretnych liczbach mogły je wyłączyć (test_auras, test_catacombs, test_flooded, test_horde, test_items, test_volcano).
-Do cofnięcia albo zmiany: dwie liczby w `scripts/dungeon_levels.gd`.
+Ocena autora po testach na telefonie: „jest super - czuć, że trzeba pofarmić, a postęp daje więcej satysfakcji” -
+zostaje na stałe. Zmiana: dwie liczby w `scripts/dungeon_levels.gd`.
 
 ## 20.11.2026 - przewijanie palcem i szerokość okna talizmanów
 

@@ -21,8 +21,8 @@ const BOSS_POWER := 1.5
 ## Zdrowie potworów i bossów może rosnąć szybciej niż obrażenia: dodatkowo x HP_GROWTH na poziom. Przez chwilę 1,008
 ## (17.11.2026), potem zastąpione wspólną odpornością głębi (RESIST_STEP) - zostaje 1,0, haczyk na później.
 const HP_GROWTH := 1.0
-## Próba autora 20.11.2026: wszyscy wrogowie (potwory i bossowie) mają tyle razy więcej zdrowia i zadają tyle razy
-## więcej obrażeń (ProtoHero.enemy_damage - ciosy, strzały, wybuchy, podpalenia). Do oceny na telefonie.
+## Próba autora 20.11.2026, przyjęta na stałe tego samego dnia (postęp daje więcej satysfakcji): wszyscy wrogowie (potwory i bossowie) mają tyle razy więcej zdrowia i zadają tyle razy
+## więcej obrażeń (ProtoHero.enemy_damage - ciosy, strzały, wybuchy, podpalenia).
 ## Zmienne, nie stałe: testy liczące na konkretnych liczbach ustawiają je na 1.
 static var enemy_hp := 3.0
 static var enemy_damage := 2.0
