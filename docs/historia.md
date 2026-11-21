@@ -32,6 +32,10 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   elipsy, za postacią, z = -1) i przednia (`scythe_whirl_front`, przed postacią, z = 2), ta sama klatka i zaczepienie;
   przepisy generuje skrypt (każdy okrąg cięcia dzielony na granicy 0°/180°, rysowanie kolejnych kawałków zsynchronizowane
   przez `reveal`); cięcia grube (4-9 px), na wysokości pasa-głowy, bez mgły na podłodze; stawiane co 0,14 s.
+- „Kreski jak makaron” - wir składany w grze z półksiężyców cięć (pomysł autora): co 0,1 s wokół postaci 2 półksiężyce
+  (`scythe_diag` albo nowy smuklejszy `dance_cut`, promień 50) pod losowym kątem, na wysokości 8-30 px, w węźle
+  spłaszczonym (0,3-0,45) i lekko przechylonym - razem okręgi wokół postaci; z przodu przed postacią, z tyłu za nią
+  (`_dance_cut`). Arkusze `scythe_whirl` / `scythe_whirl_front` usunięte.
 
 ## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
 
