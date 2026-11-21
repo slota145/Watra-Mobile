@@ -34,13 +34,15 @@ const COMMODITIES := {
 	Runes.CHAOS: {"base": 5.0, "pack": 1},
 	Runes.ASCEND: {"base": 6.0, "pack": 1},
 	Runes.SEAL: {"base": 20.0, "pack": 1},
+	Runes.GODS: {"base": 60.0, "pack": 1},
+	Runes.RENEWAL: {"base": 40.0, "pack": 1},
 	"ore": {"base": 2.0, "pack": 10},
 	"shards": {"base": 1.5, "pack": 10},
 	Gems.KEY: {"base": 10.0, "pack": 1},
 	Gems.CHISEL: {"base": 6.0, "pack": 1},
 	Gems.WEAPON_SEAL: {"base": 25.0, "pack": 1},
 }
-const COMMODITY_ORDER: Array[String] = [Runes.REFORGE, Runes.GROWTH, Runes.CHAOS, Runes.ASCEND, Runes.SEAL, "ore", "shards",
+const COMMODITY_ORDER: Array[String] = [Runes.REFORGE, Runes.GROWTH, Runes.CHAOS, Runes.ASCEND, Runes.SEAL, Runes.GODS, Runes.RENEWAL, "ore", "shards",
 		Gems.KEY, Gems.CHISEL, Gems.WEAPON_SEAL]
 ## Oferty innych graczy: ile naraz, ile nowych w chwili, cena względem uczciwej (losowo), szansa, że w chwili ktoś
 ## wykupi ofertę (okazje częściej), po ilu chwilach stara oferta znika.
@@ -182,7 +184,7 @@ static func fair_price(loot: Dictionary) -> int:
 		if Gems.is_jewel(id):
 			return 2 + 2 * Gems.level_of(id) + Gems.jewel_level(id) / 10
 		return 1 + Gems.level_of(id)
-	var mult: int = {"common": 1, "magic": 3, "rare": 8}.get(loot.get("rarity", "common"), 1)
+	var mult: int = {"common": 1, "magic": 3, "rare": 8, "legendary": 30}.get(loot.get("rarity", "common"), 1)
 	return maxi(1, roundi(mult * (1.0 + int(loot.get("level", 1)) / 20.0)))
 
 

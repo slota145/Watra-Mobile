@@ -2,6 +2,28 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Przedmioty krok 2: legendarne, ponad widełki, „Anielski”, Runa Bogów, potencjał kowalski
+
+Ankieta autora (21.11.2026).
+- **Legendarny** (`rarity` "legendary", pomarańczowy, pomarańczowy słup światła - `ProtoLoot._Beam.color`): zawsze 6
+  premii o stopień lepszych (`Items.LEGEND_TIER_BOOST`, `make_affix(..., boost)` - też przy runach), tylko z łupu:
+  `Items.roll(..., loot)` z szansą `legend_chance` (0,5% na lochu 1, 1% na 40., najwyżej 1,5%); kuźnia (`Game.forge`)
+  podaje `loot` false. Wyniesienie go nie robi. Ruda 8, drugie gniazdo 10%, na targu x30.
+- **Premie ponad widełki** (`Items.make_above`, pole premii `above`): z łupu każda premia z szansą 3% (od lochu 40 - 5%)
+  dostaje najlepszy stopień z poziomu przedmiotu i wartość 5-30% ponad jego górną granicą; znaczek „T1+” i kolor
+  `ABOVE_COLOR`, grubsza ramka pola (`Items.frame_of`). Poziomy umiejętności nie wychodzą ponad (`ABOVE_SKIP`). Szlif
+  losuje nową wartość ponad widełkami.
+- **Anielski** (`Items.is_angelic` - wszystkie premie ponad): przedrostek w rodzaju nazwy bazy („Anielski / Anielska /
+  Anielskie”, `name_of`), jasna ramka `ANGELIC_COLOR`.
+- **Potencjał kowalski** (`Items.POTENTIAL` 15-25, pola `potential`/`potential_max`, `potential_of`, linia w opisach -
+  `potential_line`): runy zabierają `Runes.cost_of` (Szlif 1, Przekucie 1, Przydanie 2, Wyniesienie 2, Zmiana 2,
+  Pieczęć 3), przy braku `Runes.blocker` nie pozwala. Stare przedmioty - pełny 25.
+- **Runa Bogów** (`Runes.GODS`, premia ponad widełki, bez potencjału) i **Runa Odnowy** (`Runes.RENEWAL`, pełny
+  potencjał): od lochu 40 z elit (1%) i skrzyni bossa (6% każda) - `Runes.roll_boss`; nie u kupca (`is_boss`), na targu
+  (60 i 40 Szlifów). Ikony SpriteKiln `art/specs/props/runes/rune_gods.yaml`, `rune_renewal.yaml`. Zapas run u kowala
+  w 2 rzędach.
+- Testy w `tests/test_item_tiers.gd`.
+
 ## 21.11.2026 - Przedmioty krok 1: stopnie T1-T7, sufit na lochu 40, bazy, nowe premie
 
 Ankieta autora (21.11.2026), krok 1 z 4 przebudowy przedmiotów (`docs/ROADMAP.md`).

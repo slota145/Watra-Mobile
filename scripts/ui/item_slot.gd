@@ -32,11 +32,15 @@ func show_item(new_item: Dictionary) -> void:
 	item = new_item
 	icon = Items.icon_of(item) if not item.is_empty() else null
 	var color := Color(0.45, 0.35, 0.25)
+	var width := 2
 	if not item.is_empty():
-		color = Items.color_of(item) if item.rarity != "common" else Color(0.7, 0.6, 0.45)
+		var frame := Items.frame_of(item)  # rzadkość, ponad widełki - grubsza, anielski - jasna
+		color = frame[0]
+		width = frame[1]
 	for state in ["normal", "hover", "pressed", "focus", "disabled"]:
 		var st: StyleBoxFlat = get_theme_stylebox(state)
 		st.border_color = color if state != "pressed" else color.lightened(0.3)
+		st.set_border_width_all(width)
 
 
 func _get_drag_data(_at: Vector2) -> Variant:

@@ -40,8 +40,9 @@ var forge_label: Label
 func _build() -> void:
 	title_label.text = tr("Kowal")
 	label(content, tr("Stuknij przedmiot, potem runę, którą chcesz go zmienić."), 12, DIM, true)
-	var stock := HBoxContainer.new()
-	stock.add_theme_constant_override("separation", 2)
+	var stock := GridContainer.new()
+	stock.columns = 8  # 4 runy w rzędzie (ikona i liczba)
+	stock.add_theme_constant_override("h_separation", 2)
 	stock.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	content.add_child(stock)
 	for id in Runes.ORDER:
@@ -226,6 +227,7 @@ func _show_detail() -> void:
 		c.queue_free()
 	for line in Items.base_lines(item):
 		label(_detail_lines, line, 13, TEXT)
+	label(_detail_lines, Items.potential_line(item), 12, DIM)
 	var per_stat := Runes.needs_stat(rune)
 	if item.affixes.is_empty():
 		label(_detail_lines, tr("Zwykły przedmiot - bez premii."), 12, DIM, true)
@@ -233,9 +235,10 @@ func _show_detail() -> void:
 		var box := HBoxContainer.new()
 		box.add_theme_constant_override("separation", 6)
 		_detail_lines.add_child(box)
-		var badge := label(box, Items.tier_badge(item.affixes[i]), 12, Items.tier_color(int(item.affixes[i].get("tier", Items.TIERS))))
-		badge.custom_minimum_size.x = 22
-		var l := label(box, Items.affix_text(item.affixes[i]), 14, Items.RARITY_COLORS.magic)
+		var above: bool = item.affixes[i].get("above", false)
+		var badge := label(box, Items.tier_badge(item.affixes[i]), 12, Items.affix_color(item.affixes[i]))
+		badge.custom_minimum_size.x = 26
+		var l := label(box, Items.affix_text(item.affixes[i]), 14, Items.ABOVE_COLOR if above else Items.RARITY_COLORS.magic)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		if i in _flash or -2 in _flash:

@@ -207,8 +207,10 @@ func _select(area: String, index: int) -> void:
 		c.queue_free()
 	for line in Items.base_lines(item):
 		_label(_detail_lines, line, 13, TEXT)
-	for line in Items.affix_lines(item):
-		_label(_detail_lines, line, 13, Items.RARITY_COLORS.magic)
+	var lines := Items.affix_lines(item)
+	for i in lines.size():
+		_label(_detail_lines, lines[i], 13, Items.ABOVE_COLOR if item.affixes[i].get("above", false) else Items.RARITY_COLORS.magic)
+	_label(_detail_lines, Items.potential_line(item), 12, Color(0.75, 0.68, 0.55))
 	if area == "bag":
 		move_button.text = tr("Do skrzyni")
 		move_button.disabled = _game.stash[tab].size() >= _game.STASH_TAB_SIZE

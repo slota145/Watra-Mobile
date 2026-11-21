@@ -125,13 +125,34 @@ const TIERS := 7
 const TIER_COLORS := [Color(1.0, 0.78, 0.25), Color(1.0, 0.6, 0.3), Color(0.85, 0.5, 0.95), Color(0.45, 0.7, 1.0),
 		Color(0.5, 0.9, 0.6), Color(0.85, 0.85, 0.8), Color(0.62, 0.62, 0.62)]
 
-const RARITIES := ["common", "magic", "rare"]
-const RARITY_NAMES := {"common": "Zwykły", "magic": "Magiczny", "rare": "Rzadki"}
-## Kolory rzadkości jak w Watrze.
+const RARITIES := ["common", "magic", "rare", "legendary"]
+const RARITY_NAMES := {"common": "Zwykły", "magic": "Magiczny", "rare": "Rzadki", "legendary": "Legendarny"}
+## Kolory rzadkości jak w Watrze (legendarny - pomarańczowy).
 const RARITY_COLORS := {"common": Color(0.92, 0.92, 0.95), "magic": Color(0.45, 0.65, 1.0),
-		"rare": Color(1.0, 0.86, 0.3)}
-## Ile losowych premii daje rzadkość (od-do; rzadki 3-5 - decyzja autora 21.11.2026).
-const AFFIX_COUNT := {"common": Vector2i(0, 0), "magic": Vector2i(1, 2), "rare": Vector2i(3, 5)}
+		"rare": Color(1.0, 0.86, 0.3), "legendary": Color(1.0, 0.55, 0.15)}
+## Ile losowych premii daje rzadkość (od-do; rzadki 3-5, legendarny zawsze 6 - decyzje autora 21.11.2026).
+const AFFIX_COUNT := {"common": Vector2i(0, 0), "magic": Vector2i(1, 2), "rare": Vector2i(3, 5), "legendary": Vector2i(6, 6)}
+## Przedmiot legendarny (decyzja autora 21.11.2026): tylko z łupu (nie z kuźni ani run), szansa na każdy przedmiot
+## z łupu LEGEND_CHANCE, rośnie z głębią do LEGEND_MAX (`legend_chance`); jego premie wypadają o LEGEND_TIER_BOOST
+## stopień lepiej (`make_affix`).
+const LEGEND_CHANCE := 0.005
+const LEGEND_MAX := 0.015
+const LEGEND_TIER_BOOST := 1
+## Premie ponad widełki (decyzja autora 21.11.2026, jak Greater Affix z Diablo 4): każda premia przedmiotu z łupu
+## z szansą ABOVE_CHANCE (od MAX_LEVEL - ABOVE_CHANCE_DEEP) dostaje najlepszy stopień z poziomu przedmiotu i wartość
+## o ABOVE_MIN-ABOVE_MAX ponad jego górną granicę (pole "above"; znaczek „T1+”). Zwykłe runy nigdy - tylko Runa Bogów
+## (`make_above`). Wszystkie premie ponad widełki - przedrostek „Anielski” (`is_angelic`).
+const ABOVE_CHANCE := 0.03
+const ABOVE_CHANCE_DEEP := 0.05
+const ABOVE_MIN := 0.05
+const ABOVE_MAX := 0.3
+## Te premie nie wychodzą ponad widełki (poziomy umiejętności to liczby całkowite).
+const ABOVE_SKIP := ["skill_level", "skill_level_all"]
+const ABOVE_COLOR := Color(0.75, 1.0, 1.0)
+const ANGELIC_COLOR := Color(1.0, 0.97, 0.8)
+## Potencjał kowalski (decyzja autora 21.11.2026): każdy przedmiot ma POTENTIAL punktów (od-do), runy je zużywają
+## (Runes `cost`), przy zerze runy już nie działają; Runa Odnowy przywraca pełny. Pola "potential" i "potential_max".
+const POTENTIAL := Vector2i(15, 25)
 ## Szanse rzadkości (wagi): łup z goblina i ze skrzyni Wodza (skrzynia częściej daje lepsze).
 const GOBLIN_WEIGHTS := {"common": 65, "magic": 28, "rare": 7}
 const CHEST_WEIGHTS := {"common": 35, "magic": 45, "rare": 20}
@@ -277,10 +298,10 @@ const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.
 	"quantity_pct": 100.0, "ore_pct": 200.0, "skill_level_all": 3.0}
 ## Gniazda: najwięcej w przedmiocie i szansa na drugie od razu (według rzadkości - bardzo rzadko).
 const MAX_SOCKETS := 2
-const SECOND_SOCKET := {"common": 0.0, "magic": 0.01, "rare": 0.03}
+const SECOND_SOCKET := {"common": 0.0, "magic": 0.01, "rare": 0.03, "legendary": 0.1}
 ## Rozbicie przedmiotu (decyzja autora 20.11.2026, zamiast sprzedaży za złoto): ruda według rzadkości, rzadki
 ## dodatkowo z szansą SCRAP_RUNE daje Runę Szlifu (obie liczby rosną ze Skarbcem drzewka lochów - Game.treasury_mult).
-const ORE := {"common": 1, "magic": 2, "rare": 4}
+const ORE := {"common": 1, "magic": 2, "rare": 4, "legendary": 8}
 const SCRAP_RUNE := 0.15
 ## Wykuwanie u kowala (decyzja autora 20.11.2026): FORGE_ORE rudy za przedmiot z wybranego miejsca, z najgłębszego
 ## przebitego lochu, rzadkość losowana wagami FORGE_WEIGHTS (jak skrzynia Wodza) - Game.forge.
@@ -331,22 +352,75 @@ static func roll_base(slot: String, type: String, level: int) -> Dictionary:
 	return base
 
 
-## Nowy przedmiot: miejsce (puste - losowe), poziom lochu, rzadkość (pusta - losowana wagami `weights`), baza
-## (pusta - losowa z miejsca).
-static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS, type := "") -> Dictionary:
+## Nowy przedmiot: miejsce (puste - losowe), poziom lochu, rzadkość (pusta - losowana wagami `weights`, z łupu
+## z szansą `legend_chance` legendarny), baza (pusta - losowa z miejsca). `loot` - z łupu (legendy i premie ponad
+## widełki); kuźnia podaje false.
+static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS, type := "", loot := true) -> Dictionary:
 	if slot == "":
 		slot = SLOTS[randi() % SLOTS.size()]
 	if rarity == "":
-		rarity = roll_rarity(weights)
+		rarity = "legendary" if loot and randf() < legend_chance(level) else roll_rarity(weights)
 	if not BASES[slot].has(type):
 		type = bases_of(slot).pick_random()
+	var pot := randi_range(POTENTIAL.x, POTENTIAL.y)
 	var item := {"slot": slot, "type": type, "tier": tier_for(level), "level": maxi(level, 1), "rarity": rarity,
-			"base": roll_base(slot, type, level), "affixes": [], "sockets": [""]}
+			"base": roll_base(slot, type, level), "affixes": [], "sockets": [""], "potential": pot, "potential_max": pot}
 	for i in randi_range(AFFIX_COUNT[rarity].x, AFFIX_COUNT[rarity].y):
 		add_affix(item)
+	if loot:
+		var chance := ABOVE_CHANCE_DEEP if level >= MAX_LEVEL else ABOVE_CHANCE
+		for i in item.affixes.size():
+			if randf() < chance:
+				make_above(item, i)
 	if randf() < SECOND_SOCKET[rarity]:
 		item.sockets.append("")
 	return item
+
+
+## Szansa, że przedmiot z łupu będzie legendarny (rośnie z głębią lochu).
+static func legend_chance(level: int) -> float:
+	return minf(LEGEND_CHANCE * (1.0 + float(maxi(level, 1)) / MAX_LEVEL), LEGEND_MAX)
+
+
+## Premia `index` przedmiotu ponad widełki: najlepszy stopień z poziomu przedmiotu i wartość ponad jego górną granicę.
+## False - premia już ponad albo taka, która nie wychodzi ponad (ABOVE_SKIP).
+static func make_above(item: Dictionary, index: int) -> bool:
+	var a: Dictionary = item.affixes[index]
+	if a.get("above", false) or a.stat in ABOVE_SKIP:
+		return false
+	a.tier = mini(int(a.get("tier", TIERS)), best_tier(item.level))
+	a.above = true
+	a.value = above_value(a.stat, a.tier)
+	return true
+
+
+## Losowa wartość premii ponad widełki stopnia `tier`.
+static func above_value(stat: String, tier: int) -> float:
+	var v := tier_range(stat, tier).y * (1.0 + randf_range(ABOVE_MIN, ABOVE_MAX))
+	return snappedf(v, 0.1) if stat in DECIMAL_STATS else float(maxi(roundi(v), roundi(tier_range(stat, tier).y) + 1))
+
+
+## Czy któraś premia jest ponad widełkami.
+static func has_above(item: Dictionary) -> bool:
+	return item.get("affixes", []).any(func(a: Dictionary) -> bool: return a.get("above", false))
+
+
+## Anielski przedmiot: wszystkie premie (co najmniej jedna) ponad widełkami.
+static func is_angelic(item: Dictionary) -> bool:
+	var list: Array = item.get("affixes", [])
+	return not list.is_empty() and list.all(func(a: Dictionary) -> bool: return a.get("above", false))
+
+
+## Potencjał kowalski przedmiotu: [ile zostało, ile najwięcej] (stare bez pola - pełny POTENTIAL.y).
+static func potential_of(item: Dictionary) -> Vector2i:
+	var most := int(item.get("potential_max", POTENTIAL.y))
+	return Vector2i(clampi(int(item.get("potential", most)), 0, most), most)
+
+
+## Linia potencjału kowalskiego do opisu przedmiotu.
+static func potential_line(item: Dictionary) -> String:
+	var p := potential_of(item)
+	return Lang.t("Potencjał kowalski: %d / %d") % [p.x, p.y]
 
 
 ## Czy premia może wypaść na przedmiocie z miejsca `slot` (pole "slots" w AFFIXES; bez niego - wszędzie) i poziomu
@@ -363,14 +437,15 @@ static func add_affix(item: Dictionary) -> bool:
 		return not stat in taken and affix_fits(stat, item.slot, item.level))
 	if pool.is_empty():
 		return false
-	item.affixes.append(make_affix(pool.pick_random(), item.level))
+	item.affixes.append(make_affix(pool.pick_random(), item.level, 0, LEGEND_TIER_BOOST if item.rarity == "legendary" else 0))
 	return true
 
 
-## Premia `stat` z losowym stopniem dostępnym na poziomie lochu `level` (`tier` > 0 - ten stopień).
-static func make_affix(stat: String, level: int, tier := 0) -> Dictionary:
+## Premia `stat` z losowym stopniem dostępnym na poziomie lochu `level` (`tier` > 0 - ten stopień; `boost` - o tyle
+## stopni lepiej, legendarny).
+static func make_affix(stat: String, level: int, tier := 0, boost := 0) -> Dictionary:
 	if tier <= 0:
-		tier = roll_tier(level)
+		tier = maxi(roll_tier(level) - boost, 1)
 	var a := {"stat": stat, "value": tier_value(stat, tier), "tier": tier}
 	if stat == "skill_level":
 		a.skill = Skills.ORDER.pick_random()
@@ -434,10 +509,12 @@ static func roll_affix(stat: String, level: int) -> float:
 	return tier_value(stat, roll_tier(level))
 
 
-## Runa Szlifu: nowa wartość premii w widełkach jej stopnia (stopień zostaje).
+## Runa Szlifu: nowa wartość premii w widełkach jej stopnia (stopień zostaje; premia ponad widełki - nowa wartość
+## ponad nimi).
 static func polish_affix(a: Dictionary) -> Dictionary:
 	var out := a.duplicate()
-	out.value = tier_value(a.stat, int(a.get("tier", TIERS)))
+	var tier := int(a.get("tier", TIERS))
+	out.value = above_value(a.stat, tier) if a.get("above", false) else tier_value(a.stat, tier)
 	return out
 
 
@@ -482,9 +559,15 @@ static func boosted_weights(weights: Dictionary, rarity_pct: float) -> Dictionar
 	return w
 
 
-## Nazwa przedmiotu w obecnym języku.
+## Nazwa przedmiotu w obecnym języku (anielski - z przedrostkiem w rodzaju nazwy bazy).
 static func name_of(item: Dictionary) -> String:
-	return Lang.t(BASES[item.slot][type_of(item)].names[clampi(int(item.get("tier", 0)), 0, 4)])
+	var base: String = BASES[item.slot][type_of(item)].names[clampi(int(item.get("tier", 0)), 0, 4)]
+	if not is_angelic(item):
+		return Lang.t(base)
+	var word := base.split(" ")[0]
+	var fmt := "Anielska %s" if word.ends_with("a") else ("Anielskie %s" if word.ends_with("e") or word.ends_with("y") else "Anielski %s")
+	var shown := Lang.t(base)
+	return Lang.t(fmt) % (shown.left(1).to_lower() + shown.substr(1))
 
 
 ## Nazwa bazy (najniższy stopień - do wyboru u kowala).
@@ -496,9 +579,9 @@ static func color_of(item: Dictionary) -> Color:
 	return RARITY_COLORS.get(item.get("rarity", "common"), RARITY_COLORS.common)
 
 
-## Ikona przedmiotu (wersja magiczna i rzadka mają inne kolory, jak w Watrze).
+## Ikona przedmiotu (wersja magiczna i rzadka mają inne kolory, jak w Watrze; legendarny - jak rzadki).
 static func icon_of(item: Dictionary) -> Texture2D:
-	var suffix: String = {"common": "", "magic": "_magic", "rare": "_rare"}.get(item.get("rarity", "common"), "")
+	var suffix: String = {"common": "", "magic": "_magic", "rare": "_rare", "legendary": "_rare"}.get(item.get("rarity", "common"), "")
 	return base_icon(item.slot, type_of(item), int(item.get("tier", 0)), suffix)
 
 
@@ -534,9 +617,22 @@ static func affix_text(a: Dictionary) -> String:
 	return stat_text(a.stat, a.value)
 
 
-## Znaczek stopnia premii („T3”).
+## Znaczek stopnia premii („T3”, ponad widełki - „T3+”).
 static func tier_badge(a: Dictionary) -> String:
-	return "T%d" % int(a.get("tier", TIERS))
+	return "T%d%s" % [int(a.get("tier", TIERS)), "+" if a.get("above", false) else ""]
+
+
+## Kolor znaczka premii (ponad widełki - ABOVE_COLOR).
+static func affix_color(a: Dictionary) -> Color:
+	return ABOVE_COLOR if a.get("above", false) else tier_color(int(a.get("tier", TIERS)))
+
+
+## Kolor ramki pola z przedmiotem: anielski, rzadkość (zwykły - brązowy) i grubość (ponad widełki - grubsza).
+static func frame_of(item: Dictionary) -> Array:
+	if is_angelic(item):
+		return [ANGELIC_COLOR, 3]
+	var color: Color = color_of(item) if item.get("rarity", "common") != "common" else Color(0.7, 0.6, 0.45)
+	return [color, 3 if has_above(item) else 2]
 
 
 ## Kolor znaczka stopnia.
@@ -697,8 +793,12 @@ static func normalize(data) -> Dictionary:
 				tier = nearest_tier(stat, v, level)
 				var r := tier_range(stat, tier)
 				v = clampf(v, r.x, r.y)
-			v = clamp_affix(stat, v, level)
+			var above: bool = a.get("above", false) == true and not stat in ABOVE_SKIP
+			if not above:
+				v = clamp_affix(stat, v, level)
 			var entry := {"stat": stat, "value": snappedf(v, 0.1) if stat in DECIMAL_STATS else float(roundi(v)), "tier": tier}
+			if above:
+				entry.above = true
 			if stat == "skill_level":
 				if not Skills.has(str(a.get("skill", ""))):
 					continue
@@ -713,6 +813,9 @@ static func normalize(data) -> Dictionary:
 		sockets.append("")
 	var item := {"slot": data.slot, "type": type, "tier": clampi(int(data.get("tier", tier_for(level))), 0, 4),
 			"level": level, "rarity": data.rarity, "base": base, "affixes": affixes, "sockets": sockets}
+	var pot := potential_of(data)
+	item.potential = pot.x
+	item.potential_max = pot.y
 	if int(data.get("rerolls", 0)) > 0:
 		item.rerolls = int(data.rerolls)
 	return item

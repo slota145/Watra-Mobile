@@ -34,8 +34,8 @@ func _run() -> void:
 	arena.horde_spawner.running = false
 	var hero: ProtoHero = arena.hero
 	var i := 0
-	for r in ["common", "magic", "rare"]:
-		var loot: ProtoLoot = arena.horde_spawner.drop_item(Items.roll(3, "", r), hero.position + Vector2(-60 + 60 * i, -70))
+	for r in ["common", "magic", "rare", "legendary"]:
+		var loot: ProtoLoot = arena.horde_spawner.drop_item(Items.roll(3, "", r), hero.position + Vector2(-75 + 50 * i, -70))
 		loot.magnet = 0.0
 		i += 1
 	arena.horde_spawner._on_ember(57)
@@ -51,7 +51,13 @@ func _run() -> void:
 	arena.stats_window.sell_common_button.pressed.emit()
 	await create_timer(0.2).timeout
 	await _shot("2b_dol")
-	game.bag[0] = Items.roll(3, "earring", "rare")
+	game.bag[0] = Items.roll(45, "earring", "legendary")
+	for k in 3:
+		Items.make_above(game.bag[0], k)  # premie ponad widełki (znaczek „T1+”)
+	var angel := Items.roll(45, "armor", "magic", Items.GOBLIN_WEIGHTS, "robe")
+	for k in angel.affixes.size():
+		Items.make_above(angel, k)
+	game.bag[1] = angel  # anielski - jasna ramka
 	arena.stats_window.refresh()
 	arena.stats_window.bag_buttons[0].pressed.emit()
 	await create_timer(0.2).timeout

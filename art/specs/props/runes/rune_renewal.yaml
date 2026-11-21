@@ -1,0 +1,33 @@
+spritekiln: 1
+# Runa Odnowy (Runes.RENEWAL) - bardzo rzadka (od lochu 40, bossowie i elity): ciemnozielony kamień w złotej obręczy,
+# szmaragdowy znak dwóch kręgów (koło życia): przywraca pełny potencjał kowalski przedmiotu.
+name: rune_renewal
+extends: rune_base.yaml
+ramps:
+  rstone: ["#08100c", "#16271e", "#26402f", "#385a43", "#4f7659", "#6a9473"]
+  rglyph: ["#06301a", "#1c8a4a", "#4ee08a", "#b4ffd0", "#f0fff6"]
+  rgold:  ["#1c1006", "#4d2f0e", "#8a5a16", "#c48c22", "#e8c04e", "#fff0a0"]
+materials:
+  glyph: {glow: {color: "#4ee08a"}}
+  gold:  {ramp: rgold, finish: metal}
+bones:
+  belt: {parent: stone, pos: [0, -0.3, 0], scale: [1, 1, 0.5]}
+parts:
+  stone:
+    cut:
+      - plane: {n: [0.75, 0.62, 0.2], at: 0.43}
+      - plane: {n: [-0.8, -0.55, 0.15], at: 0.45}
+      - torus: {c: [0, 0, 0.17], R: 0.21, r: 0.045, rot: [1.5708, 0, 0]}
+      - torus: {c: [0, 0, 0.17], R: 0.08, r: 0.045, rot: [1.5708, 0, 0]}
+  glyph:
+    material: glyph
+    space: face
+    priority: 3
+    prims:
+      - torus: {c: [0, 0, 0], R: 0.21, r: 0.026, rot: [1.5708, 0, 0]}
+      - torus: {c: [0, 0, 0], R: 0.08, r: 0.026, rot: [1.5708, 0, 0]}
+  band:
+    material: gold
+    space: belt
+    prims:
+      - torus: {c: [0, 0, 0], R: 0.42, r: 0.04}

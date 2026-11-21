@@ -15,7 +15,7 @@ const CHISEL_PRICE := {"pay": Runes.ASCEND, "cost": 1}
 static func offers() -> Array:
 	var out: Array = []
 	for id in Runes.ORDER:
-		if id != Runes.POLISH:
+		if id != Runes.POLISH and not Runes.is_boss(id):  # Runy Bogów i Odnowy tylko z łupu (i targu)
 			out.append({"pay": Runes.POLISH, "cost": buy_cost(id), "item": id, "count": 1, "kind": "buy"})
 	for id in Runes.ORDER:
 		if id != Runes.POLISH:

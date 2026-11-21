@@ -99,8 +99,11 @@ func _ready() -> void:
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	_glow.material = add
 	add_child(_glow)
-	if _rarity() == "rare":
-		add_child(_Beam.new())
+	if _rarity() in ["rare", "legendary"]:
+		var beam := _Beam.new()
+		if _rarity() == "legendary":
+			beam.color = Items.RARITY_COLORS.legendary
+		add_child(beam)
 	_sprite = Sprite2D.new()
 	_sprite.texture = icon_of(item)
 	_sprite.scale = Vector2.ONE * (0.6 if item.has("aura") else ICON_SCALE * (0.75 if item.has("gem") or item.has("rune") else 1.0))
@@ -176,7 +179,7 @@ func _take() -> void:
 		scrapped.emit(item, got, bag_full)
 	else:
 		picked.emit(item)
-	_play(SOUND_RARE if _rarity() == "rare" or item.has("gem") or item.has("aura") or item.has("talisman") \
+	_play(SOUND_RARE if _rarity() in ["rare", "legendary"] or item.has("gem") or item.has("aura") or item.has("talisman") \
 			or item.has("rune") else SOUND, -6.0)
 	for c in get_children():
 		if c is CanvasItem:
@@ -226,6 +229,7 @@ func _play(stream: AudioStream, volume: float) -> void:
 
 ## Słup złotego światła nad rzadkim przedmiotem (rysowany w kodzie).
 class _Beam extends Node2D:
+	var color := Color(1.0, 0.85, 0.35)
 	var _t := 0.0
 
 	func _process(delta: float) -> void:
@@ -236,4 +240,4 @@ class _Beam extends Node2D:
 		var a := 0.5 + 0.2 * sin(_t * 4.0)
 		for i in 3:
 			var w := 8.0 - i * 2.5
-			draw_rect(Rect2(-w / 2.0, -60.0, w, 56.0), Color(1.0, 0.85, 0.35, 0.22 * a))
+			draw_rect(Rect2(-w / 2.0, -60.0, w, 56.0), Color(color, 0.22 * a))

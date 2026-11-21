@@ -1,0 +1,37 @@
+spritekiln: 1
+# Runa Bogów (Runes.GODS) - bardzo rzadka (od lochu 40, bossowie i elity): perłowo-biały kamień w złotej obręczy,
+# złoto-biały znak słońca (krąg i promienie): jedna premia przedmiotu ponad widełki.
+name: rune_gods
+extends: rune_base.yaml
+ramps:
+  rstone: ["#2a2630", "#58525e", "#8a8492", "#b8b2c0", "#dcd8e2", "#f6f4fa"]
+  rglyph: ["#5a3a08", "#c88a1c", "#ffd04a", "#fff2a8", "#ffffff"]
+  rgold:  ["#1c1006", "#4d2f0e", "#8a5a16", "#c48c22", "#e8c04e", "#fff0a0"]
+materials:
+  glyph: {glow: {color: "#ffd04a"}}
+  gold:  {ramp: rgold, finish: metal}
+bones:
+  belt: {parent: stone, pos: [0, -0.3, 0], scale: [1, 1, 0.5]}
+parts:
+  stone:
+    cut:
+      - plane: {n: [0.75, 0.62, 0.2], at: 0.43}
+      - plane: {n: [-0.8, -0.55, 0.15], at: 0.45}
+      - torus: {c: [0, 0, 0.17], R: 0.1, r: 0.05, rot: [1.5708, 0, 0]}
+      - box: {c: [0, 0, 0.17], half: [0.045, 0.26, 0.06]}
+      - box: {c: [0, 0, 0.17], half: [0.26, 0.045, 0.06]}
+  glyph:
+    material: glyph
+    space: face
+    priority: 3
+    prims:
+      - torus: {c: [0, 0, 0], R: 0.1, r: 0.03, rot: [1.5708, 0, 0]}
+      - box: {c: [0, 0.18, 0], half: [0.028, 0.07, 0.02]}
+      - box: {c: [0, -0.18, 0], half: [0.028, 0.07, 0.02]}
+      - box: {c: [0.18, 0, 0], half: [0.07, 0.028, 0.02]}
+      - box: {c: [-0.18, 0, 0], half: [0.07, 0.028, 0.02]}
+  band:
+    material: gold
+    space: belt
+    prims:
+      - torus: {c: [0, 0, 0], R: 0.42, r: 0.04}

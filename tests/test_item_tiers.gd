@@ -2,7 +2,8 @@ extends SceneTree
 ## Test przebudowy przedmiotów (21.11.2026): stopnie premii T7-T1 z poziomu lochu, sufit siły na lochu 40, 3 bazy na
 ## miejsce ze stałą cechą i ikonami, rzadki 3-5 premii, nowe premie (poziom umiejętności, znaczniki, osłabieni, pełne
 ## zdrowie, szybkość po zabiciu, łup, ruda), przeliczenie starych przedmiotów, Runa Szlifu w stopniu, wykuwanie bazy
-## i wolniejszy wzrost potworów po lochu 40.
+## i wolniejszy wzrost potworów po lochu 40. Krok 2: przedmioty legendarne (6 premii, lepsze stopnie), premie ponad
+## widełki i przedrostek „Anielski”, Runa Bogów, potencjał kowalski i Runa Odnowy.
 
 var _failed := 0
 
@@ -27,6 +28,9 @@ func _run() -> void:
 	_test_convert()
 	_test_effects(game)
 	_test_forge(game)
+	_test_legendary()
+	_test_above()
+	_test_potential()
 	game.reset_hero()
 	DirAccess.remove_absolute(game.save_path)
 	print("WYNIK: %s" % ("wszystko OK" if _failed == 0 else "%d błędów" % _failed))
@@ -175,3 +179,86 @@ func _test_forge(game: Node) -> void:
 	_check(item.type == "signet" and item.base.has("mana_regen") and item.level == 70, "kowal wykuwa wybraną bazę")
 	var r: Dictionary = game.forge("ring")
 	_check(r.type in Items.bases_of("ring"), "bez wyboru - losowa baza")
+
+
+func _test_legendary() -> void:
+	var leg := Items.roll(20, "amulet", "legendary")
+	_check(leg.affixes.size() == 6 and Items.RARITY_NAMES.has("legendary") and Items.icon_of(leg) != null, "legendarny: 6 premii i ikona")
+	var sum_leg := 0.0
+	var sum_rare := 0.0
+	for i in 300:
+		sum_leg += Items.make_affix("hp", 20, 0, Items.LEGEND_TIER_BOOST).tier
+		sum_rare += Items.make_affix("hp", 20).tier
+	_check(sum_leg < sum_rare - 200.0, "legendarny: premie o stopień lepsze (średnio T%.1f zamiast T%.1f)" % [sum_leg / 300.0, sum_rare / 300.0])
+	_check(Items.legend_chance(1) >= 0.005 and Items.legend_chance(100) <= Items.LEGEND_MAX + 0.0001
+			and Items.legend_chance(40) > Items.legend_chance(1), "szansa na legendę rośnie z głębią (do %.1f%%)" % (Items.LEGEND_MAX * 100.0))
+	var forged := 0
+	for i in 2000:
+		forged += 1 if Items.roll(60, "ring", "", Items.FORGE_WEIGHTS, "", false).rarity == "legendary" else 0
+	_check(forged == 0, "kuźnia nie daje legend")
+	_check(Runes.blocker(leg, Runes.ASCEND) != "", "legendarnego nie da się wynieść")
+
+
+func _test_above() -> void:
+	var item := Items.roll(40, "helmet", "rare", Items.GOBLIN_WEIGHTS, "", false)
+	var i := 0
+	while item.affixes[i].stat in Items.ABOVE_SKIP:
+		i += 1
+	_check(Items.make_above(item, i), "premia ponad widełki")
+	var a: Dictionary = item.affixes[i]
+	_check(a.above and a.tier == 1 and a.value > Items.tier_range(a.stat, 1).y and a.value <= Items.tier_range(a.stat, 1).y * 1.31 + 1.0
+			and Items.tier_badge(a) == "T1+", "ponad T1 o 5-30%% (%s %s)" % [Items.tier_badge(a), a.value])
+	var low := Items.roll(5, "boots", "magic", Items.GOBLIN_WEIGHTS, "", false)
+	Items.make_above(low, 0)
+	_check(low.affixes[0].tier >= Items.best_tier(5), "na płytkim lochu ponad najlepszym stopniem tego lochu (T%d)" % low.affixes[0].tier)
+	var polished := Items.polish_affix(a)
+	_check(polished.above and polished.value > Items.tier_range(a.stat, 1).y, "Runa Szlifu zostawia premię ponad widełkami")
+	var seen := 0
+	for k in 600:
+		seen += 1 if Items.has_above(Items.roll(40, "", "rare")) else 0
+	_check(seen > 30 and seen < 200, "z łupu ok. 5%% premii ponad widełki (%d przedmiotów na 600)" % seen)
+	for k in item.affixes.size():
+		Items.make_above(item, k)
+	var all_above: bool = item.affixes.all(func(x: Dictionary) -> bool: return x.get("above", false))
+	_check(Items.is_angelic(item) == all_above and (not all_above or Items.name_of(item).begins_with("Anielski")),
+			"anielski: wszystkie premie ponad widełki („%s”)" % Items.name_of(item))
+	var robe := {"slot": "armor", "type": "robe", "tier": 0, "level": 40, "rarity": "magic", "base": {}, "sockets": [""],
+			"affixes": [{"stat": "hp", "value": 300.0, "tier": 1, "above": true}]}
+	var boots := {"slot": "boots", "type": "boots", "tier": 0, "level": 40, "rarity": "magic", "base": {}, "sockets": [""],
+			"affixes": [{"stat": "hp", "value": 300.0, "tier": 1, "above": true}]}
+	_check(Items.name_of(robe) == "Anielska lniana szata" and Items.name_of(boots) == "Anielskie skórzane buty",
+			"przedrostek w rodzaju nazwy (%s, %s)" % [Items.name_of(robe), Items.name_of(boots)])
+	var again := Items.normalize(JSON.parse_string(JSON.stringify(robe)))
+	_check(again.affixes[0].above and again.affixes[0].value == 300.0, "premia ponad widełki przechodzi zapis")
+	# Runa Bogów
+	var r := Items.roll(40, "ring", "rare", Items.GOBLIN_WEIGHTS, "band", false)
+	var j := 0
+	while r.affixes[j].stat in Items.ABOVE_SKIP:
+		j += 1
+	var pot: int = r.potential
+	_check(Runes.apply(r, Runes.GODS, j) and r.affixes[j].above and r.potential == pot, "Runa Bogów: premia ponad widełki, bez potencjału")
+	_check(Runes.blocker(r, Runes.GODS, j) != "", "drugi raz na tę samą premię - nie")
+	_check(not Shop.offers().any(func(o: Dictionary) -> bool: return o.kind == "buy" and Runes.is_boss(o.item)), "Runy Bogów i Odnowy nie u kupca")
+	var boss_ok := true
+	for k in 200:
+		boss_ok = boss_ok and Runes.roll_boss(39, 1.0).is_empty()
+	_check(boss_ok and Runes.roll_boss(40, 1.0).size() == 2, "runy bossów dopiero od lochu 40")
+
+
+func _test_potential() -> void:
+	var item := Items.roll(10, "helmet", "rare", Items.GOBLIN_WEIGHTS, "", false)
+	var p := Items.potential_of(item)
+	_check(p.x == p.y and p.y >= Items.POTENTIAL.x and p.y <= Items.POTENTIAL.y, "potencjał kowalski %d/%d" % [p.x, p.y])
+	_check(Runes.cost_of(Runes.POLISH) == 1 and Runes.cost_of(Runes.REFORGE) == 1 and Runes.cost_of(Runes.GROWTH) == 2
+			and Runes.cost_of(Runes.ASCEND) == 2 and Runes.cost_of(Runes.CHAOS) == 2 and Runes.cost_of(Runes.SEAL) == 3,
+			"koszt run: 1/1/2/2/2/3")
+	var uses := 0
+	while Runes.apply(item, Runes.POLISH, 0):
+		uses += 1
+	_check(uses == p.y and Items.potential_of(item).x == 0 and Runes.blocker(item, Runes.POLISH, 0) != "",
+			"Szlif działa %d razy, potem brak potencjału" % uses)
+	_check(Runes.apply(item, Runes.RENEWAL) and Items.potential_of(item).x == p.y, "Runa Odnowy przywraca pełny potencjał")
+	_check(Runes.blocker(item, Runes.RENEWAL) != "", "pełny potencjał - Odnowa niepotrzebna")
+	var old := Items.normalize({"slot": "ring", "rarity": "magic", "level": 5, "base": {}, "affixes": []})
+	_check(old.potential == Items.POTENTIAL.y and old.potential_max == Items.POTENTIAL.y, "stary przedmiot: pełny potencjał")
+	_check(Items.potential_line(item).contains("%d / %d" % [p.y, p.y]), "linia potencjału w opisie")
