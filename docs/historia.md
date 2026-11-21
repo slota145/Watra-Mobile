@@ -2,6 +2,21 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Mroczna kosa: efekty od nowa i poprawki (uwagi autora po teście)
+
+- **Efekty od nowa** (były kanciaste - powiększane małe arkusze - i za dużo zasłaniały): wszystkie z własnych warstw
+  w kreatorze PixelLab (`render` z całym przepisem), od razu w rozmiarze z gry (skala najwyżej 1,25 - `ProtoScythe._fx_scale`),
+  czarno-fioletowe (rampa czerń -> ciemny fiolet -> jasna lawenda), cieńsze cięcia, z przezroczystą otoczką mrocznego
+  dymu (warstwy `opacity` w kreatorze - gra nie przygasza ani nie robi efektów przezroczystymi): `scythe_swing` (łuk 200°,
+  promień 50), `scythe_hit`, `scythe_blast` (24 px), `scythe_wave` (do 78 px), `scythe_diag` (półksiężyc 44 px),
+  nowe `mow_swing` (zamach Pokosu, 92 px), `scythe_whirl` (pętla: 3 cięcia krążą po okręgu nad głową - wir Tańca,
+  `Fx.loop` na postaci przez cały taniec) i `square_burst` (wybuch cięcia Światowida: cięcie rozbłyska i odrywa się
+  falą na zewnątrz z odłamkami i dymem - zamiast dawnych kropek wybuchów). `scythe_line` usunięty. Łuki cięć
+  Światowida rysowane w grze - czarno-fioletowe z lawendową krawędzią i fioletową mgiełką; chmura Mary fioletowa.
+- **Błąd Postaci Mary** (zgłoszenie autora): gdy forma kończyła się sama, sprawdzenie „czy trwa” patrzyło na wyzerowany
+  już czas - postać zostawała niewidzialna, a chmura w miejscu. Teraz osobna flaga `mara_on`; test sprawdza powrót postaci.
+- Ikony umiejętności odświeżone (`tools/scythe_icons.py`).
+
 ## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
 
 Pomysły autora (ROADMAP „Mroczna kosa”), plan sterowania zaakceptowany przed kodem.

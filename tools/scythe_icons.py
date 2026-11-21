@@ -40,7 +40,7 @@ def clip(img, inside):
 
 def icon_reap():
     img, inside = base()
-    wi.paste(img, wi.scaled(wi.trim(wi.frame("scythe_swing", 5)), 0.8), (32, 34))
+    wi.paste(img, wi.scaled(wi.trim(wi.frame("scythe_swing", 4)), 0.45), (36, 33))
     wi.paste(img, wi.scaled(HEAD, 0.75), (34, 28))
     return clip(img, inside)
 
@@ -48,10 +48,10 @@ def icon_reap():
 def icon_square():
     img, inside = base()
     d = ImageDraw.Draw(img)
-    for w, c in ((5, (6, 5, 10, 255)), (1, (236, 238, 246, 255))):
+    for w, c in ((5, (12, 5, 22, 255)), (1, (210, 186, 255, 255))):
         d.rectangle((15, 15, 48, 48), outline=c, width=w)
-    wi.paste(img, wi.scaled(wi.trim(wi.frame("scythe_hit", 4)), 0.5), (15, 15))
-    wi.paste(img, wi.scaled(wi.trim(wi.frame("scythe_hit", 4)), 0.5), (48, 48))
+    wi.paste(img, wi.scaled(wi.trim(wi.frame("scythe_blast", 3)), 0.55), (15, 15))
+    wi.paste(img, wi.scaled(wi.trim(wi.frame("scythe_blast", 3)), 0.55), (48, 48))
     wi.paste(img, wi.rotated(wi.scaled(HEAD, 0.45), 20), (32, 32))
     return clip(img, inside)
 

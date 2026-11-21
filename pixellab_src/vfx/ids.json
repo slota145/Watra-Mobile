@@ -1235,109 +1235,94 @@
     "columns": 3
   },
   "scythe_swing": {
-    "effect": "675402d6-d776-46db-b18d-42cc346562ea",
-    "name": "Kosa - Żniwo (czarny zamach z białą krawędzią, gaśnie powoli; łuk od góry-lewej zgodnie z zegarem, zaczepienie = środek łuku)",
+    "effect": "4ad65a75-4184-460e-9716-0b58e82c4c3d",
+    "name": "Kosa v2 - Żniwo (czarno-fioletowy zamach z dymną otoczką, promień 50 px, łuk 200° zgodnie z zegarem od góry, środek łuku w prawo; zaczepienie = środek okręgu)",
     "frame": [
-      66,
-      65
-    ],
-    "frames": 14,
-    "fps": 16,
-    "anchor": [
-      29,
-      37
-    ],
-    "columns": 4
-  },
-  "scythe_line": {
-    "effect": "e0bd6388-c977-4164-931c-ad5a2570b55c",
-    "name": "Kosa - proste cięcie (Cięcie Światowida, w prawo, zaczepienie = środek; długość ok. 102 px)",
-    "frame": [
-      123,
-      37
+      136,
+      136
     ],
     "frames": 12,
     "fps": 16,
     "anchor": [
-      54,
-      21
+      68,
+      68
     ],
     "columns": 4
   },
   "scythe_hit": {
-    "effect": "3c37a44f-30d3-4da0-8fe2-6777d2eaa064",
-    "name": "Kosa - trafienie Nawii (czarny rozbłysk z białą obręczą; też wybuch Nawii po powiększeniu)",
+    "effect": "247b5d3a-e366-458d-961a-be5c9ad9d022",
+    "name": "Kosa v2 - trafienie Nawii (mały fioletowy błysk z dymkiem; zaczepienie = środek)",
     "frame": [
-      72,
-      64
+      40,
+      40
     ],
-    "frames": 10,
-    "fps": 13,
+    "frames": 9,
+    "fps": 18,
     "anchor": [
-      41,
-      27
+      20,
+      20
     ],
-    "columns": 4
+    "columns": 3
   },
   "scythe_blast": {
-    "effect": "d94aafa9-9a08-46f1-808b-2641c59f029e",
-    "name": "Kosa - wybuch Nawii (biały błysk, czarny dym, iskry; zaczepienie = środek)",
+    "effect": "6e902e2b-7f2d-4b7a-8b1e-b428b86cd1f4",
+    "name": "Kosa v2 - wybuch Nawii (fioletowy błysk, pierścień ~24 px, przezroczysty dym; zaczepienie = środek)",
     "frame": [
-      84,
-      81
+      64,
+      64
     ],
     "frames": 12,
-    "fps": 14,
+    "fps": 16,
     "anchor": [
-      43,
-      39
+      32,
+      36
     ],
     "columns": 4
   },
   "scythe_wave": {
-    "effect": "b4dbbd22-6c24-451e-8b01-f5dbbeb7e743",
-    "name": "Kosa - fala Nawii (pierścień po ziemi; kamień unikalny Żniwa, zaczepienie = środek pierścienia)",
+    "effect": "690277ac-a14b-41ce-9a4f-189148011f62",
+    "name": "Kosa v2 - fala Nawii (płaski pierścień do 78 px, przezroczysty dym; kamień Żniwa; zaczepienie = środek)",
     "frame": [
-      116,
-      99
+      176,
+      92
     ],
     "frames": 12,
-    "fps": 14,
+    "fps": 16,
     "anchor": [
-      58,
-      74
+      88,
+      46
     ],
     "columns": 4
   },
   "scythe_diag": {
-    "effect": "1a27c474-af46-4bde-a17f-7a221592ee14",
-    "name": "Kosa - cięcie po skosie (Taniec Marzanny; półksiężyc wypukły w górę-prawo, gaśnie powoli, zaczepienie = środek)",
+    "effect": "3beccc8c-2cfc-4bb1-91a2-fda5f7fbefd9",
+    "name": "Kosa v2 - cięcie po skosie (Taniec; półksiężyc promień 44 px, spłaszczony, środek łuku w prawo; zaczepienie = środek okręgu poza klatką)",
     "frame": [
-      76,
-      39
+      51,
+      60
     ],
     "frames": 14,
     "fps": 16,
     "anchor": [
-      33,
-      18
+      -8,
+      30
     ],
     "columns": 4
   },
   "scythe_whirl": {
-    "effect": "4ae7c710-f59f-40e0-b69d-e2d0f191d4fe",
-    "name": "Kosa - wir nad głową (Taniec Marzanny; spłaszczony pierścień cięcia, zaczepienie = środek)",
+    "effect": "06fdf045-0b79-464b-b0e2-7dc30411b411",
+    "name": "Kosa v2 - wir cięć nad głową (Taniec Marzanny; 3 cięcia krążą po spłaszczonym okręgu ~34 px, pętla; zaczepienie = środek)",
     "frame": [
-      100,
-      48
+      86,
+      39
     ],
-    "frames": 9,
-    "fps": 13,
+    "frames": 12,
+    "fps": 16,
     "anchor": [
-      48,
-      23
+      43,
+      19
     ],
-    "columns": 3
+    "columns": 4
   },
   "mara_curse": {
     "effect": "302ecf24-b0cc-4028-b1a7-e802742869aa",
@@ -1351,6 +1336,36 @@
     "anchor": [
       24,
       37
+    ],
+    "columns": 4
+  },
+  "square_burst": {
+    "effect": "8780b096-71c7-4dfb-8355-131221d3ec87",
+    "name": "Kosa v2 - wybuch cięcia Światowida (cięcie 76 px w poziomie rozbłyska i odrywa się falą w górę = na zewnątrz, odłamki, dym; zaczepienie = środek cięcia)",
+    "frame": [
+      112,
+      84
+    ],
+    "frames": 12,
+    "fps": 16,
+    "anchor": [
+      56,
+      62
+    ],
+    "columns": 4
+  },
+  "mow_swing": {
+    "effect": "e9bb6a27-3c2c-4b62-9355-f6e47f7505a7",
+    "name": "Kosa v2 - zamach Pokosu (łuk 110°, promień 92 px i wewnętrzny 60, środek łuku w prawo; zaczepienie = środek okręgu poza klatką)",
+    "frame": [
+      64,
+      161
+    ],
+    "frames": 12,
+    "fps": 16,
+    "anchor": [
+      -41,
+      80
     ],
     "columns": 4
   }

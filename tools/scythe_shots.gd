@@ -66,7 +66,7 @@ func _run() -> void:
 	scythe._start("s_square")
 	await create_timer(0.3).timeout
 	await _shot("3_kwadrat")
-	await create_timer(0.48).timeout
+	await create_timer(0.62).timeout
 	await _shot("4_wybuch")
 	await create_timer(0.8).timeout
 	hero.mana = hero.max_mana
