@@ -184,7 +184,7 @@ static func fair_price(loot: Dictionary) -> int:
 		if Gems.is_jewel(id):
 			return 2 + 2 * Gems.level_of(id) + Gems.jewel_level(id) / 10
 		return 1 + Gems.level_of(id)
-	var mult: int = {"common": 1, "magic": 3, "rare": 8, "legendary": 30}.get(loot.get("rarity", "common"), 1)
+	var mult: int = {"common": 1, "magic": 3, "rare": 8, "legendary": 30, "unique": 50}.get(loot.get("rarity", "common"), 1)
 	return maxi(1, roundi(mult * (1.0 + int(loot.get("level", 1)) / 20.0)))
 
 

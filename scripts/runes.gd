@@ -169,6 +169,8 @@ static func max_affixes(item: Dictionary) -> int:
 static func blocker(item: Dictionary, id: String, index := -1) -> String:
 	if item.is_empty() or not DATA.has(id):
 		return "?"
+	if item.get("rarity", "") == "unique":
+		return Lang.t("Unikatu nie da się przerobić u kowala.")
 	var count: int = item.affixes.size()
 	if Items.potential_of(item).x < cost_of(id):
 		return Lang.t("Brak potencjału kowalskiego - przedmiot nie przyjmie już tej runy.")

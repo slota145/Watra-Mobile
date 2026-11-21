@@ -296,6 +296,12 @@ var point_blank := 0.0
 ## Aura Rój Strzyboga (Auras, arena ustawia): tyle pocisków więcej naraz i mnożnik ich obrażeń (kara aury).
 var extra_projectiles := 0
 var projectile_mult := 1.0
+## Unikaty (Items.UNIQUES, ProtoUniques ustawia): założone (id -> siła działania), węzeł z odłamkami Strzyboga
+## i liczba wrogów blisko postaci (Ostatnia Warownia).
+var uniques := {}
+var uniques_node: ProtoUniques
+var bastion_count := 0
+var _licho_hits := 0
 ## Talizman Poroże Jelenia: chwilowo szybszy atak (część; mnoży speed_mult).
 var speed_bonus := 0.0
 ## Premie przedmiotów (21.11.2026; arena ustawia z Items.totals): poziomy umiejętności (jednej - skill_bonus,
@@ -769,6 +775,8 @@ func mana_cost(id: String) -> int:
 	var cost := Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0) * Skills.level_mana(level_of(id)) * (1.0 + mana_tax)
 	if id == blink_skill and _unique(id):
 		cost *= 0.5
+	if uniques.has("mokosz") and mirror_echoes(id):  # Zwierciadło Mokoszy
+		cost *= Items.MOKOSZ_COST
 	return roundi(cost)
 
 
@@ -919,6 +927,10 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		mult += Gems.skill_power(sockets, "hypothermia") / 100.0
 	if t.is_burning():
 		mult += Gems.skill_power(sockets, "combustion") / 100.0
+	if bastion_count > 0 and uniques.has("bastion"):  # Ostatnia Warownia: za każdego wroga blisko
+		mult *= 1.0 + uniques.bastion / 100.0 * bastion_count
+	if uniques.has("mokosz") and mirror_echoes(skill):  # Zwierciadło Mokoszy: obie kopie razem - 100% + siła odbicia
+		mult *= (1.0 + uniques.mokosz / 100.0) / 2.0
 	if point_blank > 0.0:  # Kieł Niedźwiedzia: z bliska więcej, z daleka mniej
 		var d := t.global_position.distance_to(hero.global_position)
 		mult *= 1.0 + point_blank if d <= Talismans.POINT_BLANK_NEAR else (1.0 - point_blank * 0.5 \
@@ -929,7 +941,15 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	var pen := penetration + Gems.skill_power(sockets, "pen") / 100.0  # Przebicie
 	amount = Elements.reduce(amount, t.resist(elem, pen), _combo_mult(t, elem))  # odporność lochu na żywioł broni
 	var keen := Gems.skill_power(sockets, "keen") / 100.0  # Bystre Oko
-	var crit := randf() < crit_chance + keen
+	var crit := false
+	if uniques.has("licho"):  # Oko Licha: bez krytyków, co LICHO_EVERY. trafienie x siła
+		_licho_hits += 1
+		if _licho_hits >= Items.LICHO_EVERY:
+			_licho_hits = 0
+			amount = roundi(amount * uniques.licho)
+			t.crit_next = true
+	else:
+		crit = randf() < crit_chance + keen
 	if crit:
 		amount = roundi(amount * (crit_mult + keen * Gems.KEEN_DAMAGE))
 		t.crit_next = true
@@ -942,6 +962,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		if crit:
 			talismans.on_crit()
 	_support_hit(t, amount, from, elem, pen, sockets)
+	if uniques_node != null and uniques.has("strzybog") and "projectile" in Skills.tags_of(skill):
+		uniques_node.split(t, skill)  # Pierścień Strzyboga: odłamki z trafionego
 	if skill != "slam" and get_script() == ProtoWeapon:
 		_sword_cut_fx(t, from)
 	# ogień Swaroga i kamienie żywiołów liczą się od ciosu bez premii broni, za to z premią żywiołów raz
@@ -1787,21 +1809,30 @@ func _end_skill() -> void:
 const GEM_ECHO_DELAY := 0.35
 
 
+## Czy umiejętność może się powtórzyć (kamień Echo, Zwierciadło Mokoszy): nie zwykły cios, skoki, ładowane,
+## trzymane i kręgi.
+func mirror_echoes(id: String) -> bool:
+	return id != "" and id != basic and id != blink_skill and Skills.has(id) and not Skills.is_charged(id) \
+			and not Skills.is_toggle(id) and not id in ["whirl", "steel_ring"]
+
+
 func _on_skill_used(id: String) -> void:
 	if id == _echo_pending:
 		_echo_pending = ""  # to była powtórka - bez kolejnej
 		return
-	var p := gem_power(id, "echo")
-	if p <= 0.0 or id == basic or id == blink_skill or Skills.is_charged(id) or Skills.is_toggle(id) \
-			or id in ["whirl", "steel_ring"] \
-			or randf() >= p / 100.0:
+	var mirror := uniques.has("mokosz")
+	var p := 100.0 if mirror else gem_power(id, "echo")
+	if p <= 0.0 or not mirror_echoes(id) or randf() >= p / 100.0:
 		return
-	await get_tree().create_timer(GEM_ECHO_DELAY, false).timeout
+	await get_tree().create_timer(Items.MOKOSZ_DELAY if mirror else GEM_ECHO_DELAY, false).timeout
 	if hero.dead or not is_inside_tree() or _echo_pending != "":
 		return
 	_echo_pending = id
 	_cd.erase(id)
-	hero.float_text(tr("Echo!"), -46.0, Gems.color_of(Gems.make("echo")), 11, 0.8)
+	if mirror:
+		hero.float_text(tr("Odbicie!"), -46.0, Items.RARITY_COLORS.unique, 11, 0.8)
+	else:
+		hero.float_text(tr("Echo!"), -46.0, Gems.color_of(Gems.make("echo")), 11, 0.8)
 	if not cast(id):
 		_echo_pending = ""
 		return

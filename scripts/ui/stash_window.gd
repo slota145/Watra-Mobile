@@ -209,7 +209,7 @@ func _select(area: String, index: int) -> void:
 		_label(_detail_lines, line, 13, TEXT)
 	var lines := Items.affix_lines(item)
 	for i in lines.size():
-		_label(_detail_lines, lines[i], 13, Items.ABOVE_COLOR if item.affixes[i].get("above", false) else Items.RARITY_COLORS.magic)
+		_label(_detail_lines, lines[i], 13, Items.line_color(item, i))
 	_label(_detail_lines, Items.potential_line(item), 12, Color(0.75, 0.68, 0.55))
 	if area == "bag":
 		move_button.text = tr("Do skrzyni")

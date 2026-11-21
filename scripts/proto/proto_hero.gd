@@ -78,6 +78,10 @@ var fortify_left := 0.0
 ## 0 - zwykła mana); Nić Mokoszy - tyle obrażeń bierze mana (`mana_shield`); Poroże Jelenia - szybszy ruch
 ## (`move_bonus`); Świeca Wiedźmy - szybsza odnowa many (`mana_regen_bonus`).
 var blood_magic := 0.0
+## Unikaty (ProtoUniques ustawia): Korona Czarnoboga - umiejętności płacą zdrowiem (jak Krwawe Serce na 100%),
+## Ostatnia Warownia - odporność na wszystkie ciosy (część) od liczby wrogów blisko.
+var crown := false
+var bastion_res := 0.0
 var mana_shield := 0.0
 var move_bonus := 0.0
 var mana_regen_bonus := 0.0
@@ -307,6 +311,7 @@ func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 	var guard := 1.0 - stone if stone > 0.0 and hp < max_hp * Auras.STONE_BELOW else 1.0  # Kamienna Krew
 	if fortify_left > 0.0:  # kamień Twardość
 		guard *= 1.0 - fortify_pct
+	guard *= 1.0 - bastion_res  # Ostatnia Warownia
 	amount = maxi(1, roundi(amount * (1.0 - protection) * (1.0 - res) * guard * (SHOCK_MULT if shock_left > 0.0 else 1.0)))
 	if mana_shield > 0.0 and mana > 0:  # Nić Mokoszy: część ciosu bierze mana
 		var from_mana := mini(roundi(amount * mana_shield), mana)
@@ -401,15 +406,15 @@ func fortify(pct: float, time: float) -> void:
 
 ## Czy stać postać na umiejętność za `cost` many (z Krwawym Sercem - zdrowiem; zawsze musi zostać choć 1 zdrowia).
 func can_pay(cost: int) -> bool:
-	if blood_magic > 0.0:
-		return hp > roundi(cost * blood_magic)
+	if _blood() > 0.0:
+		return hp > roundi(cost * _blood())
 	return mana >= cost
 
 
 ## Wydaje manę na umiejętność (z Krwawym Sercem - zdrowie). Zwraca false (i nic nie zabiera), gdy jej brakuje.
 func spend_mana(amount: int) -> bool:
-	if blood_magic > 0.0:
-		var life := roundi(amount * blood_magic)
+	if _blood() > 0.0:
+		var life := roundi(amount * _blood())
 		if life >= hp:
 			return false
 		hp -= life
@@ -422,6 +427,11 @@ func spend_mana(amount: int) -> bool:
 	mana_changed.emit(mana, max_mana)
 	mana_spent.emit(amount)
 	return true
+
+
+## Ile zdrowia za 1 manę płacą umiejętności (Krwawe Serce, Korona Czarnoboga; 0 - płacą maną).
+func _blood() -> float:
+	return maxf(blood_magic, 1.0) if crown else blood_magic
 
 
 ## Skok Mgnienia do punktu `to` (świat; w granicach areny, poza przeszkodami): gasnący niebieskawy cień w miejscu

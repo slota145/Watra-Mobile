@@ -85,15 +85,23 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
       warunkowe i łup („przeciw podpalonym”, „przy pełnym zdrowiu”, „po zabiciu: szybkość”, % rzadkości i ilości łupu,
       % rudy). Bez osobnych premii na każdy żywioł.
     - **Unikaty:** stałe statystyki (wąskie widełki), mocno zmieniają działanie postaci albo umiejętności; na start **6**
-      (wybór i opisy do akceptacji autora przed robieniem); na razie wypadają wszędzie (bardzo rzadko), później
-      najlepsze z bossów szczytowych.
+      (zaakceptowane 21.11.2026, po jednym na miejsce, każdy ze stałą cechą swojej bazy): Oko Licha (kolczyk - bez
+      krytyków, co 4. trafienie x3, +10-14% szybkości ataku i rzucania), Korona Czarnoboga (hełm - umiejętności i aury
+      za zdrowie zamiast many, +35-40% obrażeń, +15-20% zdrowia), Ostatnia Warownia (zbroja - za wroga blisko +2%
+      obrażeń i +1% odporności, do 20 wrogów, -20% ruchu), Ślady Swaroga (buty - płonący ślad 2 s, 25-30% obrażeń broni
+      na sekundę i podpalenie, +8-10% ruchu, -15% zdrowia), Pierścień Strzyboga (pierścień - pocisk przy pierwszym
+      trafieniu dzieli się na 3 odłamki, -25% obrażeń pocisków), Zwierciadło Mokoszy (amulet - umiejętność poza zwykłym
+      atakiem powtarza się po 0,4 s z 55-60% siły, koszt many x1,8). Ankieta: kowal nie przerabia unikatów wcale,
+      kolor złoto-brązowy ze słupem światła, szansa 0,2% od lochu 10 rosnąca do 0,5% na lochu 40; później najlepsze
+      z bossów szczytowych.
     - **Stare przedmioty:** przeliczone na nowe (najbliższy tier, domyślna baza, pełny potencjał kowalski).
     - Pomysły Claude do decyzji przy okazji: pokaz łupu (słupy wg rzadkości, dźwięki, błysk przy premii ponad widełki,
       strzałka „lepszy” na ziemi), duplikaty unikatów rozbijane na esencję ulepszającą unikat.
     - Kolejność PR: (1) ~~tiery, sufit, widełki, bazy, nowe premie, przeliczenie starych~~ (zrobione 21.11.2026,
       `docs/historia.md`; do oceny na telefonie: wzrost potworów po lochu 40, ceny i szanse T1-T7); (2) ~~legendarne, ponad widełki,
       „Anielski”, Runa Bogów, potencjał kowalski~~ (zrobione 21.11.2026; do oceny: szansa na legendę 0,5-1,5%, koszty
-      run w potencjale); (3) 6 unikatów; (4) pokaz łupu.
+      run w potencjale); (3) ~~6 unikatów~~ (zrobione 21.11.2026; do oceny: siła każdego, czy 0,2-0,5% nie za rzadko,
+      własne ikony unikatów); (4) pokaz łupu.
   - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), ~~broń magiczna~~ i ~~wybór broni na start~~ (Księga Arkanów, 21.11.2026). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.

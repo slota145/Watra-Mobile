@@ -1,10 +1,10 @@
 extends SceneTree
-## Zrzuty kamieni unikalnych: w lochu fala cięcia zwykłego ciosu, Młynek bez odnowienia, odbicia Rzutu, fale
-## z trafionych Rozłupaniem, a w bazie zakładka „Kamienie” okna umiejętności z kamieniem unikalnym w gnieździe.
+## Zrzuty unikatów do oceny wyglądu: łup na ziemi (rzadki, legendarny, unikat - słupy światła), opis unikatu w oknie
+## „Postać” i Ślady Swaroga z Ostatnią Warownią w walce.
 ## Użycie: SCRIPT=tools/unique_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
-## Pliki: <prefiks>_1_fala.png, _2_mlynek.png, _3_rzut.png, _4_rozlupanie.png, _5_okno.png
+## Pliki: <prefiks>_1_lup.png, _2_opis.png, _3_walka.png
 
-var _prefix := "/tmp/unikalne"
+var _prefix := "/tmp/unikaty"
 
 
 func _initialize() -> void:
@@ -23,48 +23,33 @@ func _shot(name: String) -> void:
 func _run() -> void:
 	var game: Node = root.get_node("Game")
 	game.reset_hero()
-	game.hero_level = 20
-	game.dev_skills()
-	for id in Skills.ORDER:
-		game.add_gem(Gems.unique_of(id), 1, false)
-		game.socket_skill(id, 0, Gems.unique_of(id))
-	game.dungeon_level = 3
-	game.save_game()
+	game.dungeon_level = 20
+	game.dev_uniques()
 	var arena: Node = load("res://scenes/horde.tscn").instantiate()
 	root.add_child(arena)
-	await create_timer(4.0).timeout
-	var weapon: ProtoWeapon = arena.weapon
-	arena.hero.immortal = true
-	arena.hero.facing = Vector2.RIGHT
-	weapon._attack()
-	await create_timer(0.38).timeout
-	await _shot("1_fala")
-	await create_timer(0.3).timeout
-	arena.hero.mana = arena.hero.max_mana
-	weapon.cast("whirl")
-	await create_timer(3.6).timeout
-	await _shot("2_mlynek")
-	weapon.cast("whirl")
-	await create_timer(0.3).timeout
-	arena.hero.mana = arena.hero.max_mana
-	weapon.cast("throw")
-	await create_timer(0.55).timeout
-	await _shot("3_rzut")
-	await create_timer(1.2).timeout
-	arena.hero.mana = arena.hero.max_mana
-	weapon.cast("slam")
-	await create_timer(0.55).timeout
-	await _shot("4_rozlupanie")
-	arena.queue_free()
-	await process_frame
-	arena = load("res://scenes/prototype.tscn").instantiate()
-	root.add_child(arena)
+	await create_timer(0.5).timeout
+	arena.horde_spawner.running = false
+	var hero: ProtoHero = arena.hero
+	var drops := [Items.roll(20, "", "rare"), Items.roll(20, "", "legendary"), Items.make_unique("mokosz", 20)]
+	for i in drops.size():
+		var loot: ProtoLoot = arena.horde_spawner.drop_item(drops[i], hero.position + Vector2(-50 + 50 * i, -70))
+		loot.magnet = 0.0
 	await create_timer(1.0).timeout
-	arena.open_skills()
-	arena.skills_window.set_gems_mode(true)
-	arena.skills_window.list_icons[1].pressed.emit()
-	await create_timer(0.3).timeout
-	await _shot("5_okno")
+	await _shot("1_lup")
+	arena.stats_window.open()
+	arena.stats_window.refresh()
+	arena.stats_window.bag_buttons[1].pressed.emit()  # Korona Czarnoboga
+	await create_timer(0.2).timeout
+	await _shot("2_opis")
+	arena.stats_window.close()
+	game.equipped = {"boots": Items.make_unique("swarog", 20), "armor": Items.make_unique("bastion", 20)}
+	game.inventory_changed.emit()
+	arena.horde_spawner.running = true
+	for i in 40:
+		hero.position += Vector2(cos(i * 0.3), sin(i * 0.3)) * 4.0
+		await process_frame
+	await create_timer(1.0).timeout
+	await _shot("3_walka")
 	game.reset_hero()
 	DirAccess.remove_absolute(game.save_path)
 	quit()

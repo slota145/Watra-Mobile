@@ -105,6 +105,8 @@ var aura_icons: HBoxContainer
 var auras_node: ProtoAuras
 ## Efekty założonych talizmanów (Talismans).
 var talismans_node: ProtoTalismans
+## Unikaty w walce (ProtoUniques) - dziecko postaci.
+var uniques_node: ProtoUniques
 var xp_text: Label
 ## Doświadczenie zdobyte w tej wyprawie i poziom postaci na jej starcie (do podsumowania).
 var run_xp := 0
@@ -229,6 +231,9 @@ func _ready() -> void:
 	talismans_node = ProtoTalismans.new()
 	talismans_node.name = "Talismans"
 	hero.add_child(talismans_node)
+	uniques_node = ProtoUniques.new()
+	uniques_node.name = "Uniques"
+	hero.add_child(uniques_node)
 	hero.hurt.connect(func(_amount: int) -> void: talismans_node.on_hurt())
 	_link_talismans()
 	gear = _gear()
@@ -874,6 +879,9 @@ func _apply_weapon() -> void:
 	weapon.duration_mult = 1.0 + gear.get("duration_pct", 0.0) / 100.0
 	weapon.extra_projectiles = int(gear.get("aura_projectiles", 0))  # Rój Strzyboga
 	weapon.projectile_mult = 1.0 - gear.get("aura_proj_penalty", 0.0)
+	if uniques_node:
+		uniques_node.weapon = weapon
+		uniques_node.worn = gear.get("uniques", {})
 	ProtoTarget.burn_power = 1.0 + gear.get("aura_burn", 0.0)  # Złość Licha
 	ProtoTarget.burn_length = 1.0 + (Auras.LICHO_TIME if gear.get("aura_burn", 0.0) > 0.0 else 0.0)
 	if horde_spawner:
