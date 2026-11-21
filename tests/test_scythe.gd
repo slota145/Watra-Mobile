@@ -246,7 +246,7 @@ func _test_unique(game: Node) -> void:
 			and absf(near_corner - (off - scythe._squares[0].half * sqrt(2.0))) < 0.5 and near_corner > 20.0,
 			"kwadraty po 4 stronach, rogiem do postaci, oddalone (najbliższy róg %d px)" % near_corner)
 	await _wait(1.0)
-	# Rzędy Nawii: rzędy wybuchów, każdy od prawej do lewej
+	# Rzędy Nawii: fala wybuchów od lewej do prawej krawędzi stożka
 	scythe._mow_rows(hero.global_position, 0.0, scythe._mow_shape(1.0), 1.0)
 	var first: Array = scythe._mow_blasts.filter(func(b: Dictionary) -> bool: return b.row == 0)
 	_check(first.size() >= 3 and first[0].at.y < first[-1].at.y, "rząd od lewej (góra ekranu przy celowaniu w prawo) do prawej")
@@ -264,6 +264,14 @@ func _test_unique(game: Node) -> void:
 	var n: int = scythe._mow_blasts.size()
 	await _wait(1.0)
 	_check(scythe.mow_blasts_done >= n and scythe._mow_blasts.is_empty(), "wszystkie wybuchy rzędów (%d)" % n)
+	# duży obszar: wybuchy fali żyją prawie wszystkie naraz - muszą się zmieścić w limicie efektów (inaczej znikają)
+	scythe.area_bonus = 150.0
+	scythe._mow_rows(hero.global_position, 0.0, scythe._mow_shape(1.0), 1.0)
+	var big: int = scythe._mow_blasts.size()
+	_check(big <= ProtoScythe.MOW_BLAST_CAP - 20, "duży obszar: %d wybuchów mieści się w limicie efektów" % big)
+	await _wait(1.4)
+	scythe.area_bonus = 0.0
+	_check(scythe._mow_blasts.is_empty(), "duży obszar: wszystkie wybuchy wystrzeliły (%d)" % big)
 	arena.queue_free()
 	await process_frame
 

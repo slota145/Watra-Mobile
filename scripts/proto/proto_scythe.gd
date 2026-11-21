@@ -141,7 +141,9 @@ const MOW_ROW_LAG := 0.02
 ## Zamach Pokosu i wybuchy rosną z obszarem do tylu razy (ogólny limit `_fx_scale` 1,25 zatrzymywał je - uwaga autora).
 const MOW_MAX_SCALE := 2.0
 ## Wybuchów rzędów bywa kilkadziesiąt naraz - własny limit efektów (przy ogólnym 16 lewa część rzędów znikała).
-const MOW_BLAST_CAP := 80
+## Przy fali w bok prawie wszystkie żyją naraz, więc przy dużym obszarze odstęp rośnie z wielkością wybuchu
+## (`_mow_blast_spacing`) - inaczej prawa część stożka nie dostawała efektów (uwaga autora).
+const MOW_BLAST_CAP := 150
 const MOW_BLAST_SPACING := 26.0
 const MOW_BLAST_RADIUS := 20.0
 const MOW_BLAST_POWER := 0.45
@@ -656,7 +658,7 @@ func _square_burst(sq: Dictionary, side: Array, power: float) -> void:
 		if s >= -6.0 and s <= len + 6.0 and d >= -8.0 and d <= depth + 6.0:
 			_hit(t, power, sq.center, "s_square")
 			t.push_away(sq.center, SQUARE_PUSH)
-	if not Fx.crowded(SQUARE_BURST_FX, 24):  # cięcie wybucha falą na zewnątrz (w arkuszu - w górę)
+	if not Fx.crowded(SQUARE_BURST_FX, 64):  # cięcie wybucha falą na zewnątrz (w arkuszu - w górę)
 		var fx := Fx.once(get_parent(), SQUARE_BURST_FX, SQUARE_BURST_FRAMES, SQUARE_BURST_FPS, mid.round(),
 				SQUARE_BURST_ANCHOR, 6)
 		fx.rotation = out.angle() + PI / 2.0
@@ -749,11 +751,16 @@ static func mow_row_count(shape: Vector3) -> int:
 	return maxi(MOW_ROWS_MIN, int((shape.y - shape.x) / MOW_ROW_SPACING))
 
 
+## Odstęp wybuchów w rzędzie: rośnie razem z wybuchem (obszar), żeby się nie dublowały i mieściły w limicie efektów.
+func _mow_blast_spacing() -> float:
+	return MOW_BLAST_SPACING * clampf(MOW_BLAST_RADIUS * _area("s_mow") / BLAST_RADIUS, 1.0, MOW_MAX_SCALE)
+
+
 func _mow_rows(at: Vector2, aim: float, shape: Vector3, power: float) -> void:
 	var rows := mow_row_count(shape)
 	for r in rows:
 		var radius := lerpf(shape.x + 14.0, shape.y - 8.0, float(r) / maxf(rows - 1, 1))
-		var count := maxi(3, int(2.0 * shape.z * radius / MOW_BLAST_SPACING) + 1)
+		var count := maxi(3, int(2.0 * shape.z * radius / _mow_blast_spacing()) + 1)
 		for i in count:
 			var k := float(i) / maxf(count - 1, 1)  # 0 - lewa krawędź, 1 - prawa
 			var a := aim - shape.z * 0.95 + 1.9 * shape.z * k
