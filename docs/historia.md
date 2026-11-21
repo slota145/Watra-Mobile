@@ -16,6 +16,8 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - **Błąd Postaci Mary** (zgłoszenie autora): gdy forma kończyła się sama, sprawdzenie „czy trwa” patrzyło na wyzerowany
   już czas - postać zostawała niewidzialna, a chmura w miejscu. Teraz osobna flaga `mara_on`; test sprawdza powrót postaci.
 - Ikony umiejętności odświeżone (`tools/scythe_icons.py`).
+- Po kolejnym teście autora: zamach Pokosu odbity (`mow.scale.y` ujemne - tnie od drugiej strony), wir Tańca od nowa
+  (`scythe_whirl` v3): 8 nakładających się cięć po okręgu (promienie 26-40 px, przesunięte w fazie, pętla).
 
 ## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
 
