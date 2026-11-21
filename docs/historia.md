@@ -33,7 +33,7 @@ szansa 0,2% od lochu 10.
     te same wyjątki: zwykły atak, Mgnienie, ładowane, trzymane, Młynek, Krąg stali - `ProtoWeapon.mirror_echoes`),
     koszt many x1,8. Siła 55-60%: zamiast słabszej kopii obie mają po (100% + siła) / 2 (np. 2 x 79% = 158%) -
     pociski i kręgi rażą później niż sama umiejętność, więc nie da się osłabić tylko kopii.
-- Tryb deweloperski: przycisk „+unikaty” (`Game.dev_uniques` - wszystkie 6 do torby). Zrzuty `tools/unique_shots.gd`.
+- Tryb deweloperski: przycisk „+unikaty” (`Game.dev_uniques` - wszystkie 6 do torby). Zrzuty `tools/unique_item_shots.gd`.
 - Testy w `tests/test_uniques.gd`.
 
 ## 21.11.2026 - Przedmioty krok 2: legendarne, ponad widełki, „Anielski”, Runa Bogów, potencjał kowalski
