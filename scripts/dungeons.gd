@@ -1,7 +1,9 @@
 class_name Dungeons
-## Rodzaje lochów (ustalone z autorem 15.11.2026). Wspólna drabinka poziomów: każdy loch zaczyna się od swojego
-## poziomu (`from`) i trwa do początku następnego (1-10 gobliny, od 11 Zatopione podziemia; kolejne lochy dojdą
-## w podobnym rytmie; od 21 Katakumby, od 31 Górskie równiny, od 41 Wulkaniczne równiny), a od RANDOM_FROM (endgame) przy każdym wejściu losuje się loch spośród wszystkich.
+## Rodzaje lochów (ustalone z autorem 15.11.2026). Wspólna drabinka poziomów (decyzja autora 21.11.2026): każdy loch
+## trwa LEVELS_PER poziomów w kolejności ORDER (1-5 gobliny, 6-10 Zatopione podziemia, 11-15 Katakumby, 16-20 Górskie
+## równiny, 21-25 Wulkaniczne równiny), a po ostatnim lochu drabinka zaczyna się od nowa - drugi krąg (26-50) i kolejne,
+## z coraz silniejszymi potworami (siła zależy tylko od poziomu - DungeonLevels). Od RANDOM_FROM (endgame) przy każdym
+## wejściu losuje się loch spośród wszystkich. Do 21.11.2026 każdy loch trwał 10 poziomów (od 41 Wulkaniczne do 100).
 ## Każdy loch: nazwa, boss, podłoże (tekstura z Watry powtarzana na polanie i jej odcień), żywioł potworów
 ## (Elements; odporność bohatera - `element_res_pct`) i potwory na trzech rolach strumienia ProtoHorde:
 ## `basic` - zwykły, `ranged` - strzelający z dystansu, `strong` - silny z ciosem w koło (udziały jak u goblinów -
@@ -15,6 +17,8 @@ const PLAINS := "plains"
 const VOLCANO := "volcano"
 ## Od tego poziomu (włącznie z nim) loch jest losowy przy każdym wejściu.
 const RANDOM_FROM := 101
+## Ile poziomów trwa każdy loch na drabince.
+const LEVELS_PER := 5
 const ORDER: Array[String] = [GOBLINS, FLOODED, CATACOMBS, PLAINS, VOLCANO]
 ## Odporności potworów (decyzja autora 17.11.2026, wariant jak Last Epoch/PoE): wspólna odporność na wszystko - także
 ## fizyczne - rośnie z głębią (DungeonLevels.base_resist), a lochy mają do niej łagodny charakter (RESISTS: żywioł ->
@@ -29,33 +33,44 @@ const RESISTS := {
 	VOLCANO: {Elements.FIRE: 0.2, Elements.WATER: -0.2},
 }
 const DATA := {
-	GOBLINS: {"name": "Leże goblinów", "from": 1, "boss": "Wódz Goblinów", "summon": "Przyzwij Wodza",
+	GOBLINS: {"name": "Leże goblinów", "boss": "Wódz Goblinów", "summon": "Przyzwij Wodza",
 		"ground": "res://assets/watra/grass.png", "tint": Color(0.72, 0.68, 0.8), "element": Elements.PHYSICAL,
 		"description": "Gobliny Hordy, łucznicy i osiłki; rządzi nimi Wódz."},
-	FLOODED: {"name": "Zatopione podziemia", "from": 11, "boss": "Wodnik", "summon": "Przyzwij Wodnika",
+	FLOODED: {"name": "Zatopione podziemia", "boss": "Wodnik", "summon": "Przyzwij Wodnika",
 		"ground": "res://assets/watra/swamp_floor.png", "tint": Color(0.92, 0.95, 1.0), "element": Elements.WATER,
 		"description": "Zalane ruiny. Topielce przemaczają, żabołaki plują wodą, topielice mrożą ziemię; w głębi czeka Wodnik."},
-	CATACOMBS: {"name": "Katakumby", "from": 21, "boss": "Nekromanta", "summon": "Przyzwij Nekromantę",
+	CATACOMBS: {"name": "Katakumby", "boss": "Nekromanta", "summon": "Przyzwij Nekromantę",
 		"ground": "res://assets/watra/catacombs_floor.png", "tint": Color(0.66, 0.64, 0.76), "element": Elements.NAWIA,
 		"description": "Kamienne krypty. Szkielety wstają z kości, łucznicy strzelają Nawią, rycerze tną szerokim zamachem; rządzi nimi Nekromanta."},
-	PLAINS: {"name": "Górskie równiny", "from": 31, "boss": "Gromoskrzydły", "summon": "Przyzwij Gromoskrzydłego",
+	PLAINS: {"name": "Górskie równiny", "boss": "Gromoskrzydły", "summon": "Przyzwij Gromoskrzydłego",
 		"ground": "res://assets/watra/plains_floor.png", "tint": Color(0.86, 0.9, 0.94), "element": Elements.LIGHTNING,
 		"description": "Wietrzne hale pod szczytami. Ptakoludzie doskakują z oszczepami, miotacze rzucają, szamani ściągają pioruny; nad nimi krąży Gromoskrzydły."},
-	VOLCANO: {"name": "Wulkaniczne równiny", "from": 41, "boss": "Żywiołak ognia", "summon": "Przyzwij Żywiołaka",
+	VOLCANO: {"name": "Wulkaniczne równiny", "boss": "Żywiołak ognia", "summon": "Przyzwij Żywiołaka",
 		"ground": "res://assets/watra/volcano_floor.png", "tint": Color(1.0, 1.0, 1.0), "element": Elements.FIRE,
 		"description": "Popiół i stygnąca lawa. Salamandry gryzą i podpalają, ogniki plują żarem, żużlowe golemy zostawiają płonącą ziemię; w sercu wulkanu czeka Żywiołak ognia."}
 }
 
 
-## Loch na danym poziomie (od RANDOM_FROM - losowy, za każdym razem inny).
+## Loch na danym poziomie (od RANDOM_FROM - losowy, za każdym razem inny; wcześniej kolejne kręgi drabinki).
 static func for_level(level: int) -> String:
 	if level >= RANDOM_FROM:
 		return ORDER.pick_random()
-	var out := ORDER[0]
-	for id in ORDER:
-		if level >= int(DATA[id].from):
-			out = id
-	return out
+	return ORDER[floori((maxi(level, 1) - 1) / float(LEVELS_PER)) % ORDER.size()]
+
+
+## Pierwszy poziom lochu `id` w pierwszym kręgu drabinki (gobliny - 1).
+static func first_level(id: String) -> int:
+	return maxi(ORDER.find(id), 0) * LEVELS_PER + 1
+
+
+## Długość jednego kręgu drabinki (wszystkie lochy po kolei).
+static func cycle_length() -> int:
+	return ORDER.size() * LEVELS_PER
+
+
+## Który krąg drabinki na tym poziomie (1 - pierwszy).
+static func cycle_of(level: int) -> int:
+	return floori((maxi(level, 1) - 1) / float(cycle_length())) + 1
 
 
 ## Czy na tym poziomie loch jest losowy.

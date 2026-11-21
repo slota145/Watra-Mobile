@@ -2,6 +2,18 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Drabinka lochów po 5 poziomów
+
+- Decyzja autora: każdy loch trwa 5 poziomów zamiast 10 (`Dungeons.LEVELS_PER`), kolejność `Dungeons.ORDER`:
+  1-5 gobliny, 6-10 Zatopione podziemia, 11-15 Katakumby, 16-20 Górskie równiny, 21-25 Wulkaniczne równiny.
+  Po ostatnim lochu **drugi krąg** - te same lochy od początku z silniejszymi potworami (siła zależy tylko od poziomu),
+  potem trzeci itd., od 101 dalej losowo. `Dungeons.for_level` liczy loch z poziomu, `first_level(id)` - pierwszy poziom
+  lochu (pole `from` w `DATA` usunięte), `cycle_length()` i `cycle_of(level)` - krąg.
+- Progi przywiązane do poziomów (bronie, kosa 25, modyfikatory 20, talizmany 5, aury 8, sufit przedmiotów 40, losowe
+  od 101) bez zmian - decyzja autora.
+- Wybór poziomu pokazuje krąg przy nazwie („Leże goblinów (krąg 2)”), drabinka odblokowań ma wpis „Drugi krąg lochów”.
+- Testy lochów biorą poziomy z `Dungeons.first_level` zamiast wpisanych liczb; `test_flooded` sprawdza drabinkę i kręgi.
+
 ## 21.11.2026 - Mroczna kosa: efekty od nowa i poprawki (uwagi autora po teście)
 
 - **Efekty od nowa** (były kanciaste - powiększane małe arkusze - i za dużo zasłaniały): wszystkie z własnych warstw

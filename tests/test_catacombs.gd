@@ -1,5 +1,5 @@
 extends SceneTree
-## Test trzeciego lochu - Katakumby (Dungeons.CATACOMBS, 15.11.2026): od 21. poziomu, potwory (szkielet rozpada się
+## Test trzeciego lochu - Katakumby (Dungeons.CATACOMBS, 15.11.2026): od 11. poziomu, potwory (szkielet rozpada się
 ## w kupkę kości i wstaje z połową zdrowia, kupkę niszczy trafienie; szkielet łucznik strzela strzałą Nawii;
 ## rycerz-szkielet tnie w wachlarzu przed sobą) i boss Nekromanta (kule Nawii, kościany krąg z luką, wyssanie
 ## życia, przywołanie szkieletów).
@@ -28,10 +28,10 @@ func _run() -> void:
 	var game: Node = root.get_node("Game")
 	DirAccess.remove_absolute(game.save_path)
 	game.load_game()
-	_check(Dungeons.for_level(21) == Dungeons.CATACOMBS and ProtoHorde.make_monster(Dungeons.CATACOMBS, "goblin") is ProtoSkeleton
+	_check(Dungeons.for_level(Dungeons.first_level(Dungeons.CATACOMBS)) == Dungeons.CATACOMBS and ProtoHorde.make_monster(Dungeons.CATACOMBS, "goblin") is ProtoSkeleton
 			and ProtoHorde.make_monster(Dungeons.CATACOMBS, "archer") is ProtoSkeletonArcher
 			and ProtoHorde.make_monster(Dungeons.CATACOMBS, "brute") is ProtoSkeletonKnight,
-			"od 21: Katakumby - szkielet, szkielet łucznik, rycerz-szkielet")
+			"od 11: Katakumby - szkielet, szkielet łucznik, rycerz-szkielet")
 	var t := ProtoTelegraph.new()
 	t.radius = 40.0
 	t.arc = deg_to_rad(120.0)
@@ -59,7 +59,7 @@ func _arena(game: Node, level: int) -> Node:
 
 
 func _test_monsters(game: Node) -> void:
-	var arena := _arena(game, 21)
+	var arena := _arena(game, Dungeons.first_level(Dungeons.CATACOMBS))
 	await process_frame
 	var hero: ProtoHero = arena.hero
 	var horde: ProtoHorde = arena.horde_spawner
@@ -68,7 +68,7 @@ func _test_monsters(game: Node) -> void:
 	hero.immortal = true
 	hero.max_hp = 100000  # na 21. poziomie cios zabiłby postać 1. poziomu (nieśmiertelność wróciłaby jej pełne zdrowie)
 	hero.hp = hero.max_hp
-	_check(arena.climate == Dungeons.CATACOMBS and arena.summon_button.text == "Przyzwij Nekromantę", "poziom 21: Katakumby")
+	_check(arena.climate == Dungeons.CATACOMBS and arena.summon_button.text == "Przyzwij Nekromantę", "poziom 11: Katakumby")
 	# szkielet: kupka kości, wstaje z połową zdrowia, drugi raz ginie na dobre
 	var s: ProtoSkeleton = horde.spawn_at(hero.position + Vector2(120, 0), "goblin")
 	await process_frame
@@ -132,7 +132,7 @@ func _test_monsters(game: Node) -> void:
 
 
 func _test_necromancer(game: Node) -> void:
-	var arena := _arena(game, 22)
+	var arena := _arena(game, Dungeons.first_level(Dungeons.CATACOMBS) + 1)
 	await process_frame
 	var hero: ProtoHero = arena.hero
 	var horde: ProtoHorde = arena.horde_spawner

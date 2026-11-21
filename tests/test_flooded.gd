@@ -1,6 +1,6 @@
 extends SceneTree
-## Test drugiego lochu - Zatopione podziemia (Dungeons, 15.11.2026): wspólna drabinka poziomów (1-10 gobliny, od 11
-## podziemia, od 101 losowo), odporność na żywioły (premia przedmiotów, sufit, tylko ciosy żywiołów), potwory
+## Test drugiego lochu - Zatopione podziemia (Dungeons, 15.11.2026): wspólna drabinka poziomów (po 5 poziomów: 1-5 gobliny, 6-10
+## podziemia, potem kolejne kręgi, od 101 losowo), odporność na żywioły (premia przedmiotów, sufit, tylko ciosy żywiołów), potwory
 ## (topielec przemacza, żabołak pluje wodą, topielica mrozi koło wokół siebie) i boss Wodnik (fala w pasie, wir,
 ## lodowe krople, wezwanie topielców).
 
@@ -39,12 +39,16 @@ func _run() -> void:
 
 
 func _test_levels() -> void:
-	_check(Dungeons.for_level(1) == Dungeons.GOBLINS and Dungeons.for_level(10) == Dungeons.GOBLINS
-			and Dungeons.for_level(11) == Dungeons.FLOODED and Dungeons.for_level(20) == Dungeons.FLOODED
-			and Dungeons.for_level(21) == Dungeons.CATACOMBS and Dungeons.for_level(30) == Dungeons.CATACOMBS
-			and Dungeons.for_level(31) == Dungeons.PLAINS and Dungeons.for_level(40) == Dungeons.PLAINS
-			and Dungeons.for_level(41) == Dungeons.VOLCANO and Dungeons.for_level(100) == Dungeons.VOLCANO,
-			"drabinka: gobliny, podziemia, Katakumby, Górskie równiny (31-40), od 41 Wulkaniczne równiny")
+	_check(Dungeons.for_level(1) == Dungeons.GOBLINS and Dungeons.for_level(5) == Dungeons.GOBLINS
+			and Dungeons.for_level(6) == Dungeons.FLOODED and Dungeons.for_level(10) == Dungeons.FLOODED
+			and Dungeons.for_level(11) == Dungeons.CATACOMBS and Dungeons.for_level(15) == Dungeons.CATACOMBS
+			and Dungeons.for_level(16) == Dungeons.PLAINS and Dungeons.for_level(20) == Dungeons.PLAINS
+			and Dungeons.for_level(21) == Dungeons.VOLCANO and Dungeons.for_level(25) == Dungeons.VOLCANO,
+			"drabinka po 5 poziomów: gobliny, podziemia, Katakumby, Górskie równiny, Wulkaniczne równiny")
+	var cycle := Dungeons.cycle_length()
+	_check(Dungeons.for_level(cycle + 1) == Dungeons.GOBLINS and Dungeons.for_level(cycle + 6) == Dungeons.FLOODED
+			and Dungeons.cycle_of(cycle) == 1 and Dungeons.cycle_of(cycle + 1) == 2 and Dungeons.for_level(100) == Dungeons.ORDER[(99 / 5) % Dungeons.ORDER.size()]
+			and Dungeons.first_level(Dungeons.FLOODED) == 6, "drugi krąg od %d. poziomu, krąg za kręgiem do 100." % (cycle + 1))
 	var seen := {}
 	for i in 200:
 		seen[Dungeons.for_level(101 + i % 50)] = true
@@ -73,14 +77,14 @@ func _arena(game: Node, level: int) -> Node:
 
 
 func _test_monsters(game: Node) -> void:
-	var arena := _arena(game, 11)
+	var arena := _arena(game, Dungeons.first_level(Dungeons.FLOODED))
 	await process_frame
 	var hero: ProtoHero = arena.hero
 	var horde: ProtoHorde = arena.horde_spawner
 	horde.running = false
 	arena.weapon.auto_attack = false
 	_check(arena.climate == Dungeons.FLOODED and horde.climate == Dungeons.FLOODED
-			and arena.summon_button.text == "Przyzwij Wodnika", "poziom 11: Zatopione podziemia, przyzwanie Wodnika")
+			and arena.summon_button.text == "Przyzwij Wodnika", "poziom 6: Zatopione podziemia, przyzwanie Wodnika")
 	var props := 0
 	var near := 0
 	for c in arena.get_node("World").get_children():
@@ -169,7 +173,7 @@ func _test_monsters(game: Node) -> void:
 
 
 func _test_wodnik(game: Node) -> void:
-	var arena := _arena(game, 12)
+	var arena := _arena(game, Dungeons.first_level(Dungeons.FLOODED) + 1)
 	await process_frame
 	var hero: ProtoHero = arena.hero
 	var horde: ProtoHorde = arena.horde_spawner

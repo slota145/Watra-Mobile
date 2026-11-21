@@ -135,7 +135,8 @@ func set_level(value: int) -> void:
 		lines.append(tr("Loch losowy przy każdym wejściu"))
 	else:
 		var id := Dungeons.for_level(level)
-		lines.append(Dungeons.name_of(id))
+		var cycle := Dungeons.cycle_of(level)
+		lines.append(Dungeons.name_of(id) if cycle == 1 else tr("%s (krąg %d)") % [Dungeons.name_of(id), cycle])
 		lines.append(Lang.t(Dungeons.get_data(id).description))
 		var res := Dungeons.resist_text(id, level)
 		if res != "":
