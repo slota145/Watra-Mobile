@@ -1310,17 +1310,17 @@
     "columns": 4
   },
   "scythe_whirl": {
-    "effect": "47d44570-7918-4585-a7ef-912ac714cddd",
-    "name": "Kosa v5 - okręgi cięć Tańca Marzanny (jak Violation: niskie, ciasne smugi-pierścienie, gasną w miejscu - gra stawia je co chwilę, za postacią zostaje ślad; zaczepienie = stopy postaci)",
+    "effect": "04c1067b-92bf-4e3a-b2e4-3b9ded9e47e7",
+    "name": "Kosa v6 - okręgi cięć Tańca Marzanny (szersze, ~56 px: białe szkliste, fioletowe i czarne smugi-pierścienie, gasną w miejscu - ślad za postacią; zaczepienie = stopy postaci)",
     "frame": [
-      98,
-      55
+      136,
+      65
     ],
     "frames": 12,
     "fps": 16,
     "anchor": [
-      49,
-      34
+      68,
+      39
     ],
     "columns": 4
   },
