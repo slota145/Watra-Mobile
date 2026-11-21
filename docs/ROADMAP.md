@@ -32,6 +32,22 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 
 ## Pomysły autora (do zrobienia)
 
+- [ ] **Młot - broń ziemi (ustalenia z autorem 21.11.2026):**
+  - **Broń:** jeden ciężki, dwuręczny młot bojowy lewitujący obok postaci (jak miecz), żywioł ziemia (`Elements.EARTH`:
+    ogłusza i odpycha). Wolne, potężne ciosy, duże fale wstrząsu. Za darmo od **lochu 30** (wcześniej Pieczęć Oręża).
+  - **Umiejętności młota (5):** zwykły cios; **Rozłupanie Ziemi** (zabrane mieczowi razem z kamieniem unikalnym
+    „Kamień Drżącej Ziemi”); **Rzut młotem** (odbija się od wrogów 3-4 razy i wraca, każde trafienie ogłusza);
+    **Skok z uderzeniem** (skok w wybrane miejsce, krater, ogłuszenie, kamienie dookoła); **Trzęsienie ziemi**
+    (trzymany przycisk, fale wstrząsu co pół sekundy dookoła, zużywa manę jak Młynek, odpycha tłum).
+  - **Miecz zamiast Rozłupania Ziemi** (mistrzostwo 10): **Widmowe ostrza** - umiejętność rezerwująca manę (jak aura):
+    przy postaci krążą ostrza, które same wylatują do losowych wrogów w zasięgu i wracają (2 ostrza na 1. poziomie,
+    3 na 5., 4 na 10.; rezerwacja ok. 25% many; każde ok. 0,5 siły ciosu co ~1 s - do strojenia). Kamień unikalny:
+    ostrza **naśladują umiejętności postaci** (gdy używasz umiejętności, ostrza robią jej słabszą wersję). Krąg stali
+    zostaje bez zmian (krótka obrona z odnowieniem - inna rola).
+  - **Stare zapisy:** poziom, kamienie w gniazdach i kamień unikalny Rozłupania Ziemi przechodzą z miecza na młot;
+    Widmowe ostrza zaczynają od 1. poziomu.
+  - Grafika: w Watrze są tylko buławy (`assets/weapons/mace_*`), więc młot raczej ze SpriteKiln; efekty - kreator efektów.
+
 - [ ] **Żywioł światła - przeciwieństwo Nawii (pomysł autora 21.11.2026, do ustalenia):** dziś bronie nie mają lodu,
   ziemi i natury, a lochy - lodu, ziemi, natury i Arkanów. Propozycje Claude (czekają na decyzję): nazwa (Światło /
   Prawia - świat bogów w opozycji do Nawii), działanie inne niż ogień (np. oślepia - wróg chybia, piętno - trafienia
