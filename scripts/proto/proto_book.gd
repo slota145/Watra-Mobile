@@ -5,16 +5,20 @@ extends ProtoWeapon
 ## umiejętności); szybkość czarów - szybkość rzucania (HeroStats.weapon_speed_mult), premia obrażeń magicznych.
 ## - „Pociski Arkanów” (`a_missiles`, zwykły atak): MISSILES pocisków leci łukiem albo zakosami - pierwszy w najbliższego
 ##   wroga, reszta w losowych wrogów w zasięgu; ogon rysowany w grze wygina się po torze lotu (Line2D z ostatnich pozycji).
-##   5. poziom - 4 pociski, 10. - co trzeci rzut 2 więcej; kamień unikalny - z trafionego SHARDS odłamków w pobliskich.
+##   Pociski wylatują po kolei co MISSILE_STAGGER s (prośba autora 21.11.2026; kolejne rzuty mogą się zazębiać).
+##   5. poziom - 4 pociski, 10. - co trzeci rzut 2 więcej; kamień unikalny - z trafionego SHARDS odłamków (z ogonem)
+##   w dalszych wrogów (SHARD_MIN-SHARD_REACH px - widać, jak lecą).
 ## - „Krąg Mocy” (`a_circle`): krąg pod postacią rani wszystkich w CIRCLE_RADIUS (5. - większy, 10. - drugi błysk);
 ##   kamień unikalny - krąg zostaje TRAIL_CIRCLE_TIME s i rani co CIRCLE_TICK, a postać w nim ma czary o CIRCLE_BUFF
 ##   silniejsze i jeden pocisk więcej.
 ## - „Kule Arkanów” (`a_orbs`, przełącznik jak aura - Skills.is_toggle): ORBS kul krąży wokół postaci i rani dotkniętych;
-##   rezerwuje ORB_RESERVE many; obrót - szybkość rzucania, promień i wielkość - obszar (5. - silniejsze, 10. - +2 kule);
+##   rezerwuje ORB_RESERVE many; obrót - szybkość rzucania, promień i wielkość - obszar (5. - silniejsze, 10. - +2 kule;
+##   aura Rój Strzyboga dokłada kule - `extra_projectiles`);
 ##   kamień unikalny - druga orbita dalej, w przeciwną stronę.
-## - „Promień Arkanów” (`a_beam`, trzymany - Skills.is_charged): promień w najbliższego wroga, co BEAM_TICK rani cel
+## - „Promień Arkanów” (`a_beam`, trzymany - Skills.is_charged): promień z dłoni postaci (błysk arcane_beam_cast) w najbliższego
+##   wroga (rozbryzg arcane_beam_impact na końcu), co BEAM_TICK rani cel
 ##   i wrogów w BEAM_AREA wokół niego; mana co sekundę (5. - przeskok na drugiego wroga, 10. - większy obszar);
-##   kamień unikalny - co EMANATE_EVERY s od postaci emanuje magia (rani wokół).
+##   kamień unikalny - co EMANATE_EVERY s od postaci rozchodzi się fala magii (arcane_wave; rani wokół).
 ## - „Pieczęcie Wybuchu” (`a_seals`): pieczęcie pod SEALS wrogami oddalonymi od siebie, po SEAL_DELAY s wybuch
 ##   (5. - 6 pieczęci, 10. - ogłusza); kamień unikalny - pieczęcie łączy raniąca wiązka.
 ## Grafika: efekty z kreatora PixelLab (assets/effects/arcane_*.png - FX; bez nich kształty rysowane w kodzie),
@@ -35,7 +39,12 @@ const FX := {
 	"arcane_seal": [10, 12.0, Vector2(27, 15)],
 	"arcane_blast": [9, 18.0, Vector2(36, 20)],
 	"arcane_shard": [4, 16.0, Vector2(8, 8)],
+	"arcane_beam_cast": [6, 12.0, Vector2(12, 12)],
+	"arcane_beam_impact": [6, 12.0, Vector2(20, 20)],
+	"arcane_wave": [9, 18.0, Vector2(64, 34)],
 }
+## Promień fali magii w arkuszu (połowa szerokości największej klatki - do skalowania).
+const WAVE_FX_RADIUS := 60.0
 ## Promień, w jakim narysowane są efekty obszarowe (połowa szerokości kręgu - do skalowania).
 const CIRCLE_FX_RADIUS := 55.0
 const BLAST_FX_RADIUS := 36.0
@@ -57,13 +66,20 @@ const MISSILE_RADIUS := 8.0
 const MISSILE_LIFE := 2.4
 const TAIL_POINTS := 12
 const TAIL_WIDTH := 6.0
+const MISSILE_STAGGER := 0.08
 const CAST_TIME := 0.16
 const CAST_COOLDOWN := 0.6
 ## Odłamki (kamień unikalny pocisków): ile, zasięg szukania, prędkość, siła względem pocisku.
 const SHARDS := 3
-const SHARD_REACH := 70.0
-const SHARD_SPEED := 260.0
+const SHARD_MIN := 35.0
+const SHARD_REACH := 120.0
+const SHARD_SPEED := 200.0
 const SHARD_POWER := 0.4
+const SHARD_SIZE := 1.4
+const SHARD_TAIL := 6
+## Promień wychodzi z dłoni: tyle nad stopami i tyle przed postacią w stronę celu.
+const HAND_HEIGHT := 13.0
+const HAND_REACH := 7.0
 ## Krąg Mocy: promień, 5. poziom, drugi błysk z 10., trwały krąg z kamieniem unikalnym (czas, tyknięcia, siła tyknięcia,
 ## premia czarów w kręgu).
 const CIRCLE_RADIUS := 55.0
@@ -107,6 +123,9 @@ const LINK_TICK := 0.2
 const LINK_POWER := 0.25
 
 var _missiles: Array = []
+## Pociski czekające na wylot (rzut po kolei): {"wait", "target", "angle", "power", "chaotic"}.
+var _volley: Array = []
+var _beam_cast_fx: Node2D
 var _shards: Array = []
 var _circles: Array = []
 var _seals: Array = []
@@ -127,7 +146,7 @@ var _fx_cache := {}
 
 
 func _world_fx() -> Array:
-	return super._world_fx() + [_missiles, _shards, _circles, _seals, _orbs, [_beam, _beam2, _beam_hit_fx]]
+	return super._world_fx() + [_missiles, _shards, _circles, _seals, _orbs, [_beam, _beam2, _beam_hit_fx, _beam_cast_fx]]
 
 
 func _init() -> void:
@@ -158,6 +177,7 @@ func _process(delta: float) -> void:
 			_process_cast()
 		"beam":
 			_process_beam(delta)
+	_process_volley(delta)
 	_process_missiles(delta)
 	_process_shards(delta)
 	_process_circles(delta)
@@ -279,14 +299,31 @@ func _fire_missiles() -> void:
 	pool.shuffle()
 	var first := _nearest(reach)
 	var n := missile_count()
-	var from := _sprite.global_position
 	var power := _power(basic) * _swing_power * projectile_mult
 	for i in n:
 		var target: ProtoTarget = first if i == 0 else (pool[i % pool.size()] if not pool.is_empty() else first)
 		var side := 1.0 if i % 2 == 0 else -1.0
 		var a := _aim + side * MISSILE_SPREAD * (0.4 + 0.6 * randf()) * (0.0 if i == 0 and n == 1 else 1.0)
-		_spawn_missile(from, a, target, power, randf() < 0.5)
+		_volley.append({"wait": MISSILE_STAGGER * i, "target": target, "angle": a, "power": power, "chaotic": randf() < 0.5})
+	_process_volley(0.0)  # pierwszy od razu
 	_cast_count += 1
+
+
+## Wylot pocisków po kolei (z szybkością rzucania); cel, który zdążył paść, zastępuje najbliższy.
+func _process_volley(delta: float) -> void:
+	if _volley.is_empty():
+		return
+	var keep: Array = []
+	for v: Dictionary in _volley:
+		v.wait -= delta * speed_mult * (1.0 + speed_bonus)
+		if v.wait > 0.0:
+			keep.append(v)
+			continue
+		var t: ProtoTarget = v.target
+		if t == null or not is_instance_valid(t) or not t.alive():
+			t = _nearest(Skills.DATA.a_missiles.range * _area(basic))
+		_spawn_missile(_sprite.global_position, v.angle, t, v.power, v.chaotic)
+	_volley = keep
 
 
 ## Pocisk: lot ze skrętem ku celowi (łukiem) albo z zakosami (`chaotic`); ogon - Line2D z ostatnich pozycji.
@@ -365,36 +402,57 @@ func _nearest_to(at: Vector2, reach: float) -> ProtoTarget:
 	return best
 
 
-## Kamień Rozprysku: z trafionego wroga SHARDS odłamków w najbliższych innych wrogów.
+## Kamień Rozprysku: z trafionego wroga SHARDS odłamków - najpierw w dalszych wrogów (SHARD_MIN-SHARD_REACH px, żeby
+## było widać lot; prośba autora 21.11.2026), a gdy ich brak - w bliższych. Odłamek większy, z krótkim ogonem.
 func _spawn_shards(from_t: ProtoTarget, power: float) -> void:
 	var at := from_t.center()
 	var near := _near_c(at, SHARD_REACH).filter(func(t: ProtoTarget) -> bool:
 		return t != from_t and t.center().distance_to(at) <= SHARD_REACH)
-	near.sort_custom(func(a: ProtoTarget, b: ProtoTarget) -> bool: return a.center().distance_to(at) < b.center().distance_to(at))
+	near.shuffle()
+	near.sort_custom(func(a: ProtoTarget, b: ProtoTarget) -> bool:  # dalsi (od SHARD_MIN) przed bliższymi
+		return (a.center().distance_to(at) >= SHARD_MIN) and not (b.center().distance_to(at) >= SHARD_MIN))
 	for i in mini(SHARDS, near.size()):
 		var node := Node2D.new()
 		node.z_index = 21
 		get_parent().add_child(node)
 		node.global_position = at
-		_fx_loop("arcane_shard", node, 0.8)
-		_shards.append({"node": node, "pos": at, "target": near[i], "power": power * SHARD_POWER})
+		_fx_loop("arcane_shard", node, SHARD_SIZE)
+		var tail := Line2D.new()
+		tail.width = 4.0
+		tail.z_index = 20
+		tail.top_level = true
+		var curve := Curve.new()
+		curve.add_point(Vector2(0, 0))
+		curve.add_point(Vector2(1, 1))
+		tail.width_curve = curve
+		var grad := Gradient.new()
+		grad.set_color(0, Color(0.55, 0.25, 0.95, 0.0))
+		grad.set_color(1, Color(ARCANE_CORE, 0.9))
+		tail.gradient = grad
+		get_parent().add_child(tail)
+		_shards.append({"node": node, "tail": tail, "trail": [at], "pos": at, "target": near[i],
+				"power": power * SHARD_POWER})
 
 
 func _process_shards(delta: float) -> void:
 	var keep: Array = []
 	for s: Dictionary in _shards:
 		var t: ProtoTarget = s.target
-		if t == null or not is_instance_valid(t) or not t.alive():
+		var to: Vector2 = t.center() - s.pos if t != null and is_instance_valid(t) and t.alive() else Vector2.ZERO
+		if to == Vector2.ZERO or to.length() <= SHARD_SPEED * delta + 3.0:
+			if to != Vector2.ZERO:
+				_hit(t, s.power, s.pos, basic)
+				_fx_once("arcane_hit", s.pos, 0.6)
 			s.node.queue_free()
-			continue
-		var to: Vector2 = t.center() - s.pos
-		if to.length() <= SHARD_SPEED * delta + 3.0:
-			_hit(t, s.power, s.pos, basic)
-			s.node.queue_free()
+			s.tail.queue_free()
 			continue
 		s.pos += to.normalized() * SHARD_SPEED * delta
 		s.node.global_position = (s.pos as Vector2).round()
 		s.node.rotation = to.angle()
+		s.trail.append(s.pos)
+		if s.trail.size() > SHARD_TAIL:
+			s.trail.pop_front()
+		(s.tail as Line2D).points = PackedVector2Array(s.trail)
 		keep.append(s)
 	_shards = keep
 
@@ -543,8 +601,9 @@ func orbs_on() -> bool:
 	return _orbs_on
 
 
+## Kule na jednej orbicie: podstawa, 10. poziom i aura Rój Strzyboga (każdy jej pocisk to kula więcej).
 func _orb_count() -> int:
-	return ORBS + (ORBS_EXTRA if _perk("a_orbs", 1) else 0)
+	return ORBS + (ORBS_EXTRA if _perk("a_orbs", 1) else 0) + extra_projectiles
 
 
 func _orbs_on_now() -> void:
@@ -625,12 +684,12 @@ func _beam_area() -> float:
 
 
 func _process_beam(delta: float) -> void:
+	_follow(delta)  # księga unosi się dalej obok, promień leci z dłoni
 	var reach: float = Skills.DATA.a_beam.range * _area("a_beam")
 	if _beam_target == null or not is_instance_valid(_beam_target) or not _beam_target.alive() \
 			or _beam_target.global_position.distance_to(hero.global_position) > reach * 1.2:
 		_beam_target = _nearest(reach)
-	position = position.lerp(hero.position + Vector2(0, -2), 0.3)
-	var from := _sprite.global_position
+	var from := _hand_point()
 	if _beam_target != null:
 		_aim = (_beam_target.center() - from).angle()
 	_beam_tick -= delta
@@ -653,10 +712,19 @@ func _process_beam(delta: float) -> void:
 			_emanate = EMANATE_EVERY
 			var r := EMANATE_RADIUS * _area("a_beam")
 			_ring_hit(hero.global_position, r, _power("a_beam") * EMANATE_POWER, "a_beam")
-			_circle_fx(hero.global_position, r)
+			if _fx_tex("arcane_wave") != null:
+				_fx_once("arcane_wave", hero.global_position, r / WAVE_FX_RADIUS, -1)
+			else:
+				_circle_fx(hero.global_position, r)
 	_draw_beam(from)
 	if not charge_held or hero.dead:
 		_end_skill()
+
+
+## Dłonie postaci (wylot promienia): nad stopami, lekko przed nią w stronę celu (wcześniej - spod księgi nad głową).
+func _hand_point() -> Vector2:
+	var dir := Vector2.from_angle(_aim) if _beam_target != null else hero.facing.normalized()
+	return hero.global_position + Vector2(0, -HAND_HEIGHT) + dir * HAND_REACH
 
 
 ## 5. poziom promienia: drugi wróg najbliżej celu (przeskok).
@@ -687,6 +755,12 @@ func _beam_line() -> Line2D:
 func _draw_beam(from: Vector2) -> void:
 	if _beam == null:
 		_beam = _beam_line()
+	if _beam_cast_fx == null:  # błysk magii w dłoniach przez cały czas rzucania
+		_beam_cast_fx = Node2D.new()
+		_beam_cast_fx.z_index = 22
+		get_parent().add_child(_beam_cast_fx)
+		_fx_loop("arcane_beam_cast", _beam_cast_fx, 1.0)
+	_beam_cast_fx.global_position = from.round()
 	if _beam_target == null:
 		_beam.visible = false
 		if _beam_hit_fx:
@@ -715,7 +789,10 @@ func _draw_beam(from: Vector2) -> void:
 		_beam_hit_fx = Node2D.new()
 		_beam_hit_fx.z_index = 21
 		get_parent().add_child(_beam_hit_fx)
-		_fx_loop("arcane_beam_hit", _beam_hit_fx, _beam_area() / BEAM_AREA)
+		if _fx_tex("arcane_beam_impact") != null:  # rozbryzg na końcu promienia (zakrywa ucięty koniec)
+			_fx_loop("arcane_beam_impact", _beam_hit_fx, _beam_area() / BEAM_AREA)
+		else:
+			_fx_loop("arcane_beam_hit", _beam_hit_fx, _beam_area() / BEAM_AREA)
 	_beam_hit_fx.visible = true
 	_beam_hit_fx.global_position = to.round()
 	var second := _beam_second()
@@ -731,12 +808,13 @@ func _draw_beam(from: Vector2) -> void:
 
 
 func _end_skill() -> void:
-	for n in [_beam, _beam2, _beam_hit_fx]:
+	for n in [_beam, _beam2, _beam_hit_fx, _beam_cast_fx]:
 		if n != null and is_instance_valid(n):
 			n.queue_free()
 	_beam = null
 	_beam2 = null
 	_beam_hit_fx = null
+	_beam_cast_fx = null
 	_beam_target = null
 	super._end_skill()
 

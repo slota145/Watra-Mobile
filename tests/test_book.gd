@@ -129,8 +129,10 @@ func _test_combat(game: Node) -> void:
 	var hp := a.hp + b.hp + c.hp
 	book._aim = 0.0
 	book._fire_missiles()
-	_check(book._missiles.size() == book.missile_count() and book.missile_count() >= ProtoBook.MISSILES, "pociski w locie (%d)" % book._missiles.size())
-	await _wait(0.15)
+	_check(book._missiles.size() == 1 and book._volley.size() == book.missile_count() - 1, "pierwszy pocisk od razu, reszta czeka")
+	await _wait(0.3)
+	_check(book._missiles.size() == book.missile_count() and book._volley.is_empty() and book.missile_count() >= ProtoBook.MISSILES,
+			"pociski wylatują po kolei (%d)" % book._missiles.size())
 	_check((book._missiles[0].tail as Line2D).points.size() > 2, "za pociskiem ogon z jego toru")
 	await _wait(1.6)
 	_check(a.hp + b.hp + c.hp < hp and book._missiles.is_empty(), "pociski trafiają i znikają")
@@ -159,6 +161,11 @@ func _test_combat(game: Node) -> void:
 	book.charge_held = true
 	book._start("a_beam")
 	_check(book._state == "beam", "promień trwa, gdy trzymasz")
+	await _wait(0.1)
+	var hand: Vector2 = book._hand_point()
+	_check(book._beam != null and book._beam.points[0].distance_to(hand) < 1.0 and hand.y > book._sprite.global_position.y,
+			"promień z dłoni postaci (niżej niż księga), błysk w dłoniach")
+	_check(book._beam_cast_fx != null and book._beam_hit_fx != null, "efekty na obu końcach promienia")
 	await _wait(0.7)
 	_check(a.hp < hp or b.hp < b.max_hp, "promień rani")
 	_check(hero.mana < mana + 30, "promień zużywa manę")
@@ -198,8 +205,16 @@ func _test_unique(game: Node) -> void:
 	for g in [a, b, c]:
 		g._stunned = 60.0
 	# odłamki z trafionego
+	var far := _goblin(arena, Vector2(160, 0))
+	far._stunned = 60.0
+	await process_frame
 	book._spawn_shards(a, 10.0)
-	_check(book._shards.size() == 1, "z trafionego odłamek w pobliskiego (%d)" % book._shards.size())
+	var aims: Array = book._shards.map(func(x: Dictionary) -> ProtoTarget: return x.target)
+	_check(book._shards.size() >= 2 and aims.has(far)
+			and (book._shards[0].target as ProtoTarget).center().distance_to(a.center()) >= ProtoBook.SHARD_MIN,
+			"odłamki: najpierw w dalszych wrogów (%d)" % book._shards.size())
+	await _wait(0.15)
+	_check((book._shards[0].tail as Line2D).points.size() > 2, "odłamek z ogonem")
 	# trwały krąg z premią
 	hero.mana = hero.max_mana
 	book._cd.clear()
@@ -221,6 +236,11 @@ func _test_unique(game: Node) -> void:
 	d0.y *= 2.0
 	d1.y *= 2.0
 	_check(d1.length() > d0.length() * 1.5, "zewnętrzna orbita dalej")
+	book.extra_projectiles = 2  # aura Rój Strzyboga
+	await process_frame
+	_check(book._orbs.size() == (book._orb_count()) * 2 and book._orb_count() == ProtoBook.ORBS + 2,
+			"Rój Strzyboga dokłada kule (%d na orbicie)" % book._orb_count())
+	book.extra_projectiles = 0
 	book.cast("a_orbs")
 	# emanacja podczas promienia
 	c.position = Vector2(-30, 10)

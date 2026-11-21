@@ -33,6 +33,11 @@ Pomysły i ankieta autora (21.11.2026). Wszystko w jednym PR.
     zsynchronizowany z opóźnieniem). 5. - 6 pieczęci, 10. - ogłusza 0,5 s; unikalny (Splecionych Pieczęci) - wiązka
     między kolejnymi pieczęciami rani dotykających (25% co 0,2 s).
 - Testy: `tests/test_book.gd` (nowy), `test_elements.gd` (9 żywiołów); zrzuty `tools/book_shots.gd`.
+- **Dopieszczenie (prośby autora 21.11.2026):** Pociski Arkanów wylatują po kolei co 0,08 s (`ProtoBook._volley`,
+  `MISSILE_STAGGER`; kolejne rzuty mogą się zazębiać); aura Rój Strzyboga dokłada kule do każdej orbity (`_orb_count`
+  + `extra_projectiles`); promień wychodzi z dłoni postaci (`_hand_point`, a nie spod księgi), z błyskiem w dłoniach
+  (`arcane_beam_cast`) i wirem na końcu (`arcane_beam_impact`); kamień Emanacji - fala magii `arcane_wave` (3 nowe
+  efekty z kreatora PixelLab); odłamki x1,4 większe, z ogonem, wolniejsze i lecą najpierw w dalszych wrogów (35-120 px).
 
 ## 20.11.2026 - symulowany rynek: targ w bazie (ROADMAP punkt 5)
 
