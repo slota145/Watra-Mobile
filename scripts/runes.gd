@@ -158,16 +158,15 @@ static func apply(item: Dictionary, id: String, index := -1) -> bool:
 		return false
 	match id:
 		POLISH:
-			var a: Dictionary = item.affixes[index]
-			item.affixes[index] = {"stat": a.stat, "value": Items.roll_affix(a.stat, item.level)}
+			item.affixes[index] = Items.polish_affix(item.affixes[index])  # stopień zostaje
 		REFORGE:
 			Items.reroll_affix(item, index)
 		GROWTH:
 			_add_affix(item)
 		ASCEND:
 			item.rarity = "magic" if item.rarity == "common" else "rare"
-			while item.affixes.size() < Items.AFFIX_COUNT[item.rarity].x:
-				_add_affix(item)
+			while item.affixes.size() < Items.AFFIX_COUNT[item.rarity].x and _add_affix(item):
+				pass
 		CHAOS:
 			item.affixes = []
 			for i in randi_range(Items.AFFIX_COUNT[item.rarity].x, Items.AFFIX_COUNT[item.rarity].y):
@@ -176,17 +175,11 @@ static func apply(item: Dictionary, id: String, index := -1) -> bool:
 			var kept: Dictionary = item.affixes[index]
 			var count: int = item.affixes.size()
 			item.affixes = [kept]
-			while item.affixes.size() < count:
-				_add_affix(item)
+			while item.affixes.size() < count and _add_affix(item):
+				pass
 	return true
 
 
-## Nowa losowa premia rodzaju, którego przedmiot jeszcze nie ma (pasującego do miejsca).
-static func _add_affix(item: Dictionary) -> void:
-	var taken: Array = item.affixes.map(func(a: Dictionary) -> String: return a.stat)
-	var pool: Array = Items.AFFIXES.keys().filter(func(stat: String) -> bool:
-		return not stat in taken and Items.affix_fits(stat, item.slot))
-	if pool.is_empty():
-		return
-	var stat: String = pool.pick_random()
-	item.affixes.append({"stat": stat, "value": Items.roll_affix(stat, item.level)})
+## Nowa losowa premia rodzaju, którego przedmiot jeszcze nie ma (pasującego do miejsca), z losowym stopniem.
+static func _add_affix(item: Dictionary) -> bool:
+	return Items.add_affix(item)

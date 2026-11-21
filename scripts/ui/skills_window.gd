@@ -548,6 +548,9 @@ func _on_clear() -> void:
 ## i co da następny poziom (tylko przy kupionej).
 func _show_level(i: int, id: String, lvl: int, owned: bool) -> void:
 	name_labels[i].text = Skills.name_of(id) + ("  " + tr("poz. %d/%d") % [lvl, Skills.MAX_LEVEL] if owned else "")
+	var extra: int = _game.item_skill_bonus(id)  # premie przedmiotów (poziom umiejętności)
+	if owned and extra > 0:
+		name_labels[i].text += " " + tr("(+%d z przedmiotów)") % extra
 	var k := Skills.level_cost(lvl)
 	var km := Skills.level_mana(lvl)
 	var mana := roundi(Skills.mana_of(id) * km)

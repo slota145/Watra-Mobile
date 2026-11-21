@@ -120,8 +120,8 @@ func _test_depth() -> void:
 	var p50 := DungeonLevels.power(50)
 	var p100 := DungeonLevels.power(100)
 	_check(is_equal_approx(DungeonLevels.power(1), 1.0) and p10 > 3.2 and p10 < 3.5 and p50 > 26.0 and p50 < 31.0
-			and p100 > 135.0 and p100 < 160.0, "siła: 10. poz. x%.1f, 50. x%.1f, 100. x%.0f" % [p10, p50, p100])
-	_check(roundi(ProtoGoblin.DAMAGE * p100) > HeroLevels.max_hp(15) * 3, "na 100. poziomie goblin zabija postać 15. poziomu jednym ciosem")
+			and p100 > 80.0 and p100 < 95.0, "siła: 10. poz. x%.1f, 50. x%.1f, 100. x%.0f (od 40. wolniej)" % [p10, p50, p100])
+	_check(roundi(ProtoGoblin.DAMAGE * p100) > HeroLevels.max_hp(15) * 2, "na 100. poziomie goblin zabija postać 15. poziomu jednym ciosem")
 	_check(DungeonLevels.crowd(1) == 1.0 and DungeonLevels.crowd(30) > 1.25 and DungeonLevels.crowd(100) == DungeonLevels.CROWD_MAX,
 			"tłum rośnie do x%.2f" % DungeonLevels.crowd(100))
 	_check(HeroLevels.goblin_xp(100) == roundi(HeroLevels.GOBLIN_XP * DungeonLevels.reward(100)), "doświadczenie rośnie liniowo")

@@ -300,6 +300,7 @@ func scatter() -> void:
 
 func _on_died(g: ProtoGoblin) -> void:
 	_alive -= 1
+	hero.on_kill()  # premia przedmiotów: przyspieszenie po zabiciu
 	_heal_acc += Items.life_on_kill(hero.gear)  # premia przedmiotów: zdrowie za zabicie (ułamki się zbierają)
 	var heal := floori(_heal_acc)
 	if heal > 0:
@@ -326,8 +327,12 @@ func _on_died(g: ProtoGoblin) -> void:
 		ember.magnet = (ProtoEmber.MAGNET + reach) * pickup_mult
 		ember.collected.connect(_on_ember)
 		world.add_child.call_deferred(ember)
-	var item := Items.roll(level, "", "", Items.CHEST_WEIGHTS) if g.elite \
-			else Items.roll_goblin(level, loot_mult, Items.CHEST_WEIGHTS if rare_loot else Items.GOBLIN_WEIGHTS)
+	# premie przedmiotów: rzadkość łupu (lepsze wagi) i ilość łupu (częściej)
+	var rarity_pct: float = hero.gear.get("rarity_pct", 0.0)
+	var quantity: float = 1.0 + hero.gear.get("quantity_pct", 0.0) / 100.0
+	var item := Items.roll(level, "", "", Items.boosted_weights(Items.CHEST_WEIGHTS, rarity_pct)) if g.elite \
+			else Items.roll_goblin(level, loot_mult * quantity,
+					Items.boosted_weights(Items.CHEST_WEIGHTS if rare_loot else Items.GOBLIN_WEIGHTS, rarity_pct))
 	if not item.is_empty():
 		drop_item(item, g.position)
 	var gem := Gems.roll_goblin(level, loot_mult * gem_mult)

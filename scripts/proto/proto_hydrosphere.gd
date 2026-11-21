@@ -238,7 +238,7 @@ func _spawn_bolt(from: Vector2, a: float, target: ProtoTarget, skill: String, mu
 	var fx := _shot_sprite(BOLT_FX, 8, BOLT_FX_ANCHOR, a)
 	fx.global_position = from
 	_shots.append({"fx": fx, "dir": Vector2.from_angle(a), "left": BOLT_RANGE * _area(skill) + 20.0,
-			"speed": BOLT_SPEED, "radius": BOLT_RADIUS, "hits": [], "skill": skill, "kind": "bolt",
+			"speed": BOLT_SPEED * proj_speed_mult, "radius": BOLT_RADIUS, "hits": [], "skill": skill, "kind": "bolt",
 			"target": target, "power": mult, "splash": splash})
 
 
@@ -388,7 +388,7 @@ func _add_vortex(at: Vector2, mult := 1.0) -> void:
 	node.global_position = at.round()
 	var wander := _unique("h_vortex")
 	_vortexes.append({"node": node, "at": at, "radius": r, "tick": VORTEX_TICK, "mult": mult, "wander": wander,
-			"left": (VORTEX_TIME_LONG if _perk("h_vortex", 0) else VORTEX_TIME) + (VORTEX_WANDER_BONUS if wander else 0.0)})
+			"left": ((VORTEX_TIME_LONG if _perk("h_vortex", 0) else VORTEX_TIME) + (VORTEX_WANDER_BONUS if wander else 0.0)) * duration_mult})
 
 
 func _process_vortexes(delta: float) -> void:
@@ -498,7 +498,7 @@ func _add_guardian(at: Vector2) -> void:
 	node.global_position = at.round()
 	_water_blast(at, GUARD_BLAST_RADIUS * _area("h_guardian"), _power("h_guardian") * GUARD_BLAST_POWER, "h_guardian")
 	_guardians.append({"node": node, "at": at, "acc": 0.0,
-			"left": GUARD_TIME_LONG if _perk("h_guardian", 0) else GUARD_TIME})
+			"left": (GUARD_TIME_LONG if _perk("h_guardian", 0) else GUARD_TIME) * duration_mult})
 
 
 func _process_guardians(delta: float) -> void:

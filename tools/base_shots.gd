@@ -61,7 +61,9 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	await _shot("5_kowal_runa")
 	arena.smith_window._hide_detail()
-	arena.smith_window._forge("boots")  # uzbrojony przycisk wykuwania butów
+	arena.smith_window._pick_slot("boots")  # bazy butów
+	pass  # bazy butów do wyboru
+	await create_timer(0.2).timeout
 	arena.smith_window.scroll.scroll_vertical = 10000
 	await create_timer(0.2).timeout
 	await _shot("6_wykuwanie")

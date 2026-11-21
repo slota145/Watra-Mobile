@@ -2,6 +2,37 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Przedmioty krok 1: stopnie T1-T7, sufit na lochu 40, bazy, nowe premie
+
+Ankieta autora (21.11.2026), krok 1 z 4 przebudowy przedmiotów (`docs/ROADMAP.md`).
+- **Stopnie premii** (`Items.TIER_FROM` 1/5/10/16/22/30/40 dla T7...T1, wagi `TIER_WEIGHTS` 22/20/18/15/12/8/5):
+  premia to `{"stat", "value", "tier"}`, widełki T7 i T1 w `Items.AFFIXES` (`t7`, `t1`), stopnie pomiędzy po równo
+  (`tier_range`), zachodzą na siebie. Losowanie: `make_affix`, `roll_tier`, `tier_value`; `roll_affix` (kamienie
+  szlachetne) losuje stopień. Znaczek „T3” przed premią (`affix_lines`, kowal - kolorowy `tier_color`).
+- **Sufit siły na lochu 40** (`Items.MAX_LEVEL`): stała cecha i stopnie dalej nie rosną. Potwory od 40. rosną wolniej
+  (`DungeonLevels.SLOW_FROM`, `SLOW_STEP` 6% siły z 40. na poziom: 50. x30, 100. x88 zamiast x148).
+- **Bazy** (`Items.BASES`, pole przedmiotu `type`): 3 na miejsce ze stałą cechą (`implicit`, od 1. do 40. poziomu -
+  `implicit_value`, zdrowie i regeneracja jak siła lochu), 5 stopni nazw i ikon (`VISUAL_FROM` 1/5/12/22/32). Nowe
+  ikony: linie Watry (kaptur, skórznia, szata, nagolenice, kolczyk srebrny, sygnet, wisior) i przebarwione
+  (`tools/item_bases_art.py` -> `assets/items/`: ząb, rogaty hełm, łapcie, złoty pierścień, wisior runiczny).
+- **Rzadki 3-5 premii** (`AFFIX_COUNT`).
+- **Nowe premie:** `skill_level` (+1, T2-T1 +2, jedna umiejętność - pole `skill`; kolczyk, hełm, amulet),
+  `skill_level_all` (amulet od lochu 22), umiejętność do 12. poziomu (`ProtoWeapon.level_of`, `Items.ITEM_LEVELS_MAX`;
+  okno umiejętności pokazuje „+N z przedmiotów” - `Game.item_skill_bonus`); `proj/area/melee/minion_dmg_pct` ze
+  znacznikami umiejętności (`Skills.TAGS`, `ProtoWeapon.item_hit_bonus`); `proj_speed_pct` (`proj_speed_mult` - rzut
+  mieczem, strzały, pociski wody i Arkanów, odłamki); `duration_pct` (`duration_mult` - Krąg stali, Słup ognia, Wir,
+  Strażnik, Deszcz strzał, balista, podpalenia); `afflicted_dmg_pct` (podpalony, spowolniony, przemoczony, porażony),
+  `full_hp_dmg_pct`; `kill_haste_pct` (`ProtoHero.on_kill`/`haste`, 3 s ruch i atak); `rarity_pct`
+  (`Items.boosted_weights`), `quantity_pct` (gobliny częściej, skrzynia Wodza +1 przedmiot), `ore_pct` (`Game.ore_gain`).
+  Statystyki w oknie „Postać” (`HeroStats.ITEM_STATS`).
+- **Runy:** Szlif losuje wartość w tym samym stopniu (`Items.polish_affix`), reszta dodaje premie ze stopniem
+  (`Items.add_affix`).
+- **Kowal:** po stuknięciu miejsca 3 przyciski baz (ikona, nazwa, stała cecha), drugie stuknięcie bazy wykuwa
+  (`Game.forge(slot, type)`).
+- **Stare przedmioty** (`Items.normalize`): pierwsza baza miejsca, stała cecha od nowa z poziomu (do 40), obrażenia
+  kolczyka przycięte do sufitu, premie - stopień najbliżej środka widełek (`nearest_tier`) i wartość w jego widełkach.
+- Test `tests/test_item_tiers.gd`.
+
 ## 21.11.2026 - Księga Arkanów, żywioł Arkana, premie magiczne, wybór broni na start
 
 Pomysły i ankieta autora (21.11.2026). Wszystko w jednym PR.

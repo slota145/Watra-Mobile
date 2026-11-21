@@ -25,7 +25,7 @@ func _run() -> void:
 	game.reset_hero()
 	game.dungeon_level = 3
 	for slot in ["earring", "helmet", "armor", "ring"]:
-		game.add_item(Items.roll(3, slot, ["magic", "rare", "common", "rare"][game.bag.size()]))
+		game.add_item(Items.roll(34, slot, ["magic", "rare", "common", "rare"][game.bag.size()]))
 		game.equip(0)
 	game.dev_items(9)
 	var arena: Node = load("res://scenes/horde.tscn").instantiate()

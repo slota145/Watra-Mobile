@@ -250,10 +250,28 @@ const PERKS := {
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
+## Znaczniki umiejętności dla premii przedmiotów (decyzja autora 21.11.2026): pociski, obszarowe, wręcz, przywołańcy
+## (balista, Wodny Strażnik) - Items proj/area/melee/minion_dmg_pct (TAG_STATS); jedna umiejętność może mieć kilka.
+const TAGS := {
+	"strike": ["melee"], "whirl": ["melee", "area"], "throw": ["projectile"], "slam": ["melee", "area"],
+	"steel_ring": ["melee"], "g_thrust": ["melee"], "g_sweep": ["melee"], "g_trail": ["area"], "g_pillar": ["area"],
+	"g_dance": ["melee"], "h_bolt": ["projectile"], "h_wave": ["area"], "h_vortex": ["area"], "h_geyser": ["area"],
+	"h_guardian": ["minion"], "k_slash": ["melee"], "k_dance": ["melee"], "k_riposte": ["melee"], "k_perun": ["melee"],
+	"k_flash": ["melee"], "b_shot": ["projectile"], "b_seeker": ["projectile"], "b_rain": ["area", "projectile"],
+	"b_power": ["area"], "b_ballista": ["minion"], "a_missiles": ["projectile"], "a_circle": ["area"],
+	"a_orbs": ["projectile"], "a_beam": ["area"], "a_seals": ["area"],
+}
+const TAG_NAMES := {"melee": "wręcz", "projectile": "pocisk", "area": "obszar", "minion": "przywołaniec"}
+const TAG_STATS := {"melee": "melee_dmg_pct", "projectile": "proj_dmg_pct", "area": "area_dmg_pct", "minion": "minion_dmg_pct"}
 ## Kolejność w oknie umiejętności.
 const ORDER := ["strike", "whirl", "throw", "slam", "steel_ring", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
 		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash",
 		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista", "a_missiles", "a_circle", "a_orbs", "a_beam", "a_seals"]
+
+
+## Znaczniki umiejętności (TAGS; brak - pusta lista).
+static func tags_of(id: String) -> Array:
+	return TAGS.get(id, [])
 
 
 static func has(id: String) -> bool:

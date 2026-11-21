@@ -186,7 +186,7 @@ func _hit(t: ProtoTarget, power: float, from: Vector2, skill: String, burn_mult 
 	_deal(t, amount, from, skill)
 	var burn := Skills.burn_of(skill) * burn_mult
 	if burn > 0.0 and t.alive():
-		t.burn(amount * burn, BURN_TIME)
+		t.burn(amount * burn, BURN_TIME * duration_mult)
 
 
 ## Glewia na linii od środka postaci pod kątem `a`: chwyt `d` pikseli od środka.
@@ -426,7 +426,7 @@ func _pillar_hit(at: Vector2) -> void:
 	_blast(at, PILLAR_RADIUS * _area("g_pillar"), _power("g_pillar") * _pillar_mult, "g_pillar")
 	var r := PILLAR_ZONE_RADIUS * _area("g_pillar") * (PILLAR_ZONE_BIG if _perk("g_pillar", 0) else 1.0) \
 			* (PILLAR_GEM_ZONE if _unique("g_pillar") else 1.0)
-	_add_zone(at, at, r, PILLAR_ZONE_TIME, "g_pillar")
+	_add_zone(at, at, r, PILLAR_ZONE_TIME * duration_mult, "g_pillar")
 	var cam := hero.get_viewport().get_camera_2d()
 	if cam:
 		var shake := cam.create_tween()

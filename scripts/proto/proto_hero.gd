@@ -92,6 +92,9 @@ var deaths := 0
 var obstacles: Array[Vector3] = []
 ## Z przedmiotów: mnożnik szybkości ruchu, zdrowie na sekundę, część obrażeń, której postać nie dostaje (0-0,5).
 var move_mult := 1.0
+## Premia przedmiotów „szybkość ruchu i ataku po zabiciu” (Items kill_haste_pct, ułamek) i ile sekund jeszcze działa.
+var kill_haste := 0.0
+var haste_left := 0.0
 var regen := 0.0
 var protection := 0.0
 ## Odporność na żywioły (0-0,75, premia przedmiotów): o tyle mniej obrażeń od ciosów żywiołów (woda, lód...).
@@ -145,6 +148,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_invulnerable -= delta
+	haste_left -= delta
 	fortify_left -= delta
 	if shield < shield_max and not dead:
 		_shield_wait -= delta
@@ -192,7 +196,7 @@ func _process(delta: float) -> void:
 		_process_leap(delta)
 		return
 	var input := joystick.vector if joystick else Vector2.ZERO
-	velocity = input * SPEED * move_mult * (1.0 + move_bonus) * (1.0 - chill)
+	velocity = input * SPEED * move_mult * (1.0 + move_bonus + haste()) * (1.0 - chill)
 	position = _push_out((position + velocity * delta).clamp(bounds.position, bounds.end))
 	if input.length() > 0.05:
 		facing = input.normalized()
@@ -457,6 +461,18 @@ func set_level(level: int, items_gear := {}) -> void:
 	mana_changed.emit(mana, max_mana)
 
 
+## Zabity potwór (ProtoHorde): premia przedmiotów kill_haste_pct przyspiesza na Items.KILL_HASTE_TIME (dłużej
+## z premią czasu działania - duration_pct).
+func on_kill() -> void:
+	if kill_haste > 0.0:
+		haste_left = Items.KILL_HASTE_TIME * (1.0 + gear.get("duration_pct", 0.0) / 100.0)
+
+
+## Przyspieszenie po zabiciu teraz (ułamek; 0 - nie działa).
+func haste() -> float:
+	return kill_haste if haste_left > 0.0 else 0.0
+
+
 ## Przelicza cechy z poziomu i przedmiotów bez leczenia (zmiana ekwipunku w trakcie wyprawy): przyrost
 ## największego zdrowia i many dolicza się do obecnych, spadek tylko je przycina.
 func apply_gear(level: int, items_gear: Dictionary) -> void:
@@ -473,6 +489,7 @@ func apply_gear(level: int, items_gear: Dictionary) -> void:
 	reserved = new_reserved
 	_mana_regen += new_mana * gear.get("aura_mana_regen_pct", 0.0)
 	move_mult = 1.0 + gear.get("move_pct", 0.0) / 100.0
+	kill_haste = gear.get("kill_haste_pct", 0.0) / 100.0
 	regen = HeroStats.regen(level, gear)
 	protection = gear.get("protection_pct", 0.0) / 100.0
 	max_res_bonus = gear.get("aura_max_res", 0.0) / 100.0

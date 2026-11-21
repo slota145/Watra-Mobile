@@ -298,6 +298,16 @@ var extra_projectiles := 0
 var projectile_mult := 1.0
 ## Talizman Poroże Jelenia: chwilowo szybszy atak (część; mnoży speed_mult).
 var speed_bonus := 0.0
+## Premie przedmiotów (21.11.2026; arena ustawia z Items.totals): poziomy umiejętności (jednej - skill_bonus,
+## wszystkich - `item_all_levels`), obrażenia według znaczników umiejętności (Skills.TAGS: znacznik -> ułamek),
+## przeciw osłabionym wrogom i wrogom z pełnym zdrowiem (ułamki), szybkość pocisków i czas działania (mnożniki).
+var item_skill_levels := {}
+var item_all_levels := 0
+var tag_bonus := {}
+var afflicted_bonus := 0.0
+var full_hp_bonus := 0.0
+var proj_speed_mult := 1.0
+var duration_mult := 1.0
 ## Kamień Echo: umiejętność, której powtórka czeka (za darmo - mana_cost 0); Rozprysk: trwa rozprysk (bez łańcucha).
 var _echo_pending := ""
 var _splashing := false
@@ -422,7 +432,7 @@ func _process(delta: float) -> void:
 	_clock += delta
 	_chained = false
 	_drain_hits()
-	var sp := _strike_speed() if _state in STRIKE_STATES else speed_mult * (1.0 + speed_bonus)
+	var sp := _strike_speed() if _state in STRIKE_STATES else speed_mult * (1.0 + speed_bonus + _haste())
 	_cooldown -= delta * sp
 	_t += delta * sp
 	for id in _cd:
@@ -706,9 +716,10 @@ func gem_power(skill: String, kind: String) -> float:
 	return Gems.skill_power(skill_gems.get(skill, []), kind)
 
 
-## Poziom umiejętności (Game.skill_levels).
+## Poziom umiejętności (Game.skill_levels) z premiami przedmiotów - najwyżej Items.ITEM_LEVELS_MAX ponad Skills.MAX_LEVEL.
 func level_of(skill: String) -> int:
-	return skill_levels.get(skill, 1)
+	return mini(int(skill_levels.get(skill, 1)) + int(item_skill_levels.get(skill, 0)) + item_all_levels,
+			Skills.MAX_LEVEL + Items.ITEM_LEVELS_MAX)
 
 
 ## Czy umiejętność ma nowe działanie nr `i` (0 - z 5. poziomu, 1 - z 10.).
@@ -747,7 +758,7 @@ func _area(skill: String) -> float:
 ## Szybkość zwykłego ciosu: premia szybkości ataku, kamień Pośpiech i poziomy zwykłego ciosu (mniejszy „koszt” -
 ## szybszy cios).
 func _strike_speed() -> float:
-	return speed_mult * (1.0 + speed_bonus) * (1.0 + gem_power(basic, "haste") / 100.0) \
+	return speed_mult * (1.0 + speed_bonus + _haste()) * (1.0 + gem_power(basic, "haste") / 100.0) \
 			* (2.0 - Skills.level_cost(level_of(basic)))
 
 
@@ -844,6 +855,25 @@ func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2, flat :=
 	t.take_damage(Elements.reduce(amount, t.resist(elem, penetration)), from)
 
 
+## Premie przedmiotów do trafienia umiejętnością `skill` w `t` (ułamek do dodania): obrażenia jej znaczników
+## (Skills.TAGS), przeciw osłabionym (podpalony, spowolniony, przemoczony, porażony) i z pełnym zdrowiem.
+func item_hit_bonus(t: ProtoTarget, skill: String) -> float:
+	var bonus := 0.0
+	if not tag_bonus.is_empty():
+		for tag in Skills.tags_of(skill):
+			bonus += tag_bonus.get(tag, 0.0)
+	if afflicted_bonus > 0.0 and (t.is_burning() or t.speed_factor() < 1.0 or t.is_soaked() or t.is_shocked()):
+		bonus += afflicted_bonus
+	if full_hp_bonus > 0.0 and t.health_fraction() >= 0.999:
+		bonus += full_hp_bonus
+	return bonus
+
+
+## Przyspieszenie postaci po zabiciu (premia przedmiotów kill_haste_pct; ProtoHero.haste).
+func _haste() -> float:
+	return hero.haste() if hero != null else 0.0
+
+
 ## Premia żywiołów razem: przedmioty (elem_mult) i talizman Łuska Żmija (elem_extra).
 func elem_total() -> float:
 	return elem_mult * (1.0 + elem_extra)
@@ -884,6 +914,7 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	if t.pride > 0.0:  # Piętno Czarnoboga
 		amount = roundi(amount * (1.0 + t.pride))
 	var mult := 1.0 + Gems.skill_power(sockets, "focus") / 100.0  # Skupienie
+	mult += item_hit_bonus(t, skill)  # premie przedmiotów: znaczniki umiejętności, osłabieni, pełne zdrowie
 	if t.speed_factor() < 1.0:
 		mult += Gems.skill_power(sockets, "hypothermia") / 100.0
 	if t.is_burning():
@@ -919,12 +950,12 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		var fire := elem_base * aura_fire
 		t.color_next = Elements.color_of(Elements.FIRE)
 		t.take_damage(Elements.reduce(maxi(1, roundi(fire)), t.resist(Elements.FIRE, penetration)), from)
-		t.burn(fire * Auras.SWAROG_BURN, BURN_TIME, penetration)
+		t.burn(fire * Auras.SWAROG_BURN, BURN_TIME * duration_mult, penetration)
 	if sockets.is_empty():
 		return
 	var p := Gems.skill_power(sockets, "ember")
 	if p > 0.0:
-		t.burn(elem_base * p / 100.0, BURN_TIME, penetration)
+		t.burn(elem_base * p / 100.0, BURN_TIME * duration_mult, penetration)
 	p = Gems.skill_power(sockets, "rime")
 	if p > 0.0:
 		var soaked := t.is_soaked()
@@ -1207,7 +1238,7 @@ func _start_ring() -> void:
 		var a := TAU * i / 32.0
 		_ring_trail.add_point(Vector2(cos(a), sin(a) * STEEL_FLAT) * (STEEL_INNER + BLADE * 0.8) * _area("steel_ring"))
 	add_child(_ring_trail)
-	_ring_left = STEEL_TIME_LONG if _perk("steel_ring", 0) else STEEL_TIME
+	_ring_left = (STEEL_TIME_LONG if _perk("steel_ring", 0) else STEEL_TIME) * duration_mult
 	if _unique("steel_ring"):
 		_ring_left = INF  # Kamień Wiecznej Stali: krąg trwa, dopóki starcza many
 		_ring_drain_acc = 0.0
@@ -1374,7 +1405,7 @@ func _whirl_blast() -> void:
 func _process_throw(delta: float) -> void:
 	_sprite.rotation += TAU * 3.0 * delta
 	var target := _goal if _state == "throw" else hero.position
-	var speed := THROW_SPEED if _state == "throw" else THROW_RETURN
+	var speed := (THROW_SPEED if _state == "throw" else THROW_RETURN) * proj_speed_mult
 	position = position.move_toward(target, speed * delta)
 	var tip := _sprite.global_position
 	var reach := THROW_HIT * _area("throw")
