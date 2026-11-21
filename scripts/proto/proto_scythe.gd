@@ -158,10 +158,11 @@ const DIAG_ANCHOR := Vector2(-8, 30)
 ## Promień półksiężyca na arkuszu (środek okręgu poza klatką, środek łuku w prawo).
 const DIAG_RADIUS := 44.0
 ## Okręgi cięć Tańca (jak Violation z BDO - zrzuty autora 21.11.2026), składane w grze z półksiężyców cięć (prośba
-## autora: „skleić efekt z efektów jak ten”): co DANCE_RING_EVERY s wokół postaci pojawia się DANCE_CUTS półksiężyców
-## (scythe_diag albo smuklejszy dance_cut) pod losowym kątem, na losowej wysokości (DANCE_CUT_HEIGHT), spłaszczonych
-## w perspektywie (DANCE_CUT_SQUASH, lekko przechylonych) - razem układają się w okręgi wokół postaci; te z przodu
-## rysują się przed postacią, te z tyłu za nią. Zostają w miejscu i gasną - za idącą postacią zostaje ślad.
+## autora: „skleić efekt z efektów jak ten”): co DANCE_RING_EVERY s wokół postaci pojawia się DANCE_CUTS cięć
+## (scythe_diag, smuklejszy dance_cut albo kółko na 3/4 okręgu dance_loop) na jednym z trzech stałych okręgów
+## (DANCE_RINGS: wysokość, spłaszczenie w perspektywie, przechył), kolejne przesunięte o DANCE_CUT_STEP - zawsze układają
+## się w okręgi wokół postaci; te z przodu rysują się przed postacią, te z tyłu za nią. Zostają w miejscu i gasną - za
+## idącą postacią zostaje ślad.
 const DANCE_CUT_FX := preload("res://assets/effects/dance_cut.png")
 const DANCE_CUT_FRAMES := 12
 const DANCE_CUT_FPS := 16.0
@@ -173,9 +174,14 @@ const DANCE_LOOP_FX := preload("res://assets/effects/dance_loop.png")
 const DANCE_LOOP_SHARE := 0.5
 const DANCE_RING_EVERY := 0.1
 const DANCE_CUTS := 2
-const DANCE_CUT_HEIGHT := Vector2(8.0, 30.0)
-const DANCE_CUT_SQUASH := Vector2(0.3, 0.45)
-const DANCE_CUT_TILT := 0.22
+## Stałe okręgi wokół postaci (prośba autora - cięcia mają zawsze układać się w okręgi): [wysokość nad stopami,
+## spłaszczenie, przechył, mnożnik promienia, kierunek cięć]; kolejne cięcia trafiają na kolejne okręgi, a kąt
+## przesuwa się o DANCE_CUT_STEP - wir krąży dookoła.
+const DANCE_RINGS := [[10.0, 0.36, 0.08, 1.06, 1.0], [19.0, 0.4, -0.08, 1.0, -1.0], [28.0, 0.34, 0.0, 0.92, 1.0]]
+const DANCE_CUT_STEP := 2.4
+## Cięcia Tańca rosną z obszarem umiejętności do tylu razy (są cienkie - powiększone nie wyglądają kanciasto;
+## ogólny limit `_fx_scale` zatrzymywał je na 1,25 i obszar „nie działał” - uwaga autora 21.11.2026).
+const DANCE_CUT_MAX_SCALE := 2.0
 ## Kamień Wirującego Ostrza: czas lotu, prędkość, siła trafienia, zasięg szukania kolejnego wroga, wybuch.
 const BLADE_TIME := 3.0
 const BLADE_SPEED := 230.0
@@ -223,6 +229,9 @@ var _dance_dir := Vector2.RIGHT
 var _dance_tick := 0.0
 ## Odliczanie do kolejnego okręgu cięć w trakcie tańca.
 var _ring_t := 0.0
+## Który okrąg Tańca dostaje następne cięcie i pod jakim kątem.
+var _ring_i := 0
+var _ring_angle := 0.0
 var _dance_queued := false
 ## Wirujące ostrza ({"node", "target", "left", "power", "last"}).
 var _blades: Array = []
@@ -846,25 +855,27 @@ func _process_dance(delta: float) -> void:
 ## Jeden półksiężyc cięcia Tańca: węzeł spłaszczony i lekko przechylony (perspektywa okręgu wokół postaci), w nim efekt
 ## obrócony pod losowym kątem; z przodu (dolna połowa okręgu) przed postacią, z tyłu za nią. Znika razem z efektem.
 func _dance_cut(radius: float) -> void:
+	var ring: Array = DANCE_RINGS[_ring_i % DANCE_RINGS.size()]
+	_ring_i += 1
+	_ring_angle = fmod(_ring_angle + DANCE_CUT_STEP, TAU)
+	var a := _ring_angle
 	var holder := Node2D.new()
-	holder.scale = Vector2(1.0, randf_range(DANCE_CUT_SQUASH.x, DANCE_CUT_SQUASH.y))
-	holder.rotation = randf_range(-DANCE_CUT_TILT, DANCE_CUT_TILT)
-	var a := randf() * TAU
+	holder.scale = Vector2(1.0, ring[1])
+	holder.rotation = ring[2]
 	holder.z_index = 2 if sin(a) > 0.0 else -1
 	get_parent().add_child(holder)
-	holder.global_position = (hero.global_position + Vector2(0, -randf_range(DANCE_CUT_HEIGHT.x, DANCE_CUT_HEIGHT.y))).round()
+	holder.global_position = (hero.global_position + Vector2(0, -ring[0])).round()
 	var roll := randf()
-	var r := radius * randf_range(0.85, 1.15)
+	var r: float = radius * ring[3]
 	var fx: Sprite2D
 	if roll < DANCE_LOOP_SHARE or roll < DANCE_LOOP_SHARE + 0.3:  # kółko na 3/4 okręgu albo smukły półksiężyc
 		fx = Fx.once(holder, DANCE_LOOP_FX if roll < DANCE_LOOP_SHARE else DANCE_CUT_FX, DANCE_CUT_FRAMES, DANCE_CUT_FPS,
-				holder.global_position, DANCE_CUT_ANCHOR, 0, _fx_scale(r / DANCE_CUT_RADIUS))
+				holder.global_position, DANCE_CUT_ANCHOR, 0, minf(r / DANCE_CUT_RADIUS, DANCE_CUT_MAX_SCALE))
 	else:
 		fx = Fx.once(holder, DIAG_FX, DIAG_FRAMES, DIAG_FPS, holder.global_position, DIAG_ANCHOR, 0,
-				_fx_scale(r / DIAG_RADIUS))
+				minf(r / DIAG_RADIUS, DANCE_CUT_MAX_SCALE))
 	fx.rotation = a
-	if randf() < 0.5:
-		fx.scale.y = -fx.scale.y  # cięcie w drugą stronę
+	fx.scale.y *= ring[4]  # każdy okrąg kręci się w swoją stronę
 	fx.tree_exited.connect(holder.queue_free)
 
 
