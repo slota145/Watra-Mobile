@@ -41,7 +41,7 @@ const FX := {
 	"arcane_shard": [4, 16.0, Vector2(8, 8)],
 	"arcane_beam_cast": [6, 12.0, Vector2(12, 12)],
 	"arcane_beam_impact": [6, 12.0, Vector2(20, 20)],
-	"arcane_wave": [9, 16.0, Vector2(60, 30)],
+	"arcane_wave": [9, 18.0, Vector2(64, 34)],
 }
 ## Promień fali magii w arkuszu (połowa szerokości największej klatki - do skalowania).
 const WAVE_FX_RADIUS := 60.0

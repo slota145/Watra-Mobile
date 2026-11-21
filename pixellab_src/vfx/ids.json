@@ -1188,5 +1188,50 @@
       8
     ],
     "columns": 2
+  },
+  "arcane_beam_cast": {
+    "effect": "48b34b43-4d93-4d96-ba88-167a1d327ea1",
+    "name": "Wylot Promienia Arkanów w dłoniach (pętla)",
+    "frame": [
+      24,
+      24
+    ],
+    "frames": 6,
+    "fps": 12,
+    "anchor": [
+      12,
+      12
+    ],
+    "columns": 3
+  },
+  "arcane_beam_impact": {
+    "effect": "46763e24-9c29-4769-87c0-8d3410e773af",
+    "name": "Trafienie końca Promienia Arkanów - wir energii (pętla)",
+    "frame": [
+      40,
+      40
+    ],
+    "frames": 6,
+    "fps": 12,
+    "anchor": [
+      20,
+      20
+    ],
+    "columns": 3
+  },
+  "arcane_wave": {
+    "effect": "72d91b8c-d7e1-4371-b291-5d1c70a95e61",
+    "name": "Fala magii od postaci - Kamień Emanacji (jednorazowa)",
+    "frame": [
+      128,
+      68
+    ],
+    "frames": 9,
+    "fps": 18,
+    "anchor": [
+      64,
+      34
+    ],
+    "columns": 3
   }
 }

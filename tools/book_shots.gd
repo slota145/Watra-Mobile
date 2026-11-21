@@ -2,7 +2,7 @@ extends SceneTree
 ## Zrzuty Księgi Arkanów w lochu: pociski z ogonami, Krąg Mocy, Kule Arkanów (z drugą orbitą), Promień Arkanów,
 ## Pieczęcie Wybuchu z wiązkami (kamienie unikalne w kręgu, kulach i pieczęciach).
 ## Użycie: SCRIPT=tools/book_shots.gd tools/screenshot.sh <prefiks> [rozdzielczość jako RESOLUTION]
-## Pliki: <prefiks>_1_pociski.png, _2_krag.png, _3_kule.png, _4_promien.png, _5_pieczecie.png
+## Pliki: <prefiks>_1_pociski.png, _2_krag.png, _3_kule.png, _4_promien.png, _4b_fala.png, _5_pieczecie.png
 
 var _prefix := "/tmp/ksiega"
 
@@ -59,7 +59,7 @@ func _run() -> void:
 	await create_timer(0.22).timeout
 	await _shot("1_pociski")
 	await create_timer(1.5).timeout
-	for id in ["a_circle", "a_orbs", "a_seals"]:
+	for id in ["a_missiles", "a_circle", "a_orbs", "a_seals", "a_beam"]:
 		book.skill_gems[id] = [Gems.unique_of(id)]
 	hero.mana = hero.max_mana
 	book._start("a_circle")
@@ -72,7 +72,9 @@ func _run() -> void:
 	hero.mana = hero.max_mana
 	book.charge_held = true
 	book._start("a_beam")
-	await create_timer(0.5).timeout
+	await create_timer(0.2).timeout
+	await _shot("4b_fala")
+	await create_timer(0.38).timeout
 	await _shot("4_promien")
 	book.charge_held = false
 	await create_timer(0.2).timeout
