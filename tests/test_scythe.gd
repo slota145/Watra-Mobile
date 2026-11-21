@@ -249,7 +249,10 @@ func _test_unique(game: Node) -> void:
 	# Rzędy Nawii: rzędy wybuchów, każdy od prawej do lewej
 	scythe._mow_rows(hero.global_position, 0.0, scythe._mow_shape(1.0), 1.0)
 	var first: Array = scythe._mow_blasts.filter(func(b: Dictionary) -> bool: return b.row == 0)
-	_check(first.size() >= 3 and first[0].at.y > first[-1].at.y, "pierwszy rząd od prawej (dół ekranu przy celowaniu w prawo) do lewej")
+	_check(first.size() >= 3 and first[0].at.y < first[-1].at.y, "rząd od lewej (góra ekranu przy celowaniu w prawo) do prawej")
+	var early: Array = scythe._mow_blasts.filter(func(b: Dictionary) -> bool: return b.t < 0.2)
+	_check(early.size() >= 3 and early.all(func(b: Dictionary) -> bool: return b.at.y < hero.global_position.y),
+			"na początku wybuchają wszystkie rzędy przy lewej krawędzi (fala w bok, nie od postaci)")
 	var shape: Vector3 = scythe._mow_shape(1.0)
 	var rows: Array = []
 	for b in scythe._mow_blasts:
