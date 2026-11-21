@@ -19,9 +19,12 @@ Ankieta autora (21.11.2026).
   `potential_line`): runy zabierają `Runes.cost_of` (Szlif 1, Przekucie 1, Przydanie 2, Wyniesienie 2, Zmiana 2,
   Pieczęć 3), przy braku `Runes.blocker` nie pozwala. Stare przedmioty - pełny 25.
 - **Runa Bogów** (`Runes.GODS`, premia ponad widełki, bez potencjału) i **Runa Odnowy** (`Runes.RENEWAL`, pełny
-  potencjał): od lochu 40 z elit (1%) i skrzyni bossa (6% każda) - `Runes.roll_boss`; nie u kupca (`is_boss`), na targu
+  potencjał): od lochu 40 z elit (0,2%) i skrzyni bossa (1% każda; najpierw 6% - za dużo, uwaga autora) - `Runes.roll_boss`; nie u kupca (`is_boss`), na targu
   (60 i 40 Szlifów). Ikony SpriteKiln `art/specs/props/runes/rune_gods.yaml`, `rune_renewal.yaml`. Zapas run u kowala
   w 2 rzędach.
+- Uwagi autora: przedmioty na ziemi mniejsze (`ProtoLoot.ICON_SCALE` 0,32 zamiast 0,45), powiadomienia o łupie
+  małe przy lewej krawędzi, najwyżej 3 (`arena.gd` `notify_loot`, `FEED_MAX`) - wcześniej zasłaniały postać.
+  Premia „+1 do poziomu” może trafić na umiejętność każdej broni (decyzja autora - motywacja do nowych buildów).
 - Testy w `tests/test_item_tiers.gd`.
 
 ## 21.11.2026 - Przedmioty krok 1: stopnie T1-T7, sufit na lochu 40, bazy, nowe premie

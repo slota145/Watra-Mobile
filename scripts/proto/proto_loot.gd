@@ -21,7 +21,7 @@ signal scrapped(item: Dictionary, got: Dictionary, bag_full: bool)
 const MAGNET := 36.0
 const PICKUP := 6.0
 ## Ikony z Watry mają 64 px - na ziemi zmniejszone.
-const ICON_SCALE := 0.45
+const ICON_SCALE := 0.32
 const SOUND := preload("res://assets/watra/handleSmallLeather.ogg")
 const SOUND_RARE := preload("res://assets/watra/glass_002.ogg")
 const DROP_SOUND := preload("res://assets/watra/dropLeather.ogg")

@@ -50,10 +50,11 @@ const DATA := {
 		"rare": true, "boss": true, "color": Color(0.45, 0.95, 0.6),
 		"text": "Przywraca pełny potencjał kowalski przedmiotu."},
 }
-## Runa Bogów i Runa Odnowy: od tego poziomu lochu, szansa na każdą z elity i ze skrzyni bossa.
+## Runa Bogów i Runa Odnowy: od tego poziomu lochu, szansa na każdą z elity i ze skrzyni bossa (6% ze skrzyni było
+## zdecydowanie za dużo - uwaga autora 21.11.2026).
 const BOSS_RUNES_FROM := 40
-const BOSS_RUNE_ELITE := 0.01
-const BOSS_RUNE_CHEST := 0.06
+const BOSS_RUNE_ELITE := 0.002
+const BOSS_RUNE_CHEST := 0.01
 
 ## Szansa na runę z każdego zabitego potwora (elita - ELITE) - rzadko, jak orby w PoE.
 const MONSTER := 0.002
