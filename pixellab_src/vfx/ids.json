@@ -1309,21 +1309,6 @@
     ],
     "columns": 4
   },
-  "scythe_whirl": {
-    "effect": "9aa692b3-76dd-4683-a023-eb114bee5b36",
-    "name": "Kosa v7 - okręgi cięć Tańca, TYLNA połowa (za postacią): grube białe szkliste, fioletowe i czarne cięcia po łuku na wysokości pasa-głowy, rysują się i gasną; zaczepienie = stopy postaci",
-    "frame": [
-      140,
-      96
-    ],
-    "frames": 12,
-    "fps": 16,
-    "anchor": [
-      70,
-      80
-    ],
-    "columns": 4
-  },
   "mara_curse": {
     "effect": "302ecf24-b0cc-4028-b1a7-e802742869aa",
     "name": "Kosa - klątwa Mary (czaszki krążą nad wrogiem, pętla; zaczepienie = punkt nad głową)",
@@ -1369,18 +1354,18 @@
     ],
     "columns": 4
   },
-  "scythe_whirl_front": {
-    "effect": "6911346c-aaa9-4d60-9df9-23f0cb8697c4",
-    "name": "Kosa v7 - okręgi cięć Tańca, PRZEDNIA połowa (przed postacią; para do scythe_whirl, ta sama klatka i zaczepienie)",
+  "dance_cut": {
+    "effect": "9f17943d-4208-43fd-8d25-c05c98f71614",
+    "name": "Kosa - smukły półksiężyc (Taniec Marzanny; łuk 170°, promień 50 px, środek łuku w prawo; gra składa z niego i scythe_diag okręgi cięć wokół postaci; zaczepienie = środek okręgu)",
     "frame": [
-      140,
-      96
+      130,
+      130
     ],
     "frames": 12,
     "fps": 16,
     "anchor": [
-      70,
-      80
+      65,
+      65
     ],
     "columns": 4
   }

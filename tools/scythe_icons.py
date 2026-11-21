@@ -68,7 +68,7 @@ def icon_mow():
 
 def icon_dance():
     img, inside = base()
-    wi.paste(img, wi.scaled(wi.trim(wi.frame("scythe_whirl", 4)), 0.55), (32, 18))
+    wi.paste(img, wi.scaled(wi.trim(wi.frame("dance_cut", 4)), 0.4), (34, 20))
     wi.paste(img, wi.rotated(wi.scaled(HEAD, 0.45), 160), (32, 16))
     wi.paste(img, wi.rotated(wi.scaled(wi.trim(wi.frame("scythe_diag", 5)), 0.7), 35), (34, 42))
     return clip(img, inside)

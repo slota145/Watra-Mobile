@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://chf8ipqm5p6gh"
-path="res://.godot/imported/scythe_whirl.png-5509db4f4789ee1d819bf0ad3225d3cb.ctex"
+uid="uid://c7ks6q67wm1mt"
+path="res://.godot/imported/dance_cut.png-293ffd573b633591896403ab4590b1cb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/scythe_whirl.png"
-dest_files=["res://.godot/imported/scythe_whirl.png-5509db4f4789ee1d819bf0ad3225d3cb.ctex"]
+source_file="res://pixellab_src/vfx/dance_cut.png"
+dest_files=["res://.godot/imported/dance_cut.png-293ffd573b633591896403ab4590b1cb.ctex"]
 
 [params]
 

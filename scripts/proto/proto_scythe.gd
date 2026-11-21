@@ -5,7 +5,7 @@ extends ProtoWeapon
 ## po ProtoWeapon: podążanie, orbita, mana, odnowienia, kamienie, krytyki). Efekty czarno-białe z przewagą czerni
 ## (decyzja autora; od drugiej wersji efektów z fioletem i przezroczystą otoczką mrocznego dymu, robione w rozmiarze
 ## z gry - prośba autora 21.11.2026): efekty z kreatora PixelLab scythe_swing, scythe_hit, scythe_blast, scythe_wave,
-## square_burst, mow_swing, scythe_diag, scythe_whirl, mara_curse (pixellab_src/vfx/ids.json). Grafika: assets/weapons/scythe.png
+## square_burst, mow_swing, scythe_diag, dance_cut, mara_curse (pixellab_src/vfx/ids.json). Grafika: assets/weapons/scythe.png
 ## (tools/scythe_art.py).
 ## - „Żniwo” (`s_reap`, zwykły atak): szeroki zamach łukiem REAP_ARC przed postacią; 5. poziom - co trzeci zamach to
 ##   pełny obrót, 10. - zamach zostawia na chwilę smugę Nawii, która rani (`_trails`); kamień unikalny (Żniwiarza) -
@@ -157,17 +157,21 @@ const DIAG_FPS := 16.0
 const DIAG_ANCHOR := Vector2(-8, 30)
 ## Promień półksiężyca na arkuszu (środek okręgu poza klatką, środek łuku w prawo).
 const DIAG_RADIUS := 44.0
-## Okręgi cięć Tańca (jak Violation z BDO - zrzuty autora 21.11.2026): grube białe szkliste, fioletowe i czarne cięcia po
-## łuku na wysokości pasa-głowy, rysują się i gasną w miejscu; każdy okrąg to dwa arkusze - tylna połowa (za postacią,
-## WHIRL_S_FX) i przednia (przed nią, WHIRL_FRONT_FX), żeby wir otaczał postać, a nie leżał na podłodze. Gra stawia je co
-## DANCE_RING_EVERY s w stopach postaci (w świecie) - za idącą postacią zostaje ślad. Promień na arkuszu WHIRL_S_RADIUS.
-const WHIRL_S_FX := preload("res://assets/effects/scythe_whirl.png")
-const WHIRL_FRONT_FX := preload("res://assets/effects/scythe_whirl_front.png")
-const WHIRL_S_FRAMES := 12
-const WHIRL_S_FPS := 16.0
-const WHIRL_S_ANCHOR := Vector2(70, 80)
-const WHIRL_S_RADIUS := 54.0
-const DANCE_RING_EVERY := 0.14
+## Okręgi cięć Tańca (jak Violation z BDO - zrzuty autora 21.11.2026), składane w grze z półksiężyców cięć (prośba
+## autora: „skleić efekt z efektów jak ten”): co DANCE_RING_EVERY s wokół postaci pojawia się DANCE_CUTS półksiężyców
+## (scythe_diag albo smuklejszy dance_cut) pod losowym kątem, na losowej wysokości (DANCE_CUT_HEIGHT), spłaszczonych
+## w perspektywie (DANCE_CUT_SQUASH, lekko przechylonych) - razem układają się w okręgi wokół postaci; te z przodu
+## rysują się przed postacią, te z tyłu za nią. Zostają w miejscu i gasną - za idącą postacią zostaje ślad.
+const DANCE_CUT_FX := preload("res://assets/effects/dance_cut.png")
+const DANCE_CUT_FRAMES := 12
+const DANCE_CUT_FPS := 16.0
+const DANCE_CUT_ANCHOR := Vector2(65, 65)
+const DANCE_CUT_RADIUS := 50.0
+const DANCE_RING_EVERY := 0.1
+const DANCE_CUTS := 2
+const DANCE_CUT_HEIGHT := Vector2(8.0, 30.0)
+const DANCE_CUT_SQUASH := Vector2(0.3, 0.45)
+const DANCE_CUT_TILT := 0.22
 ## Kamień Wirującego Ostrza: czas lotu, prędkość, siła trafienia, zasięg szukania kolejnego wroga, wybuch.
 const BLADE_TIME := 3.0
 const BLADE_SPEED := 230.0
@@ -818,15 +822,10 @@ func _process_dance(delta: float) -> void:
 			if t.global_position.distance_to(hero.global_position) <= radius + 4.0:
 				_hit(t, _power("s_dance") * DANCE_SPIN_POWER, hero.global_position, "s_dance")
 	_ring_t -= delta
-	if _ring_t <= 0.0 and not Fx.crowded(WHIRL_S_FX, 24):  # okręgi cięć zostają w miejscu - ślad za postacią
+	if _ring_t <= 0.0 and not Fx.crowded(DANCE_CUT_FX, 30):  # półksiężyce cięć wokół postaci - ślad za nią
 		_ring_t = DANCE_RING_EVERY
-		var size := _fx_scale(maxf(radius / WHIRL_S_RADIUS, 1.0))
-		var flip := randf() < 0.5  # na przemian w drugą stronę - smugi się krzyżują
-		for half in [[WHIRL_S_FX, -1], [WHIRL_FRONT_FX, 2]]:  # tylna połowa za postacią, przednia przed nią
-			var ring := Fx.once(get_parent(), half[0], WHIRL_S_FRAMES, WHIRL_S_FPS, hero.global_position.round(),
-					WHIRL_S_ANCHOR, half[1], size)
-			if flip:
-				ring.scale.x = -ring.scale.x
+		for i in DANCE_CUTS:
+			_dance_cut(radius)
 	if _state == "dance" and _dance_t >= _dance_time:
 		if _dance_queued:
 			_dance_queued = false
@@ -838,6 +837,31 @@ func _process_dance(delta: float) -> void:
 			_set_state("dance_wait")
 	elif _state == "dance_wait" and _t >= DANCE_WINDOW:
 		_dance_slash()
+
+
+## Jeden półksiężyc cięcia Tańca: węzeł spłaszczony i lekko przechylony (perspektywa okręgu wokół postaci), w nim efekt
+## obrócony pod losowym kątem; z przodu (dolna połowa okręgu) przed postacią, z tyłu za nią. Znika razem z efektem.
+func _dance_cut(radius: float) -> void:
+	var holder := Node2D.new()
+	holder.scale = Vector2(1.0, randf_range(DANCE_CUT_SQUASH.x, DANCE_CUT_SQUASH.y))
+	holder.rotation = randf_range(-DANCE_CUT_TILT, DANCE_CUT_TILT)
+	var a := randf() * TAU
+	holder.z_index = 2 if sin(a) > 0.0 else -1
+	get_parent().add_child(holder)
+	holder.global_position = (hero.global_position + Vector2(0, -randf_range(DANCE_CUT_HEIGHT.x, DANCE_CUT_HEIGHT.y))).round()
+	var thin := randf() < 0.55
+	var r := radius * randf_range(0.85, 1.15)
+	var fx: Sprite2D
+	if thin:
+		fx = Fx.once(holder, DANCE_CUT_FX, DANCE_CUT_FRAMES, DANCE_CUT_FPS, holder.global_position, DANCE_CUT_ANCHOR, 0,
+				_fx_scale(r / DANCE_CUT_RADIUS))
+	else:
+		fx = Fx.once(holder, DIAG_FX, DIAG_FRAMES, DIAG_FPS, holder.global_position, DIAG_ANCHOR, 0,
+				_fx_scale(r / DIAG_RADIUS))
+	fx.rotation = a
+	if randf() < 0.5:
+		fx.scale.y = -fx.scale.y  # cięcie w drugą stronę
+	fx.tree_exited.connect(holder.queue_free)
 
 
 ## Końcowe cięcie po skosie: rani w łuku przed postacią i odpycha; 10. poziom - smuga; kamień unikalny - wirujące ostrze.
