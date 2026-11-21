@@ -42,6 +42,10 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   promień, kierunek), kolejne cięcia na kolejnych okręgach, kąt +2,4 rad co cięcie. Obszar umiejętności „nie działał”
   na wygląd - ogólny limit skali efektów 1,25 zatrzymywał wir; cięcia Tańca rosną teraz do x2 (`DANCE_CUT_MAX_SCALE`),
   test to sprawdza (obrażenia rosły z obszarem i wcześniej).
+- Pokos (uwagi autora): zamach i wybuchy rosną z obszarem do x2 (`MOW_MAX_SCALE`); wybuchy kamienia nie dochodziły do
+  lewej krawędzi - ogólny limit 16 efektów wybuchu naraz pomijał ostatnie (lewe), teraz własny limit `MOW_BLAST_CAP` 80;
+  więcej rzędów - co 18 px długości stożka (`mow_row_count`, pełne ładowanie: 5, z obszarem więcej), od krawędzi do
+  krawędzi (95% pół-kąta), kolejny rząd co 0,1 s.
 
 ## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
 

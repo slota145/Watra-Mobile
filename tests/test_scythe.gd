@@ -250,6 +250,14 @@ func _test_unique(game: Node) -> void:
 	scythe._mow_rows(hero.global_position, 0.0, scythe._mow_shape(1.0), 1.0)
 	var first: Array = scythe._mow_blasts.filter(func(b: Dictionary) -> bool: return b.row == 0)
 	_check(first.size() >= 3 and first[0].at.y > first[-1].at.y, "pierwszy rząd od prawej (dół ekranu przy celowaniu w prawo) do lewej")
+	var shape: Vector3 = scythe._mow_shape(1.0)
+	var rows: Array = []
+	for b in scythe._mow_blasts:
+		if not rows.has(b.row):
+			rows.append(b.row)
+	var edge := first.map(func(b: Dictionary) -> float: return absf(angle_difference(0.0, (b.at - hero.global_position).angle())))
+	_check(rows.size() >= 5 and rows.size() == ProtoScythe.mow_row_count(shape) and edge.max() > shape.z * 0.9,
+			"pełne ładowanie: %d rzędów, wybuchy do krawędzi stożka" % rows.size())
 	var n: int = scythe._mow_blasts.size()
 	await _wait(1.0)
 	_check(scythe.mow_blasts_done >= n and scythe._mow_blasts.is_empty(), "wszystkie wybuchy rzędów (%d)" % n)
