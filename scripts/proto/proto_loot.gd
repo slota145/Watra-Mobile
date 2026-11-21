@@ -12,6 +12,12 @@ extends Node2D
 ## jej poziom (`Game.add_aura`, napis nad postacią), świeci jak rzadki; talizman ({"talisman": id}, Talismans) - tak samo
 ## (`Game.add_talisman`); runa ({"rune": id}, Runes) trafia do zapasu run (`Game.add_rune`); nazwę, kolor i ikonę
 ## każdego łupu dają `name_of`, `color_of`, `icon_of`.
+## Pokaz łupu (krok 4 przebudowy przedmiotów, ankieta autora 21.11.2026): słupy światła rosnąco według rzadkości
+## (BEAMS: rzadki niski, legendarny i unikat wysokie z iskrami, unikat pulsuje; anielski - jasny słup z aureolą),
+## błysk i migająca gwiazdka przy premii ponad widełki, dźwięki z Watry (DROP_SOUNDS, PICKUP_SOUNDS), zielona strzałka
+## „lepszy” nad przedmiotem silniejszym od założonego (Items.is_upgrade). Legenda i unikat: napis na środku ekranu
+## i wibracja (grupa ANNOUNCE - arena `announce_loot`) oraz strzałka przy krawędzi ekranu, gdy leżą poza kadrem
+## (grupa GoalArrows.GROUP: `goal_active`, `goal_icon`, `goal_color`).
 
 signal picked(item: Dictionary)
 ## Przedmiot rozbity od razu: auto rozbijanie zwykłych albo pełna torba (`bag_full`, łup ze skrzyni);
@@ -25,6 +31,15 @@ const ICON_SCALE := 0.32
 const SOUND := preload("res://assets/watra/handleSmallLeather.ogg")
 const SOUND_RARE := preload("res://assets/watra/glass_002.ogg")
 const DROP_SOUND := preload("res://assets/watra/dropLeather.ogg")
+const LEGEND_DROP := preload("res://assets/watra/legendary_drop.ogg")
+const LEGEND_PICKUP := preload("res://assets/watra/legendary_pickup.ogg")
+const UNIQUE_JINGLE := preload("res://assets/watra/jingles_PIZZI01.ogg")
+## Grupa, której węzeł (arena) dostaje `announce_loot(item)` przy wypadnięciu legendy albo unikatu.
+const ANNOUNCE := "loot_announce"
+## Słupy światła: wysokość, szerokość, iskry, pulsowanie.
+const BEAMS := {"rare": [34.0, 6.0, false, false], "legendary": [70.0, 8.0, true, false], "unique": [76.0, 9.0, true, true]}
+const ARROW_COLOR := Color(0.45, 1.0, 0.45)
+const VIBRATE_MS := 90
 
 var hero: ProtoHero
 var item: Dictionary = {}
@@ -44,6 +59,11 @@ var _taken := false
 ## Po nieudanym podniesieniu (pełna torba) czeka, aż postać się oddali.
 var _blocked := false
 var _game: Node
+## Strzałka przy krawędzi ekranu (GoalArrows) - tylko legenda i unikat.
+var goal_icon: Texture2D
+var goal_color := Color.WHITE
+var _better := false
+var _arrow: _Arrow
 
 
 ## Nazwa łupu (przedmiot albo kamień).
@@ -93,17 +113,31 @@ func _ready() -> void:
 	var color := color_of(item)
 	_glow = Sprite2D.new()
 	_glow.texture = ProtoWatra._glow_texture()
-	_glow.scale = Vector2.ONE * (0.3 if _rarity() == "common" else 0.45)
+	_glow.scale = Vector2.ONE * (0.3 if _rarity() == "common" else (0.5 if _rarity() == "magic" else 0.45))
 	_glow.modulate = Color(color, 0.35 if _rarity() == "common" else 0.6)
 	var add := CanvasItemMaterial.new()
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	_glow.material = add
 	add_child(_glow)
-	if _rarity() in ["rare", "legendary", "unique"]:
+	var angelic := _is_item() and Items.is_angelic(item)
+	if BEAMS.has(_rarity()) or angelic:
 		var beam := _Beam.new()
-		if _rarity() in ["legendary", "unique"]:
+		var look: Array = BEAMS.get(_rarity(), BEAMS.rare)
+		if angelic:
+			look = BEAMS.legendary.duplicate()
+			beam.color = Items.ANGELIC_COLOR
+			beam.halo = true
+		elif _rarity() in ["legendary", "unique"]:
 			beam.color = Items.RARITY_COLORS[_rarity()]
+		beam.height = look[0]
+		beam.width = look[1]
+		beam.sparks = look[2]
+		beam.pulse = look[3]
 		add_child(beam)
+	if _is_item() and Items.has_above(item):
+		var star := _Star.new()
+		star.color = Items.ANGELIC_COLOR if angelic else Items.ABOVE_COLOR
+		add_child(star)
 	_sprite = Sprite2D.new()
 	_sprite.texture = icon_of(item)
 	_sprite.scale = Vector2.ONE * (0.6 if item.has("aura") else ICON_SCALE * (0.75 if item.has("gem") or item.has("rune") else 1.0))
@@ -114,6 +148,53 @@ func _ready() -> void:
 	tween.tween_property(self, "position", land, 0.4).set_ease(Tween.EASE_OUT)
 	tween.tween_property(_sprite, "position:y", -7.0, 0.4).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BOUNCE)
 	_play(DROP_SOUND, -10.0)
+	_show_off()
+
+
+## Przedmiot (nie kamień, runa, aura ani talizman).
+func _is_item() -> bool:
+	return item.has("rarity") and item.has("slot")
+
+
+## Pokaz łupu przy wypadnięciu: dźwięk rzadkości, strzałka „lepszy”, przy legendzie i unikacie napis, wibracja
+## i strzałka przy krawędzi ekranu.
+func _show_off() -> void:
+	if not _is_item():
+		return
+	var r: String = item.rarity
+	if r == "rare":
+		_play(SOUND_RARE, -12.0, 1.35)
+	elif r in ["legendary", "unique"]:
+		_play(LEGEND_DROP, -4.0, 1.0)
+		if r == "unique":
+			_play(UNIQUE_JINGLE, -8.0, 1.0)
+		goal_icon = icon_of(item)
+		goal_color = Items.color_of(item)
+		add_to_group(GoalArrows.GROUP)
+		get_tree().call_group(ANNOUNCE, "announce_loot", item)
+		Input.vibrate_handheld(VIBRATE_MS)
+	refresh_better()
+	_game.inventory_changed.connect(refresh_better)  # założony inny przedmiot - strzałka od nowa
+
+
+## Strzałka „lepszy”: przedmiot silniejszy od założonego w tym miejscu (Items.is_upgrade; puste miejsce - zawsze).
+func refresh_better() -> void:
+	_better = _is_item() and not _taken and Items.is_upgrade(item, _game.equipped.get(item.slot, {}))
+	if _better and _arrow == null:
+		_arrow = _Arrow.new()
+		add_child(_arrow)
+	if _arrow:
+		_arrow.visible = _better
+
+
+## Czy strzałka „lepszy” jest pokazana (testy).
+func is_better() -> bool:
+	return _better
+
+
+## Strzałka przy krawędzi ekranu (GoalArrows): póki leży.
+func goal_active() -> bool:
+	return not _taken
 
 
 func _process(delta: float) -> void:
@@ -179,8 +260,11 @@ func _take() -> void:
 		scrapped.emit(item, got, bag_full)
 	else:
 		picked.emit(item)
-	_play(SOUND_RARE if _rarity() in ["rare", "legendary", "unique"] or item.has("gem") or item.has("aura") or item.has("talisman") \
-			or item.has("rune") else SOUND, -6.0)
+	if _is_item() and item.rarity in ["legendary", "unique"]:
+		_play(LEGEND_PICKUP, -4.0, 1.0)
+	else:
+		_play(SOUND_RARE if _rarity() in ["rare", "legendary", "unique"] or item.has("gem") or item.has("aura") \
+				or item.has("talisman") or item.has("rune") else SOUND, -6.0)
 	for c in get_children():
 		if c is CanvasItem:
 			c.visible = false
@@ -217,20 +301,28 @@ func _float_text(text: String, color: Color) -> void:
 	tween.tween_callback(label.queue_free)
 
 
-func _play(stream: AudioStream, volume: float) -> void:
+## Dźwięk przy przedmiocie (`pitch` < 0 - lekko losowa wysokość, inaczej ta).
+func _play(stream: AudioStream, volume: float, pitch := -1.0) -> void:
 	var audio := AudioStreamPlayer.new()
 	audio.stream = stream
 	audio.volume_db = volume
-	audio.pitch_scale = randf_range(0.95, 1.1)
+	audio.pitch_scale = randf_range(0.95, 1.1) if pitch < 0.0 else pitch
 	add_child(audio)
 	audio.play()
 	audio.finished.connect(audio.queue_free)
 
 
-## Słup złotego światła nad rzadkim przedmiotem (rysowany w kodzie).
+## Słup światła nad przedmiotem (rysowany w kodzie): wysokość i szerokość według rzadkości, iskry unoszące się
+## w słupie (legenda, unikat), wolne pulsowanie (unikat), aureola u podstawy (anielski).
 class _Beam extends Node2D:
+	const SPARKS := 6
 	var color := Color(1.0, 0.85, 0.35)
-	var _t := 0.0
+	var height := 34.0
+	var width := 6.0
+	var sparks := false
+	var pulse := false
+	var halo := false
+	var _t := randf() * 5.0
 
 	func _process(delta: float) -> void:
 		_t += delta
@@ -238,6 +330,56 @@ class _Beam extends Node2D:
 
 	func _draw() -> void:
 		var a := 0.5 + 0.2 * sin(_t * 4.0)
+		var grow := 1.0 + (0.18 * sin(_t * 2.0) if pulse else 0.0)
 		for i in 3:
-			var w := 8.0 - i * 2.5
-			draw_rect(Rect2(-w / 2.0, -60.0, w, 56.0), Color(color, 0.22 * a))
+			var w := (width - i * width * 0.3) * grow
+			draw_rect(Rect2(-w / 2.0, -height - 4.0, w, height), Color(color, 0.22 * a))
+		if halo:
+			draw_arc(Vector2(0, -2), 9.0 + sin(_t * 3.0), 0.0, TAU, 24, Color(color, 0.5 * a), 1.0)
+		if sparks:
+			for i in SPARKS:
+				var f := fmod(_t * 0.45 + float(i) / SPARKS, 1.0)  # 0 - u podstawy, 1 - na górze
+				var x := sin(_t * 2.0 + i * 1.7) * width * 0.6
+				draw_rect(Rect2(x - 0.5, -4.0 - f * height, 1.0, 1.0), Color(color.lightened(0.5), 1.0 - f))
+
+
+## Gwiazdka nad przedmiotem z premią ponad widełki: błysk przy wypadnięciu, potem co chwilę mignięcie.
+class _Star extends Node2D:
+	const EVERY := 1.6
+	var color := Color(0.75, 1.0, 1.0)
+	var _t := 0.0
+
+	func _process(delta: float) -> void:
+		_t += delta
+		queue_redraw()
+
+	func _draw() -> void:
+		var s := 0.0
+		if _t < 0.5:
+			s = 1.6 * (1.0 - _t / 0.5) + 0.4  # błysk przy wypadnięciu
+		else:
+			var k := fmod(_t, EVERY) / 0.35
+			s = sin(k * PI) if k < 1.0 else 0.0
+		if s <= 0.01:
+			return
+		var c := Vector2(6, -16)
+		var r := 4.0 * s
+		draw_line(c - Vector2(r, 0), c + Vector2(r, 0), Color(color, 0.9), 1.0)
+		draw_line(c - Vector2(0, r), c + Vector2(0, r), Color(color, 0.9), 1.0)
+		draw_rect(Rect2(c - Vector2(0.5, 0.5), Vector2(1, 1)), Color.WHITE)
+
+
+## Zielona strzałka „lepszy” nad przedmiotem (lekko podskakuje).
+class _Arrow extends Node2D:
+	var _t := 0.0
+
+	func _process(delta: float) -> void:
+		_t += delta
+		position.y = -22.0 - 1.5 * sin(_t * 5.0)
+		queue_redraw()
+
+	func _draw() -> void:
+		var pts := PackedVector2Array([Vector2(0, -4), Vector2(4, 1), Vector2(1.5, 1), Vector2(1.5, 4),
+				Vector2(-1.5, 4), Vector2(-1.5, 1), Vector2(-4, 1)])
+		draw_colored_polygon(pts, ProtoLoot.ARROW_COLOR)
+		draw_polyline(pts + PackedVector2Array([pts[0]]), Color(0.05, 0.2, 0.05), 1.0)

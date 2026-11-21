@@ -186,6 +186,7 @@ var _time := 0.0
 
 
 func _ready() -> void:
+	add_to_group(ProtoLoot.ANNOUNCE)
 	if horde:
 		level = Game.dungeon_level
 		climate = Dungeons.for_level(level)
@@ -1270,6 +1271,12 @@ func _on_crystal_defended(at: Vector2, health: float) -> void:
 
 
 ## Napis na środku ekranu (nad postacią) na chwilę: pojawienie się celu, dar kapliczki.
+## Pokaz łupu: legenda albo unikat wypadł (ProtoLoot.ANNOUNCE) - napis na środku ekranu.
+func announce_loot(item: Dictionary) -> void:
+	var text := tr("Unikat: %s!") if Items.is_unique(item) else tr("Legendarny: %s!")
+	announce(text % Items.name_of(item), Items.color_of(item))
+
+
 func announce(text: String, color: Color) -> void:
 	if banner == null:
 		return
