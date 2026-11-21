@@ -13,7 +13,8 @@ extends ProtoWeapon
 ##   ciemne cięcia po łuku zostają - wygięte na zewnątrz i dłuższe niż bok, krzyżują się w rogach; prośba autora
 ##   21.11.2026), po chwili każdy bok wybucha na zewnątrz (rani i odpycha wrogów za bokiem); 5. - wybuch
 ##   o SQUARE_PERK_AREA szerszy, 10. - wybuch dwa razy; kamień unikalny (Czterech Stron) - 3 widmowe kosy więcej:
-##   4 takie kwadraty 2x2 dookoła postaci, oddalone od siebie (`_squares`).
+##   4 takie kwadraty po czterech stronach postaci, oddalone od siebie
+##   i obrócone o 45° - rogiem do postaci (prośba autora 21.11.2026; `_squares`).
 ## - „Pokos” (`s_mow`, ładowany - Skills.is_charged): dopóki palec trzyma przycisk, na ziemi rośnie stożek ze ściętym
 ##   czubkiem (większy zasięg i obrażenia im dłużej), po puszczeniu kosa kosi cały stożek; 5. - ładuje się o 1/3
 ##   szybciej, 10. - pełne naładowanie ogłusza; kamień unikalny (Rzędów Nawii) - po cięciu w stożku wybucha Nawia
@@ -79,11 +80,12 @@ const WAVE_POWER := 1.0
 ## za bokiem (5. poziom - szerzej), siła i odepchnięcie, drugi wybuch z 10. (po ilu s, siła).
 const SQUARE_HALF := 38.0
 ## Cięcie boku po łuku: o tyle (część boku) dłuższe z każdej strony - krzyżuje się z sąsiednim w rogu, wygięcie na
-## zewnątrz, czas rysowania; kamień unikalny - środki kwadratów o tyle połówek boku od postaci (między nimi odstęp).
+## zewnątrz, czas rysowania; kamień unikalny - środki kwadratów o tyle połówek boku od postaci (rogiem do postaci,
+## między nimi odstęp).
 const SQUARE_ARC_EXT := 0.24
 const SQUARE_ARC_SAG := 0.16
 const SQUARE_ARC_DRAW := 0.07
-const SQUARE_SPREAD := 1.5
+const SQUARE_SPREAD := 2.6
 const SQUARE_CUT_EVERY := 0.07
 const SQUARE_CUT_POWER := 0.45
 const SQUARE_CUT_WIDTH := 9.0
@@ -362,10 +364,12 @@ func _end_skill() -> void:
 func _cast_square() -> void:
 	var half := SQUARE_HALF * _area("s_square")
 	var centers: Array = [hero.global_position]
-	if _unique("s_square"):  # 4 kwadraty 2x2 dookoła postaci, z odstępami między nimi
+	var rot := 0.0
+	if _unique("s_square"):  # 4 kwadraty po czterech stronach, obrócone rogiem do postaci, z odstępami
 		centers = []
-		for off in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
-			centers.append(hero.global_position + off * half * SQUARE_SPREAD)
+		rot = PI / 4.0
+		for i in 4:
+			centers.append(hero.global_position + Vector2.from_angle(-PI / 2.0 + i * PI / 2.0) * half * SQUARE_SPREAD)
 	for c in centers:
 		var ghost: Sprite2D = null
 		if centers.size() > 1:  # widmowa kosa wiruje nad każdym kwadratem
@@ -378,25 +382,26 @@ func _cast_square() -> void:
 			ghost.z_index = 6
 			get_parent().add_child(ghost)
 			ghost.global_position = c + Vector2(0, -ORBIT_HEIGHT)
-		_squares.append({"center": c, "half": half, "t": 0.0, "cuts": 0, "bursts": 0, "lines": [], "draw": [], "ghost": ghost,
+		_squares.append({"center": c, "half": half, "t": 0.0, "cuts": 0, "bursts": 0, "lines": [], "draw": [], "ghost": ghost, "rot": rot,
 				"area": SQUARE_PERK_AREA if _perk("s_square", 0) else 1.0, "power": _power("s_square"),
 				"twice": _perk("s_square", 1)})
 	Input.vibrate_handheld(15)
 
 
-## Boki kwadratu: [początek, koniec, kierunek na zewnątrz] (zgodnie z zegarem od lewego górnego rogu).
-static func square_sides(center: Vector2, half: float) -> Array:
-	var tl := center + Vector2(-half, -half)
-	var tr_ := center + Vector2(half, -half)
-	var br := center + Vector2(half, half)
-	var bl := center + Vector2(-half, half)
-	return [[tl, tr_, Vector2.UP], [tr_, br, Vector2.RIGHT], [br, bl, Vector2.DOWN], [bl, tl, Vector2.LEFT]]
+## Boki kwadratu obróconego o `rot`: [początek, koniec, kierunek na zewnątrz] (zgodnie z zegarem od lewego górnego rogu).
+static func square_sides(center: Vector2, half: float, rot := 0.0) -> Array:
+	var tl := center + Vector2(-half, -half).rotated(rot)
+	var tr_ := center + Vector2(half, -half).rotated(rot)
+	var br := center + Vector2(half, half).rotated(rot)
+	var bl := center + Vector2(-half, half).rotated(rot)
+	return [[tl, tr_, Vector2.UP.rotated(rot)], [tr_, br, Vector2.RIGHT.rotated(rot)], [br, bl, Vector2.DOWN.rotated(rot)],
+			[bl, tl, Vector2.LEFT.rotated(rot)]]
 
 
 func _process_squares(delta: float) -> void:
 	for sq in _squares.duplicate():
 		sq.t += delta
-		var sides := square_sides(sq.center, sq.half)
+		var sides := square_sides(sq.center, sq.half, sq.rot)
 		if sq.ghost:
 			sq.ghost.rotation += delta * 18.0
 		while sq.cuts < 4 and sq.t >= sq.cuts * SQUARE_CUT_EVERY:

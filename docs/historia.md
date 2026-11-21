@@ -21,7 +21,8 @@ Pomysły i ustalenia autora (21.11.2026; ROADMAP „Mroczna kosa”). Krok 2: Ta
     łuki wygięte na zewnątrz i o 24% dłuższe niż bok krzyżują się w rogach - `square_arc`, czarny półksiężyc z białą
     krawędzią i błyskiem, zostaje do wybuchu),
     po 0,45 s każdy bok wybucha na zewnątrz (36 px, 130%, odepchnięcie); 5. - wybuch +30%, 10. - drugi wybuch po 0,35 s;
-    Kamień Czterech Stron - 4 kwadraty 2x2 z widmowymi kosami, oddalone od siebie (środki o 1,5 połowy boku od postaci).
+    Kamień Czterech Stron - 4 kwadraty z widmowymi kosami po czterech stronach postaci, obrócone o 45° rogiem do niej
+    i oddalone od siebie (prośba autora; środki o 2,6 połowy boku od postaci, najbliższy róg ok. 45 px).
   - **Pokos** (`s_mow`, mistrzostwo 10, ładowany): stożek ze ściętym czubkiem na ziemi (`cone_points`; zasięg 55-120 px,
     pół-kąt 32-55°, siła 90-200%, pełne w 1,4 s); 5. - ładuje się o 1/3 szybciej, 10. - pełne ładowanie ogłusza 1 s;
     Kamień Rzędów Nawii - 3 rzędy wybuchów, każdy od prawej do lewej względem postaci (`_mow_rows`).

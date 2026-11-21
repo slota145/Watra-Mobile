@@ -237,8 +237,13 @@ func _test_unique(game: Node) -> void:
 			"Kamień Czterech Stron: 4 kwadraty, widmowe kosy")
 	var centers: Array = scythe._squares.map(func(s: Dictionary) -> Vector2: return s.center - hero.global_position)
 	var off: float = scythe._squares[0].half * ProtoScythe.SQUARE_SPREAD
-	_check(centers.has(Vector2(-1, -1) * off) and centers.has(Vector2(1, 1) * off) and off > scythe._squares[0].half,
-			"kwadraty 2x2 dookoła postaci, oddalone od siebie")
+	var near_corner: float = INF
+	for sq in scythe._squares:
+		for side in ProtoScythe.square_sides(sq.center, sq.half, sq.rot):
+			near_corner = minf(near_corner, (side[0] as Vector2).distance_to(hero.global_position))
+	_check(centers.any(func(c: Vector2) -> bool: return c.is_equal_approx(Vector2(0, -off))) and is_equal_approx(scythe._squares[0].rot, PI / 4.0)
+			and absf(near_corner - (off - scythe._squares[0].half * sqrt(2.0))) < 0.5 and near_corner > 20.0,
+			"kwadraty po 4 stronach, rogiem do postaci, oddalone (najbliższy róg %d px)" % near_corner)
 	await _wait(1.0)
 	# Rzędy Nawii: rzędy wybuchów, każdy od prawej do lewej
 	scythe._mow_rows(hero.global_position, 0.0, scythe._mow_shape(1.0), 1.0)
