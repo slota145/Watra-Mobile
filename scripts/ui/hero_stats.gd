@@ -80,6 +80,11 @@ var _bulk_armed := ""
 var _sel_index := -1
 var _sel_slot := ""
 var _sell_armed := false
+## Unikat: gwiazdki poziomu w opisie, esencje i „Ulepsz” (drugie stuknięcie potwierdza).
+var detail_stars: UniqueStars
+var essence_label: Label
+var upgrade_button: Button
+var _upgrade_armed := false
 var _title: Label
 var _xp_label: Label
 var _grid: GridContainer
@@ -694,6 +699,9 @@ func _make_detail() -> void:
 	head.add_child(names)
 	detail_name = _label(names, "", 17, GOLD)
 	_detail_kind = _label(names, "", 11, DIM)
+	detail_stars = UniqueStars.new()
+	detail_stars.star = 11.0
+	names.add_child(detail_stars)
 	detail_lines = VBoxContainer.new()
 	detail_lines.add_theme_constant_override("separation", 1)
 	col.add_child(detail_lines)
@@ -702,6 +710,12 @@ func _make_detail() -> void:
 	col.add_child(socket_row)
 	gem_hint = _label(col, "", 11, DIM)
 	gem_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	essence_label = _label(col, "", 12, Items.RARITY_COLORS.unique)
+	essence_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	upgrade_button = _detail_button(col, "")
+	upgrade_button.custom_minimum_size.y = 44
+	upgrade_button.add_theme_color_override("font_color", Items.RARITY_COLORS.unique.lightened(0.2))
+	upgrade_button.pressed.connect(_on_upgrade_unique)
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", 6)
 	col.add_child(buttons)
@@ -846,8 +860,8 @@ func _show_detail(item: Dictionary, in_bag: bool) -> void:
 	for line in Items.base_lines(item):
 		_label(detail_lines, line, 13, TEXT)
 	var lines := Items.affix_lines(item)
-	for i in lines.size():
-		_label(detail_lines, lines[i], 13, Items.line_color(item, i))
+	for i in lines.size():  # długie opisy działania unikatów się zawijają (panel nie wychodzi za ekran)
+		_label(detail_lines, lines[i], 13, Items.line_color(item, i)).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_label(detail_lines, Items.potential_line(item), 12, Color(0.75, 0.68, 0.55))
 	var sockets: Array = item.get("sockets", [])
 	var socket_texts := Items.socket_lines(item)
@@ -869,6 +883,7 @@ func _show_detail(item: Dictionary, in_bag: bool) -> void:
 	equip_button.disabled = not in_bag and _game.bag.size() >= _game.BAG_SIZE
 	sell_button.visible = in_bag
 	sell_button.text = tr("Rozbij: %d") % _game.ore_gain(Items.ore_value(item))
+	_show_unique(item)
 	_show_sockets(item)
 	detail.visible = true
 
@@ -919,6 +934,42 @@ func _on_sell() -> void:
 	_game.dismantle(_sel_index)
 	_play_coins()
 	_hide_detail()
+
+
+## Unikat w opisie: gwiazdki poziomu, esencje (ile ma postać i ile da rozbicie) i przycisk „Ulepsz”.
+func _show_unique(item: Dictionary) -> void:
+	var unique := Items.is_unique(item)
+	detail_stars.visible = unique
+	essence_label.visible = unique
+	upgrade_button.visible = unique
+	_upgrade_armed = false
+	if not unique:
+		return
+	var level := Items.unique_level(item)
+	detail_stars.level = level
+	var have := int(_game.essences.get(item.unique, 0))
+	essence_label.text = tr("Poziom unikatu %d/%d · esencje: %d (rozbicie da %d)") \
+			% [level, Items.UNIQUE_MAX_LEVEL, have, 1 + Items.essences_in(item)]
+	var cost := Items.essence_cost(level)
+	upgrade_button.disabled = _game.unique_problem(item) != ""
+	if cost == 0:
+		upgrade_button.text = tr("Najwyższy poziom unikatu")
+	else:
+		upgrade_button.text = Lang.n(cost, "Ulepsz: %d esencja", "Ulepsz: %d esencje", "Ulepsz: %d esencji") % cost
+
+
+## „Ulepsz” unikat: pierwsze stuknięcie pyta, drugie wydaje esencje i podnosi poziom.
+func _on_upgrade_unique() -> void:
+	var item := _sel_item()
+	if item.is_empty() or _game.unique_problem(item) != "":
+		return
+	if not _upgrade_armed:
+		_upgrade_armed = true
+		upgrade_button.text = tr("Na pewno?")
+		return
+	_game.upgrade_unique(item)
+	_play_coins()
+	_redetail()
 
 
 func _hide_detail() -> void:
@@ -1145,6 +1196,15 @@ func _show_item(b: Button, item: Dictionary, slot: String) -> void:
 			fire.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			b.add_child(fire)
 		fire.visible = not item.is_empty() and LootFilter.burns(_game, item)
+	var stars := b.get_node_or_null("Stars") as UniqueStars  # poziom unikatu ponad 1.
+	if stars == null:
+		stars = UniqueStars.new()
+		stars.name = "Stars"
+		stars.compact = true
+		stars.star = 8.0
+		stars.position = Vector2(3, SLOT_SIZE - 11)
+		b.add_child(stars)
+	stars.level = Items.unique_level(item) if Items.is_unique(item) else 1
 	if item.is_empty():
 		b.icon = Items.slot_icon(slot) if slot != "" else null
 		b.modulate = Color(1, 1, 1, 0.55) if slot != "" else Color.WHITE

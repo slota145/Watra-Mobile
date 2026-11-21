@@ -170,6 +170,9 @@ var auto_attack := false
 ## Dawny przełącznik „rozbijaj zwykłe od razu” (do 21.11.2026) - czytany tylko raz, żeby ustawić filtr łupu postaci
 ## bez zapisanego filtra (`_read_filter`).
 var auto_sell_common := false
+## Esencje unikatów (identyfikator unikatu z Items.UNIQUES -> liczba): z rozbicia unikatu, podnoszą jego poziom
+## (`upgrade_unique`).
+var essences := {}
 ## Filtr łupu postaci (LootFilter - ustawienia, okno LootFilterWindow); zapis postaci, bo każda postać ma inną broń.
 var loot_filter := LootFilter.defaults()
 ## Tryb deweloperski (okno pauzy): nieśmiertelność - zdrowie schodzi, ale zamiast śmierci wraca do pełna.
@@ -379,6 +382,7 @@ func load_game() -> void:
 	talismans = {}
 	talisman_slots = ["", "", ""]
 	_read_filter(null)
+	essences = {}
 	char_name = DEFAULT_NAME
 	ssf = false
 	_read_dev({})
@@ -391,6 +395,11 @@ func load_game() -> void:
 		ssf = bool(data.get("ssf", false))
 		_read_dev(data.get("dev", {}))
 		_read_filter(data.get("loot_filter", null))
+		var raw_ess = data.get("essences", {})
+		if raw_ess is Dictionary:
+			for id in raw_ess:
+				if Items.UNIQUES.has(id) and int(raw_ess[id]) > 0:
+					essences[id] = int(raw_ess[id])
 		if _uses_shared_stash() and FileAccess.file_exists(shared_stash_path):
 			var shared = JSON.parse_string(FileAccess.get_file_as_string(shared_stash_path))
 			if shared is Dictionary:
@@ -562,7 +571,7 @@ func save_game() -> void:
 				"stash": stash, "weapon": weapon, "start_weapon": start_weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes, "market": market,
 				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots,
-				"loot_filter": loot_filter}))
+				"loot_filter": loot_filter, "essences": essences}))
 
 
 ## Czy obecna postać korzysta ze wspólnej skrzyni (postać z listy, nie SSF; zapis testowy - nie).
@@ -657,6 +666,7 @@ func reset_hero() -> void:
 	auras_on = []
 	talismans = {}
 	talisman_slots = ["", "", ""]
+	essences = {}
 	save_game()
 	mastery_changed.emit(mastery_level(), weapon_xp(), mastery_needed())
 	xp_changed.emit(hero_level, hero_xp, xp_needed())
@@ -947,7 +957,35 @@ func _scrap(item: Dictionary) -> Dictionary:
 	if item.rarity in ["rare", "legendary"] and randf() < Items.SCRAP_RUNE * treasury_mult():
 		rune = Runes.POLISH
 		runes[rune] = int(runes.get(rune, 0)) + 1
-	return {"ore": amount, "rune": rune}
+	var essence := 0
+	if Items.is_unique(item):  # esencja tego unikatu i te włożone w jego poziomy
+		essence = 1 + Items.essences_in(item)
+		essences[item.unique] = int(essences.get(item.unique, 0)) + essence
+	return {"ore": amount, "rune": rune, "essence": essence}
+
+
+## Czemu nie da się podnieść poziomu unikatu ("" - da się): "not_unique", "max", "essence" (za mało esencji).
+func unique_problem(item: Dictionary) -> String:
+	if not Items.is_unique(item):
+		return "not_unique"
+	var cost := Items.essence_cost(Items.unique_level(item))
+	if cost == 0:
+		return "max"
+	return "essence" if int(essences.get(item.unique, 0)) < cost else ""
+
+
+## Podnosi poziom unikatu (z torby albo założonego - słownik zmienia się w miejscu) za esencje tego unikatu.
+func upgrade_unique(item: Dictionary) -> bool:
+	if unique_problem(item) != "":
+		return false
+	var level := Items.unique_level(item)
+	essences[item.unique] = int(essences[item.unique]) - Items.essence_cost(level)
+	if essences[item.unique] <= 0:
+		essences.erase(item.unique)
+	item["ulevel"] = level + 1
+	save_game()
+	inventory_changed.emit()
+	return true
 
 
 ## Drzewko lochów - Skarbiec: mnożnik rudy i szans na runy.

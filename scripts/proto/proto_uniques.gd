@@ -153,7 +153,8 @@ func split(t: ProtoTarget, skill: String) -> void:
 		return n != t and n.alive())
 	near.sort_custom(func(a: ProtoTarget, b: ProtoTarget) -> bool:
 		return a.global_position.distance_squared_to(t.global_position) < b.global_position.distance_squared_to(t.global_position))
-	var power := Items.STRZYBOG_POWER * weapon._power(skill) if Skills.DATA.has(skill) else Items.STRZYBOG_POWER
+	var shard_power := Items.strzybog_power(float(worn.get("strzybog", Items.STRZYBOG_BASE)))  # rośnie z poziomem unikatu
+	var power := shard_power * weapon._power(skill) if Skills.DATA.has(skill) else shard_power
 	var world := _hero.get_parent()
 	for i in mini(Items.STRZYBOG_SHARDS, near.size()):
 		var shard := _Shard.new()

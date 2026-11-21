@@ -95,8 +95,8 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
       kolor złoto-brązowy ze słupem światła, szansa 0,2% od lochu 10 rosnąca do 0,5% na lochu 40; później najlepsze
       z bossów szczytowych.
     - **Stare przedmioty:** przeliczone na nowe (najbliższy tier, domyślna baza, pełny potencjał kowalski).
-    - Pomysły Claude do decyzji przy okazji: duplikaty unikatów rozbijane na esencję ulepszającą unikat, nazwa
-      legendy i unikatu nad nim na ziemi (odrzucona na razie 21.11.2026).
+    - ~~Esencja z duplikatów unikatów~~ (zrobiona 21.11.2026 - poziomy unikatów 1-5, `docs/historia.md`; do oceny:
+      +10% na poziom, koszt 1-2-3-4). Nazwa legendy i unikatu nad nim na ziemi - odrzucona na razie 21.11.2026.
     - Kolejność PR: (1) ~~tiery, sufit, widełki, bazy, nowe premie, przeliczenie starych~~ (zrobione 21.11.2026,
       `docs/historia.md`; do oceny na telefonie: wzrost potworów po lochu 40, ceny i szanse T1-T7); (2) ~~legendarne, ponad widełki,
       „Anielski”, Runa Bogów, potencjał kowalski~~ (zrobione 21.11.2026; do oceny: szansa na legendę 0,5-1,5%, koszty
