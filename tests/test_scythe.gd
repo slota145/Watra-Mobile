@@ -158,7 +158,7 @@ func _test_combat(game: Node) -> void:
 	await _wait(1.0)
 	_check(scythe._trails.is_empty(), "smuga gaśnie")
 	# Cięcie Światowida: wróg na boku obrywa od cięcia, wróg za bokiem - od wybuchu i jest odpychany
-	front.position = Vector2(20, -38)  # na górnym boku
+	front.position = Vector2(0, -50)  # na górnym łuku (wygięty na zewnątrz)
 	back.position = Vector2(0, 60)  # za dolnym bokiem
 	await process_frame
 	hero.mana = hero.max_mana
@@ -170,7 +170,7 @@ func _test_combat(game: Node) -> void:
 	_check(scythe._squares.size() == 1, "kwadrat Światowida")
 	await _wait(0.33)
 	_check(front.hp < f_hp and back.hp == b_hp, "cięcia boków ranią stojących na nich, wybuchu jeszcze nie ma")
-	_check(scythe._squares[0].lines.size() == 8, "4 linie cięć zostają do wybuchu")
+	_check(scythe._squares[0].lines.size() == 8, "4 cięcia po łuku zostają do wybuchu")
 	await _wait(0.4)
 	_check(back.hp < b_hp, "bok wybucha na zewnątrz")
 	# 10. poziom: dwa wybuchy
@@ -236,8 +236,9 @@ func _test_unique(game: Node) -> void:
 	_check(scythe._squares.size() == 4 and scythe._squares.all(func(s: Dictionary) -> bool: return s.ghost != null),
 			"Kamień Czterech Stron: 4 kwadraty, widmowe kosy")
 	var centers: Array = scythe._squares.map(func(s: Dictionary) -> Vector2: return s.center - hero.global_position)
-	_check(centers.has(Vector2(-1, -1) * scythe._squares[0].half) and centers.has(Vector2(1, 1) * scythe._squares[0].half),
-			"kwadraty 2x2 dookoła postaci")
+	var off: float = scythe._squares[0].half * ProtoScythe.SQUARE_SPREAD
+	_check(centers.has(Vector2(-1, -1) * off) and centers.has(Vector2(1, 1) * off) and off > scythe._squares[0].half,
+			"kwadraty 2x2 dookoła postaci, oddalone od siebie")
 	await _wait(1.0)
 	# Rzędy Nawii: rzędy wybuchów, każdy od prawej do lewej
 	scythe._mow_rows(hero.global_position, 0.0, scythe._mow_shape(1.0), 1.0)

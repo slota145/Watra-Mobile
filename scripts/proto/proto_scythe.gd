@@ -10,9 +10,10 @@ extends ProtoWeapon
 ##   pełny obrót, 10. - zamach zostawia na chwilę smugę Nawii, która rani (`_trails`); kamień unikalny (Żniwiarza) -
 ##   po REAP_CHARGE trafieniach fala Nawii dookoła (`_reap_wave`).
 ## - „Cięcie Światowida” (`s_square`): 4 cięcia jedno po drugim układają się w kwadrat dookoła postaci (cienkie
-##   ciemne linie zostają), po chwili każdy bok wybucha na zewnątrz (rani i odpycha wrogów za bokiem); 5. - wybuch
+##   ciemne cięcia po łuku zostają - wygięte na zewnątrz i dłuższe niż bok, krzyżują się w rogach; prośba autora
+##   21.11.2026), po chwili każdy bok wybucha na zewnątrz (rani i odpycha wrogów za bokiem); 5. - wybuch
 ##   o SQUARE_PERK_AREA szerszy, 10. - wybuch dwa razy; kamień unikalny (Czterech Stron) - 3 widmowe kosy więcej:
-##   4 takie kwadraty 2x2 dookoła postaci (`_squares`).
+##   4 takie kwadraty 2x2 dookoła postaci, oddalone od siebie (`_squares`).
 ## - „Pokos” (`s_mow`, ładowany - Skills.is_charged): dopóki palec trzyma przycisk, na ziemi rośnie stożek ze ściętym
 ##   czubkiem (większy zasięg i obrażenia im dłużej), po puszczeniu kosa kosi cały stożek; 5. - ładuje się o 1/3
 ##   szybciej, 10. - pełne naładowanie ogłusza; kamień unikalny (Rzędów Nawii) - po cięciu w stożku wybucha Nawia
@@ -77,6 +78,12 @@ const WAVE_POWER := 1.0
 ## Cięcie Światowida: połowa boku kwadratu, co ile kolejne cięcie, siła cięcia, przerwa przed wybuchem, zasięg wybuchu
 ## za bokiem (5. poziom - szerzej), siła i odepchnięcie, drugi wybuch z 10. (po ilu s, siła).
 const SQUARE_HALF := 38.0
+## Cięcie boku po łuku: o tyle (część boku) dłuższe z każdej strony - krzyżuje się z sąsiednim w rogu, wygięcie na
+## zewnątrz, czas rysowania; kamień unikalny - środki kwadratów o tyle połówek boku od postaci (między nimi odstęp).
+const SQUARE_ARC_EXT := 0.24
+const SQUARE_ARC_SAG := 0.16
+const SQUARE_ARC_DRAW := 0.07
+const SQUARE_SPREAD := 1.5
 const SQUARE_CUT_EVERY := 0.07
 const SQUARE_CUT_POWER := 0.45
 const SQUARE_CUT_WIDTH := 9.0
@@ -355,10 +362,10 @@ func _end_skill() -> void:
 func _cast_square() -> void:
 	var half := SQUARE_HALF * _area("s_square")
 	var centers: Array = [hero.global_position]
-	if _unique("s_square"):  # 4 kwadraty 2x2 - razem jeden duży dookoła postaci
+	if _unique("s_square"):  # 4 kwadraty 2x2 dookoła postaci, z odstępami między nimi
 		centers = []
 		for off in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
-			centers.append(hero.global_position + off * half)
+			centers.append(hero.global_position + off * half * SQUARE_SPREAD)
 	for c in centers:
 		var ghost: Sprite2D = null
 		if centers.size() > 1:  # widmowa kosa wiruje nad każdym kwadratem
@@ -371,7 +378,7 @@ func _cast_square() -> void:
 			ghost.z_index = 6
 			get_parent().add_child(ghost)
 			ghost.global_position = c + Vector2(0, -ORBIT_HEIGHT)
-		_squares.append({"center": c, "half": half, "t": 0.0, "cuts": 0, "bursts": 0, "lines": [], "ghost": ghost,
+		_squares.append({"center": c, "half": half, "t": 0.0, "cuts": 0, "bursts": 0, "lines": [], "draw": [], "ghost": ghost,
 				"area": SQUARE_PERK_AREA if _perk("s_square", 0) else 1.0, "power": _power("s_square"),
 				"twice": _perk("s_square", 1)})
 	Input.vibrate_handheld(15)
@@ -395,6 +402,14 @@ func _process_squares(delta: float) -> void:
 		while sq.cuts < 4 and sq.t >= sq.cuts * SQUARE_CUT_EVERY:
 			_square_cut(sq, sides[sq.cuts])
 			sq.cuts += 1
+		for d in sq.draw.duplicate():  # cięcie po łuku rysuje się od początku do końca
+			d.t += delta
+			var k := clampf(d.t / SQUARE_ARC_DRAW, 0.0, 1.0)
+			var n := maxi(2, ceili(k * d.pts.size()))
+			for l in d.lines:
+				(l as Line2D).points = d.pts.slice(0, n)
+			if k >= 1.0:
+				sq.draw.erase(d)
 		var burst_at: float = 4 * SQUARE_CUT_EVERY + SQUARE_BURST_DELAY
 		var bursts: int = 2 if sq.twice else 1
 		while sq.bursts < bursts and sq.t >= burst_at + sq.bursts * SQUARE_SECOND:
@@ -411,34 +426,67 @@ func _process_squares(delta: float) -> void:
 			_squares.erase(sq)
 
 
-## Jedno cięcie boku: efekt prostego cięcia wzdłuż boku, cienka ciemna linia zostaje do wybuchu, trafia stojących na boku.
-func _square_cut(sq: Dictionary, side: Array) -> void:
-	var a: Vector2 = side[0]
-	var b: Vector2 = side[1]
+## Łuk cięcia boku a-b: wygięty na zewnątrz (`out`), z każdej strony dłuższy o SQUARE_ARC_EXT boku - sąsiednie łuki
+## krzyżują się w rogach kwadratu.
+static func square_arc(a: Vector2, b: Vector2, out: Vector2, steps := 14) -> PackedVector2Array:
 	var len := a.distance_to(b)
-	var fx := Fx.once(get_parent(), LINE_FX, LINE_FRAMES, LINE_FPS, a.lerp(b, 0.5).round(), LINE_ANCHOR, 6)
-	fx.rotation = (b - a).angle() + LINE_TILT
-	fx.scale = Vector2(len / LINE_LENGTH, 1.2)
-	for w in [[4.0, Color(NAWIA, 0.85)], [1.0, Color(BONE, 0.8)]]:
+	var along := (b - a) / len
+	var p0 := a - along * len * SQUARE_ARC_EXT
+	var p2 := b + along * len * SQUARE_ARC_EXT
+	var p1 := a.lerp(b, 0.5) + out * len * SQUARE_ARC_SAG * 2.0  # punkt kontrolny - szczyt łuku w połowie wygięcia
+	var pts := PackedVector2Array()
+	for i in steps + 1:
+		var t := float(i) / steps
+		pts.append(p0.lerp(p1, t).lerp(p1.lerp(p2, t), t))
+	return pts
+
+
+## Jedno cięcie boku po łuku: czarny półksiężyc (zwężony na końcach) z białą krawędzią po zewnętrznej stronie i błysk;
+## zostaje do wybuchu, rani stojących na nim.
+func _square_cut(sq: Dictionary, side: Array) -> void:
+	var out_dir: Vector2 = side[2]
+	var pts := square_arc(side[0], side[1], out_dir)
+	var taper := Curve.new()
+	taper.add_point(Vector2(0.0, 0.15))
+	taper.add_point(Vector2(0.5, 1.0))
+	taper.add_point(Vector2(1.0, 0.15))
+	var lines: Array = []
+	for w in [[6.0, Color(NAWIA, 0.9), Vector2.ZERO], [1.5, Color(BONE, 0.9), out_dir * 2.0]]:
 		var line := Line2D.new()
 		line.width = w[0]
+		line.width_curve = taper
 		line.default_color = w[1]
+		line.position = w[2]
 		line.z_index = 3
-		line.add_point(a)
-		line.add_point(b)
+		line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+		line.end_cap_mode = Line2D.LINE_CAP_ROUND
+		line.points = pts.slice(0, 2)
 		get_parent().add_child(line)
 		sq.lines.append(line)
-	for t in _line_targets(a, b, SQUARE_CUT_WIDTH):
+		lines.append(line)
+	var flash := Line2D.new()  # biały błysk cięcia, gaśnie
+	flash.width = 3.0
+	flash.width_curve = taper
+	flash.default_color = Color(BONE, 0.9)
+	flash.points = pts
+	flash.z_index = 4
+	get_parent().add_child(flash)
+	flash.create_tween().tween_property(flash, "modulate:a", 0.0, 0.25).set_delay(SQUARE_ARC_DRAW).finished.connect(flash.queue_free)
+	sq.draw.append({"lines": lines, "pts": pts, "t": 0.0})
+	for t in _arc_targets(pts, SQUARE_CUT_WIDTH):
 		_hit(t, sq.power * SQUARE_CUT_POWER, sq.center, "s_square")
 
 
-## Wrogowie, których stopy stoją w pasie szerokości `width` wzdłuż odcinka a-b (kwadrat leży na ziemi).
-func _line_targets(a: Vector2, b: Vector2, width: float) -> Array:
+## Wrogowie, których stopy stoją w pasie szerokości `width` wzdłuż łamanej `pts` (kwadrat leży na ziemi).
+func _arc_targets(pts: PackedVector2Array, width: float) -> Array:
 	var out: Array = []
-	for t in _near(a.lerp(b, 0.5), a.distance_to(b) * 0.5 + width):
+	var mid := pts[pts.size() / 2]
+	for t in _near(mid, pts[0].distance_to(pts[-1]) * 0.6 + width):
 		var c := t.global_position
-		if Geometry2D.get_closest_point_to_segment(c, a, b).distance_to(c) <= width * 0.5 + 4.0:
-			out.append(t)
+		for i in pts.size() - 1:
+			if Geometry2D.get_closest_point_to_segment(c, pts[i], pts[i + 1]).distance_to(c) <= width * 0.5 + 4.0:
+				out.append(t)
+				break
 	return out
 
 
@@ -459,8 +507,8 @@ func _square_burst(sq: Dictionary, side: Array, power: float) -> void:
 			_hit(t, power, sq.center, "s_square")
 			t.push_away(sq.center, SQUARE_PUSH)
 	var fx := Fx.once(get_parent(), LINE_FX, LINE_FRAMES, LINE_FPS * 1.3, (mid + out * depth * 0.35).round(), LINE_ANCHOR, 6)
-	fx.rotation = along.angle() + LINE_TILT
 	fx.scale = Vector2(len / LINE_LENGTH, 2.6)
+	fx.rotation = along.angle() + atan(tan(LINE_TILT) * fx.scale.y / fx.scale.x)  # pochylenie arkusza po rozciągnięciu
 	if not Fx.crowded(BLAST_FX, 12):
 		for k in [0.25, 0.75]:
 			Fx.once(get_parent(), BLAST_FX, BLAST_FRAMES, BLAST_FPS, (a.lerp(b, k) + out * depth * 0.45).round(), BLAST_ANCHOR,
