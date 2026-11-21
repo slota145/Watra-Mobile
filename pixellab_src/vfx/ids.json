@@ -1310,17 +1310,17 @@
     "columns": 4
   },
   "scythe_whirl": {
-    "effect": "06fdf045-0b79-464b-b0e2-7dc30411b411",
-    "name": "Kosa v2 - wir cięć nad głową (Taniec Marzanny; 3 cięcia krążą po spłaszczonym okręgu ~34 px, pętla; zaczepienie = środek)",
+    "effect": "65de9b9d-b680-4993-83cd-fb7b0fe108d7",
+    "name": "Kosa v3 - wir cięć nad głową (Taniec Marzanny; 8 nakładających się cięć po spłaszczonym okręgu 26-40 px, pętla; zaczepienie = środek)",
     "frame": [
-      86,
-      39
+      114,
+      52
     ],
     "frames": 12,
     "fps": 16,
     "anchor": [
-      43,
-      19
+      57,
+      26
     ],
     "columns": 4
   },

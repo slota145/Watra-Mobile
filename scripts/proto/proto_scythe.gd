@@ -161,7 +161,7 @@ const DIAG_RADIUS := 44.0
 const WHIRL_S_FX := preload("res://assets/effects/scythe_whirl.png")
 const WHIRL_S_FRAMES := 12
 const WHIRL_S_FPS := 16.0
-const WHIRL_S_ANCHOR := Vector2(43, 19)
+const WHIRL_S_ANCHOR := Vector2(57, 26)
 const WHIRL_S_RADIUS := 34.0
 ## Kamień Wirującego Ostrza: czas lotu, prędkość, siła trafienia, zasięg szukania kolejnego wroga, wybuch.
 const BLADE_TIME := 3.0
@@ -697,6 +697,7 @@ func _mow_cut(k: float) -> void:
 	var mow := Fx.once(get_parent(), MOW_FX, MOW_FRAMES, MOW_FPS, hero.global_position.round(), MOW_ANCHOR, 5,
 			_fx_scale(shape.y * 0.92 / MOW_FX_RADIUS))
 	mow.rotation = _aim
+	mow.scale.y = -mow.scale.y  # zamach od drugiej strony (prośba autora 21.11.2026)
 	var flash := Polygon2D.new()
 	flash.polygon = cone_points(at, _aim, shape.x, shape.y, shape.z)
 	flash.color = Color(NAWIA, 0.6)
