@@ -323,7 +323,6 @@ func _test_combat(game: Node) -> void:
 	for i in 5:
 		game.unsocket_skill("strike", i)
 	game.socket_skill("strike", 0, "multi:10")
-	game.socket_skill("slam", 0, "multi:10")
 	game.socket_skill("throw", 0, "multi:10")
 	game.socket_skill("whirl", 2, "area:10")
 	_check(is_equal_approx(weapon._area("whirl"), 1.55), "Szerokość: +55% zasięgu")
@@ -337,12 +336,6 @@ func _test_combat(game: Node) -> void:
 	await _wait(0.7)
 	_check(dummy._count == count + 2, "Mnożenie: po cięciu pada drugie (%d)" % (dummy._count - count))
 	await _wait(0.8)
-	weapon.reset_cooldowns()
-	hero.mana = hero.max_mana
-	count = dummy._count
-	weapon.cast("slam")
-	await _wait(0.9)
-	_check(dummy._count == count + 2, "Mnożenie: Rozłupanie robi drugą falę")
 	weapon.reset_cooldowns()
 	hero.mana = hero.max_mana
 	hero.position = dummy.position + Vector2(0, 90)

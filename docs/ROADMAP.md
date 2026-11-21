@@ -32,6 +32,16 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 
 ## Pomysły autora (do zrobienia)
 
+- **Młot - broń ziemi i Widmowe ostrza miecza (21.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na
+  telefonie: siła i tempo uderzeń młota, rzut (odbicia), skok (czy nie wrzuca w tłum za daleko), trzęsienie (koszt many,
+  spowolnienie postaci), czy ostrza miecza nie są za słabe/za mocne, rezerwacja 25% many, kamienie unikalne.
+
+- [ ] **Żywioł światła - przeciwieństwo Nawii (pomysł autora 21.11.2026, do ustalenia):** dziś bronie nie mają lodu,
+  ziemi i natury, a lochy - lodu, ziemi, natury i Arkanów. Propozycje Claude (czekają na decyzję): nazwa (Światło /
+  Prawia - świat bogów w opozycji do Nawii), działanie inne niż ogień (np. oślepia - wróg chybia, piętno - trafienia
+  w napiętnowanego leczą postać), wrażliwość Katakumb na światło zamiast ognia, broń (np. słoneczna włócznia
+  Dadźboga), najpierw bronie dla brakujących żywiołów czy od razu światło.
+
 - **Duże pomysły autora (19.11.2026) - kolejność proponowana przez Claude, do potwierdzenia:**
   1. ~~**Aury rezerwujące manę**~~ - zrobione 19.11.2026 (krok 1: 8 aur, krok 2: pozostałe 13 i premia przedmiotów
      „mniejsza rezerwacja many”; szczegóły w `docs/historia.md`). Do oceny na telefonie: siła aur, rezerwacja, szanse

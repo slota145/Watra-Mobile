@@ -209,8 +209,25 @@ const STEEL_DRAIN := 1.0 / 5.0
 ## Grupa węzłów, które miecz sam znajduje jako cele (potwory Hordy).
 const TARGETS := &"proto_targets"
 ## Stany zwykłego ciosu (szybkość ataku i Pośpiech go przyspieszają); glewia i hydrosfera dokładają swoje.
+## Widmowe ostrza (miecz, pomysł autora 21.11.2026 - zamiast Rozłupania Ziemi, które poszło do młota): przełącznik jak
+## aura (Skills.is_toggle), rezerwuje SPECTRAL_RESERVE many. Ostrza (2, 5. poziom - 3, 10. - 4; Mnożenie - jedno więcej
+## z siłą kamienia) unoszą się przy postaci i co SPECTRAL_EVERY s każde (na zmianę) wylatuje do losowego wroga w zasięgu,
+## tnie go i wraca. Kamień unikalny (Lustrzanych Ostrzy): po każdej umiejętności miecza (też zwykłym cięciu) każde
+## ostrze powtarza ją przy swoim wrogu w słabszej wersji (SPECTRAL_MIRROR siły): cięcie, wir, rzut na wylot, krąg.
+const SPECTRAL_RESERVE := 0.25
+const SPECTRAL_EVERY := 1.0
+const SPECTRAL_EVERY_PERK := 0.75
+const SPECTRAL_SPEED := 300.0
+const SPECTRAL_ORBIT := 18.0
+const SPECTRAL_HIT := 10.0
+const SPECTRAL_TINT := Color(0.65, 0.85, 1.0, 0.7)
+const SPECTRAL_MIRROR := 0.4
+const SPECTRAL_SPIN_TIME := 1.0
+const SPECTRAL_SPIN_TICK := 0.25
+const SPECTRAL_SPIN_RADIUS := 24.0
+const SPECTRAL_PIERCE := 80.0
 const STRIKE_STATES := ["follow", "windup", "swing", "recover", "thrust_windup", "thrust", "thrust_recover",
-		"orb_windup", "orb_shot", "k_windup", "k_swing", "k_recover"]
+		"orb_windup", "orb_shot", "k_windup", "k_swing", "k_recover", "m_rise", "m_fall", "m_recover"]
 
 var hero: ProtoHero
 ## Żywioł obrażeń broni (Weapons.element_of; combo z przemoczeniem - Elements.soak_bonus). Ustawia podklasa.
@@ -373,6 +390,11 @@ var _blink_spins := 0
 var _whirl_main := false
 ## Palec trzyma mały przycisk Młynka (arena) - wiruje, dopóki trzyma.
 var whirl_held := false
+## Widmowe ostrza: czy włączone i ostrza ({"node", "i", "mode", "target", "t", "power", "from", "to", "hits"}).
+var spectral_on := false
+var _spectral: Array = []
+var _spectral_next := 0.0
+var _spectral_turn := 0
 ## Ile wybuchów Młynka było (10. poziom; do testów).
 var whirl_blasts := 0
 ## Ile sekund trwa obecne wirowanie (kamień unikalny - wir rośnie).
@@ -449,6 +471,7 @@ func _process(delta: float) -> void:
 		_end_skill()
 	_process_waves(delta)
 	_process_ring(delta)
+	_process_spectral(delta)
 	_process_flicker(delta)
 	match _state:
 		"follow":
@@ -553,6 +576,7 @@ func _attack(second := false, full := false) -> void:
 	_second = second
 	if not second:
 		_strike_count += 1
+		_spectral_mirror(Skills.STRIKE)
 	_swing_power = (1.0 if full else gem_power(Skills.STRIKE, "multi") / 100.0) if second else 1.0
 	_slash.scale = Vector2.ONE * (HILT_RADIUS + BLADE) * _area(Skills.STRIKE) / SLASH_FX_RADIUS
 	var best := _nearest()
@@ -809,10 +833,11 @@ func _cooldown_base(id: String) -> float:
 ## broni (albo wyjściu z lochu) znikają razem z nią, inaczej zostawały zamrożone na ekranie (zgłoszenie autora
 ## 19.11.2026). Bronie dopisują swoje listy (super + własne).
 func _world_fx() -> Array:
-	return [_waves]
+	return [_waves, _spectral]
 
 
 func _exit_tree() -> void:
+	_spectral_off()
 	for list in _world_fx():
 		_free_fx(list)
 		if list is Array:
@@ -1135,6 +1160,8 @@ func cooldown_left(id: String) -> float:
 
 ## Czy umiejętność da się teraz użyć (odnowiona i starcza many).
 func can_use(id: String) -> bool:
+	if id == "spectral_blades":
+		return Skills.has(id) and not hero.dead
 	if id == "steel_ring" and _unique(id) and ring_left() > 0.0:
 		return false  # krąg bez końca już krąży - auto atak tnie zwykłym ciosem
 	var cost := _blink_cost() if id == blink_skill else mana_cost(id)
@@ -1148,6 +1175,13 @@ func cast(id: String) -> bool:
 		return false
 	if id == "whirl" and _state == "whirl":
 		return true  # już wiruje (trzymany)
+	if id == "spectral_blades":  # przełącznik jak aura - bez odnowienia
+		if spectral_on:
+			_spectral_off()
+		else:
+			_spectral_on_now()
+		skill_used.emit(id)
+		return true
 	if id == "steel_ring" and _unique(id) and ring_left() > 0.0:
 		_clear_ring()  # Kamień Wiecznej Stali: drugie stuknięcie wyłącza krąg
 		return true
@@ -1223,6 +1257,174 @@ func _start(id: String) -> void:
 		"steel_ring":
 			_start_ring()
 	skill_used.emit(id)
+
+
+# --- Widmowe ostrza (miecz) ---
+
+func _spectral_count() -> int:
+	var n := 2 + (1 if _perk("spectral_blades", 0) else 0) + (1 if _perk("spectral_blades", 1) else 0)
+	return n + (1 if gem_power("spectral_blades", "multi") > 0.0 else 0)
+
+
+func _spectral_on_now() -> void:
+	_spectral_off()
+	spectral_on = true
+	var n := _spectral_count()
+	for i in n:
+		var node := Sprite2D.new()
+		node.texture = TEXTURE
+		node.centered = false
+		node.offset = -GRIP
+		node.scale = Vector2.ONE * SCALE * 0.85
+		node.modulate = SPECTRAL_TINT
+		node.z_index = 4
+		get_parent().add_child(node)
+		var extra := gem_power("spectral_blades", "multi") > 0.0 and i == n - 1
+		_spectral.append({"node": node, "i": i, "mode": "orbit", "target": null, "t": 0.0,
+				"power": gem_power("spectral_blades", "multi") / 100.0 if extra else 1.0, "from": Vector2.ZERO,
+				"to": Vector2.ZERO, "hits": [], "tick": 0.0, "spin": 0.0})
+	_spectral_next = 0.3
+	hero.summon_reserved = roundi(hero.max_mana * SPECTRAL_RESERVE)
+	hero.apply_reserve()
+
+
+func _spectral_off() -> void:
+	for b: Dictionary in _spectral:
+		if is_instance_valid(b.node):
+			b.node.queue_free()
+	_spectral.clear()
+	if spectral_on and hero and hero.summon_reserved > 0:
+		hero.summon_reserved = 0
+		hero.apply_reserve()
+	spectral_on = false
+
+
+## Miejsce ostrza `i` przy postaci (krążą powoli nad ramionami).
+func _spectral_home(i: int, n: int) -> Vector2:
+	var a := _clock * 1.5 + TAU * i / maxf(n, 1)
+	return hero.global_position + Vector2(cos(a) * SPECTRAL_ORBIT, sin(a) * SPECTRAL_ORBIT * 0.5 - ORBIT_HEIGHT - 10.0)
+
+
+func _spectral_power(b: Dictionary, mult := 1.0) -> float:
+	return _power("spectral_blades") * float(b.power) * mult
+
+
+func _process_spectral(delta: float) -> void:
+	if not spectral_on:
+		return
+	if hero.dead:
+		_spectral_off()
+		return
+	if _spectral.size() != _spectral_count():  # nowy poziom albo kamień - od nowa
+		_spectral_on_now()
+	var reach: float = Skills.DATA.spectral_blades.range * _area("spectral_blades")
+	_spectral_next -= delta * speed_mult * (1.0 + speed_bonus + _haste())
+	if _spectral_next <= 0.0:
+		_spectral_next = (SPECTRAL_EVERY_PERK if _perk("spectral_blades", 1) else SPECTRAL_EVERY) / _spectral.size()
+		var b: Dictionary = _spectral[_spectral_turn % _spectral.size()]
+		_spectral_turn += 1
+		if b.mode == "orbit":
+			var near := _near(hero.global_position, reach)
+			if not near.is_empty():
+				_spectral_send(b, near.pick_random(), "cut")
+	var n := _spectral.size()
+	for b: Dictionary in _spectral:
+		var node: Sprite2D = b.node
+		if not is_instance_valid(node):
+			continue
+		b.t += delta
+		match b.mode:
+			"orbit":
+				var home := _spectral_home(b.i, n)
+				node.global_position = node.global_position.lerp(home, 1.0 - exp(-10.0 * delta))
+				node.rotation = lerp_angle(node.rotation, -PI / 2.0, 1.0 - exp(-10.0 * delta))
+			"cut", "pierce":
+				var t: ProtoTarget = b.target
+				var goal: Vector2 = b.to if b.mode == "pierce" else (t.center() if t and is_instance_valid(t) and t.alive() else b.to)
+				var to: Vector2 = goal - node.global_position
+				var step := SPECTRAL_SPEED * delta
+				node.rotation = to.angle()
+				if b.mode == "pierce":
+					for o in _near_c(node.global_position, SPECTRAL_HIT):
+						if not b.hits.has(o):
+							b.hits.append(o)
+							_deal(o, _roll(_spectral_power(b, SPECTRAL_MIRROR)), node.global_position, "spectral_blades")
+				if to.length() <= step + 2.0:
+					node.global_position = goal
+					if b.mode == "cut" and t and is_instance_valid(t) and t.alive():
+						_deal(t, _roll(_spectral_power(b, b.get("mult", 1.0))), node.global_position, "spectral_blades")
+						_sword_cut_fx(t, hero.global_position)
+						if b.get("splash", false):  # lustrzane cięcie - rani też wrogów tuż obok
+							for o in _near_c(t.center(), SPECTRAL_SPIN_RADIUS):
+								if o != t:
+									_deal(o, _roll(_spectral_power(b, b.mult)), t.center(), "spectral_blades")
+					b.mode = "back"
+				else:
+					node.global_position += to.normalized() * step
+				if b.t > 2.0:
+					b.mode = "back"
+			"spin":
+				var t: ProtoTarget = b.target
+				var center: Vector2 = t.center() if t and is_instance_valid(t) and t.alive() else b.to
+				b.spin += TAU * 3.0 * delta
+				node.global_position = center + Vector2.from_angle(b.spin) * Vector2(1.0, 0.6) * SPECTRAL_SPIN_RADIUS * 0.6
+				node.rotation = b.spin
+				b.tick -= delta
+				if b.tick <= 0.0:
+					b.tick = SPECTRAL_SPIN_TICK
+					for o in _near_c(center, SPECTRAL_SPIN_RADIUS * _area("spectral_blades")):
+						_deal(o, _roll(_spectral_power(b, SPECTRAL_MIRROR)), center, "spectral_blades")
+				if b.t >= b.get("time", SPECTRAL_SPIN_TIME):
+					b.mode = "back"
+			"back":
+				var home := _spectral_home(b.i, n)
+				var to := home - node.global_position
+				var step := SPECTRAL_SPEED * 1.2 * delta
+				if to.length() <= step + 2.0:
+					b.mode = "orbit"
+				else:
+					node.global_position += to.normalized() * step
+					node.rotation = to.angle()
+
+
+## Wysyła ostrze `b` do wroga `t`: `cut` - cięcie, `pierce` - na wylot przez wroga, `spin` - wir przy wrogu.
+func _spectral_send(b: Dictionary, t: ProtoTarget, mode: String, mult := 1.0, splash := false, time := SPECTRAL_SPIN_TIME) -> void:
+	b.mode = mode
+	b.target = t
+	b.t = 0.0
+	b.hits = []
+	b.tick = 0.0
+	b.mult = mult
+	b.splash = splash
+	b.time = time
+	var node: Sprite2D = b.node
+	b.to = t.center()
+	if mode == "pierce":
+		var dir := (t.center() - node.global_position).normalized()
+		b.to = t.center() + dir * SPECTRAL_PIERCE * 0.5
+
+
+## Kamień Lustrzanych Ostrzy: każde wolne ostrze powtarza umiejętność `id` przy swoim (losowym) wrogu.
+func _spectral_mirror(id: String) -> void:
+	if not spectral_on or not _unique("spectral_blades"):
+		return
+	var reach: float = Skills.DATA.spectral_blades.range * _area("spectral_blades")
+	var near := _near(hero.global_position, reach)
+	if near.is_empty():
+		return
+	for b: Dictionary in _spectral:
+		if b.mode != "orbit":
+			continue
+		var t: ProtoTarget = near.pick_random()
+		match id:
+			"whirl":
+				_spectral_send(b, t, "spin")
+			"steel_ring":
+				_spectral_send(b, t, "spin", 1.0, false, SPECTRAL_SPIN_TIME * 0.6)
+			"throw":
+				_spectral_send(b, t, "pierce")
+			_:
+				_spectral_send(b, t, "cut", SPECTRAL_MIRROR, true)
 
 
 ## Krąg stali (pomysł autora, 15.11.2026): wokół postaci zaczynają krążyć widmowe miecze; miecz w ręku nie zmienia
@@ -1826,6 +2028,8 @@ func mirror_echoes(id: String) -> bool:
 
 
 func _on_skill_used(id: String) -> void:
+	if id != "spectral_blades":
+		_spectral_mirror(id)
 	if id == _echo_pending:
 		_echo_pending = ""  # to była powtórka - bez kolejnej
 		return

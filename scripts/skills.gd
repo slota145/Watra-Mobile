@@ -47,10 +47,13 @@ const DATA := {
 		"mana": 22, "cooldown": 4.0, "weapon": "sword", "mastery": 6, "main": true, "range": 120.0, "power": 1.5,
 		"description": "Miecz leci w najdalszego wroga w zasięgu, przebija wszystkich po drodze i wraca, raniąc ich drugi raz.",
 	},
-	"slam": {
-		"name": "Rozłupanie Ziemi", "icon": preload("res://assets/watra/skills/ground_slam.png"),
-		"mana": 38, "cooldown": 7.0, "weapon": "sword", "mastery": 10, "main": true, "range": 70.0, "power": 2.2,
-		"description": "Miecz spada z góry na wrogów: fala pęknięć rani wszystkich wokół i ogłusza, a dalej przez tłum biegnie szczelina, z której wyskakują skalne kolce.",
+	# Widmowe ostrza (pomysł autora 21.11.2026, zamiast Rozłupania Ziemi - to poszło do młota): przełącznik jak aura,
+	# rezerwuje manę (ProtoWeapon._blades_on); ostrza same atakują losowych wrogów.
+	"spectral_blades": {
+		"name": "Widmowe ostrza", "icon": preload("res://assets/skills/sword/spectral_blades.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "sword", "mastery": 10, "main": false, "range": 110.0, "power": 0.5,
+		"toggle": true,
+		"description": "Włączasz i wyłączasz jak aurę: przy tobie unoszą się widmowe ostrza, które same wylatują do losowych wrogów w pobliżu, tną ich i wracają. Rezerwuje 25% many. Nie może stać pod dużym przyciskiem.",
 	},
 	# Krąg stali (pomysł autora i Claude 15.11.2026, zamiast Mgnienia - to zostało przy katanie jako Błysk Peruna):
 	# widmowe miecze krążą wokół postaci, a miecz w ręku walczy normalnie (ProtoWeapon._process_ring). Nie pod „Atak”
@@ -59,6 +62,33 @@ const DATA := {
 		"name": "Krąg stali", "icon": preload("res://assets/skills/sword/steel_ring.png"),
 		"mana": 45, "cooldown": 12.0, "weapon": "sword", "mastery": 15, "main": false, "range": 50.0, "power": 0.6,
 		"description": "Przez 6 s wokół ciebie krążą trzy widmowe miecze i tną każdego, kto podejdzie. Twój miecz walczy w tym czasie normalnie. Nie może stać pod dużym przyciskiem.",
+	},
+	# Młot - broń ziemi (ustalone z autorem 21.11.2026, ProtoHammer): ciosy ogłuszają i odpychają.
+	"m_smash": {
+		"name": "Uderzenie młotem", "icon": preload("res://assets/skills/hammer/m_smash.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "hammer", "mastery": 1, "main": true, "range": 46.0, "power": 1.4,
+		"description": "Młot wznosi się nad najbliższego wroga i spada obuchem: rani wszystkich w małym kole i odpycha ich.",
+	},
+	"m_throw": {
+		"name": "Rzut młotem", "icon": preload("res://assets/skills/hammer/m_throw.png"),
+		"mana": 22, "cooldown": 4.5, "weapon": "hammer", "mastery": 3, "main": true, "range": 130.0, "power": 1.5,
+		"description": "Młot leci, wirując, w najbliższego wroga, odbija się od trafionych do 3 kolejnych (każdy obrywa raz i jest na chwilę ogłuszony), a potem wraca do ciebie.",
+	},
+	"m_leap": {
+		"name": "Skok z uderzeniem", "icon": preload("res://assets/skills/hammer/m_leap.png"),
+		"mana": 30, "cooldown": 7.0, "weapon": "hammer", "mastery": 6, "main": false, "range": 120.0, "power": 1.9,
+		"description": "Skaczesz z młotem w stronę wskazaną gałką (bez niej - do najbliższego wroga) i lądujesz z uderzeniem: krater rani, ogłusza i odpycha wrogów wokół. Nie może stać pod dużym przyciskiem.",
+	},
+	"slam": {
+		"name": "Rozłupanie Ziemi", "icon": preload("res://assets/skills/hammer/slam.png"),
+		"mana": 38, "cooldown": 7.0, "weapon": "hammer", "mastery": 10, "main": true, "range": 70.0, "power": 2.2,
+		"description": "Młot spada z góry na wrogów: fala pęknięć rani wszystkich wokół i ogłusza, a dalej przez tłum biegnie szczelina, z której wyskakują skalne kolce.",
+	},
+	"m_quake": {
+		"name": "Trzęsienie ziemi", "icon": preload("res://assets/skills/hammer/m_quake.png"),
+		"mana": 16, "cooldown": 0.0, "weapon": "hammer", "mastery": 15, "main": false, "range": 60.0, "power": 0.7,
+		"charge": true,
+		"description": "Przytrzymaj: dopóki trzymasz przycisk i starcza many, co pół sekundy ziemia wokół ciebie drży - fala rani i odpycha wrogów. Idziesz wtedy wolniej. Mana co sekundę. Nie może stać pod dużym przyciskiem.",
 	},	# Glewia ognia (ustalone z autorem 13.11.2026): każde trafienie podpala (ProtoGlaive), "burn" - ile obrażeń
 	# trafienia dopala się przez 3 s.
 	"g_thrust": {
@@ -236,7 +266,8 @@ const AREA_STEP := 0.1
 const PERK_LEVELS := [5, 10]
 ## Cena ulepszenia z poziomu n na n+1 (żar): UPGRADE_PRICE[umiejętność] * n (zwykły cios najtańszy, Mgnienie
 ## najdroższe; liczby jak dawne ceny w złocie - do oceny na telefonie).
-const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "steel_ring": 200,
+const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "spectral_blades": 140, "steel_ring": 200,
+		"m_smash": 40, "m_throw": 60, "m_leap": 90, "slam": 140, "m_quake": 200,
 		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200,
 		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200,
 		"k_slash": 40, "k_dance": 60, "k_riposte": 90, "k_perun": 140, "k_flash": 200,
@@ -248,7 +279,12 @@ const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
 	"whirl": ["Zużywa o 30% mniej many.", "Co 2,5 s wirowania wybuch odpycha wrogów."],
 	"throw": ["Na końcu lotu miecz odbija się w kolejnego wroga.", "Rzuca dwa miecze naraz."],
+	"spectral_blades": ["Trzy ostrza zamiast dwóch.", "Cztery ostrza i szybsze ataki."],
+	"m_smash": ["Co trzecie uderzenie ogłusza na 0,6 s.", "Uderzenie wypuszcza dookoła falę wstrząsu (40% siły)."],
+	"m_throw": ["5 odbić zamiast 3.", "Każde trafienie wywołuje falę wstrząsu wokół celu (40% siły)."],
+	"m_leap": ["Krater o 30% większy.", "Z krateru wyskakuje pierścień skalnych kolców (50% siły)."],
 	"slam": ["Dłuższe ogłuszenie.", "Po pół sekundy uderza druga fala pęknięć."],
+	"m_quake": ["Fale co 0,4 s zamiast 0,5.", "Co trzecia fala ogłusza na 0,5 s."],
 	"steel_ring": ["Krąg trwa 8 s zamiast 6.", "Pięć mieczy zamiast trzech."],
 	"g_thrust": ["Podpalenie dwa razy silniejsze.", "Co trzecie pchnięcie dźga dwa razy."],
 	"g_sweep": ["Zamach odpycha wrogów.", "Zaraz po nim drugi zamach w drugą stronę."],
@@ -287,7 +323,8 @@ const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 ## (balista, Wodny Strażnik) - Items proj/area/melee/minion_dmg_pct (TAG_STATS); jedna umiejętność może mieć kilka.
 const TAGS := {
 	"strike": ["melee"], "whirl": ["melee", "area"], "throw": ["projectile"], "slam": ["melee", "area"],
-	"steel_ring": ["melee"], "g_thrust": ["melee"], "g_sweep": ["melee"], "g_trail": ["area"], "g_pillar": ["area"],
+	"steel_ring": ["melee"], "spectral_blades": ["melee"], "m_smash": ["melee", "area"], "m_throw": ["projectile"],
+	"m_leap": ["melee", "area"], "m_quake": ["area"], "g_thrust": ["melee"], "g_sweep": ["melee"], "g_trail": ["area"], "g_pillar": ["area"],
 	"g_dance": ["melee"], "h_bolt": ["projectile"], "h_wave": ["area"], "h_vortex": ["area"], "h_geyser": ["area"],
 	"h_guardian": ["minion"], "k_slash": ["melee"], "k_dance": ["melee"], "k_riposte": ["melee"], "k_perun": ["melee"],
 	"k_flash": ["melee"], "b_shot": ["projectile"], "b_seeker": ["projectile"], "b_rain": ["area", "projectile"],
@@ -299,7 +336,7 @@ const TAGS := {
 const TAG_NAMES := {"melee": "wręcz", "projectile": "pocisk", "area": "obszar", "minion": "przywołaniec"}
 const TAG_STATS := {"melee": "melee_dmg_pct", "projectile": "proj_dmg_pct", "area": "area_dmg_pct", "minion": "minion_dmg_pct"}
 ## Kolejność w oknie umiejętności.
-const ORDER := ["strike", "whirl", "throw", "slam", "steel_ring", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
+const ORDER := ["strike", "whirl", "throw", "spectral_blades", "steel_ring", "m_smash", "m_throw", "m_leap", "slam", "m_quake", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
 		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash",
 		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista", "a_missiles", "a_circle", "a_orbs", "a_beam", "a_seals",
 		"s_reap", "s_square", "s_dance", "s_mow", "s_mara"]

@@ -2,6 +2,38 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Młot (broń ziemi) i Widmowe ostrza miecza
+
+- **Ustalenia z autorem:** jeden ciężki młot bojowy, żywioł ziemia (ogłusza i odpycha), za darmo od lochu 30 (wcześniej
+  Pieczęć Oręża). Rozłupanie Ziemi przechodzi z miecza do młota razem z kamieniem unikalnym; miecz dostaje w zamian
+  Widmowe ostrza (rezerwują manę, same atakują, kamień unikalny - naśladują umiejętności). Stare postacie nic nie tracą.
+- **Młot** `scripts/proto/proto_hammer.gd` (`ProtoHammer`, po `ProtoWeapon`; grafika `tools/hammer_art.py` ->
+  `assets/weapons/hammer.png`, skala 0,62 - większy niż miecz; ikony `tools/hammer_icons.py` -> `assets/skills/hammer/`,
+  motyw ikon `earth` w `tools/weapon_icons.py`). Efekty - tylko te, które już są (boss_slam, slam_spikes, earth_tremor,
+  cleaver_impact, legend_shockwave), bez nowych generacji. Umiejętności (przedrostek `m_`, bo `h_` ma hydrosfera):
+  - `m_smash` Uderzenie młotem (mistrz. 1): młot wznosi się nad wroga i spada - koło 24 px, odpycha; 5. - co trzecie
+    ogłusza 0,6 s, 10. - fala wstrząsu (40%); Mnożenie - drugie uderzenie w innego wroga; Kamień Lawiny - co czwarte
+    uderzenie 3 odłamki skały (kolce) na pobliskich (50%). Stany `m_rise/m_fall/m_recover` w `STRIKE_STATES` (szybkość ataku);
+  - `m_throw` Rzut młotem (3): wirując, odbija się od 3 wrogów (5. - 5), każdego ogłusza 0,4 s, wraca; 10. - fala wstrząsu
+    przy trafieniu; Mnożenie - 2 odbicia więcej; Kamień Powrotu - rani po drodze z powrotem (60%);
+  - `m_leap` Skok z uderzeniem (6, nie pod „Atak”): skok w stronę gałki albo do wroga (nietykalny w locie), krater 48 px
+    rani, ogłusza 0,8 s, odpycha; 5. - krater +30%, 10. - pierścień 6 kolców; Mnożenie - drugi, szerszy wstrząs;
+    Kamień Grzęzawiska - krater zostaje 4 s (spowalnia o 50%, rani co 0,5 s);
+  - `slam` Rozłupanie Ziemi (10) - bez zmian działania, teraz młotem (`_process_slam` - obuch spada niżej);
+  - `m_quake` Trzęsienie ziemi (15, trzymane - `charge`): co 0,5 s (5. - 0,4) fala 60 px rani i odpycha, postać idzie
+    o 40% wolniej (`ProtoHero.form_speed`), mana co sekundę; 10. - co trzecia fala ogłusza; Mnożenie - drugie trafienie;
+    Kamień Uskoku - szczelina z kolcami w najbliższego wroga.
+- **Widmowe ostrza** (`spectral_blades`, miecz, mistrz. 10, w `ProtoWeapon` - `_spectral*`, bo kosa ma swoje `_blades`):
+  przełącznik jak Kule Arkanów, rezerwuje 25% many (`ProtoHero.summon_reserved`); 2 ostrza (5. - 3, 10. - 4 i ataki
+  częściej; Mnożenie - jedno więcej) krążą nad postacią i na zmianę wylatują do losowego wroga w 110 px, tną i wracają.
+  Kamień Lustrzanych Ostrzy - po każdej umiejętności miecza (też zwykłym cięciu) każde wolne ostrze powtarza ją przy
+  swoim wrogu z 40% siły: cięcie (z rozpryskiem), Młynek - wir, Rzut - na wylot, Krąg stali - krótki wir.
+  Ikona `icon_spectral_blades` w `tools/weapon_icons.py`.
+- **Stare zapisy** (`Game._unlock_by_mastery` przy wczytaniu, `_read_slots`): umiejętności, do których starcza
+  mistrzostwa, dopisują się same (Widmowe ostrza), a na pasku miecza w miejscu Rozłupania stają Widmowe ostrza.
+  Poziom i kamienie Rozłupania są zapisane po nazwie umiejętności, więc przechodzą do młota bez zmian.
+- Test `tests/test_hammer.gd`, zrzuty `tools/hammer_shots.gd`; `test_skills` i `test_gems` - miecz bez Rozłupania.
+
 ## 21.11.2026 - Szósty loch: Podniebne wyspy (powietrze)
 
 - **Ustalenia z autorem:** skaliste wysepki nad morzem chmur i ruiny chramu Strzyboga (inaczej niż trawiaste hale

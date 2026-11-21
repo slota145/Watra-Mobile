@@ -63,7 +63,8 @@ func _test_game(game: Node) -> void:
 	game.mastery["sword"] = 14
 	game.mastery_xp["sword"] = 0
 	game.add_mastery(Weapons.xp_to_next(14))
-	_check(unlocked == ["whirl", "throw", "slam", "steel_ring"] and game.skill_slots == ["whirl", "strike", "throw", "slam", "steel_ring"],
+	_check(unlocked == ["whirl", "throw", "spectral_blades", "steel_ring"]
+			and game.skill_slots == ["whirl", "strike", "throw", "spectral_blades", "steel_ring"],
 			"skok na mistrzostwo 15: reszta umiejętności w wolnych miejscach")
 	game.skill_slots = ["whirl", "strike", "steel_ring", "", ""]
 	game.skills_owned = ["strike", "whirl", "steel_ring"]
