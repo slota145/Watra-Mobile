@@ -43,8 +43,9 @@ func _test_levels() -> void:
 			and Dungeons.for_level(6) == Dungeons.FLOODED and Dungeons.for_level(10) == Dungeons.FLOODED
 			and Dungeons.for_level(11) == Dungeons.CATACOMBS and Dungeons.for_level(15) == Dungeons.CATACOMBS
 			and Dungeons.for_level(16) == Dungeons.PLAINS and Dungeons.for_level(20) == Dungeons.PLAINS
-			and Dungeons.for_level(21) == Dungeons.VOLCANO and Dungeons.for_level(25) == Dungeons.VOLCANO,
-			"drabinka po 5 poziomów: gobliny, podziemia, Katakumby, Górskie równiny, Wulkaniczne równiny")
+			and Dungeons.for_level(21) == Dungeons.SKY and Dungeons.for_level(25) == Dungeons.SKY
+			and Dungeons.for_level(26) == Dungeons.VOLCANO and Dungeons.for_level(30) == Dungeons.VOLCANO,
+			"drabinka po 5 poziomów: gobliny, podziemia, Katakumby, Górskie równiny, Podniebne wyspy, Wulkaniczne równiny")
 	var cycle := Dungeons.cycle_length()
 	_check(Dungeons.for_level(cycle + 1) == Dungeons.GOBLINS and Dungeons.for_level(cycle + 6) == Dungeons.FLOODED
 			and Dungeons.cycle_of(cycle) == 1 and Dungeons.cycle_of(cycle + 1) == 2 and Dungeons.for_level(100) == Dungeons.ORDER[(99 / 5) % Dungeons.ORDER.size()]

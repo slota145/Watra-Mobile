@@ -1,0 +1,320 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: wichrowiec
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.32, 0]}
+palette: "watra"
+size: 80
+extends: humanoid   # the template's skeleton only; head, hair, sword, coat, belt, neck and legs removed
+
+# Wichrowiec: silny potwór lochu „Podniebne wyspy” (żywioł powietrze). Masywny żywiołak wiatru, ok. 46 px wobec
+# 36 px człowieka (ta sama camera.scale), jak żużlowy golem. Dolna połowa to szeroki, wirujący lej trąby
+# powietrznej (szaro-biały z błękitem), wokół niego krążą odłamki skał i kamienne płyty chramu; górna część - ciężki
+# tors z kamiennych bloków spiętych wirem (bladobłękitne szczeliny wiatru), potężne ręce z głazów, głowa - kamienna
+# maska ze świecącymi jasnobłękitnymi oczami. Bez ptasich cech. Wolny i wytrzymały.
+brief:
+  summary: >
+    the whirlwind golem of the sky islands: a massive wind elemental, about 46 px tall against a 36 px human (same
+    density, like the slag golem). No legs: the lower half is a broad spinning tornado funnel (grey-white with
+    blue streaks), narrow at the ground and wide under the torso, with rock shards and carved temple slabs
+    orbiting it; the upper half is a heavy torso of cool grey stone blocks bound together by the wind (pale blue
+    glowing seams between them), huge boulder arms, a stone mask for a head with two glowing light-blue eyes
+  head: >
+    a flat carved stone mask, lighter than the body blocks so it reads at a glance, with a heavy brow and a
+    narrow chin, sunk between the shoulder blocks; two glowing light-blue eyes (minimal face), a short glowing
+    carved line up the forehead; no hair, no beak, no feathers
+  must_keep:
+    - the tornado funnel instead of legs - narrow at the ground, wide at the top - with spiral streaks that spin
+    - the orbiting debris (three rocks low, three temple slabs higher) - they circle the funnel in every loop
+    - the mass - shoulder blocks and boulder fists are the widest shapes of the upper body
+    - the glowing light-blue eyes and wind seams (the only emissive colour)
+    - no bird features at all
+  simplify:
+    - the funnel is one tapering cone with a few ring ridges; the spin is painted helical streaks (twisted slabs)
+      on a bone that turns, not geometry
+    - the torso is three big stone masses (waist, chest, shoulder ridge) plus a boulder on each shoulder; the
+      seams between them are painted glowing lines
+    - no fingers - each fist is one boulder
+  decisions:
+    - the funnel streaks have 4-fold symmetry and turn 180 degrees per idle loop (`swirl`), the debris ring has
+      3-fold symmetry and turns 120 degrees per loop (`spin`), so both loops are seamless
+    - the slabs ride a tilted orbit (their height follows the world angle), so they bob without popping at the loop
+    - attack - both fists high over the head while the funnel spins faster and the debris is pulled in close
+      (`pull`, the game's pull-in), one smear frame, the fists hit the ground in front (`hit`, socket `impact`)
+    - death - the funnel loses its wind (`vortex` 1 to 0, it sinks and spreads into a low dust ring), the torso
+      drops to the ground, the debris falls (`fall`), the seams and eyes go out (`glow`)
+    - frame 80 px, camera.center y 1.32 (as the slag golem)
+
+ramps:
+  # the tornado: cool grey-white wind with blue
+  wind:  ["#0b0b0f", "#35384c", "#586384", "#8394af", "#b6c3cf", "#e7ecee"]
+  # cool grey stone of the body blocks
+  rock:  ["#0c0c0d", "#26272d", "#3f424a", "#5c6068", "#7d838b", "#a3a8ad"]
+  # the wind that binds the blocks, the eyes
+  gale:  ["#070a12", "#233e76", "#3785d0", "#8bc9e5", "#dff3f6"]
+  # the slam's smear: pale wind
+  fx_tail: ["#586384"]
+  fx_mid:  ["#b6c3cf"]
+  fx_core: ["#ffffff"]
+
+materials:
+  wind:     {ramp: wind, finish: matte, bands: [2, 4], gamma: 0.9}
+  wind_hi:  {ramp: wind, bands: [5, 5], line: false}
+  wind_dk:  {ramp: wind, bands: [1, 2], line: false}
+  rock:     {ramp: rock, finish: matte, crease: true, edge_highlight: true, gamma: 0.9}
+  temple:   {ramp: stone, finish: matte, crease: true, edge_highlight: true}
+  mask:     {ramp: stone, finish: matte, bands: [2, 5], gamma: 0.8}
+  carve:    {ramp: stone, bands: [0, 1], line: false}
+  seam:     {ramp: gale, emissive: true, band: 3, outline: false, glow: {color: "#8bc9e5", mix: 0.25, radius: 1}}
+  seam_dim: {ramp: gale, emissive: true, band: 2, outline: false}
+  eye:      {ramp: gale, emissive: true, band: 3, outline: false, glow: {color: "#dff3f6", mix: 0.3, radius: 1}}
+
+remove: [use.sword, use.head, use.hair, parts.belt, parts.coat, parts.neck, parts.leg_L, parts.boot_L]
+
+shadow: {rx: 22, ry: 8, alpha: 110}
+snap: [root, torso_rot]   # whole-pixel body motion
+
+channels:
+  hand_L: [0.64, -0.22, 0.16]
+  hand_R: [0.64, -0.22, 0.16]
+  swirl: 0       # turn of the funnel streaks (radians)
+  spin: 0        # turn of the debris ring (radians)
+  pull: 0        # 0..1 the debris drawn in close (attack: the pull)
+  vortex: 1      # 1..0 the funnel's wind (death: it collapses)
+  fall: 0        # 0..1 death: the debris drops to the ground
+  glow: 1        # brightness of seams and eyes (death puts them out)
+  smear_r: 0.6
+  smear_y: 1.2
+  smear_z: 0.4
+
+bones:
+  big:        {parent: root, scale: 1.12}
+  torso_rot:  {parent: big, pos: "[0, 1.28 + bob, 0]", rot: "[lean + 0.08, twist, roll]"}
+  headbase:   {pos: [0, 0.56, 0.16], scale: 1.6, rot: "[lean*0.5 - 0.08, twist, roll]"}
+  head:       {scale: 1.0}
+  shoulder_L: {pos: [0.46, 0.44, 0.0]}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  fxspace:    {parent: big}
+  funnel_tilt: {parent: big, rot: "[lean*0.25 + 0.04, 0, roll*0.6]"}
+  funnel:     {parent: funnel_tilt, rot: "[0, swirl, 0]", scale: "[1 + 0.4*(1 - vortex), 0.05 + 0.95*vortex, 1 + 0.4*(1 - vortex)]"}
+  orbit:      {parent: big, rot: "[0, spin, 0]"}
+
+ik:
+  arm_L: {lengths: [0.58, 0.56], pole: [0.4, 0.0, -1.0]}
+
+parts:
+  vortex:          # the tornado funnel: narrow at the ground, wide under the torso, ring ridges, spiral streaks
+    material: wind
+    space: funnel
+    when: "vortex > 0.04"
+    blend: 0.06
+    prims:
+      - cone: {a: [0, 1.24, 0], b: [0, 0.06, 0], r: [0.42, 0.05]}
+      - torus: {c: [0, 1.20, 0], R: 0.42, r: 0.085}
+      - torus: {c: [0, 0.96, 0], R: 0.31, r: 0.07}
+      - torus: {c: [0, 0.72, 0], R: 0.22, r: 0.06}
+      - torus: {c: [0, 0.48, 0], R: 0.14, r: 0.05}
+    paint:
+      - material: wind_dk
+        prims:
+          - box: {c: [0, 0.70, 0], half: [0.6, 0.70, 0.05], rot: [0, 0.785, 0], twist: 2.4}
+          - box: {c: [0, 0.70, 0], half: [0.6, 0.70, 0.05], rot: [0, 2.356, 0], twist: 2.4}
+      - material: wind_hi
+        prims:
+          - box: {c: [0, 0.70, 0], half: [0.6, 0.70, 0.04], twist: 2.4}
+          - box: {c: [0, 0.70, 0], half: [0.6, 0.70, 0.04], rot: [0, 1.571, 0], twist: 2.4}
+  torso:           # stone blocks: waist in the funnel, a big chest block, the shoulder ridge
+    material: rock
+    space: pelvis
+    blend: 0.04
+    prims:
+      - box: {c: [0, 0.02, 0.0], half: [0.27, 0.12, 0.22], rot: [0, 0.2, 0], round: 0.07}
+      - box: {c: [0, 0.27, 0.04], half: [0.37, 0.16, 0.26], rot: [0.08, 0, 0], round: 0.08}
+      - ellipsoid: {c: [0, 0.46, -0.04], r: [0.46, 0.13, 0.25]}
+    paint:
+      - material: seam_dim
+        prims:
+          - box: {c: [0, 0.135, 0.0], half: [0.5, "0.022*min(1, 2*glow)", 0.5]}
+          - box: {c: [0, 0.39, 0.0], half: [0.5, "0.02*min(1, 2*glow)", 0.5], rot: [0, 0, 0.06]}
+      - material: seam
+        prims:
+          - box: {c: [0, 0.135, 0.0], half: [0.5, "0.013*glow", 0.5]}
+          - box: {c: [0, 0.39, 0.0], half: [0.5, "0.012*glow", 0.5], rot: [0, 0, 0.06]}
+          - box: {c: [0.06, 0.25, 0.34], half: ["0.012*glow", 0.11, 0.1], rot: [0, 0, 0.3]}
+  wrap:            # the wind band that binds the waist to the funnel
+    material: wind
+    space: pelvis
+    when: "vortex > 0.3"
+    prims:
+      - torus: {c: [0, 0.06, 0.0], R: 0.33, r: 0.05, rot: [0.1, 0, 0.12]}
+    paint:
+      - material: wind_hi
+        prims:
+          - box: {c: [0, 0.12, 0.0], half: [0.5, 0.03, 0.5], rot: [0.1, 0, 0.12]}
+  pauldron_L:      # a big stone block on the shoulder, rising beside the head
+    material: rock
+    space: pelvis
+    blend: 0.03
+    prims:
+      - box: {c: [0.45, 0.47, 0.0], half: [0.16, 0.12, 0.18], rot: [0.1, 0.25, -0.22], round: 0.07}
+    paint:
+      - material: seam
+        prims:
+          - box: {c: [0.44, 0.45, 0.0], half: [0.3, "0.012*glow", 0.3], rot: [0, 0, -0.3]}
+  head:            # a rough rock block behind the mask (the "hood" of stone the mask is set in)
+    material: rock
+    space: head
+    blend: 0.03
+    prims:
+      - box: {c: [0, 0.07, -0.03], half: [0.11, 0.11, 0.09], round: 0.05}
+  mask:            # the carved stone mask: a flat face plate, a heavy brow, a narrow chin, dark eye sockets
+    material: mask
+    space: head
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.06, 0.06], half: [0.095, 0.11, 0.035], round: 0.02}
+      - box: {c: [0, 0.12, 0.09], half: [0.105, 0.028, 0.03], rot: [-0.2, 0, 0], round: 0.012}
+      - box: {c: [0, -0.05, 0.06], half: [0.06, 0.04, 0.03], round: 0.02}
+    paint:
+      - material: carve
+        prims:
+          - box: {c: [0.045, 0.065, 0.12], half: [0.034, 0.026, 0.06]}
+          - box: {c: [-0.045, 0.065, 0.12], half: [0.034, 0.026, 0.06]}
+          - box: {c: [0, -0.04, 0.12], half: [0.035, 0.008, 0.06]}
+      - material: seam
+        prims:
+          - box: {c: [0, 0.18, 0.1], half: ["0.012*glow", 0.03, 0.1]}
+  eye_L:
+    material: eye
+    space: head
+    when: "glow > 0.35"
+    prims:
+      - extrude: {c: [0.045, 0.065, 0.095], depth: 0.04, profile: {rect: [0.02, 0.016], round: 0.005}}
+  arm_L:           # boulder arms: a shoulder stone, an upper-arm stone, a heavy forearm block, wind between
+    material: rock
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.12}
+      - ellipsoid: {c: {between: ["@shoulder_L", "@elbow_L"], t: 0.5}, r: [0.11, 0.11, 0.20], align: ["@shoulder_L", "@elbow_L"]}
+      - ellipsoid: {c: {between: ["@elbow_L", "@wrist_L"], t: 0.5}, r: [0.13, 0.13, 0.22], align: ["@elbow_L", "@wrist_L"]}
+    paint:
+      - material: seam
+        prims:
+          - sphere: {c: "@elbow_L", r: "0.06*glow"}
+  hand_L:          # a boulder fist (wrist frames are world units)
+    material: rock
+    space: wrist_L
+    blend: {mode: chamfer, k: 0.04}
+    prims:
+      - box: {c: [0, 0, 0.13], half: [0.17, 0.16, 0.16], rot: [0.2, 0.3, 0.1], round: 0.07}
+    paint:
+      - material: seam
+        prims:
+          - box: {c: [0, 0, 0.02], half: [0.4, 0.4, "0.012*glow"]}
+  rocks:           # three rock shards on the low orbit (120 degrees apart)
+    material: rock
+    space: orbit
+    floating: true
+    blend: 0.0
+    prims:
+      - box: {c: "[0.62*(1 - 0.45*pull), 0.48*(1 - fall) + 0.07*fall, 0]", half: [0.08, 0.06, 0.07], rot: [0.4, 0.3, 0.5], round: 0.03}
+      - box: {c: "[-0.31*(1 - 0.45*pull), 0.48*(1 - fall) + 0.07*fall, 0.537*(1 - 0.45*pull)]", half: [0.07, 0.07, 0.06], rot: [0.1, 0.9, 0.3], round: 0.03}
+      - box: {c: "[-0.31*(1 - 0.45*pull), 0.48*(1 - fall) + 0.07*fall, -0.537*(1 - 0.45*pull)]", half: [0.09, 0.05, 0.07], rot: [0.6, 0.2, 0.1], round: 0.03}
+  slabs:           # three carved temple slabs on the higher, tilted orbit
+    material: temple
+    space: orbit
+    floating: true
+    blend: 0.0
+    prims:
+      - box: {c: "[0.36*(1 - 0.4*pull), (1.00 + 0.10*sin(1.047 + spin))*(1 - fall) + 0.05*fall, 0.624*(1 - 0.4*pull)]", half: [0.15, 0.11, 0.035], rot: "[0.3*(1 - fall) + 1.5*fall, -0.52, 0.25]", round: 0.015}
+      - box: {c: "[-0.72*(1 - 0.4*pull), (1.00 + 0.10*sin(3.1416 + spin))*(1 - fall) + 0.05*fall, 0]", half: [0.15, 0.11, 0.035], rot: "[0.3*(1 - fall) + 1.5*fall, 1.571, -0.2]", round: 0.015}
+      - box: {c: "[0.36*(1 - 0.4*pull), (1.00 + 0.10*sin(5.236 + spin))*(1 - fall) + 0.05*fall, -0.624*(1 - 0.4*pull)]", half: [0.15, 0.11, 0.035], rot: "[0.3*(1 - fall) + 1.5*fall, 0.52, 0.3]", round: 0.015}
+
+sockets:
+  impact: {bone: big, offset: [0, 0.02, 0.85]}   # the ground in front where the fists land
+  core: {bone: pelvis, offset: [0, 0.26, 0.26]}   # the chest: the pull-in effect centre
+  fist_L: {bone: wrist_L, offset: [0, 0, 0.12]}
+
+animations:
+  # hovering: the torso heaves slowly, the funnel streaks turn half a turn and the debris a third of a turn per loop
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      bob: "0.03*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      head_pitch: "0.05*sin(p - 0.8)"
+      swirl: "p/2"
+      spin: "p/3"
+      glow: "1.0 + 0.25*sin(p)"
+      hand_L: "[0.64, -0.22 + 0.03*sin(p - 0.6), 0.16]"
+      hand_R: "[0.64, -0.22 + 0.03*sin(p - 0.6), 0.16]"
+  # gliding: leaning into the move, the funnel tilts forward, the body rocks from side to side, the arms swing
+  walk:
+    frames: 8
+    ms: 120
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: "0.12 + 0.02*cos(2*p)"
+      bob: "0.03*sin(2*p)"
+      squash: "1 - 0.02*cos(2*p)"
+      roll: "0.05*sin(p)"
+      twist: "0.06*cos(p)"
+      head_yaw: "-0.05*cos(p)"
+      swirl: "p/2"
+      spin: "p/3"
+      glow: "1.0 + 0.15*cos(2*p)"
+      hand_L: "[0.64, -0.20 + 0.03*pos(cos(p)), 0.16 - 0.14*cos(p)]"
+      hand_R: "[0.64, -0.20 + 0.03*pos(-cos(p)), 0.16 + 0.14*cos(p)]"
+  # both fists rise high over the head while the funnel spins harder and the debris is drawn in (the pull),
+  # one fast smear frame, the fists slam the ground in front (`hit`), a held beat, a slow recovery
+  attack:
+    loop: false
+    keys:
+      - {ms: 110, event: windup, set: {lean: 0.20, bob: -0.05, squash: 0.94, head_pitch: 0.08, swirl: 0.3, spin: 0.2, pull: 0.2,
+          hand_L: [0.36, -0.18, 0.34], hand_R: [0.36, -0.18, 0.34]}}
+      - {ms: 140, set: {lean: 0.0, bob: 0.02, squash: 1.0, head_pitch: -0.05, swirl: 0.8, spin: 0.5, pull: 0.5, glow: 1.2,
+          hand_L: [0.34, 0.40, 0.28], hand_R: [0.34, 0.40, 0.28]}}
+      - {ms: 200, set: {lean: -0.22, bob: 0.06, squash: 1.05, head_pitch: -0.12, swirl: 1.4, spin: 0.9, pull: 0.85, glow: 1.4,
+          hand_L: [0.24, 1.00, 0.02], hand_R: [0.24, 1.00, 0.02]}}
+      - {ms: 190, set: {lean: -0.26, bob: 0.07, squash: 1.06, head_pitch: -0.15, swirl: 2.0, spin: 1.3, pull: 1.0, glow: 1.5,
+          hand_L: [0.22, 1.05, -0.04], hand_R: [0.22, 1.05, -0.04]}}
+      - {ms: 60, set: {lean: 0.20, bob: -0.18, squash: 1.0, head_pitch: 0.05, swirl: 2.3, spin: 1.5, pull: 0.9, glow: 1.4, vortex: 0.85,
+          hand_L: [0.18, 0.40, 0.62], hand_R: [0.18, 0.40, 0.62],
+          smear_w: 0.12, smear_a0: 2.0, smear_a1: 0.7}}
+      - {ms: 90, event: hit, set: {root: [0, 0, 0.08], lean: 0.45, bob: -0.45, squash: 0.88, head_pitch: 0.12, swirl: 2.6, spin: 1.7, pull: 0.3, glow: 1.6, vortex: 0.65,
+          hand_L: [0.20, -0.28, 0.75], hand_R: [0.20, -0.28, 0.75],
+          smear_w: 0.10, smear_a0: 1.0, smear_a1: -0.6, smear_fade: 0.6}}
+      - {ms: 120, set: {root: [0, 0, 0.08], lean: 0.43, bob: -0.42, squash: 0.91, head_pitch: 0.10, swirl: 2.9, spin: 1.9, pull: 0.1, glow: 1.3, vortex: 0.68,
+          hand_L: [0.20, -0.27, 0.74], hand_R: [0.20, -0.27, 0.74]}}
+      - {ms: 110, set: {root: [0, 0, 0.03], lean: 0.22, bob: -0.14, squash: 0.97, swirl: 3.14, spin: 2.09, glow: 1.1, vortex: 0.9,
+          hand_L: [0.50, -0.30, 0.34], hand_R: [0.50, -0.30, 0.34]}}
+  # hit: barely flinches - jolted back about a pixel, the funnel stutters, the seams flare
+  hit:
+    loop: false
+    keys:
+      - {ms: 80, set: {root: [0, 0, -0.03], lean: -0.08, bob: 0.02, squash: 0.97, head_pitch: -0.12, swirl: -0.2, glow: 1.6,
+          hand_L: [0.58, -0.30, 0.08], hand_R: [0.58, -0.30, 0.08]}}
+      - {ms: 80, set: {root: [0, 0, -0.015], lean: -0.03, bob: 0.01, squash: 0.99, head_pitch: -0.05, swirl: -0.1, glow: 1.3,
+          hand_L: [0.60, -0.27, 0.12], hand_R: [0.60, -0.27, 0.12]}}
+      - {ms: 80, set: {lean: 0.04, head_pitch: 0.02}}
+  # death: struck back, the funnel loses its wind and sinks into a low dust ring, the stone body drops to the ground
+  # and slumps forward, the debris falls, the seams and eyes go out; the last frame held
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.03], lean: -0.20, bob: 0.04, squash: 1.02, head_pitch: -0.2, swirl: 0.4, spin: 0.3, glow: 1.5,
+          hand_L: [0.66, -0.10, 0.0], hand_R: [0.66, -0.10, 0.0]}}
+      - {ms: 140, set: {root: [0, 0, -0.03], lean: 0.10, bob: -0.22, squash: 0.96, head_pitch: 0.15, swirl: 0.7, spin: 0.5, vortex: 0.7, fall: 0.25, glow: 1.0,
+          hand_L: [0.64, -0.24, 0.12], hand_R: [0.64, -0.24, 0.12]}}
+      - {ms: 140, set: {lean: 0.22, bob: -0.55, squash: 0.92, head_pitch: 0.25, roll: 0.05, swirl: 0.9, spin: 0.6, vortex: 0.42, fall: 0.6, glow: 0.7,
+          hand_L: [0.66, -0.30, 0.22], hand_R: [0.66, -0.30, 0.22]}}
+      - {ms: 130, set: {lean: 0.32, bob: -0.85, squash: 0.88, head_pitch: 0.35, roll: 0.08, swirl: 1.0, spin: 0.65, vortex: 0.18, fall: 0.9, glow: 0.4,
+          hand_L: [0.66, -0.28, 0.28], hand_R: [0.66, -0.28, 0.28]}}
+      - {ms: 130, set: {lean: 0.55, bob: -1.04, squash: 0.84, head_pitch: 0.45, roll: 0.10, swirl: 1.05, spin: 0.65, vortex: 0.08, fall: 1.0, glow: 0.2,
+          hand_L: [0.64, -0.18, 0.28], hand_R: [0.64, -0.18, 0.28]}}
+      - {ms: 860, set: {lean: 0.62, bob: -1.08, squash: 0.82, head_pitch: 0.5, roll: 0.10, swirl: 1.05, spin: 0.65, vortex: 0.0, fall: 1.0, glow: 0.0,
+          hand_L: [0.62, -0.14, 0.26], hand_R: [0.62, -0.14, 0.26]}}
+
+timing:
+  attack: {hit: 700ms, total: 1020ms}

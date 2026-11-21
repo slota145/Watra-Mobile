@@ -1,0 +1,337 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: latawiec
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.05, 0]}
+palette: "watra"
+size: 48
+extends: humanoid   # its skeleton, arm IK, head kit and smear; legs, coat, belt, sword and hair kit removed
+
+# Latawiec: the basic enemy of the "Podniebne wyspy" (sky islands) dungeon, air element. A Slavic air demon:
+# a spectral human torso and head with wild wind-blown hair, long arms with long claws, and instead of legs a
+# tail of whirling air that tapers down to a point above the ground. No reference image. No bird features
+# (no feathers, beaks or wings): the game already has the birdmen.
+brief:
+  summary: >
+    a ghostly air demon about 34 px tall, floating: a gaunt pale blue-grey human torso leaning forward,
+    a narrow head with wild white-blue hair streaming back and up, long thin arms reaching forward with long
+    dark claws, and below the waist a turquoise-grey tail of whirling wind that tapers to a point a few px
+    above a small shadow, with pale streaks spiralling around it
+  head: >
+    the head kit, narrow with a long pointed chin (gaunt), no nose, no ears; face minimal (style): two slanted
+    glowing ice-white eyes, nothing else; the hair is its own pieces on `hairbone`: a cap over the skull and
+    long locks blown back and up from the crown and temples (the second striking shape), tips swaying with
+    `hair_flow` (lift back) and `hair_sway` (side)
+  must_keep:
+    - the wind tail instead of legs, with the spiral streaks turning (the read "made of air")
+    - the gap between the tail tip and the shadow (it floats)
+    - the wild hair blown back and up
+    - long arms with long claws reaching forward
+    - cold colours only (pale blue, white, grey-turquoise) with the bright eyes as the accent
+    - no bird features
+  simplify:
+    - half-transparency is suggested by colour, not alpha - very pale, low-contrast skin, the tail lighter
+      toward its tip, the spiral streaks emissive pale cyan
+    - claws are three long cones per hand
+    - the tail is one tapered tube through a chain of bones (tail1..tip) bent by a travelling wave of `whirl`
+  decisions:
+    - the tail bends back with `trail` (walk: fast flight, tail streaming behind)
+    - the streaks wind around the tail at the phase `whirl` (2 turns: periodic in idle and walk)
+    - attack is a right-hand claw rake with a lunge (same contract as the drowner - events windup and hit,
+      socket claw_hit on the right hand)
+    - death - the body stretches upward and thins into wind (the `fade` channel scales it), the streaks fly
+      apart, the eyes go out and a small whirl of dust is left on the ground
+
+ramps:
+  # spectral skin: pale blue-grey, low contrast (reads as half-transparent)
+  wraith:  ["#0c1420", "#2f4a5e", "#4f7088", "#7896ac", "#a3bccc", "#d0e2ea"]
+  # wild hair: white with cold blue shadows
+  wind_hair: ["#10161f", "#3f5266", "#62798f", "#8aa3b8", "#b6cad8", "#e2edf4"]
+  # the whirling tail: grey-turquoise
+  gust:    ["#081416", "#1d4446", "#2f6a68", "#4b918a", "#74b5aa", "#a8d8cc"]
+  # spiral streaks of wind: emissive pale cyan
+  streak:  ["#2a6874", "#8ad2dc", "#d4f4f8", "#ffffff"]
+  # dark hollow eye sockets on the pale face (so the glowing eyes read)
+  socket:  ["#04070b", "#0e1822", "#1b2a38"]
+  # long dark claws
+  talon:   ["#080a10", "#232a38", "#3c4658", "#5a6880", "#8392aa"]
+  # glowing eyes
+  ice_eye: ["#1a4a5a", "#8eeaff", "#e2fbff", "#ffffff"]
+  # the claw rake smear: cold air
+  fx_tail: ["#5fa8bf"]
+  fx_mid:  ["#bfeaf2"]
+  fx_core: ["#f4fdff"]
+
+materials:
+  skin:   {ramp: wraith, gamma: 0.75, finish: soft}
+  hair:   {ramp: wind_hair, finish: matte}
+  gust:   {ramp: gust, gamma: 0.8, finish: matte}
+  streak: {ramp: streak, emissive: true, band: 2, outline: false, line: false}
+  claw:   {ramp: talon, finish: glossy}
+  socket: {ramp: socket, bands: [1, 2], line: false}
+  eye:    {ramp: ice_eye, emissive: true, band: 2, outline: false, glow: {color: "#9ef0ff", mix: 0.35, radius: 1}}
+
+remove: [use.hair, use.sword, parts.leg_L, parts.boot_L, parts.coat, parts.belt, parts.eye_L]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 0.88, jaw: 0.2, chin: 0.85, nose: 0, ears: 0}}
+
+shadow: {rx: 6.5, ry: 2.4, alpha: 110}
+
+channels:
+  # the long arms reach forward, hands at belly height (torso_rot space)
+  hand_L: [0.22, 0.16, 0.44]
+  hand_R: [0.22, 0.16, 0.44]
+  lean: 0.18        # a permanent forward lean (a predator in flight)
+  whirl: 0          # phase of the tail wave and of the spiral streaks (radians)
+  trail: 0.2        # the tail bends back (flight)
+  tail_swing: 0     # the tail swings sideways (radians)
+  hair_flow: 0      # the hair lifts back and up
+  hair_sway: 0      # the hair swings sideways
+  claw_curl: 0      # claws spread (-) or hooked (+)
+  fade: 0           # death: the body stretches up and thins into wind (0..1)
+  scatter: 0        # death: the streaks fly apart (0..1)
+  alive: 1          # 0 hides the body (end of death)
+  eyes_lit: 1       # 0 puts the eyes out
+  dust: 0           # death: the little whirl of dust left on the ground (0..1)
+  smear_y: 0
+  smear_z: 0.10
+  smear_r: 0.42
+
+bones:
+  # the whole body floats: the waist at 0.92 above the ground; `fade` stretches it up and thins it (death)
+  core:      {parent: root, scale: "[1 - 0.6*fade, 1 + 0.15*fade, 1 - 0.6*fade]"}
+  torso_rot: {parent: core, pos: "[0, 0.87 + bob, 0]", rot: "[lean, twist, roll]"}
+  headbase:  {parent: pelvis, pos: [0, 0.58, 0.04], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.4 - 0.22, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: "1.3*(1 - 0.5*fade)"}
+  hairbone:  {parent: head, pos: [0, 0.16, -0.02], rot: "[-head_pitch*0.6 - lean*0.4 + 0.22 - hair_flow*0.3, 0, hair_sway*0.25]"}
+  shoulder_L: {parent: pelvis, pos: [0.19, 0.45, 0.0]}
+  claws_L:   {parent: wrist_L, pos: [0, 0, 0.05], rot: "[claw_curl, 0, 0]"}
+  # the wind tail: from the waist, upright despite the lean, bent back by `trail`, waving with `whirl`
+  tailbase:  {parent: torso_rot, pos: [0, 0.02, -0.01], rot: "[trail*0.5 - lean, 0, tail_swing]"}
+  tail1:     {parent: tailbase, pos: [0, -0.21, 0], rot: "[trail*0.35, 0, 0.12*sin(whirl)]"}
+  tail2:     {parent: tail1, pos: [0, -0.20, 0], rot: "[trail*0.35 + 0.1, 0, 0.18*sin(whirl - 1.2)]"}
+  tail3:     {parent: tail2, pos: [0, -0.18, 0], rot: "[trail*0.3 + 0.15, 0, 0.25*sin(whirl - 2.4)]"}
+  tailtip:   {parent: tail3, pos: [0, -0.15, 0]}
+  # the claw rake smear: a horizontal arc at hand height in front of the body
+  fxspace:   {parent: root, pos: [0, 1.07, 0.10], rot: "[0, twist*0.4, 0]"}
+
+ik:
+  arm_L: {lengths: [0.31, 0.30], pole: [0.4, 0.0, -1.0]}
+
+parts:
+  torso:             # gaunt: narrow waist flaring to bony shoulders, ribs in the shading
+    material: skin
+    space: pelvis
+    when: "alive > 0"
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.0], r: [0.12, 0.12, 0.10]}
+      - ellipsoid: {c: [0, 0.25, 0.0], r: [0.15, 0.14, 0.11]}
+      - ellipsoid: {c: [0, 0.42, -0.01], r: [0.21, 0.10, 0.12]}
+  neck:
+    material: skin
+    space: pelvis
+    when: "alive > 0"
+    prims:
+      - cone: {a: [0, 0.44, 0.0], b: [0, 0.58, 0.04], r: [0.06, 0.05]}
+  tail:              # the whirling wind instead of legs: wide at the waist, a point above the ground
+    material: gust
+    when: "alive > 0"
+    prims:
+      - tube: {pts: ["@tailbase", "@tail1", "@tail2", "@tail3", "@tailtip"], r: [0.135, 0.015]}
+      - sphere: {c: {at: tailbase, off: [0, 0.03, 0]}, r: 0.125}
+  streaks:           # two pale streaks spiralling around the tail
+    material: streak
+    when: "alive > 0"
+    priority: 2
+    min_cover: 2
+    prims:
+      - tube: {pts: [{at: tailbase, off: "(1 + 1.5*scatter)*[0.16*sin(whirl), 0.0, 0.16*cos(whirl)]"},
+                     {at: tail1, off: "(1 + 1.5*scatter)*[0.16*sin(whirl + 1.6), 0, 0.16*cos(whirl + 1.6)]"},
+                     {at: tail2, off: "(1 + 1.5*scatter)*[0.13*sin(whirl + 3.2), 0, 0.13*cos(whirl + 3.2)]"},
+                     {at: tail3, off: "(1 + 1.5*scatter)*[0.08*sin(whirl + 4.8), 0, 0.08*cos(whirl + 4.8)]"},
+                     "@tailtip"], r: [0.04, 0.014]}
+      - tube: {pts: [{at: tailbase, off: "(1 + 1.5*scatter)*[0.16*sin(whirl + pi), 0.0, 0.16*cos(whirl + pi)]"},
+                     {at: tail1, off: "(1 + 1.5*scatter)*[0.16*sin(whirl + pi + 1.6), 0, 0.16*cos(whirl + pi + 1.6)]"},
+                     {at: tail2, off: "(1 + 1.5*scatter)*[0.13*sin(whirl + pi + 3.2), 0, 0.13*cos(whirl + pi + 3.2)]"},
+                     {at: tail3, off: "(1 + 1.5*scatter)*[0.08*sin(whirl + pi + 4.8), 0, 0.08*cos(whirl + pi + 4.8)]"},
+                     "@tailtip"], r: [0.04, 0.014]}
+  head:              # the kit's head with dark hollow sockets painted around the eyes
+    when: "alive > 0"
+    paint:
+      - material: socket
+        prims:
+          - ellipsoid: {c: [0.055, 0.118, 0.11], r: [0.048, 0.03, 0.06], rot: [0, 0, -0.35]}
+          - ellipsoid: {c: [-0.055, 0.118, 0.11], r: [0.048, 0.03, 0.06], rot: [0, 0, 0.35]}
+  eye_slit_L:        # a slanted glowing eye in its socket
+    material: eye
+    space: head
+    when: "eyes_lit > 0.5 and alive > 0"
+    min_cover: 2
+    prims:
+      - extrude: {c: [0.058, 0.12, 0.115], rot: [0, 0.6, -0.35], depth: 0.04, profile: {rect: [0.038, 0.017], round: 0.006}}
+  hair:              # the cap over the skull, off the forehead
+    material: hair
+    space: hairbone
+    when: "alive > 0"
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.05, -0.09], r: [0.142, 0.095, 0.135], rot: [-0.45, 0, 0]}
+  hair_locks:        # long wild locks blown back from the crown, lifting with `hair_flow`
+    material: hair
+    space: hairbone
+    when: "alive > 0"
+    blend: 0.02
+    prims:
+      - tube: {pts: [[0, 0.10, -0.02], [0, 0.11, -0.22], [0.02, 0.04, -0.34], "[0.03*hair_sway, 0.08 + 0.09*hair_flow, -0.46 - 0.03*hair_flow]"], r: [0.068, 0.018]}
+      - tube: {pts: [[0.09, 0.06, -0.04], [0.16, 0.04, -0.20], [0.20, -0.02, -0.30], "[0.22 + 0.04*hair_sway, 0.04 + 0.08*hair_flow, -0.40 - 0.03*hair_flow]"], r: [0.062, 0.016]}
+      - tube: {pts: [[-0.09, 0.06, -0.04], [-0.16, 0.04, -0.20], [-0.20, -0.02, -0.30], "[-0.22 + 0.04*hair_sway, 0.04 + 0.08*hair_flow, -0.40 - 0.03*hair_flow]"], r: [0.062, 0.016]}
+      - tube: {pts: [[0.06, 0.0, -0.12], [0.10, -0.04, -0.28], "[0.12 + 0.05*hair_sway, -0.03 + 0.07*hair_flow, -0.50 - 0.03*hair_flow]"], r: [0.06, 0.015]}
+      - tube: {pts: [[-0.06, 0.0, -0.12], [-0.10, -0.04, -0.28], "[-0.12 + 0.05*hair_sway, -0.03 + 0.07*hair_flow, -0.50 - 0.03*hair_flow]"], r: [0.06, 0.015]}
+  lock_L:            # a temple lock blown back past the ear
+    material: hair
+    space: hairbone
+    when: "alive > 0"
+    prims:
+      - tube: {pts: [[0.13, -0.04, 0.04], [0.18, -0.12, -0.08], "[0.21 + 0.03*hair_sway, -0.12 + 0.05*hair_flow, -0.26]"], r: [0.035, 0.014]}
+  arm_L:             # long thin arms
+    material: skin
+    when: "alive > 0"
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.06}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.05, 0.038]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.038, 0.032]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    when: "alive > 0"
+    prims:
+      - ellipsoid: {c: [0, 0, 0.03], r: [0.05, 0.03, 0.055]}
+  claws_L:           # three long claws
+    material: claw
+    space: claws_L
+    when: "alive > 0"
+    priority: 2
+    min_cover: 2
+    line: false
+    prims:
+      - cone: {a: [0.0, 0, 0.0], b: [0.0, -0.05, 0.14], r: [0.019, 0.006]}
+      - cone: {a: [0.035, 0, -0.005], b: [0.06, -0.05, 0.12], r: [0.018, 0.006]}
+      - cone: {a: [-0.035, 0, -0.005], b: [-0.06, -0.05, 0.12], r: [0.018, 0.006]}
+  # death: puffs of wind flying out and up, shrinking away
+  puffs:
+    material: streak
+    space: root
+    when: "scatter > 0 and scatter < 1"
+    min_cover: 2
+    prims:
+      - sphere: {c: "[0.40*scatter, 0.95 + 0.30*scatter, 0.05]", r: "0.065*(1 - 0.6*scatter)"}
+      - sphere: {c: "[-0.42*scatter, 1.05 + 0.25*scatter, -0.05]", r: "0.065*(1 - 0.6*scatter)"}
+      - sphere: {c: "[0.15*scatter, 1.20 + 0.35*scatter, 0.30*scatter]", r: "0.055*(1 - 0.6*scatter)"}
+      - sphere: {c: "[-0.18*scatter, 1.15 + 0.30*scatter, -0.30*scatter]", r: "0.055*(1 - 0.6*scatter)"}
+      - sphere: {c: "[0.30*scatter, 0.60 + 0.10*scatter, -0.25*scatter]", r: "0.055*(1 - 0.6*scatter)"}
+      - sphere: {c: "[-0.28*scatter, 0.55 + 0.10*scatter, 0.28*scatter]", r: "0.055*(1 - 0.6*scatter)"}
+  # death: the little whirl of dust left on the ground
+  dust:
+    material: gust
+    space: root
+    when: "dust > 0"
+    prims:
+      - torus: {c: [0, 0.03, 0], R: "0.13*dust", r: 0.028}
+  dust_streak:
+    material: streak
+    space: root
+    when: "dust > 0"
+    min_cover: 2
+    prims:
+      - sphere: {c: "[0.14*dust, 0.05, 0.08*dust]", r: 0.03}
+      - sphere: {c: "[-0.12*dust, 0.05, -0.10*dust]", r: 0.03}
+
+sockets:
+  claw_hit: {bone: wrist_R, offset: [0, 0, 0.14]}
+
+animations:
+  idle:
+    frames: 8
+    ms: 130
+    channels:
+      bob: "0.045*sin(p)"
+      whirl: "2*p"
+      tail_swing: "0.06*sin(p - 1.0)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hair_flow: "0.3 + 0.25*sin(p - 1.2)"
+      hair_sway: "0.4*sin(p - 0.8)"
+      hand_L: "[0.22, 0.16 + 0.03*sin(p - 0.6), 0.44]"
+      hand_R: "[0.22, 0.16 + 0.03*sin(p - 0.9), 0.44]"
+      claw_curl: "0.15*sin(p - 1.0)"
+  # fast flight: leaning hard into the motion, the tail streaming behind and whipping, the hair blown back,
+  # the arms trailing low along the body, alternating
+  walk:
+    frames: 8
+    ms: 85
+    channels:
+      lean: 0.30
+      bob: "-0.04 + 0.03*sin(2*p)"
+      trail: "0.6 + 0.08*sin(2*p - 1.0)"
+      whirl: "2*p"
+      tail_swing: "0.10*sin(p - 1.2)"
+      roll: "0.05*sin(p)"
+      twist: "0.06*sin(p)"
+      head_pitch: "-0.32 + 0.03*sin(2*p)"
+      hair_flow: "0.95 + 0.15*sin(2*p - 0.8)"
+      hair_sway: "0.35*sin(p - 1.0)"
+      hand_L: "[0.22, 0.08 + 0.03*sin(p), 0.14 + 0.10*sin(p)]"
+      hand_R: "[0.22, 0.08 - 0.03*sin(p), 0.14 - 0.10*sin(p)]"
+      claw_curl: "0.2 + 0.1*sin(2*p)"
+  # claw rake with the right hand: drawn back and up (held), a lunge with one fast horizontal swipe and a
+  # smear, the claws landing (hit) as the hand crosses the middle, follow-through to the left, recovery.
+  # Total 650 ms, hit at 290 ms (same contract as the drowner)
+  attack:
+    loop: false
+    keys:
+      - {ms: 80, event: windup, set: {root: [0, 0, -0.03], twist: -0.3, lean: 0.08, bob: 0.02, trail: 0.1, whirl: 0.5,
+          hand_R: [0.32, 0.40, 0.08], hand_L: [0.22, 0.20, 0.40], claw_curl: -0.4, head_pitch: -0.05, hair_flow: 0.3}}
+      - {ms: 160, set: {root: [0, 0, -0.07], twist: -0.55, lean: -0.02, bob: 0.05, trail: 0.0, whirl: 1.2,
+          hand_R: [0.38, 0.47, -0.12], hand_L: [0.24, 0.24, 0.38], claw_curl: -0.6, head_pitch: -0.12, hair_flow: 0.5}}
+      - {ms: 50, set: {root: [0, 0, 0.12], twist: 0.15, lean: 0.28, bob: -0.01, trail: 0.7, whirl: 2.2,
+          hand_R: [0.10, 0.44, 0.60], hand_L: [0.24, 0.14, 0.30], claw_curl: -0.4, head_pitch: -0.05, hair_flow: 0.9,
+          smear_w: 0.09, smear_a0: -1.6, smear_a1: -0.1}}
+      - {ms: 70, event: hit, set: {root: [0, 0, 0.18], twist: 0.5, lean: 0.32, bob: -0.03, trail: 0.9, whirl: 2.9,
+          hand_R: [-0.22, 0.38, 0.52], hand_L: [0.26, 0.10, 0.24], claw_curl: 0.3, head_pitch: 0.0, hair_flow: 1.0,
+          smear_w: 0.11, smear_a0: -1.1, smear_a1: 1.0}}
+      - {ms: 90, set: {root: [0, 0, 0.18], twist: 0.65, lean: 0.32, bob: -0.03, trail: 0.8, whirl: 3.6,
+          hand_R: [-0.32, 0.22, 0.30], hand_L: [0.26, 0.10, 0.24], claw_curl: 0.5, head_pitch: 0.0, hair_flow: 0.8,
+          smear_w: 0.06, smear_a0: 0.3, smear_a1: 1.3, smear_fade: 0.65}}
+      - {ms: 100, set: {root: [0, 0, 0.09], twist: 0.25, lean: 0.24, bob: 0.0, trail: 0.5, whirl: 4.4,
+          hand_R: [0.10, 0.12, 0.40], hand_L: [0.23, 0.14, 0.38], claw_curl: 0.2, hair_flow: 0.5}}
+      - {ms: 100, set: {root: [0, 0, 0.02], twist: 0.05, whirl: 5.2,
+          hand_R: [0.20, 0.16, 0.44], hand_L: [0.22, 0.16, 0.44], hair_flow: 0.3}}
+  # hit: a short flinch - blown back, head snapped up, the hair flung forward, arms jerking up
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.08], lean: -0.15, bob: 0.03, squash: 0.94, head_pitch: -0.18, hair_flow: 0.0,
+          trail: -0.2, tail_swing: 0.15, hand_L: [0.30, 0.30, 0.30], hand_R: [0.30, 0.32, 0.30], claw_curl: -0.6, whirl: 0.6}}
+      - {ms: 70, set: {root: [0, 0, -0.05], lean: 0.02, bob: 0.02, squash: 0.98, head_pitch: -0.12, hair_flow: 0.0,
+          trail: 0.0, tail_swing: 0.05, hand_L: [0.26, 0.22, 0.38], hand_R: [0.26, 0.24, 0.38], claw_curl: -0.2, whirl: 1.4}}
+      - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.15, head_pitch: 0.02, hair_flow: 0.3, trail: 0.15,
+          hand_L: [0.22, 0.17, 0.43], hand_R: [0.22, 0.17, 0.43], whirl: 2.2}}
+  # death: a flinch, it arches back with the arms flung wide, then stretches upward and thins into wind
+  # (`fade`), the eyes go out, puffs of wind fly apart and a little whirl of dust is left on the ground
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.06], lean: -0.15, bob: 0.03, squash: 0.94, head_pitch: -0.18, hair_flow: 0.0,
+          trail: -0.2, hand_L: [0.30, 0.30, 0.30], hand_R: [0.30, 0.32, 0.30], claw_curl: -0.6, whirl: 0.8}}
+      - {ms: 120, set: {root: [0, 0, -0.06], lean: -0.30, bob: 0.03, head_pitch: -0.25, hair_flow: 0.6, trail: 0.0,
+          hand_L: [0.45, 0.45, 0.05], hand_R: [0.45, 0.45, 0.05], claw_curl: -0.8, whirl: 2.0, fade: 0.08}}
+      - {ms: 110, set: {root: [0, 0, -0.06], lean: -0.30, bob: 0.05, head_pitch: -0.25, hair_flow: 1.0,
+          hand_L: [0.42, 0.50, 0.0], hand_R: [0.42, 0.50, 0.0], claw_curl: -0.8, whirl: 3.4, fade: 0.35, scatter: 0.25}}
+      - {ms: 110, set: {eyes_lit: 0, root: [0, 0, -0.06], lean: -0.25, bob: 0.12, head_pitch: -0.25, hair_flow: 1.3,
+          hand_L: [0.40, 0.52, 0.0], hand_R: [0.40, 0.52, 0.0], whirl: 4.8, fade: 0.62, scatter: 0.5}}
+      - {ms: 110, set: {eyes_lit: 0, root: [0, 0, -0.06], lean: -0.2, bob: 0.14, head_pitch: -0.25, hair_flow: 1.5,
+          hand_L: [0.38, 0.52, 0.0], hand_R: [0.38, 0.52, 0.0], whirl: 6.2, fade: 0.85, scatter: 0.75, dust: 0.4}}
+      - {ms: 120, set: {eyes_lit: 0, alive: 0, scatter: 0.95, dust: 0.8}}
+      - {ms: 500, set: {eyes_lit: 0, alive: 0, dust: 1}}

@@ -167,6 +167,8 @@ var climate := Dungeons.GOBLINS
 ## Wystrój lochu (ozdoby i poświaty, ProtoDecor).
 var decor: ProtoDecor
 var chief: ProtoChief
+## Wiatr Podniebnych wysp: podmuchy i wędrowne trąby (ProtoWind; null w innych lochach).
+var wind: ProtoWind
 var chest: ProtoChest
 ## Etap wyprawy: horde (zbieranie żaru), boss (walka z Wodzem), loot (skrzynia), won (po zwycięstwie).
 var phase := "horde"
@@ -264,6 +266,15 @@ func _ready() -> void:
 		horde_spawner.elite_killed.connect(func(_g: ProtoGoblin) -> void:
 			_gain_xp(roundi(HeroLevels.goblin_xp(level) * (Elites.XP * DungeonMods.mult(mods, "elite_xp") - 1))))
 		add_child(horde_spawner)
+		if climate == Dungeons.SKY:
+			wind = ProtoWind.new()
+			wind.name = "Wind"
+			wind.hero = hero
+			wind.world = world
+			wind.bounds = ARENA.grow(-40)
+			wind.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
+			add_child(wind)
+			wind.spawn_tornadoes()
 		hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
 			health_bar.max_value = max_hp
 			health_bar.value = hp
@@ -1370,6 +1381,8 @@ func summon_chief() -> void:
 			chief = ProtoStormEagle.new()
 		Dungeons.VOLCANO:
 			chief = ProtoFireElemental.new()
+		Dungeons.SKY:
+			chief = ProtoGryf.new()
 		_:
 			chief = ProtoChief.new()
 	chief.name = "Chief"
