@@ -51,24 +51,24 @@ func _test_data() -> void:
 			var item := Items.roll(3, "", r)
 			var n: int = item.affixes.size()
 			counts_ok = counts_ok and n >= Items.AFFIX_COUNT[r].x and n <= Items.AFFIX_COUNT[r].y
-	_check(counts_ok, "liczba premii według rzadkości (zwykły 0, magiczny 1-2, rzadki 3-4)")
+	_check(counts_ok, "liczba premii według rzadkości (zwykły 0, magiczny 1-2, rzadki 3-5)")
 	var rare := Items.roll(1, "helmet", "rare")
 	var stats := {}
 	for a in rare.affixes:
 		stats[a.stat] = true
 	_check(stats.size() == rare.affixes.size(), "premie się nie powtarzają")
 	_check(Items.tier_for(1) == 0 and Items.tier_for(5) == 1 and Items.tier_for(99) == 4, "stopnie przedmiotów z poziomu lochu")
-	_check(Items.name_of(Items.roll(1, "earring")) == "Kolczyk z kłem" and Items.name_of(Items.roll(9, "armor")) == "Mithrilowy napierśnik", "nazwy z Watry według stopnia")
+	_check(Items.name_of(Items.roll(1, "earring", "", Items.GOBLIN_WEIGHTS, "fang")) == "Kolczyk z kłem" and Items.name_of(Items.roll(12, "armor", "", Items.GOBLIN_WEIGHTS, "plate")) == "Mithrilowy napierśnik", "nazwy z Watry według stopnia")
 	_check(Items.icon_of(rare) != null and Items.icon_of(Items.roll(20, "amulet", "magic")) != null, "ikony wszystkich wersji")
-	var low := Items.roll(1, "armor", "common")
-	var high := Items.roll(10, "armor", "common")
+	var low := Items.roll(1, "armor", "common", Items.GOBLIN_WEIGHTS, "plate")
+	var high := Items.roll(10, "armor", "common", Items.GOBLIN_WEIGHTS, "plate")
 	_check(high.base.hp > low.base.hp, "zbroja z wyższego lochu daje więcej zdrowia (%d > %d)" % [high.base.hp, low.base.hp])
 	var mid := 0.0
 	var deep := 0.0
 	for k in 40:
 		mid += Items.roll_affix("damage_pct", 17)
 		deep += Items.roll_affix("damage_pct", 30)
-	_check(deep > mid and Items.roll(30, "ring").base.damage_pct > Items.roll(17, "ring").base.damage_pct, "procenty rosną dalej po lochu 17")
+	_check(deep > mid and Items.roll(30, "ring", "", Items.GOBLIN_WEIGHTS, "band").base.damage_pct > Items.roll(17, "ring", "", Items.GOBLIN_WEIGHTS, "band").base.damage_pct, "procenty rosną dalej po lochu 17")
 	var w := Items.roll(1, "earring", "common")
 	_check(w.base.damage[0] > 0 and w.base.damage[1] > w.base.damage[0], "broń ma obrażenia cięcia (%d-%d)" % w.base.damage)
 	var t := Items.totals({"helmet": {"slot": "helmet", "base": {"hp": 10}, "affixes": [{"stat": "protection_pct", "value": 40.0}]},
@@ -129,7 +129,7 @@ func _test_game(game: Node) -> void:
 
 func _test_dungeon(game: Node) -> void:
 	game.dungeon_level = 1
-	var helmet := Items.roll(1, "helmet", "common")
+	var helmet := Items.roll(1, "helmet", "common", Items.GOBLIN_WEIGHTS, "helm")
 	game.add_item(helmet)
 	game.equip(0)
 	var arena: Node = load("res://scenes/horde.tscn").instantiate()
@@ -145,9 +145,9 @@ func _test_dungeon(game: Node) -> void:
 	horde._on_ember(37)
 	_check(arena.ember_text.text == "37 / %d" % DungeonLevels.summon_cost(horde.level), "pasek żaru liczy zebrany żar")
 	# broń, ochrona, szybkość - założone w trakcie wyprawy (pauza)
-	var sword := Items.roll(1, "earring", "common")
+	var sword := Items.roll(1, "earring", "common", Items.GOBLIN_WEIGHTS, "fang")
 	sword.affixes = [{"stat": "attack_speed_pct", "value": 20.0}, {"stat": "damage_pct", "value": 10.0}]
-	var boots := Items.roll(1, "boots", "common")
+	var boots := Items.roll(1, "boots", "common", Items.GOBLIN_WEIGHTS, "boots")
 	boots.affixes = [{"stat": "protection_pct", "value": 20.0}]
 	game.add_item(sword)
 	game.add_item(boots)
@@ -178,7 +178,7 @@ func _test_dungeon(game: Node) -> void:
 	# auto rozbijanie zwykłych: ruda zamiast torby, także przy pełnej torbie
 	game.auto_sell_common = true
 	var ore_before: int = game.ore
-	var common := Items.roll(1, "boots", "common")
+	var common := Items.roll(1, "boots", "common", Items.GOBLIN_WEIGHTS, "boots")
 	horde.drop_item(common, hero.position + Vector2(20, 0))
 	await _wait(0.9)
 	_check(game.ore == ore_before + Items.ore_value(common) and arena.run_ore == Items.ore_value(common),
@@ -303,7 +303,7 @@ func _test_new_stats(game: Node) -> void:
 	_check(t.crit_pct == Items.CAPS.crit_pct and t.cdr_pct == Items.CAPS.cdr_pct, "sufity: krytyk %d%%, odnowienie %d%%" % [t.crit_pct, t.cdr_pct])
 	_check(HeroStats.summary(1, {}).crit == "5%" and HeroStats.summary(1, {}).crit_dmg == "150%", "bazowy krytyk: 5% za 150%")
 	# premie w lochu
-	var ring := Items.roll(1, "ring", "common")
+	var ring := Items.roll(1, "ring", "common", Items.GOBLIN_WEIGHTS, "band")
 	ring.affixes = [{"stat": "crit_pct", "value": 15.0}, {"stat": "crit_dmg_pct", "value": 50.0},
 		{"stat": "elite_dmg_pct", "value": 20.0}, {"stat": "cdr_pct", "value": 20.0},
 		{"stat": "mana_regen", "value": 2.0}, {"stat": "life_on_kill", "value": 5.0}]
@@ -361,7 +361,7 @@ func _test_utility_stats(game: Node) -> void:
 	_check(known, "obszar, unik, zasięg i żar w puli losowania, z opisem i sufitem")
 	var big := {"ring": {"slot": "ring", "base": {}, "affixes": [{"stat": "dodge_pct", "value": 300.0}], "sockets": []}}
 	_check(Items.totals(big).dodge_pct == 50.0, "sufit uniku 50%")
-	var ring := Items.roll(1, "ring", "common")
+	var ring := Items.roll(1, "ring", "common", Items.GOBLIN_WEIGHTS, "band")
 	ring.affixes = [{"stat": "area_pct", "value": 50.0}, {"stat": "dodge_pct", "value": 50.0},
 		{"stat": "pickup_pct", "value": 100.0}, {"stat": "ember_pct", "value": 50.0}]
 	game.equipped = {"ring": ring}
@@ -411,7 +411,7 @@ func _test_mana(game: Node) -> void:
 	var old := Items.normalize({"slot": "ring", "rarity": "rare", "level": 101, "tier": 4, "base": {},
 			"affixes": [{"stat": "mana", "value": 1800.0}, {"stat": "mana_regen", "value": 140.0}, {"stat": "hp", "value": 1500.0}]})
 	_check(is_equal_approx(old.affixes[0].value, Items.affix_max("mana", 101)) and old.affixes[1].value <= Items.affix_max("mana_regen", 101) + 0.01
-			and old.affixes[2].value == 1500.0, "stary przedmiot: mana przycięta, zdrowie bez zmian")
+			and old.affixes[2].value == Items.tier_range("hp", 1).y, "stary przedmiot: mana przycięta, zdrowie do górnej granicy T1")
 	var jewel := Gems.make_jewel("sapphire", 101, [["mana_regen", 90.0]])
 	var t := Items.totals({"ring": {"slot": "ring", "rarity": "rare", "level": 101, "base": {}, "affixes": [], "sockets": [jewel]}})
 	_check(t.mana_regen <= Items.affix_max("mana_regen", 101) * Gems.JEWEL_MULT + 0.05, "stary szafir: odnowa many przycięta (%.1f)" % t.mana_regen)

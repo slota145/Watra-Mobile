@@ -861,6 +861,15 @@ func _apply_weapon() -> void:
 	weapon.aura_fire = gear.get("aura_fire", 0.0)
 	weapon.elem_mult = 1.0 + gear.get("elem_dmg_pct", 0.0) / 100.0
 	weapon.magic_mult = 1.0 + gear.get("magic_dmg_pct", 0.0) / 100.0 if Weapons.is_magic(Game.weapon) else 1.0
+	weapon.item_skill_levels = gear.get("skill_bonus", {})
+	weapon.item_all_levels = int(gear.get("skill_level_all", 0.0))
+	weapon.tag_bonus = {}
+	for tag in Skills.TAG_STATS:
+		weapon.tag_bonus[tag] = gear.get(Skills.TAG_STATS[tag], 0.0) / 100.0
+	weapon.afflicted_bonus = gear.get("afflicted_dmg_pct", 0.0) / 100.0
+	weapon.full_hp_bonus = gear.get("full_hp_dmg_pct", 0.0) / 100.0
+	weapon.proj_speed_mult = 1.0 + gear.get("proj_speed_pct", 0.0) / 100.0
+	weapon.duration_mult = 1.0 + gear.get("duration_pct", 0.0) / 100.0
 	weapon.extra_projectiles = int(gear.get("aura_projectiles", 0))  # Rój Strzyboga
 	weapon.projectile_mult = 1.0 - gear.get("aura_proj_penalty", 0.0)
 	ProtoTarget.burn_power = 1.0 + gear.get("aura_burn", 0.0)  # Złość Licha
@@ -1373,7 +1382,7 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	chest.name = "Chest"
 	chest.hero = hero
 	chest.embers = DungeonLevels.chest_embers(level)
-	chest.items = Items.roll_chest(level)
+	chest.items = Items.roll_chest(level, hero.gear.get("rarity_pct", 0.0), hero.gear.get("quantity_pct", 0.0))
 	for id in Gems.roll_chest(level, horde_spawner.loot_mult * horde_spawner.gem_mult):
 		chest.items.append({"gem": id})
 	for id in Runes.roll_chest(level, horde_spawner.loot_mult * horde_spawner.rune_mult):

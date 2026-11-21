@@ -653,6 +653,12 @@ func reset_hero() -> void:
 	talismans_changed.emit()
 
 
+## Poziomy umiejętności `id` z założonych przedmiotów (premie skill_level i skill_level_all; walka - ProtoWeapon.level_of).
+func item_skill_bonus(id: String) -> int:
+	var t := Items.totals(equipped)
+	return int(t.skill_bonus.get(id, 0)) + int(t.skill_level_all)
+
+
 ## Suma cech założonych przedmiotów (Items.totals), w trybie deweloperskim z nadpisanymi statystykami (dev_stats).
 func gear() -> Dictionary:
 	return Items.with_overrides(Auras.apply(Items.totals(equipped), auras_on, auras), dev_stats)
@@ -896,12 +902,13 @@ func dismantle_loot(item: Dictionary) -> Dictionary:
 
 
 ## Kowal wykuwa przedmiot z miejsca `slot` za Items.FORGE_ORE rudy: poziom najgłębszego przebitego lochu, rzadkość
-## losowa (Items.FORGE_WEIGHTS), trafia do torby. Zwraca przedmiot (pusty - brak rudy, pełna torba albo złe miejsce).
-func forge(slot: String) -> Dictionary:
+## losowa (Items.FORGE_WEIGHTS), baza `type` (pusta - losowa; Items.BASES), trafia do torby. Zwraca przedmiot (pusty - brak
+## rudy, pełna torba albo złe miejsce).
+func forge(slot: String, type := "") -> Dictionary:
 	if forge_problem(slot) != "":
 		return {}
 	ore -= Items.FORGE_ORE
-	var item := Items.roll(maxi(best_level, 1), slot, "", Items.FORGE_WEIGHTS)
+	var item := Items.roll(maxi(best_level, 1), slot, "", Items.FORGE_WEIGHTS, type)
 	bag.append(item)
 	save_game()
 	inventory_changed.emit()
@@ -937,7 +944,7 @@ func treasury_mult() -> float:
 
 ## Ruda po premii Skarbca.
 func ore_gain(amount: int) -> int:
-	return roundi(amount * treasury_mult())
+	return roundi(amount * treasury_mult() * (1.0 + Items.totals(equipped).get("ore_pct", 0.0) / 100.0))
 
 
 ## Ruda z lochu (Skarbnik) - z premią Skarbca; zapis przy najbliższym `save_if_dirty`. Zwraca, ile doszło.

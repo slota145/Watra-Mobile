@@ -50,8 +50,17 @@ const BRUTE_SHARE_STEP := 0.02
 const BRUTE_SHARE_MAX := 0.15
 
 
-## Mnożnik zdrowia i obrażeń potworów (i premii przedmiotów, które rosną z lochem) na danym poziomie (1. poziom - 1.0).
+## Od tego poziomu potwory rosną wolniej (decyzja autora 21.11.2026, wariant b): przedmioty mają sufit siły na lochu 40
+## (Items.MAX_LEVEL), więc dalej siła rośnie liniowo o SLOW_STEP siły z tego poziomu na każdy następny
+## (50. ~30x, 100. ~88x zamiast ~148x).
+const SLOW_FROM := 40
+const SLOW_STEP := 0.06
+
+
+## Mnożnik zdrowia i obrażeń potworów na danym poziomie (1. poziom - 1.0); od SLOW_FROM rośnie wolniej.
 static func power(level: int) -> float:
+	if level > SLOW_FROM:
+		return power(SLOW_FROM) * (1.0 + SLOW_STEP * (level - SLOW_FROM))
 	var steps := maxi(level, 1) - 1
 	return (1.0 + POWER_STEP * steps) * pow(POWER_GROWTH, steps)
 

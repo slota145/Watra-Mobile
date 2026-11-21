@@ -262,7 +262,7 @@ func _spawn_arrow(from: Vector2, a: float, target: ProtoTarget, skill: String, m
 		reach := 0.0, side := false) -> Dictionary:
 	var fx := _arrow_sprite(a)
 	fx.global_position = from
-	var arrow := {"fx": fx, "dir": Vector2.from_angle(a), "speed": ARROW_SPEED, "hits": [], "skill": skill,
+	var arrow := {"fx": fx, "dir": Vector2.from_angle(a), "speed": ARROW_SPEED * proj_speed_mult, "hits": [], "skill": skill,
 			"power": mult, "pierce": pierce, "target": target, "side": side, "side_acc": 0.0,
 			"left": reach if reach > 0.0 else Skills.DATA[skill].range * _area(skill) + 30.0}
 	_arrows.append(arrow)
@@ -295,7 +295,7 @@ func _spawn_seeker(from: Vector2, a: float, mult := 1.0) -> void:
 	trail.z_index = -1
 	trail.show_behind_parent = true
 	fx.add_child(trail)
-	var arrow := {"fx": fx, "dir": Vector2.from_angle(a), "speed": SEEK_SPEED, "hits": [], "skill": "b_seeker",
+	var arrow := {"fx": fx, "dir": Vector2.from_angle(a), "speed": SEEK_SPEED * proj_speed_mult, "hits": [], "skill": "b_seeker",
 			"power": mult, "pierce": -1, "target": null, "side": false, "side_acc": 0.0, "left": INF,
 			"seek": true, "life": SEEK_LIFE, "hits_left": SEEK_HITS_PERK if _perk("b_seeker", 0) else SEEK_HITS,
 			"last": null, "since": SEEK_PASS, "turn": SEEK_TURN, "trail": trail, "coast": 0.0}
@@ -515,7 +515,7 @@ func _rain_radius() -> float:
 
 func _add_rain(at: Vector2, mult: float) -> void:
 	var radius := _rain_radius()
-	var time := RAIN_TIME_LONG if _perk("b_rain", 1) else RAIN_TIME
+	var time := (RAIN_TIME_LONG if _perk("b_rain", 1) else RAIN_TIME) * duration_mult
 	var fx := Fx.loop(get_parent(), RAIN_FX, RAIN_FX_FRAMES, RAIN_FX_FRAMES / RAIN_TIME, Vector2.ZERO, RAIN_FX_ANCHOR,
 			6, radius / RAIN_FX_RADIUS)
 	fx.global_position = at.round()
@@ -654,7 +654,7 @@ func _add_ballista(at: Vector2) -> void:
 	show.tween_property(base, "modulate:a", 1.0, 0.2)
 	_hit_fx(at, Vector2.UP, 1.2)
 	_ballistas.append({"base": base, "turret": turret, "at": at, "acc": 0.0, "dir": dir,
-			"left": BALLISTA_TIME_LONG if _perk("b_ballista", 0) else BALLISTA_TIME})
+			"left": (BALLISTA_TIME_LONG if _perk("b_ballista", 0) else BALLISTA_TIME) * duration_mult})
 
 
 func _face_turret(turret: Node2D, dir: Vector2) -> void:

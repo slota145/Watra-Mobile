@@ -90,7 +90,8 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
     - **Stare przedmioty:** przeliczone na nowe (najbliższy tier, domyślna baza, pełny potencjał kowalski).
     - Pomysły Claude do decyzji przy okazji: pokaz łupu (słupy wg rzadkości, dźwięki, błysk przy premii ponad widełki,
       strzałka „lepszy” na ziemi), duplikaty unikatów rozbijane na esencję ulepszającą unikat.
-    - Kolejność PR: (1) tiery, sufit, widełki, bazy, nowe premie, przeliczenie starych; (2) legendarne, ponad widełki,
+    - Kolejność PR: (1) ~~tiery, sufit, widełki, bazy, nowe premie, przeliczenie starych~~ (zrobione 21.11.2026,
+      `docs/historia.md`; do oceny na telefonie: wzrost potworów po lochu 40, ceny i szanse T1-T7); (2) legendarne, ponad widełki,
       „Anielski”, Runa Bogów, potencjał kowalski; (3) 6 unikatów; (4) pokaz łupu.
   - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), ~~broń magiczna~~ i ~~wybór broni na start~~ (Księga Arkanów, 21.11.2026). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.

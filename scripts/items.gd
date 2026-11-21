@@ -1,17 +1,22 @@
 class_name Items
-## Przedmioty (ustalone z autorem 12.11.2026): 6 miejsc ekwipunku (kolczyk, hełm, zbroja, buty, pierścień, amulet),
-## 3 rzadkości jak w Watrze, ale prościej - zwykły (bez premii), magiczny (1-2 losowe premie), rzadki (3-4).
-## Siła przedmiotu zależy od poziomu lochu, z którego wypadł (`level`): od niego rośnie stała cecha miejsca
-## (np. zdrowie z hełmu) i wartości premii, a co `LEVELS_PER_TIER` poziomów zmienia się wygląd i nazwa (5 stopni
-## z Watry: żelazny, stalowy, mithrilowy, runiczny, smoczy). Łup: skrzynia Wodza (`roll_chest`) i rzadko gobliny
-## (`roll_goblin`). Niepotrzebne przedmioty rozbija się na rudę żelaza (`ore_value`; rzadki - czasem Runa Szlifu).
+## Przedmioty (ustalone z autorem 12.11.2026, przebudowa itemizacji 21.11.2026): 6 miejsc ekwipunku (kolczyk, hełm,
+## zbroja, buty, pierścień, amulet), 3 rzadkości - zwykły (bez premii), magiczny (1-2 losowe premie), rzadki (3-5).
+## Każde miejsce ma 3 bazy (BASES) z własną stałą cechą (np. hełm - zdrowie, kaptur - mana, rogaty hełm - odporność
+## na żywioły); stała cecha rośnie z poziomem lochu do MAX_LEVEL (sufit siły przedmiotów - loch 40), a co kilka
+## poziomów (VISUAL_FROM) zmienia się wygląd i nazwa bazy (5 stopni).
+## Premie mają stopnie T7 (najsłabszy) - T1 (najlepszy, decyzja autora 21.11.2026 - jak tiery w Path of Exile):
+## wyższe odblokowują się w głębszych lochach (TIER_FROM; T1 od lochu 40) i wypadają rzadziej (TIER_WEIGHTS),
+## widełki stopni są szerokie i zachodzą na siebie. Łup: skrzynia Wodza (`roll_chest`) i rzadko gobliny (`roll_goblin`).
+## Niepotrzebne przedmioty rozbija się na rudę żelaza (`ore_value`; rzadki - czasem Runa Szlifu).
 ## Przedmiot to słownik z samymi identyfikatorami i liczbami (nazwy składane przy pokazywaniu - zasady w lang.gd):
-## {"slot", "tier", "level", "rarity", "base": {cecha: wartość}, "affixes": [{"stat", "value"}], "sockets": [kamień],
+## {"slot", "type" - baza, "tier" - stopień wyglądu 0-4, "level", "rarity", "base": {cecha: wartość},
+## "affixes": [{"stat", "value", "tier" 1-7, "skill" - tylko premia skill_level}], "sockets": [kamień],
 ## "rerolls": ile razy przekuto premię (Runa Przekucia - `reroll_affix`)}. Premie zmieniają runy u kowala (Runes).
 ## Gniazda na kamienie szlachetne (Gems): "sockets" - lista identyfikatorów kamieni ("" - puste gniazdo); każdy przedmiot
 ## ma 1 gniazdo, bardzo rzadko 2 (SECOND_SOCKET), drugie dorabia Dłuto Jubilera (Game.add_socket).
 ## Stan (torba, założone, ruda) trzyma i zapisuje `Game`; sumę cech założonych przedmiotów liczy `totals`.
-## Ikony: assets/watra/items/ (skopiowane z Watry, wersje _magic i _rare).
+## Ikony: assets/watra/items/ (skopiowane z Watry, wersje _magic i _rare) i assets/items/ (przebarwione linie Watry -
+## tools/item_bases_art.py).
 
 ## Kolczyk z kłem (decyzja autora 13.11.2026) zastąpił miejsce „Broń”: daje obrażenia każdej broni (Weapons), więc
 ## nie gryzie się z mieczem, glewią itd. Stare przedmioty z miejsca "weapon" (miecze) wczytują się jako kolczyki
@@ -24,35 +29,109 @@ const SLOT_NAMES := {"earring": "Kolczyk", "helmet": "Hełm", "armor": "Zbroja",
 ## Pusty obrazek miejsca w oknie ekwipunku (z Watry).
 const SLOT_ICONS := {"earring": "slot_earring", "helmet": "slot_helmet", "armor": "slot_chest", "boots": "slot_boots",
 		"ring": "slot_ring", "amulet": "slot_necklace"}
-## Linie przedmiotów z Watry: plik ikony na każdy stopień.
-const LINES := {
-	"earring": ["fang_earring", "fang_t2", "fang_t3", "fang_t4", "fang_t5"],
-	"helmet": ["iron_helmet", "helm_t2", "helm_t3", "helm_t4", "helm_t5"],
-	"armor": ["chainmail", "plate_t2", "plate_t3", "plate_t4", "plate_t5"],
-	"boots": ["leather_boots", "boots_t2", "boots_t3", "boots_t4", "boots_t5"],
-	"ring": ["copper_ring", "band_t2", "band_t3", "band_t4", "band_t5"],
-	"amulet": ["amber_necklace", "amulet_t2", "amulet_t3", "amulet_t4", "amulet_t5"],
+## Sufit siły przedmiotów (decyzja autora 21.11.2026): stała cecha i stopnie premii przestają rosnąć na tym poziomie
+## lochu - dalej gra się po lepsze stopnie, rzadkość i kamienie, a nie po większe liczby.
+const MAX_LEVEL := 40
+## Bazy przedmiotów (decyzja autora 21.11.2026): miejsce -> baza -> stała cecha {cecha: [na 1. poziomie lochu,
+## na MAX_LEVEL]}, ikony (5 stopni wyglądu, ścieżka w assets/ bez rozszerzenia) i nazwy (5 stopni). Pierwsza baza
+## miejsca to dawna (stare zapisy - `normalize`). Kolczyk każdej bazy daje też obrażenia ciosu (EARRING_DAMAGE).
+const BASES := {
+	"earring": {
+		"fang": {"implicit": {"crit_pct": [2.0, 6.0]},
+			"icons": ["watra/items/fang_earring", "watra/items/fang_t2", "watra/items/fang_t3", "watra/items/fang_t4", "watra/items/fang_t5"],
+			"names": ["Kolczyk z kłem", "Kolczyk z kłem niedźwiedzia", "Kolczyk z kłem bazyliszka", "Kolczyk z kłem demona",
+					"Kolczyk ze smoczym kłem"]},
+		"stud": {"implicit": {"attack_speed_pct": [2.0, 8.0], "cast_speed_pct": [2.0, 8.0]},
+			"icons": ["watra/items/silver_earring", "watra/items/stud_t2", "watra/items/stud_t3", "watra/items/stud_t4", "watra/items/stud_t5"],
+			"names": ["Srebrny kolczyk", "Kolczyk z szafirem", "Kolczyk z lazurytem", "Kolczyk z gwiezdnym kamieniem",
+					"Kolczyk niebios"]},
+		"tooth": {"implicit": {"pen_pct": [2.0, 8.0]},
+			"icons": ["items/tooth_t1", "items/tooth_t2", "items/tooth_t3", "items/tooth_t4", "items/tooth_t5"],
+			"names": ["Kolczyk z zębem", "Kolczyk z zębem wilka", "Kolczyk z zębem wiwerny", "Kolczyk z zębem żmija",
+					"Kolczyk z zębem smoka"]},
+	},
+	"helmet": {
+		"helm": {"implicit": {"hp": [8.0, 155.0]},
+			"icons": ["watra/items/iron_helmet", "watra/items/helm_t2", "watra/items/helm_t3", "watra/items/helm_t4", "watra/items/helm_t5"],
+			"names": ["Żelazny hełm", "Stalowy hełm", "Mithrilowy hełm", "Runiczny hełm", "Smoczy hełm"]},
+		"hood": {"implicit": {"mana": [8.0, 50.0]},
+			"icons": ["watra/items/leather_cap", "watra/items/hood_t2", "watra/items/hood_t3", "watra/items/hood_t4", "watra/items/hood_t5"],
+			"names": ["Skórzany kaptur", "Kaptur wędrowca", "Kaptur maga", "Kaptur runiczny", "Kaptur nocy"]},
+		"horned": {"implicit": {"element_res_pct": [4.0, 15.0]},
+			"icons": ["items/horned_t1", "items/horned_t2", "items/horned_t3", "items/horned_t4", "items/horned_t5"],
+			"names": ["Rogaty hełm", "Hełm z rogami tura", "Hełm wojownika", "Hełm Peruna", "Smoczy hełm rogaty"]},
+	},
+	"armor": {
+		"plate": {"implicit": {"hp": [18.0, 345.0]},
+			"icons": ["watra/items/chainmail", "watra/items/plate_t2", "watra/items/plate_t3", "watra/items/plate_t4", "watra/items/plate_t5"],
+			"names": ["Kolczuga", "Stalowy napierśnik", "Mithrilowy napierśnik", "Runiczna zbroja", "Smocza zbroja"]},
+		"robe": {"implicit": {"protection_pct": [2.0, 8.0]},
+			"icons": ["watra/items/robe_t1", "watra/items/robe_t2", "watra/items/robe_t3", "watra/items/robe_t4", "watra/items/robe_t5"],
+			"names": ["Lniana szata", "Szata zielarki", "Szata maga", "Szata runiczna", "Szata gwiazd"]},
+		"jerkin": {"implicit": {"dodge_pct": [2.0, 8.0]},
+			"icons": ["watra/items/leather_armor", "watra/items/jerkin_t2", "watra/items/jerkin_t3", "watra/items/jerkin_t4", "watra/items/jerkin_t5"],
+			"names": ["Skórznia", "Kaftan łowcy", "Kaftan zwiadowcy", "Kaftan cienia", "Kaftan ze smoczej skóry"]},
+	},
+	"boots": {
+		"boots": {"implicit": {"move_pct": [4.0, 12.0]},
+			"icons": ["watra/items/leather_boots", "watra/items/boots_t2", "watra/items/boots_t3", "watra/items/boots_t4", "watra/items/boots_t5"],
+			"names": ["Skórzane buty", "Buty wędrowca", "Elfie buty", "Buty cienia", "Buty ze smoczej skóry"]},
+		"greaves": {"implicit": {"dodge_pct": [2.0, 6.0]},
+			"icons": ["watra/items/greaves_t1", "watra/items/greaves_t2", "watra/items/greaves_t3", "watra/items/greaves_t4", "watra/items/greaves_t5"],
+			"names": ["Żelazne nagolenice", "Stalowe nagolenice", "Mithrilowe nagolenice", "Runiczne nagolenice",
+					"Smocze nagolenice"]},
+		"bast": {"implicit": {"regen": [0.5, 10.0]},
+			"icons": ["items/bast_t1", "items/bast_t2", "items/bast_t3", "items/bast_t4", "items/bast_t5"],
+			"names": ["Łapcie z łyka", "Łapcie wędrowca", "Łapcie zielarza", "Łapcie leśnych duchów", "Łapcie Mokoszy"]},
+	},
+	"ring": {
+		"band": {"implicit": {"damage_pct": [4.0, 12.0]},
+			"icons": ["watra/items/copper_ring", "watra/items/band_t2", "watra/items/band_t3", "watra/items/band_t4", "watra/items/band_t5"],
+			"names": ["Miedziany pierścień", "Srebrny pierścień", "Rubinowy pierścień", "Platynowy pierścień", "Gwiezdny pierścień"]},
+		"signet": {"implicit": {"mana_regen": [0.3, 1.5]},
+			"icons": ["watra/items/ring_of_strength", "watra/items/signet_t2", "watra/items/signet_t3", "watra/items/signet_t4", "watra/items/signet_t5"],
+			"names": ["Sygnet", "Srebrny sygnet", "Sygnet z szafirem", "Sygnet runiczny", "Gwiezdny sygnet"]},
+		"gold": {"implicit": {"rarity_pct": [4.0, 15.0]},
+			"icons": ["items/gold_t1", "items/gold_t2", "items/gold_t3", "items/gold_t4", "items/gold_t5"],
+			"names": ["Złota obrączka", "Złoty pierścień kupca", "Pierścień skarbnika", "Pierścień Welesa",
+					"Pierścień złotego runa"]},
+	},
+	"amulet": {
+		"amber": {"implicit": {"mana": [10.0, 60.0]},
+			"icons": ["watra/items/amber_necklace", "watra/items/amulet_t2", "watra/items/amulet_t3", "watra/items/amulet_t4", "watra/items/amulet_t5"],
+			"names": ["Bursztynowy naszyjnik", "Srebrny amulet", "Złoty amulet", "Runiczny amulet", "Smoczy amulet"]},
+		"runic": {"implicit": {"elem_dmg_pct": [4.0, 15.0]},
+			"icons": ["items/runic_t1", "items/runic_t2", "items/runic_t3", "items/runic_t4", "items/runic_t5"],
+			"names": ["Runiczny wisior", "Amulet run", "Amulet żywiołów", "Amulet mocy", "Amulet Swaroga"]},
+		"talisman": {"implicit": {"xp_pct": [4.0, 15.0]},
+			"icons": ["watra/items/talisman_t1", "watra/items/talisman_t2", "watra/items/talisman_t3", "watra/items/talisman_t4", "watra/items/talisman_t5"],
+			"names": ["Kościany wisior", "Wisior z kłem", "Wisior szamana", "Wisior przodków", "Wisior Nawii"]},
+	},
 }
-## Nazwy z Watry, według stopnia.
-const NAMES := {
-	"earring": ["Kolczyk z kłem", "Kolczyk z kłem niedźwiedzia", "Kolczyk z kłem bazyliszka", "Kolczyk z kłem demona",
-			"Kolczyk ze smoczym kłem"],
-	"helmet": ["Żelazny hełm", "Stalowy hełm", "Mithrilowy hełm", "Runiczny hełm", "Smoczy hełm"],
-	"armor": ["Kolczuga", "Stalowy napierśnik", "Mithrilowy napierśnik", "Runiczna zbroja", "Smocza zbroja"],
-	"boots": ["Skórzane buty", "Buty wędrowca", "Elfie buty", "Buty cienia", "Buty ze smoczej skóry"],
-	"ring": ["Miedziany pierścień", "Srebrny pierścień", "Złoty pierścień", "Platynowy pierścień", "Gwiezdny pierścień"],
-	"amulet": ["Bursztynowy naszyjnik", "Srebrny amulet", "Złoty amulet", "Runiczny amulet", "Smoczy amulet"],
-}
-## Co tyle poziomów lochu przedmioty wchodzą na wyższy stopień (lochy 1-4: żelazne, 5-8: stalowe…).
-const LEVELS_PER_TIER := 4
+## Obrażenia ciosu kolczyka (od-do) na 1. poziomie lochu; rosną o EARRING_GROWTH na poziom do MAX_LEVEL (lekko losowo).
+const EARRING_DAMAGE := Vector2(15.0, 21.0)
+const EARRING_GROWTH := 0.12
+## Stała cecha z tych premii rośnie jak siła lochu (powoli na początku, szybko pod koniec), reszta - liniowo.
+const CURVED_STATS := ["hp", "regen", "life_on_kill"]
+## Od którego poziomu lochu przedmiot ma kolejny stopień wyglądu i nazwy (5 stopni z Watry).
+const VISUAL_FROM := [1, 5, 12, 22, 32]
+
+## Stopnie premii (decyzja autora 21.11.2026): T7 - T1, od którego poziomu lochu wypadają (indeks 0 = T7) i wagi
+## losowania (wyższy stopień - rzadszy).
+const TIER_FROM := [1, 5, 10, 16, 22, 30, 40]
+const TIER_WEIGHTS := [22, 20, 18, 15, 12, 8, 5]
+const TIERS := 7
+## Kolory znaczków stopni (T1 - złoty, T7 - szary).
+const TIER_COLORS := [Color(1.0, 0.78, 0.25), Color(1.0, 0.6, 0.3), Color(0.85, 0.5, 0.95), Color(0.45, 0.7, 1.0),
+		Color(0.5, 0.9, 0.6), Color(0.85, 0.85, 0.8), Color(0.62, 0.62, 0.62)]
 
 const RARITIES := ["common", "magic", "rare"]
 const RARITY_NAMES := {"common": "Zwykły", "magic": "Magiczny", "rare": "Rzadki"}
 ## Kolory rzadkości jak w Watrze.
 const RARITY_COLORS := {"common": Color(0.92, 0.92, 0.95), "magic": Color(0.45, 0.65, 1.0),
 		"rare": Color(1.0, 0.86, 0.3)}
-## Ile losowych premii daje rzadkość (od-do).
-const AFFIX_COUNT := {"common": Vector2i(0, 0), "magic": Vector2i(1, 2), "rare": Vector2i(3, 4)}
+## Ile losowych premii daje rzadkość (od-do; rzadki 3-5 - decyzja autora 21.11.2026).
+const AFFIX_COUNT := {"common": Vector2i(0, 0), "magic": Vector2i(1, 2), "rare": Vector2i(3, 5)}
 ## Szanse rzadkości (wagi): łup z goblina i ze skrzyni Wodza (skrzynia częściej daje lepsze).
 const GOBLIN_WEIGHTS := {"common": 65, "magic": 28, "rare": 7}
 const CHEST_WEIGHTS := {"common": 35, "magic": 45, "rare": 20}
@@ -75,6 +154,13 @@ const CHEST_ITEMS := 3
 ## wszystkich żywiołów (broń żywiołu, kamienie Żar / Szron / Piorun, aury, talizmany; nie fizyczne - decyzja autora 20.11.2026),
 ## magic_dmg_pct - więcej obrażeń broni magicznej (Weapons `magic`: Księga Arkanów, hydrosfera), cast_speed_pct - szybkość
 ## rzucania czarów: broń magiczna przyspiesza tylko od niej, reszta tylko od attack_speed_pct (decyzje autora 21.11.2026).
+## Nowe premie (decyzja autora 21.11.2026): skill_level - poziom jednej umiejętności (pole "skill"; ponad 10. poziom
+## do Skills.MAX_LEVEL + ITEM_LEVELS_MAX), skill_level_all - poziom wszystkich umiejętności (tylko amulet, od lochu 22),
+## proj/area/melee/minion_dmg_pct - obrażenia umiejętności z danym znacznikiem (Skills.TAGS), proj_speed_pct - szybkość
+## pocisków, duration_pct - czas działania umiejętności (kręgi, wiry, przywołańcy, podpalenia), afflicted_dmg_pct -
+## obrażenia przeciw wrogom podpalonym, spowolnionym, przemoczonym albo porażonym, full_hp_dmg_pct - przeciw wrogom
+## z pełnym zdrowiem, kill_haste_pct - szybkość ruchu i ataku przez KILL_HASTE_TIME po zabiciu, rarity_pct - lepsza
+## rzadkość łupu, quantity_pct - więcej przedmiotów, ore_pct - więcej rudy z rozbijania.
 const STAT_FORMATS := {
 	"hp": "+%d do zdrowia",
 	"mana": "+%d do many",
@@ -101,37 +187,71 @@ const STAT_FORMATS := {
 	"elem_dmg_pct": "+%d%% obrażeń od żywiołów",
 	"magic_dmg_pct": "+%d%% obrażeń magicznych",
 	"cast_speed_pct": "+%d%% szybkości rzucania czarów",
+	"skill_level": "+%d do poziomu umiejętności",
+	"skill_level_all": "+%d do poziomu wszystkich umiejętności",
+	"proj_dmg_pct": "+%d%% obrażeń pocisków",
+	"area_dmg_pct": "+%d%% obrażeń obszarowych",
+	"melee_dmg_pct": "+%d%% obrażeń wręcz",
+	"minion_dmg_pct": "+%d%% obrażeń przywołańców",
+	"proj_speed_pct": "+%d%% szybkości pocisków",
+	"duration_pct": "+%d%% czasu działania umiejętności",
+	"afflicted_dmg_pct": "+%d%% obrażeń przeciw osłabionym wrogom",
+	"full_hp_dmg_pct": "+%d%% obrażeń przeciw wrogom z pełnym zdrowiem",
+	"kill_haste_pct": "+%d%% szybkości ruchu i ataku po zabiciu",
+	"rarity_pct": "+%d%% rzadkości łupu",
+	"quantity_pct": "+%d%% ilości łupu",
+	"ore_pct": "+%d%% rudy z rozbijania",
 }
-## Losowe premie: [najmniej, najwięcej] na 1. poziomie lochu; `scales` - rośnie z siłą lochu (DungeonLevels.power),
-## inaczej (procenty) rośnie płynnie o `per_level` z każdym poziomem lochu (decyzja autora 12.11.2026 - wcześniej
-## skokami co stopień, przez co od lochu 17 procenty stawały).
+## Losowe premie: widełki [najmniej, najwięcej] stopnia T7 i T1, stopnie pomiędzy - po równo (`tier_range`; widełki
+## zachodzą na siebie). T1 to mniej więcej dawna premia z 40. poziomu lochu. `slots` - tylko w tych miejscach (bez
+## pola - wszędzie), `from` - od tego poziomu lochu (bez pola - od 1.).
 const AFFIXES := {
-	"hp": {"min": 6.0, "max": 14.0, "scales": true},
-	"mana": {"min": 5.0, "max": 12.0, "per_level": 0.6},
-	"damage_pct": {"min": 4.0, "max": 9.0, "per_level": 0.6},
-	"attack_speed_pct": {"min": 3.0, "max": 7.0, "per_level": 0.4},
-	"move_pct": {"min": 3.0, "max": 6.0, "per_level": 0.2},
-	"regen": {"min": 0.4, "max": 1.2, "scales": true},
-	"protection_pct": {"min": 2.0, "max": 5.0, "per_level": 0.2},
-	"xp_pct": {"min": 4.0, "max": 10.0, "per_level": 0.4},
-	"crit_pct": {"min": 2.0, "max": 4.0, "per_level": 0.1},
-	"crit_dmg_pct": {"min": 10.0, "max": 20.0, "per_level": 0.5},
-	"life_on_kill": {"min": 1.0, "max": 2.0, "scales": true},
-	"cdr_pct": {"min": 3.0, "max": 6.0, "per_level": 0.15},
-	"elite_dmg_pct": {"min": 6.0, "max": 12.0, "per_level": 0.5},
-	"mana_regen": {"min": 0.3, "max": 0.8, "per_level": 0.03},
-	"mana_on_kill": {"min": 0.2, "max": 0.4, "per_level": 0.005},
-	"area_pct": {"min": 4.0, "max": 8.0, "per_level": 0.2},
-	"dodge_pct": {"min": 2.0, "max": 4.0, "per_level": 0.1},
-	"pickup_pct": {"min": 10.0, "max": 20.0, "per_level": 0.5},
-	"ember_pct": {"min": 4.0, "max": 8.0, "per_level": 0.3},
-	"element_res_pct": {"min": 5.0, "max": 10.0, "per_level": 0.3},
-	"pen_pct": {"min": 2.0, "max": 5.0, "per_level": 0.1},
-	"reserve_pct": {"min": 2.0, "max": 4.0, "per_level": 0.04, "slots": ["ring", "amulet"]},
-	"elem_dmg_pct": {"min": 6.0, "max": 12.0, "per_level": 0.8},
-	"magic_dmg_pct": {"min": 6.0, "max": 12.0, "per_level": 0.8},
-	"cast_speed_pct": {"min": 3.0, "max": 7.0, "per_level": 0.4},
+	"hp": {"t7": [6.0, 14.0], "t1": [100.0, 280.0]},
+	"mana": {"t7": [5.0, 12.0], "t1": [24.0, 38.0]},
+	"damage_pct": {"t7": [4.0, 9.0], "t1": [23.0, 34.0]},
+	"attack_speed_pct": {"t7": [3.0, 7.0], "t1": [16.0, 24.0]},
+	"move_pct": {"t7": [3.0, 6.0], "t1": [9.0, 14.0]},
+	"regen": {"t7": [0.4, 1.2], "t1": [6.5, 24.0]},
+	"protection_pct": {"t7": [2.0, 5.0], "t1": [8.0, 13.0]},
+	"xp_pct": {"t7": [4.0, 10.0], "t1": [17.0, 27.0]},
+	"crit_pct": {"t7": [2.0, 4.0], "t1": [5.0, 8.0]},
+	"crit_dmg_pct": {"t7": [10.0, 20.0], "t1": [26.0, 42.0]},
+	"life_on_kill": {"t7": [1.0, 2.0], "t1": [16.0, 40.0]},
+	"cdr_pct": {"t7": [3.0, 6.0], "t1": [8.0, 12.0]},
+	"elite_dmg_pct": {"t7": [6.0, 12.0], "t1": [22.0, 34.0]},
+	"mana_regen": {"t7": [0.3, 0.8], "t1": [1.3, 2.1]},
+	"mana_on_kill": {"t7": [0.2, 0.4], "t1": [0.4, 0.6]},
+	"area_pct": {"t7": [4.0, 8.0], "t1": [10.0, 17.0]},
+	"dodge_pct": {"t7": [2.0, 4.0], "t1": [5.0, 8.0]},
+	"pickup_pct": {"t7": [10.0, 20.0], "t1": [26.0, 42.0]},
+	"ember_pct": {"t7": [4.0, 8.0], "t1": [14.0, 21.0]},
+	"element_res_pct": {"t7": [5.0, 10.0], "t1": [15.0, 23.0]},
+	"pen_pct": {"t7": [2.0, 5.0], "t1": [5.0, 9.0]},
+	"reserve_pct": {"t7": [2.0, 4.0], "t1": [4.0, 6.0], "slots": ["ring", "amulet"]},
+	"elem_dmg_pct": {"t7": [6.0, 12.0], "t1": [32.0, 45.0]},
+	"magic_dmg_pct": {"t7": [6.0, 12.0], "t1": [32.0, 45.0]},
+	"cast_speed_pct": {"t7": [3.0, 7.0], "t1": [16.0, 24.0]},
+	"skill_level": {"t7": [1.0, 1.0], "t1": [2.0, 2.0], "slots": ["earring", "helmet", "amulet"]},
+	"skill_level_all": {"t7": [1.0, 1.0], "t1": [1.0, 1.0], "slots": ["amulet"], "from": 22},
+	"proj_dmg_pct": {"t7": [4.0, 8.0], "t1": [25.0, 35.0]},
+	"area_dmg_pct": {"t7": [4.0, 8.0], "t1": [25.0, 35.0]},
+	"melee_dmg_pct": {"t7": [4.0, 8.0], "t1": [25.0, 35.0]},
+	"minion_dmg_pct": {"t7": [4.0, 8.0], "t1": [25.0, 35.0]},
+	"proj_speed_pct": {"t7": [4.0, 8.0], "t1": [25.0, 35.0]},
+	"duration_pct": {"t7": [3.0, 6.0], "t1": [20.0, 30.0]},
+	"afflicted_dmg_pct": {"t7": [5.0, 10.0], "t1": [30.0, 40.0]},
+	"full_hp_dmg_pct": {"t7": [5.0, 10.0], "t1": [30.0, 40.0]},
+	"kill_haste_pct": {"t7": [3.0, 5.0], "t1": [15.0, 20.0]},
+	"rarity_pct": {"t7": [4.0, 8.0], "t1": [20.0, 30.0], "slots": ["ring", "amulet", "helmet", "boots"]},
+	"quantity_pct": {"t7": [4.0, 8.0], "t1": [20.0, 30.0], "slots": ["ring", "amulet", "helmet", "boots"]},
+	"ore_pct": {"t7": [4.0, 8.0], "t1": [20.0, 30.0], "slots": ["ring", "amulet", "helmet", "boots"]},
 }
+## Premia skill_level: stopnie T2 i T1 dają +2, niższe +1 (widełki tylko do pokazania w oknie).
+const SKILL_LEVEL_T2 := 2
+## Najwyżej tyle poziomów ponad Skills.MAX_LEVEL dają przedmioty (umiejętność do 12. poziomu).
+const ITEM_LEVELS_MAX := 2
+## Premia kill_haste_pct działa przez tyle sekund po zabiciu.
+const KILL_HASTE_TIME := 3.0
 ## Premie z ułamkiem (jedno miejsce po przecinku), reszta - liczby całkowite.
 const DECIMAL_STATS := ["regen", "mana_regen", "mana_on_kill"]
 ## Premie many rosły kiedyś z siłą lochu (x152 na 101. poziomie - mana bez końca, uwaga autora 17.11.2026); teraz liniowo.
@@ -153,19 +273,8 @@ static func life_on_kill(gear: Dictionary) -> float:
 const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0, "cast_speed_pct": 75.0, "crit_pct": 95.0, "cdr_pct": 100.0,
 	"dodge_pct": 50.0, "area_pct": 100.0, "pickup_pct": 200.0, "ember_pct": 100.0,
 	"element_res_pct": Elements.MAX_RESISTANCE * 100.0, "pen_pct": 55.0, "mana_on_kill": 2.0,
-	"reserve_pct": 20.0}
-## Stała cecha każdego miejsca na 1. poziomie lochu (liczby rosną z siłą lochu, procenty o BASE_PCT_PER_LEVEL).
-## Kolczyk: obrażenia ciosu (od-do) każdej broni zamiast gołych obrażeń postaci.
-const BASE := {
-	"earring": {"damage": Vector2(15.0, 21.0)},
-	"helmet": {"hp": 8.0},
-	"armor": {"hp": 18.0},
-	"boots": {"move_pct": 4.0},
-	"ring": {"damage_pct": 4.0},
-	"amulet": {"mana": 10.0},
-}
-## Stała cecha butów i pierścienia (procenty) rośnie o tyle z każdym poziomem lochu.
-const BASE_PCT_PER_LEVEL := 0.2
+	"reserve_pct": 20.0, "proj_speed_pct": 100.0, "duration_pct": 100.0, "kill_haste_pct": 50.0, "rarity_pct": 200.0,
+	"quantity_pct": 100.0, "ore_pct": 200.0, "skill_level_all": 3.0}
 ## Gniazda: najwięcej w przedmiocie i szansa na drugie od razu (według rzadkości - bardzo rzadko).
 const MAX_SOCKETS := 2
 const SECOND_SOCKET := {"common": 0.0, "magic": 0.01, "rare": 0.03}
@@ -179,55 +288,138 @@ const FORGE_ORE := 20
 const FORGE_WEIGHTS := {"common": 35, "magic": 45, "rare": 20}
 
 
-## Stopień przedmiotu (0-4) z poziomu lochu.
+## Stopień wyglądu przedmiotu (0-4) z poziomu lochu.
 static func tier_for(level: int) -> int:
-	return clampi((maxi(level, 1) - 1) / LEVELS_PER_TIER, 0, 4)
+	var t := 0
+	for i in VISUAL_FROM.size():
+		if maxi(level, 1) >= VISUAL_FROM[i]:
+			t = i
+	return t
 
 
-## Nowy przedmiot: miejsce (puste - losowe), poziom lochu, rzadkość (pusta - losowana wagami `weights`).
-static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS) -> Dictionary:
+## Bazy miejsca w kolejności (pierwsza - dawna).
+static func bases_of(slot: String) -> Array:
+	return BASES[slot].keys() if BASES.has(slot) else []
+
+
+## Baza przedmiotu (stare zapisy bez pola - pierwsza baza miejsca).
+static func type_of(item: Dictionary) -> String:
+	var t: String = item.get("type", "")
+	return t if BASES.get(item.get("slot", ""), {}).has(t) else str(bases_of(item.get("slot", "earring"))[0])
+
+
+## Stała cecha bazy na poziomie lochu (do MAX_LEVEL): od wartości z 1. poziomu do tej z MAX_LEVEL - liniowo albo
+## (CURVED_STATS) jak siła lochu.
+static func implicit_value(stat: String, range_: Array, level: int) -> float:
+	var l := clampi(level, 1, MAX_LEVEL)
+	var f := float(l - 1) / float(MAX_LEVEL - 1)
+	if stat in CURVED_STATS:
+		f = (DungeonLevels.power(l) - 1.0) / (DungeonLevels.power(MAX_LEVEL) - 1.0)
+	var v := lerpf(range_[0], range_[1], f)
+	return snappedf(v, 0.1) if stat in DECIMAL_STATS else float(roundi(v))
+
+
+## Stałe cechy nowego przedmiotu bazy `type` z miejsca `slot` (kolczyk - też obrażenia ciosu, lekko losowe).
+static func roll_base(slot: String, type: String, level: int) -> Dictionary:
+	var base := {}
+	if slot == "earring":
+		var m := (1.0 + EARRING_GROWTH * (clampi(level, 1, MAX_LEVEL) - 1)) * randf_range(0.92, 1.08)
+		base["damage"] = [roundi(EARRING_DAMAGE.x * m), roundi(EARRING_DAMAGE.y * m)]
+	var implicit: Dictionary = BASES[slot][type].implicit
+	for stat in implicit:
+		base[stat] = implicit_value(stat, implicit[stat], level)
+	return base
+
+
+## Nowy przedmiot: miejsce (puste - losowe), poziom lochu, rzadkość (pusta - losowana wagami `weights`), baza
+## (pusta - losowa z miejsca).
+static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS, type := "") -> Dictionary:
 	if slot == "":
 		slot = SLOTS[randi() % SLOTS.size()]
 	if rarity == "":
 		rarity = roll_rarity(weights)
-	var tier := tier_for(level)
-	var p := DungeonLevels.power(level)
-	var base := {}
-	for stat in BASE[slot]:
-		var v = BASE[slot][stat]
-		if v is Vector2:
-			var m := (1.0 + 0.12 * (maxi(level, 1) - 1)) * randf_range(0.92, 1.08)
-			base[stat] = [roundi(v.x * m), roundi(v.y * m)]
-		elif stat in ["move_pct", "damage_pct"]:
-			base[stat] = roundi(v + BASE_PCT_PER_LEVEL * (maxi(level, 1) - 1))
-		else:
-			base[stat] = roundi(v * p)
-	var affixes: Array = []
-	var pool: Array = AFFIXES.keys().filter(func(stat: String) -> bool: return affix_fits(stat, slot))
-	pool.shuffle()
-	var count := randi_range(AFFIX_COUNT[rarity].x, AFFIX_COUNT[rarity].y)
-	for i in count:
-		var stat: String = pool[i]
-		affixes.append({"stat": stat, "value": roll_affix(stat, level)})
-	var sockets: Array = [""]
+	if not BASES[slot].has(type):
+		type = bases_of(slot).pick_random()
+	var item := {"slot": slot, "type": type, "tier": tier_for(level), "level": maxi(level, 1), "rarity": rarity,
+			"base": roll_base(slot, type, level), "affixes": [], "sockets": [""]}
+	for i in randi_range(AFFIX_COUNT[rarity].x, AFFIX_COUNT[rarity].y):
+		add_affix(item)
 	if randf() < SECOND_SOCKET[rarity]:
-		sockets.append("")
-	return {"slot": slot, "tier": tier, "level": maxi(level, 1), "rarity": rarity, "base": base, "affixes": affixes,
-			"sockets": sockets}
+		item.sockets.append("")
+	return item
 
 
-## Czy premia może wypaść na przedmiocie z miejsca `slot` (pole "slots" w AFFIXES; bez niego - wszędzie).
-## Mniejsza rezerwacja many (aury, decyzja autora 19.11.2026) - tylko pierścień i amulet.
-static func affix_fits(stat: String, slot: String) -> bool:
-	return not AFFIXES[stat].has("slots") or slot in AFFIXES[stat]["slots"]
-
-
-## Najwyższa wartość premii `stat` na poziomie lochu `level` (bez losowania).
-static func affix_max(stat: String, level: int) -> float:
+## Czy premia może wypaść na przedmiocie z miejsca `slot` (pole "slots" w AFFIXES; bez niego - wszędzie) i poziomu
+## lochu `level` (pole "from"). Mniejsza rezerwacja many (aury, decyzja autora 19.11.2026) - tylko pierścień i amulet.
+static func affix_fits(stat: String, slot: String, level := MAX_LEVEL) -> bool:
 	var a: Dictionary = AFFIXES[stat]
-	if a.get("scales", false):
-		return a.max * DungeonLevels.power(level)
-	return a.max + a.get("per_level", 0.0) * (maxi(level, 1) - 1)
+	return (not a.has("slots") or slot in a.slots) and level >= int(a.get("from", 1))
+
+
+## Nowa losowa premia rodzaju, którego przedmiot jeszcze nie ma (pasującego do miejsca i poziomu). False - brak.
+static func add_affix(item: Dictionary) -> bool:
+	var taken: Array = item.affixes.map(func(a: Dictionary) -> String: return a.stat)
+	var pool: Array = AFFIXES.keys().filter(func(stat: String) -> bool:
+		return not stat in taken and affix_fits(stat, item.slot, item.level))
+	if pool.is_empty():
+		return false
+	item.affixes.append(make_affix(pool.pick_random(), item.level))
+	return true
+
+
+## Premia `stat` z losowym stopniem dostępnym na poziomie lochu `level` (`tier` > 0 - ten stopień).
+static func make_affix(stat: String, level: int, tier := 0) -> Dictionary:
+	if tier <= 0:
+		tier = roll_tier(level)
+	var a := {"stat": stat, "value": tier_value(stat, tier), "tier": tier}
+	if stat == "skill_level":
+		a.skill = Skills.ORDER.pick_random()
+	return a
+
+
+## Najlepszy stopień premii (1-7) dostępny na poziomie lochu.
+static func best_tier(level: int) -> int:
+	var best := TIERS
+	for i in TIER_FROM.size():
+		if maxi(level, 1) >= TIER_FROM[i]:
+			best = TIERS - i
+	return best
+
+
+## Losowy stopień premii dostępny na poziomie lochu (wagi TIER_WEIGHTS).
+static func roll_tier(level: int) -> int:
+	var best := best_tier(level)
+	var total := 0
+	for i in TIERS - best + 1:
+		total += TIER_WEIGHTS[i]
+	var pick := randi() % total
+	for i in TIERS - best + 1:
+		pick -= TIER_WEIGHTS[i]
+		if pick < 0:
+			return TIERS - i
+	return TIERS
+
+
+## Widełki premii `stat` stopnia `tier` (Vector2: najmniej, najwięcej).
+static func tier_range(stat: String, tier: int) -> Vector2:
+	var a: Dictionary = AFFIXES[stat]
+	if stat == "skill_level":
+		var v := 2.0 if tier <= SKILL_LEVEL_T2 else 1.0
+		return Vector2(v, v)
+	var f := float(TIERS - clampi(tier, 1, TIERS)) / float(TIERS - 1)
+	return Vector2(lerpf(a.t7[0], a.t1[0], f), lerpf(a.t7[1], a.t1[1], f))
+
+
+## Losowa wartość premii `stat` w widełkach stopnia `tier`.
+static func tier_value(stat: String, tier: int) -> float:
+	var r := tier_range(stat, tier)
+	var v := randf_range(r.x, r.y)
+	return snappedf(v, 0.1) if stat in DECIMAL_STATS else float(roundi(v))
+
+
+## Najwyższa wartość premii `stat` na poziomie lochu `level` (górna granica najlepszego stopnia, bez losowania).
+static func affix_max(stat: String, level: int) -> float:
+	return tier_range(stat, best_tier(level)).y
 
 
 ## Premia z CLAMPED_STATS przycięta do górnej granicy z jej poziomu (`mult` - kamienie szlachetne, część premii).
@@ -237,15 +429,16 @@ static func clamp_affix(stat: String, value: float, level: int, mult := 1.0) -> 
 	return minf(value, snappedf(affix_max(stat, level) * mult, 0.1))
 
 
-## Wartość losowej premii na danym poziomie lochu.
+## Wartość losowej premii na danym poziomie lochu (losowy stopień; kamienie szlachetne).
 static func roll_affix(stat: String, level: int) -> float:
-	var a: Dictionary = AFFIXES[stat]
-	var v := randf_range(a.min, a.max)
-	if a.get("scales", false):
-		v *= DungeonLevels.power(level)
-	else:
-		v += a.get("per_level", 0.0) * (maxi(level, 1) - 1)
-	return snappedf(v, 0.1) if stat in DECIMAL_STATS else float(roundi(v))
+	return tier_value(stat, roll_tier(level))
+
+
+## Runa Szlifu: nowa wartość premii w widełkach jej stopnia (stopień zostaje).
+static func polish_affix(a: Dictionary) -> Dictionary:
+	var out := a.duplicate()
+	out.value = tier_value(a.stat, int(a.get("tier", TIERS)))
+	return out
 
 
 static func roll_rarity(weights: Dictionary) -> String:
@@ -260,11 +453,13 @@ static func roll_rarity(weights: Dictionary) -> String:
 	return "common"
 
 
-## Łup ze skrzyni Wodza: CHEST_ITEMS przedmiotów, pierwszy co najmniej magiczny.
-static func roll_chest(level: int) -> Array:
+## Łup ze skrzyni Wodza: CHEST_ITEMS przedmiotów, pierwszy co najmniej magiczny. Premie przedmiotów: `rarity_pct` -
+## lepsze wagi rzadkości, `quantity_pct` - szansa (w procentach) na jeszcze jeden przedmiot.
+static func roll_chest(level: int, rarity_pct := 0.0, quantity_pct := 0.0) -> Array:
 	var items: Array = []
-	for i in CHEST_ITEMS:
-		var item := roll(level, "", "", CHEST_WEIGHTS)
+	var weights := boosted_weights(CHEST_WEIGHTS, rarity_pct)
+	for i in CHEST_ITEMS + (1 if randf() * 100.0 < quantity_pct else 0):
+		var item := roll(level, "", "", weights)
 		if i == 0 and item.rarity == "common":
 			item = roll(level, "", "magic" if randf() < 0.75 else "rare")
 		items.append(item)
@@ -277,9 +472,24 @@ static func roll_goblin(level: int, chance_mult := 1.0, weights := GOBLIN_WEIGHT
 	return roll(level, "", "", weights) if randf() < GOBLIN_DROP * chance_mult else {}
 
 
+## Wagi rzadkości z premią „rzadkości łupu” (`rarity_pct`): magiczne i rzadkie częściej (rzadkie podwójnie).
+static func boosted_weights(weights: Dictionary, rarity_pct: float) -> Dictionary:
+	if rarity_pct <= 0.0:
+		return weights
+	var w := weights.duplicate()
+	w.magic = roundi(w.magic * (1.0 + rarity_pct / 100.0))
+	w.rare = roundi(w.rare * (1.0 + 2.0 * rarity_pct / 100.0))
+	return w
+
+
 ## Nazwa przedmiotu w obecnym języku.
 static func name_of(item: Dictionary) -> String:
-	return Lang.t(NAMES[item.slot][item.tier])
+	return Lang.t(BASES[item.slot][type_of(item)].names[clampi(int(item.get("tier", 0)), 0, 4)])
+
+
+## Nazwa bazy (najniższy stopień - do wyboru u kowala).
+static func base_name(slot: String, type: String) -> String:
+	return Lang.t(BASES[slot][type].names[0])
 
 
 static func color_of(item: Dictionary) -> Color:
@@ -289,7 +499,12 @@ static func color_of(item: Dictionary) -> Color:
 ## Ikona przedmiotu (wersja magiczna i rzadka mają inne kolory, jak w Watrze).
 static func icon_of(item: Dictionary) -> Texture2D:
 	var suffix: String = {"common": "", "magic": "_magic", "rare": "_rare"}.get(item.get("rarity", "common"), "")
-	return load("res://assets/watra/items/%s%s.png" % [LINES[item.slot][item.tier], suffix])
+	return base_icon(item.slot, type_of(item), int(item.get("tier", 0)), suffix)
+
+
+## Ikona bazy na stopniu wyglądu `tier` (`suffix` - "", "_magic", "_rare").
+static func base_icon(slot: String, type: String, tier := 0, suffix := "") -> Texture2D:
+	return load("res://assets/%s%s.png" % [BASES[slot][type].icons[clampi(tier, 0, 4)], suffix])
 
 
 static func slot_icon(slot: String) -> Texture2D:
@@ -312,6 +527,23 @@ static func stat_text(stat: String, value: float) -> String:
 	return Lang.t(STAT_FORMATS[stat]) % roundi(value)
 
 
+## Opis premii przedmiotu bez stopnia (poziom jednej umiejętności - z jej nazwą).
+static func affix_text(a: Dictionary) -> String:
+	if a.stat == "skill_level":
+		return Lang.t("+%d do poziomu: %s") % [roundi(a.value), Skills.name_of(a.get("skill", ""))]
+	return stat_text(a.stat, a.value)
+
+
+## Znaczek stopnia premii („T3”).
+static func tier_badge(a: Dictionary) -> String:
+	return "T%d" % int(a.get("tier", TIERS))
+
+
+## Kolor znaczka stopnia.
+static func tier_color(tier: int) -> Color:
+	return TIER_COLORS[clampi(tier, 1, TIERS) - 1]
+
+
 ## Linie stałej cechy przedmiotu (kolczyk - obrażenia ciosu).
 static func base_lines(item: Dictionary) -> Array[String]:
 	var lines: Array[String] = []
@@ -323,10 +555,11 @@ static func base_lines(item: Dictionary) -> Array[String]:
 	return lines
 
 
+## Linie premii ze znaczkiem stopnia („T3  +12% obrażeń”).
 static func affix_lines(item: Dictionary) -> Array[String]:
 	var lines: Array[String] = []
 	for a in item.affixes:
-		lines.append(stat_text(a.stat, a.value))
+		lines.append("%s  %s" % [tier_badge(a), affix_text(a)])
 	return lines
 
 
@@ -336,7 +569,7 @@ static func ore_value(item: Dictionary) -> int:
 
 
 ## Runa Przekucia (Runes): premia `index` losowana od nowa - rodzaj (spośród tych, których przedmiot jeszcze nie ma; może wypaść
-## ten sam) i siła z poziomu przedmiotu. Zmienia przedmiot w miejscu i liczy przeróbki. Zwraca false przy złym indeksie.
+## ten sam), stopień i siła z poziomu przedmiotu. Zmienia przedmiot w miejscu i liczy przeróbki. Zwraca false przy złym indeksie.
 static func reroll_affix(item: Dictionary, index: int) -> bool:
 	if index < 0 or index >= item.get("affixes", []).size():
 		return false
@@ -345,17 +578,17 @@ static func reroll_affix(item: Dictionary, index: int) -> bool:
 		if i != index:
 			taken.append(item.affixes[i].stat)
 	var pool: Array = AFFIXES.keys().filter(func(stat: String) -> bool:
-		return not stat in taken and affix_fits(stat, item.slot))
-	var stat: String = pool.pick_random()
-	item.affixes[index] = {"stat": stat, "value": roll_affix(stat, item.level)}
+		return not stat in taken and affix_fits(stat, item.slot, item.level))
+	item.affixes[index] = make_affix(pool.pick_random(), item.level)
 	item.rerolls = int(item.get("rerolls", 0)) + 1
 	return true
 
 
-## Suma cech założonych przedmiotów (słownik miejsce -> przedmiot). Klucze ze STAT_FORMATS (z sufitami CAPS)
-## oraz "damage" - obrażenia cięcia założonej broni jako Vector2i (bez broni: Vector2i.ZERO).
+## Suma cech założonych przedmiotów (słownik miejsce -> przedmiot). Klucze ze STAT_FORMATS (z sufitami CAPS),
+## "damage" - obrażenia cięcia założonej broni jako Vector2i (bez broni: Vector2i.ZERO) i "skill_bonus" - poziomy
+## pojedynczych umiejętności z premii skill_level (umiejętność -> ile).
 static func totals(equipped: Dictionary) -> Dictionary:
-	var t := {"damage": Vector2i.ZERO}
+	var t := {"damage": Vector2i.ZERO, "skill_bonus": {}}
 	for stat in STAT_FORMATS:
 		t[stat] = 0.0
 	for slot in equipped:
@@ -366,6 +599,9 @@ static func totals(equipped: Dictionary) -> Dictionary:
 			else:
 				t[stat] += float(item.base[stat])
 		for a in item.affixes:
+			if a.stat == "skill_level":
+				var skill: String = a.get("skill", "")
+				t.skill_bonus[skill] = int(t.skill_bonus.get(skill, 0)) + roundi(a.value)
 			t[a.stat] += float(a.value)
 		for id in item.get("sockets", []):
 			for gem in Gems.jewel_stats(id):
@@ -376,7 +612,6 @@ static func totals(equipped: Dictionary) -> Dictionary:
 	return t
 
 
-## Tryb deweloperski: klucz statystyki „obrażenia broni” (najmniejsze obrażenia cięcia) w Game.dev_stats.
 const WEAPON_DAMAGE := "weapon_damage"
 
 
@@ -406,29 +641,69 @@ static func socket_lines(item: Dictionary) -> Array[String]:
 	return lines
 
 
+## Stopień, w którego widełki najlepiej pasuje stara premia bez stopnia (zapisy sprzed 21.11.2026) - spośród
+## dostępnych na poziomie lochu `level`.
+static func nearest_tier(stat: String, value: float, level: int) -> int:
+	var best := TIERS
+	var best_d := INF
+	for tier in range(TIERS, best_tier(level) - 1, -1):
+		var r := tier_range(stat, tier)
+		var d := absf(value - (r.x + r.y) / 2.0)  # najbliżej środka widełek
+		if d < best_d:
+			best_d = d
+			best = tier
+	return best
+
+
 ## Przedmiot wczytany z JSON-a (liczby przychodzą jako float) - typy jak przy losowaniu. Zły wpis - pusty słownik.
-## Stare zapisy (sprzed gniazd) dostają jedno puste gniazdo.
+## Stare zapisy (sprzed gniazd) dostają jedno puste gniazdo; sprzed baz i stopni (21.11.2026) - pierwszą bazę
+## miejsca (stała cecha liczona od nowa z poziomu, do MAX_LEVEL), a premie - najbliższy stopień i wartość w jego widełkach.
 static func normalize(data) -> Dictionary:
 	if data is Dictionary and LEGACY_SLOTS.has(data.get("slot", "")):
 		data = data.duplicate()
 		data.slot = LEGACY_SLOTS[data.slot]
 	if not (data is Dictionary) or not SLOTS.has(data.get("slot", "")) or not RARITIES.has(data.get("rarity", "")):
 		return {}
+	var level := maxi(int(data.get("level", 1)), 1)
+	var converted: bool = not BASES[data.slot].has(data.get("type", ""))
+	var type: String = bases_of(data.slot)[0] if converted else data.type
 	var base := {}
 	var raw_base = data.get("base", {})
 	if raw_base is Dictionary:
 		for stat in raw_base:
 			if stat == "damage" and raw_base[stat] is Array and raw_base[stat].size() == 2:
-				base[stat] = [int(raw_base[stat][0]), int(raw_base[stat][1])]
-			elif STAT_FORMATS.has(stat):
-				base[stat] = int(raw_base[stat])
+				var cap := (1.0 + EARRING_GROWTH * (MAX_LEVEL - 1)) * 1.08
+				base[stat] = [mini(int(raw_base[stat][0]), roundi(EARRING_DAMAGE.x * cap)),
+						mini(int(raw_base[stat][1]), roundi(EARRING_DAMAGE.y * cap))]
+			elif STAT_FORMATS.has(stat) and not converted:
+				base[stat] = snappedf(float(raw_base[stat]), 0.1) if stat in DECIMAL_STATS else float(int(raw_base[stat]))
+	if converted:
+		var implicit: Dictionary = BASES[data.slot][type].implicit
+		for stat in implicit:
+			base[stat] = implicit_value(stat, implicit[stat], level)
+	if data.slot == "earring" and not base.has("damage"):
+		var m := 1.0 + EARRING_GROWTH * (clampi(level, 1, MAX_LEVEL) - 1)
+		base["damage"] = [roundi(EARRING_DAMAGE.x * m), roundi(EARRING_DAMAGE.y * m)]
 	var affixes: Array = []
 	var raw_affixes = data.get("affixes", [])
 	if raw_affixes is Array:
 		for a in raw_affixes:
-			if a is Dictionary and STAT_FORMATS.has(a.get("stat", "")):
-				var v := clamp_affix(a.stat, float(a.get("value", 0)), maxi(int(data.get("level", 1)), 1))
-				affixes.append({"stat": a.stat, "value": snappedf(v, 0.1) if a.stat in DECIMAL_STATS else v})
+			if not (a is Dictionary) or not AFFIXES.has(a.get("stat", "")):
+				continue
+			var stat: String = a.stat
+			var v := float(a.get("value", 0))
+			var tier := int(a.get("tier", 0))
+			if tier < 1 or tier > TIERS:
+				tier = nearest_tier(stat, v, level)
+				var r := tier_range(stat, tier)
+				v = clampf(v, r.x, r.y)
+			v = clamp_affix(stat, v, level)
+			var entry := {"stat": stat, "value": snappedf(v, 0.1) if stat in DECIMAL_STATS else float(roundi(v)), "tier": tier}
+			if stat == "skill_level":
+				if not Skills.has(str(a.get("skill", ""))):
+					continue
+				entry.skill = str(a.skill)
+			affixes.append(entry)
 	var sockets: Array = []
 	var raw_sockets = data.get("sockets", [""])
 	if raw_sockets is Array:
@@ -436,8 +711,8 @@ static func normalize(data) -> Dictionary:
 			sockets.append(id if id is String and Gems.is_jewel(id) else "")
 	if sockets.is_empty():
 		sockets.append("")
-	var item := {"slot": data.slot, "tier": clampi(int(data.get("tier", 0)), 0, 4), "level": maxi(int(data.get("level", 1)), 1),
-			"rarity": data.rarity, "base": base, "affixes": affixes, "sockets": sockets}
+	var item := {"slot": data.slot, "type": type, "tier": clampi(int(data.get("tier", tier_for(level))), 0, 4),
+			"level": level, "rarity": data.rarity, "base": base, "affixes": affixes, "sockets": sockets}
 	if int(data.get("rerolls", 0)) > 0:
 		item.rerolls = int(data.rerolls)
 	return item

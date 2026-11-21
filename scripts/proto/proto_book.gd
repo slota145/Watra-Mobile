@@ -351,7 +351,7 @@ func _spawn_missile(from: Vector2, a: float, target: ProtoTarget, power: float, 
 	get_parent().add_child(head)
 	head.global_position = from
 	_fx_loop("arcane_missile", head)
-	_missiles.append({"node": head, "tail": tail, "pos": from, "vel": Vector2.from_angle(a) * MISSILE_SPEED,
+	_missiles.append({"node": head, "tail": tail, "pos": from, "vel": Vector2.from_angle(a) * MISSILE_SPEED * proj_speed_mult,
 			"target": target, "power": power, "chaotic": chaotic, "life": MISSILE_LIFE, "phase": randf() * TAU,
 			"trail": [from]})
 
@@ -441,14 +441,14 @@ func _process_shards(delta: float) -> void:
 	for s: Dictionary in _shards:
 		var t: ProtoTarget = s.target
 		var to: Vector2 = t.center() - s.pos if t != null and is_instance_valid(t) and t.alive() else Vector2.ZERO
-		if to == Vector2.ZERO or to.length() <= SHARD_SPEED * delta + 3.0:
+		if to == Vector2.ZERO or to.length() <= SHARD_SPEED * proj_speed_mult * delta + 3.0:
 			if to != Vector2.ZERO:
 				_hit(t, s.power, s.pos, basic)
 				_fx_once("arcane_hit", s.pos, 0.6)
 			s.node.queue_free()
 			s.tail.queue_free()
 			continue
-		s.pos += to.normalized() * SHARD_SPEED * delta
+		s.pos += to.normalized() * SHARD_SPEED * proj_speed_mult * delta
 		s.node.global_position = (s.pos as Vector2).round()
 		s.node.rotation = to.angle()
 		s.trail.append(s.pos)

@@ -32,11 +32,19 @@ const LEFT_SLOTS := ["helmet", "armor", "boots"]
 const RIGHT_SLOTS := ["earring", "amulet", "ring"]
 ## Kolejność statystyk w oknie; te z EXTRA_STATS pokazują się tylko, gdy przedmioty coś do nich dają.
 const STAT_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "elem_dmg", "pen", "mana_regen", "protection", "element_res", "regen",
-	"life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp", "slots"]
-const EXTRA_STATS := ["elem_dmg", "pen", "protection", "element_res", "regen", "life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
+	"life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp", "skill_all", "proj_dmg", "area_dmg", "melee_dmg", "minion_dmg", "proj_speed", "duration", "afflicted", "full_hp", "kill_haste", "rarity", "quantity", "ore", "slots"]
+const EXTRA_STATS := ["elem_dmg", "pen", "protection", "element_res", "regen", "life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp",
+	"skill_all", "proj_dmg", "area_dmg", "melee_dmg", "minion_dmg", "proj_speed", "duration", "afflicted", "full_hp", "kill_haste", "rarity", "quantity", "ore"]
+## Premie przedmiotów z 21.11.2026 w statystykach: klucz -> [premia w Items.totals, nazwa w oknie].
+const ITEM_STATS := {"skill_all": ["skill_level_all", "Poziom wszystkich umiejętności"], "proj_dmg": ["proj_dmg_pct", "Obrażenia pocisków"],
+	"area_dmg": ["area_dmg_pct", "Obrażenia obszarowe"], "melee_dmg": ["melee_dmg_pct", "Obrażenia wręcz"],
+	"minion_dmg": ["minion_dmg_pct", "Obrażenia przywołańców"], "proj_speed": ["proj_speed_pct", "Szybkość pocisków"],
+	"duration": ["duration_pct", "Czas działania umiejętności"], "afflicted": ["afflicted_dmg_pct", "Przeciw osłabionym"],
+	"full_hp": ["full_hp_dmg_pct", "Przeciw wrogom z pełnym zdrowiem"], "kill_haste": ["kill_haste_pct", "Szybkość po zabiciu"],
+	"rarity": ["rarity_pct", "Rzadkość łupu"], "quantity": ["quantity_pct", "Ilość łupu"], "ore": ["ore_pct", "Ruda z rozbijania"]}
 ## Statystyki porównywane przy zakładaniu przedmiotu (bez miejsc na umiejętności).
 const COMPARE_KEYS := ["hp", "mana", "damage", "speed", "move", "crit", "crit_dmg", "elem_dmg", "pen", "mana_regen", "protection", "element_res", "regen",
-	"life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp"]
+	"life_on_kill", "mana_on_kill", "cdr", "elite_dmg", "dodge", "area", "pickup", "ember", "xp", "skill_all", "proj_dmg", "area_dmg", "melee_dmg", "minion_dmg", "proj_speed", "duration", "afflicted", "full_hp", "kill_haste", "rarity", "quantity", "ore"]
 ## Bazowe trafienie krytyczne postaci (bez przedmiotów): szansa i obrażenia w procentach.
 const CRIT_CHANCE := 5.0
 const CRIT_DAMAGE := 150.0
@@ -491,7 +499,7 @@ static func regen(level: int, gear: Dictionary) -> float:
 ## regen, xp. Służy też do porównania przed i po założeniu przedmiotu.
 static func summary(level: int, gear: Dictionary) -> Dictionary:
 	var dmg := damage_range(level, gear)
-	return {
+	var out := {
 		"hp": str(max_hp(level, gear)),
 		"mana": mana_text(level, gear),
 		"damage": "%d-%d" % [dmg.x, dmg.y],
@@ -515,6 +523,10 @@ static func summary(level: int, gear: Dictionary) -> Dictionary:
 		"pickup": "+%d%%" % roundi(gear.get("pickup_pct", 0.0)),
 		"ember": "+%d%%" % roundi(gear.get("ember_pct", 0.0)),
 	}
+	for key in ITEM_STATS:
+		var v := roundi(gear.get(ITEM_STATS[key][0], 0.0))
+		out[key] = ("+%d" % v) if key == "skill_all" else ("+%d%%" % v)
+	return out
 
 
 ## Szansa na trafienie krytyczne w procentach: bazowa i z przedmiotów (sufit przedmiotów - Items.CAPS).
@@ -1150,6 +1162,8 @@ func _put(key: String, value: String, up: String, no_up: bool) -> void:
 
 
 func _stat_name(key: String) -> String:
+	if ITEM_STATS.has(key):
+		return tr(ITEM_STATS[key][1])
 	match key:
 		"hp":
 			return tr("Zdrowie")

@@ -78,7 +78,7 @@ func _test_actions() -> void:
 	for i in 30:
 		var it := Items.roll(8, "amulet", "rare")
 		Runes.apply(it, Runes.CHAOS)
-		counts_ok = counts_ok and it.affixes.size() >= 3 and it.affixes.size() <= 4 and _unique(it) and it.rarity == "rare"
+		counts_ok = counts_ok and it.affixes.size() >= 3 and it.affixes.size() <= 5 and _unique(it) and it.rarity == "rare"
 	_check(counts_ok, "Runa Zmiany: premie od nowa w liczbie rzadkości")
 	# Pieczęci
 	var sealed := true

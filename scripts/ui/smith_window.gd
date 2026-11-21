@@ -30,6 +30,10 @@ var _flash: Array = []
 var _stock: Dictionary = {}
 ## Przyciski wykuwania (miejsce -> przycisk) i napis pod nimi.
 var forge_buttons: Dictionary = {}
+## Wybór bazy po stuknięciu miejsca (Items.BASES - 3 bazy): miejsce, którego bazy widać, i ich przyciski.
+var forge_slot := ""
+var base_row: HBoxContainer
+var base_buttons: Dictionary = {}
 var forge_label: Label
 
 
@@ -87,9 +91,13 @@ func _build() -> void:
 		b.expand_icon = true
 		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		b.add_theme_font_size_override("font_size", 11)
-		b.pressed.connect(_forge.bind(slot))
+		b.pressed.connect(_pick_slot.bind(slot))
 		forge_row.add_child(b)
 		forge_buttons[slot] = b
+	base_row = HBoxContainer.new()
+	base_row.add_theme_constant_override("separation", 6)
+	base_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	content.add_child(base_row)
 	forge_label = label(content, "", 11, DIM, true)
 	_make_detail()
 
@@ -99,13 +107,14 @@ func refresh() -> void:
 	set_currency(ORE, _game.ore)
 	for slot in forge_buttons:
 		var b: Button = forge_buttons[slot]
-		var key: String = "forge_" + slot
-		b.text = tr("Wykuć?") if armed == key else ""
-		b.icon = null if armed == key else Items.slot_icon(slot)
 		b.disabled = _game.forge_problem(slot) != ""
+		b.modulate = Color(1.3, 1.2, 0.8) if slot == forge_slot else Color.WHITE
+	_show_bases()
 	var why: String = _game.forge_problem(Items.SLOTS[0])
 	forge_label.text = tr("%d rudy za przedmiot z lochu %d, rzadkość losowa (masz %d rudy).") \
-			% [Items.FORGE_ORE, maxi(_game.best_level, 1), _game.ore]
+			% [Items.FORGE_ORE, mini(maxi(_game.best_level, 1), Items.MAX_LEVEL), _game.ore]
+	if forge_slot == "" and why == "":
+		forge_label.text += " " + tr("Stuknij miejsce, potem bazę.")
 	if why == "ore":
 		forge_label.text += " " + tr("Rudę daje rozbijanie przedmiotów, Skarbnik i Napad Hordy.")
 	elif why == "bag":
@@ -125,11 +134,48 @@ func refresh() -> void:
 		_show_detail()
 
 
-## Wykuwanie: pierwsze stuknięcie pyta, drugie wykuwa i otwiera opis nowego przedmiotu.
-func _forge(slot: String) -> void:
-	if not confirm("forge_" + slot):
+## Stuknięte miejsce do wykucia: pokazuje (albo chowa) jego 3 bazy.
+func _pick_slot(slot: String) -> void:
+	forge_slot = "" if forge_slot == slot else slot
+	armed = ""
+	refresh()
+
+
+## Przyciski baz wybranego miejsca: ikona, nazwa i stała cecha; „Wykuć?” po pierwszym stuknięciu.
+func _show_bases() -> void:
+	for c in base_row.get_children():
+		base_row.remove_child(c)
+		c.queue_free()
+	base_buttons.clear()
+	base_row.visible = forge_slot != ""
+	if forge_slot == "":
 		return
-	var item: Dictionary = _game.forge(slot)
+	var level := maxi(_game.best_level, 1)
+	for type in Items.bases_of(forge_slot):
+		var b := Button.new()
+		b.name = "Base_" + type
+		b.custom_minimum_size = Vector2(106, 96)
+		var key: String = "forge_%s_%s" % [forge_slot, type]
+		var implicit: Dictionary = Items.BASES[forge_slot][type].implicit
+		var line: String = Items.stat_text(implicit.keys()[0], Items.implicit_value(implicit.keys()[0], implicit.values()[0], level))
+		b.text = tr("Wykuć?") if armed == key else Items.base_name(forge_slot, type) + "\n" + line
+		b.icon = Items.base_icon(forge_slot, type, Items.tier_for(level))
+		b.expand_icon = false
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		b.add_theme_font_size_override("font_size", 10)
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		b.disabled = _game.forge_problem(forge_slot) != ""
+		b.pressed.connect(_forge.bind(forge_slot, type))
+		base_row.add_child(b)
+		base_buttons[type] = b
+
+
+## Wykuwanie: pierwsze stuknięcie bazy pyta, drugie wykuwa i otwiera opis nowego przedmiotu.
+func _forge(slot: String, type := "") -> void:
+	if not confirm("forge_%s_%s" % [slot, type]):
+		return
+	var item: Dictionary = _game.forge(slot, type)
 	if item.is_empty():
 		refresh()
 		return
@@ -187,7 +233,9 @@ func _show_detail() -> void:
 		var box := HBoxContainer.new()
 		box.add_theme_constant_override("separation", 6)
 		_detail_lines.add_child(box)
-		var l := label(box, Items.stat_text(item.affixes[i].stat, item.affixes[i].value), 14, Items.RARITY_COLORS.magic)
+		var badge := label(box, Items.tier_badge(item.affixes[i]), 12, Items.tier_color(int(item.affixes[i].get("tier", Items.TIERS))))
+		badge.custom_minimum_size.x = 22
+		var l := label(box, Items.affix_text(item.affixes[i]), 14, Items.RARITY_COLORS.magic)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		if i in _flash or -2 in _flash:
