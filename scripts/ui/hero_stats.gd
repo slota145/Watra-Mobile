@@ -831,8 +831,10 @@ func _show_detail(item: Dictionary, in_bag: bool) -> void:
 		c.queue_free()
 	for line in Items.base_lines(item):
 		_label(detail_lines, line, 13, TEXT)
-	for line in Items.affix_lines(item):
-		_label(detail_lines, line, 13, Items.RARITY_COLORS.magic)
+	var lines := Items.affix_lines(item)
+	for i in lines.size():
+		_label(detail_lines, lines[i], 13, Items.ABOVE_COLOR if item.affixes[i].get("above", false) else Items.RARITY_COLORS.magic)
+	_label(detail_lines, Items.potential_line(item), 12, Color(0.75, 0.68, 0.55))
 	var sockets: Array = item.get("sockets", [])
 	var socket_texts := Items.socket_lines(item)
 	for i in sockets.size():
@@ -1122,10 +1124,12 @@ func _show_item(b: Button, item: Dictionary, slot: String) -> void:
 	else:
 		b.icon = Items.icon_of(item)
 		b.modulate = Color.WHITE
-		color = Items.color_of(item) if item.rarity != "common" else Color(0.7, 0.6, 0.45)
+		color = Items.frame_of(item)[0]
 	for state in ["normal", "hover", "pressed", "focus"]:
 		var st: StyleBoxFlat = b.get_theme_stylebox(state).duplicate()
 		st.border_color = color if state != "pressed" else color.lightened(0.3)
+		if not item.is_empty():
+			st.set_border_width_all(Items.frame_of(item)[1])
 		b.add_theme_stylebox_override(state, st)
 
 

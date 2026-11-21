@@ -76,7 +76,7 @@ func _test_shop(game: Node) -> void:
 	var offers: Array = Shop.offers()
 	var buys := offers.filter(func(o: Dictionary) -> bool: return o.kind == "buy")
 	var changes := offers.filter(func(o: Dictionary) -> bool: return o.kind == "change")
-	_check(buys.size() == 5 and changes.size() == 5 and offers.size() == 12, "5 run do kupienia, 5 do rozmiany, klucz i dłuto")
+	_check(buys.size() == 5 and changes.size() == 7 and offers.size() == 14, "5 run do kupienia (bez run bossów), 7 do rozmiany, klucz i dłuto")
 	_check(Shop.buy_cost(Runes.CHAOS) == 8 and Shop.buy_cost(Runes.REFORGE) == 3 and Shop.buy_cost(Runes.SEAL) == 30,
 			"kupno po kursie x1,5 w górę (Zmiana 8, Przekucie 3, Pieczęć 30 Szlifu)")
 	var ci := offers.find(changes.filter(func(o: Dictionary) -> bool: return o.pay == Runes.CHAOS)[0])

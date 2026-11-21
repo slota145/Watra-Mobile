@@ -43,7 +43,7 @@ func _unique(item: Dictionary) -> bool:
 
 
 func _test_actions() -> void:
-	_check(Runes.ORDER.size() == 6, "6 run")
+	_check(Runes.ORDER.size() == 8, "8 run")
 	var ok := true
 	for id in Runes.ORDER:
 		ok = ok and Runes.name_of(id) != "" and Runes.text_of(id) != "" and Runes.icon_of(id) != null and Runes.value_of(id) > 0
@@ -53,7 +53,7 @@ func _test_actions() -> void:
 	# Szlifu: ten sam rodzaj, wartość w zakresie
 	var same := true
 	for i in 30:
-		var it := Items.roll(10, "helmet", "rare")
+		var it := Items.roll(10, "helmet", "rare", Items.GOBLIN_WEIGHTS, "", false)
 		var st: String = it.affixes[0].stat
 		Runes.apply(it, Runes.POLISH, 0)
 		same = same and it.affixes[0].stat == st and it.affixes[0].value <= Items.affix_max(st, 10) + 0.5
@@ -163,5 +163,5 @@ func _test_save(game: Node) -> void:
 	_check(game.forge_problem("nic") == "slot", "złe miejsce")
 	var spread := {}
 	for i in 300:
-		spread[Items.roll(5, "ring", "", Items.FORGE_WEIGHTS).rarity] = true
+		spread[Items.roll(5, "ring", "", Items.FORGE_WEIGHTS, "", false).rarity] = true
 	_check(spread.size() == 3, "rzadkość losowa: zwykłe, magiczne i rzadkie")

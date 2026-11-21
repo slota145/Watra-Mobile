@@ -908,7 +908,7 @@ func forge(slot: String, type := "") -> Dictionary:
 	if forge_problem(slot) != "":
 		return {}
 	ore -= Items.FORGE_ORE
-	var item := Items.roll(maxi(best_level, 1), slot, "", Items.FORGE_WEIGHTS, type)
+	var item := Items.roll(maxi(best_level, 1), slot, "", Items.FORGE_WEIGHTS, type, false)  # kuźnia - bez legend
 	bag.append(item)
 	save_game()
 	inventory_changed.emit()
@@ -931,7 +931,7 @@ func _scrap(item: Dictionary) -> Dictionary:
 	var amount := ore_gain(Items.ore_value(item))
 	ore += amount
 	var rune := ""
-	if item.rarity == "rare" and randf() < Items.SCRAP_RUNE * treasury_mult():
+	if item.rarity in ["rare", "legendary"] and randf() < Items.SCRAP_RUNE * treasury_mult():
 		rune = Runes.POLISH
 		runes[rune] = int(runes.get(rune, 0)) + 1
 	return {"ore": amount, "rune": rune}

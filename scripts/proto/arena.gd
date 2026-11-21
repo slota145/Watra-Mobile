@@ -116,8 +116,10 @@ var run_runes := 0
 var run_ore := 0
 ## Powiadomienia o łupie (pod paskami u góry, znikają same) i ich największa liczba naraz.
 var loot_feed: VBoxContainer
-const FEED_MAX := 4
-const FEED_TIME := 2.5
+## Powiadomienia o łupie: najwyżej tyle naraz, tyle sekund; małe i przy lewej krawędzi, żeby nie zasłaniały postaci
+## (uwaga autora 21.11.2026).
+const FEED_MAX := 3
+const FEED_TIME := 2.2
 ## Liczby na pasku żaru („zebrane / potrzebne do przyzwania”).
 var ember_text: Label
 ## Suma cech założonych przedmiotów (Items.totals).
@@ -968,14 +970,14 @@ func notify_loot(item: Dictionary, text: String) -> void:
 		old.queue_free()
 	var panel := PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.05, 0.04, 0.8)
+	style.bg_color = Color(0.08, 0.05, 0.04, 0.7)
 	style.border_color = ProtoLoot.color_of(item).darkened(0.3)
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(4)
-	style.set_content_margin_all(3)
-	style.content_margin_right = 8
+	style.set_content_margin_all(1)
+	style.content_margin_right = 5
 	panel.add_theme_stylebox_override("panel", style)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
@@ -985,11 +987,11 @@ func notify_loot(item: Dictionary, text: String) -> void:
 	icon.texture = ProtoLoot.icon_of(item)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = Vector2(20, 20)
+	icon.custom_minimum_size = Vector2(14, 14)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(icon)
 	var label := _hud_label(text)
-	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_font_size_override("font_size", 10)
 	label.add_theme_color_override("font_color", ProtoLoot.color_of(item))
 	row.add_child(label)
 	loot_feed.add_child(panel)
