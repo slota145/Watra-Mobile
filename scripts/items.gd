@@ -754,6 +754,31 @@ static func base_lines(item: Dictionary) -> Array[String]:
 	return lines
 
 
+## Siła przedmiotu do strzałki „lepszy” na ziemi (ankieta autora 21.11.2026): premie według stopnia (T1 - 7 punktów,
+## T7 - 1), premia ponad widełki x ABOVE_SCORE, do tego poziom lochu (stała cecha rośnie z nim do MAX_LEVEL).
+const ABOVE_SCORE := 1.3
+const LEVEL_SCORE := 0.15
+
+
+static func score(item: Dictionary) -> float:
+	var s := LEVEL_SCORE * mini(int(item.get("level", 1)), MAX_LEVEL)
+	for a in item.get("affixes", []):
+		s += (TIERS + 1 - int(a.get("tier", TIERS))) * (ABOVE_SCORE if a.get("above", false) else 1.0)
+	return s
+
+
+## Czy `item` jest lepszy od założonego `worn` (pusty - nic nie założono): unikat - gdy nie ma założonego tego samego,
+## założonego unikatu nic nie zastępuje, reszta - większa siła (`score`).
+static func is_upgrade(item: Dictionary, worn: Dictionary) -> bool:
+	if worn.is_empty():
+		return true
+	if is_unique(item):
+		return not (is_unique(worn) and worn.unique == item.unique)
+	if is_unique(worn):
+		return false
+	return score(item) > score(worn)
+
+
 ## Kolor linii `i` z `affix_lines` (premia ponad widełki, zwykła premia, unikat - jego kolor, cytat przygaszony).
 static func line_color(item: Dictionary, i: int) -> Color:
 	if is_unique(item):

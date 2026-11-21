@@ -2,6 +2,22 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Przedmioty krok 4: pokaz łupu
+
+Ankieta autora (wszystkie propozycje Claude, z dodatków: napis z wibracją i strzałka przy krawędzi; bez nazwy na ziemi).
+- **Słupy światła** (`ProtoLoot.BEAMS`, `_Beam` - wysokość, szerokość, iskry, pulsowanie): rzadki niski (34 px),
+  legendarny wysoki z iskrami, unikat wyższy z iskrami i pulsowaniem, anielski - jasny słup jak legendarny z aureolą
+  u podstawy. Magiczny - większa poświata.
+- **Premia ponad widełki** (`_Star`): biało-błękitny błysk przy wypadnięciu, potem co 1,6 s mignięcie gwiazdki.
+- **Dźwięki z Watry** (`assets/watra/legendary_drop.ogg`, `legendary_pickup.ogg`, `jingles_PIZZI01.ogg`): legenda
+  i unikat przy wypadnięciu i podniesieniu, unikat dodatkowo dzwoneczek; rzadki - wyższe „dzyń” przy wypadnięciu.
+- **Strzałka „lepszy”** (`_Arrow`, `refresh_better` - też po zmianie ekwipunku): `Items.is_upgrade` - puste miejsce
+  zawsze; siła `Items.score` (premia T1 = 7 punktów ... T7 = 1, ponad widełki x1,3, plus 0,15 za poziom lochu do 40);
+  unikat - lepszy, chyba że założony ten sam; założonego unikatu nic nie zastępuje.
+- **Legenda i unikat:** napis na środku ekranu („Legendarny: …!”, „Unikat: …!” - `arena.announce_loot`, grupa
+  `ProtoLoot.ANNOUNCE`), wibracja 90 ms, strzałka przy krawędzi ekranu, gdy leży poza kadrem (grupa GoalArrows).
+- Zrzut `tools/loot_show_shots.gd`, test `tests/test_loot_show.gd`.
+
 ## 21.11.2026 - Przedmioty krok 3: 6 unikatów
 
 Propozycja Claude zaakceptowana przez autora w całości, ankieta: kowal nie przerabia unikatów wcale, kolor złoto-brązowy,
