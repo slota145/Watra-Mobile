@@ -85,6 +85,10 @@ def base(theme="fire"):
             r = int(18 + 10 * t + 30 * glow)
             g = int(16 + 14 * t + 56 * glow)
             b = int(42 + 26 * t + 100 * glow)
+        elif theme == "earth":  # ciemny brąz ziemi z bursztynową poświatą od dołu (młot)
+            r = int(24 + 14 * t + 90 * glow)
+            g = int(18 + 10 * t + 52 * glow)
+            b = int(14 + 4 * t + 16 * glow)
         elif theme == "water":  # granat z turkusową poświatą od dołu
             r = int(10 + 6 * t + 20 * glow)
             g = int(20 + 20 * t + 70 * glow)
@@ -287,8 +291,29 @@ def icon_steel_ring():
     return clip(img, inside, "steel")
 
 
+def icon_spectral_blades():
+    """Widmowe ostrza: dwa błękitne, półprzezroczyste miecze lecą od postaci (kropka) w dwóch wrogów (cięcia)."""
+    img, inside = base("steel")
+    d = ImageDraw.Draw(img)
+    ghost = scaled(SWORD, 0.6)
+    px = ghost.load()
+    for y in range(ghost.height):
+        for x in range(ghost.width):
+            r, g, b, a = px[x, y]
+            if a:
+                px[x, y] = (min(255, int(r * 0.6 + 70)), min(255, int(g * 0.8 + 90)), min(255, b + 110), int(a * 0.85))
+    for (x0, y0), (x1, y1) in (((32, 46), (14, 16)), ((32, 46), (50, 18))):
+        d.line(((x0, y0), (x1, y1)), fill=(120, 170, 230, 160), width=1)
+    d.ellipse((28, 42, 36, 50), fill=(200, 230, 255, 255))
+    paste(img, rotated(ghost, 125), (20, 24))
+    paste(img, rotated(ghost, 55), (44, 26))
+    for cx, cy in ((12, 13), (52, 15)):
+        d.line(((cx - 4, cy - 4), (cx + 4, cy + 4)), fill=(235, 245, 255, 255), width=2)
+    return clip(img, inside, "steel")
+
+
 ICONS = {
-    "sword": (("steel_ring", icon_steel_ring),),
+    "sword": (("steel_ring", icon_steel_ring), ("spectral_blades", icon_spectral_blades)),
     "glaive": (("g_thrust", icon_thrust), ("g_sweep", icon_sweep), ("g_trail", icon_trail), ("g_pillar", icon_pillar),
                ("g_dance", icon_dance)),
     "hydro": (("h_bolt", icon_bolt), ("h_wave", icon_wave), ("h_vortex", icon_vortex), ("h_geyser", icon_geyser),

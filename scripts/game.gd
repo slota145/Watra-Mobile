@@ -460,6 +460,7 @@ func load_game() -> void:
 			for id in raw_owned:
 				if id is String and Skills.has(id) and not skills_owned.has(id):
 					skills_owned.append(id)
+		_unlock_by_mastery()
 		skill_slots = _read_slots(data.get("skill_slots", []), weapon)
 		var raw_ws = data.get("weapon_slots", {})
 		if raw_ws is Dictionary:
@@ -1149,6 +1150,8 @@ func _read_slots(raw, w: String) -> Array:
 	var slots: Array = []
 	for i in Skills.SLOTS:
 		var id = raw[i] if i < raw.size() else ""
+		if id is String and id == "slam" and w == Weapons.SWORD and i != Skills.MAIN and skills_owned.has("spectral_blades"):
+			id = "spectral_blades"  # Rozłupanie Ziemi przeszło do młota (21.11.2026) - na jego miejscu Widmowe ostrza
 		var ok: bool = id is String and skills_owned.has(id) and not slots.has(id) and Skills.weapon_of(id) == w \
 				and (i != Skills.MAIN or Skills.can_be_main(id))
 		slots.append(id if ok else "")
@@ -1245,6 +1248,16 @@ func add_mastery(amount: int) -> int:
 		save_game()
 	mastery_changed.emit(lvl, weapon_xp(), mastery_needed())
 	return ups
+
+
+## Przy wczytaniu: umiejętności, do których mistrzostwo broni już starcza, a których zapis nie zna (nowe umiejętności,
+## np. Widmowe ostrza miecza z 21.11.2026 zamiast Rozłupania Ziemi - to zostaje odblokowane i przechodzi do młota
+## razem z poziomem i kamieniami, bo zapis trzyma je po nazwie umiejętności, a nie broni).
+func _unlock_by_mastery() -> void:
+	for w: String in mastery:
+		for id in Skills.unlocked_at(w, int(mastery[w])):
+			if not skills_owned.has(id):
+				skills_owned.append(id)
 
 
 ## Dopisuje do odblokowanych umiejętności broni w ręku te, do których starcza mistrzostwa, i wstawia każdą w pierwsze

@@ -16,6 +16,7 @@ const KATANA := "katana"
 const BOW := "bow"
 const BOOK := "book"
 const SCYTHE := "scythe"
+const HAMMER := "hammer"
 ## name - nazwa, element - żywioł obrażeń (Elements), unlock - poziom lochu, po którego przebiciu broń jest za darmo,
 ## start - do wyboru przy tworzeniu postaci (START; decyzja autora 21.11.2026: miecz, łuk albo księga, dwie niewybrane
 ## od lochu 5 - Game.start_weapon), magic - broń magiczna (premia obrażeń magicznych, szybkość rzucania czarów).
@@ -37,8 +38,11 @@ const DATA := {
 	# mroczna kosa (ustalone z autorem 21.11.2026): żywioł Nawia, za darmo od lochu 25
 	"scythe": {"name": "Mroczna kosa", "short": "Kosa", "element": Elements.NAWIA, "unlock": 25,
 		"icon": preload("res://assets/skills/scythe/s_reap.png")},
+	# młot - broń ziemi (ustalone z autorem 21.11.2026): ogłusza i odpycha, za darmo od lochu 30 (po pierwszym kręgu)
+	"hammer": {"name": "Młot", "element": Elements.EARTH, "unlock": 30,
+		"icon": preload("res://assets/skills/hammer/m_smash.png")},
 }
-const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana", "scythe"]
+const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana", "scythe", "hammer"]
 ## Bronie do wyboru przy tworzeniu postaci.
 const START: Array[String] = ["sword", "bow", "book"]
 ## Najwyższy poziom mistrzostwa (jak poziom postaci).
@@ -97,6 +101,8 @@ static func script_of(id: String) -> Script:
 			return ProtoBook
 		SCYTHE:
 			return ProtoScythe
+		HAMMER:
+			return ProtoHammer
 	return ProtoWeapon
 
 
