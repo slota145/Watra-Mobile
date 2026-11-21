@@ -3,6 +3,7 @@ szare z bladą poświatą od dołu - Nawia, kolory czarno-białe z przewagą cze
 kosa (assets/weapons/scythe.png) i klatki jej efektów z kreatora (assets/effects/scythe_*.png).
 Wynik: assets/skills/scythe/s_*.png. Uruchom: python tools/scythe_icons.py
 """
+import math
 import os
 import sys
 
@@ -65,9 +66,35 @@ def icon_mow():
     return clip(img, inside)
 
 
+def icon_dance():
+    img, inside = base()
+    wi.paste(img, wi.scaled(wi.trim(wi.frame("scythe_whirl", 4)), 0.55), (32, 18))
+    wi.paste(img, wi.rotated(wi.scaled(HEAD, 0.45), 160), (32, 16))
+    wi.paste(img, wi.rotated(wi.scaled(wi.trim(wi.frame("scythe_diag", 5)), 0.7), 35), (34, 42))
+    return clip(img, inside)
+
+
+def icon_mara():
+    img, inside = base()
+    d = ImageDraw.Draw(img)
+    pts = [(8 + i * 3, round(54 - i * 2.4 - 6 * math.sin(i * 0.6))) for i in range(12)]  # ogon wpada w chmurę
+    for i in range(len(pts) - 1):  # zwęża się ku końcowi: biały brzeg, czarny środek
+        w = 2 + i // 2
+        d.line(pts[i:i + 2], fill=(232, 234, 242, 255), width=w + 2)
+    for i in range(len(pts) - 1):
+        d.line(pts[i:i + 2], fill=(6, 5, 10, 255), width=1 + i // 2)
+    for cx, cy, r in ((44, 22, 9), (50, 18, 6), (38, 18, 6), (46, 28, 6)):
+        d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(6, 5, 10, 255))
+    for x, y in ((42, 20), (47, 21)):
+        d.point((x, y), fill=(250, 250, 255, 255))
+    wi.paste(img, wi.scaled(wi.trim(wi.frame("mara_curse", 0)), 0.7), (20, 18))
+    return clip(img, inside)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
-    for name, fn in (("s_reap", icon_reap), ("s_square", icon_square), ("s_mow", icon_mow)):
+    for name, fn in (("s_reap", icon_reap), ("s_square", icon_square), ("s_mow", icon_mow), ("s_dance", icon_dance),
+                     ("s_mara", icon_mara)):
         fn().save(os.path.join(OUT, name + ".png"))
         print(name)
 

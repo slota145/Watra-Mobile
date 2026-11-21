@@ -205,11 +205,21 @@ const DATA := {
 		"mana": 26, "cooldown": 6.0, "weapon": "scythe", "mastery": 3, "main": true, "range": 50.0, "power": 1.0,
 		"description": "Kosa tnie cztery razy dookoła ciebie - cięcia układają się w kwadrat, a po chwili każdy bok wybucha na zewnątrz, raniąc i odpychając wrogów.",
 	},
+	"s_dance": {
+		"name": "Taniec Marzanny", "icon": preload("res://assets/skills/scythe/s_dance.png"),
+		"mana": 24, "cooldown": 5.0, "weapon": "scythe", "mastery": 6, "main": true, "range": 60.0, "power": 1.0,
+		"description": "Robisz kilka kroków z kosą wirującą nad głową i ranisz wszystkich wokół. Stuknij jeszcze raz w trakcie, żeby płynnie tańczyć dalej - szybciej i tam, gdzie wskazuje gałka. Na koniec cięcie po skosie odpycha wrogów.",
+	},
 	"s_mow": {
 		"name": "Pokos", "icon": preload("res://assets/skills/scythe/s_mow.png"),
 		"mana": 36, "cooldown": 7.0, "weapon": "scythe", "mastery": 10, "main": false, "range": 120.0, "power": 1.6,
 		"charge": true,
 		"description": "Przytrzymaj, żeby naładować, i puść: kosa kosi stożek przed tobą - im dłużej ładujesz, tym dalej, szerzej i mocniej. Nie może stać pod dużym przyciskiem.",
+	},
+	"s_mara": {
+		"name": "Postać Mary", "icon": preload("res://assets/skills/scythe/s_mara.png"),
+		"mana": 40, "cooldown": 10.0, "weapon": "scythe", "mastery": 15, "main": false, "range": 0.0, "power": 1.4,
+		"description": "Zmieniasz się w chmurę mgły: przez 2,5 s mkniesz szybko, nikt cię nie rani, a każdy wróg, przez którego przelecisz, dostaje klątwę. Gdy forma się skończy (albo stukniesz drugi raz), pod przeklętymi wybucha Nawia. Nie może stać pod dużym przyciskiem.",
 	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
@@ -232,7 +242,7 @@ const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "st
 		"k_slash": 40, "k_dance": 60, "k_riposte": 90, "k_perun": 140, "k_flash": 200,
 		"b_shot": 40, "b_seeker": 60, "b_rain": 90, "b_power": 140, "b_ballista": 200,
 		"a_missiles": 40, "a_circle": 60, "a_orbs": 90, "a_beam": 140, "a_seals": 200,
-		"s_reap": 40, "s_square": 60, "s_mow": 140}
+		"s_reap": 40, "s_square": 60, "s_dance": 90, "s_mow": 140, "s_mara": 200}
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
@@ -267,7 +277,9 @@ const PERKS := {
 	"a_seals": ["6 pieczęci zamiast 4.", "Wybuch ogłusza wrogów na 0,5 s."],
 	"s_reap": ["Co trzeci zamach - pełny obrót dookoła.", "Zamach zostawia smugę Nawii, która przez chwilę rani."],
 	"s_square": ["Wybuch sięga o 30% dalej.", "Boki wybuchają dwa razy."],
+	"s_dance": ["Wir nad głową o 30% większy.", "Końcowe cięcie zostawia smugę Nawii, która przez chwilę rani."],
 	"s_mow": ["Ładuje się o 1/3 szybciej.", "Pełne naładowanie ogłusza wrogów na 1 s."],
+	"s_mara": ["Forma trwa 3,5 s zamiast 2,5.", "Wybuch klątwy rani też wrogów obok przeklętego."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
@@ -281,7 +293,8 @@ const TAGS := {
 	"k_flash": ["melee"], "b_shot": ["projectile"], "b_seeker": ["projectile"], "b_rain": ["area", "projectile"],
 	"b_power": ["area"], "b_ballista": ["minion"], "a_missiles": ["projectile"], "a_circle": ["area"],
 	"a_orbs": ["projectile"], "a_beam": ["area"], "a_seals": ["area"],
-	"s_reap": ["melee", "area"], "s_square": ["melee", "area"], "s_mow": ["melee", "area"],
+	"s_reap": ["melee", "area"], "s_square": ["melee", "area"], "s_dance": ["melee", "area"], "s_mow": ["melee", "area"],
+	"s_mara": ["area"],
 }
 const TAG_NAMES := {"melee": "wręcz", "projectile": "pocisk", "area": "obszar", "minion": "przywołaniec"}
 const TAG_STATS := {"melee": "melee_dmg_pct", "projectile": "proj_dmg_pct", "area": "area_dmg_pct", "minion": "minion_dmg_pct"}
@@ -289,7 +302,7 @@ const TAG_STATS := {"melee": "melee_dmg_pct", "projectile": "proj_dmg_pct", "are
 const ORDER := ["strike", "whirl", "throw", "slam", "steel_ring", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
 		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash",
 		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista", "a_missiles", "a_circle", "a_orbs", "a_beam", "a_seals",
-		"s_reap", "s_square", "s_mow"]
+		"s_reap", "s_square", "s_dance", "s_mow", "s_mara"]
 
 
 ## Znaczniki umiejętności (TAGS; brak - pusta lista).

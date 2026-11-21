@@ -2,6 +2,27 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
+
+Pomysły autora (ROADMAP „Mroczna kosa”), plan sterowania zaakceptowany przed kodem.
+- **Taniec Marzanny** (`s_dance`, mistrzostwo 6): kroki naprzód (`ProtoHero.leap`, 70 px w 0,6 s; kierunek z gałki,
+  bez niej ku najbliższemu wrogowi) z kosą wirującą nad głową (efekt `scythe_whirl` jedzie z postacią) - co 0,12 s rani
+  w promieniu 34 px (35%). W trakcie i 0,35 s po krokach przycisk gotowy (`cooldown_left` 0) - stuknięcie przedłuża za
+  pół many (`cast`; w trakcie kroków - zaraz po nich, płynnie): drugie kroki w 0,45 s, kierunek z gałki. Na koniec
+  cięcie po skosie (`scythe_diag`, gaśnie powoli; łuk 140°, 60 px, 130%, odepchnięcie). 5. - wir +30%, 10. - smuga po
+  cięciu (`_spawn_trail` z umiejętnością); Kamień Wirującego Ostrza - ostrze leci 3 s od wroga do wroga (inny niż
+  ostatni, 160 px), na końcu wybuch 40 px (`_blades`).
+- **Postać Mary** (`s_mara`, mistrzostwo 15): forma chmury na 2,5 s (5. - 3,5 s): postać niewidoczna, nietykalna
+  (`protect`), szybsza x2,4 (nowe `ProtoHero.form_speed`), sterowana gałką; chmura `_MaraCloud` - kręcące się czarne
+  kłęby z białymi iskrami, długi czarny ogon z białym brzegiem z pozycji (Line2D zwężony, kurczy się w miejscu),
+  cząsteczki (CPUParticles2D - czarne kłęby, białe iskry). Dotknięci (18 px) dostają klątwę (20% siły, czaszki
+  `mara_curse` nad głową). Koniec formy (czas albo drugie stuknięcie): pod każdym przeklętym wybuch Nawii (140%;
+  10. - też wrogowie obok, 50%). Kamień Bliźniaczych Mar - dwie dodatkowe chmury same lecą do nieprzeklętych wrogów.
+- Efekty z kreatora: `scythe_diag`, `scythe_whirl`, `mara_curse`; ikony `tools/scythe_icons.py`, kamienie
+  `tools/unique_gem_art.py`. Test `tests/test_scythe.gd` (część kroku 2), zrzuty `tools/scythe_shots.gd` (10-15).
+- Do oceny na telefonie: czy przedłużanie Tańca stuknięciem jest wygodne (okno 0,35 s), długość i szybkość Mary,
+  czy ogon i chmura dobrze wyglądają.
+
 ## 21.11.2026 - Mroczna kosa, krok 1: Nawia, Żniwo, Cięcie Światowida, Pokos
 
 Pomysły i ustalenia autora (21.11.2026; ROADMAP „Mroczna kosa”). Krok 2: Taniec Marzanny i Postać Mary.

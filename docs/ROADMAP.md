@@ -126,8 +126,8 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
       chmury same latają po lochu i namierzają wrogów.
     - **Cięcie Światowida**: 4 cięcia układają się w kwadrat dookoła postaci, po chwili wybuchają na zewnątrz;
       5. - wybuch +30%, 10. - wybuch dwa razy; unikalny - 3 dodatkowe kosy: 4 takie kwadraty (2x2) dookoła postaci.
-    - PR 1: ~~kosa, Nawia, Żniwo, Pokos, Światowid~~ (zrobione 21.11.2026, `docs/historia.md`); PR 2: Taniec Marzanny,
-      Postać Mary.
+    - PR 1: ~~kosa, Nawia, Żniwo, Pokos, Światowid~~ (zrobione 21.11.2026, `docs/historia.md`); PR 2: ~~Taniec
+      Marzanny, Postać Mary~~ (zrobione 21.11.2026; do oceny: okno przedłużania tańca, czas i szybkość Mary).
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.
   - ~~**Filtr łupu**~~ - zrobiony 21.11.2026 (szczegóły w `docs/historia.md`; do oceny na telefonie: próg Automatu,
     lista premii Automatu, czytelność okna). Zostaje: filtr dla kamieni szlachetnych wkładanych w ekwipunek - najpierw

@@ -3,7 +3,8 @@ extends SceneTree
 ## Pokos (ładowanie - stożek na ziemi, cięcie), kamienie unikalne (4 kwadraty, rzędy wybuchów, fala Nawii).
 ## Użycie: SCRIPT=tools/scythe_shots.gd tools/screenshot.sh <prefiks> [rozdzielczość jako RESOLUTION]
 ## Pliki: <prefiks>_1_zniwo.png, _2_gasnie.png, _3_kwadrat.png, _4_wybuch.png, _5_ladowanie.png, _6_pokos.png,
-## _7_cztery.png, _8_rzedy.png, _9_fala.png
+## _7_cztery.png, _8_rzedy.png, _9_fala.png, _10_taniec.png, _11_skos.png, _12_ostrze.png, _13_mara.png, _14_wybuch_mary.png,
+## _15_blizniacze.png
 
 var _prefix := "/tmp/kosa"
 
@@ -99,5 +100,53 @@ func _run() -> void:
 	scythe._reap_wave(1.0)
 	await create_timer(0.3).timeout
 	await _shot("9_fala")
+	# krok 2: Taniec Marzanny i Postać Mary
+	for g in arena.get_node("World").get_children():
+		if g is ProtoGoblin:
+			g.queue_free()
+	await process_frame
+	hero.position = Vector2.ZERO
+	for p in [Vector2(70, -10), Vector2(110, 30), Vector2(60, 60), Vector2(-60, -40), Vector2(-90, 50), Vector2(150, -50)]:
+		_goblin(arena, p)
+	await create_timer(0.3).timeout
+	scythe.skill_gems["s_dance"] = []
+	scythe._cd.clear()
+	hero.mana = hero.max_mana
+	scythe._state = "follow"
+	scythe.cast("s_dance")
+	await create_timer(0.3).timeout
+	await _shot("10_taniec")
+	await create_timer(0.75).timeout
+	await _shot("11_skos")
+	await create_timer(0.8).timeout
+	scythe.skill_gems["s_dance"] = [Gems.unique_of("s_dance")]
+	scythe._cd.clear()
+	hero.mana = hero.max_mana
+	scythe.cast("s_dance")
+	await create_timer(1.3).timeout
+	await _shot("12_ostrze")
+	await create_timer(3.0).timeout
+	scythe.skill_gems["s_mara"] = []
+	scythe._cd.clear()
+	hero.mana = hero.max_mana
+	hero.position = Vector2(-120, 0)
+	scythe._state = "follow"
+	scythe.cast("s_mara")
+	hero.joystick.vector = Vector2(1, -0.3).normalized()
+	await create_timer(0.35).timeout
+	hero.joystick.vector = Vector2(0.4, 1).normalized()
+	await create_timer(0.3).timeout
+	hero.joystick.vector = Vector2.ZERO
+	await _shot("13_mara")
+	scythe.cast("s_mara")
+	await create_timer(0.15).timeout
+	await _shot("14_wybuch_mary")
+	await create_timer(1.0).timeout
+	scythe.skill_gems["s_mara"] = [Gems.unique_of("s_mara")]
+	scythe._cd.clear()
+	hero.mana = hero.max_mana
+	scythe.cast("s_mara")
+	await create_timer(0.7).timeout
+	await _shot("15_blizniacze")
 	DirAccess.remove_absolute(game.save_path)
 	quit()

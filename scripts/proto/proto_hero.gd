@@ -96,6 +96,8 @@ var deaths := 0
 var obstacles: Array[Vector3] = []
 ## Z przedmiotów: mnożnik szybkości ruchu, zdrowie na sekundę, część obrażeń, której postać nie dostaje (0-0,5).
 var move_mult := 1.0
+## Mnożnik szybkości z formy umiejętności (Postać Mary mrocznej kosy - mknąca chmura); 1.0 - zwykła postać.
+var form_speed := 1.0
 ## Premia przedmiotów „szybkość ruchu i ataku po zabiciu” (Items kill_haste_pct, ułamek) i ile sekund jeszcze działa.
 var kill_haste := 0.0
 var haste_left := 0.0
@@ -200,7 +202,7 @@ func _process(delta: float) -> void:
 		_process_leap(delta)
 		return
 	var input := joystick.vector if joystick else Vector2.ZERO
-	velocity = input * SPEED * move_mult * (1.0 + move_bonus + haste()) * (1.0 - chill)
+	velocity = input * SPEED * move_mult * form_speed * (1.0 + move_bonus + haste()) * (1.0 - chill)
 	position = _push_out((position + velocity * delta).clamp(bounds.position, bounds.end))
 	if input.length() > 0.05:
 		facing = input.normalized()
