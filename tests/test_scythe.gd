@@ -171,7 +171,7 @@ func _test_combat(game: Node) -> void:
 	_check(scythe._squares.size() == 1, "kwadrat Światowida")
 	await _wait(0.33)
 	_check(front.hp < f_hp and back.hp == b_hp, "cięcia boków ranią stojących na nich, wybuchu jeszcze nie ma")
-	_check(scythe._squares[0].lines.size() == 8, "4 cięcia po łuku zostają do wybuchu")
+	_check(scythe._squares[0].lines.size() == 12, "4 cięcia po łuku (dym, środek, krawędź) zostają do wybuchu")
 	await _wait(0.4)
 	_check(back.hp < b_hp, "bok wybucha na zewnątrz")
 	# 10. poziom: dwa wybuchy
@@ -334,6 +334,8 @@ func _test_dance_mara(game: Node) -> void:
 	await _wait(1.5)
 	_check(scythe.cursed.size() >= 2, "bliźniacze chmury same przeklinają wrogów (%d)" % scythe.cursed.size())
 	await _wait(1.5)
-	_check(scythe.mara_left <= 0.0 and scythe._state == "follow", "forma kończy się sama")
+	_check(scythe.mara_left <= 0.0 and scythe._state == "follow" and not scythe.mara_on, "forma kończy się sama")
+	_check(hero._sprite.modulate.a == 1.0 and scythe._clouds.is_empty() and hero.form_speed == 1.0,
+			"po końcu czasu postać widoczna, chmury znikają (błąd zgłoszony przez autora)")
 	arena.queue_free()
 	await process_frame

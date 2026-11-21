@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnvr6pw2ogbcm"
-path="res://.godot/imported/scythe_line.png-1f84aae7931fce7838c0755d08a83138.ctex"
+uid="uid://bah1nqlmci7t8"
+path="res://.godot/imported/square_burst.png-1917c5b05226488d218b5fd5dba45e37.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://pixellab_src/vfx/scythe_line.png"
-dest_files=["res://.godot/imported/scythe_line.png-1f84aae7931fce7838c0755d08a83138.ctex"]
+source_file="res://assets/effects/square_burst.png"
+dest_files=["res://.godot/imported/square_burst.png-1917c5b05226488d218b5fd5dba45e37.ctex"]
 
 [params]
 

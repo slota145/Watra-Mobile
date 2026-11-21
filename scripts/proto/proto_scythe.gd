@@ -3,8 +3,9 @@ extends ProtoWeapon
 ## Mroczna kosa (ustalone z autorem 21.11.2026) - broń wręcz, żywioł Nawia (Elements.NAWIA): każde trafienie wysysa
 ## trochę życia i osłabia wroga (ProtoWeapon._deal, ProtoTarget.wither). Lewituje obok postaci jak miecz (dziedziczy
 ## po ProtoWeapon: podążanie, orbita, mana, odnowienia, kamienie, krytyki). Efekty czarno-białe z przewagą czerni
-## (decyzja autora): czarne cięcia z białą krawędzią, gasną powoli (efekty z kreatora PixelLab: scythe_swing,
-## scythe_hit, scythe_line, scythe_blast, scythe_wave; pixellab_src/vfx/ids.json). Grafika: assets/weapons/scythe.png
+## (decyzja autora; od drugiej wersji efektów z fioletem i przezroczystą otoczką mrocznego dymu, robione w rozmiarze
+## z gry - prośba autora 21.11.2026): efekty z kreatora PixelLab scythe_swing, scythe_hit, scythe_blast, scythe_wave,
+## square_burst, mow_swing, scythe_diag, scythe_whirl, mara_curse (pixellab_src/vfx/ids.json). Grafika: assets/weapons/scythe.png
 ## (tools/scythe_art.py).
 ## - „Żniwo” (`s_reap`, zwykły atak): szeroki zamach łukiem REAP_ARC przed postacią; 5. poziom - co trzeci zamach to
 ##   pełny obrót, 10. - zamach zostawia na chwilę smugę Nawii, która rani (`_trails`); kamień unikalny (Żniwiarza) -
@@ -40,39 +41,50 @@ const NAWIA := Color(0.03, 0.02, 0.05)
 const BONE := Color(0.93, 0.93, 0.97)
 ## Efekty z kreatora (wymiary i zaczepienia - pixellab_src/vfx/ids.json).
 const SWING_FX := preload("res://assets/effects/scythe_swing.png")
-const SWING_FRAMES := 14
+const SWING_FRAMES := 12
 const SWING_FPS := 16.0
-const SWING_ANCHOR := Vector2(29, 37)
-## Promień łuku zamachu na arkuszu i kąt jego środka (łuk biegnie zgodnie z zegarem od góry-lewej).
-const SWING_RADIUS := 26.0
-const SWING_MID := deg_to_rad(-20.0)
+const SWING_ANCHOR := Vector2(68, 68)
+## Efekty kosy (druga wersja, prośba autora 21.11.2026): robione w kreatorze od razu w rozmiarze z gry (bez powiększania
+## pikseli), czarno-fioletowe, z przezroczystą otoczką mrocznego dymu - gra ich nie przygasza ani nie robi przezroczystymi.
+## Zamach: promień łuku na arkuszu i kąt jego środka (łuk 200° zgodnie z zegarem od góry, środek w prawo).
+const SWING_RADIUS := 50.0
+const SWING_MID := 0.0
 ## Klatka szczytu zamachu (smuga z 10. poziomu zostaje na niej).
-const SWING_PEAK := 6
+const SWING_PEAK := 4
 const S_HIT_FX := preload("res://assets/effects/scythe_hit.png")
-const S_HIT_FRAMES := 10
+const S_HIT_FRAMES := 9
 const S_HIT_FPS := 18.0
-const S_HIT_ANCHOR := Vector2(41, 27)
-const S_HIT_SIZE := 0.45
-const LINE_FX := preload("res://assets/effects/scythe_line.png")
-const LINE_FRAMES := 12
-const LINE_FPS := 18.0
-const LINE_ANCHOR := Vector2(54, 21)
-## Długość cięcia na arkuszu i jego nachylenie (lekko wznosi się w prawo, jak cięcie katany).
-const LINE_LENGTH := 102.0
-const LINE_TILT := deg_to_rad(7.85)
+const S_HIT_ANCHOR := Vector2(20, 20)
+const S_HIT_SIZE := 1.0
 const BLAST_FX := preload("res://assets/effects/scythe_blast.png")
 const BLAST_FRAMES := 12
 const BLAST_FPS := 16.0
-const BLAST_ANCHOR := Vector2(43, 39)
+const BLAST_ANCHOR := Vector2(32, 36)
 ## Promień wybuchu na arkuszu (do skalowania pod promień trafienia).
-const BLAST_RADIUS := 30.0
+const BLAST_RADIUS := 24.0
 const S_WAVE_FX := preload("res://assets/effects/scythe_wave.png")
 const S_WAVE_FRAMES := 12
 const S_WAVE_FPS := 16.0
-const S_WAVE_ANCHOR := Vector2(58, 74)
-const S_WAVE_RADIUS_FX := 55.0
-## Fala jest w arkuszu bardzo biała - w grze przygaszona, żeby przeważała czerń (decyzja autora o kolorach).
-const S_WAVE_TINT := Color(0.55, 0.55, 0.62, 0.95)
+const S_WAVE_ANCHOR := Vector2(88, 46)
+const S_WAVE_RADIUS_FX := 78.0
+## Wybuch cięcia Światowida: cięcie długości SQUARE_BURST_LENGTH w poziomie rozbłyska i odrywa się falą w górę arkusza
+## (w grze obrócone - fala leci na zewnątrz kwadratu), odłamki i dym.
+const SQUARE_BURST_FX := preload("res://assets/effects/square_burst.png")
+const SQUARE_BURST_FRAMES := 12
+const SQUARE_BURST_FPS := 16.0
+const SQUARE_BURST_ANCHOR := Vector2(56, 62)
+const SQUARE_BURST_LENGTH := 76.0
+## Zamach Pokosu: łuk 110° (promień na arkuszu), środek w prawo.
+const MOW_FX := preload("res://assets/effects/mow_swing.png")
+const MOW_FRAMES := 12
+const MOW_FPS := 16.0
+const MOW_ANCHOR := Vector2(-41, 80)
+const MOW_FX_RADIUS := 92.0
+## Linie cięć Światowida rysowane w grze (łuki krzyżujące się w rogach): czarno-fioletowy środek, jasnofioletowa
+## krawędź, ciemnofioletowa mgiełka dookoła.
+const ARC_DARK := Color(0.05, 0.02, 0.09)
+const ARC_EDGE := Color(0.82, 0.72, 1.0)
+const ARC_SMOKE := Color(0.13, 0.06, 0.22, 0.45)
 
 ## Żniwo: czasy (zamach wolniejszy niż miecz - ciężka kosa, za to szerszy łuk), łuk, zasięg od środka postaci;
 ## smuga z 10. poziomu (czas, co ile rani, siła); kamień unikalny (ile trafień, promień i siła fali).
@@ -142,14 +154,15 @@ const DANCE_PUSH := 160.0
 const DIAG_FX := preload("res://assets/effects/scythe_diag.png")
 const DIAG_FRAMES := 14
 const DIAG_FPS := 16.0
-const DIAG_ANCHOR := Vector2(33, 18)
-## Szerokość półksiężyca na arkuszu (skalowanie pod zasięg cięcia).
-const DIAG_WIDTH := 70.0
+const DIAG_ANCHOR := Vector2(-8, 30)
+## Promień półksiężyca na arkuszu (środek okręgu poza klatką, środek łuku w prawo).
+const DIAG_RADIUS := 44.0
+## Wir cięć nad głową (pętla, spłaszczony okrąg o promieniu WHIRL_S_RADIUS).
 const WHIRL_S_FX := preload("res://assets/effects/scythe_whirl.png")
-const WHIRL_S_FRAMES := 9
-const WHIRL_S_FPS := 13.0
-const WHIRL_S_ANCHOR := Vector2(48, 23)
-const WHIRL_S_RADIUS := 32.0
+const WHIRL_S_FRAMES := 12
+const WHIRL_S_FPS := 16.0
+const WHIRL_S_ANCHOR := Vector2(43, 19)
+const WHIRL_S_RADIUS := 34.0
 ## Kamień Wirującego Ostrza: czas lotu, prędkość, siła trafienia, zasięg szukania kolejnego wroga, wybuch.
 const BLADE_TIME := 3.0
 const BLADE_SPEED := 230.0
@@ -195,12 +208,15 @@ var _dance_t := 0.0
 var _dance_time := 0.0
 var _dance_dir := Vector2.RIGHT
 var _dance_tick := 0.0
-var _dance_fx_t := 0.0
+## Wir cięć nad głową w trakcie tańca (pętla z kreatora na postaci).
+var _whirl_loop: Sprite2D
 var _dance_queued := false
 ## Wirujące ostrza ({"node", "target", "left", "power", "last"}).
 var _blades: Array = []
 ## Postać Mary: ile jeszcze trwa, chmury (postać + bliźniacze: {"node", "twin", "target"}), przeklęci (cel -> znak).
 var mara_left := 0.0
+## Czy trwa forma chmury (osobno od czasu - po jego upływie forma musi się jeszcze zakończyć: postać wraca, chmura znika).
+var mara_on := false
 var _clouds: Array = []
 var cursed := {}
 var _mara_power := 0.0
@@ -225,7 +241,7 @@ func _world_fx() -> Array:
 
 
 func _exit_tree() -> void:
-	if mara_left > 0.0:
+	if mara_on:
 		_mara_restore()
 	super._exit_tree()
 
@@ -260,10 +276,15 @@ func _hit(t: ProtoTarget, power: float, from: Vector2, skill: String) -> void:
 
 ## Zamach z kreatora: środek łuku ku `aim`, `sign` - kierunek (odbicie), promień `radius`. Zwraca węzeł efektu.
 func _swing_fx(at: Vector2, aim: float, sign_: float, radius: float) -> Sprite2D:
-	var fx := Fx.once(get_parent(), SWING_FX, SWING_FRAMES, SWING_FPS, at.round(), SWING_ANCHOR, 5, radius / SWING_RADIUS)
+	var fx := Fx.once(get_parent(), SWING_FX, SWING_FRAMES, SWING_FPS, at.round(), SWING_ANCHOR, 5, _fx_scale(radius / SWING_RADIUS))
 	fx.rotation = aim - SWING_MID * sign_
 	fx.scale.y *= sign_
 	return fx
+
+
+## Skala efektu: bez powiększania ponad 1,25 (powiększone piksele wyglądały kanciasto - uwaga autora 21.11.2026).
+static func _fx_scale(k: float) -> float:
+	return minf(k, 1.25)
 
 
 ## Trafia wszystkich, których środek leży w łuku `arc` wokół kierunku `aim`, w odległości `inner`..`reach` od `at`.
@@ -364,10 +385,9 @@ func _spawn_trail(aim: float, radius: float, arc: float, power: float, skill := 
 	node.frame = SWING_PEAK
 	node.centered = false
 	node.offset = -SWING_ANCHOR
-	node.scale = Vector2.ONE * radius / SWING_RADIUS
+	node.scale = Vector2.ONE * _fx_scale(radius / SWING_RADIUS)
 	node.rotation = aim - SWING_MID * _sign
 	node.scale.y *= _sign
-	node.modulate = Color(1, 1, 1, 0.65)
 	node.z_index = 4
 	get_parent().add_child(node)
 	node.global_position = _orbit_center().round()
@@ -380,8 +400,7 @@ func _process_trails(delta: float) -> void:
 		tr_.left -= delta
 		tr_.tick -= delta
 		var node: Sprite2D = tr_.node
-		node.modulate.a = 0.65 * clampf(tr_.left / TRAIL_TIME, 0.0, 1.0)
-		node.frame = SWING_PEAK + mini(int((TRAIL_TIME - tr_.left) / TRAIL_TIME * 4.0), 3)
+		node.frame = SWING_PEAK + mini(int((TRAIL_TIME - tr_.left) / TRAIL_TIME * (SWING_FRAMES - SWING_PEAK)), SWING_FRAMES - SWING_PEAK - 1)
 		if tr_.tick <= 0.0:
 			tr_.tick = TRAIL_TICK
 			_arc_hits(tr_.at, tr_.aim, tr_.radius, tr_.arc, tr_.power, tr_.skill, tr_.radius * 0.4)
@@ -394,8 +413,7 @@ func _process_trails(delta: float) -> void:
 func _reap_wave(power: float) -> void:
 	var radius := WAVE_RADIUS * _area(basic)
 	var fx := Fx.once(get_parent(), S_WAVE_FX, S_WAVE_FRAMES, S_WAVE_FPS, hero.global_position.round(), S_WAVE_ANCHOR, -1,
-			radius / S_WAVE_RADIUS_FX)
-	fx.modulate = S_WAVE_TINT
+			_fx_scale(radius / S_WAVE_RADIUS_FX))
 	for t in _near(hero.global_position, radius):
 		if t.global_position.distance_to(hero.global_position) <= radius:
 			_hit(t, power * WAVE_POWER, hero.global_position, basic)
@@ -442,10 +460,13 @@ func _start(id: String) -> void:
 
 
 func _end_skill() -> void:
+	if _whirl_loop and is_instance_valid(_whirl_loop):
+		_whirl_loop.queue_free()
+	_whirl_loop = null
 	dance_uses = 0
 	_dance_queued = false
 	_sprite.visible = true
-	if mara_left > 0.0:
+	if mara_on:
 		_mara_finish()
 	for n in [_mow_poly, _mow_edge]:
 		if n and is_instance_valid(n):
@@ -553,7 +574,7 @@ func _square_cut(sq: Dictionary, side: Array) -> void:
 	taper.add_point(Vector2(0.5, 1.0))
 	taper.add_point(Vector2(1.0, 0.15))
 	var lines: Array = []
-	for w in [[6.0, Color(NAWIA, 0.9), Vector2.ZERO], [1.5, Color(BONE, 0.9), out_dir * 2.0]]:
+	for w in [[11.0, ARC_SMOKE, Vector2.ZERO], [5.0, ARC_DARK, Vector2.ZERO], [1.5, ARC_EDGE, out_dir * 2.0]]:
 		var line := Line2D.new()
 		line.width = w[0]
 		line.width_curve = taper
@@ -569,7 +590,7 @@ func _square_cut(sq: Dictionary, side: Array) -> void:
 	var flash := Line2D.new()  # biały błysk cięcia, gaśnie
 	flash.width = 3.0
 	flash.width_curve = taper
-	flash.default_color = Color(BONE, 0.9)
+	flash.default_color = ARC_EDGE
 	flash.points = pts
 	flash.z_index = 4
 	get_parent().add_child(flash)
@@ -608,13 +629,11 @@ func _square_burst(sq: Dictionary, side: Array, power: float) -> void:
 		if s >= -6.0 and s <= len + 6.0 and d >= -8.0 and d <= depth + 6.0:
 			_hit(t, power, sq.center, "s_square")
 			t.push_away(sq.center, SQUARE_PUSH)
-	var fx := Fx.once(get_parent(), LINE_FX, LINE_FRAMES, LINE_FPS * 1.3, (mid + out * depth * 0.35).round(), LINE_ANCHOR, 6)
-	fx.scale = Vector2(len / LINE_LENGTH, 2.6)
-	fx.rotation = along.angle() + atan(tan(LINE_TILT) * fx.scale.y / fx.scale.x)  # pochylenie arkusza po rozciągnięciu
-	if not Fx.crowded(BLAST_FX, 12):
-		for k in [0.25, 0.75]:
-			Fx.once(get_parent(), BLAST_FX, BLAST_FRAMES, BLAST_FPS, (a.lerp(b, k) + out * depth * 0.45).round(), BLAST_ANCHOR,
-					7, depth * 0.5 / BLAST_RADIUS)
+	if not Fx.crowded(SQUARE_BURST_FX, 24):  # cięcie wybucha falą na zewnątrz (w arkuszu - w górę)
+		var fx := Fx.once(get_parent(), SQUARE_BURST_FX, SQUARE_BURST_FRAMES, SQUARE_BURST_FPS, mid.round(),
+				SQUARE_BURST_ANCHOR, 6)
+		fx.rotation = out.angle() + PI / 2.0
+		fx.scale = Vector2(len / SQUARE_BURST_LENGTH, _fx_scale(depth / SQUARE_BURST_DEPTH))
 	Input.vibrate_handheld(20)
 
 
@@ -675,7 +694,9 @@ func _mow_cut(k: float) -> void:
 			hit.append(t)
 			if _perk("s_mow", 1) and k >= 1.0:
 				t.stun(MOW_STUN)
-	_swing_fx(_orbit_center(), _aim, _sign, shape.y * 0.8)
+	var mow := Fx.once(get_parent(), MOW_FX, MOW_FRAMES, MOW_FPS, hero.global_position.round(), MOW_ANCHOR, 5,
+			_fx_scale(shape.y * 0.92 / MOW_FX_RADIUS))
+	mow.rotation = _aim
 	var flash := Polygon2D.new()
 	flash.polygon = cone_points(at, _aim, shape.x, shape.y, shape.z)
 	flash.color = Color(NAWIA, 0.6)
@@ -728,7 +749,7 @@ func _process_mow_blasts(delta: float) -> void:
 func cooldown_left(id: String) -> float:
 	if id == "s_dance" and _dance_can_extend():
 		return 0.0
-	if id == "s_mara" and mara_left > 0.0:
+	if id == "s_mara" and mara_on:
 		return 0.0
 	return super.cooldown_left(id)
 
@@ -746,7 +767,7 @@ func cast(id: String) -> bool:
 			dance_uses = 2
 			_dance_steps(DANCE_TIME_FAST)
 		return true
-	if id == "s_mara" and mara_left > 0.0:
+	if id == "s_mara" and mara_on:
 		_end_skill()
 		return true
 	return super.cast(id)
@@ -772,7 +793,6 @@ func _dance_steps(time: float) -> void:
 	_dance_t = 0.0
 	_dance_time = time
 	_dance_tick = 0.0
-	_dance_fx_t = 0.0
 	hero.leap(hero.global_position + _dance_dir * DANCE_DIST * _area("s_dance"), time)
 	_set_state("dance")
 
@@ -794,12 +814,9 @@ func _process_dance(delta: float) -> void:
 		for t in _near(hero.global_position, radius):
 			if t.global_position.distance_to(hero.global_position) <= radius + 4.0:
 				_hit(t, _power("s_dance") * DANCE_SPIN_POWER, hero.global_position, "s_dance")
-	_dance_fx_t -= delta
-	if _dance_fx_t <= 0.0:
-		_dance_fx_t = (WHIRL_S_FRAMES - 2) / WHIRL_S_FPS
-		var fx := Fx.once(get_parent(), WHIRL_S_FX, WHIRL_S_FRAMES, WHIRL_S_FPS, _orbit_center() + Vector2(0, -6),
-				WHIRL_S_ANCHOR, 6, radius / WHIRL_S_RADIUS)
-		fx.reparent(hero)  # wir idzie z postacią
+	if _whirl_loop == null or not is_instance_valid(_whirl_loop):  # wir cięć nad głową (pętla) idzie z postacią
+		_whirl_loop = Fx.loop(hero, WHIRL_S_FX, WHIRL_S_FRAMES, WHIRL_S_FPS, Vector2(0, -38.0), WHIRL_S_ANCHOR,
+				6, _fx_scale(radius / WHIRL_S_RADIUS))
 	if _state == "dance" and _dance_t >= _dance_time:
 		if _dance_queued:
 			_dance_queued = false
@@ -820,9 +837,9 @@ func _dance_slash() -> void:
 	var power := _power("s_dance") * DANCE_SLASH_POWER
 	for t in _arc_hits(_orbit_center(), aim, reach, DANCE_SLASH_ARC, power, "s_dance"):
 		t.push_away(hero.global_position, DANCE_PUSH)
-	var fx := Fx.once(get_parent(), DIAG_FX, DIAG_FRAMES, DIAG_FPS, (_orbit_center() + _dance_dir * reach * 0.45).round(),
-			DIAG_ANCHOR, 6, reach * 1.6 / DIAG_WIDTH)
-	fx.rotation = aim + PI / 2.0 + 0.5  # półksiężyc w poprzek ruchu, lekko po skosie
+	var fx := Fx.once(get_parent(), DIAG_FX, DIAG_FRAMES, DIAG_FPS, _orbit_center().round(),
+			DIAG_ANCHOR, 6, _fx_scale(reach / DIAG_RADIUS))
+	fx.rotation = aim + 0.35  # półksiężyc przed postacią, lekko po skosie
 	if _perk("s_dance", 1):
 		_spawn_trail(aim, reach, DANCE_SLASH_ARC, power * TRAIL_POWER, "s_dance")
 	if _unique("s_dance"):
@@ -905,6 +922,7 @@ func _blade_next(at: Vector2, last: Variant) -> ProtoTarget:
 # --- Postać Mary ---
 
 func _start_mara() -> void:
+	mara_on = true
 	mara_left = MARA_TIME_LONG if _perk("s_mara", 0) else MARA_TIME
 	_mara_power = _power("s_mara")
 	cursed.clear()
@@ -996,6 +1014,7 @@ func _mara_finish() -> void:
 ## Postać wraca z formy chmury (też przy zmianie broni).
 func _mara_restore() -> void:
 	mara_left = 0.0
+	mara_on = false
 	hero.form_speed = 1.0
 	hero._sprite.modulate.a = 1.0
 	hero._invulnerable = minf(hero._invulnerable, 0.15)
@@ -1028,10 +1047,10 @@ class _MaraCloud extends Node2D:
 		var taper := Curve.new()
 		taper.add_point(Vector2(0.0, 0.05))
 		taper.add_point(Vector2(1.0, 1.0))
-		_rim = _line((TAIL_WIDTH + 3.0) * _k(), Color(0.93, 0.93, 0.98, 0.85), taper)
-		_tail = _line(TAIL_WIDTH * _k(), Color(0.02, 0.015, 0.04, 0.95), taper)
-		_smoke = _particles(18, Color(0.03, 0.02, 0.05, 0.85), 3.0, 0.7)
-		_sparks = _particles(8, Color(0.95, 0.95, 1.0), 1.0, 0.5)
+		_rim = _line((TAIL_WIDTH + 3.0) * _k(), Color(0.78, 0.66, 1.0), taper)  # jasnofioletowy brzeg
+		_tail = _line(TAIL_WIDTH * _k(), Color(0.05, 0.02, 0.09), taper)
+		_smoke = _particles(18, Color(0.1, 0.05, 0.17, 0.8), 3.0, 0.7)  # mroczny dym (cząsteczki gasną same)
+		_sparks = _particles(8, Color(0.88, 0.8, 1.0), 1.0, 0.5)
 
 	func _k() -> float:
 		return 0.75 if twin else 1.0
@@ -1098,11 +1117,11 @@ class _MaraCloud extends Node2D:
 		for i in 5:  # kłęby mgły: kule kręcą się wokół środka
 			var a := _t * 5.0 + i * TAU / 5.0
 			var p := Vector2(cos(a) * 5.0, sin(a) * 3.0 - 10.0) * k
-			draw_circle(p, (5.0 + 1.5 * sin(_t * 9.0 + i)) * k, Color(0.02, 0.015, 0.04, 0.9))
-		draw_circle(Vector2(0, -10) * k, 6.0 * k, Color(0.01, 0.01, 0.02, 1.0))
+			draw_circle(p, (5.0 + 1.5 * sin(_t * 9.0 + i)) * k, Color(0.07, 0.03, 0.12) if i % 2 else Color(0.03, 0.015, 0.05))
+		draw_circle(Vector2(0, -10) * k, 6.0 * k, Color(0.02, 0.01, 0.03))
 		for i in 3:  # białe oczy-iskry w środku
 			var a := _t * 7.0 + i * 2.1
-			draw_rect(Rect2((Vector2(cos(a) * 4.0, sin(a) * 2.5 - 10.0) * k).round(), Vector2.ONE), Color(0.95, 0.95, 1.0))
+			draw_rect(Rect2((Vector2(cos(a) * 4.0, sin(a) * 2.5 - 10.0) * k).round(), Vector2.ONE), Color(0.88, 0.8, 1.0))
 
 	## Chmura znika: ogon zwija się od końca, cząsteczki gasną.
 	func fade_out() -> void:
