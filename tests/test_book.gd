@@ -209,7 +209,10 @@ func _test_unique(game: Node) -> void:
 	far._stunned = 60.0
 	await process_frame
 	book._spawn_shards(a, 10.0)
-	_check(book._shards.size() >= 2 and book._shards[0].target == far, "odłamki: najpierw w dalszego wroga (%d)" % book._shards.size())
+	var aims: Array = book._shards.map(func(x: Dictionary) -> ProtoTarget: return x.target)
+	_check(book._shards.size() >= 2 and aims.has(far)
+			and (book._shards[0].target as ProtoTarget).center().distance_to(a.center()) >= ProtoBook.SHARD_MIN,
+			"odłamki: najpierw w dalszych wrogów (%d)" % book._shards.size())
 	await _wait(0.15)
 	_check((book._shards[0].tail as Line2D).points.size() > 2, "odłamek z ogonem")
 	# trwały krąg z premią
