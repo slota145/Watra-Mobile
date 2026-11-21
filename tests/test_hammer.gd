@@ -234,6 +234,21 @@ func _test_skills(game: Node) -> void:
 	hammer.charge_held = false
 	await _wait(0.2)
 	_check(hammer._state == "follow" and hero.form_speed == 1.0, "puszczenie kończy trzęsienie")
+	# Kamień Uskoku: szczelina z kolcami w najbliższego wroga (daleko poza falą), każdy obrywa raz na szczelinę
+	hammer.skill_gems["m_quake"] = [Gems.unique_of("m_quake")]
+	var crack_far: ProtoGoblin = (await _stunned(arena, [hero.position + Vector2(-105, 0)]))[0]  # jedyny wróg poza falą
+	gs[0].position = hero.position + Vector2(20, 0)  # wcześniejsze fale go odepchnęły - wraca do postaci
+	var hp0 := crack_far.hp
+	var hits := 0
+	hammer._quake_wave()
+	for i in 10:
+		await _wait(0.05)
+		if crack_far.hp < hp0:
+			hits += 1
+			hp0 = crack_far.hp
+	_check(hits == 1, "Kamień Uskoku: szczelina trafia dalekiego wroga raz (%d)" % hits)
+	crack_far.queue_free()
+	hammer.skill_gems["m_quake"] = []
 	# Rozłupanie Ziemi młotem
 	var hp: int = gs[0].hp
 	hammer.reset_cooldowns()

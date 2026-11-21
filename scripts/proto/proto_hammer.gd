@@ -17,7 +17,7 @@ extends ProtoWeapon
 ## - „Trzęsienie ziemi” (`m_quake`, trzymany - Skills.is_charged, `charge_held`): dopóki palec trzyma przycisk i starcza
 ##   many (koszt na sekundę), co QUAKE_EVERY s fala wokół postaci rani i odpycha; postać idzie wolniej
 ##   (ProtoHero.form_speed); 5. - fale częściej, 10. - co trzecia ogłusza; kamień unikalny (Uskoku) - każda fala
-##   wypuszcza szczelinę z kolcami w najbliższego wroga.
+##   wypuszcza szczelinę (jak Rozłupanie, `_crack_line`) z kolcami po kolei w najbliższego wroga poza falą, każdy obrywa raz.
 
 const HAMMER_TEXTURE := preload("res://assets/weapons/hammer.png")
 ## Punkt chwytu w arkuszu (owijki przy głowicy trzonka), skala w grze (większy niż miecz - ciężka broń) i długość
@@ -89,6 +89,8 @@ const QUAKE_STUN := 0.5
 const QUAKE_SLOW_WALK := 0.6
 const QUAKE_CRACK := 90.0
 const QUAKE_CRACK_POWER := 0.4
+const QUAKE_CRACK_SPIKES := 4
+const QUAKE_CRACK_TIME := 0.25
 const SPIKE_RADIUS := 16.0
 
 ## Ile uderzeń młotem padło (5. poziom - co trzecie ogłusza; kamień Lawiny - co czwarte odłamki).
@@ -499,44 +501,50 @@ func _spike_wave(at: Vector2, radius: float, turn := -1.0) -> void:
 	for c in LEAP_CRACKS:
 		var dir := Vector2.from_angle(turn + TAU * c / LEAP_CRACKS)
 		var flat := Vector2(dir.x, dir.y * 0.62)  # jak cienie - spłaszczone w pionie
-		var start := at + flat * radius * 0.7
-		var side := flat.orthogonal().normalized()
-		var crack := Line2D.new()
-		crack.width = 2.0
-		crack.default_color = Color(0.12, 0.08, 0.05, 0.85)
-		crack.z_index = -1
-		var points := PackedVector2Array()
-		var steps := 6
-		for i in steps + 1:
-			points.append(start + flat * length * i / steps + side * (0.0 if i == 0 else randf_range(-4.0, 4.0)))
-		crack.add_point(points[0])
-		get_parent().add_child(crack)
-		var grow := crack.create_tween()
-		grow.tween_method(func(k: float) -> void:
-			var n := clampi(ceili(k * steps), 1, steps)
-			while crack.get_point_count() < n + 1:
-				crack.add_point(points[crack.get_point_count()]), 0.0, 1.0, LEAP_CRACK_TIME)
-		grow.tween_interval(0.8)
-		grow.tween_property(crack, "modulate:a", 0.0, 0.4)
-		grow.tween_callback(crack.queue_free)
-		for i in LEAP_CRACK_SPIKES:
-			var k := (i + 1.0) / LEAP_CRACK_SPIKES
-			var spot := start + flat * length * k + side * randf_range(-3.0, 3.0)
-			get_tree().create_timer(LEAP_CRACK_TIME * k, false).timeout.connect(_wave_spike.bind(spot, power, hit))
+		_crack_line(at + flat * radius * 0.7, flat * length, LEAP_CRACK_SPIKES, LEAP_CRACK_TIME, power, "m_leap", hit)
 
 
-## Kolec fali: efekt kolca Rozłupania i trafienie wrogów obok, którzy jeszcze nie oberwali od tej fali.
-func _wave_spike(spot: Vector2, power: float, hit: Dictionary) -> void:
+## Szczelina z kolcami jak w Rozłupaniu Ziemi (fala kolców skoku, Kamień Uskoku): od `start` o wektor `span` rośnie
+## postrzępiona szczelina w ziemi przez `time` s, a wzdłuż niej po kolei wyskakuje `spikes` kolców (`power` siły
+## umiejętności `skill`). `hit` - wspólna lista trafionych: każdy wróg obrywa raz na całą falę.
+func _crack_line(start: Vector2, span: Vector2, spikes: int, time: float, power: float, skill: String, hit: Dictionary) -> void:
+	var side := span.orthogonal().normalized()
+	var crack := Line2D.new()
+	crack.width = 2.0
+	crack.default_color = Color(0.12, 0.08, 0.05, 0.85)
+	crack.z_index = -1
+	var points := PackedVector2Array()
+	var steps := 6
+	for i in steps + 1:
+		points.append(start + span * i / steps + side * (0.0 if i == 0 else randf_range(-4.0, 4.0)))
+	crack.add_point(points[0])
+	get_parent().add_child(crack)
+	var grow := crack.create_tween()
+	grow.tween_method(func(k: float) -> void:
+		var n := clampi(ceili(k * steps), 1, steps)
+		while crack.get_point_count() < n + 1:
+			crack.add_point(points[crack.get_point_count()]), 0.0, 1.0, time)
+	grow.tween_interval(0.8)
+	grow.tween_property(crack, "modulate:a", 0.0, 0.4)
+	grow.tween_callback(crack.queue_free)
+	for i in spikes:
+		var k := (i + 1.0) / spikes
+		var spot := start + span * k + side * randf_range(-3.0, 3.0)
+		get_tree().create_timer(time * k, false).timeout.connect(_wave_spike.bind(spot, power, hit, skill))
+
+
+## Kolec szczeliny: efekt kolca Rozłupania i trafienie wrogów obok, którzy jeszcze nie oberwali od tej fali.
+func _wave_spike(spot: Vector2, power: float, hit: Dictionary, skill := "m_leap") -> void:
 	if not is_inside_tree() or hero == null or hero.dead:
 		return
 	Fx.once(get_parent(), SLAM_SPIKE_FX, SLAM_SPIKE_FRAMES, 16.0, spot.round(), SLAM_SPIKE_ANCHOR, 2, 0.7)
-	var r := SPIKE_RADIUS * _area("m_leap")
+	var r := SPIKE_RADIUS * _area(skill)
 	for t in _near(spot, r):
 		var d := t.global_position - spot
 		if hit.has(t) or Vector2(d.x, d.y * 1.6).length() > r:
 			continue
 		hit[t] = true
-		_hit(t, power, spot, "m_leap")
+		_hit(t, power, spot, skill)
 		t.stun(0.3)
 
 
@@ -616,11 +624,18 @@ func _quake_wave() -> void:
 			t.stun(QUAKE_STUN)
 	_tremor(at, radius)
 	if _unique("m_quake"):
-		var best := _nearest(QUAKE_CRACK * _area("m_quake") + radius)
+		# szczelina jak w Rozłupaniu (prośba autora 21.11.2026): rośnie od postaci w najbliższego wroga, kolce po kolei
+		# celuje w najbliższego wroga poza falą (tych przy postaci fala i tak rani); bez takiego - losowo
+		var best: ProtoTarget = null
+		var best_d := QUAKE_CRACK * _area("m_quake") + radius
+		for t in _near(at, best_d):
+			var d := t.global_position.distance_to(at)
+			if d > radius * 0.8 and d <= best_d:
+				best = t
+				best_d = d
 		var dir := (best.global_position - at).normalized() if best else Vector2.from_angle(randf() * TAU)
-		for i in 4:
-			var spot := at + dir * (radius * 0.4 + QUAKE_CRACK * _area("m_quake") * (i + 1) / 4.0)
-			get_tree().create_timer(0.05 * (i + 1), false).timeout.connect(_spike.bind(spot, power * QUAKE_CRACK_POWER, "m_quake"))
+		_crack_line(at + dir * radius * 0.3, dir * (radius * 0.2 + QUAKE_CRACK * _area("m_quake")), QUAKE_CRACK_SPIKES,
+				QUAKE_CRACK_TIME, power * QUAKE_CRACK_POWER, "m_quake", {})
 	Input.vibrate_handheld(20)
 	_shake(2.0)
 
