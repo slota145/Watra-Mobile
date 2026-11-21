@@ -105,6 +105,28 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
       głośność dźwięków, czy strzałka „lepszy” dobrze trafia).
   - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), ~~broń magiczna~~ i ~~wybór broni na start~~ (Księga Arkanów, 21.11.2026). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.
+  - **Mroczna kosa (ustalenia z autorem 21.11.2026, w 2 PR):** żywioł **Nawia** (trafienia wysysają trochę życia,
+    trafiony wróg 2 s zadaje mniej obrażeń), za darmo od **lochu 25**. Efekty **czarno-białe, więcej czerni** (czarne
+    cięcia z białymi brzegami i iskrami - czytelne na ciemnych podłogach), cięcia gasną powoli (efekt na wiele klatek).
+    Umiejętności (pomysły autora poza Żniwem):
+    - **Żniwo** (zwykły atak): szeroki zamach łukiem; 5. - co trzeci pełny obrót, 10. - smuga Nawii; unikalny - po
+      15 trafieniach fala Nawii dookoła.
+    - **Taniec Marzanny** (jak Violation z BDO): kilka kroków naprzód z kosą wirującą nad głową; ponowne stuknięcie
+      płynnie przedłuża (drugi raz szybciej, kierunek z gałki); ostatni cios (drugiego użycia albo pierwszego, gdy nie
+      przedłużono) - cięcie po skosie, które odpycha. 5. - wir +30%, 10. - końcowe cięcie zostawia raniącą smugę;
+      unikalny - przy końcowym cięciu wylatuje **wirujące** ostrze, które przez kilka sekund leci od wroga do wroga,
+      na końcu wybucha.
+    - **Pokos** (ładowany): cios w stożek ze ściętym czubkiem, im dłużej trzymany, tym większy obszar i obrażenia;
+      5. - ładuje się o 1/3 szybciej, 10. - pełne naładowanie ogłusza; unikalny - w stożku wybucha Nawia rzędami,
+      kolejne wybuchy idą **od prawej do lewej względem postaci**.
+    - **Postać Mary** (jak śmierciożercy z Harry'ego Pottera): postać zmienia się w chmurę mgły sterowaną gałką
+      (szybka), za nią długi czarny ogon wyginający się za ruchem, z cząsteczkami; trafieni wrogowie dostają klątwę,
+      po końcu formy pod każdym przeklętym wybuch. 2,5 s, nietykalna, drugie stuknięcie kończy wcześniej (propozycje
+      Claude bez sprzeciwu autora). 5. - dłużej, 10. - wybuch klątwy rani też wrogów obok; unikalny - dwie dodatkowe
+      chmury same latają po lochu i namierzają wrogów.
+    - **Cięcie Światowida**: 4 cięcia układają się w kwadrat dookoła postaci, po chwili wybuchają na zewnątrz;
+      5. - wybuch +30%, 10. - wybuch dwa razy; unikalny - 3 dodatkowe kosy: 4 takie kwadraty (2x2) dookoła postaci.
+    - PR 1: kosa, Nawia, Żniwo, Pokos, Światowid; PR 2: Taniec Marzanny, Postać Mary.
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.
   - ~~**Filtr łupu**~~ - zrobiony 21.11.2026 (szczegóły w `docs/historia.md`; do oceny na telefonie: próg Automatu,
     lista premii Automatu, czytelność okna). Zostaje: filtr dla kamieni szlachetnych wkładanych w ekwipunek - najpierw
