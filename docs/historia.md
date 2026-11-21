@@ -38,8 +38,8 @@ Pomysły i ankieta autora (21.11.2026). Wszystko w jednym PR.
   + `extra_projectiles`); promień wychodzi z dłoni postaci (`_hand_point`, a nie spod księgi), z błyskiem w dłoniach
   (`arcane_beam_cast`) i wirem na końcu (`arcane_beam_impact`); kamień Emanacji - fala magii `arcane_wave` (3 nowe
   efekty z kreatora PixelLab); odłamki x1,4 większe, z ogonem, wolniejsze i lecą najpierw w dalszych wrogów (35-120 px).
-  Wzdłuż promienia płyną spiralnie dwie nitki iskier (`ProtoBook._Spiral`, rysowane w kodzie: 14 iskier na nitkę,
-  spirala 11 px szersza niż promień, iskra z przodu większa i jaśniejsza, ciemna obwódka dla kontrastu z trawą).
+  Wzdłuż promienia płyną spiralnie dwie nitki iskier (`ProtoBook._Spiral`, rysowane w kodzie: 40 iskier na nitkę,
+  piksel albo dwa, lekki rozrzut i migotanie, spirala 11 px szersza niż promień, z przodu jaśniejsze).
 
 ## 20.11.2026 - symulowany rynek: targ w bazie (ROADMAP punkt 5)
 

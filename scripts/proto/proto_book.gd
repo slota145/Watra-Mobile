@@ -956,10 +956,11 @@ class _Glow extends Node2D:
 ## Iskry płynące spiralnie wzdłuż promienia: dwie nitki (przesunięte o pół obrotu) jak helisa widziana z boku -
 ## iskra „z przodu” spirali jest większa i jaśniejsza, „z tyłu” mniejsza i ciemniejsza; przy końcach gasną.
 class _Spiral extends Node2D:
-	const COUNT := 14  # iskier na nitkę
+	const COUNT := 40  # iskier na nitkę (prośba autora: więcej i mniejsze - jak iskry)
 	const SPEED := 1.6  # przebiegi długości promienia na sekundę
 	const TURN := 26.0  # px długości na jeden obrót spirali
 	const AMP := 11.0  # promień spirali (px) - szerzej niż promień (16 px), żeby iskry było widać
+	const SCATTER := 2.0  # rozrzut iskry wokół nitki (px)
 	var from := Vector2.ZERO
 	var to := Vector2.ZERO
 	var _t := 0.0
@@ -977,17 +978,19 @@ class _Spiral extends Node2D:
 		var perp := dir.orthogonal()
 		for strand in 2:
 			for k in COUNT:
-				var s := fmod(_t * SPEED + float(k) / COUNT + strand * 0.5 / COUNT, 1.0)
+				var seed := float(k * 7 + strand * 13)
+				var s := fmod(_t * SPEED * (0.85 + 0.3 * fmod(seed * 0.618, 1.0)) + float(k) / COUNT + strand * 0.5 / COUNT, 1.0)
 				var phase := s * length / TURN * TAU - _t * 9.0 + strand * PI
 				var depth := cos(phase)  # 1 - z przodu spirali, -1 - z tyłu
-				var fade := clampf(minf(s, 1.0 - s) * 8.0, 0.0, 1.0)
-				var at := from + axis * s + perp * sin(phase) * AMP
 				var front := (depth + 1.0) * 0.5
-				var r := 1.3 + 1.4 * front
-				var c := Color(0.7, 0.4, 1.0).lerp(Color(1, 0.95, 1), front)
-				c.a = fade * (0.5 + 0.5 * front)
-				draw_circle(at.round(), r + 1.0, Color(0.3, 0.1, 0.5, c.a * 0.7))  # ciemna obwódka - kontrast z trawą
-				draw_circle(at.round(), r, c)
+				var fade := clampf(minf(s, 1.0 - s) * 8.0, 0.0, 1.0)
+				var jitter := Vector2(sin(seed * 3.1 + _t * 11.0), cos(seed * 1.7 + _t * 13.0)) * SCATTER
+				var at := (from + axis * s + perp * sin(phase) * AMP + jitter).round()
+				var flicker := 0.8 + 0.2 * sin(_t * 25.0 + seed)
+				var c := Color(0.85, 0.6, 1.0).lerp(Color(1, 1, 1), front)
+				c.a = fade * flicker * (0.75 + 0.25 * front)
+				var size := 2.0 if front > 0.35 else 1.0  # piksel albo dwa - drobne iskry
+				draw_rect(Rect2(at - Vector2(size, size) * 0.5, Vector2(size, size)), c)
 
 
 class _Ring extends Node2D:
