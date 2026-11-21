@@ -25,6 +25,13 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - Zaraz potem (uwagi autora): okręgi niżej i ciaśniej, a smugi zostają tam, gdzie powstały - `scythe_whirl` v5 to
   krótki efekt jednorazowy (pierścienie obracają się o pół obrotu i gasną), który gra stawia co 0,08 s w stopach
   postaci (`DANCE_RING_EVERY`, w świecie, pod postacią, co drugi odbity) - za idącą postacią zostaje ślad okręgów cięć.
+- Po kolejnej uwadze („za biedny i za mały”): `scythe_whirl` v6 - okręgi szersze (~56 px zamiast 38) i więcej cięć:
+  4 białe szkliste, 2 grube fioletowe, 2 czarne, szeroka przezroczysta wstęga, iskry; zasięg wiru Tańca 34 -> 48 px
+  (`DANCE_RADIUS`, żeby obrażenia pasowały do efektu).
+- „Wygląda jak na podłodze” + grubsze cięcia: `scythe_whirl` v7 to para arkuszy - tylna połowa okręgów (górna część
+  elipsy, za postacią, z = -1) i przednia (`scythe_whirl_front`, przed postacią, z = 2), ta sama klatka i zaczepienie;
+  przepisy generuje skrypt (każdy okrąg cięcia dzielony na granicy 0°/180°, rysowanie kolejnych kawałków zsynchronizowane
+  przez `reveal`); cięcia grube (4-9 px), na wysokości pasa-głowy, bez mgły na podłodze; stawiane co 0,14 s.
 
 ## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
 
