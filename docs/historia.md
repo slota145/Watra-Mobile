@@ -2,6 +2,40 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Przedmioty krok 3: 6 unikatów
+
+Propozycja Claude zaakceptowana przez autora w całości, ankieta: kowal nie przerabia unikatów wcale, kolor złoto-brązowy,
+szansa 0,2% od lochu 10.
+- **Dane** (`Items.UNIQUES`): po jednym na miejsce, stała baza ze swoją stałą cechą, stałe premie z wąskimi widełkami
+  (pole przedmiotu `ustats`; `hp_pct` - procent zdrowia, ujemne to kara) i siła działania (`upower`). Przedmiot:
+  `rarity` "unique", `unique` - id, bez premii (`affixes` puste) i bez potencjału kowalskiego. `Items.make_unique`,
+  `is_unique`, opis `unique_effect` / `unique_lines` (premie, działanie, cytat; `affix_lines` je zwraca), kolor linii
+  `Items.line_color` (okna „Postać”, skrzynia, kowal). Kolor `RARITY_COLORS.unique` (0,8 / 0,62 / 0,36), złoto-brązowy
+  słup światła na ziemi (`ProtoLoot`), grubsza ramka, ikona bazy w wersji `_rare` (własne ikony - później).
+- **Łup:** `Items.roll` z łupu (`loot`) najpierw losuje unikat: `unique_chance` 0 przed lochem 10 (`UNIQUE_FROM`),
+  0,2% na 10., liniowo do 0,5% na 40. i dalej. Zadane miejsce - unikat z tego miejsca. Nie z kuźni.
+- **Kowal:** `Runes.blocker` - „Unikatu nie da się przerobić u kowala.”. Rozbicie 10 rudy, na targu x50.
+- **Działanie** (`scripts/proto/proto_uniques.gd` - `ProtoUniques`, dziecko postaci, arena podaje `worn` w `_apply_weapon`):
+  - Oko Licha (kolczyk, srebrny): +10-14% szybkości ataku i rzucania; `ProtoWeapon._deal` - bez krytyków, co 4.
+    trafienie (`LICHO_EVERY`) x3 (duża liczba jak krytyk).
+  - Korona Czarnoboga (hełm): +35-40% obrażeń, +15-20% zdrowia; `ProtoHero.crown` - umiejętności płacą zdrowiem 1:1
+    (`_blood`, razem z Krwawym Sercem - większe), aury zabierają część największego zdrowia zamiast many
+    (`HeroStats.max_hp` / `reserved_mana`). Przywołania łuku i Kule Arkanów rezerwują dalej manę.
+  - Ostatnia Warownia (zbroja): -20% ruchu; co 0,2 s liczy wrogów w 70 px (`BASTION_RADIUS`, do 20) - +2% obrażeń
+    (`ProtoWeapon.bastion_count`) i +1% mniej obrażeń od każdego ciosu (`ProtoHero.bastion_res`) na wroga; słaby krąg.
+  - Ślady Swaroga (buty): +8-10% ruchu, -15% zdrowia; co 9 px drogi płomień (efekt glewii) na 2 s, co 0,5 s rani ogniem
+    (`aura_hit`, 25-30% obrażeń broni na sekundę) i podpala stojących w nim wrogów.
+  - Pierścień Strzyboga: -25% obrażeń pocisków; trafienie umiejętnością ze znacznikiem „pocisk” wypuszcza 3 odłamki
+    (50% siły umiejętności, `aura_hit`, bez krytyków) w najbliższych innych wrogów (90 px). Uproszczenie: dzieli się
+    każde trafienie pocisku, ale najwyżej raz na 0,08 s (`SPLIT_COOLDOWN` - Kule Arkanów i deszcz strzał trafiają bez
+    przerwy), a nie tylko pierwsze trafienie danego pocisku.
+  - Zwierciadło Mokoszy (amulet): umiejętność powtarza się po 0,4 s (mechanizm kamienia Echo, napis „Odbicie!”;
+    te same wyjątki: zwykły atak, Mgnienie, ładowane, trzymane, Młynek, Krąg stali - `ProtoWeapon.mirror_echoes`),
+    koszt many x1,8. Siła 55-60%: zamiast słabszej kopii obie mają po (100% + siła) / 2 (np. 2 x 79% = 158%) -
+    pociski i kręgi rażą później niż sama umiejętność, więc nie da się osłabić tylko kopii.
+- Tryb deweloperski: przycisk „+unikaty” (`Game.dev_uniques` - wszystkie 6 do torby). Zrzuty `tools/unique_item_shots.gd`.
+- Testy w `tests/test_uniques.gd`.
+
 ## 21.11.2026 - Przedmioty krok 2: legendarne, ponad widełki, „Anielski”, Runa Bogów, potencjał kowalski
 
 Ankieta autora (21.11.2026).

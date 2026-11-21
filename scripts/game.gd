@@ -1052,6 +1052,19 @@ func dev_items(count := 5) -> int:
 	return added
 
 
+## Tryb deweloperski: wszystkie unikaty (Items.UNIQUES) z obecnego poziomu lochu do torby (ile się zmieści).
+func dev_uniques() -> int:
+	var added := 0
+	for id in Items.UNIQUES:
+		if bag.size() >= BAG_SIZE:
+			break
+		bag.append(Items.make_unique(id, maxi(dungeon_level, Items.UNIQUE_FROM)))
+		added += 1
+	save_game()
+	inventory_changed.emit()
+	return added
+
+
 ## Żar doniesiony z lochu do Watry (powrót do bazy, nie śmierć) - od razu zapisany.
 func bank_embers(amount: int) -> void:
 	if amount <= 0:

@@ -99,10 +99,10 @@ func _ready() -> void:
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	_glow.material = add
 	add_child(_glow)
-	if _rarity() in ["rare", "legendary"]:
+	if _rarity() in ["rare", "legendary", "unique"]:
 		var beam := _Beam.new()
-		if _rarity() == "legendary":
-			beam.color = Items.RARITY_COLORS.legendary
+		if _rarity() in ["legendary", "unique"]:
+			beam.color = Items.RARITY_COLORS[_rarity()]
 		add_child(beam)
 	_sprite = Sprite2D.new()
 	_sprite.texture = icon_of(item)
@@ -179,7 +179,7 @@ func _take() -> void:
 		scrapped.emit(item, got, bag_full)
 	else:
 		picked.emit(item)
-	_play(SOUND_RARE if _rarity() in ["rare", "legendary"] or item.has("gem") or item.has("aura") or item.has("talisman") \
+	_play(SOUND_RARE if _rarity() in ["rare", "legendary", "unique"] or item.has("gem") or item.has("aura") or item.has("talisman") \
 			or item.has("rune") else SOUND, -6.0)
 	for c in get_children():
 		if c is CanvasItem:

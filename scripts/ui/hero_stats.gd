@@ -469,8 +469,13 @@ func _on_sell_all(which: String) -> void:
 
 
 ## Największe zdrowie z poziomu, przedmiotów i aury Krzepa (`aura_hp_pct` - Auras.apply).
+## Unikaty: procent zdrowia (`hp_pct`), z Koroną Czarnoboga aury rezerwują zdrowie zamiast many.
 static func max_hp(level: int, gear: Dictionary) -> int:
-	return roundi((HeroLevels.max_hp(level) + roundi(gear.get("hp", 0.0))) * (1.0 + gear.get("aura_hp_pct", 0.0)))
+	var hp: float = (HeroLevels.max_hp(level) + roundi(gear.get("hp", 0.0))) * (1.0 + gear.get("aura_hp_pct", 0.0)) \
+			* (1.0 + gear.get("hp_pct", 0.0) / 100.0)
+	if gear.get("uniques", {}).has("crown"):
+		hp *= 1.0 - gear.get("aura_reserve", 0.0)
+	return maxi(roundi(hp), 1)
 
 
 ## Największa mana z poziomu i przedmiotów (część z niej mogą rezerwować aury - `aura_reserve`).
@@ -480,6 +485,8 @@ static func max_mana(level: int, gear: Dictionary) -> int:
 
 ## Mana zarezerwowana przez aury (Auras.apply - `aura_reserve`).
 static func reserved_mana(level: int, gear: Dictionary) -> int:
+	if gear.get("uniques", {}).has("crown"):
+		return 0  # Korona Czarnoboga - aury biorą zdrowie (max_hp)
 	return roundi(max_mana(level, gear) * gear.get("aura_reserve", 0.0))
 
 
@@ -833,7 +840,7 @@ func _show_detail(item: Dictionary, in_bag: bool) -> void:
 		_label(detail_lines, line, 13, TEXT)
 	var lines := Items.affix_lines(item)
 	for i in lines.size():
-		_label(detail_lines, lines[i], 13, Items.ABOVE_COLOR if item.affixes[i].get("above", false) else Items.RARITY_COLORS.magic)
+		_label(detail_lines, lines[i], 13, Items.line_color(item, i))
 	_label(detail_lines, Items.potential_line(item), 12, Color(0.75, 0.68, 0.55))
 	var sockets: Array = item.get("sockets", [])
 	var socket_texts := Items.socket_lines(item)

@@ -229,7 +229,11 @@ func _show_detail() -> void:
 		label(_detail_lines, line, 13, TEXT)
 	label(_detail_lines, Items.potential_line(item), 12, DIM)
 	var per_stat := Runes.needs_stat(rune)
-	if item.affixes.is_empty():
+	if Items.is_unique(item):
+		var ulines := Items.affix_lines(item)
+		for i in ulines.size():
+			label(_detail_lines, ulines[i], 13, Items.line_color(item, i), true)
+	elif item.affixes.is_empty():
 		label(_detail_lines, tr("Zwykły przedmiot - bez premii."), 12, DIM, true)
 	for i in item.affixes.size():
 		var box := HBoxContainer.new()

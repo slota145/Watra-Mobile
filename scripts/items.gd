@@ -125,13 +125,50 @@ const TIERS := 7
 const TIER_COLORS := [Color(1.0, 0.78, 0.25), Color(1.0, 0.6, 0.3), Color(0.85, 0.5, 0.95), Color(0.45, 0.7, 1.0),
 		Color(0.5, 0.9, 0.6), Color(0.85, 0.85, 0.8), Color(0.62, 0.62, 0.62)]
 
-const RARITIES := ["common", "magic", "rare", "legendary"]
-const RARITY_NAMES := {"common": "Zwykły", "magic": "Magiczny", "rare": "Rzadki", "legendary": "Legendarny"}
-## Kolory rzadkości jak w Watrze (legendarny - pomarańczowy).
+const RARITIES := ["common", "magic", "rare", "legendary", "unique"]
+const RARITY_NAMES := {"common": "Zwykły", "magic": "Magiczny", "rare": "Rzadki", "legendary": "Legendarny",
+		"unique": "Unikat"}
+## Kolory rzadkości jak w Watrze (legendarny - pomarańczowy, unikat - złoto-brązowy jak w Path of Exile).
 const RARITY_COLORS := {"common": Color(0.92, 0.92, 0.95), "magic": Color(0.45, 0.65, 1.0),
-		"rare": Color(1.0, 0.86, 0.3), "legendary": Color(1.0, 0.55, 0.15)}
+		"rare": Color(1.0, 0.86, 0.3), "legendary": Color(1.0, 0.55, 0.15), "unique": Color(0.8, 0.62, 0.36)}
+## Unikaty (decyzja autora 21.11.2026): po jednym na miejsce, stała baza (z jej stałą cechą), stałe premie z wąskimi
+## widełkami (`stats`, pole przedmiotu "ustats"; hp_pct - procent największego zdrowia, wartości ujemne to kara)
+## i własne działanie z siłą `power` (pole "upower"; działanie w walce - ProtoUniques i ProtoWeapon._deal). Kowal ich
+## nie przerabia (Runes.blocker). Wypadają z łupu od UNIQUE_FROM z szansą UNIQUE_CHANCE (rośnie do UNIQUE_MAX na MAX_LEVEL).
+## licho - bez krytyków, co LICHO_EVERY. trafienie x`power`; crown - umiejętności i aury płacą zdrowiem zamiast many;
+## bastion - za każdego wroga w BASTION_RADIUS +`power`% obrażeń i +BASTION_RES% odporności (do BASTION_MAX wrogów);
+## swarog - płonący ślad (SWAROG_TIME s), `power`% obrażeń broni na sekundę i podpalenie; strzybog - pocisk przy
+## trafieniu rozpada się na STRZYBOG_SHARDS odłamki (STRZYBOG_POWER siły); mokosz - umiejętność powtarza się po
+## MOKOSZ_DELAY s z `power`% siły, koszt many x MOKOSZ_COST.
+const UNIQUES := {
+	"licho": {"name": "Oko Licha", "slot": "earring", "type": "stud", "flavor": "Pech, który nauczył się liczyć.",
+		"stats": {"attack_speed_pct": [10.0, 14.0], "cast_speed_pct": [10.0, 14.0]}, "power": [3.0, 3.0]},
+	"crown": {"name": "Korona Czarnoboga", "slot": "helmet", "type": "helm", "flavor": "Ofiara z krwi zamiast many.",
+		"stats": {"damage_pct": [35.0, 40.0], "hp_pct": [15.0, 20.0]}, "power": [0.0, 0.0]},
+	"bastion": {"name": "Ostatnia Warownia", "slot": "armor", "type": "plate", "flavor": "Ostoja trwa, choćby otoczona.",
+		"stats": {"move_pct": [-20.0, -20.0]}, "power": [2.0, 2.0]},
+	"swarog": {"name": "Ślady Swaroga", "slot": "boots", "type": "boots", "flavor": "Gdzie stąpa, tam płonie ziemia.",
+		"stats": {"move_pct": [8.0, 10.0], "hp_pct": [-15.0, -15.0]}, "power": [25.0, 30.0]},
+	"strzybog": {"name": "Pierścień Strzyboga", "slot": "ring", "type": "band", "flavor": "Wiatr rozdziera każdy pocisk.",
+		"stats": {"proj_dmg_pct": [-25.0, -25.0]}, "power": [3.0, 3.0]},
+	"mokosz": {"name": "Zwierciadło Mokoszy", "slot": "amulet", "type": "amber", "flavor": "Każde zaklęcie ma swoje odbicie.",
+		"stats": {}, "power": [55.0, 60.0]},
+}
+const UNIQUE_FROM := 10
+const UNIQUE_CHANCE := 0.002
+const UNIQUE_MAX := 0.005
+const LICHO_EVERY := 4
+const BASTION_RADIUS := 70.0
+const BASTION_RES := 1.0
+const BASTION_MAX := 20
+const SWAROG_TIME := 2.0
+const STRZYBOG_SHARDS := 3
+const STRZYBOG_POWER := 0.5
+const MOKOSZ_DELAY := 0.4
+const MOKOSZ_COST := 1.8
 ## Ile losowych premii daje rzadkość (od-do; rzadki 3-5, legendarny zawsze 6 - decyzje autora 21.11.2026).
-const AFFIX_COUNT := {"common": Vector2i(0, 0), "magic": Vector2i(1, 2), "rare": Vector2i(3, 5), "legendary": Vector2i(6, 6)}
+const AFFIX_COUNT := {"common": Vector2i(0, 0), "magic": Vector2i(1, 2), "rare": Vector2i(3, 5), "legendary": Vector2i(6, 6),
+		"unique": Vector2i(0, 0)}
 ## Przedmiot legendarny (decyzja autora 21.11.2026): tylko z łupu (nie z kuźni ani run), szansa na każdy przedmiot
 ## z łupu LEGEND_CHANCE, rośnie z głębią do LEGEND_MAX (`legend_chance`); jego premie wypadają o LEGEND_TIER_BOOST
 ## stopień lepiej (`make_affix`).
@@ -298,10 +335,10 @@ const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.
 	"quantity_pct": 100.0, "ore_pct": 200.0, "skill_level_all": 3.0}
 ## Gniazda: najwięcej w przedmiocie i szansa na drugie od razu (według rzadkości - bardzo rzadko).
 const MAX_SOCKETS := 2
-const SECOND_SOCKET := {"common": 0.0, "magic": 0.01, "rare": 0.03, "legendary": 0.1}
+const SECOND_SOCKET := {"common": 0.0, "magic": 0.01, "rare": 0.03, "legendary": 0.1, "unique": 0.0}
 ## Rozbicie przedmiotu (decyzja autora 20.11.2026, zamiast sprzedaży za złoto): ruda według rzadkości, rzadki
 ## dodatkowo z szansą SCRAP_RUNE daje Runę Szlifu (obie liczby rosną ze Skarbcem drzewka lochów - Game.treasury_mult).
-const ORE := {"common": 1, "magic": 2, "rare": 4, "legendary": 8}
+const ORE := {"common": 1, "magic": 2, "rare": 4, "legendary": 8, "unique": 10}
 const SCRAP_RUNE := 0.15
 ## Wykuwanie u kowala (decyzja autora 20.11.2026): FORGE_ORE rudy za przedmiot z wybranego miejsca, z najgłębszego
 ## przebitego lochu, rzadkość losowana wagami FORGE_WEIGHTS (jak skrzynia Wodza) - Game.forge.
@@ -356,6 +393,9 @@ static func roll_base(slot: String, type: String, level: int) -> Dictionary:
 ## z szansą `legend_chance` legendarny), baza (pusta - losowa z miejsca). `loot` - z łupu (legendy i premie ponad
 ## widełki); kuźnia podaje false.
 static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS, type := "", loot := true) -> Dictionary:
+	if rarity == "unique" or (rarity == "" and loot and randf() < unique_chance(level)):
+		var ids: Array = UNIQUES.keys().filter(func(id: String) -> bool: return slot == "" or UNIQUES[id].slot == slot)
+		return make_unique(ids.pick_random(), level)
 	if slot == "":
 		slot = SLOTS[randi() % SLOTS.size()]
 	if rarity == "":
@@ -375,6 +415,63 @@ static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS
 	if randf() < SECOND_SOCKET[rarity]:
 		item.sockets.append("")
 	return item
+
+
+## Szansa, że przedmiot z łupu będzie unikatem (od UNIQUE_FROM, rośnie z głębią do UNIQUE_MAX na MAX_LEVEL).
+static func unique_chance(level: int) -> float:
+	if level < UNIQUE_FROM:
+		return 0.0
+	return lerpf(UNIQUE_CHANCE, UNIQUE_MAX, float(mini(level, MAX_LEVEL) - UNIQUE_FROM) / float(MAX_LEVEL - UNIQUE_FROM))
+
+
+## Nowy unikat `id` z poziomu lochu `level`: stała baza, premie i siła działania losowane w wąskich widełkach,
+## bez potencjału kowalskiego (kowal go nie przerabia).
+static func make_unique(id: String, level: int) -> Dictionary:
+	var u: Dictionary = UNIQUES[id]
+	var stats := {}
+	for stat in u.stats:
+		stats[stat] = float(roundi(randf_range(u.stats[stat][0], u.stats[stat][1])))
+	return {"slot": u.slot, "type": u.type, "tier": tier_for(level), "level": maxi(level, 1), "rarity": "unique",
+			"unique": id, "base": roll_base(u.slot, u.type, level), "ustats": stats,
+			"upower": float(roundi(randf_range(u.power[0], u.power[1]))), "affixes": [], "sockets": [""],
+			"potential": 0, "potential_max": 0}
+
+
+static func is_unique(item: Dictionary) -> bool:
+	return item.get("rarity", "") == "unique" and UNIQUES.has(item.get("unique", ""))
+
+
+## Opis działania unikatu `id` z siłą `power`.
+static func unique_effect(id: String, power: float) -> String:
+	match id:
+		"licho":
+			return Lang.t("Bez trafień krytycznych - za to co %d. trafienie zadaje x%d obrażeń") % [LICHO_EVERY, roundi(power)]
+		"crown":
+			return Lang.t("Umiejętności i aury płacą zdrowiem zamiast many")
+		"bastion":
+			return Lang.t("Za każdego wroga blisko postaci: +%d%% obrażeń i +%d%% odporności na wszystko (do %d wrogów)") \
+					% [roundi(power), roundi(BASTION_RES), BASTION_MAX]
+		"swarog":
+			return Lang.t("Za postacią zostaje płonący ślad: %d%% obrażeń broni na sekundę i podpalenie") % roundi(power)
+		"strzybog":
+			return Lang.t("Pocisk przy trafieniu rozpada się na %d odłamki w pobliskich wrogów") % STRZYBOG_SHARDS
+		"mokosz":
+			return Lang.t("Umiejętności (oprócz zwykłego ataku) powtarzają się same po chwili z %d%% siły; koszt many x1,8") \
+					% roundi(power)
+	return ""
+
+
+## Linie unikatu do opisu: stałe premie (kara - z minusem), działanie i cytat.
+static func unique_lines(item: Dictionary) -> Array[String]:
+	var lines: Array[String] = []
+	var stats: Dictionary = item.get("ustats", {})
+	for stat in stats:
+		var v: float = stats[stat]
+		var text := Lang.t("+%d%% zdrowia") % roundi(absf(v)) if stat == "hp_pct" else stat_text(stat, absf(v))
+		lines.append(("-" + text.substr(1)) if v < 0.0 and text.begins_with("+") else text)
+	lines.append(unique_effect(item.unique, float(item.get("upower", 0.0))))
+	lines.append("„%s”" % Lang.t(UNIQUES[item.unique].flavor))
+	return lines
 
 
 ## Szansa, że przedmiot z łupu będzie legendarny (rośnie z głębią lochu).
@@ -419,6 +516,8 @@ static func potential_of(item: Dictionary) -> Vector2i:
 
 ## Linia potencjału kowalskiego do opisu przedmiotu.
 static func potential_line(item: Dictionary) -> String:
+	if is_unique(item):
+		return Lang.t("Unikatu nie da się przerobić u kowala")
 	var p := potential_of(item)
 	return Lang.t("Potencjał kowalski: %d / %d") % [p.x, p.y]
 
@@ -561,6 +660,8 @@ static func boosted_weights(weights: Dictionary, rarity_pct: float) -> Dictionar
 
 ## Nazwa przedmiotu w obecnym języku (anielski - z przedrostkiem w rodzaju nazwy bazy).
 static func name_of(item: Dictionary) -> String:
+	if is_unique(item):
+		return Lang.t(UNIQUES[item.unique].name)
 	var base: String = BASES[item.slot][type_of(item)].names[clampi(int(item.get("tier", 0)), 0, 4)]
 	if not is_angelic(item):
 		return Lang.t(base)
@@ -581,7 +682,7 @@ static func color_of(item: Dictionary) -> Color:
 
 ## Ikona przedmiotu (wersja magiczna i rzadka mają inne kolory, jak w Watrze; legendarny - jak rzadki).
 static func icon_of(item: Dictionary) -> Texture2D:
-	var suffix: String = {"common": "", "magic": "_magic", "rare": "_rare", "legendary": "_rare"}.get(item.get("rarity", "common"), "")
+	var suffix: String = {"common": "", "magic": "_magic", "rare": "_rare", "legendary": "_rare", "unique": "_rare"}.get(item.get("rarity", "common"), "")
 	return base_icon(item.slot, type_of(item), int(item.get("tier", 0)), suffix)
 
 
@@ -629,6 +730,8 @@ static func affix_color(a: Dictionary) -> Color:
 
 ## Kolor ramki pola z przedmiotem: anielski, rzadkość (zwykły - brązowy) i grubość (ponad widełki - grubsza).
 static func frame_of(item: Dictionary) -> Array:
+	if is_unique(item):
+		return [RARITY_COLORS.unique, 3]
 	if is_angelic(item):
 		return [ANGELIC_COLOR, 3]
 	var color: Color = color_of(item) if item.get("rarity", "common") != "common" else Color(0.7, 0.6, 0.45)
@@ -651,8 +754,19 @@ static func base_lines(item: Dictionary) -> Array[String]:
 	return lines
 
 
-## Linie premii ze znaczkiem stopnia („T3  +12% obrażeń”).
+## Kolor linii `i` z `affix_lines` (premia ponad widełki, zwykła premia, unikat - jego kolor, cytat przygaszony).
+static func line_color(item: Dictionary, i: int) -> Color:
+	if is_unique(item):
+		return RARITY_COLORS.unique.darkened(0.25) if i == affix_lines(item).size() - 1 else RARITY_COLORS.unique
+	if i < item.affixes.size() and item.affixes[i].get("above", false):
+		return ABOVE_COLOR
+	return RARITY_COLORS.magic
+
+
+## Linie premii ze znaczkiem stopnia („T3  +12% obrażeń”); unikat - jego stałe premie i działanie (`unique_lines`).
 static func affix_lines(item: Dictionary) -> Array[String]:
+	if is_unique(item):
+		return unique_lines(item)
 	var lines: Array[String] = []
 	for a in item.affixes:
 		lines.append("%s  %s" % [tier_badge(a), affix_text(a)])
@@ -682,9 +796,10 @@ static func reroll_affix(item: Dictionary, index: int) -> bool:
 
 ## Suma cech założonych przedmiotów (słownik miejsce -> przedmiot). Klucze ze STAT_FORMATS (z sufitami CAPS),
 ## "damage" - obrażenia cięcia założonej broni jako Vector2i (bez broni: Vector2i.ZERO) i "skill_bonus" - poziomy
-## pojedynczych umiejętności z premii skill_level (umiejętność -> ile).
+## pojedynczych umiejętności z premii skill_level (umiejętność -> ile), "uniques" - założone unikaty (id -> siła
+## działania) i "hp_pct" - procent największego zdrowia z unikatów.
 static func totals(equipped: Dictionary) -> Dictionary:
-	var t := {"damage": Vector2i.ZERO, "skill_bonus": {}}
+	var t := {"damage": Vector2i.ZERO, "skill_bonus": {}, "uniques": {}, "hp_pct": 0.0}
 	for stat in STAT_FORMATS:
 		t[stat] = 0.0
 	for slot in equipped:
@@ -699,6 +814,11 @@ static func totals(equipped: Dictionary) -> Dictionary:
 				var skill: String = a.get("skill", "")
 				t.skill_bonus[skill] = int(t.skill_bonus.get(skill, 0)) + roundi(a.value)
 			t[a.stat] += float(a.value)
+		if is_unique(item):
+			t.uniques[item.unique] = float(item.get("upower", 0.0))
+			var stats: Dictionary = item.get("ustats", {})
+			for stat in stats:
+				t[stat] = t.get(stat, 0.0) + float(stats[stat])
 		for id in item.get("sockets", []):
 			for gem in Gems.jewel_stats(id):
 				t[gem[0]] += clamp_affix(gem[0], gem[1], Gems.jewel_level(id), Gems.JEWEL_MULT)
@@ -813,6 +933,24 @@ static func normalize(data) -> Dictionary:
 		sockets.append("")
 	var item := {"slot": data.slot, "type": type, "tier": clampi(int(data.get("tier", tier_for(level))), 0, 4),
 			"level": level, "rarity": data.rarity, "base": base, "affixes": affixes, "sockets": sockets}
+	if data.rarity == "unique":  # unikat: dane z UNIQUES, wartości przycięte do widełek, bez premii i potencjału
+		var id := str(data.get("unique", ""))
+		if not UNIQUES.has(id) or UNIQUES[id].slot != data.slot or UNIQUES[id].type != type:
+			return {}
+		item.unique = id
+		item.affixes = []
+		var stats := {}
+		var raw_stats = data.get("ustats", {})
+		for stat in UNIQUES[id].stats:
+			var r: Array = UNIQUES[id].stats[stat]
+			var v: float = float(raw_stats.get(stat, r[0])) if raw_stats is Dictionary else float(r[0])
+			stats[stat] = clampf(v, r[0], r[1])
+		item.ustats = stats
+		var pr: Array = UNIQUES[id].power
+		item.upower = clampf(float(data.get("upower", pr[0])), pr[0], pr[1])
+		item.potential = 0
+		item.potential_max = 0
+		return item
 	var pot := potential_of(data)
 	item.potential = pot.x
 	item.potential_max = pot.y
