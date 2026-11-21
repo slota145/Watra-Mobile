@@ -166,6 +166,8 @@ func _test_combat(game: Node) -> void:
 	_check(book._beam != null and book._beam.points[0].distance_to(hand) < 1.0 and hand.y > book._sprite.global_position.y,
 			"promień z dłoni postaci (niżej niż księga), błysk w dłoniach")
 	_check(book._beam_cast_fx != null and book._beam_hit_fx != null, "efekty na obu końcach promienia")
+	_check(book._beam_spiral != null and book._beam_spiral.to.distance_to(book._beam.points[1]) < 1.0,
+			"iskry płyną spiralnie wzdłuż promienia")
 	await _wait(0.7)
 	_check(a.hp < hp or b.hp < b.max_hp, "promień rani")
 	_check(hero.mana < mana + 30, "promień zużywa manę")
