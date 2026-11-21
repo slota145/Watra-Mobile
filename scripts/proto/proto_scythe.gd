@@ -157,12 +157,13 @@ const DIAG_FPS := 16.0
 const DIAG_ANCHOR := Vector2(-8, 30)
 ## Promień półksiężyca na arkuszu (środek okręgu poza klatką, środek łuku w prawo).
 const DIAG_RADIUS := 44.0
-## Wir cięć nad głową (pętla, spłaszczony okrąg o promieniu WHIRL_S_RADIUS).
+## Wir Tańca (pętla; od 21.11.2026 jak Violation z BDO - zrzuty autora): półprzezroczysty kokon szklistych smug-pierścieni
+## na różnych wysokościach i nachyleniach z fioletowymi wstęgami, od stóp nad głowę, promień WHIRL_S_RADIUS.
 const WHIRL_S_FX := preload("res://assets/effects/scythe_whirl.png")
 const WHIRL_S_FRAMES := 12
 const WHIRL_S_FPS := 16.0
-const WHIRL_S_ANCHOR := Vector2(57, 26)
-const WHIRL_S_RADIUS := 34.0
+const WHIRL_S_ANCHOR := Vector2(60, 55)
+const WHIRL_S_RADIUS := 40.0
 ## Kamień Wirującego Ostrza: czas lotu, prędkość, siła trafienia, zasięg szukania kolejnego wroga, wybuch.
 const BLADE_TIME := 3.0
 const BLADE_SPEED := 230.0
@@ -815,9 +816,9 @@ func _process_dance(delta: float) -> void:
 		for t in _near(hero.global_position, radius):
 			if t.global_position.distance_to(hero.global_position) <= radius + 4.0:
 				_hit(t, _power("s_dance") * DANCE_SPIN_POWER, hero.global_position, "s_dance")
-	if _whirl_loop == null or not is_instance_valid(_whirl_loop):  # wir cięć nad głową (pętla) idzie z postacią
-		_whirl_loop = Fx.loop(hero, WHIRL_S_FX, WHIRL_S_FRAMES, WHIRL_S_FPS, Vector2(0, -38.0), WHIRL_S_ANCHOR,
-				6, _fx_scale(radius / WHIRL_S_RADIUS))
+	if _whirl_loop == null or not is_instance_valid(_whirl_loop):  # wir-kokon wokół postaci (pętla) idzie z nią
+		_whirl_loop = Fx.loop(hero, WHIRL_S_FX, WHIRL_S_FRAMES, WHIRL_S_FPS, Vector2.ZERO, WHIRL_S_ANCHOR,
+				6, _fx_scale(maxf(radius / WHIRL_S_RADIUS, 1.0)))
 	if _state == "dance" and _dance_t >= _dance_time:
 		if _dance_queued:
 			_dance_queued = false

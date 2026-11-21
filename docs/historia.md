@@ -18,6 +18,10 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - Ikony umiejętności odświeżone (`tools/scythe_icons.py`).
 - Po kolejnym teście autora: zamach Pokosu odbity (`mow.scale.y` ujemne - tnie od drugiej strony), wir Tańca od nowa
   (`scythe_whirl` v3): 8 nakładających się cięć po okręgu (promienie 26-40 px, przesunięte w fazie, pętla).
+- Wir Tańca po raz trzeci, wg zrzutów Violation z BDO od autora (`scythe_whirl` v4): półprzezroczysty kokon wokół
+  całej postaci - szkliste lawendowo-białe smugi-pierścienie na różnych wysokościach i nachyleniach (krzywe z wzorów
+  w kreatorze), szerokie przezroczyste wstęgi, grube fioletowe wstęgi, mgła u stóp, iskry wznoszące się po spirali;
+  zaczepiony w stopach postaci (`Fx.loop`, skala co najmniej 1).
 
 ## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
 
