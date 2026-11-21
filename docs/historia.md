@@ -36,6 +36,12 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   (`scythe_diag` albo nowy smuklejszy `dance_cut`, promień 50) pod losowym kątem, na wysokości 8-30 px, w węźle
   spłaszczonym (0,3-0,45) i lekko przechylonym - razem okręgi wokół postaci; z przodu przed postacią, z tyłu za nią
   (`_dance_cut`). Arkusze `scythe_whirl` / `scythe_whirl_front` usunięte.
+- Cięcia zataczające kółka (prośba autora): nowy `dance_loop` - cięcie na 3/4 okręgu (270°, promień 50); połowa
+  półksiężyców Tańca to takie kółka (`DANCE_LOOP_SHARE`), 30% smukłe `dance_cut`, reszta `scythe_diag`.
+- Cięcia zawsze w okręgach (uwaga autora): 3 stałe okręgi `DANCE_RINGS` (wysokość 10/19/28 px, spłaszczenie, przechył,
+  promień, kierunek), kolejne cięcia na kolejnych okręgach, kąt +2,4 rad co cięcie. Obszar umiejętności „nie działał”
+  na wygląd - ogólny limit skali efektów 1,25 zatrzymywał wir; cięcia Tańca rosną teraz do x2 (`DANCE_CUT_MAX_SCALE`),
+  test to sprawdza (obrażenia rosły z obszarem i wcześniej).
 
 ## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
 

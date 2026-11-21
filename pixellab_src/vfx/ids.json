@@ -1368,5 +1368,20 @@
       65
     ],
     "columns": 4
+  },
+  "dance_loop": {
+    "effect": "2d6ac51f-6c9b-45e6-9e64-ca5e6a97a717",
+    "name": "Kosa - cięcie na 3/4 okręgu (Taniec Marzanny; łuk 270°, promień 50 px, środek łuku w prawo; zaczepienie = środek okręgu)",
+    "frame": [
+      130,
+      130
+    ],
+    "frames": 12,
+    "fps": 16,
+    "anchor": [
+      65,
+      65
+    ],
+    "columns": 4
   }
 }

@@ -282,6 +282,17 @@ func _test_dance_mara(game: Node) -> void:
 	await _wait(0.4)
 	_check(scythe._state == "follow" and scythe.cooldown_left("s_dance") > 0.0, "po drugim tańcu końcowe cięcie i odnowienie")
 	_check(b.global_position.distance_to(b_pos) > 1.0 or b.hp < b.max_hp, "końcowe cięcie trafia i odpycha")
+	# cięcia wiru na stałych okręgach, rosną z obszarem umiejętności (też na ekranie - uwaga autora)
+	var r0: float = scythe._dance_radius()
+	scythe.area_bonus = 100.0
+	_check(scythe._dance_radius() > r0 * 1.9, "obszar powiększa wir Tańca")
+	var world: Node = scythe.get_parent()
+	scythe._dance_cut(scythe._dance_radius())
+	var holder: Node2D = world.get_child(world.get_child_count() - 1)
+	var cut: Node2D = holder.get_child(0)
+	_check(absf(cut.scale.x) > 1.5 and ProtoScythe.DANCE_RINGS.any(func(r: Array) -> bool: return is_equal_approx(holder.scale.y, r[1])),
+			"cięcie na stałym okręgu, większe przy większym obszarze (%.2f)" % absf(cut.scale.x))
+	scythe.area_bonus = 0.0
 	# bez przedłużenia - cięcie po oknie
 	scythe._cd.clear()
 	hero.mana = hero.max_mana
