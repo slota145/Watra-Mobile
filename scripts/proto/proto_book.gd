@@ -16,7 +16,8 @@ extends ProtoWeapon
 ##   aura Rój Strzyboga dokłada kule - `extra_projectiles`);
 ##   kamień unikalny - druga orbita dalej, w przeciwną stronę.
 ## - „Promień Arkanów” (`a_beam`, trzymany - Skills.is_charged): promień z dłoni postaci (błysk arcane_beam_cast) w najbliższego
-##   wroga (rozbryzg arcane_beam_impact na końcu), co BEAM_TICK rani cel
+##   wroga (rozbryzg arcane_beam_impact na końcu; wzdłuż promienia płyną spiralnie dwie nitki iskier - _Spiral, w kodzie),
+##   co BEAM_TICK rani cel
 ##   i wrogów w BEAM_AREA wokół niego; mana co sekundę (5. - przeskok na drugiego wroga, 10. - większy obszar);
 ##   kamień unikalny - co EMANATE_EVERY s od postaci rozchodzi się fala magii (arcane_wave; rani wokół).
 ## - „Pieczęcie Wybuchu” (`a_seals`): pieczęcie pod SEALS wrogami oddalonymi od siebie, po SEAL_DELAY s wybuch
@@ -126,6 +127,7 @@ var _missiles: Array = []
 ## Pociski czekające na wylot (rzut po kolei): {"wait", "target", "angle", "power", "chaotic"}.
 var _volley: Array = []
 var _beam_cast_fx: Node2D
+var _beam_spiral: _Spiral
 var _shards: Array = []
 var _circles: Array = []
 var _seals: Array = []
@@ -146,7 +148,7 @@ var _fx_cache := {}
 
 
 func _world_fx() -> Array:
-	return super._world_fx() + [_missiles, _shards, _circles, _seals, _orbs, [_beam, _beam2, _beam_hit_fx, _beam_cast_fx]]
+	return super._world_fx() + [_missiles, _shards, _circles, _seals, _orbs, [_beam, _beam2, _beam_hit_fx, _beam_cast_fx, _beam_spiral]]
 
 
 func _init() -> void:
@@ -769,6 +771,13 @@ func _draw_beam(from: Vector2) -> void:
 	var to := _beam_target.center()
 	_beam.visible = true
 	_beam.points = PackedVector2Array([from, to])
+	if _beam_spiral == null:  # iskry płynące spiralnie wzdłuż promienia (prośba autora 21.11.2026)
+		_beam_spiral = _Spiral.new()
+		_beam_spiral.z_index = 21
+		_beam_spiral.top_level = true
+		get_parent().add_child(_beam_spiral)
+	_beam_spiral.from = from
+	_beam_spiral.to = to
 	var tex := _fx_tex("arcane_beam")
 	if tex != null:  # kafelki promienia z kreatora wzdłuż linii, klatka po klatce
 		var d: Array = FX.arcane_beam
@@ -808,13 +817,14 @@ func _draw_beam(from: Vector2) -> void:
 
 
 func _end_skill() -> void:
-	for n in [_beam, _beam2, _beam_hit_fx, _beam_cast_fx]:
+	for n in [_beam, _beam2, _beam_hit_fx, _beam_cast_fx, _beam_spiral]:
 		if n != null and is_instance_valid(n):
 			n.queue_free()
 	_beam = null
 	_beam2 = null
 	_beam_hit_fx = null
 	_beam_cast_fx = null
+	_beam_spiral = null
 	_beam_target = null
 	super._end_skill()
 
@@ -943,6 +953,46 @@ class _Glow extends Node2D:
 
 
 ## Trwały krąg na ziemi (kamień unikalny Kręgu Mocy): spłaszczona, pulsująca obwódka.
+## Iskry płynące spiralnie wzdłuż promienia: dwie nitki (przesunięte o pół obrotu) jak helisa widziana z boku -
+## iskra „z przodu” spirali jest większa i jaśniejsza, „z tyłu” mniejsza i ciemniejsza; przy końcach gasną.
+class _Spiral extends Node2D:
+	const COUNT := 40  # iskier na nitkę (prośba autora: więcej i mniejsze - jak iskry)
+	const SPEED := 1.6  # przebiegi długości promienia na sekundę
+	const TURN := 26.0  # px długości na jeden obrót spirali
+	const AMP := 11.0  # promień spirali (px) - szerzej niż promień (16 px), żeby iskry było widać
+	const SCATTER := 2.0  # rozrzut iskry wokół nitki (px)
+	var from := Vector2.ZERO
+	var to := Vector2.ZERO
+	var _t := 0.0
+
+	func _process(delta: float) -> void:
+		_t += delta
+		queue_redraw()
+
+	func _draw() -> void:
+		var axis := to - from
+		var length := axis.length()
+		if length < 4.0:
+			return
+		var dir := axis / length
+		var perp := dir.orthogonal()
+		for strand in 2:
+			for k in COUNT:
+				var seed := float(k * 7 + strand * 13)
+				var s := fmod(_t * SPEED * (0.85 + 0.3 * fmod(seed * 0.618, 1.0)) + float(k) / COUNT + strand * 0.5 / COUNT, 1.0)
+				var phase := s * length / TURN * TAU - _t * 9.0 + strand * PI
+				var depth := cos(phase)  # 1 - z przodu spirali, -1 - z tyłu
+				var front := (depth + 1.0) * 0.5
+				var fade := clampf(minf(s, 1.0 - s) * 8.0, 0.0, 1.0)
+				var jitter := Vector2(sin(seed * 3.1 + _t * 11.0), cos(seed * 1.7 + _t * 13.0)) * SCATTER
+				var at := (from + axis * s + perp * sin(phase) * AMP + jitter).round()
+				var flicker := 0.8 + 0.2 * sin(_t * 25.0 + seed)
+				var c := Color(0.85, 0.6, 1.0).lerp(Color(1, 1, 1), front)
+				c.a = fade * flicker * (0.75 + 0.25 * front)
+				var size := 2.0 if front > 0.35 else 1.0  # piksel albo dwa - drobne iskry
+				draw_rect(Rect2(at - Vector2(size, size) * 0.5, Vector2(size, size)), c)
+
+
 class _Ring extends Node2D:
 	var radius := 50.0
 	var _t := 0.0
