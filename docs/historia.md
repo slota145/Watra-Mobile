@@ -2,6 +2,26 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Esencje i poziomy unikatów
+
+Pomysł Claude, ankieta autora 21.11.2026 (wszystkie polecane opcje), układ pokazany autorowi przed kodem.
+- **Dane** (`Items`): pole przedmiotu `ulevel` 1-5 (`UNIQUE_MAX_LEVEL`, `unique_level`), mnożnik `unique_mult`
+  (+10% na poziom - `UNIQUE_LEVEL_STEP`) dla dodatnich premii (`unique_stat`; kary bez zmian) i siły działania
+  (`unique_power`; Oko Licha x3 -> x4,2, Warownia 2% -> 2,8%, Swaróg 30% -> 42%, Mokosz 60% -> 84%). Korona -
+  tylko premie. Pierścień Strzyboga: siła odłamków z siły unikatu (`strzybog_power`, 1. poziom - dawne 50%).
+  `essence_cost(poziom)` = poziom (1-2-3-4, razem 10), `essences_in` - włożone. `Items.totals`, `unique_lines`
+  (liczby z ułamkiem - `_num`) i `normalize` (przycina poziom) liczą z poziomem.
+- **Esencje** (`Game.essences`: unikat -> liczba, zapis postaci, czyści `reset_hero`): `_scrap` unikatu daje
+  1 + włożone esencje tego unikatu (`got.essence`); `unique_problem` ("not_unique", "max", "essence"),
+  `upgrade_unique(item)` - zmienia słownik w miejscu (torba albo założony).
+- **Okno „Postać”** (`hero_stats.gd`): w opisie unikatu gwiazdki (`scripts/ui/unique_stars.gd` - `UniqueStars`,
+  rysowane wielokątami), linia „Poziom unikatu 3/5 · esencje: 3 (rozbicie da 4)” i przycisk „Ulepsz: N esencji”
+  (drugie stuknięcie potwierdza; działa też w lochu); w torbie i ekwipunku małe gwiazdki ponad 1. poziom
+  (`compact`). Linie premii w opisie zawijają się (długi opis unikatu wychodził za ekran).
+- Test `tests/test_essences.gd`, zrzut `tools/essence_shots.gd`.
+- Gwiazdki na ziemi pominięte: unikat z łupu ma zawsze 1. poziom.
+- Do oceny na telefonie: +10% na poziom, koszt 10 duplikatów do maksimum przy szansie 0,2-0,5%.
+
 ## 21.11.2026 - Filtr łupu
 
 Pomysł autora i ankieta 21.11.2026 (układ okna pokazany autorowi i zaakceptowany przed pisaniem kodu).

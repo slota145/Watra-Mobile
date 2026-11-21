@@ -155,6 +155,12 @@ const UNIQUES := {
 		"stats": {}, "power": [55.0, 60.0]},
 }
 const UNIQUE_FROM := 10
+## Poziomy unikatów (ankieta autora 21.11.2026): rozbity unikat daje esencję tego unikatu (Game.essences), esencje
+## podnoszą poziom unikatu 1-UNIQUE_MAX_LEVEL (pole "ulevel"; koszt przejścia z poziomu n na n+1 - n esencji,
+## `essence_cost`); każdy poziom ponad 1. daje +UNIQUE_LEVEL_STEP dodatnim premiom i sile działania (kary bez zmian;
+## `unique_stat`, `unique_power`). Rozbicie ulepszonego oddaje włożone esencje (`essences_in`).
+const UNIQUE_MAX_LEVEL := 5
+const UNIQUE_LEVEL_STEP := 0.1
 const UNIQUE_CHANCE := 0.002
 const UNIQUE_MAX := 0.005
 const LICHO_EVERY := 4
@@ -441,35 +447,79 @@ static func is_unique(item: Dictionary) -> bool:
 	return item.get("rarity", "") == "unique" and UNIQUES.has(item.get("unique", ""))
 
 
+## Poziom unikatu (1-UNIQUE_MAX_LEVEL; bez pola - 1).
+static func unique_level(item: Dictionary) -> int:
+	return clampi(int(item.get("ulevel", 1)), 1, UNIQUE_MAX_LEVEL)
+
+
+## Mnożnik dodatnich premii i siły unikatu z jego poziomu.
+static func unique_mult(item: Dictionary) -> float:
+	return 1.0 + UNIQUE_LEVEL_STEP * (unique_level(item) - 1)
+
+
+## Premia unikatu po poziomie (ujemna - kara, bez zmian).
+static func unique_stat(item: Dictionary, stat: String) -> float:
+	var v := float(item.get("ustats", {}).get(stat, 0.0))
+	return v * unique_mult(item) if v > 0.0 else v
+
+
+## Siła działania unikatu po poziomie.
+static func unique_power(item: Dictionary) -> float:
+	return float(item.get("upower", 0.0)) * unique_mult(item)
+
+
+## Ile esencji kosztuje podniesienie unikatu z poziomu `level` (0 - już najwyższy).
+static func essence_cost(level: int) -> int:
+	return level if level < UNIQUE_MAX_LEVEL else 0
+
+
+## Ile esencji włożono w unikat (wracają przy rozbiciu).
+static func essences_in(item: Dictionary) -> int:
+	var l := unique_level(item)
+	return (l - 1) * l / 2
+
+
+## Liczba do opisu: całkowita bez ułamka, inaczej jedno miejsce po przecinku.
+static func _num(v: float) -> String:
+	return str(roundi(v)) if is_equal_approx(v, roundf(v)) else ("%.1f" % v)
+
+
 ## Opis działania unikatu `id` z siłą `power`.
 static func unique_effect(id: String, power: float) -> String:
 	match id:
 		"licho":
-			return Lang.t("Bez trafień krytycznych - za to co %d. trafienie zadaje x%d obrażeń") % [LICHO_EVERY, roundi(power)]
+			return Lang.t("Bez trafień krytycznych - za to co %d. trafienie zadaje x%s obrażeń") % [LICHO_EVERY, _num(power)]
 		"crown":
 			return Lang.t("Umiejętności i aury płacą zdrowiem zamiast many")
 		"bastion":
-			return Lang.t("Za każdego wroga blisko postaci: +%d%% obrażeń i +%d%% odporności na wszystko (do %d wrogów)") \
-					% [roundi(power), roundi(BASTION_RES), BASTION_MAX]
+			return Lang.t("Za każdego wroga blisko postaci: +%s%% obrażeń i +%d%% odporności na wszystko (do %d wrogów)") \
+					% [_num(power), roundi(BASTION_RES), BASTION_MAX]
 		"swarog":
 			return Lang.t("Za postacią zostaje płonący ślad: %d%% obrażeń broni na sekundę i podpalenie") % roundi(power)
 		"strzybog":
-			return Lang.t("Pocisk przy trafieniu rozpada się na %d odłamki w pobliskich wrogów") % STRZYBOG_SHARDS
+			return Lang.t("Pocisk przy trafieniu rozpada się na %d odłamki w pobliskich wrogów (%d%% siły pocisku)") \
+					% [STRZYBOG_SHARDS, roundi(strzybog_power(power) * 100.0)]
 		"mokosz":
 			return Lang.t("Umiejętności (oprócz zwykłego ataku) powtarzają się same po chwili z %d%% siły; koszt many x1,8") \
 					% roundi(power)
 	return ""
 
 
-## Linie unikatu do opisu: stałe premie (kara - z minusem), działanie i cytat.
+## Siła odłamków Pierścienia Strzyboga (część siły pocisku) z siły unikatu (bazowo STRZYBOG_BASE -> STRZYBOG_POWER).
+const STRZYBOG_BASE := 3.0
+static func strzybog_power(power: float) -> float:
+	return STRZYBOG_POWER * power / STRZYBOG_BASE
+
+
+## Linie unikatu do opisu: stałe premie po poziomie (kara - z minusem), działanie i cytat.
 static func unique_lines(item: Dictionary) -> Array[String]:
 	var lines: Array[String] = []
 	var stats: Dictionary = item.get("ustats", {})
 	for stat in stats:
-		var v: float = stats[stat]
+		var v := unique_stat(item, stat)
 		var text := Lang.t("+%d%% zdrowia") % roundi(absf(v)) if stat == "hp_pct" else stat_text(stat, absf(v))
 		lines.append(("-" + text.substr(1)) if v < 0.0 and text.begins_with("+") else text)
-	lines.append(unique_effect(item.unique, float(item.get("upower", 0.0))))
+	lines.append(unique_effect(item.unique, unique_power(item)))
 	lines.append("„%s”" % Lang.t(UNIQUES[item.unique].flavor))
 	return lines
 
@@ -840,10 +890,10 @@ static func totals(equipped: Dictionary) -> Dictionary:
 				t.skill_bonus[skill] = int(t.skill_bonus.get(skill, 0)) + roundi(a.value)
 			t[a.stat] += float(a.value)
 		if is_unique(item):
-			t.uniques[item.unique] = float(item.get("upower", 0.0))
+			t.uniques[item.unique] = unique_power(item)
 			var stats: Dictionary = item.get("ustats", {})
 			for stat in stats:
-				t[stat] = t.get(stat, 0.0) + float(stats[stat])
+				t[stat] = t.get(stat, 0.0) + unique_stat(item, stat)
 		for id in item.get("sockets", []):
 			for gem in Gems.jewel_stats(id):
 				t[gem[0]] += clamp_affix(gem[0], gem[1], Gems.jewel_level(id), Gems.JEWEL_MULT)
@@ -973,6 +1023,8 @@ static func normalize(data) -> Dictionary:
 		item.ustats = stats
 		var pr: Array = UNIQUES[id].power
 		item.upower = clampf(float(data.get("upower", pr[0])), pr[0], pr[1])
+		if int(data.get("ulevel", 1)) > 1:
+			item.ulevel = clampi(int(data.ulevel), 1, UNIQUE_MAX_LEVEL)
 		item.potential = 0
 		item.potential_max = 0
 		return item
