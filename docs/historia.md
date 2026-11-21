@@ -2,6 +2,38 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Księga Arkanów, żywioł Arkana, premie magiczne, wybór broni na start
+
+Pomysły i ankieta autora (21.11.2026). Wszystko w jednym PR.
+- **Żywioł Arkana** (`Elements.ARCANE`, kolor fioletowo-biały): trafienia wysysają manę (3% obrażeń, najwyżej 3 many
+  na trafienie - `ProtoWeapon._deal`).
+- **Premie przedmiotów**: `magic_dmg_pct` („+% obrażeń magicznych”, `ProtoWeapon.magic_mult` - tylko broń magiczna) i
+  `cast_speed_pct` („+% szybkości rzucania czarów”, sufit 75%): broń magiczna (`Weapons.is_magic` - księga i hydrosfera)
+  przyspiesza tylko od niej, reszta tylko od szybkości ataku (`HeroStats.weapon_speed_mult`).
+- **Wybór broni na start** (`Weapons.START` - miecz, łuk, księga; `Game.start_weapon`, zapis „start_weapon”): przy
+  tworzeniu postaci 3 przyciski w formularzu (`CharacterSelect.start_weapon`), dwie niewybrane od lochu 5 (miecz ma teraz
+  `unlock` 5 - dostępny od początku jako domyślna broń startowa starych postaci). `Game.create_character(imię, ssf, broń)`.
+- **Księga Arkanów** (`scripts/proto/proto_book.gd`, `Weapons.BOOK`): lewitująca księga ze SpriteKiln
+  (`art/specs/props/book/arcane_book.yaml` -> `assets/spritekiln/book/arcane_book.png`), efekty z kreatora PixelLab
+  (`assets/effects/arcane_*.png` - pocisk, trafienie, krąg, kula, kafelek promienia, błysk promienia, pieczęć, wybuch,
+  odłamek; `pixellab_src/vfx/ids.json`), ikony czarów `assets/skills/book/`, kamienie unikalne
+  `assets/watra/unique_gems/a_*.png` (`tools/unique_gem_art.py`). Czary (`Skills` a_*):
+  - Pociski Arkanów (zwykły atak): 3 pociski - pierwszy w najbliższego, reszta w losowych wrogów, lecą łukiem albo
+    zakosami i skręcają coraz ciaśniej; ogon to Line2D z ostatnich pozycji (wygina się po torze, fioletowy gradient).
+    5. - 4 pociski, 10. - co trzeci rzut +2; unikalny (Rozprysku) - 3 odłamki z trafionego w pobliskich (40%).
+  - Krąg Mocy: rani w spłaszczonym kręgu pod postacią (pętla z kreatora gaśnie po 0,5 s). 5. - +30%, 10. - drugi błysk;
+    unikalny (Trwałego Kręgu) - krąg zostaje 8 s (tyka co 0,5 s), w kręgu czary +30% i pocisk więcej.
+  - Kule Arkanów: przełącznik jak aura (`Skills.is_toggle`, rezerwuje 20% many przez `ProtoHero.summon_reserved`),
+    3 kule, obrót od szybkości rzucania, promień i wielkość od obszaru. 5. - +30%, 10. - +2 kule; unikalny (Podwójnej
+    Orbity) - druga orbita 1,7x dalej w przeciwną stronę. Kamień Echo nie przełącza kul.
+  - Promień Arkanów (trzymany): w najbliższego, co 0,2 s rani cel i wrogów w 26 px wokół, mana co sekundę; kafelki
+    promienia z kreatora wzdłuż Line2D (AtlasTexture, klatka po klatce). 5. - przeskok na drugiego wroga (70%),
+    10. - obszar x1,5; unikalny (Emanacji) - co 0,5 s krąg magii wokół postaci (40%).
+  - Pieczęcie Wybuchu: pod 4 wrogami oddalonymi od siebie (co najmniej 40 px), po 0,8 s wybuch (arkusz pieczęci
+    zsynchronizowany z opóźnieniem). 5. - 6 pieczęci, 10. - ogłusza 0,5 s; unikalny (Splecionych Pieczęci) - wiązka
+    między kolejnymi pieczęciami rani dotykających (25% co 0,2 s).
+- Testy: `tests/test_book.gd` (nowy), `test_elements.gd` (9 żywiołów); zrzuty `tools/book_shots.gd`.
+
 ## 20.11.2026 - symulowany rynek: targ w bazie (ROADMAP punkt 5)
 
 Ankieta z autorem (20.11.2026): handel wszystkim, ceny w Runach Szlifu, rynek żyje też offline (do 12 h), osobny

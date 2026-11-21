@@ -176,6 +176,17 @@ const UNIQUE := {
 		"text": "Za strzałą wzdłuż całego toru wiatr bije na boki - rani i odpycha wrogów od toru strzały (50% siły)."},
 	"b_ballista": {"name": "Kamień Oblężnika", "short": "Powtarza umiejętności",
 		"text": "Balista powtarza ze swojego miejsca twoją Poszukującą strzałę, Deszcz strzał i Potężny strzał - za darmo, z połową siły."},
+	# Księga Arkanów (pomysły autora 21.11.2026)
+	"a_missiles": {"name": "Kamień Rozprysku Arkanów", "short": "Odłamki",
+		"text": "Z każdego trafionego wroga odpryskują 3 małe odłamki i uderzają pobliskich wrogów (40% siły pocisku)."},
+	"a_circle": {"name": "Kamień Trwałego Kręgu", "short": "Krąg zostaje",
+		"text": "Krąg zostaje na ziemi przez 8 s i rani dalej; gdy w nim stoisz, czary są o 30% silniejsze, a Pociski Arkanów lecą o 1 więcej."},
+	"a_orbs": {"name": "Kamień Podwójnej Orbity", "short": "Druga orbita",
+		"text": "Dalej od ciebie krąży druga orbita z taką samą liczbą kul, w przeciwną stronę."},
+	"a_beam": {"name": "Kamień Emanacji", "short": "Fale magii",
+		"text": "Dopóki rzucasz promień, co pół sekundy emanuje od ciebie magia, która rani wrogów wokół (40% siły)."},
+	"a_seals": {"name": "Kamień Splecionych Pieczęci", "short": "Wiązki",
+		"text": "Pieczęcie łączy magiczna wiązka, która rani każdego wroga, który jej dotknie, aż do wybuchu."},
 	# glewia ognia (ustalone z autorem 14.11.2026)
 	"g_thrust": {"name": "Kamień Trójzęba", "short": "3 pchnięcia",
 		"text": "Glewia dźga trzy razy naraz w wąskim stożku przed sobą - każdy wróg obrywa raz."},

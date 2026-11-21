@@ -119,6 +119,9 @@ var gold_converted := Vector2i.ZERO
 var stash: Array = [[]]
 ## Broń w ręku (Weapons) i mistrzostwo każdej broni (broń -> poziom; brak wpisu - 1. poziom) z doświadczeniem.
 var weapon := Weapons.SWORD
+## Broń wybrana przy tworzeniu postaci (Weapons.START) - dostępna od początku; pozostałe dwie z wyboru od lochu 5.
+## Stare zapisy (bez wyboru) - miecz.
+var start_weapon := Weapons.SWORD
 var mastery := {}
 var mastery_xp := {}
 ## Bronie odblokowane Pieczęcią Oręża przed progiem odblokowania i miejsca umiejętności broni, których nie ma w ręku
@@ -258,7 +261,7 @@ func list_characters() -> Array[Dictionary]:
 
 
 ## Nowa postać (1. poziom, pusta torba; postać bez SSF widzi wspólną skrzynię). Zwraca jej identyfikator.
-func create_character(name: String, is_ssf: bool) -> String:
+func create_character(name: String, is_ssf: bool, first_weapon := Weapons.SWORD) -> String:
 	DirAccess.make_dir_recursive_absolute(chars_dir)
 	var id := "c%d" % int(Time.get_unix_time_from_system())
 	var n := 1
@@ -268,8 +271,10 @@ func create_character(name: String, is_ssf: bool) -> String:
 	var clean := name.strip_edges().left(20)
 	var f := FileAccess.open(chars_dir + id + ".json", FileAccess.WRITE)
 	if f:
+		var w := first_weapon if first_weapon in Weapons.START else Weapons.SWORD
 		f.store_string(JSON.stringify({"name": clean if clean != "" else DEFAULT_NAME, "ssf": is_ssf,
-				"created": int(Time.get_unix_time_from_system())}))
+				"created": int(Time.get_unix_time_from_system()), "start_weapon": w, "weapon": w,
+				"skills_owned": [Skills.basic_of(w)], "mastery": {}}))
 		f.close()
 	return id
 
@@ -342,6 +347,7 @@ func load_game() -> void:
 	gold = 0
 	ore = 0
 	stash = [[]]
+	start_weapon = Weapons.SWORD
 	weapon = Weapons.SWORD
 	mastery = {}
 	mastery_xp = {}
@@ -417,8 +423,10 @@ func load_game() -> void:
 			for id in raw_bought:
 				if id is String and Weapons.has(id) and not weapons_bought.has(id):
 					weapons_bought.append(id)
-		var raw_weapon = data.get("weapon", Weapons.SWORD)
-		weapon = raw_weapon if raw_weapon is String and weapon_available(raw_weapon) else Weapons.SWORD
+		var raw_start = data.get("start_weapon", Weapons.SWORD)
+		start_weapon = raw_start if raw_start is String and raw_start in Weapons.START else Weapons.SWORD
+		var raw_weapon = data.get("weapon", start_weapon)
+		weapon = raw_weapon if raw_weapon is String and weapon_available(raw_weapon) else start_weapon
 		var raw_mastery = data.get("mastery", {})
 		var raw_mxp = data.get("mastery_xp", {})
 		if raw_mastery is Dictionary and raw_mxp is Dictionary:
@@ -539,7 +547,7 @@ func save_game() -> void:
 		f.store_string(JSON.stringify({"name": char_name, "ssf": ssf, "created": created, "dev": _dev_data(),
 				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "ore": ore, "bag": bag, "equipped": equipped,
-				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
+				"stash": stash, "weapon": weapon, "start_weapon": start_weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes, "market": market,
 				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots}))
 
@@ -618,7 +626,7 @@ func reset_hero() -> void:
 	ore = 0
 	if not _uses_shared_stash():  # wspólna skrzynia należy też do innych postaci
 		stash = [[]]
-	weapon = Weapons.SWORD
+	weapon = start_weapon
 	mastery = {}
 	mastery_xp = {}
 	weapons_bought = []
@@ -1088,7 +1096,7 @@ static func _default_slots(w := Weapons.SWORD) -> Array:
 
 ## Czy broń można wziąć do ręki: miecz zawsze, inne po przebiciu progu lochu albo odblokowane Pieczęcią Oręża.
 func weapon_available(id: String) -> bool:
-	return Weapons.has(id) and (Weapons.unlocked_by(id, best_level) or weapons_bought.has(id))
+	return Weapons.has(id) and (id == start_weapon or Weapons.unlocked_by(id, best_level) or weapons_bought.has(id))
 
 
 ## Czy ze skrzyni Wodza wypada Pieczęć Oręża: z szansą Gems.CHEST_WEAPON_SEAL x `chance_mult`, tylko gdy jakaś broń

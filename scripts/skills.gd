@@ -166,6 +166,34 @@ const DATA := {
 		"mana": 45, "cooldown": 12.0, "weapon": "bow", "mastery": 15, "main": true, "range": 120.0, "power": 0.6,
 		"description": "Stawiasz balistę przy wrogu: stoi 8 s, obraca się ku celom i strzela bełtami w najbliższych wrogów.",
 	},
+	# Księga Arkanów (ankieta z autorem 21.11.2026): broń magiczna, żywioł Arkana - trafienia wysysają manę (ProtoBook).
+	"a_missiles": {
+		"name": "Pociski Arkanów", "icon": preload("res://assets/skills/book/a_missiles.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "book", "mastery": 1, "main": true, "range": 180.0, "power": 0.45,
+		"description": "Księga wypuszcza 3 pociski, które lecą łukiem albo zakosami: jeden w najbliższego wroga, pozostałe w losowych wrogów w pobliżu.",
+	},
+	"a_circle": {
+		"name": "Krąg Mocy", "icon": preload("res://assets/skills/book/a_circle.png"),
+		"mana": 24, "cooldown": 5.0, "weapon": "book", "mastery": 3, "main": true, "range": 60.0, "power": 1.3,
+		"description": "Pod tobą rozbłyska krąg magiczny i rani wszystkich wrogów w nim.",
+	},
+	"a_orbs": {
+		"name": "Kule Arkanów", "icon": preload("res://assets/skills/book/a_orbs.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "book", "mastery": 6, "main": false, "range": 60.0, "power": 0.5,
+		"toggle": true,
+		"description": "Włączasz i wyłączasz jak aurę: 3 kule krążą wokół ciebie i ranią wrogów, których dotkną. Rezerwuje 20% many. Szybkość obrotu rośnie z szybkością rzucania, wielkość i odległość kul - z obszarem. Nie może stać pod dużym przyciskiem.",
+	},
+	"a_beam": {
+		"name": "Promień Arkanów", "icon": preload("res://assets/skills/book/a_beam.png"),
+		"mana": 14, "cooldown": 0.0, "weapon": "book", "mastery": 10, "main": false, "range": 170.0, "power": 0.4,
+		"charge": true,
+		"description": "Przytrzymaj: promień magii bije w najbliższego wroga i rani też wrogów wokół niego, dopóki trzymasz przycisk i starcza many (koszt co sekundę). Nie może stać pod dużym przyciskiem.",
+	},
+	"a_seals": {
+		"name": "Pieczęcie Wybuchu", "icon": preload("res://assets/skills/book/a_seals.png"),
+		"mana": 36, "cooldown": 8.0, "weapon": "book", "mastery": 15, "main": true, "range": 160.0, "power": 1.6,
+		"description": "Pod 4 wrogami oddalonymi od siebie pojawiają się pieczęcie, a po chwili wybuchają i ranią wszystkich wokół.",
+	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
 ## (o COST_STEP każdy), z większym obszarem (o AREA_STEP każdy) i z nowym działaniem.
@@ -185,7 +213,8 @@ const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "st
 		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200,
 		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200,
 		"k_slash": 40, "k_dance": 60, "k_riposte": 90, "k_perun": 140, "k_flash": 200,
-		"b_shot": 40, "b_seeker": 60, "b_rain": 90, "b_power": 140, "b_ballista": 200}
+		"b_shot": 40, "b_seeker": 60, "b_rain": 90, "b_power": 140, "b_ballista": 200,
+		"a_missiles": 40, "a_circle": 60, "a_orbs": 90, "a_beam": 140, "a_seals": 200}
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
@@ -213,13 +242,18 @@ const PERKS := {
 	"b_rain": ["Krąg deszczu o 30% większy.", "Deszcz pada 2 s zamiast 1."],
 	"b_power": ["Naciąga się o 1/3 szybciej.", "Podmuch ogłusza wrogów na 0,8 s."],
 	"b_ballista": ["Balista stoi 11 s zamiast 8.", "Stawiasz dwie balisty naraz."],
+	"a_missiles": ["4 pociski zamiast 3.", "Co trzeci rzut - dwa pociski więcej."],
+	"a_circle": ["Krąg o 30% większy.", "Po pół sekundy krąg rozbłyska drugi raz."],
+	"a_orbs": ["Kule o 30% silniejsze.", "Dwie kule więcej na orbicie."],
+	"a_beam": ["Promień przeskakuje na drugiego wroga obok.", "Obszar wokół celu o połowę większy."],
+	"a_seals": ["6 pieczęci zamiast 4.", "Wybuch ogłusza wrogów na 0,5 s."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 ## Kolejność w oknie umiejętności.
 const ORDER := ["strike", "whirl", "throw", "slam", "steel_ring", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
 		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash",
-		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista"]
+		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista", "a_missiles", "a_circle", "a_orbs", "a_beam", "a_seals"]
 
 
 static func has(id: String) -> bool:
@@ -289,6 +323,11 @@ static func unlocked_at(weapon: String, mastery: int) -> Array[String]:
 ## Czy umiejętność ładuje się przytrzymaniem przycisku (Sąd Peruna katany - działa po puszczeniu).
 static func is_charged(id: String) -> bool:
 	return DATA.has(id) and DATA[id].get("charge", false)
+
+
+## Czy umiejętność się włącza i wyłącza jak aura (Kule Arkanów - rezerwuje manę, bez odnowienia).
+static func is_toggle(id: String) -> bool:
+	return DATA.has(id) and DATA[id].get("toggle", false)
 
 
 ## Czy umiejętność może stać pod dużym przyciskiem (Mgnienie - nie: auto atak wrzucałby postać w hordę).

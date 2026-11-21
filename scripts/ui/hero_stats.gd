@@ -543,6 +543,13 @@ static func attack_speed_mult(gear := {}) -> float:
 	return 1.0 + gear.get("attack_speed_pct", 0.0) / 100.0
 
 
+## Mnożnik szybkości broni w ręku: broń magiczna (Weapons `magic`) - szybkość rzucania czarów, inna - szybkość ataku.
+static func weapon_speed_mult(weapon_id: String, gear := {}) -> float:
+	if Weapons.is_magic(weapon_id):
+		return 1.0 + gear.get("cast_speed_pct", 0.0) / 100.0
+	return attack_speed_mult(gear)
+
+
 ## Obrażenia jednego cięcia miecza na danym poziomie (od-do), z przedmiotami.
 static func damage_range(level: int, gear := {}) -> Vector2i:
 	var m := damage_mult(level, gear)

@@ -53,7 +53,19 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   5. ~~**Symulowany rynek**~~ - zrobiony 20.11.2026 jako targ w bazie (szczegóły w `docs/historia.md`). Do oceny na
      telefonie: tempo rynku (chwila co 10 min, offline do 12 h), ceny bazowe na giełdzie, jak szybko schodzą własne
      oferty, czy pasek skrótów w dwóch kolumnach jest wygodny.
-  - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), **broń magiczna**, wybór broni na start (resztę odblokowuje się jak teraz). Każda broń to duża
+  - ~~**Księga Arkanów**~~ - zrobiona 21.11.2026 (szczegóły w `docs/historia.md`; do oceny na telefonie: siła czarów,
+    koszt many promienia, rezerwacja kul, czy efekty nie zasłaniają wrogów, wybór broni na start). Ustalenia z ankiety: broń magiczna, nowy żywioł **Arkana** (fioletowo-białe efekty,
+    działanie: trafienia wysysają manę), nowe premie przedmiotów „+% obrażeń magicznych” (cała broń magiczna: księga
+    i hydrosfera) i „+% szybkości rzucania” (broń magiczna przyspiesza tylko od niej, reszta - od szybkości ataku).
+    Wybór broni na start nowej postaci: miecz, łuk albo księga; dwie niewybrane odblokowują się na 5. poziomie lochu
+    (stare postacie: księga od lochu 5). Czary: Pociski Arkanów (zwykły atak - 3 pociski po łuku / chaotycznie w losowych
+    wrogów, jeden w najbliższego; ogon wygina się po torze - rysowany w grze; unikalny: z trafionego 3 odłamki w pobliskich),
+    Krąg Mocy (krąg pod postacią, obrażenia obszarowe; unikalny: krąg zostaje i daje siłę czarów i +pociski),
+    Kule Arkanów (aura rezerwująca manę - kule krążą wokół postaci, obrót od szybkości rzucania, wielkość i promień od
+    obszaru, 10. poziom +1-2 kule; unikalny: druga orbita w drugą stronę), Promień Arkanów (trzymany - w najbliższego,
+    obszar wokół celu; unikalny: od postaci emanuje magia), Pieczęcie Wybuchu (kręgi pod kilkoma wrogami, po chwili
+    wybuch; unikalny: kręgi łączy raniąca wiązka). Efekty z kreatora PixelLab. Wszystko w jednym PR.
+  - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), ~~broń magiczna~~ i ~~wybór broni na start~~ (Księga Arkanów, 21.11.2026). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.
 

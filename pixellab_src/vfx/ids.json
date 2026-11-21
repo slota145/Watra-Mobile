@@ -1053,5 +1053,140 @@
       30,
       30
     ]
+  },
+  "arcane_missile": {
+    "effect": "103574e8-74f8-498e-8df1-86e917315cb8",
+    "name": "Głowa pocisku arkanów (bez ogona - ogon rysuje gra)",
+    "frame": [
+      17,
+      17
+    ],
+    "frames": 6,
+    "fps": 12,
+    "anchor": [
+      8,
+      8
+    ],
+    "columns": 3
+  },
+  "arcane_hit": {
+    "effect": "5ed5e9a7-0cfe-4372-a285-74dc6c46ff61",
+    "name": "Trafienie pocisku arkanów (błysk i iskry)",
+    "frame": [
+      46,
+      39
+    ],
+    "frames": 6,
+    "fps": 14,
+    "anchor": [
+      23,
+      21
+    ],
+    "columns": 3
+  },
+  "arcane_circle": {
+    "effect": "31dd9011-ec14-4df6-bcda-172bab7efc9a",
+    "name": "Krąg Mocy pod postacią (pętla - gra rozjaśnia i wygasza)",
+    "frame": [
+      110,
+      46
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      55,
+      23
+    ],
+    "columns": 4
+  },
+  "arcane_orb": {
+    "effect": "8dd52c0a-ff0f-452a-9bc1-61af57af2877",
+    "name": "Kula Arkanów krążąca wokół postaci (pętla)",
+    "frame": [
+      17,
+      17
+    ],
+    "frames": 6,
+    "fps": 12,
+    "anchor": [
+      8,
+      8
+    ],
+    "columns": 3
+  },
+  "arcane_beam": {
+    "effect": "82c25305-2698-420a-8783-97061260d875",
+    "name": "Odcinek Promienia Arkanów (kafelek w poziomie, pętla - krawędzie celowo dotykają brzegów)",
+    "frame": [
+      32,
+      16
+    ],
+    "frames": 6,
+    "fps": 12,
+    "anchor": [
+      0,
+      8
+    ],
+    "columns": 3
+  },
+  "arcane_beam_hit": {
+    "effect": "6d6f19eb-82a6-4857-a21e-289a0fda7685",
+    "name": "Błysk w punkcie trafienia Promienia Arkanów (pętla)",
+    "frame": [
+      32,
+      32
+    ],
+    "frames": 6,
+    "fps": 12,
+    "anchor": [
+      16,
+      16
+    ],
+    "columns": 3
+  },
+  "arcane_seal": {
+    "effect": "6f557239-5c1d-40cf-b05c-3c80cbff4a62",
+    "name": "Pieczęć Wybuchu pod wrogiem - narasta przed wybuchem",
+    "frame": [
+      54,
+      30
+    ],
+    "frames": 10,
+    "fps": 12,
+    "anchor": [
+      27,
+      15
+    ],
+    "columns": 4
+  },
+  "arcane_blast": {
+    "effect": "4a15116e-9c17-4edd-88ca-e0a95dacabf2",
+    "name": "Wybuch Pieczęci (błysk, fala po ziemi, iskry)",
+    "frame": [
+      72,
+      39
+    ],
+    "frames": 9,
+    "fps": 18,
+    "anchor": [
+      36,
+      20
+    ],
+    "columns": 3
+  },
+  "arcane_shard": {
+    "effect": "5f36ad08-8929-4f7c-a1d5-455752b37f23",
+    "name": "Odłamek arkanów (kamień unikalny Pocisków - koziołkuje)",
+    "frame": [
+      16,
+      16
+    ],
+    "frames": 4,
+    "fps": 16,
+    "anchor": [
+      8,
+      8
+    ],
+    "columns": 2
   }
 }

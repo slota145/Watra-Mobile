@@ -851,7 +851,7 @@ func _on_inventory() -> void:
 func _apply_weapon() -> void:
 	weapon.damage = HeroStats.weapon_damage(gear)
 	weapon.damage_mult = HeroStats.damage_mult(Game.hero_level, gear)
-	weapon.speed_mult = HeroStats.attack_speed_mult(gear)
+	weapon.speed_mult = HeroStats.weapon_speed_mult(Game.weapon, gear)  # broń magiczna - szybkość rzucania
 	weapon.crit_chance = HeroStats.crit_chance(gear) / 100.0
 	weapon.crit_mult = HeroStats.crit_damage(gear) / 100.0
 	weapon.elite_mult = 1.0 + gear.get("elite_dmg_pct", 0.0) / 100.0
@@ -860,6 +860,7 @@ func _apply_weapon() -> void:
 	weapon.penetration = gear.get("pen_pct", 0.0) / 100.0
 	weapon.aura_fire = gear.get("aura_fire", 0.0)
 	weapon.elem_mult = 1.0 + gear.get("elem_dmg_pct", 0.0) / 100.0
+	weapon.magic_mult = 1.0 + gear.get("magic_dmg_pct", 0.0) / 100.0 if Weapons.is_magic(Game.weapon) else 1.0
 	weapon.extra_projectiles = int(gear.get("aura_projectiles", 0))  # Rój Strzyboga
 	weapon.projectile_mult = 1.0 - gear.get("aura_proj_penalty", 0.0)
 	ProtoTarget.burn_power = 1.0 + gear.get("aura_burn", 0.0)  # Złość Licha
