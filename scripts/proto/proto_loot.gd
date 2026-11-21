@@ -5,7 +5,7 @@ extends Node2D
 ## i trafia do torby (`Game.add_item`, sygnał `picked`). Przy pełnej torbie odskakuje, pokazuje „Torba pełna!”
 ## i czeka, aż postać odejdzie i wróci (można zrobić miejsce w oknie „Postać” w pauzie). Łup ze skrzyni Wodza
 ## (`sell_if_full`) przy pełnej torbie rozbija się od razu na rudę, żeby nie przepadł po oknie zwycięstwa.
-## Z włączonym auto rozbijaniem (`Game.auto_sell_common`) zwykły przedmiot od razu rozbija się na rudę.
+## Przedmiot, którego nie chce filtr łupu (LootFilter, `Game.loot_filter`), od razu rozbija się na rudę.
 ## Arena pokazuje powiadomienie o każdym podniesionym i rozbitym przedmiocie (sygnały `picked`, `scrapped`).
 ## Kamień, klucz albo dłuto (Gems) to łup w postaci {"gem": identyfikator}: zawsze trafia do sakwy (`Game.add_gem`,
 ## bez limitu), świeci kolorem kamienia. Kamień aury ({"aura": identyfikator}, Auras) od razu uczy aury albo podnosi
@@ -20,7 +20,7 @@ extends Node2D
 ## (grupa GoalArrows.GROUP: `goal_active`, `goal_icon`, `goal_color`).
 
 signal picked(item: Dictionary)
-## Przedmiot rozbity od razu: auto rozbijanie zwykłych albo pełna torba (`bag_full`, łup ze skrzyni);
+## Przedmiot rozbity od razu: filtr łupu (LootFilter) albo pełna torba (`bag_full`, łup ze skrzyni);
 ## `got` - {"ore", "rune"} jak Game.dismantle.
 signal scrapped(item: Dictionary, got: Dictionary, bag_full: bool)
 
@@ -245,7 +245,7 @@ func _take() -> void:
 		_game.add_gem(item.gem)
 	elif item.has("rune"):
 		_game.add_rune(item.rune)
-	elif item.rarity == "common" and _game.auto_sell_common:
+	elif LootFilter.burns(_game, item):
 		got = _game.dismantle_loot(item)
 	elif not _game.add_item(item):
 		if not sell_if_full:

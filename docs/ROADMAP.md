@@ -106,6 +106,9 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), ~~broń magiczna~~ i ~~wybór broni na start~~ (Księga Arkanów, 21.11.2026). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.
+  - ~~**Filtr łupu**~~ - zrobiony 21.11.2026 (szczegóły w `docs/historia.md`; do oceny na telefonie: próg Automatu,
+    lista premii Automatu, czytelność okna). Zostaje: filtr dla kamieni szlachetnych wkładanych w ekwipunek - najpierw
+    muszą dostać stopnie premii.
 
 - **Boss w lochu (12.11.2026):** zrobione (szczegóły w `docs/historia.md`); do oceny na telefonie: czas zapełniania
   paska (100 żaru), trudność Wodza, czytelność ostrzeżeń. Model, animacje i efekty

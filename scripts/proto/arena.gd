@@ -111,11 +111,14 @@ var xp_text: Label
 ## Doświadczenie zdobyte w tej wyprawie i poziom postaci na jej starcie (do podsumowania).
 var run_xp := 0
 var _start_hero_level := 1
-## Przedmioty i runy podniesione w tej wyprawie oraz ruda (przedmioty rozbite od razu - auto rozbijanie, pełna torba
+## Przedmioty i runy podniesione w tej wyprawie oraz ruda (przedmioty rozbite od razu - filtr łupu, pełna torba
 ## przy skrzyni - i Skarbnik).
 var run_items := 0
 var run_runes := 0
 var run_ore := 0
+## Przedmioty rozbite przez filtr łupu w tej wyprawie i ruda z nich (podsumowanie - RunResult.add_filter_line).
+var run_filtered := 0
+var run_filtered_ore := 0
 ## Powiadomienia o łupie (pod paskami u góry, znikają same) i ich największa liczba naraz.
 var loot_feed: VBoxContainer
 ## Powiadomienia o łupie: najwyżej tyle naraz, tyle sekund; małe i przy lewej krawędzi, żeby nie zasłaniały postaci
@@ -965,12 +968,17 @@ func _track_loot(loot: ProtoLoot) -> void:
 	loot.scrapped.connect(func(item: Dictionary, got: Dictionary, bag_full: bool) -> void:
 		run_ore += int(got.ore)
 		run_runes += 1 if got.rune != "" else 0
-		var text := tr("Torba pełna - rozbito: %s (+%d rudy)") if bag_full else tr("Rozbito: %s (+%d rudy)")
-		notify_loot(item, text % [Items.name_of(item), got.ore]))
+		if bag_full:
+			notify_loot(item, tr("Torba pełna - rozbito: %s (+%d rudy)") % [Items.name_of(item), got.ore])
+			return
+		run_filtered += 1
+		run_filtered_ore += int(got.ore)
+		notify_loot(item, tr("Filtr rozbił: %s (+%d rudy)") % [Items.name_of(item), got.ore], true))
 
 
 ## Powiadomienie o łupie pod paskami u góry: ikona i napis w kolorze rzadkości, po chwili gaśnie.
-func notify_loot(item: Dictionary, text: String) -> void:
+## `dim` - przygaszone (przedmiot rozbity przez filtr łupu, ankieta autora 21.11.2026).
+func notify_loot(item: Dictionary, text: String, dim := false) -> void:
 	if loot_feed == null:
 		return
 	while loot_feed.get_child_count() >= FEED_MAX:
@@ -1003,6 +1011,8 @@ func notify_loot(item: Dictionary, text: String) -> void:
 	label.add_theme_font_size_override("font_size", 10)
 	label.add_theme_color_override("font_color", ProtoLoot.color_of(item))
 	row.add_child(label)
+	if dim:
+		panel.modulate = Color(1, 1, 1, 0.55)
 	loot_feed.add_child(panel)
 	var tween := panel.create_tween()
 	tween.tween_interval(FEED_TIME)
@@ -1439,6 +1449,7 @@ func victory() -> void:
 		result.add_unlock_lines(Unlocks.on_beat(level))
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
 	result.add_loot_lines(run_items, run_runes, run_ore)
+	result.add_filter_line(run_filtered, run_filtered_ore)
 	get_tree().paused = true
 
 
@@ -1546,6 +1557,7 @@ func _on_hero_died() -> void:
 	result.show_result(horde_spawner.kills, horde_spawner.time, horde_spawner.embers)
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
 	result.add_loot_lines(run_items, run_runes, run_ore)
+	result.add_filter_line(run_filtered, run_filtered_ore)
 	get_tree().paused = true
 
 

@@ -3,7 +3,7 @@ extends Control
 ## Okno pauzy w trakcie gry (przycisk „Menu”): zatrzymuje grę i daje ustawienia sterowania -
 ## atak i umiejętności po lewej stronie, gest postaci przy ataku, auto atak (umiejętność pod dużym przyciskiem), tryb deweloperski
 ## (przycisk otwiera DevWindow: nieśmiertelność, wszystkie poziomy lochu, skróty, poziom postaci, statystyki suwakami)
-## - oraz powrót do gry i wyjście do menu głównego. Okna „Postać”
+## - okno „Filtr łupu” (LootFilterWindow) - oraz powrót do gry i wyjście do menu głównego. Okna „Postać”
 ## i umiejętności otwierają ikonki w górnym rzędzie areny (decyzja autora 13.11.2026), nie pauza.
 ## Skróty zmieniają postać w Game (arena słucha jego sygnałów), żar - sygnał `dev_embers` (arena dodaje go
 ## do paska wyprawy w lochu albo do Watry w bazie). Okno przewija się, gdy nie mieści się na niskim ekranie.
@@ -25,6 +25,9 @@ var auto_toggle: CheckButton
 ## Przycisk i okno trybu deweloperskiego.
 var dev_button: Button
 var dev: DevWindow
+## Przycisk i okno filtra łupu.
+var filter_button: Button
+var filter_window: LootFilterWindow
 ## Wyjście z lochu czekające na potwierdzenie (przycisk albo null).
 var _leave_armed: Button = null
 var _scroll: ScrollContainer
@@ -90,6 +93,10 @@ func _ready() -> void:
 	auto_toggle.toggled.connect(func(on: bool) -> void:
 		_game.auto_attack = on
 		_game.save_settings())
+	filter_button = _button(column, tr("Filtr łupu"))
+	filter_button.pressed.connect(func() -> void: filter_window.open())
+	filter_window = LootFilterWindow.new()
+	filter_window.visible = false
 	dev_button = _button(column, tr("Tryb deweloperski"))
 	dev_button.add_theme_color_override("font_color", Color(1, 0.7, 0.5))
 	dev_button.pressed.connect(func() -> void: dev.open())
@@ -112,6 +119,7 @@ func _ready() -> void:
 	quit_button = _button(column, tr("Menu główne"))
 	quit_button.pressed.connect(func() -> void: _leave(quit_button, _game.MENU_SCENE))
 	add_child(dev)  # nad oknem pauzy
+	add_child(filter_window)
 
 
 ## Pokazuje okno i zatrzymuje grę. `at_stake` - żar, który zgaśnie przy ucieczce z lochu.
@@ -131,6 +139,9 @@ func open(at_stake := 0) -> void:
 func back() -> void:
 	if dev.visible:
 		dev.close()
+		return
+	if filter_window.visible:
+		filter_window.back()
 		return
 	close()
 
