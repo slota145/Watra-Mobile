@@ -12,7 +12,7 @@ extends ProtoWeapon
 ##   5. poziom - więcej), każdego ogłusza, potem wraca; 10. - fala wstrząsu przy każdym trafieniu; kamień unikalny
 ##   (Powrotu) - wracając, rani wszystkich na drodze.
 ## - „Skok z uderzeniem” (`m_leap`): postać skacze (nietykalna w locie) w stronę gałki albo najbliższego wroga, młot
-##   uderza przy lądowaniu - krater rani, ogłusza i odpycha; 5. - krater większy, 10. - pierścień skalnych kolców;
+##   uderza przy lądowaniu - krater rani, ogłusza i odpycha; 5. - krater większy, 10. - fala kolców (szczeliny gwiazdą od krateru, `_spike_wave`);
 ##   kamień unikalny (Grzęzawiska) - krater zostaje na LEAP_PIT_TIME s, spowalnia i rani (`_pits`).
 ## - „Trzęsienie ziemi” (`m_quake`, trzymany - Skills.is_charged, `charge_held`): dopóki palec trzyma przycisk i starcza
 ##   many (koszt na sekundę), co QUAKE_EVERY s fala wokół postaci rani i odpycha; postać idzie wolniej
@@ -69,7 +69,13 @@ const LEAP_STUN := 0.8
 const LEAP_PUSH := 120.0
 const LEAP_ECHO := 0.2
 const LEAP_ECHO_RADIUS := 1.4
-const LEAP_SPIKES := 6
+## 10. poziom skoku (prośba autora po teście 21.11.2026 - zamiast pierścienia kolców naraz): fala kolców - z krateru
+## rozchodzi się LEAP_CRACKS szczelin jak gwiazda (jak szczelina Rozłupania Ziemi), wzdłuż każdej po kolei od środka
+## wyskakują LEAP_CRACK_SPIKES kolce; każdy wróg obrywa od fali raz.
+const LEAP_CRACKS := 6
+const LEAP_CRACK_SPIKES := 4
+const LEAP_CRACK_LENGTH := 85.0
+const LEAP_CRACK_TIME := 0.35
 const LEAP_SPIKE_POWER := 0.5
 const LEAP_PIT_TIME := 4.0
 const LEAP_PIT_TICK := 0.5
@@ -475,13 +481,63 @@ func _leap_land(at: Vector2, echo := false) -> void:
 	if gem_power("m_leap", "multi") > 0.0:
 		get_tree().create_timer(LEAP_ECHO, false).timeout.connect(_leap_land.bind(at, true))
 	if _perk("m_leap", 1):
-		for i in LEAP_SPIKES:
-			var spot := at + Vector2.from_angle(TAU * i / LEAP_SPIKES) * Vector2(1.0, 0.62) * radius * 1.1
-			get_tree().create_timer(0.08 + 0.03 * i, false).timeout.connect(_spike.bind(spot, _power("m_leap") * LEAP_SPIKE_POWER, "m_leap"))
+		_spike_wave(at, radius)
 	if _unique("m_leap"):
 		_spawn_pit(at, radius)
 	Input.vibrate_handheld(45)
 	_shake(3.0)
+
+
+## Fala kolców z krateru (10. poziom skoku): szczeliny rosną od brzegu krateru na zewnątrz, kolce wyskakują po kolei.
+## `turn` - obrót gwiazdy szczelin (domyślnie losowy; testy podają stały).
+func _spike_wave(at: Vector2, radius: float, turn := -1.0) -> void:
+	var hit := {}  # każdy wróg raz na całą falę
+	var length := LEAP_CRACK_LENGTH * _area("m_leap")
+	var power := _power("m_leap") * LEAP_SPIKE_POWER
+	if turn < 0.0:
+		turn = randf() * TAU
+	for c in LEAP_CRACKS:
+		var dir := Vector2.from_angle(turn + TAU * c / LEAP_CRACKS)
+		var flat := Vector2(dir.x, dir.y * 0.62)  # jak cienie - spłaszczone w pionie
+		var start := at + flat * radius * 0.7
+		var side := flat.orthogonal().normalized()
+		var crack := Line2D.new()
+		crack.width = 2.0
+		crack.default_color = Color(0.12, 0.08, 0.05, 0.85)
+		crack.z_index = -1
+		var points := PackedVector2Array()
+		var steps := 6
+		for i in steps + 1:
+			points.append(start + flat * length * i / steps + side * (0.0 if i == 0 else randf_range(-4.0, 4.0)))
+		crack.add_point(points[0])
+		get_parent().add_child(crack)
+		var grow := crack.create_tween()
+		grow.tween_method(func(k: float) -> void:
+			var n := clampi(ceili(k * steps), 1, steps)
+			while crack.get_point_count() < n + 1:
+				crack.add_point(points[crack.get_point_count()]), 0.0, 1.0, LEAP_CRACK_TIME)
+		grow.tween_interval(0.8)
+		grow.tween_property(crack, "modulate:a", 0.0, 0.4)
+		grow.tween_callback(crack.queue_free)
+		for i in LEAP_CRACK_SPIKES:
+			var k := (i + 1.0) / LEAP_CRACK_SPIKES
+			var spot := start + flat * length * k + side * randf_range(-3.0, 3.0)
+			get_tree().create_timer(LEAP_CRACK_TIME * k, false).timeout.connect(_wave_spike.bind(spot, power, hit))
+
+
+## Kolec fali: efekt kolca Rozłupania i trafienie wrogów obok, którzy jeszcze nie oberwali od tej fali.
+func _wave_spike(spot: Vector2, power: float, hit: Dictionary) -> void:
+	if not is_inside_tree() or hero == null or hero.dead:
+		return
+	Fx.once(get_parent(), SLAM_SPIKE_FX, SLAM_SPIKE_FRAMES, 16.0, spot.round(), SLAM_SPIKE_ANCHOR, 2, 0.7)
+	var r := SPIKE_RADIUS * _area("m_leap")
+	for t in _near(spot, r):
+		var d := t.global_position - spot
+		if hit.has(t) or Vector2(d.x, d.y * 1.6).length() > r:
+			continue
+		hit[t] = true
+		_hit(t, power, spot, "m_leap")
+		t.stun(0.3)
 
 
 ## Kamień Grzęzawiska: krater z pękniętej ziemi (ciemne, spłaszczone koło z bursztynowym brzegiem).

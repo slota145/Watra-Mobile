@@ -17,7 +17,7 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   - `m_throw` Rzut młotem (3): wirując, odbija się od 3 wrogów (5. - 5), każdego ogłusza 0,4 s, wraca; 10. - fala wstrząsu
     przy trafieniu; Mnożenie - 2 odbicia więcej; Kamień Powrotu - rani po drodze z powrotem (60%);
   - `m_leap` Skok z uderzeniem (6, nie pod „Atak”): skok w stronę gałki albo do wroga (nietykalny w locie), krater 48 px
-    rani, ogłusza 0,8 s, odpycha; 5. - krater +30%, 10. - pierścień 6 kolców; Mnożenie - drugi, szerszy wstrząs;
+    rani, ogłusza 0,8 s, odpycha; 5. - krater +30%, 10. - fala kolców (po teście autora: 6 szczelin gwiazdą od krateru, kolce po kolei na zewnątrz, każdy wróg raz - `_spike_wave`); Mnożenie - drugi, szerszy wstrząs;
     Kamień Grzęzawiska - krater zostaje 4 s (spowalnia o 50%, rani co 0,5 s);
   - `slam` Rozłupanie Ziemi (10) - bez zmian działania, teraz młotem (`_process_slam` - obuch spada niżej);
   - `m_quake` Trzęsienie ziemi (15, trzymane - `charge`): co 0,5 s (5. - 0,4) fala 60 px rani i odpycha, postać idzie

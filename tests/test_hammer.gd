@@ -191,6 +191,33 @@ func _test_skills(game: Node) -> void:
 	_check(hero.position.distance_to(Vector2(80, 0)) < 20.0 and gs[0].hp < gs[0].max_hp and gs[1].hp < gs[1].max_hp,
 			"skok do wroga, krater rani wrogów wokół")
 	_check(hammer.pits() == 1, "Kamień Grzęzawiska: krater zostaje")
+	# 10. poziom: fala kolców od krateru - szczeliny gwiazdą, kolce po kolei na zewnątrz, każdy wróg raz
+	var spots: Array = []
+	for k in 12:
+		spots.append(hero.position + Vector2.from_angle(TAU * k / 12.0) * Vector2(1.0, 0.62) * 100.0)
+	var ring: Array = await _stunned(arena, spots)
+	hammer.skill_levels["m_leap"] = 10
+	var counts := {}
+	for g in ring:
+		counts[g] = 0
+	var last := {}
+	for g in ring:
+		last[g] = g.hp
+	hammer._spike_wave(hero.global_position, hammer._leap_radius(), 0.0)  # szczeliny co 60° - co drugi wróg na linii
+	for i in 14:
+		await _wait(0.05)
+		for g in ring:
+			if g.hp < last[g]:
+				counts[g] += 1
+				last[g] = g.hp
+	var hit_n := 0
+	var twice := false
+	for g in ring:
+		hit_n += 1 if counts[g] > 0 else 0
+		twice = twice or counts[g] > 1
+	_check(hit_n >= 6 and not twice, "fala kolców: trafia wrogów daleko za kraterem (%d z 12), każdego raz" % hit_n)
+	for g in ring:
+		g.queue_free()
 	await _wait(ProtoHammer.LEAP_PIT_TIME + 0.3)
 	_check(hammer.pits() == 0, "krater znika po czasie")
 	for g in gs:
