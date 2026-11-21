@@ -131,8 +131,15 @@ const MOW_HALF := Vector2(deg_to_rad(32.0), deg_to_rad(55.0))
 const MOW_POWER := Vector2(0.9, 2.0)
 const MOW_STUN := 1.0
 const MOW_FLASH := 0.5
-const MOW_ROWS := 3
-const MOW_ROW_GAP := 0.14
+## Rzędy kamienia unikalnego: co MOW_ROW_SPACING px długości stożka (co najmniej MOW_ROWS_MIN; prośba autora - więcej
+## rzędów), kolejny rząd po MOW_ROW_GAP s.
+const MOW_ROWS_MIN := 3
+const MOW_ROW_SPACING := 18.0
+const MOW_ROW_GAP := 0.1
+## Zamach Pokosu i wybuchy rosną z obszarem do tylu razy (ogólny limit `_fx_scale` 1,25 zatrzymywał je - uwaga autora).
+const MOW_MAX_SCALE := 2.0
+## Wybuchów rzędów bywa kilkadziesiąt naraz - własny limit efektów (przy ogólnym 16 lewa część rzędów znikała).
+const MOW_BLAST_CAP := 80
 const MOW_BLAST_GAP := 0.05
 const MOW_BLAST_SPACING := 26.0
 const MOW_BLAST_RADIUS := 20.0
@@ -714,7 +721,7 @@ func _mow_cut(k: float) -> void:
 			if _perk("s_mow", 1) and k >= 1.0:
 				t.stun(MOW_STUN)
 	var mow := Fx.once(get_parent(), MOW_FX, MOW_FRAMES, MOW_FPS, hero.global_position.round(), MOW_ANCHOR, 5,
-			_fx_scale(shape.y * 0.92 / MOW_FX_RADIUS))
+			minf(shape.y * 0.92 / MOW_FX_RADIUS, MOW_MAX_SCALE))
 	mow.rotation = _aim
 	mow.scale.y = -mow.scale.y  # zamach od drugiej strony (prośba autora 21.11.2026)
 	var flash := Polygon2D.new()
@@ -735,14 +742,19 @@ func _mow_cut(k: float) -> void:
 	_end_skill()
 
 
-## Kamień unikalny Pokosu: wybuchy Nawii w MOW_ROWS rzędach (od bliższego), każdy rząd od prawej do lewej względem
-## postaci (prawa ręka przy patrzeniu w `aim` - większy kąt na ekranie).
+## Kamień unikalny Pokosu: wybuchy Nawii w rzędach co MOW_ROW_SPACING px (od bliższego), każdy rząd od prawej do lewej
+## krawędzi stożka względem postaci (prawa ręka przy patrzeniu w `aim` - większy kąt na ekranie).
+static func mow_row_count(shape: Vector3) -> int:
+	return maxi(MOW_ROWS_MIN, int((shape.y - shape.x) / MOW_ROW_SPACING))
+
+
 func _mow_rows(at: Vector2, aim: float, shape: Vector3, power: float) -> void:
-	for r in MOW_ROWS:
-		var radius := lerpf(shape.x + 16.0, shape.y - 10.0, float(r) / maxf(MOW_ROWS - 1, 1))
+	var rows := mow_row_count(shape)
+	for r in rows:
+		var radius := lerpf(shape.x + 14.0, shape.y - 8.0, float(r) / maxf(rows - 1, 1))
 		var count := maxi(3, int(2.0 * shape.z * radius / MOW_BLAST_SPACING) + 1)
 		for i in count:
-			var a := aim + shape.z * 0.9 - 1.8 * shape.z * i / maxf(count - 1, 1)
+			var a := aim + shape.z * 0.95 - 1.9 * shape.z * i / maxf(count - 1, 1)
 			_mow_blasts.append({"at": at + Vector2.from_angle(a) * radius, "t": 0.15 + r * MOW_ROW_GAP + i * MOW_BLAST_GAP,
 					"power": power * MOW_BLAST_POWER, "row": r})
 
@@ -755,9 +767,9 @@ func _process_mow_blasts(delta: float) -> void:
 		_mow_blasts.erase(b)
 		mow_blasts_done += 1
 		var radius := MOW_BLAST_RADIUS * _area("s_mow")
-		if not Fx.crowded(BLAST_FX, 16):
+		if not Fx.crowded(BLAST_FX, MOW_BLAST_CAP):
 			Fx.once(get_parent(), BLAST_FX, BLAST_FRAMES, BLAST_FPS, (b.at as Vector2).round(), BLAST_ANCHOR, 7,
-					radius / BLAST_RADIUS)
+					minf(radius / BLAST_RADIUS, MOW_MAX_SCALE))
 		for t in _near(b.at, radius):
 			if t.global_position.distance_to(b.at) <= radius + 4.0:
 				_hit(t, b.power, b.at, "s_mow")
