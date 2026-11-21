@@ -264,6 +264,12 @@ func _test_unique(game: Node) -> void:
 	var n: int = scythe._mow_blasts.size()
 	await _wait(1.0)
 	_check(scythe.mow_blasts_done >= n and scythe._mow_blasts.is_empty(), "wszystkie wybuchy rzędów (%d)" % n)
+	# arkusz wybuchu Światowida: każda klatka coś rysuje (źle pocięty arkusz zostawiał tylko pierwszą kreskę)
+	var sheet: Image = ProtoScythe.SQUARE_BURST_FX.get_image()
+	var fw := sheet.get_width() / ProtoScythe.SQUARE_BURST_FRAMES
+	var mid_frame := sheet.get_region(Rect2i(fw * 6, 0, fw, sheet.get_height()))
+	_check(mid_frame.get_used_rect().size.y > 20,
+			"wybuch Światowida ma narysowane klatki (fala w połowie animacji)")
 	# duży obszar: wybuchy fali żyją prawie wszystkie naraz - muszą się zmieścić w limicie efektów (inaczej znikają)
 	scythe.area_bonus = 150.0
 	scythe._mow_rows(hero.global_position, 0.0, scythe._mow_shape(1.0), 1.0)

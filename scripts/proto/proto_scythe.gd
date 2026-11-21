@@ -662,7 +662,7 @@ func _square_burst(sq: Dictionary, side: Array, power: float) -> void:
 		var fx := Fx.once(get_parent(), SQUARE_BURST_FX, SQUARE_BURST_FRAMES, SQUARE_BURST_FPS, mid.round(),
 				SQUARE_BURST_ANCHOR, 6)
 		fx.rotation = out.angle() + PI / 2.0
-		fx.scale = Vector2(len / SQUARE_BURST_LENGTH, _fx_scale(depth / SQUARE_BURST_DEPTH))
+		fx.scale = Vector2(len / SQUARE_BURST_LENGTH, minf(depth / SQUARE_BURST_DEPTH, MOW_MAX_SCALE))  # fala leci dalej z obszarem
 	Input.vibrate_handheld(20)
 
 

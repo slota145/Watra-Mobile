@@ -48,6 +48,7 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   krawędzi (95% pół-kąta), kolejny rząd co 0,1 s.
 - Pokos z kamieniem: wybuchy rzędów idą falą w bok - od lewej do prawej krawędzi stożka w `MOW_SWEEP` 0,6 s, wszystkie rzędy naraz (dalszy spóźniony o `MOW_ROW_LAG` 0,02 s), zamiast rzędami od postaci. Wybuch cięcia Światowida od nowa w kreatorze (`square_burst` 112x112, 14 klatek, fala odlatuje ok. 54 px zamiast 28), zasięg ciosu `SQUARE_BURST_DEPTH` 36 -> 56.
 - Poprawka (uwaga autora - część wybuchów znikała): przy fali w bok prawie wszystkie wybuchy Pokosu żyją naraz, więc przy dużym obszarze przekraczały limit efektów. Odstęp w rzędzie rośnie teraz z wielkością wybuchu (`_mow_blast_spacing`), limit `MOW_BLAST_CAP` 80 -> 150, limit wybuchów Światowida 24 -> 64 (dłuższa animacja). Test: duży obszar mieści się w limicie.
+- Poprawka: nowy wybuch Światowida był niewidoczny - eksport kreatora ma klatki w siatce 4x4, a w `ids.json` stało 14 kolumn, więc arkusz w grze miał tylko pierwszą kreskę (`columns` 4; test sprawdza klatkę w połowie animacji). Fala rośnie z obszarem do 2x (wcześniej do 1,25x).
 
 ## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
 
