@@ -157,13 +157,15 @@ const DIAG_FPS := 16.0
 const DIAG_ANCHOR := Vector2(-8, 30)
 ## Promień półksiężyca na arkuszu (środek okręgu poza klatką, środek łuku w prawo).
 const DIAG_RADIUS := 44.0
-## Wir Tańca (pętla; od 21.11.2026 jak Violation z BDO - zrzuty autora): półprzezroczysty kokon szklistych smug-pierścieni
-## na różnych wysokościach i nachyleniach z fioletowymi wstęgami, od stóp nad głowę, promień WHIRL_S_RADIUS.
+## Okręgi cięć Tańca (jak Violation z BDO - zrzuty autora 21.11.2026): niskie, ciasne, półprzezroczyste smugi-pierścienie
+## z fioletową wstęgą, gasną w miejscu; gra stawia je co DANCE_RING_EVERY s w stopach postaci (w świecie), więc za idącą
+## postacią zostaje ślad okręgów. Promień na arkuszu WHIRL_S_RADIUS.
 const WHIRL_S_FX := preload("res://assets/effects/scythe_whirl.png")
 const WHIRL_S_FRAMES := 12
 const WHIRL_S_FPS := 16.0
-const WHIRL_S_ANCHOR := Vector2(60, 55)
-const WHIRL_S_RADIUS := 40.0
+const WHIRL_S_ANCHOR := Vector2(49, 34)
+const WHIRL_S_RADIUS := 38.0
+const DANCE_RING_EVERY := 0.08
 ## Kamień Wirującego Ostrza: czas lotu, prędkość, siła trafienia, zasięg szukania kolejnego wroga, wybuch.
 const BLADE_TIME := 3.0
 const BLADE_SPEED := 230.0
@@ -209,8 +211,8 @@ var _dance_t := 0.0
 var _dance_time := 0.0
 var _dance_dir := Vector2.RIGHT
 var _dance_tick := 0.0
-## Wir cięć nad głową w trakcie tańca (pętla z kreatora na postaci).
-var _whirl_loop: Sprite2D
+## Odliczanie do kolejnego okręgu cięć w trakcie tańca.
+var _ring_t := 0.0
 var _dance_queued := false
 ## Wirujące ostrza ({"node", "target", "left", "power", "last"}).
 var _blades: Array = []
@@ -461,9 +463,6 @@ func _start(id: String) -> void:
 
 
 func _end_skill() -> void:
-	if _whirl_loop and is_instance_valid(_whirl_loop):
-		_whirl_loop.queue_free()
-	_whirl_loop = null
 	dance_uses = 0
 	_dance_queued = false
 	_sprite.visible = true
@@ -816,9 +815,13 @@ func _process_dance(delta: float) -> void:
 		for t in _near(hero.global_position, radius):
 			if t.global_position.distance_to(hero.global_position) <= radius + 4.0:
 				_hit(t, _power("s_dance") * DANCE_SPIN_POWER, hero.global_position, "s_dance")
-	if _whirl_loop == null or not is_instance_valid(_whirl_loop):  # wir-kokon wokół postaci (pętla) idzie z nią
-		_whirl_loop = Fx.loop(hero, WHIRL_S_FX, WHIRL_S_FRAMES, WHIRL_S_FPS, Vector2.ZERO, WHIRL_S_ANCHOR,
-				6, _fx_scale(maxf(radius / WHIRL_S_RADIUS, 1.0)))
+	_ring_t -= delta
+	if _ring_t <= 0.0 and not Fx.crowded(WHIRL_S_FX, 24):  # okręgi cięć zostają w miejscu - ślad za postacią
+		_ring_t = DANCE_RING_EVERY
+		var ring := Fx.once(get_parent(), WHIRL_S_FX, WHIRL_S_FRAMES, WHIRL_S_FPS, hero.global_position.round(),
+				WHIRL_S_ANCHOR, -1, _fx_scale(maxf(radius / WHIRL_S_RADIUS, 1.0)))  # pod postacią
+		if randf() < 0.5:
+			ring.scale.x = -ring.scale.x  # na przemian w drugą stronę - smugi się krzyżują
 	if _state == "dance" and _dance_t >= _dance_time:
 		if _dance_queued:
 			_dance_queued = false

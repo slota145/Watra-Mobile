@@ -22,6 +22,9 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   całej postaci - szkliste lawendowo-białe smugi-pierścienie na różnych wysokościach i nachyleniach (krzywe z wzorów
   w kreatorze), szerokie przezroczyste wstęgi, grube fioletowe wstęgi, mgła u stóp, iskry wznoszące się po spirali;
   zaczepiony w stopach postaci (`Fx.loop`, skala co najmniej 1).
+- Zaraz potem (uwagi autora): okręgi niżej i ciaśniej, a smugi zostają tam, gdzie powstały - `scythe_whirl` v5 to
+  krótki efekt jednorazowy (pierścienie obracają się o pół obrotu i gasną), który gra stawia co 0,08 s w stopach
+  postaci (`DANCE_RING_EVERY`, w świecie, pod postacią, co drugi odbity) - za idącą postacią zostaje ślad okręgów cięć.
 
 ## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
 
