@@ -106,6 +106,11 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), ~~broń magiczna~~ i ~~wybór broni na start~~ (Księga Arkanów, 21.11.2026). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.
+  - **Filtr łupu (pomysł autora 21.11.2026, przed esencją z duplikatów unikatów):** automatyczne rozbijanie przedmiotów
+    zwykłych / magicznych / rzadkich; wybór premii, z którymi przedmiot ma zostać (nie rozbijać); próg stopnia premii
+    (np. T5 - przedmioty z samymi słabszymi stopniami są palone; do wyboru każdy stopień); pytanie autora: filtr
+    automatyczny, który dopasowuje się do założonego ekwipunku i broni. Szczegóły do ustalenia w ankiecie.
+    W przyszłości filtr ma działać też na kamienie szlachetne wkładane w ekwipunek - one też muszą dostać stopnie premii.
 
 - **Boss w lochu (12.11.2026):** zrobione (szczegóły w `docs/historia.md`); do oceny na telefonie: czas zapełniania
   paska (100 żaru), trudność Wodza, czytelność ostrzeżeń. Model, animacje i efekty
