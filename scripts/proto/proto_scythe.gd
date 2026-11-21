@@ -5,7 +5,7 @@ extends ProtoWeapon
 ## po ProtoWeapon: podążanie, orbita, mana, odnowienia, kamienie, krytyki). Efekty czarno-białe z przewagą czerni
 ## (decyzja autora; od drugiej wersji efektów z fioletem i przezroczystą otoczką mrocznego dymu, robione w rozmiarze
 ## z gry - prośba autora 21.11.2026): efekty z kreatora PixelLab scythe_swing, scythe_hit, scythe_blast, scythe_wave,
-## square_burst, mow_swing, scythe_diag, dance_cut, mara_curse (pixellab_src/vfx/ids.json). Grafika: assets/weapons/scythe.png
+## square_burst, mow_swing, scythe_diag, dance_cut, dance_loop, mara_curse (pixellab_src/vfx/ids.json). Grafika: assets/weapons/scythe.png
 ## (tools/scythe_art.py).
 ## - „Żniwo” (`s_reap`, zwykły atak): szeroki zamach łukiem REAP_ARC przed postacią; 5. poziom - co trzeci zamach to
 ##   pełny obrót, 10. - zamach zostawia na chwilę smugę Nawii, która rani (`_trails`); kamień unikalny (Żniwiarza) -
@@ -167,6 +167,10 @@ const DANCE_CUT_FRAMES := 12
 const DANCE_CUT_FPS := 16.0
 const DANCE_CUT_ANCHOR := Vector2(65, 65)
 const DANCE_CUT_RADIUS := 50.0
+## Cięcie na 3/4 okręgu (prośba autora - „żeby zataczały kółka”), ten sam rozmiar i zaczepienie co dance_cut; tyle
+## z półksiężyców Tańca to takie kółka.
+const DANCE_LOOP_FX := preload("res://assets/effects/dance_loop.png")
+const DANCE_LOOP_SHARE := 0.5
 const DANCE_RING_EVERY := 0.1
 const DANCE_CUTS := 2
 const DANCE_CUT_HEIGHT := Vector2(8.0, 30.0)
@@ -849,12 +853,12 @@ func _dance_cut(radius: float) -> void:
 	holder.z_index = 2 if sin(a) > 0.0 else -1
 	get_parent().add_child(holder)
 	holder.global_position = (hero.global_position + Vector2(0, -randf_range(DANCE_CUT_HEIGHT.x, DANCE_CUT_HEIGHT.y))).round()
-	var thin := randf() < 0.55
+	var roll := randf()
 	var r := radius * randf_range(0.85, 1.15)
 	var fx: Sprite2D
-	if thin:
-		fx = Fx.once(holder, DANCE_CUT_FX, DANCE_CUT_FRAMES, DANCE_CUT_FPS, holder.global_position, DANCE_CUT_ANCHOR, 0,
-				_fx_scale(r / DANCE_CUT_RADIUS))
+	if roll < DANCE_LOOP_SHARE or roll < DANCE_LOOP_SHARE + 0.3:  # kółko na 3/4 okręgu albo smukły półksiężyc
+		fx = Fx.once(holder, DANCE_LOOP_FX if roll < DANCE_LOOP_SHARE else DANCE_CUT_FX, DANCE_CUT_FRAMES, DANCE_CUT_FPS,
+				holder.global_position, DANCE_CUT_ANCHOR, 0, _fx_scale(r / DANCE_CUT_RADIUS))
 	else:
 		fx = Fx.once(holder, DIAG_FX, DIAG_FRAMES, DIAG_FPS, holder.global_position, DIAG_ANCHOR, 0,
 				_fx_scale(r / DIAG_RADIUS))
