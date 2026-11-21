@@ -15,6 +15,7 @@ const HYDROSPHERE := "hydrosphere"
 const KATANA := "katana"
 const BOW := "bow"
 const BOOK := "book"
+const SCYTHE := "scythe"
 ## name - nazwa, element - żywioł obrażeń (Elements), unlock - poziom lochu, po którego przebiciu broń jest za darmo,
 ## start - do wyboru przy tworzeniu postaci (START; decyzja autora 21.11.2026: miecz, łuk albo księga, dwie niewybrane
 ## od lochu 5 - Game.start_weapon), magic - broń magiczna (premia obrażeń magicznych, szybkość rzucania czarów).
@@ -33,8 +34,11 @@ const DATA := {
 	# Księga Arkanów (ankieta z autorem 21.11.2026): broń magiczna, żywioł Arkana, do wyboru na start
 	"book": {"name": "Księga Arkanów", "short": "Księga", "element": Elements.ARCANE, "unlock": 5, "start": true,
 		"magic": true, "icon": preload("res://assets/skills/book/a_missiles.png")},
+	# mroczna kosa (ustalone z autorem 21.11.2026): żywioł Nawia, za darmo od lochu 25
+	"scythe": {"name": "Mroczna kosa", "short": "Kosa", "element": Elements.NAWIA, "unlock": 25,
+		"icon": preload("res://assets/skills/scythe/s_reap.png")},
 }
-const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana"]
+const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana", "scythe"]
 ## Bronie do wyboru przy tworzeniu postaci.
 const START: Array[String] = ["sword", "bow", "book"]
 ## Najwyższy poziom mistrzostwa (jak poziom postaci).
@@ -91,6 +95,8 @@ static func script_of(id: String) -> Script:
 			return ProtoBow
 		BOOK:
 			return ProtoBook
+		SCYTHE:
+			return ProtoScythe
 	return ProtoWeapon
 
 

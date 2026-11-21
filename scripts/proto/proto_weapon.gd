@@ -354,6 +354,8 @@ var _swing_power := 1.0
 var _second := false
 var _chained := false
 var _leech_acc := 0.0
+## Nawia: wyssane życie w ułamkach (do pełnego punktu zdrowia).
+var _nawia_acc := 0.0
 var _ghosts: Array[Sprite2D] = []
 var _ghost_hits: Array = [[], []]
 var _throw_origin := Vector2.ZERO
@@ -957,6 +959,13 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	t.crit_next = false
 	if elem == Elements.ARCANE and hero != null:  # Arkana wysysają manę
 		hero.add_mana(mini(Elements.ARCANE_LEECH_MAX, maxi(1, roundi(amount * Elements.ARCANE_LEECH))))
+	elif elem == Elements.NAWIA and hero != null:  # Nawia wysysa życie (ułamki się zbierają) i osłabia wroga
+		_nawia_acc += minf(amount * Elements.NAWIA_LEECH, Elements.NAWIA_LEECH_MAX)
+		if _nawia_acc >= 1.0:
+			var gain := int(_nawia_acc)
+			_nawia_acc -= gain
+			hero.heal(gain)
+		t.wither(Elements.NAWIA_WEAK_TIME)
 	if talismans != null:
 		talismans.on_hit(t)
 		if crit:

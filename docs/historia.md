@@ -2,6 +2,32 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Mroczna kosa, krok 1: Nawia, Żniwo, Cięcie Światowida, Pokos
+
+Pomysły i ustalenia autora (21.11.2026; ROADMAP „Mroczna kosa”). Krok 2: Taniec Marzanny i Postać Mary.
+- **Żywioł Nawia** (`Elements.NAWIA_*`): trafienie wysysa życie (2% obrażeń, najwyżej 4 na trafienie, ułamki się
+  zbierają - `ProtoWeapon._nawia_acc`) i osłabia wroga na 2 s (`ProtoTarget.wither`, `is_withered`): jego ciosy przez
+  `hit_hero` o 15% słabsze, nad głową ciemna mgiełka z białymi drobinkami (`_Status._draw`).
+- **Kosa** (`Weapons.SCYTHE`, „Mroczna kosa”, Nawia, za darmo od lochu 25; `scripts/proto/proto_scythe.gd` - `ProtoScythe`):
+  grafika `assets/weapons/scythe.png` (`tools/scythe_art.py` - czarne drzewce z kościanymi owijkami, ostrze z czarnej
+  stali z białą krawędzią tnącą), efekty z kreatora PixelLab (czarne z białymi brzegami - decyzja autora):
+  `scythe_swing` (zamach gasnący powoli, 14 klatek), `scythe_hit`, `scythe_line` (proste cięcie), `scythe_blast`
+  (wybuch Nawii), `scythe_wave` (pierścień - w grze przygaszony). Ikony umiejętności `tools/scythe_icons.py`
+  (`assets/skills/scythe/`), kamienie unikalne `tools/unique_gem_art.py`.
+  - **Żniwo** (`s_reap`, zwykły atak): łuk 200°, zasięg 56 px, wolniejszy niż miecz; 5. - co trzeci zamach pełny obrót,
+    10. - smuga Nawii (szczyt zamachu zostaje 1,2 s, co 0,3 s rani 25%); Kamień Żniwiarza - po 15 trafieniach fala
+    Nawii dookoła (80 px).
+  - **Cięcie Światowida** (`s_square`, mistrzostwo 3): 4 cięcia co 0,07 s w kwadrat (bok 76 px, ciemne linie zostają),
+    po 0,45 s każdy bok wybucha na zewnątrz (36 px, 130%, odepchnięcie); 5. - wybuch +30%, 10. - drugi wybuch po 0,35 s;
+    Kamień Czterech Stron - 4 kwadraty 2x2 z widmowymi kosami.
+  - **Pokos** (`s_mow`, mistrzostwo 10, ładowany): stożek ze ściętym czubkiem na ziemi (`cone_points`; zasięg 55-120 px,
+    pół-kąt 32-55°, siła 90-200%, pełne w 1,4 s); 5. - ładuje się o 1/3 szybciej, 10. - pełne ładowanie ogłusza 1 s;
+    Kamień Rzędów Nawii - 3 rzędy wybuchów, każdy od prawej do lewej względem postaci (`_mow_rows`).
+- Kształty Światowida i Pokosu leżą na ziemi - trafienia liczone od stóp wrogów.
+- Test `tests/test_scythe.gd`, zrzuty `tools/scythe_shots.gd`.
+- Do oceny na telefonie: siła i tempo Żniwa, czytelność czarnych efektów na ciemnych podłogach, wielkość kwadratu
+  i stożka, siła wysysania życia.
+
 ## 21.11.2026 - Esencje i poziomy unikatów
 
 Pomysł Claude, ankieta autora 21.11.2026 (wszystkie polecane opcje), układ pokazany autorowi przed kodem.
