@@ -109,7 +109,20 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   - **Filtr łupu (pomysł autora 21.11.2026, przed esencją z duplikatów unikatów):** automatyczne rozbijanie przedmiotów
     zwykłych / magicznych / rzadkich; wybór premii, z którymi przedmiot ma zostać (nie rozbijać); próg stopnia premii
     (np. T5 - przedmioty z samymi słabszymi stopniami są palone; do wyboru każdy stopień); pytanie autora: filtr
-    automatyczny, który dopasowuje się do założonego ekwipunku i broni. Szczegóły do ustalenia w ankiecie.
+    automatyczny, który dopasowuje się do założonego ekwipunku i broni. Ustalenia z ankiety (21.11.2026):
+    - odrzucony przedmiot rozbija się na rudę przy podniesieniu (jak dawne auto rozbijanie zwykłych), małe
+      przygaszone powiadomienie;
+    - okno „Filtr łupu” z pauzy (też w lochu) i z torby okna „Postać” - zastępuje przełącznik auto rozbijania;
+    - opcje: rozbijanie według rzadkości (zwykłe / magiczne / rzadkie osobno), premie do zachowania (lista do
+      zaznaczenia), próg stopnia T1-T7, **ile premii z listy** musi mieć przedmiot (N do wyboru), **bezpiecznik**
+      (zawsze zachowuj legendy, unikaty, ponad widełki, 2 gniazda) i **zachowuj lepsze od założonego** (strzałka
+      „lepszy” - `Items.is_upgrade`), **osobne ustawienia dla miejsc** (kolczyk, hełm, zbroja, buty, pierścień,
+      amulet), **podgląd** (znaczek ognia w torbie przy przedmiotach do spalenia) i **podsumowanie** rozbitych na koniec
+      wyprawy;
+    - **filtr automatyczny „Automat + moje wyjątki”**: przełącznik; czyta broń i założone umiejętności (znaczniki
+      Skills.TAGS -> premie, np. łuk: obrażenia i szybkość pocisków, szybkość ataku; księga: obrażenia magiczne,
+      szybkość rzucania), dorzuca premie ogólne (zdrowie, odporności, obrażenia), zachowuje lepsze od założonego,
+      próg stopnia sam z głębokości lochu; ręcznie zaznaczone premie i bezpiecznik zawsze wygrywają.
     W przyszłości filtr ma działać też na kamienie szlachetne wkładane w ekwipunek - one też muszą dostać stopnie premii.
 
 - **Boss w lochu (12.11.2026):** zrobione (szczegóły w `docs/historia.md`); do oceny na telefonie: czas zapełniania
