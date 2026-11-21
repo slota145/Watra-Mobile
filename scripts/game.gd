@@ -22,6 +22,8 @@ extends Node
 ## postaci bez SSF (SHARED_STASH); postać SSF ma własną skrzynię w swoim pliku. Stary pojedynczy zapis (SAVE_PATH)
 ## przechodzi raz na pierwszą postać „Wojciech” (`_migrate_legacy`, razem z trybem deweloperskim z ustawień).
 ## Aury (19.11.2026, dane w Auras): `auras` - zdobyte aury (aura -> poziom), `auras_on` - włączone (rezerwują manę).
+## Rynek (20.11.2026, dane i symulacja w Market): `market` - stan targu (ceny, oferty innych graczy, oferty gracza,
+## wiadomości, czas ostatniej chwili); bez SSF; nadrabia czas `market_catch_up` (też offline, do Market.OFFLINE_MAX).
 ## Talizmany (19.11.2026, dane w Talismans): `talismans` - zdobyte (talizman -> poziom), `talisman_slots` - 3 miejsca.
 ## Testy ustawiają `save_path` na plik testowy - wtedy jedna postać w jednym pliku, skrzynia w nim (bez wspólnej).
 
@@ -117,6 +119,9 @@ var gold_converted := Vector2i.ZERO
 var stash: Array = [[]]
 ## Broń w ręku (Weapons) i mistrzostwo każdej broni (broń -> poziom; brak wpisu - 1. poziom) z doświadczeniem.
 var weapon := Weapons.SWORD
+## Broń wybrana przy tworzeniu postaci (Weapons.START) - dostępna od początku; pozostałe dwie z wyboru od lochu 5.
+## Stare zapisy (bez wyboru) - miecz.
+var start_weapon := Weapons.SWORD
 var mastery := {}
 var mastery_xp := {}
 ## Bronie odblokowane Pieczęcią Oręża przed progiem odblokowania i miejsca umiejętności broni, których nie ma w ręku
@@ -135,6 +140,10 @@ var gems := {}
 var shards := 0
 ## Runy (Runes, 20.11.2026 - waluta-przedmioty zamiast złota u kowala): identyfikator -> ile sztuk.
 var runes := {}
+## Stan targu (Market) - pusty słownik: rynek jeszcze nie otwarty (powstaje przy pierwszym nadrabianiu).
+var market := {}
+## Zegar rynku (sekundy); testy podmieniają go, żeby przesunąć czas.
+var market_clock := func() -> float: return Time.get_unix_time_from_system()
 ## Kamienie w gniazdach umiejętności i liczba otwartych gniazd (brak wpisu - Gems.SKILL_OPEN).
 var skill_gems := {}
 var skill_open := {}
@@ -252,7 +261,7 @@ func list_characters() -> Array[Dictionary]:
 
 
 ## Nowa postać (1. poziom, pusta torba; postać bez SSF widzi wspólną skrzynię). Zwraca jej identyfikator.
-func create_character(name: String, is_ssf: bool) -> String:
+func create_character(name: String, is_ssf: bool, first_weapon := Weapons.SWORD) -> String:
 	DirAccess.make_dir_recursive_absolute(chars_dir)
 	var id := "c%d" % int(Time.get_unix_time_from_system())
 	var n := 1
@@ -262,8 +271,10 @@ func create_character(name: String, is_ssf: bool) -> String:
 	var clean := name.strip_edges().left(20)
 	var f := FileAccess.open(chars_dir + id + ".json", FileAccess.WRITE)
 	if f:
+		var w := first_weapon if first_weapon in Weapons.START else Weapons.SWORD
 		f.store_string(JSON.stringify({"name": clean if clean != "" else DEFAULT_NAME, "ssf": is_ssf,
-				"created": int(Time.get_unix_time_from_system())}))
+				"created": int(Time.get_unix_time_from_system()), "start_weapon": w, "weapon": w,
+				"skills_owned": [Skills.basic_of(w)], "mastery": {}}))
 		f.close()
 	return id
 
@@ -336,6 +347,7 @@ func load_game() -> void:
 	gold = 0
 	ore = 0
 	stash = [[]]
+	start_weapon = Weapons.SWORD
 	weapon = Weapons.SWORD
 	mastery = {}
 	mastery_xp = {}
@@ -347,6 +359,7 @@ func load_game() -> void:
 	gems = {}
 	shards = 0
 	runes = {}
+	market = {}
 	skill_gems = {}
 	skill_open = {}
 	tree = {}
@@ -381,6 +394,7 @@ func load_game() -> void:
 		gold = maxi(int(data.get("gold", 0)), 0)
 		ore = maxi(int(data.get("ore", 0)), 0)
 		shards = maxi(int(data.get("shards", 0)), 0)
+		market = Market.normalize(data.get("market", {}))
 		runes = {}
 		var raw_runes = data.get("runes", {})
 		if raw_runes is Dictionary:
@@ -409,8 +423,10 @@ func load_game() -> void:
 			for id in raw_bought:
 				if id is String and Weapons.has(id) and not weapons_bought.has(id):
 					weapons_bought.append(id)
-		var raw_weapon = data.get("weapon", Weapons.SWORD)
-		weapon = raw_weapon if raw_weapon is String and weapon_available(raw_weapon) else Weapons.SWORD
+		var raw_start = data.get("start_weapon", Weapons.SWORD)
+		start_weapon = raw_start if raw_start is String and raw_start in Weapons.START else Weapons.SWORD
+		var raw_weapon = data.get("weapon", start_weapon)
+		weapon = raw_weapon if raw_weapon is String and weapon_available(raw_weapon) else start_weapon
 		var raw_mastery = data.get("mastery", {})
 		var raw_mxp = data.get("mastery_xp", {})
 		if raw_mastery is Dictionary and raw_mxp is Dictionary:
@@ -531,8 +547,8 @@ func save_game() -> void:
 		f.store_string(JSON.stringify({"name": char_name, "ssf": ssf, "created": created, "dev": _dev_data(),
 				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "ore": ore, "bag": bag, "equipped": equipped,
-				"stash": stash, "weapon": weapon, "mastery": mastery, "mastery_xp": mastery_xp,
-				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes,
+				"stash": stash, "weapon": weapon, "start_weapon": start_weapon, "mastery": mastery, "mastery_xp": mastery_xp,
+				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes, "market": market,
 				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots}))
 
 
@@ -610,7 +626,7 @@ func reset_hero() -> void:
 	ore = 0
 	if not _uses_shared_stash():  # wspólna skrzynia należy też do innych postaci
 		stash = [[]]
-	weapon = Weapons.SWORD
+	weapon = start_weapon
 	mastery = {}
 	mastery_xp = {}
 	weapons_bought = []
@@ -621,6 +637,7 @@ func reset_hero() -> void:
 	gems = {}
 	shards = 0
 	runes = {}
+	market = {}
 	skill_gems = {}
 	skill_open = {}
 	auras = {}
@@ -1079,7 +1096,7 @@ static func _default_slots(w := Weapons.SWORD) -> Array:
 
 ## Czy broń można wziąć do ręki: miecz zawsze, inne po przebiciu progu lochu albo odblokowane Pieczęcią Oręża.
 func weapon_available(id: String) -> bool:
-	return Weapons.has(id) and (Weapons.unlocked_by(id, best_level) or weapons_bought.has(id))
+	return Weapons.has(id) and (id == start_weapon or Weapons.unlocked_by(id, best_level) or weapons_bought.has(id))
 
 
 ## Czy ze skrzyni Wodza wypada Pieczęć Oręża: z szansą Gems.CHEST_WEAPON_SEAL x `chance_mult`, tylko gdy jakaś broń
@@ -1739,3 +1756,191 @@ func dev_runes() -> void:
 		runes[id] = int(runes.get(id, 0)) + 5
 	save_game()
 	inventory_changed.emit()
+
+
+# --- rynek (Market) ---
+
+## Czy postać może handlować na targu (bez SSF).
+func market_open() -> bool:
+	return not ssf
+
+
+## Nadrabia czas rynku od ostatniej chwili (też offline, najwyżej Market.OFFLINE_MAX; cofnięty zegar - nic).
+## Pierwszy raz zakłada rynek. Szlify za sprzedane oferty gracza trafiają od razu do zapasu. Zwraca liczbę chwil.
+func market_catch_up() -> int:
+	if not market_open():
+		return 0
+	var now: float = market_clock.call()
+	if market.is_empty():
+		market = Market.fresh(maxi(best_level, 1), now)
+		save_game()
+		return 0
+	if now < float(market.time):
+		market.time = now
+		return 0
+	var n := Market.ticks_between(float(market.time), now)
+	if n <= 0:
+		return 0
+	var earned := 0
+	for i in n:
+		earned += Market.tick(market, maxi(best_level, 1))
+	# po długiej przerwie (ponad OFFLINE_MAX) reszta czasu przepada - zegar rynku dogania teraz
+	market.time = now if now - float(market.time) > Market.OFFLINE_MAX else float(market.time) + n * Market.TICK
+	if earned > 0:
+		runes[Runes.POLISH] = int(runes.get(Runes.POLISH, 0)) + earned
+	save_game()
+	inventory_changed.emit()
+	return n
+
+
+## Ile sztuk towaru giełdy ma gracz (runy, ruda, odpryski, klucze, dłuta, pieczęcie).
+func market_have(id: String) -> int:
+	match id:
+		"ore":
+			return ore
+		"shards":
+			return shards
+	return int(runes.get(id, 0)) if Runes.valid(id) else gem_count(id)
+
+
+## Dodaje (`amount` > 0) albo zabiera towar giełdy.
+func _market_give(id: String, amount: int) -> void:
+	match id:
+		"ore":
+			ore += amount
+		"shards":
+			shards += amount
+		_:
+			if Runes.valid(id):
+				runes[id] = int(runes.get(id, 0)) + amount
+				if runes[id] <= 0:
+					runes.erase(id)
+			elif amount > 0:
+				add_gem(id, amount, false)
+			else:
+				for i in -amount:
+					_take_gem(id)
+
+
+## Ile Szlifów gracz może wydać: Szlify i inne runy po cenie skupu (bez `exclude` - towaru, który właśnie kupuje).
+func market_wealth(exclude := "") -> int:
+	var total := int(runes.get(Runes.POLISH, 0))
+	for id in runes:
+		if id != Runes.POLISH and id != exclude and market.get("prices", {}).has(id):
+			total += Market.bid(market.prices[id], id) * int(runes[id])
+	return total
+
+
+## Płaci `cost` Szlifów: najpierw Szlifami, a brakujące sprzedaje inne runy (od najtańszej, bez `exclude`) po cenie
+## skupu - reszta zostaje w Szlifach. Zwraca false (nic nie zmienia), gdy nie starcza.
+func market_pay(cost: int, exclude := "") -> bool:
+	if market_wealth(exclude) < cost:
+		return false
+	var cheap: Array = runes.keys().filter(func(id: String) -> bool:
+		return id != Runes.POLISH and id != exclude and market.prices.has(id))
+	cheap.sort_custom(func(a: String, b: String) -> bool: return market.prices[a] < market.prices[b])
+	for id in cheap:
+		while int(runes.get(Runes.POLISH, 0)) < cost and int(runes.get(id, 0)) > 0:
+			_market_give(id, -1)
+			runes[Runes.POLISH] = int(runes.get(Runes.POLISH, 0)) + Market.bid(market.prices[id], id)
+	runes[Runes.POLISH] = int(runes.get(Runes.POLISH, 0)) - cost
+	if runes[Runes.POLISH] <= 0:
+		runes.erase(Runes.POLISH)
+	return true
+
+
+## Kupuje paczkę towaru `id` z giełdy (cena rośnie o Market.PUSH). Zwraca false, gdy nie starcza run.
+func market_buy(id: String) -> bool:
+	if not market_open() or not Market.COMMODITIES.has(id) or market.is_empty():
+		return false
+	if not market_pay(Market.ask(market.prices[id], id), id):
+		return false
+	_market_give(id, Market.pack_of(id))
+	market.prices[id] = float(market.prices[id]) * (1.0 + Market.PUSH)
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Sprzedaje paczkę towaru `id` na giełdzie za Szlify (cena spada o Market.PUSH). Zwraca false, gdy brak towaru.
+func market_sell(id: String) -> bool:
+	if not market_open() or not Market.COMMODITIES.has(id) or market.is_empty() or market_have(id) < Market.pack_of(id):
+		return false
+	_market_give(id, -Market.pack_of(id))
+	runes[Runes.POLISH] = int(runes.get(Runes.POLISH, 0)) + Market.bid(market.prices[id], id)
+	market.prices[id] = float(market.prices[id]) * (1.0 - Market.PUSH)
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Czemu nie da się kupić oferty `index` ("" - da się): "price" (za mało run), "bag" (pełna torba), "none".
+func market_listing_problem(index: int) -> String:
+	if market.is_empty() or index < 0 or index >= market.listings.size():
+		return "none"
+	var l: Dictionary = market.listings[index]
+	if not l.loot.has("gem") and not l.loot.has("talisman") and bag.size() >= BAG_SIZE:
+		return "bag"
+	if market_wealth() < int(l.price):
+		return "price"
+	return ""
+
+
+## Kupuje ofertę innego gracza: przedmiot do torby, kamień do sakwy, talizman od razu (poziom wyżej przy duplikacie).
+func market_buy_listing(index: int) -> bool:
+	if market_listing_problem(index) != "" or not market_pay(int(market.listings[index].price)):
+		return false
+	var loot: Dictionary = market.listings[index].loot
+	market.listings.remove_at(index)
+	if loot.has("gem"):
+		add_gem(loot.gem, 1, false)
+	elif loot.has("talisman"):
+		add_talisman(loot.talisman)
+	else:
+		bag.append(loot)
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Wystawia na targu przedmiot z torby (`bag_index`) albo kamień z sakwy (`gem`) za `price` Szlifów. Kamienie z gniazd
+## przedmiotu wracają do sakwy. Zwraca false, gdy brak miejsca (Market.MINE_MAX) albo rzeczy.
+func market_list(price: int, bag_index := -1, gem := "") -> bool:
+	if not market_open() or market.is_empty() or market.mine.size() >= Market.MINE_MAX or price <= 0:
+		return false
+	var loot := {}
+	if bag_index >= 0:
+		if bag_index >= bag.size():
+			return false
+		loot = bag[bag_index]
+		_return_item_gems(loot)
+		var empty: Array = []
+		for i in loot.get("sockets", []).size():
+			empty.append("")
+		loot.sockets = empty
+		bag.remove_at(bag_index)
+	elif gem != "" and Gems.can_shatter(gem) and _take_gem(gem):
+		loot = {"gem": gem}
+	else:
+		return false
+	market.mine.append({"loot": loot, "price": price, "seller": char_name, "age": 0})
+	save_game()
+	inventory_changed.emit()
+	return true
+
+
+## Zdejmuje własną ofertę z targu: przedmiot wraca do torby (pełna torba - false), kamień do sakwy.
+func market_unlist(index: int) -> bool:
+	if market.is_empty() or index < 0 or index >= market.mine.size():
+		return false
+	var loot: Dictionary = market.mine[index].loot
+	if loot.has("gem"):
+		add_gem(loot.gem, 1, false)
+	elif bag.size() >= BAG_SIZE:
+		return false
+	else:
+		bag.append(loot)
+	market.mine.remove_at(index)
+	save_game()
+	inventory_changed.emit()
+	return true

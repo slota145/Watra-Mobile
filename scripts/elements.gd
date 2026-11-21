@@ -15,14 +15,20 @@ const EARTH := "earth"
 const AIR := "air"
 const NAWIA := "nawia"
 const NATURE := "nature"
+## Arkana (decyzja autora 21.11.2026): magia Księgi Arkanów - fioletowo-białe efekty, trafienia wysysają manę
+## (ARCANE_LEECH obrażeń, najwyżej ARCANE_LEECH_MAX many na trafienie; ProtoWeapon._deal).
+const ARCANE := "arcane"
+const ARCANE_LEECH := 0.03
+const ARCANE_LEECH_MAX := 3
 ## Żywioły (bez fizycznych) w kolejności do pokazywania.
-const ALL: Array[String] = [FIRE, WATER, COLD, LIGHTNING, EARTH, AIR, NAWIA, NATURE]
+const ALL: Array[String] = [FIRE, WATER, COLD, LIGHTNING, EARTH, AIR, NAWIA, NATURE, ARCANE]
 const NAMES := {PHYSICAL: "Fizyczne", FIRE: "Ogień", WATER: "Woda", COLD: "Lód", LIGHTNING: "Grom", EARTH: "Ziemia",
-		AIR: "Powietrze", NAWIA: "Nawia", NATURE: "Natura"}
+		AIR: "Powietrze", NAWIA: "Nawia", NATURE: "Natura", ARCANE: "Arkana"}
 ## Kolory liczb obrażeń, ikon i efektów (ogień, lód i Nawia jak w Watrze; Grom niebieski jak pioruny w grze - 17.11.2026).
 const COLORS := {PHYSICAL: Color(1.0, 0.95, 0.85), FIRE: Color(1.0, 0.55, 0.2), WATER: Color(0.3, 0.6, 1.0),
 		COLD: Color(0.7, 0.95, 1.0), LIGHTNING: Color(0.45, 0.7, 1.0), EARTH: Color(0.75, 0.55, 0.3),
-		AIR: Color(0.8, 1.0, 0.9), NAWIA: Color(0.7, 0.45, 1.0), NATURE: Color(0.55, 0.95, 0.35)}
+		AIR: Color(0.8, 1.0, 0.9), NAWIA: Color(0.7, 0.45, 1.0), NATURE: Color(0.55, 0.95, 0.35),
+		ARCANE: Color(0.9, 0.7, 1.0)}
 ## Co robi żywioł (ustalone z autorem 13.11.2026; działanie w grze - razem z bronią danego żywiołu).
 const EFFECTS := {
 	FIRE: "Podpala: obrażenia przez kilka sekund.",
@@ -33,6 +39,7 @@ const EFFECTS := {
 	AIR: "Odpycha albo ściąga wrogów w jedno miejsce.",
 	NAWIA: "Wysysa życie i osłabia ciosy wroga.",
 	NATURE: "Truje - trucizna kumuluje się z każdym trafieniem.",
+	ARCANE: "Wysysa manę: trafienia oddają trochę many.",
 }
 ## Odporność: ułamek zmniejszający obrażenia danego żywiołu (ujemny - wrażliwość). Granice jak w Watrze.
 const MAX_RESISTANCE := 0.75

@@ -1,9 +1,9 @@
 class_name BaseBar
 extends Control
-## Pasek skrótów w bazie (ustalone z autorem 12.11.2026): pionowa kolumna ikon przy dolnej krawędzi, po drugiej
+## Pasek skrótów w bazie (ustalone z autorem 12.11.2026): ikony w dwóch kolumnach przy dolnej krawędzi, po drugiej
 ## stronie niż przyciski walki (`left_handed` - po prawej). Każda ikona z podpisem otwiera okno budynku od razu,
 ## bez podchodzenia postacią (sygnał `chosen` z identyfikatorem): Watra (wybór poziomu i drzewko lochów),
-## Skrzynia, Umiejętności (kamień run), Kowal, Kupiec.
+## Skrzynia, Umiejętności (kamień run), Kowal, Kupiec, Targ (rynek).
 
 signal chosen(id: String)
 
@@ -15,10 +15,11 @@ const ENTRIES := [
 	["skills", "Umiejętności", "res://assets/watra/rune_stone.png"],
 	["smith", "Kowal", "res://assets/watra/base/reforge.png"],
 	["shop", "Kupiec", "res://assets/watra/base/tax_pouch.png"],
+	["market", "Targ", "res://assets/watra/base/market_stall.png"],
 ]
 
 var buttons := {}
-var column: VBoxContainer
+var column: GridContainer
 var left_handed := false:
 	set(value):
 		left_handed = value
@@ -29,8 +30,10 @@ var left_handed := false:
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	column = VBoxContainer.new()
-	column.add_theme_constant_override("separation", 3)
+	column = GridContainer.new()  # 2 kolumny po 3 ikony - 6 ikon mieści się w dolnej połowie ekranu 16:9
+	column.columns = 2
+	column.add_theme_constant_override("h_separation", 3)
+	column.add_theme_constant_override("v_separation", 3)
 	add_child(column)
 	for e in ENTRIES:
 		var b := Button.new()
@@ -63,7 +66,7 @@ func _ready() -> void:
 	resized.connect(_layout)
 
 
-## Kolumna w lewym dolnym rogu (albo prawym dla leworęcznych).
+## Ikony w lewym dolnym rogu (albo prawym dla leworęcznych).
 func _layout() -> void:
 	var h := column.get_combined_minimum_size()
 	column.size = h

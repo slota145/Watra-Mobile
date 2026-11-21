@@ -23,6 +23,9 @@ var shared_button: Button
 var ssf_button: Button
 var create_button: Button
 var _ssf := false
+## Broń na start (Weapons.START; decyzja autora 21.11.2026 - dwie niewybrane od lochu 5) i jej przyciski.
+var start_weapon := Weapons.SWORD
+var weapon_buttons := {}
 ## Która postać czeka na potwierdzenie usunięcia ("" - żadna).
 var _armed := ""
 var _game: Node
@@ -185,6 +188,21 @@ func _build_form() -> void:
 	var hint := _label("", 12, TEXT)
 	hint.name = "Hint"
 	column.add_child(hint)
+	column.add_child(_label(tr("Broń na start (pozostałe od 5. poziomu lochu)"), 14, DIM))
+	var wrow := HBoxContainer.new()
+	wrow.alignment = BoxContainer.ALIGNMENT_CENTER
+	wrow.add_theme_constant_override("separation", 6)
+	column.add_child(wrow)
+	for w in Weapons.START:
+		var b := _button(wrow, Weapons.short_name_of(w), Vector2(100, 56))
+		b.name = "Weapon_" + w
+		b.icon = Weapons.icon_of(w)
+		b.expand_icon = true
+		b.add_theme_constant_override("icon_max_width", 22)
+		b.add_theme_font_size_override("font_size", 14)
+		b.toggle_mode = true
+		b.pressed.connect(_set_weapon.bind(w))
+		weapon_buttons[w] = b
 	var fill := Control.new()
 	fill.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(fill)
@@ -200,7 +218,21 @@ func _build_form() -> void:
 func open_form() -> void:
 	name_edit.text = ""
 	_set_ssf(false)
+	_set_weapon(Weapons.SWORD)
 	form.visible = true
+
+
+func _set_weapon(w: String) -> void:
+	start_weapon = w
+	for id in weapon_buttons:
+		var b: Button = weapon_buttons[id]
+		b.button_pressed = id == w
+		if id == w:
+			b.add_theme_color_override("font_color", GOLD)
+			b.add_theme_color_override("font_pressed_color", GOLD)
+		else:
+			b.remove_theme_color_override("font_color")
+			b.remove_theme_color_override("font_pressed_color")
 
 
 func _set_ssf(value: bool) -> void:
@@ -220,7 +252,7 @@ func _set_ssf(value: bool) -> void:
 
 
 func _create() -> void:
-	var id: String = _game.create_character(name_edit.text, _ssf)
+	var id: String = _game.create_character(name_edit.text, _ssf, start_weapon)
 	form.visible = false
 	refresh()
 	play.emit(id)

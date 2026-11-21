@@ -33,7 +33,8 @@ func _run() -> void:
 
 
 func _test_elements() -> void:
-	_check(Elements.ALL.size() == 8 and not Elements.ALL.has(Elements.PHYSICAL), "8 żywiołów bez fizycznych")
+	_check(Elements.ALL.size() == 9 and Elements.ALL.has(Elements.ARCANE) and not Elements.ALL.has(Elements.PHYSICAL),
+			"9 żywiołów (z Arkanami) bez fizycznych")
 	var ok := true
 	for id in Elements.ALL + [Elements.PHYSICAL]:
 		ok = ok and Elements.is_element(id) and Elements.name_of(id) != "" and Elements.COLORS.has(id)
@@ -52,7 +53,7 @@ func _test_elements() -> void:
 
 func _test_weapons(game: Node) -> void:
 	_check(game.weapon == Weapons.SWORD and Weapons.element_of(Weapons.SWORD) == Elements.PHYSICAL
-			and Weapons.unlocked_by(Weapons.SWORD, 0), "miecz w ręku od początku, fizyczny (decyzja autora)")
+			and game.weapon_available(Weapons.SWORD), "miecz w ręku od początku (domyślna broń startowa), fizyczny")
 	var ok := true
 	for id in Skills.ORDER:
 		ok = ok and Weapons.has(Skills.weapon_of(id))

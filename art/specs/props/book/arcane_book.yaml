@@ -1,0 +1,80 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+# Księga Arkanów - lewitująca broń magiczna (jak lewitujący miecz: gra ją kołysze i obraca, postać jej nie trzyma).
+# Otwarta księga w fioletowej oprawie ze złotymi narożnikami, na kartach świecące runy (emisja)
+# (iskrę nad księgą może dorysować gra). Jeden kierunek (gra obraca sprite), jedna klatka.
+name: arcane_book
+kind: prop
+view: topdown
+size: 32
+directions: 1
+palette: "watra"
+# rekwizyt w dłoni / obok postaci: kamera bliżej niż camera.scale stylu (0.04889), żeby księga miała ok. 26 px
+# szerokości obok postaci 36 px (lewitujący miecz w grze też jest większy niż „w skali” - czytelność na telefonie)
+camera: {pitch: 38, scale: 0.026, center: [0, 0.35, 0]}
+shadow: null
+
+brief:
+  summary: >
+    an open spellbook floating, tilted towards the viewer: deep violet leather covers with small gold corner
+    caps, cream pages fanned open, glowing violet-white rune lines on both pages (a spark above it, if any, is drawn by the game)
+  must_keep:
+    - reads as an OPEN book at 26 px wide: two cover halves in a shallow V, pages lighter than the covers
+    - the runes are the brightest pixels (emissive), violet-white like the arcane effects
+  decisions:
+    - the book leans back ~25 degrees and opens in a clear V, so the pages and the cover thickness both read
+    - covers stick out 1-2 px past the pages on every side so the violet rim frames the cream pages
+
+ramps:
+  cover:  ["#0d0814", "#2a1745", "#45246e", "#64379a", "#8655c2", "#a77ee0"]
+  gilt:   ["#1c1006", "#4d2f0e", "#8a5a16", "#c48c22", "#e8c04e", "#fff0a0"]
+  paper:  ["#1a1410", "#5c4f3e", "#9c8c70", "#cdbf9c", "#e9dfc4", "#fbf6e8"]
+  rune:   ["#24103f", "#7a3fc4", "#b07ef0", "#eadcff", "#ffffff"]
+
+materials:
+  cover: {ramp: cover, finish: soft, crease: true, edge_highlight: true}
+  gilt:  {ramp: gilt, finish: metal}
+  paper: {ramp: paper, finish: matte, bands: [2, 4]}
+  rune:  {ramp: rune, emissive: true, band: 2, glow: {color: "#b07ef0", mix: 0.4, radius: 1}}
+
+bones:
+  book: {parent: root, pos: [0, 0.35, 0], rot: [-0.45, 0, 0]}
+  # dwie połówki otwartej księgi - wyraźne V wokół grzbietu (oś Y w przestrzeni księgi)
+  half_L: {parent: book, pos: [0, 0, 0], rot: [0, 0.38, 0]}
+  half_R: {parent: book, pos: [0, 0, 0], rot: [0, -0.38, 0]}
+
+parts:
+  cover_L:
+    material: cover
+    space: half_L
+    prims:
+      - box: {c: [0.19, 0, -0.012], half: [0.19, 0.26, 0.014], round: 0.01}
+  pages_L:
+    material: paper
+    space: half_L
+    prims:
+      - box: {c: [0.175, 0, 0.012], half: [0.165, 0.24, 0.016], round: 0.008}
+  corners_L:
+    material: gilt
+    space: half_L
+    prims:
+      - box: {c: [0.36, 0.24, -0.008], half: [0.03, 0.03, 0.018]}
+      - box: {c: [0.36, -0.24, -0.008], half: [0.03, 0.03, 0.018]}
+  runes_L:
+    material: rune
+    space: half_L
+    priority: 3
+    prims:
+      - box: {c: [0.17, 0.12, 0.03], half: [0.1, 0.018, 0.006]}
+      - box: {c: [0.15, 0.04, 0.03], half: [0.08, 0.018, 0.006]}
+      - box: {c: [0.18, -0.04, 0.03], half: [0.11, 0.018, 0.006]}
+      - box: {c: [0.14, -0.12, 0.03], half: [0.07, 0.018, 0.006]}
+  spine:
+    material: cover
+    space: book
+    prims:
+      - cylinder: {a: [0, -0.27, -0.02], b: [0, 0.27, -0.02], r: 0.03}
+
+animations:
+  # jedna nieruchoma klatka (gra kołysze i obraca księgę sama; render potrzebuje animacji)
+  idle: {frames: 1, ms: 1000, channels: {}}

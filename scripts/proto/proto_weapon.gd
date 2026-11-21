@@ -284,6 +284,8 @@ var mana_tax := 0.0
 ## Premia przedmiotów „+% obrażeń od żywiołów” (Items elem_dmg_pct): mnożnik każdego trafienia żywiołem (broń
 ## żywiołu, kamienie Żar / Szron / Piorun, ogień Swaroga, aury, talizmany); obrażenia fizyczne bez zmian.
 var elem_mult := 1.0
+## Premia przedmiotów „+% obrażeń magicznych” (Items magic_dmg_pct) - tylko broń magiczna (arena ustawia; inna - 1).
+var magic_mult := 1.0
 ## Talizmany (ProtoTalismans ustawia): dodatkowa premia żywiołów na chwilę (Łuska Żmija), zamiana obrażeń fizycznych
 ## na ogień (Krzesiwo Swaroga - `fire_convert` i premia `fire_convert_bonus`), premia z bliska / kara z daleka (Kieł
 ## Niedźwiedzia - `point_blank`).
@@ -837,6 +839,7 @@ func aura_hit(t: ProtoTarget, power: float, elem: String, from: Vector2, flat :=
 		amount = roundi(amount * elite_mult)
 	if elem != Elements.PHYSICAL:
 		amount = roundi(amount * elem_total())
+	amount = roundi(amount * magic_mult)
 	t.color_next = Elements.color_of(elem)
 	t.take_damage(Elements.reduce(amount, t.resist(elem, penetration)), from)
 
@@ -891,7 +894,7 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 				if d >= Talismans.POINT_BLANK_FAR else 1.0)
 	amount = roundi(amount * mult)
 	var boost := elem_total() if elem != Elements.PHYSICAL else 1.0  # premia żywiołów (broń żywiołu)
-	amount = roundi(amount * boost)
+	amount = roundi(amount * boost * magic_mult)  # broń magiczna: premia obrażeń magicznych
 	var pen := penetration + Gems.skill_power(sockets, "pen") / 100.0  # Przebicie
 	amount = Elements.reduce(amount, t.resist(elem, pen), _combo_mult(t, elem))  # odporność lochu na żywioł broni
 	var keen := Gems.skill_power(sockets, "keen") / 100.0  # Bystre Oko
@@ -901,6 +904,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		t.crit_next = true
 	t.take_damage(amount, from)
 	t.crit_next = false
+	if elem == Elements.ARCANE and hero != null:  # Arkana wysysają manę
+		hero.add_mana(mini(Elements.ARCANE_LEECH_MAX, maxi(1, roundi(amount * Elements.ARCANE_LEECH))))
 	if talismans != null:
 		talismans.on_hit(t)
 		if crit:
@@ -1756,7 +1761,8 @@ func _on_skill_used(id: String) -> void:
 		_echo_pending = ""  # to była powtórka - bez kolejnej
 		return
 	var p := gem_power(id, "echo")
-	if p <= 0.0 or id == basic or id == blink_skill or Skills.is_charged(id) or id in ["whirl", "steel_ring"] \
+	if p <= 0.0 or id == basic or id == blink_skill or Skills.is_charged(id) or Skills.is_toggle(id) \
+			or id in ["whirl", "steel_ring"] \
 			or randf() >= p / 100.0:
 		return
 	await get_tree().create_timer(GEM_ECHO_DELAY, false).timeout

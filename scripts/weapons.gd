@@ -14,28 +14,40 @@ const GLAIVE := "glaive"
 const HYDROSPHERE := "hydrosphere"
 const KATANA := "katana"
 const BOW := "bow"
-## name - nazwa, element - żywioł obrażeń (Elements), unlock - poziom lochu, po którego przebiciu broń jest za darmo
-## (0 - od początku).
+const BOOK := "book"
+## name - nazwa, element - żywioł obrażeń (Elements), unlock - poziom lochu, po którego przebiciu broń jest za darmo,
+## start - do wyboru przy tworzeniu postaci (START; decyzja autora 21.11.2026: miecz, łuk albo księga, dwie niewybrane
+## od lochu 5 - Game.start_weapon), magic - broń magiczna (premia obrażeń magicznych, szybkość rzucania czarów).
 const DATA := {
-	"sword": {"name": "Miecz", "element": Elements.PHYSICAL, "unlock": 0,
+	"sword": {"name": "Miecz", "element": Elements.PHYSICAL, "unlock": 5, "start": true,
 		"icon": preload("res://assets/watra/iron_sword_icon.png")},
 	"glaive": {"name": "Glewia ognia", "short": "Glewia", "element": Elements.FIRE, "unlock": 10,
 		"icon": preload("res://assets/skills/glaive/g_thrust.png")},
-	"hydrosphere": {"name": "Hydrosfera", "short": "Hydro", "element": Elements.WATER, "unlock": 15,
+	"hydrosphere": {"name": "Hydrosfera", "short": "Hydro", "element": Elements.WATER, "unlock": 15, "magic": true,
 		"icon": preload("res://assets/skills/hydro/h_bolt.png")},
 	"katana": {"name": "Elektryczna katana", "short": "Katana", "element": Elements.LIGHTNING, "unlock": 20,
 		"icon": preload("res://assets/skills/katana/k_slash.png")},
 	# łuk (ustalone z autorem 20.11.2026): żywioł powietrze, loch 5 - pierwsza broń po mieczu
-	"bow": {"name": "Łuk", "element": Elements.AIR, "unlock": 5,
+	"bow": {"name": "Łuk", "element": Elements.AIR, "unlock": 5, "start": true,
 		"icon": preload("res://assets/skills/bow/b_shot.png")},
+	# Księga Arkanów (ankieta z autorem 21.11.2026): broń magiczna, żywioł Arkana, do wyboru na start
+	"book": {"name": "Księga Arkanów", "short": "Księga", "element": Elements.ARCANE, "unlock": 5, "start": true,
+		"magic": true, "icon": preload("res://assets/skills/book/a_missiles.png")},
 }
-const ORDER := ["sword", "bow", "glaive", "hydrosphere", "katana"]
+const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana"]
+## Bronie do wyboru przy tworzeniu postaci.
+const START: Array[String] = ["sword", "bow", "book"]
 ## Najwyższy poziom mistrzostwa (jak poziom postaci).
 const MAX_MASTERY := 50
 
 
 static func has(id: String) -> bool:
 	return DATA.has(id)
+
+
+## Czy broń magiczna (premia obrażeń magicznych, szybkość rzucania czarów zamiast szybkości ataku).
+static func is_magic(id: String) -> bool:
+	return DATA.get(id, {}).get("magic", false)
 
 
 static func name_of(id: String) -> String:
@@ -77,6 +89,8 @@ static func script_of(id: String) -> Script:
 			return ProtoKatana
 		BOW:
 			return ProtoBow
+		BOOK:
+			return ProtoBook
 	return ProtoWeapon
 
 

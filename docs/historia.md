@@ -2,6 +2,64 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Księga Arkanów, żywioł Arkana, premie magiczne, wybór broni na start
+
+Pomysły i ankieta autora (21.11.2026). Wszystko w jednym PR.
+- **Żywioł Arkana** (`Elements.ARCANE`, kolor fioletowo-biały): trafienia wysysają manę (3% obrażeń, najwyżej 3 many
+  na trafienie - `ProtoWeapon._deal`).
+- **Premie przedmiotów**: `magic_dmg_pct` („+% obrażeń magicznych”, `ProtoWeapon.magic_mult` - tylko broń magiczna) i
+  `cast_speed_pct` („+% szybkości rzucania czarów”, sufit 75%): broń magiczna (`Weapons.is_magic` - księga i hydrosfera)
+  przyspiesza tylko od niej, reszta tylko od szybkości ataku (`HeroStats.weapon_speed_mult`).
+- **Wybór broni na start** (`Weapons.START` - miecz, łuk, księga; `Game.start_weapon`, zapis „start_weapon”): przy
+  tworzeniu postaci 3 przyciski w formularzu (`CharacterSelect.start_weapon`), dwie niewybrane od lochu 5 (miecz ma teraz
+  `unlock` 5 - dostępny od początku jako domyślna broń startowa starych postaci). `Game.create_character(imię, ssf, broń)`.
+- **Księga Arkanów** (`scripts/proto/proto_book.gd`, `Weapons.BOOK`): lewitująca księga ze SpriteKiln
+  (`art/specs/props/book/arcane_book.yaml` -> `assets/spritekiln/book/arcane_book.png`), efekty z kreatora PixelLab
+  (`assets/effects/arcane_*.png` - pocisk, trafienie, krąg, kula, kafelek promienia, błysk promienia, pieczęć, wybuch,
+  odłamek; `pixellab_src/vfx/ids.json`), ikony czarów `assets/skills/book/`, kamienie unikalne
+  `assets/watra/unique_gems/a_*.png` (`tools/unique_gem_art.py`). Czary (`Skills` a_*):
+  - Pociski Arkanów (zwykły atak): 3 pociski - pierwszy w najbliższego, reszta w losowych wrogów, lecą łukiem albo
+    zakosami i skręcają coraz ciaśniej; ogon to Line2D z ostatnich pozycji (wygina się po torze, fioletowy gradient).
+    5. - 4 pociski, 10. - co trzeci rzut +2; unikalny (Rozprysku) - 3 odłamki z trafionego w pobliskich (40%).
+  - Krąg Mocy: rani w spłaszczonym kręgu pod postacią (pętla z kreatora gaśnie po 0,5 s). 5. - +30%, 10. - drugi błysk;
+    unikalny (Trwałego Kręgu) - krąg zostaje 8 s (tyka co 0,5 s), w kręgu czary +30% i pocisk więcej.
+  - Kule Arkanów: przełącznik jak aura (`Skills.is_toggle`, rezerwuje 20% many przez `ProtoHero.summon_reserved`),
+    3 kule, obrót od szybkości rzucania, promień i wielkość od obszaru. 5. - +30%, 10. - +2 kule; unikalny (Podwójnej
+    Orbity) - druga orbita 1,7x dalej w przeciwną stronę. Kamień Echo nie przełącza kul.
+  - Promień Arkanów (trzymany): w najbliższego, co 0,2 s rani cel i wrogów w 26 px wokół, mana co sekundę; kafelki
+    promienia z kreatora wzdłuż Line2D (AtlasTexture, klatka po klatce). 5. - przeskok na drugiego wroga (70%),
+    10. - obszar x1,5; unikalny (Emanacji) - co 0,5 s krąg magii wokół postaci (40%).
+  - Pieczęcie Wybuchu: pod 4 wrogami oddalonymi od siebie (co najmniej 40 px), po 0,8 s wybuch (arkusz pieczęci
+    zsynchronizowany z opóźnieniem). 5. - 6 pieczęci, 10. - ogłusza 0,5 s; unikalny (Splecionych Pieczęci) - wiązka
+    między kolejnymi pieczęciami rani dotykających (25% co 0,2 s).
+- Testy: `tests/test_book.gd` (nowy), `test_elements.gd` (9 żywiołów); zrzuty `tools/book_shots.gd`.
+
+## 20.11.2026 - symulowany rynek: targ w bazie (ROADMAP punkt 5)
+
+Ankieta z autorem (20.11.2026): handel wszystkim, ceny w Runach Szlifu, rynek żyje też offline (do 12 h), osobny
+targ obok kupca, oferty z imionami i nickami „graczy”, opłata targowa 10%, całość naraz. Wzór: rynek Watry.
+- `scripts/market.gd` (Market - dane i symulacja), stan w `Game.market` (zapis „market”), funkcje `Game.market_*`.
+  Niedostępny dla SSF (`Game.market_open`).
+- **Czas**: chwila rynku co 10 min czasu rzeczywistego (`Market.TICK`), nadrabiana przy wejściu do bazy i otwarciu
+  targu (`Game.market_catch_up`); przerwa liczy się najwyżej 12 h (`OFFLINE_MAX`), cofnięty zegar nic nie daje;
+  `Game.market_clock` do testów.
+- **Giełda** (`Market.COMMODITIES`): runy (bez Szlifu - to pieniądz), ruda i odpryski w paczkach po 10, klucz, dłuto,
+  Pieczęć Oręża. Cena błądzi wokół bazowej (0,5-2x), kupno x1,05, skup x0,95 minus 10% opłaty, każda paczka gracza
+  przesuwa cenę o 3%. Runy: kupno nigdy taniej niż rozmiana u kupca, skup nigdy drożej niż kupiec sprzedaje
+  (`Market.ask` / `bid` z identyfikatorem) - bez Szlifów z niczego.
+- **Płacenie**: najpierw Szlify, brakujące z innych run od najtańszej po cenie skupu, reszta w Szlifach
+  (`Game.market_pay`, `market_wealth`); ceny od 10 Szlifów pokazane też w Runach Zmiany (`Market.price_text`).
+- **Oferty innych graczy** (10 naraz, `roll_listing`): przedmioty (60%), kamienie, talizmany od lochu 5, z poziomu
+  okolic najgłębszego przebitego lochu; cena 0,7-1,4 x uczciwej (`fair_price`), okazje („Okazja!”) szybko znikają,
+  stare po 24 chwilach; 24 imiona i nicki (`NAMES`).
+- **Moje oferty** (najwyżej 5): przedmiot z torby (kamienie z gniazd wracają do sakwy) albo kamień z sakwy, cena -/+;
+  sprzedaż z szansą 0,3 x (uczciwa/cena)^2 na chwilę, powyżej 1,5 x uczciwej nikt nie kupi; Szlify po opłacie
+  od razu i wiadomość w oknie („Radomir kupił(a): …”).
+- **Okno** `scripts/ui/market_window.gd`: zakładki Giełda / Oferty / Moje i „Wróć” na dole, w nagłówku Szlify.
+  Targ w bazie: handlarz z Watry (`assets/watra/base/market_trader.png`) ze straganem (`market_stall.png`) między
+  kupcem a kukłami; pasek skrótów ma teraz 6 ikon w dwóch kolumnach (mieści się w dolnej połowie 16:9).
+- Testy: `tests/test_market.gd` (nowy); zrzuty `tools/market_shots.gd`.
+
 ## 20.11.2026 - Napad Hordy i wykuwanie z rudy (ROADMAP punkt 4, krok 3 - koniec punktu)
 
 Decyzje autora (ankieta 20.11.2026): obóz goblinów, wykuwanie za 20 rudy z losową rzadkością z najgłębszego lochu.
