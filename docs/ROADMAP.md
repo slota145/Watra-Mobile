@@ -65,12 +65,33 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
     obszaru, 10. poziom +1-2 kule; unikalny: druga orbita w drugą stronę), Promień Arkanów (trzymany - w najbliższego,
     obszar wokół celu; unikalny: od postaci emanuje magia), Pieczęcie Wybuchu (kręgi pod kilkoma wrogami, po chwili
     wybuch; unikalny: kręgi łączy raniąca wiązka). Efekty z kreatora PixelLab. Wszystko w jednym PR.
-  - **Przebudowa przedmiotów (pomysły autora 21.11.2026, w dyskusji - przed startem ankieta):** więcej premii (przegląd
-    innych H&S), tiery premii wg poziomu przedmiotu i szersze widełki, sufit siły przedmiotów zamiast wzrostu bez końca
-    (najlepsze tiery wcześniej niż na 100. poziomie), różne bazy w miejscu (własne statystyki bazowe), bardzo rzadkie
-    przedmioty legendarne z 6 premiami, unikalne (stałe statystyki, mocno zmieniają umiejętność albo działanie postaci),
-    premia ponad widełki (ramka i znaczek; wszystkie ponad - inna ramka i przedrostek np. „Anielski”) - z runami dużo
-    rzadziej niż z łupu.
+  - **Przebudowa przedmiotów (pomysły autora i ankieta 21.11.2026 - ustalone, do zrobienia w kilku PR):**
+    Przegląd innych H&S: PoE (tiery wg poziomu przedmiotu, unikaty z wąskimi widełkami), Diablo 4 (Greater Affix -
+    premia ponad widełki ze znaczkiem), Last Epoch (T1-T7, najwyższe tylko z łupu, potencjał kowalski), Diablo 2 (bazy).
+    - **Sufit siły:** najlepszy tier premii możliwy od **lochu 40**; głębiej rośnie tylko szansa na rzadkie rzeczy
+      (legendy, unikaty, premie ponad widełki), a nie liczby. Uwaga: potwory 40+ też muszą rosnąć wolniej (symulacja).
+    - **Tiery:** 7 (T1 najlepszy), mały kolorowy znaczek T1-T7 przy premii; szersze widełki.
+    - **Liczba premii:** magiczny 1-2, rzadki 3-5, **legendarny zawsze 6** (bardzo rzadki, ok. 0,5% łupu, częściej
+      głębiej, pomarańczowy, słup światła).
+    - **Ponad widełki:** każda premia z łupu ma 3% szansy na wartość do +30% ponad najlepszy tier (od lochu 40 częściej,
+      do 5%) - specjalna ramka i znaczek; **wszystkie** premie ponad - inna ramka i przedrostek **„Anielski”**.
+      Runy: tylko nowa, bardzo rzadka **Runa Bogów** podnosi jedną premię ponad widełki (zwykłe runy nigdy).
+    - **Potencjał kowalski:** każdy przedmiot 15-25 punktów, runy go zużywają (Szlif 1 ... Pieczęć 4), bez potencjału -
+      koniec przeróbek; plus bardzo, bardzo rzadka runa, która przywraca potencjał.
+    - **Bazy:** 3 na każde miejsce, każda z własną stałą cechą (np. hełm: zdrowie / mana / odporność; pierścień rubinowy /
+      szafirowy / złoty); przy wykuwaniu wybór miejsca i bazy.
+    - **Nowe premie:** +poziom umiejętności („+1 do poziomu X”, „+1 do wszystkich umiejętności broni”), rodzaje
+      umiejętności (+% obrażeń pocisków / obszarowych / czarów / wręcz / przywołań i aur, szybkość pocisków, czas trwania),
+      warunkowe i łup („przeciw podpalonym”, „przy pełnym zdrowiu”, „po zabiciu: szybkość”, % rzadkości i ilości łupu,
+      % rudy). Bez osobnych premii na każdy żywioł.
+    - **Unikaty:** stałe statystyki (wąskie widełki), mocno zmieniają działanie postaci albo umiejętności; na start **6**
+      (wybór i opisy do akceptacji autora przed robieniem); na razie wypadają wszędzie (bardzo rzadko), później
+      najlepsze z bossów szczytowych.
+    - **Stare przedmioty:** przeliczone na nowe (najbliższy tier, domyślna baza, pełny potencjał kowalski).
+    - Pomysły Claude do decyzji przy okazji: pokaz łupu (słupy wg rzadkości, dźwięki, błysk przy premii ponad widełki,
+      strzałka „lepszy” na ziemi), duplikaty unikatów rozbijane na esencję ulepszającą unikat.
+    - Kolejność PR: (1) tiery, sufit, widełki, bazy, nowe premie, przeliczenie starych; (2) legendarne, ponad widełki,
+      „Anielski”, Runa Bogów, potencjał kowalski; (3) 6 unikatów; (4) pokaz łupu.
   - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), ~~broń magiczna~~ i ~~wybór broni na start~~ (Księga Arkanów, 21.11.2026). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.
