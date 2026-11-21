@@ -47,6 +47,15 @@ const DATA := {
 		{"f": "stilt_hut_0", "r": 14.0, "w": 0.5},
 		{"f": "storm_rod", "r": 5.0, "w": 1.5, "light": Color(0.6, 0.85, 1.0), "glow": 30.0}, {"f": "wind_chime", "w": 1.0},
 	],
+	# Podniebne wyspy: ruiny chramu Strzyboga z Watry, runy menhirów i mech przebarwione (tools/sky_decor.py)
+	Dungeons.SKY: [
+		{"f": "boulder", "w": 3.0}, {"f": "column", "r": 9.0, "w": 3.0}, {"f": "column_fallen", "r": 14.0, "w": 2.0},
+		{"f": "guardian", "r": 9.0, "w": 1.0},
+		{"f": "menhir_0", "frames": 2, "fps": 1.2, "r": 12.0, "w": 1.2, "light": Color(0.6, 0.85, 1.0), "glow": 26.0},
+		{"f": "menhir_1", "frames": 2, "fps": 1.2, "r": 14.0, "w": 1.2, "light": Color(0.6, 0.85, 1.0), "glow": 26.0},
+		{"f": "menhir_2", "frames": 2, "fps": 1.2, "r": 15.0, "w": 1.0, "light": Color(0.6, 0.85, 1.0), "glow": 26.0},
+		{"f": "rubble", "w": 3.0, "flat": true}, {"f": "wind_chime", "w": 1.5},
+	],
 	Dungeons.VOLCANO: [
 		{"f": "bones", "w": 2.0, "flat": true}, {"f": "boulders", "w": 4.0},
 		{"f": "campfire", "w": 2.0, "frames": 4, "fps": 9.0, "light": Color(1.0, 0.5, 0.15), "glow": 48.0},

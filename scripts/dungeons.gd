@@ -1,8 +1,8 @@
 class_name Dungeons
 ## Rodzaje lochów (ustalone z autorem 15.11.2026). Wspólna drabinka poziomów (decyzja autora 21.11.2026): każdy loch
 ## trwa LEVELS_PER poziomów w kolejności ORDER (1-5 gobliny, 6-10 Zatopione podziemia, 11-15 Katakumby, 16-20 Górskie
-## równiny, 21-25 Wulkaniczne równiny), a po ostatnim lochu drabinka zaczyna się od nowa - drugi krąg (26-50) i kolejne,
-## z coraz silniejszymi potworami (siła zależy tylko od poziomu - DungeonLevels). Od RANDOM_FROM (endgame) przy każdym
+## równiny, 21-25 Podniebne wyspy, 26-30 Wulkaniczne równiny), a po ostatnim lochu drabinka zaczyna się od nowa - drugi krąg (26-50) i kolejne,
+## (31-60, 61-90) z coraz silniejszymi potworami (siła zależy tylko od poziomu - DungeonLevels). Od RANDOM_FROM (endgame) przy każdym
 ## wejściu losuje się loch spośród wszystkich. Do 21.11.2026 każdy loch trwał 10 poziomów (od 41 Wulkaniczne do 100).
 ## Każdy loch: nazwa, boss, podłoże (tekstura z Watry powtarzana na polanie i jej odcień), żywioł potworów
 ## (Elements; odporność bohatera - `element_res_pct`) i potwory na trzech rolach strumienia ProtoHorde:
@@ -15,11 +15,12 @@ const FLOODED := "flooded"
 const CATACOMBS := "catacombs"
 const PLAINS := "plains"
 const VOLCANO := "volcano"
+const SKY := "sky"
 ## Od tego poziomu (włącznie z nim) loch jest losowy przy każdym wejściu.
 const RANDOM_FROM := 101
 ## Ile poziomów trwa każdy loch na drabince.
 const LEVELS_PER := 5
-const ORDER: Array[String] = [GOBLINS, FLOODED, CATACOMBS, PLAINS, VOLCANO]
+const ORDER: Array[String] = [GOBLINS, FLOODED, CATACOMBS, PLAINS, SKY, VOLCANO]
 ## Odporności potworów (decyzja autora 17.11.2026, wariant jak Last Epoch/PoE): wspólna odporność na wszystko - także
 ## fizyczne - rośnie z głębią (DungeonLevels.base_resist), a lochy mają do niej łagodny charakter (RESISTS: żywioł ->
 ## dodatek, ujemny - wrażliwość), żeby wybór broni coś znaczył, ale żadna nie była bezużyteczna. Gracz zmniejsza
@@ -31,6 +32,7 @@ const RESISTS := {
 	CATACOMBS: {Elements.NAWIA: 0.2, Elements.FIRE: -0.2},
 	PLAINS: {Elements.LIGHTNING: 0.2, Elements.COLD: -0.2},
 	VOLCANO: {Elements.FIRE: 0.2, Elements.WATER: -0.2},
+	SKY: {Elements.AIR: 0.2, Elements.EARTH: -0.2},
 }
 const DATA := {
 	GOBLINS: {"name": "Leże goblinów", "boss": "Wódz Goblinów", "summon": "Przyzwij Wodza",
@@ -45,6 +47,10 @@ const DATA := {
 	PLAINS: {"name": "Górskie równiny", "boss": "Gromoskrzydły", "summon": "Przyzwij Gromoskrzydłego",
 		"ground": "res://assets/watra/plains_floor.png", "tint": Color(0.86, 0.9, 0.94), "element": Elements.LIGHTNING,
 		"description": "Wietrzne hale pod szczytami. Ptakoludzie doskakują z oszczepami, miotacze rzucają, szamani ściągają pioruny; nad nimi krąży Gromoskrzydły."},
+	# szósty loch (ustalony z autorem 21.11.2026): wysepki nad chmurami, duchy wiatru, Gryf z Watry, podmuchy i trąby
+	SKY: {"name": "Podniebne wyspy", "boss": "Gryf", "summon": "Przyzwij Gryfa",
+		"ground": "res://assets/watra/sky_floor.png", "tint": Color(1.0, 1.0, 1.0), "element": Elements.AIR,
+		"description": "Skaliste wysepki nad morzem chmur i ruiny chramu Strzyboga. Latawce przelatują przez śmiałków, wiły ciskają ostrza wiatru, wichrowce wciągają do siebie; wiatr zrywa się podmuchami, a po wyspach wędrują trąby powietrzne. Nad nimi króluje Gryf."},
 	VOLCANO: {"name": "Wulkaniczne równiny", "boss": "Żywiołak ognia", "summon": "Przyzwij Żywiołaka",
 		"ground": "res://assets/watra/volcano_floor.png", "tint": Color(1.0, 1.0, 1.0), "element": Elements.FIRE,
 		"description": "Popiół i stygnąca lawa. Salamandry gryzą i podpalają, ogniki plują żarem, żużlowe golemy zostawiają płonącą ziemię; w sercu wulkanu czeka Żywiołak ognia."}

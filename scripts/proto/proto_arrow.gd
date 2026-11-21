@@ -10,7 +10,8 @@ extends Node2D
 ## Inne pociski: `element` - żywioł (strzała Nawii szkieleta łucznika), `bubble` - grafika bańki (kule Nawii
 ## Nekromanty), `tint` - barwa, `speed` / `fly_range` - prędkość i zasięg, `orb` - kula piorunu z podmuchu Gromoskrzydłego
 ## (`eagle_orb`, trafienie `katana_hit` w mniejszej skali), `nawia` - kula Nawii Nekromanty (`nawia_orb` z dymiącym ogonem,
-## trafienie `nawia_hit`).
+## trafienie `nawia_hit`), `wind` - ostrze wiatru wiły i Gryfa (półksiężyc `legend_wind_crescent` z Watry, trafienie
+## - mały wir `whirl`, żywioł powietrza, lekko odpycha postać o WIND_PUSH px).
 
 ## Prędkość (Wojciech: 70 px/s) - strzała z odległości 120 px leci ok. 1 s, w tym czasie da się zejść z linii.
 const SPEED := 115.0
@@ -46,6 +47,14 @@ const NAWIA_FLY_ANCHOR := Vector2(41, 12)
 const NAWIA_HIT := preload("res://assets/effects/nawia_hit.png")
 const NAWIA_HIT_FRAMES := 10
 const NAWIA_HIT_ANCHOR := Vector2(20, 18)
+const WIND_FLY := preload("res://assets/watra/effects/legend_wind_crescent.png")
+const WIND_FLY_FRAMES := 4
+const WIND_FLY_ANCHOR := Vector2(30, 22)
+const WIND_FLY_SIZE := 0.55
+const WIND_HIT := preload("res://assets/effects/whirl.png")
+const WIND_HIT_FRAMES := 8
+const WIND_HIT_ANCHOR := Vector2(48, 40)
+const WIND_PUSH := 10.0
 const SOAK_SLOW := 0.25
 const SOAK_TIME := 2.0
 
@@ -65,6 +74,8 @@ var ignite := 0
 var orb := false
 ## Kula Nawii zamiast bańki (Nekromanta) - własna barwa, bez `tint`.
 var nawia := false
+## Ostrze wiatru (wiła, Gryf).
+var wind := false
 
 var _flown := 0.0
 var _done := false
@@ -77,11 +88,18 @@ func _ready() -> void:
 	if water:
 		bubble = true
 		element = Elements.WATER
+	if wind:
+		element = Elements.AIR
 	_sprite = Sprite2D.new()
 	_sprite.texture = ORB_FLY if orb else (NAWIA_FLY if nawia else (WATER_FLY if bubble else FLY))
 	_sprite.hframes = ORB_FLY_FRAMES if orb else (NAWIA_FLY_FRAMES if nawia else (WATER_FLY_FRAMES if bubble else FLY_FRAMES))
 	_sprite.centered = false
 	_sprite.offset = -(ORB_FLY_ANCHOR if orb else (NAWIA_FLY_ANCHOR if nawia else (WATER_FLY_ANCHOR if bubble else FLY_ANCHOR)))
+	if wind:
+		_sprite.texture = WIND_FLY
+		_sprite.hframes = WIND_FLY_FRAMES
+		_sprite.offset = -WIND_FLY_ANCHOR
+		_sprite.scale = Vector2.ONE * WIND_FLY_SIZE
 	_sprite.modulate = tint
 	_sprite.position = Vector2(0, -_height)
 	_sprite.rotation = direction.angle()
@@ -102,6 +120,8 @@ func _process(delta: float) -> void:
 			hero.slow(SOAK_SLOW, SOAK_TIME, Elements.COLORS[Elements.WATER].lerp(Color.WHITE, 0.4))
 		if ignite > 0:
 			hero.ignite(ignite, 3.0)
+		if wind:
+			hero.drift(direction * WIND_PUSH)
 		_finish(true)
 		return
 	if _flown >= fly_range:
@@ -113,7 +133,9 @@ func _finish(hit: bool) -> void:
 	_done = true
 	if hit:
 		var fx: Sprite2D
-		if orb:
+		if wind:
+			fx = Fx.once(get_parent(), WIND_HIT, WIND_HIT_FRAMES, 20.0, global_position + Vector2(0, -_height), WIND_HIT_ANCHOR, 20, 0.35)
+		elif orb:
 			fx = Fx.once(get_parent(), ORB_HIT, ORB_HIT_FRAMES, 18.0, global_position + Vector2(0, -_height), ORB_HIT_ANCHOR, 20, 0.5)
 		elif nawia:
 			fx = Fx.once(get_parent(), NAWIA_HIT, NAWIA_HIT_FRAMES, 16.0, global_position + Vector2(0, -_height), NAWIA_HIT_ANCHOR, 20)

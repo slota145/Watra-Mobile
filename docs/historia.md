@@ -2,6 +2,32 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Szósty loch: Podniebne wyspy (powietrze)
+
+- **Ustalenia z autorem:** skaliste wysepki nad morzem chmur i ruiny chramu Strzyboga (inaczej niż trawiaste hale
+  Górskich równin), duchy wiatru bez ptasich cech, boss Gryf z Watry, wiatr: podmuchy i trąby powietrzne. Na drabince
+  po Górskich równinach: 21-25 (Wulkaniczne przesunięte na 26-30), krąg ma teraz 30 poziomów (drugi 31-60, trzeci 61-90).
+  Progi przywiązane do poziomów bez zmian.
+- `Dungeons.SKY` („Podniebne wyspy”): żywioł powietrze, odporności powietrze +20%, ziemia -20% (propozycja Claude).
+- **Potwory** (SpriteKiln, `art/specs/characters/<nazwa>/` -> `assets/spritekiln/<nazwa>/`):
+  - latawiec `proto_latawiec.gd` (zwykły, 30 zdrowia, szybki): z 40-95 px zawisa na 0,4 s (miga, bez czerwonego pasa)
+    i przelatuje przez postać (260 px/s, 45 px za nią), raniąc raz na przelot; odnowienie 3 s;
+  - wiła `proto_wila.gd` (strzelająca, jak goblin łucznik): ostrze wiatru - `ProtoArrow.wind` (półksiężyc
+    `legend_wind_crescent` z Watry, trafienie - mały `whirl`, powietrze, odpycha o 10 px), rzut w 0,42 s animacji;
+  - wichrowiec `proto_wichrowiec.gd` (silny, jak goblin osiłek, 170 zdrowia): w czasie zamachu nad kołem kręci się wir
+    i wciąga postać z 80 px ku środkowi (34 px/s - `ProtoHero.drift`, nowa funkcja przesunięcia przez wiatr).
+- **Wiatr** `proto_wind.gd` (arena tworzy go tylko w tym lochu, `arena.wind`): co 9-14 s podmuch w jednym z 8 kierunków -
+  1,6 s zapowiedzi (białe strzałki z ciemnym obrysem przy postaci), potem 2,6 s spychania postaci (42 px/s), potworów
+  (36) i pocisków potworów (40), smugi wiatru w kadrze, szum `gust_*.ogg` z Watry. Do tego 2 wędrowne trąby
+  `proto_tornado.gd` (trąba Gryfa z Watry `gryf_tornado`): wciągają z 60 px, w środku ranią (powietrze) i wyrzucają na 70 px.
+- **Boss Gryf** `proto_gryf.gd` (arkusz z Watry `assets/watra/bosses/gryf.png`, 4x2 klatki, „udawany model” orła -
+  `ProtoStormEagle._EagleSprite`): pikowanie pasem, podmuch wachlarzem (stożek `bow_wind_cone`, odrzut, 5 ostrzy wiatru),
+  szpony (spada łukiem na koło pod postacią, `gryf_slam`), trąby w pościgu (2, poniżej połowy zdrowia 3, 4,5 s).
+- **Podłoga** `tools/sky_floor.py` -> `assets/watra/sky_floor.png`: płyty niebiesko-szarego łupku i smugi mgły
+  niesione wiatrem (generator jak wulkan, za darmo). **Ozdoby** `tools/sky_decor.py` -> `assets/watra/decor/sky/`:
+  kolumny, posąg strażnika, menhiry (runy przebarwione na błękit, pulsują), dzwonki wietrzne, głazy, gruz.
+- Test `tests/test_sky.gd`, zrzuty `tools/sky_shots.gd`.
+
 ## 21.11.2026 - Drabinka lochów po 5 poziomów
 
 - Decyzja autora: każdy loch trwa 5 poziomów zamiast 10 (`Dungeons.LEVELS_PER`), kolejność `Dungeons.ORDER`:

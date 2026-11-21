@@ -220,6 +220,14 @@ static func make_monster(climate_id: String, kind: String) -> ProtoGoblin:
 				return ProtoSlagGolem.new()
 			_:
 				return ProtoSalamander.new()
+	if climate_id == Dungeons.SKY:
+		match kind:
+			"archer":
+				return ProtoWila.new()
+			"brute":
+				return ProtoWichrowiec.new()
+			_:
+				return ProtoLatawiec.new()
 	if climate_id == Dungeons.PLAINS:
 		match kind:
 			"archer":

@@ -1,5 +1,5 @@
 extends SceneTree
-## Test piątego lochu - Wulkaniczne równiny (Dungeons.VOLCANO, 15.11.2026): od 21. poziomu, podpalenie bohatera
+## Test piątego lochu - Wulkaniczne równiny (Dungeons.VOLCANO, 15.11.2026): od 26. poziomu, podpalenie bohatera
 ## (płomienie co pół sekundy, mniej o odporność), płonąca ziemia (ProtoFirePatch), potwory (salamandra podpala
 ## ugryzieniem, ognik pluje podpalającym żarem, żużlowy golem zostawia płonącą ziemię) i boss Żywiołak ognia
 ## (fala ognia w pierścieniu, deszcz lawy, ognisty taran ze śladem ognia).
@@ -31,7 +31,7 @@ func _run() -> void:
 	_check(Dungeons.for_level(Dungeons.first_level(Dungeons.VOLCANO)) == Dungeons.VOLCANO and ProtoHorde.make_monster(Dungeons.VOLCANO, "goblin") is ProtoSalamander
 			and ProtoHorde.make_monster(Dungeons.VOLCANO, "archer") is ProtoFireWisp
 			and ProtoHorde.make_monster(Dungeons.VOLCANO, "brute") is ProtoSlagGolem,
-			"od 21: Wulkaniczne równiny - salamandra, ognik, żużlowy golem")
+			"od 26: Wulkaniczne równiny - salamandra, ognik, żużlowy golem")
 	var t := ProtoTelegraph.new()
 	t.radius = 100.0
 	t.inner = 26.0
@@ -74,7 +74,7 @@ func _test_monsters(game: Node) -> void:
 	await process_frame
 	var hero := _setup(arena)
 	var horde: ProtoHorde = arena.horde_spawner
-	_check(arena.climate == Dungeons.VOLCANO and arena.summon_button.text == "Przyzwij Żywiołaka", "poziom 21: Wulkaniczne równiny")
+	_check(arena.climate == Dungeons.VOLCANO and arena.summon_button.text == "Przyzwij Żywiołaka", "Wulkaniczne równiny (26.)")
 	# podpalenie: płomienie co pół sekundy, mniej o odporność, bez nietykalności
 	hero.element_res = 0.5
 	hero.ignite(20, 1.1)

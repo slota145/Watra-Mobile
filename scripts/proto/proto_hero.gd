@@ -243,6 +243,14 @@ func leap(to: Vector2, time: float, hop := 0.0) -> void:
 		facing = dir.normalized()
 
 
+## Przesunięcie przez wiatr (podmuch Podniebnych wysp, wciąganie wichrowca i trąby): o `offset` px w świecie,
+## w granicach lochu i poza ozdobami; nie w czasie wyskoku ani po śmierci.
+func drift(offset: Vector2) -> void:
+	if dead or leaping():
+		return
+	position = _push_out((position + offset).clamp(bounds.position, bounds.end))
+
+
 ## Czy postać jest w trakcie ruchu wymuszonego (wyskok, krok).
 func leaping() -> bool:
 	return _leap_time > 0.0

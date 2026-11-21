@@ -1,0 +1,300 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: wila
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.05, 0]}
+palette: "watra"
+size: 64
+extends: humanoid   # the template's skeleton, head kit and hair kit; legs hidden under the gown
+
+# Wiła: strzelający potwór lochu powietrznego „Podniebne wyspy” (żywioł powietrze). Słowiańska nimfa wiatru
+# opętana przez Hordę: smukła, w długiej białej sukni z jasnobłękitnymi wstęgami, długie jasne włosy rozwiane
+# wiatrem, unosi się kawałek nad ziemią; blade lico i świecące jasnoturkusowe oczy. Atak z dystansu: zamach
+# prawą ręką i rzut ostrzem wiatru (zdarzenie `release`, socket `blade`). Bez piór i skrzydeł.
+brief:
+  summary: >
+    wila, the ranged enemy of the air dungeon "Sky islands" (element: air): a Slavic wind nymph possessed by the
+    Horde. Slim feminine figure (about 37 px, same density as the 36 px human), a long white flowing gown with
+    pale-blue ribbons (a sash with two long tails streaming in the wind, a blue trim at the hem), long pale-gold
+    hair blown back and to the side by the wind, she hovers about 4 px above the ground (no feet). Sinister:
+    a pale cold face and glowing light-turquoise eyes. Attack: one-arm throw of a wind blade.
+  head: >
+    the head kit with a soft narrow jaw and a slightly pointed chin; the hair kit with a light fringe, temple
+    locks to the collarbone; over it own long locks that do NOT hang like the rusalka's: they stream back and
+    up, lifted by the wind (bone `hairfall`, channels `hair_flow`, `hair_sway`, phase `flut` ripples the tips);
+    face minimal (style): two glowing light-turquoise eyes, no nose, no mouth
+  must_keep:
+    - NO bird features at all (no feathers, wings, beak) - the birdmen already exist
+    - clearly NOT the rusalka (green hair hanging down, tattered mist gown) - pale-GOLD hair blown by the wind,
+      a clean white gown with BLUE ribbons, a floating gap under the hem
+    - a bright silhouette (white gown, light hair) against the dark floor, readable in a crowd
+    - the glowing turquoise eyes; the turquoise wind blade in the throwing hand
+  simplify:
+    - no legs or feet (the gown hides them, parts switched off), bare slim arms, no jewellery
+    - the ribbons are tubes; the hem trim is a painted stripe
+  decisions:
+    - the hover - the waist sits higher than on the rusalka (torso 0.88), the hem ends about 0.25 above the
+      ground; a soft shadow below shows the gap
+    - the wind is always blowing from her front-left - hair and ribbon tails stream back (-z) and to her right
+      (-x), so the silhouette is asymmetric and reads as "wind" in every direction
+    - the wind blade - an emissive turquoise crescent held in the right hand while `gust` > 0 (windup), it
+      disappears on the `release` frame (the game spawns the projectile at socket `blade`)
+    - death - she dissolves into mist - the body shrinks (`fade`, a uniform scale of `big`) and rises while mist
+      puffs (`puff`) swell around her and drift outward, the last frame is a thin wisp of mist
+    - frame 64 px - room for the raised throwing arm and the streaming hair
+    - game contract - `attack` event `windup` at 0 ms, `release` at 420 ms, total 720 ms; sockets `blade`
+      (projectile spawn, right hand), `hand_L` / `hand_R`
+
+ramps:
+  # pale cold skin (possessed, bloodless)
+  wila_skin:  ["#0d0f18", "#5a6678", "#93a0b0", "#c2cdd8", "#e2e9ef", "#f8fbfc"]
+  # long pale-gold hair
+  wila_hair:  ["#16110a", "#5e4c2a", "#977f4a", "#c4ac70", "#e2d29c", "#f8efcc"]
+  # the white gown, a touch warmer than the rusalka's icy one
+  wila_gown:  ["#10131c", "#566175", "#8c98ab", "#bcc6d4", "#e2e8ef", "#fbfcfd"]
+  # pale-blue ribbons and trim
+  ribbon:     ["#0a1626", "#2e5c8a", "#4f8cc0", "#7fb8e2", "#b2daf4", "#e0f2fc"]
+  # glowing turquoise eyes and the wind blade
+  wila_eye:   ["#0a3a38", "#2ee6d0", "#8ffff0", "#e8fffc"]
+  # the mist she dissolves into
+  wila_mist:  ["#1c2a36", "#5d7486", "#93a8b8", "#c4d4de", "#eef4f8"]
+
+materials:
+  skin:   {ramp: wila_skin, gamma: 0.75, finish: soft}
+  hair:   {ramp: wila_hair, finish: matte}
+  gown:   {ramp: wila_gown, finish: matte}
+  ribbon: {ramp: ribbon, finish: soft}
+  eye:    {ramp: wila_eye, emissive: true, band: 2, outline: false, glow: {color: "#5ff5e0", mix: 0.25, radius: 1}}
+  gust:   {ramp: wila_eye, emissive: true, band: 1, outline: false, glow: {color: "#5ff5e0", mix: 0.35, radius: 1}}
+  mist:   {ramp: wila_mist, finish: matte, outline: false, line: false}
+
+remove: [use.sword, parts.belt, parts.coat, animations.idle, animations.walk, animations.attack]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 0.88, jaw: 0.1, chin: 0.65, nose: 0, ears: 0}}
+  - {kit: hair, as: hair, at: head, with: {fringe: 0.35, part: 0.2, locks: 0.8, length: 1.4, volume: 0.95}}
+
+shadow: {rx: 8.5, ry: 3, alpha: 80}
+
+channels:
+  hand_L: [0.27, 0.06, 0.06]
+  hand_R: [0.27, 0.06, 0.06]
+  hair_sway: 0     # the long hair swings to her left (+x) or right (-x)
+  hair_flow: 0.1   # the long hair lifts back (+) in the wind
+  flut: 0          # phase of the flutter (hair tips and ribbon tails ripple with sin(flut))
+  gust: 0          # 0..1: the wind blade in the right hand (attack)
+  fade: 0          # 0..1: the body dissolves (death)
+  puff: 0          # 0..1: mist puffs around her (death)
+
+bones:
+  big:        {parent: root, scale: "1.04*(1 - 0.95*fade)"}
+  # hovering: the waist sits higher than a walking human's, the hem ends well above the ground
+  torso_rot:  {parent: big, pos: "[0, 0.95 + bob + 0.25*fade, 0]", rot: "[lean, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  headbase:   {pos: [0, 0.66, 0.02], scale: "1.08*(1 - 0.95*fade)"}
+  head:       {scale: 1.25}
+  shoulder_L: {pos: [0.18, 0.53, 0.0]}
+  # the skirt from the waist, upright, trailing with `coat` (front-back) and the wind (to her right)
+  skirtbase:  {parent: big, at: torso_rot, rot: "[lean*0.4 - coat*0.12, twist, roll - 0.04 + hair_sway*0.1]"}
+  # the long hair: from the back of the head base, blown back and to her right
+  hairfall:   {parent: headbase, pos: [0, 0.14, -0.05], rot: "[hair_flow - lean*0.5, 0, -0.12 + hair_sway]"}
+  # the ribbon tails: from the back of the sash
+  sashtail:   {parent: pelvis, pos: [0, 0.22, -0.11], rot: "[0.6*hair_flow + 0.15*coat, 0, -0.15 + hair_sway*0.6]"}
+
+ik:
+  arm_L: {lengths: [0.26, 0.25]}
+
+parts:
+  torso:           # a slim bodice; bare skin painted above the neckline
+    material: gown
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.13, 0.11, 0.11]}
+      - ellipsoid: {c: [0, 0.25, 0.0], r: [0.115, 0.13, 0.09]}
+      - ellipsoid: {c: [0, 0.42, 0.0], r: [0.17, 0.12, 0.10]}
+    paint:
+      - material: skin
+        prims:
+          - ellipsoid: {c: [0, 0.57, 0.02], r: [0.22, 0.16, 0.2]}
+  sash:            # the pale-blue ribbon at the waist
+    material: ribbon
+    space: pelvis
+    prims:
+      - torus: {c: [0, 0.22, 0], R: 0.11, r: 0.03, rot: [0, 0, 0]}
+  skirt:           # the long white gown flaring to a wavy hem
+    material: gown
+    space: skirtbase
+    blend: 0.03
+    prims:
+      - revolve: {c: [0, 0, -0.01], profile: {polygon: [[-0.13, 0.1], [0.13, 0.1], [0.16, -0.12], [0.22, -0.38], [0.29, -0.62], [-0.29, -0.62], [-0.22, -0.38], [-0.16, -0.12]], round: 0.02}}
+    cut:
+      # shallow scallops: a hem rippling in the wind, not tatters
+      - sphere: {c: [0.0, -0.72, 0.33], r: 0.1}
+      - sphere: {c: [0.30, -0.72, 0.05], r: 0.1}
+      - sphere: {c: [-0.22, -0.72, -0.24], r: 0.1}
+      - sphere: {c: [0.20, -0.72, -0.26], r: 0.09}
+      - sphere: {c: [-0.30, -0.72, 0.12], r: 0.09}
+    paint:
+      - material: ribbon
+        stripes: {axis: y, at: [-0.58], width: 0.06}
+  tail_L:          # two long ribbon tails from the back of the sash, streaming in the wind
+    material: ribbon
+    space: sashtail
+    prims:
+      - tube: {pts: [[0.03, 0, 0], [0.06, -0.12, -0.12], "[0.05 + 0.04*sin(flut), -0.30, -0.22]", "[0.06 - 0.05*sin(flut + 1.2), -0.50, -0.30]"], r: [0.028, 0.02]}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.53, 0], b: [0, 0.66, 0.02], r: [0.05, 0.045]}
+  eye_L:           # a glowing turquoise eye on the face's side slope
+    material: eye
+    space: head
+    prims:
+      - extrude: {c: [0.075, 0.115, 0.095], rot: [0, 0.7, 0], depth: 0.04, profile: {rect: [0.02, 0.028], round: 0.007}}
+  arm_L:           # slim bare arms
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.05}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.044, 0.035]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.035, 0.03]}
+  cuff_L:          # a ribbon tied round the forearm
+    material: ribbon
+    space: wrist_L
+    prims:
+      - cylinder: {a: [0, 0, -0.07], b: [0, 0, -0.03], r: 0.04}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - ellipsoid: {c: [0, 0, 0.035], r: [0.032, 0.042, 0.05]}
+  blade:           # the wind blade gathered in the right hand while winding up (gone on release)
+    material: gust
+    space: wrist_R
+    when: "gust > 0.05"
+    priority: 2
+    prims:
+      - extrude: {c: [0, 0, 0.12], rot: [0, 0, 0], depth: 0.05, profile: {bezier: [
+          "[-0.19*gust - 0.02, -0.05]", "[0, 0.22*gust]", "[0.19*gust + 0.02, -0.05]", "[0, 0.08*gust]"]}}
+  leg_L: {when: "0"}
+  boot_L: {when: "0"}
+  # the long hair blown back by the wind, in strands (inner lines between parts)
+  mane:
+    material: hair
+    space: hairfall
+    blend: 0.03
+    prims:
+      - tube: {pts: [[0, -0.08, -0.10], [0, -0.34, -0.22], "[-0.04 + 0.04*sin(flut), -0.60, -0.28]", "[-0.08 - 0.05*sin(flut + 0.8), -0.82, -0.36]"], r: [0.10, 0.03]}
+  mane_L:
+    material: hair
+    space: hairfall
+    blend: 0.03
+    prims:
+      - tube: {pts: [[0.09, -0.10, -0.07], [0.13, -0.34, -0.16], "[0.11 - 0.04*sin(flut + 0.6), -0.54, -0.22]", "[0.08 + 0.05*sin(flut + 1.5), -0.70, -0.30]"], r: [0.065, 0.02]}
+  stream:          # one long lock whipping out to her right (the screen's left in s): the wind
+    material: hair
+    space: hairfall
+    blend: 0.03
+    prims:
+      - tube: {pts: [[-0.10, -0.10, -0.05], [-0.20, -0.30, -0.10], "[-0.24 + 0.04*sin(flut + 0.4), -0.52, -0.16]", "[-0.34 - 0.05*sin(flut + 1.3), -0.70, -0.24]"], r: [0.055, 0.018]}
+  # death: puffs of mist swelling and drifting outward
+  puff_L:
+    material: mist
+    space: root
+    when: "puff > 0.05"
+    prims:
+      - ellipsoid: {c: "[0.12 + 0.30*puff, 0.95 + 0.25*puff, 0.05]", r: "[0.25*puff*(1.6 - puff), 0.20*puff*(1.6 - puff), 0.25*puff*(1.6 - puff)]"}
+      - ellipsoid: {c: "[0.10 + 0.20*puff, 0.55 + 0.10*puff, -0.10 - 0.15*puff]", r: "[0.22*puff*(1.6 - puff), 0.18*puff*(1.6 - puff), 0.22*puff*(1.6 - puff)]"}
+  puff_mid:
+    material: mist
+    space: root
+    when: "puff > 0.05"
+    prims:
+      - ellipsoid: {c: "[0, 0.75 + 0.45*puff, 0.10 + 0.10*puff]", r: "[0.33*puff*(1.6 - puff), 0.25*puff*(1.6 - puff), 0.30*puff*(1.6 - puff)]"}
+      - ellipsoid: {c: "[0, 0.40 + 0.20*puff, -0.05]", r: "[0.30*puff*(1.5 - puff), 0.15*puff*(1.5 - puff), 0.30*puff*(1.5 - puff)]"}
+
+sockets:
+  hand_L: {bone: wrist_L, offset: [0, 0, 0.06]}
+  blade: {bone: wrist_R, offset: [0, 0, 0.10]}
+  ground: {bone: root}
+
+animations:
+  # hovering: a slow 1.5 px bob, the hair and ribbons ripple in the wind (late, overlap)
+  idle:
+    frames: 8
+    ms: 140
+    channels:
+      bob: "0.045*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.27, 0.06 + 0.03*sin(p - 0.6), 0.06]"
+      hand_R: "[0.27, 0.06 + 0.03*sin(p - 0.9), 0.06]"
+      coat: "0.25*sin(p - 1.0)"
+      flut: "p"
+      hair_sway: "0.05*sin(p - 1.2)"
+      hair_flow: "0.1 + 0.05*sin(p - 1.5)"
+  # gliding flight: leaning into the motion, gown, hair and ribbons trail back and ripple faster, arms back
+  walk:
+    frames: 8
+    ms: 100
+    channels:
+      lean: 0.16
+      bob: "0.03*sin(p)"
+      roll: "0.025*sin(p)"
+      head_pitch: "-0.08 + 0.03*sin(p - 0.5)"
+      hand_L: "[0.30, 0.10 + 0.03*sin(p - 0.6), -0.10 + 0.02*sin(p - 1.0)]"
+      hand_R: "[0.30, 0.10 + 0.03*sin(p - 0.9), -0.10 + 0.02*sin(p - 1.3)]"
+      coat: "-0.7 + 0.2*sin(2*p - 1.0)"
+      flut: "2*p"
+      hair_sway: "0.05*sin(p - 1.2)"
+      hair_flow: "0.25 + 0.05*sin(2*p - 1.4)"
+  # the throw: the right hand rises back over the shoulder while the wind blade gathers in it (windup, the
+  # torso turns away), then the arm whips forward and across (release: the blade leaves the hand), follow-through
+  attack:
+    loop: false
+    keys:
+      - {ms: 110, event: windup, set: {flut: 0.8, bob: 0.01, twist: -0.10, lean: -0.02, gust: 0.3, coat: 0.1, hair_flow: 0.1,
+          hand_L: [0.30, 0.10, 0.10], hand_R: [0.30, 0.30, -0.05]}}
+      - {ms: 150, set: {flut: 1.6, bob: 0.03, twist: -0.25, lean: -0.08, roll: 0.05, gust: 0.6, coat: -0.1, hair_flow: 0.05, head_pitch: -0.05,
+          hand_L: [0.34, 0.20, 0.18], hand_R: [0.32, 0.60, -0.10]}}
+      - {ms: 160, set: {flut: 2.4, bob: 0.04, twist: -0.30, lean: -0.12, roll: 0.07, gust: 1.0, coat: -0.2, hair_flow: 0.0, head_pitch: -0.08,
+          hand_L: [0.36, 0.24, 0.22], hand_R: [0.32, 0.70, -0.12]}}
+      - {ms: 60, event: release, set: {flut: 3.4, bob: 0.0, twist: 0.35, lean: 0.18, roll: -0.04, coat: 0.4, hair_flow: -0.05, hair_sway: 0.08, head_pitch: 0.06,
+          hand_L: [0.30, 0.02, -0.12], hand_R: [0.02, 0.36, 0.48]}}
+      - {ms: 80, set: {flut: 4.2, bob: -0.01, twist: 0.45, lean: 0.20, roll: -0.05, coat: 0.35, hair_flow: 0.0, hair_sway: 0.06, head_pitch: 0.06,
+          hand_L: [0.30, 0.0, -0.14], hand_R: [-0.06, 0.16, 0.38]}, tween: 1, ease: out}
+      - {ms: 120, set: {flut: 5.2, bob: 0.0, twist: 0.05, lean: 0.04, coat: 0.1, hair_flow: 0.1,
+          hand_L: [0.28, 0.05, 0.04], hand_R: [0.24, 0.06, 0.10]}}
+  # hit: a flinch back, the hair and gown whip forward, she drifts back
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.25, bob: 0.03, squash: 0.96, head_pitch: -0.3, coat: 0.5, flut: 1,
+          hand_L: [0.34, 0.18, -0.06], hand_R: [0.34, 0.18, -0.06], hair_flow: 0.0, hair_sway: 0.06}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.12, bob: 0.02, squash: 0.98, head_pitch: -0.12, coat: 0.25, flut: 2,
+          hand_L: [0.31, 0.12, 0.0], hand_R: [0.31, 0.12, 0.0], hair_flow: 0.15, hair_sway: 0.03}}
+      - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.02, head_pitch: 0.02, coat: -0.05, flut: 3,
+          hand_L: [0.28, 0.07, 0.05], hand_R: [0.28, 0.07, 0.05], hair_flow: 0.32}}
+  # death: struck back with the arms thrown out, then she dissolves into mist: the body shrinks and rises while
+  # mist puffs swell around her and drift away, a last thin wisp
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.05], lean: -0.35, bob: 0.04, head_pitch: -0.4, coat: 0.5, flut: 1,
+          hand_L: [0.40, 0.36, -0.04], hand_R: [0.40, 0.36, -0.04], hair_flow: 0.05}}
+      - {ms: 120, set: {root: [0, 0, -0.06], lean: -0.30, bob: 0.06, head_pitch: -0.35, coat: 0.3, flut: 2, puff: 0.2,
+          hand_L: [0.42, 0.42, 0.0], hand_R: [0.42, 0.42, 0.0], hair_flow: 0.15}}
+      - {ms: 120, set: {root: [0, 0, -0.06], lean: -0.2, bob: 0.06, head_pitch: -0.25, coat: 0.2, flut: 3, puff: 0.4, fade: 0.25,
+          hand_L: [0.40, 0.40, 0.02], hand_R: [0.40, 0.40, 0.02], hair_flow: 0.3}}
+      - {ms: 120, set: {root: [0, 0, -0.06], lean: -0.1, bob: 0.06, head_pitch: -0.15, coat: 0.1, flut: 4, puff: 0.6, fade: 0.5,
+          hand_L: [0.38, 0.36, 0.0], hand_R: [0.38, 0.36, 0.0], hair_flow: 0.3}}
+      - {ms: 130, set: {root: [0, 0, -0.06], lean: 0.0, bob: 0.06, coat: 0.0, flut: 5, puff: 0.8, fade: 0.75,
+          hand_L: [0.34, 0.30, 0.0], hand_R: [0.34, 0.30, 0.0], hair_flow: 0.3}}
+      - {ms: 140, set: {root: [0, 0, -0.06], bob: 0.06, flut: 6, puff: 0.95, fade: 0.95,
+          hand_L: [0.30, 0.25, 0.0], hand_R: [0.30, 0.25, 0.0], hair_flow: 0.3}}
+      - {ms: 500, set: {root: [0, 0, -0.06], bob: 0.06, flut: 6.5, puff: 1.2, fade: 1.0,
+          hand_L: [0.30, 0.25, 0.0], hand_R: [0.30, 0.25, 0.0], hair_flow: 0.3}}
+
+timing:
+  attack: {release: 420ms, total: 720ms}
