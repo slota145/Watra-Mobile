@@ -65,6 +65,12 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
     obszaru, 10. poziom +1-2 kule; unikalny: druga orbita w drugą stronę), Promień Arkanów (trzymany - w najbliższego,
     obszar wokół celu; unikalny: od postaci emanuje magia), Pieczęcie Wybuchu (kręgi pod kilkoma wrogami, po chwili
     wybuch; unikalny: kręgi łączy raniąca wiązka). Efekty z kreatora PixelLab. Wszystko w jednym PR.
+  - **Przebudowa przedmiotów (pomysły autora 21.11.2026, w dyskusji - przed startem ankieta):** więcej premii (przegląd
+    innych H&S), tiery premii wg poziomu przedmiotu i szersze widełki, sufit siły przedmiotów zamiast wzrostu bez końca
+    (najlepsze tiery wcześniej niż na 100. poziomie), różne bazy w miejscu (własne statystyki bazowe), bardzo rzadkie
+    przedmioty legendarne z 6 premiami, unikalne (stałe statystyki, mocno zmieniają umiejętność albo działanie postaci),
+    premia ponad widełki (ramka i znaczek; wszystkie ponad - inna ramka i przedrostek np. „Anielski”) - z runami dużo
+    rzadziej niż z łupu.
   - **Nowe bronie:** ~~łuk~~ (zrobiony 20.11.2026, `docs/historia.md`), ~~broń magiczna~~ i ~~wybór broni na start~~ (Księga Arkanów, 21.11.2026). Każda broń to duża
     praca (5 umiejętności, efekty, kamienie unikalne) - po jednej.
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.
