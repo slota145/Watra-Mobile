@@ -167,8 +167,11 @@ var left_handed := false
 var gesture := true
 ## Auto atak: umiejętność spod dużego przycisku (zwykle zwykły cios) rusza sama, gdy potwór jest w zasięgu.
 var auto_attack := false
-## Zwykłe przedmioty podniesione w lochu od razu rozbijają się na rudę (przełącznik w oknie „Postać”).
+## Dawny przełącznik „rozbijaj zwykłe od razu” (do 21.11.2026) - czytany tylko raz, żeby ustawić filtr łupu postaci
+## bez zapisanego filtra (`_read_filter`).
 var auto_sell_common := false
+## Filtr łupu postaci (LootFilter - ustawienia, okno LootFilterWindow); zapis postaci, bo każda postać ma inną broń.
+var loot_filter := LootFilter.defaults()
 ## Tryb deweloperski (okno pauzy): nieśmiertelność - zdrowie schodzi, ale zamiast śmierci wraca do pełna.
 var dev_immortal := false
 ## Tryb deweloperski: licznik klatek na sekundę i potworów naraz w lochu (sprawdzanie wydajności tłumu na telefonie).
@@ -218,9 +221,16 @@ func save_settings() -> void:
 	cfg.set_value("controls", "gesture", gesture)
 	cfg.set_value("controls", "auto_attack", auto_attack)
 	cfg.set_value("characters", "last", last_character)
-	cfg.set_value("items", "auto_sell_common", auto_sell_common)
 	cfg.save(settings_path)
 	save_game()  # tryb deweloperski leży w zapisie postaci
+
+
+## Filtr łupu z zapisu postaci; bez zapisanego filtra - domyślny, a przy włączonym dawnym przełączniku
+## „rozbijaj zwykłe od razu” włączony i rozbijający zwykłe (tak jak dotąd).
+func _read_filter(raw) -> void:
+	loot_filter = LootFilter.normalize(raw)
+	if raw == null and auto_sell_common:
+		loot_filter.on = true
 
 
 ## Tryb deweloperski postaci z zapisu (słownik `dev`).
@@ -368,6 +378,7 @@ func load_game() -> void:
 	auras_on = []
 	talismans = {}
 	talisman_slots = ["", "", ""]
+	_read_filter(null)
 	char_name = DEFAULT_NAME
 	ssf = false
 	_read_dev({})
@@ -379,6 +390,7 @@ func load_game() -> void:
 		char_name = str(data.get("name", DEFAULT_NAME))
 		ssf = bool(data.get("ssf", false))
 		_read_dev(data.get("dev", {}))
+		_read_filter(data.get("loot_filter", null))
 		if _uses_shared_stash() and FileAccess.file_exists(shared_stash_path):
 			var shared = JSON.parse_string(FileAccess.get_file_as_string(shared_stash_path))
 			if shared is Dictionary:
@@ -549,7 +561,8 @@ func save_game() -> void:
 				"hero_level": hero_level, "hero_xp": hero_xp, "ore": ore, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "start_weapon": start_weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes, "market": market,
-				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots}))
+				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots,
+				"loot_filter": loot_filter}))
 
 
 ## Czy obecna postać korzysta ze wspólnej skrzyni (postać z listy, nie SSF; zapis testowy - nie).

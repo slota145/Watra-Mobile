@@ -175,8 +175,10 @@ func _test_dungeon(game: Node) -> void:
 	for p in arena.loot_feed.get_children():
 		feed_text += p.get_child(0).get_child(1).text
 	_check(feed_text.contains(tr("Podniesiono: %s") % ""), "powiadomienie o podniesionym przedmiocie: " + feed_text)
-	# auto rozbijanie zwykłych: ruda zamiast torby, także przy pełnej torbie
-	game.auto_sell_common = true
+	# filtr łupu rozbijający zwykłe: ruda zamiast torby, także przy pełnej torbie
+	game.loot_filter = LootFilter.defaults()
+	game.loot_filter.on = true
+	game.loot_filter.upgrade = false
 	var ore_before: int = game.ore
 	var common := Items.roll(1, "boots", "common", Items.GOBLIN_WEIGHTS, "boots")
 	horde.drop_item(common, hero.position + Vector2(20, 0))
@@ -184,8 +186,9 @@ func _test_dungeon(game: Node) -> void:
 	_check(game.ore == ore_before + Items.ore_value(common) and arena.run_ore == Items.ore_value(common),
 			"auto rozbijanie zwykłego (+%d rudy)" % (game.ore - ore_before))
 	var last: Label = arena.loot_feed.get_child(arena.loot_feed.get_child_count() - 1).get_child(0).get_child(1)
-	_check(last.text.begins_with(tr("Rozbito: %s (+%d rudy)").split(":")[0]), "powiadomienie o rozbiciu: " + last.text)
-	game.auto_sell_common = false
+	_check(last.text.begins_with(tr("Filtr rozbił: %s (+%d rudy)").split(":")[0]) and arena.run_filtered == 1,
+			"powiadomienie o rozbiciu: " + last.text)
+	game.loot_filter = LootFilter.defaults()
 	var g := horde.spawn_at(hero.position + Vector2(200, 0))
 	await process_frame
 	var xp_before: int = game.hero_xp
@@ -281,9 +284,10 @@ func _test_window(game: Node) -> void:
 	stats.sell_better_button.pressed.emit()
 	stats.sell_better_button.pressed.emit()
 	_check(game.bag.is_empty(), "magiczne i rzadkie rozbite")
-	stats.auto_sell_toggle.button_pressed = true
-	_check(game.auto_sell_common, "przełącznik auto rozbijania")
-	stats.auto_sell_toggle.button_pressed = false
+	stats.filter_button.pressed.emit()
+	_check(stats.filter_window.visible, "przycisk „Filtr łupu” w torbie otwiera okno")
+	stats.back()
+	_check(not stats.filter_window.visible and stats.visible, "„wstecz” zamyka najpierw filtr łupu")
 	stats.close()
 	menu.close()
 	arena.queue_free()

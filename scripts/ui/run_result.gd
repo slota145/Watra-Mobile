@@ -118,6 +118,14 @@ func add_loot_lines(items: int, runes := 0, ore := 0) -> void:
 		_summary.text += "\n" + tr("Ruda żelaza: +%d") % ore
 
 
+## Podsumowanie filtra łupu: ile przedmiotów rozbił w tej wyprawie i ile rudy z nich było (ruda jest już w linii
+## „Ruda żelaza”).
+func add_filter_line(items: int, ore: int) -> void:
+	if items > 0:
+		_summary.text += "\n" + Lang.n(items, "Filtr łupu rozbił %d przedmiot (+%d rudy)",
+				"Filtr łupu rozbił %d przedmioty (+%d rudy)", "Filtr łupu rozbił %d przedmiotów (+%d rudy)") % [items, ore]
+
+
 ## Co odblokowało pokonanie tego bossa (drabinka - Unlocks.on_beat), złotym kolorem w podsumowaniu.
 func add_unlock_lines(entries: Array) -> void:
 	for e: Dictionary in entries:

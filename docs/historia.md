@@ -2,6 +2,39 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 21.11.2026 - Filtr łupu
+
+Pomysł autora i ankieta 21.11.2026 (układ okna pokazany autorowi i zaakceptowany przed pisaniem kodu).
+- **Logika** (`scripts/loot_filter.gd` - `LootFilter`): `verdict(filtr, przedmiot, ctx)` - kolejność: filtr wyłączony,
+  legenda albo unikat (zawsze zostają; rozbijane są tylko zwykłe / magiczne / rzadkie), bezpiecznik (`safe_above` -
+  premia ponad widełki, `safe_sockets` - 2 gniazda), `upgrade` - lepszy od założonego (`Items.is_upgrade`), rzadkość
+  niezaznaczona w zasadach miejsca, co najmniej `count` premii z listy (`stats`) w progu stopnia (`tier`; pusta lista
+  bez Automatu - liczy się każda premia). Zasady miejsc: `slots.all` wspólne, każde miejsce z `own` - własne
+  (`rules_for`). `burns(game, item)` - skrót dla gry.
+- **Automat** (`auto`): `auto_stats(broń, umiejętności)` - premie ogólne (`AUTO_GENERAL`: zdrowie, obrażenia, ochrona,
+  odporności, poziom wszystkich umiejętności), broń magiczna - obrażenia magiczne i szybkość rzucania, reszta - szybkość
+  ataku, broń żywiołu - obrażenia od żywiołów, znaczniki założonych umiejętności (`Skills.TAG_STATS` + pocisk: szybkość
+  pocisków, obszar: obszar, przywołaniec: czas działania), poziom umiejętności tylko założonej. Próg „Auto” (`tier` 0):
+  `auto_tier` - najlepszy stopień dostępny na poziomie lochu + 2 (loch 1: każdy, loch 40: T3); bez Automatu „Auto” = każdy.
+- **Zapis:** `Game.loot_filter` w zapisie postaci (`_read_filter`, `LootFilter.normalize` poprawia zły zapis). Dawny
+  przełącznik `auto_sell_common` (settings.cfg) już się nie zapisuje; postać bez zapisanego filtra przy włączonym
+  przełączniku dostaje filtr włączony z rozbijaniem zwykłych (jak dotąd). Domyślnie filtr wyłączony.
+- **W lochu:** `ProtoLoot` przy podniesieniu - `LootFilter.burns` -> `Game.dismantle_loot` (sygnał `scrapped`, bez pełnej
+  torby); arena: przygaszone powiadomienie „Filtr rozbił: … (+N rudy)” (`notify_loot(…, dim)`), liczniki
+  `run_filtered` / `run_filtered_ore`, w podsumowaniu wyprawy `RunResult.add_filter_line` („Filtr łupu rozbił 3 przedmioty (+7 rudy)”).
+- **Okno** (`scripts/ui/loot_filter_window.gd` - `LootFilterWindow` na `BaseWindow`): z pauzy (przycisk „Filtr łupu”,
+  też w lochu) i z torby okna „Postać” (przycisk „Filtr łupu: włączony/wyłączony” zamiast przełącznika). U góry
+  przełączniki „Filtr” i „Automat”, rząd miejsc 44 px („Wsz.” + 6 ikon, pomarańczowa kropka - własne ustawienia);
+  zakładki pod kciukiem: „Zasady” (własne ustawienia miejsca - włączenie kopiuje wspólne, rzadkości, próg stopnia
+  i ile premii z „-”/„+”, opis zasady słowami, bezpiecznik) i „Premie” (5 grup, tylko premie możliwe w miejscu -
+  `Items.affix_fits`, „A” i zielony kolor - premia z Automatu, „Wyczyść”). Pauzy nie zmienia (`_was_paused`), zapis
+  przy zamknięciu, „wstecz” zamyka najpierw filtr.
+- **Podgląd:** w torbie okna „Postać” ikona ognia (`assets/watra/ui/filter_fire.png` - znacznik ognia z Watry) przy
+  przedmiotach, które filtr by rozbił.
+- Test `tests/test_loot_filter.gd`, zrzuty `tools/filter_shots.gd`; `tests/test_items.gd` sprawdza rozbicie filtrem w lochu.
+- Do oceny na telefonie: próg Automatu (najlepszy dostępny + 2), lista premii Automatu, czytelność okna.
+- Na przyszłość (ROADMAP): filtr dla kamieni szlachetnych (potrzebują stopni premii).
+
 ## 21.11.2026 - Przedmioty krok 4: pokaz łupu
 
 Ankieta autora (wszystkie propozycje Claude, z dodatków: napis z wibracją i strzałka przy krawędzi; bez nazwy na ziemi).

@@ -6,7 +6,7 @@ extends Control
 ## „Statystyki” - pełna lista z poziomu i przedmiotów (zielona kolumna - co da następny awans); „Sakwa” - kamienie. Stuknięcie w przedmiot otwiera opis przy dolnej krawędzi ekranu (pod kciukiem): cechy, zmiana
 ## statystyk po założeniu i przyciski „Załóż” / „Zdejmij” i „Sprzedaj” (magiczny i rzadki - drugie stuknięcie „Na pewno?”).
 ## Pod torbą: „Sprzedaj zwykłe” i „Sprzedaj magiczne i rzadkie” (drugie stuknięcie potwierdza i pokazuje cenę)
-## oraz przełącznik auto rozbijania zwykłych przedmiotów podniesionych w lochu na rudę (`Game.auto_sell_common`).
+## oraz przycisk okna „Filtr łupu” (LootFilterWindow; w torbie znaczek ognia przy przedmiotach, które filtr by rozbił).
 ## Kamienie szlachetne (Gems): w opisie przedmiotu rząd jego gniazd, pod każdym krótko, co daje kamień; stuknięcie
 ## gniazda otwiera GemPicker z pasującymi kamieniami i ich premią w tym miejscu („Włóż”, „Wymień”, „Wyjmij”);
 ## „Dłuto” dorabia drugie gniazdo (drugie stuknięcie potwierdza). Zakładka „Sakwa” (15.11.2026): kamienie, klucze
@@ -26,6 +26,8 @@ const UP := Color(0.55, 0.95, 0.5)
 const DOWN := Color(1.0, 0.45, 0.4)
 const DIM := Color(1, 0.85, 0.6, 0.8)
 const SLOT_SIZE := 52.0
+## Znaczek w torbie: filtr łupu rozbiłby ten przedmiot (ikona ognia z Watry).
+const BURN_ICON := preload("res://assets/watra/ui/filter_fire.png")
 const BAG_COLUMNS := 5
 ## Miejsca ekwipunku po lewej i po prawej stronie postaci.
 const LEFT_SLOTS := ["helmet", "armor", "boots"]
@@ -69,7 +71,9 @@ var detail_close: Button
 ## Sprzedaż hurtem i auto sprzedaż zwykłych.
 var sell_common_button: Button
 var sell_better_button: Button
-var auto_sell_toggle: CheckButton
+## Przycisk okna filtra łupu (pod torbą) i samo okno.
+var filter_button: Button
+var filter_window: LootFilterWindow
 ## Która sprzedaż hurtem czeka na potwierdzenie ("common", "better" albo "").
 var _bulk_armed := ""
 ## Wybrany przedmiot: z torby (`_sel_index` >= 0) albo założony (`_sel_slot`).
@@ -203,15 +207,10 @@ func _ready() -> void:
 		bb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		bb.add_theme_font_size_override("font_size", 12)
 		bb.custom_minimum_size.y = 44
-	auto_sell_toggle = CheckButton.new()
-	auto_sell_toggle.text = tr("Rozbijaj zwykłe na rudę od razu po podniesieniu")
-	auto_sell_toggle.custom_minimum_size = Vector2(0, 44)
-	auto_sell_toggle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	auto_sell_toggle.add_theme_font_size_override("font_size", 12)
-	auto_sell_toggle.toggled.connect(func(on: bool) -> void:
-		_game.auto_sell_common = on
-		_game.save_settings())
-	page_equip.add_child(auto_sell_toggle)
+	filter_button = _detail_button(page_equip, "")
+	filter_button.add_theme_font_size_override("font_size", 12)
+	filter_button.custom_minimum_size.y = 44
+	filter_button.pressed.connect(func() -> void: filter_window.open())
 	# zakładka „Statystyki”: pełna lista z przyrostem na następnym poziomie
 	page_stats = _page(pages)
 	_make_stats(page_stats)
@@ -316,6 +315,10 @@ func _ready() -> void:
 		refresh()
 		_redetail())
 	add_child(picker)
+	filter_window = LootFilterWindow.new()
+	filter_window.visible = false
+	filter_window.closed.connect(refresh)
+	add_child(filter_window)
 	set_tab("equip")
 	_game.inventory_changed.connect(func() -> void:
 		if visible:
@@ -380,6 +383,8 @@ func open() -> void:
 func close() -> void:
 	_hide_detail()
 	picker.close()
+	if filter_window.visible:
+		filter_window.close()
 	visible = false
 	get_tree().paused = false
 	closed.emit()
@@ -387,7 +392,9 @@ func close() -> void:
 
 ## Przycisk „wstecz”: najpierw zamyka wybór kamienia, potem opis przedmiotu, potem okno.
 func back() -> void:
-	if picker.visible:
+	if filter_window.visible:
+		filter_window.back()
+	elif picker.visible:
 		picker.close()
 	elif detail.visible:
 		_hide_detail()
@@ -434,7 +441,7 @@ func refresh() -> void:
 	bag_label.text = tr("Torba: %d / %d") % [_game.bag.size(), _game.BAG_SIZE]
 	_refresh_pouch()
 	_refresh_talismans()
-	auto_sell_toggle.set_pressed_no_signal(_game.auto_sell_common)
+	filter_button.text = tr("Filtr łupu: włączony") if _game.loot_filter.on else tr("Filtr łupu: wyłączony")
 	_bulk_armed = ""
 	_bulk_texts()
 
@@ -1125,6 +1132,19 @@ func _play_coins() -> void:
 ## Pole przedmiotu: ikona, ramka w kolorze rzadkości (puste miejsce ekwipunku - przygaszony obrys z Watry).
 func _show_item(b: Button, item: Dictionary, slot: String) -> void:
 	var color := Color(0.45, 0.35, 0.25)
+	if slot == "":  # torba: znaczek ognia - filtr łupu rozbiłby ten przedmiot
+		var fire := b.get_node_or_null("Burn") as TextureRect
+		if fire == null:
+			fire = TextureRect.new()
+			fire.name = "Burn"
+			fire.texture = BURN_ICON
+			fire.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			fire.custom_minimum_size = Vector2(14, 14)
+			fire.size = Vector2(14, 14)
+			fire.position = Vector2(SLOT_SIZE - 16, 2)
+			fire.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			b.add_child(fire)
+		fire.visible = not item.is_empty() and LootFilter.burns(_game, item)
 	if item.is_empty():
 		b.icon = Items.slot_icon(slot) if slot != "" else null
 		b.modulate = Color(1, 1, 1, 0.55) if slot != "" else Color.WHITE
