@@ -194,6 +194,10 @@ const UNIQUE := {
 		"text": "Pojawiają się 3 widmowe kosy: wszystkie cztery tną naraz i dookoła ciebie powstają 4 takie kwadraty."},
 	"s_mow": {"name": "Kamień Rzędów Nawii", "short": "Rzędy wybuchów",
 		"text": "Po cięciu w stożku wybucha Nawia - rzędami, a w każdym rzędzie od prawej do lewej (45% siły każdy wybuch)."},
+	"s_dance": {"name": "Kamień Wirującego Ostrza", "short": "Wirujące ostrze",
+		"text": "Przy końcowym cięciu wylatuje wirujące ostrze: przez 3 s leci od wroga do wroga, a na końcu wybucha."},
+	"s_mara": {"name": "Kamień Bliźniaczych Mar", "short": "2 chmury",
+		"text": "Z tobą zmieniają się w mgłę jeszcze dwie chmury - same latają po lochu, namierzają wrogów i ich przeklinają."},
 	# glewia ognia (ustalone z autorem 14.11.2026)
 	"g_thrust": {"name": "Kamień Trójzęba", "short": "3 pchnięcia",
 		"text": "Glewia dźga trzy razy naraz w wąskim stożku przed sobą - każdy wróg obrywa raz."},

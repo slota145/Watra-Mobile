@@ -19,7 +19,19 @@ extends ProtoWeapon
 ##   czubkiem (większy zasięg i obrażenia im dłużej), po puszczeniu kosa kosi cały stożek; 5. - ładuje się o 1/3
 ##   szybciej, 10. - pełne naładowanie ogłusza; kamień unikalny (Rzędów Nawii) - po cięciu w stożku wybucha Nawia
 ##   rzędami, każdy rząd od prawej do lewej względem postaci (`_mow_rows`).
-## Taniec Marzanny i Postać Mary - w drugim kroku (ROADMAP).
+## - „Taniec Marzanny” (`s_dance`, pomysł autora jak Violation z BDO): kilka kroków naprzód (kierunek z gałki, bez niej
+##   ku najbliższemu wrogowi) z kosą wirującą nad głową - co DANCE_TICK rani wrogów wokół; w trakcie i chwilę po
+##   (DANCE_WINDOW) przycisk jest gotowy (`cooldown_left` 0) - kolejne stuknięcie płynnie przedłuża taniec za pół many:
+##   drugi raz szybciej, kierunek z gałki; po ostatnich krokach cięcie po skosie, które odpycha (gaśnie powoli);
+##   5. - wir o DANCE_PERK_AREA większy, 10. - końcowe cięcie zostawia raniącą smugę; kamień unikalny (Wirującego
+##   Ostrza) - przy końcowym cięciu wylatuje wirujące ostrze: przez BLADE_TIME s leci od wroga do wroga, na końcu
+##   wybucha (`_blades`).
+## - „Postać Mary” (`s_mara`, pomysł autora - jak śmierciożercy z Harry'ego Pottera): postać zmienia się w chmurę mgły
+##   (MARA_TIME s, nietykalna, szybsza - ProtoHero.form_speed, sterowana gałką) z długim czarnym ogonem z białym brzegiem,
+##   wyginającym się po torze, i cząsteczkami (`_MaraCloud`); każdy wróg, przez którego przeleci, dostaje klątwę
+##   (czaszki nad głową - mara_curse); po końcu formy (albo drugim stuknięciu) pod każdym przeklętym wybucha Nawia;
+##   5. - forma trwa dłużej, 10. - wybuch rani też wrogów obok; kamień unikalny (Bliźniaczych Mar) - dwie dodatkowe
+##   chmury same latają i przeklinają wrogów.
 
 const SCYTHE_TEXTURE := preload("res://assets/weapons/scythe.png")
 ## Punkt chwytu na obrazku (koniec drzewca po lewej).
@@ -113,6 +125,53 @@ const MOW_BLAST_GAP := 0.05
 const MOW_BLAST_SPACING := 26.0
 const MOW_BLAST_RADIUS := 20.0
 const MOW_BLAST_POWER := 0.45
+## Taniec Marzanny: droga i czas kroków (drugi raz szybciej), okno na przedłużenie, wir (promień, co ile rani, siła,
+## 5. poziom - większy), końcowe cięcie (zasięg, łuk, siła, odepchnięcie), smuga z 10. (czas, siła).
+const DANCE_DIST := 70.0
+const DANCE_TIME := 0.6
+const DANCE_TIME_FAST := 0.45
+const DANCE_WINDOW := 0.35
+const DANCE_RADIUS := 34.0
+const DANCE_TICK := 0.12
+const DANCE_SPIN_POWER := 0.35
+const DANCE_PERK_AREA := 1.3
+const DANCE_SLASH_REACH := 60.0
+const DANCE_SLASH_ARC := deg_to_rad(140.0)
+const DANCE_SLASH_POWER := 1.3
+const DANCE_PUSH := 160.0
+const DIAG_FX := preload("res://assets/effects/scythe_diag.png")
+const DIAG_FRAMES := 14
+const DIAG_FPS := 16.0
+const DIAG_ANCHOR := Vector2(33, 18)
+## Szerokość półksiężyca na arkuszu (skalowanie pod zasięg cięcia).
+const DIAG_WIDTH := 70.0
+const WHIRL_S_FX := preload("res://assets/effects/scythe_whirl.png")
+const WHIRL_S_FRAMES := 9
+const WHIRL_S_FPS := 13.0
+const WHIRL_S_ANCHOR := Vector2(48, 23)
+const WHIRL_S_RADIUS := 32.0
+## Kamień Wirującego Ostrza: czas lotu, prędkość, siła trafienia, zasięg szukania kolejnego wroga, wybuch.
+const BLADE_TIME := 3.0
+const BLADE_SPEED := 230.0
+const BLADE_POWER := 0.6
+const BLADE_SEEK := 160.0
+const BLADE_BLAST_RADIUS := 40.0
+const BLADE_BLAST_POWER := 1.0
+## Postać Mary: czas (5. poziom - dłużej), szybkość, zasięg dotknięcia, wybuch klątwy (promień, siła, 10. - obok),
+## kamień unikalny (dodatkowe chmury, ich szybkość).
+const MARA_TIME := 2.5
+const MARA_TIME_LONG := 3.5
+const MARA_SPEED := 2.4
+const MARA_TOUCH := 18.0
+const MARA_BLAST_RADIUS := 22.0
+const MARA_SPLASH_RADIUS := 40.0
+const MARA_SPLASH_POWER := 0.5
+const MARA_TWINS := 2
+const MARA_TWIN_SPEED := 190.0
+const CURSE_FX := preload("res://assets/effects/mara_curse.png")
+const CURSE_FRAMES := 16
+const CURSE_FPS := 10.0
+const CURSE_ANCHOR := Vector2(24, 37)
 
 ## Żniwo: licznik zamachów (co trzeci - obrót), czy ten zamach to obrót, trafienia do fali (kamień unikalny).
 var reap_count := 0
@@ -129,6 +188,22 @@ var _mow_edge: Line2D
 var _mow_blasts: Array = []
 ## Ile wybuchów rzędów było (do testów).
 var mow_blasts_done := 0
+## Taniec Marzanny: które użycie (1 albo 2), czas kroków, ile trwają, kierunek, odliczanie wiru, czekanie na
+## przedłużenie, przedłużenie zamówione w trakcie kroków.
+var dance_uses := 0
+var _dance_t := 0.0
+var _dance_time := 0.0
+var _dance_dir := Vector2.RIGHT
+var _dance_tick := 0.0
+var _dance_fx_t := 0.0
+var _dance_queued := false
+## Wirujące ostrza ({"node", "target", "left", "power", "last"}).
+var _blades: Array = []
+## Postać Mary: ile jeszcze trwa, chmury (postać + bliźniacze: {"node", "twin", "target"}), przeklęci (cel -> znak).
+var mara_left := 0.0
+var _clouds: Array = []
+var cursed := {}
+var _mara_power := 0.0
 
 
 func _init() -> void:
@@ -146,7 +221,13 @@ func _ready() -> void:
 
 
 func _world_fx() -> Array:
-	return super._world_fx() + [_trails, _squares, [_mow_poly, _mow_edge]]
+	return super._world_fx() + [_trails, _squares, [_mow_poly, _mow_edge], _blades, _clouds]
+
+
+func _exit_tree() -> void:
+	if mara_left > 0.0:
+		_mara_restore()
+	super._exit_tree()
 
 
 func _process(delta: float) -> void:
@@ -160,9 +241,14 @@ func _process(delta: float) -> void:
 			_place(_aim + TAU * clampf(_t / (SQUARE_CUT_EVERY * 4.0), 0.0, 1.0))
 			if _t >= SQUARE_CUT_EVERY * 4.0 + 0.05:
 				_end_skill()
+		"dance", "dance_wait":
+			_process_dance(delta)
+		"mara":
+			_process_mara(delta)
 	_process_trails(delta)
 	_process_squares(delta)
 	_process_mow_blasts(delta)
+	_process_blades(delta)
 
 
 ## Trafienie umiejętnością `skill` z siłą `power` (z rozbłyskiem Nawii na celu).
@@ -271,7 +357,7 @@ func _reap_hit() -> void:
 
 
 ## Smuga Nawii (10. poziom Żniwa): szczyt zamachu zostaje na TRAIL_TIME s i gaśnie, co TRAIL_TICK rani w łuku.
-func _spawn_trail(aim: float, radius: float, arc: float, power: float) -> void:
+func _spawn_trail(aim: float, radius: float, arc: float, power: float, skill := "s_reap") -> void:
 	var node := Sprite2D.new()
 	node.texture = SWING_FX
 	node.hframes = SWING_FRAMES
@@ -286,7 +372,7 @@ func _spawn_trail(aim: float, radius: float, arc: float, power: float) -> void:
 	get_parent().add_child(node)
 	node.global_position = _orbit_center().round()
 	_trails.append({"node": node, "aim": aim, "radius": radius, "arc": arc, "left": TRAIL_TIME, "tick": TRAIL_TICK,
-			"power": power, "at": _orbit_center()})
+			"power": power, "at": _orbit_center(), "skill": skill})
 
 
 func _process_trails(delta: float) -> void:
@@ -298,7 +384,7 @@ func _process_trails(delta: float) -> void:
 		node.frame = SWING_PEAK + mini(int((TRAIL_TIME - tr_.left) / TRAIL_TIME * 4.0), 3)
 		if tr_.tick <= 0.0:
 			tr_.tick = TRAIL_TICK
-			_arc_hits(tr_.at, tr_.aim, tr_.radius, tr_.arc, tr_.power, basic, tr_.radius * 0.4)
+			_arc_hits(tr_.at, tr_.aim, tr_.radius, tr_.arc, tr_.power, tr_.skill, tr_.radius * 0.4)
 		if tr_.left <= 0.0:
 			node.queue_free()
 			_trails.erase(tr_)
@@ -319,7 +405,7 @@ func _reap_wave(power: float) -> void:
 # --- Umiejętności ---
 
 func _start(id: String) -> void:
-	if id == basic or not id in ["s_square", "s_mow"]:
+	if id == basic or not id in ["s_square", "s_mow", "s_dance", "s_mara"]:
 		super._start(id)
 		return
 	if not can_use(id) or not hero.spend_mana(mana_cost(id)):
@@ -345,11 +431,22 @@ func _start(id: String) -> void:
 			_mow_edge.z_index = -1
 			get_parent().add_child(_mow_edge)
 			_set_state("mow_charge")
+		"s_dance":
+			dance_uses = 1
+			_dance_queued = false
+			_dance_steps(DANCE_TIME)
+		"s_mara":
+			_start_mara()
 	hero.play_gesture(_orbit_center() + Vector2.from_angle(_aim) * 20.0 + Vector2(0, ORBIT_HEIGHT))
 	skill_used.emit(id)
 
 
 func _end_skill() -> void:
+	dance_uses = 0
+	_dance_queued = false
+	_sprite.visible = true
+	if mara_left > 0.0:
+		_mara_finish()
 	for n in [_mow_poly, _mow_edge]:
 		if n and is_instance_valid(n):
 			n.queue_free()
@@ -623,3 +720,393 @@ func _process_mow_blasts(delta: float) -> void:
 		for t in _near(b.at, radius):
 			if t.global_position.distance_to(b.at) <= radius + 4.0:
 				_hit(t, b.power, b.at, "s_mow")
+
+
+# --- Taniec Marzanny ---
+
+## Przycisk Tańca jest gotowy w trakcie kroków i chwilę po nich (przedłużenie), Postaci Mary - w trakcie formy (koniec).
+func cooldown_left(id: String) -> float:
+	if id == "s_dance" and _dance_can_extend():
+		return 0.0
+	if id == "s_mara" and mara_left > 0.0:
+		return 0.0
+	return super.cooldown_left(id)
+
+
+## Stuknięcie w trakcie Tańca przedłuża go (za pół many), w trakcie Postaci Mary - kończy formę.
+func cast(id: String) -> bool:
+	if id == "s_dance" and _dance_can_extend():
+		var cost := roundi(mana_cost(id) * 0.5)
+		if not hero.spend_mana(cost):
+			cast_failed.emit(id, "mana")
+			return false
+		if _state == "dance":
+			_dance_queued = true  # płynnie: drugie kroki zaraz po pierwszych
+		else:
+			dance_uses = 2
+			_dance_steps(DANCE_TIME_FAST)
+		return true
+	if id == "s_mara" and mara_left > 0.0:
+		_end_skill()
+		return true
+	return super.cast(id)
+
+
+func _dance_can_extend() -> bool:
+	return _state in ["dance", "dance_wait"] and dance_uses == 1 and not _dance_queued
+
+
+## Kierunek kroków: gałka, bez niej najbliższy wróg, bez niego kierunek patrzenia.
+func _dance_direction() -> Vector2:
+	var stick: Vector2 = hero.joystick.vector if hero.joystick else Vector2.ZERO
+	if stick.length() > 0.2:
+		return stick.normalized()
+	var best := _nearest(Skills.DATA["s_dance"].range * 2.0)
+	if best:
+		return (best.global_position - hero.global_position).normalized()
+	return hero.facing.normalized() if hero.facing.length() > 0.1 else Vector2.RIGHT
+
+
+func _dance_steps(time: float) -> void:
+	_dance_dir = _dance_direction()
+	_dance_t = 0.0
+	_dance_time = time
+	_dance_tick = 0.0
+	_dance_fx_t = 0.0
+	hero.leap(hero.global_position + _dance_dir * DANCE_DIST * _area("s_dance"), time)
+	_set_state("dance")
+
+
+func _dance_radius() -> float:
+	return DANCE_RADIUS * _area("s_dance") * (DANCE_PERK_AREA if _perk("s_dance", 0) else 1.0)
+
+
+## Kroki z kosą wirującą nad głową: wir rani co DANCE_TICK; po krokach czekanie na przedłużenie albo końcowe cięcie.
+func _process_dance(delta: float) -> void:
+	_dance_t += delta
+	position = hero.position + Vector2(0, -1)
+	_sprite.position = _orbit_center() - global_position + Vector2(0, -16)
+	_sprite.rotation += delta * (26.0 if dance_uses == 2 else 20.0)
+	_dance_tick -= delta
+	var radius := _dance_radius()
+	if _dance_tick <= 0.0:
+		_dance_tick = DANCE_TICK
+		for t in _near(hero.global_position, radius):
+			if t.global_position.distance_to(hero.global_position) <= radius + 4.0:
+				_hit(t, _power("s_dance") * DANCE_SPIN_POWER, hero.global_position, "s_dance")
+	_dance_fx_t -= delta
+	if _dance_fx_t <= 0.0:
+		_dance_fx_t = (WHIRL_S_FRAMES - 2) / WHIRL_S_FPS
+		var fx := Fx.once(get_parent(), WHIRL_S_FX, WHIRL_S_FRAMES, WHIRL_S_FPS, _orbit_center() + Vector2(0, -6),
+				WHIRL_S_ANCHOR, 6, radius / WHIRL_S_RADIUS)
+		fx.reparent(hero)  # wir idzie z postacią
+	if _state == "dance" and _dance_t >= _dance_time:
+		if _dance_queued:
+			_dance_queued = false
+			dance_uses = 2
+			_dance_steps(DANCE_TIME_FAST)
+		elif dance_uses >= 2:
+			_dance_slash()
+		else:
+			_set_state("dance_wait")
+	elif _state == "dance_wait" and _t >= DANCE_WINDOW:
+		_dance_slash()
+
+
+## Końcowe cięcie po skosie: rani w łuku przed postacią i odpycha; 10. poziom - smuga; kamień unikalny - wirujące ostrze.
+func _dance_slash() -> void:
+	var reach := DANCE_SLASH_REACH * _area("s_dance")
+	var aim := _dance_dir.angle()
+	var power := _power("s_dance") * DANCE_SLASH_POWER
+	for t in _arc_hits(_orbit_center(), aim, reach, DANCE_SLASH_ARC, power, "s_dance"):
+		t.push_away(hero.global_position, DANCE_PUSH)
+	var fx := Fx.once(get_parent(), DIAG_FX, DIAG_FRAMES, DIAG_FPS, (_orbit_center() + _dance_dir * reach * 0.45).round(),
+			DIAG_ANCHOR, 6, reach * 1.6 / DIAG_WIDTH)
+	fx.rotation = aim + PI / 2.0 + 0.5  # półksiężyc w poprzek ruchu, lekko po skosie
+	if _perk("s_dance", 1):
+		_spawn_trail(aim, reach, DANCE_SLASH_ARC, power * TRAIL_POWER, "s_dance")
+	if _unique("s_dance"):
+		_spawn_blade(power * BLADE_POWER)
+	Input.vibrate_handheld(30)
+	_end_skill()
+
+
+# --- Kamień Wirującego Ostrza ---
+
+func _spawn_blade(power: float) -> void:
+	var node := Node2D.new()
+	node.z_index = 6
+	var spr := Sprite2D.new()
+	spr.texture = SCYTHE_TEXTURE
+	spr.region_enabled = true
+	spr.region_rect = Rect2(30, 0, 70, 40)  # samo ostrze z kawałkiem drzewca
+	spr.scale = Vector2.ONE * 0.4
+	node.add_child(spr)
+	var tail := Line2D.new()
+	tail.width = 3.0
+	tail.top_level = true
+	tail.z_index = 5
+	var g := Gradient.new()
+	g.set_color(0, Color(NAWIA, 0.0))
+	g.set_color(1, Color(NAWIA, 0.8))
+	tail.gradient = g
+	node.add_child(tail)
+	get_parent().add_child(node)
+	node.global_position = _orbit_center()
+	_blades.append({"node": node, "target": _nearest(BLADE_SEEK), "left": BLADE_TIME, "power": power, "last": null,
+			"tail": tail})
+
+
+func _process_blades(delta: float) -> void:
+	for b in _blades.duplicate():
+		var node: Node2D = b.node
+		b.left -= delta
+		node.get_child(0).rotation += delta * 24.0
+		var tail: Line2D = b.tail
+		tail.add_point(node.global_position)
+		while tail.get_point_count() > 10:
+			tail.remove_point(0)
+		var target: ProtoTarget = b.target
+		if target == null or not is_instance_valid(target) or not target.alive():
+			b.target = _blade_next(node.global_position, b.last)
+			target = b.target
+		if target:
+			var to := target.center() - node.global_position
+			node.global_position += to.limit_length(BLADE_SPEED * delta)
+			if to.length() <= 10.0:
+				_hit(target, b.power, node.global_position, "s_dance")
+				b.last = target
+				b.target = _blade_next(node.global_position, target)
+		if b.left <= 0.0:
+			var radius := BLADE_BLAST_RADIUS * _area("s_dance")
+			Fx.once(get_parent(), BLAST_FX, BLAST_FRAMES, BLAST_FPS, node.global_position.round(), BLAST_ANCHOR, 7,
+					radius / BLAST_RADIUS)
+			for t in _near(node.global_position, radius):
+				if t.global_position.distance_to(node.global_position) <= radius + 4.0:
+					_hit(t, b.power / BLADE_POWER * BLADE_BLAST_POWER, node.global_position, "s_dance")
+			node.queue_free()
+			_blades.erase(b)
+
+
+## Następny cel ostrza: najbliższy żywy wróg w BLADE_SEEK, inny niż ostatnio trafiony (gdy się da).
+func _blade_next(at: Vector2, last: Variant) -> ProtoTarget:
+	var best: ProtoTarget = null
+	var best_d := BLADE_SEEK
+	for t in _near(at, BLADE_SEEK):
+		if t == last or not t.alive():
+			continue
+		var d := t.global_position.distance_to(at)
+		if d < best_d:
+			best = t
+			best_d = d
+	return best
+
+
+# --- Postać Mary ---
+
+func _start_mara() -> void:
+	mara_left = MARA_TIME_LONG if _perk("s_mara", 0) else MARA_TIME
+	_mara_power = _power("s_mara")
+	cursed.clear()
+	hero.protect(mara_left + 0.2)
+	hero.form_speed = MARA_SPEED
+	hero._sprite.modulate.a = 0.0
+	_sprite.visible = false
+	_clouds.append(_make_cloud(false))
+	if _unique("s_mara"):
+		for i in MARA_TWINS:
+			_clouds.append(_make_cloud(true))
+	_set_state("mara")
+
+
+func _make_cloud(twin: bool) -> Dictionary:
+	var cloud := _MaraCloud.new()
+	cloud.twin = twin
+	get_parent().add_child(cloud)
+	cloud.global_position = hero.global_position + (Vector2.from_angle(randf() * TAU) * 6.0 if twin else Vector2.ZERO)
+	return {"node": cloud, "twin": twin, "target": null}
+
+
+func _process_mara(delta: float) -> void:
+	mara_left -= delta
+	position = hero.position
+	for c in _clouds:
+		var cloud: _MaraCloud = c.node
+		if not c.twin:
+			cloud.global_position = hero.global_position
+		else:
+			var target: ProtoTarget = c.target
+			if target == null or not is_instance_valid(target) or not target.alive() or cursed.has(target):
+				c.target = _mara_seek(cloud.global_position)
+				target = c.target
+			if target:
+				var to := target.global_position - cloud.global_position
+				cloud.global_position += to.limit_length(MARA_TWIN_SPEED * delta)
+			else:  # nikogo do przeklęcia - krąży przy postaci
+				cloud.global_position = cloud.global_position.lerp(hero.global_position, 1.0 - exp(-3.0 * delta))
+		for t in _near(cloud.global_position, MARA_TOUCH + 8.0):
+			if not cursed.has(t) and t.alive() and t.global_position.distance_to(cloud.global_position) <= MARA_TOUCH:
+				_curse(t)
+	if mara_left <= 0.0 or hero.dead:
+		_end_skill()
+
+
+## Najbliższy nieprzeklęty wróg (bliźniacze chmury).
+func _mara_seek(at: Vector2) -> ProtoTarget:
+	var best: ProtoTarget = null
+	var best_d := INF
+	for t in live_targets():
+		if cursed.has(t) or not t.alive():
+			continue
+		var d := t.global_position.distance_to(at)
+		if d < best_d:
+			best = t
+			best_d = d
+	return best
+
+
+## Klątwa: czaszki krążą nad głową wroga do końca formy.
+func _curse(t: ProtoTarget) -> void:
+	var mark := Fx.loop(t, CURSE_FX, CURSE_FRAMES, CURSE_FPS, Vector2(0, -t.center_height * 2.0 - 4.0), CURSE_ANCHOR, 8, 0.5)
+	cursed[t] = mark
+	_hit(t, _mara_power * 0.2, hero.global_position, "s_mara")
+
+
+## Koniec formy: postać wraca, pod każdym przeklętym wybucha Nawia (10. poziom - rani też wrogów obok).
+func _mara_finish() -> void:
+	_mara_restore()
+	var radius := MARA_BLAST_RADIUS * _area("s_mara")
+	for t in cursed:
+		var mark = cursed[t]
+		if mark != null and is_instance_valid(mark):
+			(mark as Node).queue_free()
+		if not is_instance_valid(t) or not t.alive():
+			continue
+		var at: Vector2 = t.global_position
+		Fx.once(get_parent(), BLAST_FX, BLAST_FRAMES, BLAST_FPS, at.round(), BLAST_ANCHOR, 7, radius / BLAST_RADIUS)
+		_hit(t, _mara_power, at, "s_mara")
+		if _perk("s_mara", 1):
+			for n in _near(at, MARA_SPLASH_RADIUS * _area("s_mara")):
+				if n != t and not cursed.has(n) and n.global_position.distance_to(at) <= MARA_SPLASH_RADIUS * _area("s_mara"):
+					_hit(n, _mara_power * MARA_SPLASH_POWER, at, "s_mara")
+	cursed.clear()
+	Input.vibrate_handheld(40)
+
+
+## Postać wraca z formy chmury (też przy zmianie broni).
+func _mara_restore() -> void:
+	mara_left = 0.0
+	hero.form_speed = 1.0
+	hero._sprite.modulate.a = 1.0
+	hero._invulnerable = minf(hero._invulnerable, 0.15)
+	for c in _clouds:
+		var cloud: _MaraCloud = c.node
+		if is_instance_valid(cloud):
+			cloud.fade_out()
+	_clouds.clear()
+
+
+## Chmura mgły Mary: kłębiące się czarne kule z białymi drobinkami, długi czarny ogon z białym brzegiem po torze
+## (Line2D z zapamiętanych pozycji, zwęża się ku końcowi) i cząsteczki (czarne kłęby, białe iskry). Bliźniacza
+## chmura (kamień unikalny) - trochę mniejsza.
+class _MaraCloud extends Node2D:
+	const TAIL_POINTS := 44
+	const TAIL_STEP := 3.0
+	## Wielkość chmury (kłęby) i szerokość ogona przy chmurze.
+	const SIZE := 1.6
+	const TAIL_WIDTH := 16.0
+	var twin := false
+	var _t := 0.0
+	var _tail: Line2D
+	var _rim: Line2D
+	var _smoke: CPUParticles2D
+	var _sparks: CPUParticles2D
+	var _fading := false
+
+	func _ready() -> void:
+		z_index = 5
+		var taper := Curve.new()
+		taper.add_point(Vector2(0.0, 0.05))
+		taper.add_point(Vector2(1.0, 1.0))
+		_rim = _line((TAIL_WIDTH + 3.0) * _k(), Color(0.93, 0.93, 0.98, 0.85), taper)
+		_tail = _line(TAIL_WIDTH * _k(), Color(0.02, 0.015, 0.04, 0.95), taper)
+		_smoke = _particles(18, Color(0.03, 0.02, 0.05, 0.85), 3.0, 0.7)
+		_sparks = _particles(8, Color(0.95, 0.95, 1.0), 1.0, 0.5)
+
+	func _k() -> float:
+		return 0.75 if twin else 1.0
+
+	func _line(width: float, color: Color, taper: Curve) -> Line2D:
+		var l := Line2D.new()
+		l.width = width
+		l.width_curve = taper
+		l.default_color = color
+		l.top_level = true
+		l.z_index = 4
+		l.joint_mode = Line2D.LINE_JOINT_ROUND
+		l.begin_cap_mode = Line2D.LINE_CAP_ROUND
+		l.end_cap_mode = Line2D.LINE_CAP_ROUND
+		add_child(l)
+		return l
+
+	func _particles(amount: int, color: Color, size: float, life: float) -> CPUParticles2D:
+		var p := CPUParticles2D.new()
+		p.amount = amount
+		p.lifetime = life
+		p.local_coords = false
+		p.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+		p.emission_sphere_radius = 7.0 * _k() * SIZE
+		p.direction = Vector2.UP
+		p.spread = 180.0
+		p.gravity = Vector2(0, -12)
+		p.initial_velocity_min = 4.0
+		p.initial_velocity_max = 14.0
+		p.scale_amount_min = size
+		p.scale_amount_max = size * 1.6
+		var g := Gradient.new()
+		g.set_color(0, color)
+		g.set_color(1, Color(color, 0.0))
+		p.color_ramp = g
+		p.position = Vector2(0, -10)
+		add_child(p)
+		return p
+
+	func _process(delta: float) -> void:
+		_t += delta
+		var head := global_position + Vector2(0, -10)
+		var moved := false
+		if _tail.get_point_count() == 0 or _tail.get_point_position(_tail.get_point_count() - 1).distance_to(head) >= TAIL_STEP:
+			moved = true
+			for l in [_tail, _rim]:
+				l.add_point(head)
+		while _tail.get_point_count() > TAIL_POINTS or (_fading and _tail.get_point_count() > 0):
+			for l in [_tail, _rim]:
+				l.remove_point(0)
+			if _fading:
+				break
+		if not _fading and not moved and _tail.get_point_count() > 2 and fmod(_t, 0.05) < delta:  # w miejscu ogon się kurczy
+			for l in [_tail, _rim]:
+				l.remove_point(0)
+		queue_redraw()
+		if _fading and _tail.get_point_count() == 0:
+			queue_free()
+
+	func _draw() -> void:
+		if _fading:
+			return
+		var k := _k() * SIZE
+		for i in 5:  # kłęby mgły: kule kręcą się wokół środka
+			var a := _t * 5.0 + i * TAU / 5.0
+			var p := Vector2(cos(a) * 5.0, sin(a) * 3.0 - 10.0) * k
+			draw_circle(p, (5.0 + 1.5 * sin(_t * 9.0 + i)) * k, Color(0.02, 0.015, 0.04, 0.9))
+		draw_circle(Vector2(0, -10) * k, 6.0 * k, Color(0.01, 0.01, 0.02, 1.0))
+		for i in 3:  # białe oczy-iskry w środku
+			var a := _t * 7.0 + i * 2.1
+			draw_rect(Rect2((Vector2(cos(a) * 4.0, sin(a) * 2.5 - 10.0) * k).round(), Vector2.ONE), Color(0.95, 0.95, 1.0))
+
+	## Chmura znika: ogon zwija się od końca, cząsteczki gasną.
+	func fade_out() -> void:
+		_fading = true
+		_smoke.emitting = false
+		_sparks.emitting = false
+		queue_redraw()

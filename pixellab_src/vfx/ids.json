@@ -1308,5 +1308,50 @@
       74
     ],
     "columns": 4
+  },
+  "scythe_diag": {
+    "effect": "1a27c474-af46-4bde-a17f-7a221592ee14",
+    "name": "Kosa - cięcie po skosie (Taniec Marzanny; półksiężyc wypukły w górę-prawo, gaśnie powoli, zaczepienie = środek)",
+    "frame": [
+      76,
+      39
+    ],
+    "frames": 14,
+    "fps": 16,
+    "anchor": [
+      33,
+      18
+    ],
+    "columns": 4
+  },
+  "scythe_whirl": {
+    "effect": "4ae7c710-f59f-40e0-b69d-e2d0f191d4fe",
+    "name": "Kosa - wir nad głową (Taniec Marzanny; spłaszczony pierścień cięcia, zaczepienie = środek)",
+    "frame": [
+      100,
+      48
+    ],
+    "frames": 9,
+    "fps": 13,
+    "anchor": [
+      48,
+      23
+    ],
+    "columns": 3
+  },
+  "mara_curse": {
+    "effect": "302ecf24-b0cc-4028-b1a7-e802742869aa",
+    "name": "Kosa - klątwa Mary (czaszki krążą nad wrogiem, pętla; zaczepienie = punkt nad głową)",
+    "frame": [
+      46,
+      52
+    ],
+    "frames": 16,
+    "fps": 10,
+    "anchor": [
+      24,
+      37
+    ],
+    "columns": 4
   }
 }

@@ -33,6 +33,7 @@ func _run() -> void:
 	await _test_nawia(game)
 	await _test_combat(game)
 	await _test_unique(game)
+	await _test_dance_mara(game)
 	game.reset_hero()
 	game.best_level = 0
 	game.save_game()
@@ -44,7 +45,7 @@ func _run() -> void:
 func _test_data() -> void:
 	_check(Weapons.element_of("scythe") == Elements.NAWIA and int(Weapons.DATA.scythe.unlock) == 25
 			and Weapons.script_of("scythe") == ProtoScythe, "kosa: Nawia, od lochu 25")
-	_check(Skills.basic_of("scythe") == "s_reap" and Skills.is_charged("s_mow") and Skills.of_weapon("scythe").size() == 3,
+	_check(Skills.basic_of("scythe") == "s_reap" and Skills.is_charged("s_mow") and Skills.of_weapon("scythe").size() == 5,
 			"Żniwo zwykłym atakiem, Pokos ładowany")
 	var ok := true
 	for id in Skills.of_weapon("scythe"):
@@ -252,5 +253,87 @@ func _test_unique(game: Node) -> void:
 	var n: int = scythe._mow_blasts.size()
 	await _wait(1.0)
 	_check(scythe.mow_blasts_done >= n and scythe._mow_blasts.is_empty(), "wszystkie wybuchy rzędów (%d)" % n)
+	arena.queue_free()
+	await process_frame
+
+
+func _test_dance_mara(game: Node) -> void:
+	var setup: Array = await _scythe_arena(game)
+	var arena: Node = setup[0]
+	var scythe: ProtoScythe = setup[1]
+	var hero: ProtoHero = arena.hero
+	var gs: Array = await _stunned(arena, [Vector2(60, 0), Vector2(150, 0), Vector2(-120, 80)])
+	var a: ProtoGoblin = gs[0]
+	var b: ProtoGoblin = gs[1]
+	var c: ProtoGoblin = gs[2]
+	# Taniec Marzanny: kroki ku wrogowi, wir rani, przedłużenie stuknięciem, końcowe cięcie odpycha
+	hero.mana = hero.max_mana
+	var a_hp := a.hp
+	_check(scythe.cast("s_dance") and scythe._state == "dance" and hero.leaping(), "Taniec: kroki naprzód")
+	await _wait(0.3)
+	_check(scythe.cooldown_left("s_dance") == 0.0, "w trakcie tańca przycisk gotowy do przedłużenia")
+	var mana: int = hero.mana
+	_check(scythe.cast("s_dance") and hero.mana < mana and hero.mana > mana - scythe.mana_cost("s_dance"),
+			"przedłużenie za pół many")
+	await _wait(0.4)
+	_check(scythe.dance_uses == 2 and scythe._dance_time == ProtoScythe.DANCE_TIME_FAST, "drugi taniec szybszy")
+	_check(a.hp < a_hp and hero.global_position.x > 40.0, "wir rani po drodze, postać przeszła do przodu")
+	var b_pos := b.global_position
+	await _wait(0.4)
+	_check(scythe._state == "follow" and scythe.cooldown_left("s_dance") > 0.0, "po drugim tańcu końcowe cięcie i odnowienie")
+	_check(b.global_position.distance_to(b_pos) > 1.0 or b.hp < b.max_hp, "końcowe cięcie trafia i odpycha")
+	# bez przedłużenia - cięcie po oknie
+	scythe._cd.clear()
+	hero.mana = hero.max_mana
+	scythe.cast("s_dance")
+	await _wait(ProtoScythe.DANCE_TIME + 0.1)
+	_check(scythe._state == "dance_wait", "po krokach chwila na przedłużenie")
+	await _wait(ProtoScythe.DANCE_WINDOW + 0.1)
+	_check(scythe._state == "follow" and scythe.dance_uses == 0, "bez przedłużenia - cięcie po chwili")
+	# Kamień Wirującego Ostrza
+	scythe.skill_gems["s_dance"] = [Gems.unique_of("s_dance")]
+	scythe._cd.clear()
+	hero.mana = hero.max_mana
+	for g in gs:
+		g.position = hero.global_position + (g.position - hero.global_position).limit_length(90.0)
+	scythe.cast("s_dance")
+	await _wait(ProtoScythe.DANCE_TIME + ProtoScythe.DANCE_WINDOW + 0.2)
+	_check(scythe._blades.size() == 1, "kamień: wirujące ostrze wylatuje")
+	var hp_all := a.hp + b.hp + c.hp
+	await _wait(ProtoScythe.BLADE_TIME + 0.2)
+	_check(scythe._blades.is_empty() and a.hp + b.hp + c.hp < hp_all, "ostrze leci od wroga do wroga i wybucha")
+	# Postać Mary: nietykalna chmura, klątwa na dotkniętych, wybuch po końcu
+	scythe._cd.clear()
+	hero.mana = hero.max_mana
+	hero.position = Vector2(-200, -200)
+	a.position = Vector2(-150, -200)
+	b.position = Vector2(-100, -200)
+	await process_frame
+	_check(scythe.cast("s_mara") and scythe._state == "mara" and hero.form_speed > 1.0 and scythe._clouds.size() == 1,
+			"Mara: forma chmury, szybciej")
+	var hp: int = hero.hp
+	a.hit_hero(hero, 50)
+	_check(hero.hp == hp, "w formie chmury nic nie rani")
+	hero.joystick.vector = Vector2.RIGHT  # palec na gałce - chmura mknie w prawo przez obu wrogów
+	await _wait(0.6)
+	hero.joystick.vector = Vector2.ZERO
+	_check(hero.global_position.x > -100.0, "chmura szybka (%d px)" % (hero.global_position.x + 200.0))
+	_check(scythe.cursed.has(a) and scythe.cursed.has(b), "przelot przez wrogów - klątwa (%d)" % scythe.cursed.size())
+	var cloud: Node = scythe._clouds[0].node
+	_check(cloud._tail.get_point_count() > 3, "za chmurą ogon z jej toru")
+	a_hp = a.hp
+	_check(scythe.cooldown_left("s_mara") == 0.0 and scythe.cast("s_mara"), "drugie stuknięcie kończy formę")
+	_check(a.hp < a_hp and scythe.cursed.is_empty() and hero.form_speed == 1.0 and scythe._state == "follow",
+			"pod przeklętymi wybuch, postać wraca")
+	# Kamień Bliźniaczych Mar: dwie chmury same przeklinają
+	scythe.skill_gems["s_mara"] = [Gems.unique_of("s_mara")]
+	scythe._cd.clear()
+	hero.mana = hero.max_mana
+	scythe.cast("s_mara")
+	_check(scythe._clouds.size() == 3, "kamień: dwie dodatkowe chmury")
+	await _wait(1.5)
+	_check(scythe.cursed.size() >= 2, "bliźniacze chmury same przeklinają wrogów (%d)" % scythe.cursed.size())
+	await _wait(1.5)
+	_check(scythe.mara_left <= 0.0 and scythe._state == "follow", "forma kończy się sama")
 	arena.queue_free()
 	await process_frame
