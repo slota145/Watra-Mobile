@@ -157,15 +157,17 @@ const DIAG_FPS := 16.0
 const DIAG_ANCHOR := Vector2(-8, 30)
 ## Promień półksiężyca na arkuszu (środek okręgu poza klatką, środek łuku w prawo).
 const DIAG_RADIUS := 44.0
-## Okręgi cięć Tańca (jak Violation z BDO - zrzuty autora 21.11.2026): niskie, ciasne, półprzezroczyste smugi-pierścienie
-## z fioletową wstęgą, gasną w miejscu; gra stawia je co DANCE_RING_EVERY s w stopach postaci (w świecie), więc za idącą
-## postacią zostaje ślad okręgów. Promień na arkuszu WHIRL_S_RADIUS.
+## Okręgi cięć Tańca (jak Violation z BDO - zrzuty autora 21.11.2026): grube białe szkliste, fioletowe i czarne cięcia po
+## łuku na wysokości pasa-głowy, rysują się i gasną w miejscu; każdy okrąg to dwa arkusze - tylna połowa (za postacią,
+## WHIRL_S_FX) i przednia (przed nią, WHIRL_FRONT_FX), żeby wir otaczał postać, a nie leżał na podłodze. Gra stawia je co
+## DANCE_RING_EVERY s w stopach postaci (w świecie) - za idącą postacią zostaje ślad. Promień na arkuszu WHIRL_S_RADIUS.
 const WHIRL_S_FX := preload("res://assets/effects/scythe_whirl.png")
+const WHIRL_FRONT_FX := preload("res://assets/effects/scythe_whirl_front.png")
 const WHIRL_S_FRAMES := 12
 const WHIRL_S_FPS := 16.0
-const WHIRL_S_ANCHOR := Vector2(68, 39)
-const WHIRL_S_RADIUS := 56.0
-const DANCE_RING_EVERY := 0.08
+const WHIRL_S_ANCHOR := Vector2(70, 80)
+const WHIRL_S_RADIUS := 54.0
+const DANCE_RING_EVERY := 0.14
 ## Kamień Wirującego Ostrza: czas lotu, prędkość, siła trafienia, zasięg szukania kolejnego wroga, wybuch.
 const BLADE_TIME := 3.0
 const BLADE_SPEED := 230.0
@@ -818,10 +820,13 @@ func _process_dance(delta: float) -> void:
 	_ring_t -= delta
 	if _ring_t <= 0.0 and not Fx.crowded(WHIRL_S_FX, 24):  # okręgi cięć zostają w miejscu - ślad za postacią
 		_ring_t = DANCE_RING_EVERY
-		var ring := Fx.once(get_parent(), WHIRL_S_FX, WHIRL_S_FRAMES, WHIRL_S_FPS, hero.global_position.round(),
-				WHIRL_S_ANCHOR, -1, _fx_scale(maxf(radius / WHIRL_S_RADIUS, 1.0)))  # pod postacią
-		if randf() < 0.5:
-			ring.scale.x = -ring.scale.x  # na przemian w drugą stronę - smugi się krzyżują
+		var size := _fx_scale(maxf(radius / WHIRL_S_RADIUS, 1.0))
+		var flip := randf() < 0.5  # na przemian w drugą stronę - smugi się krzyżują
+		for half in [[WHIRL_S_FX, -1], [WHIRL_FRONT_FX, 2]]:  # tylna połowa za postacią, przednia przed nią
+			var ring := Fx.once(get_parent(), half[0], WHIRL_S_FRAMES, WHIRL_S_FPS, hero.global_position.round(),
+					WHIRL_S_ANCHOR, half[1], size)
+			if flip:
+				ring.scale.x = -ring.scale.x
 	if _state == "dance" and _dance_t >= _dance_time:
 		if _dance_queued:
 			_dance_queued = false

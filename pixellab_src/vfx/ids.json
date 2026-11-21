@@ -1310,17 +1310,17 @@
     "columns": 4
   },
   "scythe_whirl": {
-    "effect": "04c1067b-92bf-4e3a-b2e4-3b9ded9e47e7",
-    "name": "Kosa v6 - okręgi cięć Tańca Marzanny (szersze, ~56 px: białe szkliste, fioletowe i czarne smugi-pierścienie, gasną w miejscu - ślad za postacią; zaczepienie = stopy postaci)",
+    "effect": "9aa692b3-76dd-4683-a023-eb114bee5b36",
+    "name": "Kosa v7 - okręgi cięć Tańca, TYLNA połowa (za postacią): grube białe szkliste, fioletowe i czarne cięcia po łuku na wysokości pasa-głowy, rysują się i gasną; zaczepienie = stopy postaci",
     "frame": [
-      136,
-      65
+      140,
+      96
     ],
     "frames": 12,
     "fps": 16,
     "anchor": [
-      68,
-      39
+      70,
+      80
     ],
     "columns": 4
   },
@@ -1365,6 +1365,21 @@
     "fps": 16,
     "anchor": [
       -41,
+      80
+    ],
+    "columns": 4
+  },
+  "scythe_whirl_front": {
+    "effect": "6911346c-aaa9-4d60-9df9-23f0cb8697c4",
+    "name": "Kosa v7 - okręgi cięć Tańca, PRZEDNIA połowa (przed postacią; para do scythe_whirl, ta sama klatka i zaczepienie)",
+    "frame": [
+      140,
+      96
+    ],
+    "frames": 12,
+    "fps": 16,
+    "anchor": [
+      70,
       80
     ],
     "columns": 4
