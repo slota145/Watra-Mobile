@@ -167,7 +167,8 @@ const STRZYBOG_POWER := 0.5
 const MOKOSZ_DELAY := 0.4
 const MOKOSZ_COST := 1.8
 ## Ile losowych premii daje rzadkość (od-do; rzadki 3-5, legendarny zawsze 6 - decyzje autora 21.11.2026).
-const AFFIX_COUNT := {"common": Vector2i(0, 0), "magic": Vector2i(1, 2), "rare": Vector2i(3, 5), "legendary": Vector2i(6, 6)}
+const AFFIX_COUNT := {"common": Vector2i(0, 0), "magic": Vector2i(1, 2), "rare": Vector2i(3, 5), "legendary": Vector2i(6, 6),
+		"unique": Vector2i(0, 0)}
 ## Przedmiot legendarny (decyzja autora 21.11.2026): tylko z łupu (nie z kuźni ani run), szansa na każdy przedmiot
 ## z łupu LEGEND_CHANCE, rośnie z głębią do LEGEND_MAX (`legend_chance`); jego premie wypadają o LEGEND_TIER_BOOST
 ## stopień lepiej (`make_affix`).
@@ -392,7 +393,7 @@ static func roll_base(slot: String, type: String, level: int) -> Dictionary:
 ## z szansą `legend_chance` legendarny), baza (pusta - losowa z miejsca). `loot` - z łupu (legendy i premie ponad
 ## widełki); kuźnia podaje false.
 static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS, type := "", loot := true) -> Dictionary:
-	if rarity == "" and loot and randf() < unique_chance(level):
+	if rarity == "unique" or (rarity == "" and loot and randf() < unique_chance(level)):
 		var ids: Array = UNIQUES.keys().filter(func(id: String) -> bool: return slot == "" or UNIQUES[id].slot == slot)
 		return make_unique(ids.pick_random(), level)
 	if slot == "":
