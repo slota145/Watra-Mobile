@@ -46,6 +46,7 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   lewej krawędzi - ogólny limit 16 efektów wybuchu naraz pomijał ostatnie (lewe), teraz własny limit `MOW_BLAST_CAP` 80;
   więcej rzędów - co 18 px długości stożka (`mow_row_count`, pełne ładowanie: 5, z obszarem więcej), od krawędzi do
   krawędzi (95% pół-kąta), kolejny rząd co 0,1 s.
+- Pokos z kamieniem: wybuchy rzędów idą falą w bok - od lewej do prawej krawędzi stożka w `MOW_SWEEP` 0,6 s, wszystkie rzędy naraz (dalszy spóźniony o `MOW_ROW_LAG` 0,02 s), zamiast rzędami od postaci. Wybuch cięcia Światowida od nowa w kreatorze (`square_burst` 112x112, 14 klatek, fala odlatuje ok. 54 px zamiast 28), zasięg ciosu `SQUARE_BURST_DEPTH` 36 -> 56.
 
 ## 21.11.2026 - Mroczna kosa, krok 2: Taniec Marzanny i Postać Mary
 

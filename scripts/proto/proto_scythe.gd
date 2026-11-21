@@ -70,9 +70,9 @@ const S_WAVE_RADIUS_FX := 78.0
 ## Wybuch cięcia Światowida: cięcie długości SQUARE_BURST_LENGTH w poziomie rozbłyska i odrywa się falą w górę arkusza
 ## (w grze obrócone - fala leci na zewnątrz kwadratu), odłamki i dym.
 const SQUARE_BURST_FX := preload("res://assets/effects/square_burst.png")
-const SQUARE_BURST_FRAMES := 12
+const SQUARE_BURST_FRAMES := 14
 const SQUARE_BURST_FPS := 16.0
-const SQUARE_BURST_ANCHOR := Vector2(56, 62)
+const SQUARE_BURST_ANCHOR := Vector2(56, 96)
 const SQUARE_BURST_LENGTH := 76.0
 ## Zamach Pokosu: łuk 110° (promień na arkuszu), środek w prawo.
 const MOW_FX := preload("res://assets/effects/mow_swing.png")
@@ -114,7 +114,7 @@ const SQUARE_CUT_EVERY := 0.07
 const SQUARE_CUT_POWER := 0.45
 const SQUARE_CUT_WIDTH := 9.0
 const SQUARE_BURST_DELAY := 0.45
-const SQUARE_BURST_DEPTH := 36.0
+const SQUARE_BURST_DEPTH := 56.0
 const SQUARE_PERK_AREA := 1.3
 const SQUARE_BURST_POWER := 1.3
 const SQUARE_PUSH := 140.0
@@ -132,15 +132,16 @@ const MOW_POWER := Vector2(0.9, 2.0)
 const MOW_STUN := 1.0
 const MOW_FLASH := 0.5
 ## Rzędy kamienia unikalnego: co MOW_ROW_SPACING px długości stożka (co najmniej MOW_ROWS_MIN; prośba autora - więcej
-## rzędów), kolejny rząd po MOW_ROW_GAP s.
+## rzędów). Wybuchy idą falą w bok: od lewej do prawej krawędzi stożka w MOW_SWEEP s (prośba autora), dalszy rząd
+## spóźnia się o MOW_ROW_LAG s.
 const MOW_ROWS_MIN := 3
 const MOW_ROW_SPACING := 18.0
-const MOW_ROW_GAP := 0.1
+const MOW_SWEEP := 0.6
+const MOW_ROW_LAG := 0.02
 ## Zamach Pokosu i wybuchy rosną z obszarem do tylu razy (ogólny limit `_fx_scale` 1,25 zatrzymywał je - uwaga autora).
 const MOW_MAX_SCALE := 2.0
 ## Wybuchów rzędów bywa kilkadziesiąt naraz - własny limit efektów (przy ogólnym 16 lewa część rzędów znikała).
 const MOW_BLAST_CAP := 80
-const MOW_BLAST_GAP := 0.05
 const MOW_BLAST_SPACING := 26.0
 const MOW_BLAST_RADIUS := 20.0
 const MOW_BLAST_POWER := 0.45
@@ -742,8 +743,8 @@ func _mow_cut(k: float) -> void:
 	_end_skill()
 
 
-## Kamień unikalny Pokosu: wybuchy Nawii w rzędach co MOW_ROW_SPACING px (od bliższego), każdy rząd od prawej do lewej
-## krawędzi stożka względem postaci (prawa ręka przy patrzeniu w `aim` - większy kąt na ekranie).
+## Kamień unikalny Pokosu: wybuchy Nawii w rzędach co MOW_ROW_SPACING px, falą od lewej do prawej krawędzi stożka
+## względem postaci (lewa ręka przy patrzeniu w `aim` - mniejszy kąt na ekranie), wszystkie rzędy naraz.
 static func mow_row_count(shape: Vector3) -> int:
 	return maxi(MOW_ROWS_MIN, int((shape.y - shape.x) / MOW_ROW_SPACING))
 
@@ -754,8 +755,9 @@ func _mow_rows(at: Vector2, aim: float, shape: Vector3, power: float) -> void:
 		var radius := lerpf(shape.x + 14.0, shape.y - 8.0, float(r) / maxf(rows - 1, 1))
 		var count := maxi(3, int(2.0 * shape.z * radius / MOW_BLAST_SPACING) + 1)
 		for i in count:
-			var a := aim + shape.z * 0.95 - 1.9 * shape.z * i / maxf(count - 1, 1)
-			_mow_blasts.append({"at": at + Vector2.from_angle(a) * radius, "t": 0.15 + r * MOW_ROW_GAP + i * MOW_BLAST_GAP,
+			var k := float(i) / maxf(count - 1, 1)  # 0 - lewa krawędź, 1 - prawa
+			var a := aim - shape.z * 0.95 + 1.9 * shape.z * k
+			_mow_blasts.append({"at": at + Vector2.from_angle(a) * radius, "t": 0.15 + k * MOW_SWEEP + r * MOW_ROW_LAG,
 					"power": power * MOW_BLAST_POWER, "row": r})
 
 

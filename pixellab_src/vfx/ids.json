@@ -1325,19 +1325,19 @@
     "columns": 4
   },
   "square_burst": {
-    "effect": "8780b096-71c7-4dfb-8355-131221d3ec87",
-    "name": "Kosa v2 - wybuch cięcia Światowida (cięcie 76 px w poziomie rozbłyska i odrywa się falą w górę = na zewnątrz, odłamki, dym; zaczepienie = środek cięcia)",
+    "effect": "fa61b9ad-c3b9-40f7-a2d4-50b41e75ab73",
+    "name": "Kosa v3 - wybuch cięcia Światowida (cięcie 76 px w poziomie rozbłyska i odlatuje falą ok. 54 px w górę = na zewnątrz, odłamki, dym; zaczepienie = środek cięcia)",
     "frame": [
       112,
-      84
+      112
     ],
-    "frames": 12,
+    "frames": 14,
     "fps": 16,
     "anchor": [
       56,
-      62
+      96
     ],
-    "columns": 4
+    "columns": 14
   },
   "mow_swing": {
     "effect": "e9bb6a27-3c2c-4b62-9355-f6e47f7505a7",
