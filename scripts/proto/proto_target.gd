@@ -59,6 +59,8 @@ func hit_hero(hero: ProtoHero, amount: int, element := Elements.PHYSICAL) -> voi
 			hero.enemy_missed()
 			return
 		amount = maxi(1, roundi(amount * (1.0 - aura_weak)))
+	if is_withered():  # osłabiony Nawią (mroczna kosa)
+		amount = maxi(1, roundi(amount * (1.0 - Elements.NAWIA_WEAK)))
 	hero.take_damage(amount, element)
 
 
@@ -134,6 +136,21 @@ func shock(time: float) -> void:
 		return
 	var st := _status()
 	st.shock_left = maxf(st.shock_left, time)
+
+
+## Osłabienie Nawią (mroczna kosa): przez `time` s wróg zadaje o Elements.NAWIA_WEAK mniej obrażeń (`hit_hero`),
+## nad głową kłębi się ciemna mgiełka z białymi drobinkami.
+func wither(time: float) -> void:
+	if not alive() or time <= 0.0:
+		return
+	var st := _status()
+	st.wither_left = maxf(st.wither_left, time)
+
+
+## Czy wróg jest osłabiony Nawią.
+func is_withered() -> bool:
+	var st := _st_live()
+	return st != null and st.wither_left > 0.0
 
 
 ## Zamrożenie przemoczonego lodem (combo, Elements.SOAK_FREEZE): ogłusza na `time` s, potem przez FREEZE_IMMUNE s
@@ -271,6 +288,7 @@ class _Status extends Node2D:
 	var slow_left := 0.0
 	var soak_left := 0.0
 	var shock_left := 0.0
+	var wither_left := 0.0
 	var _acc := 0.0
 	var _tick := BURN_TICK
 	var _t := 0.0
@@ -318,6 +336,7 @@ class _Status extends Node2D:
 		slow_left -= delta
 		soak_left -= delta
 		shock_left -= delta
+		wither_left -= delta
 		if burn_left > 0.0:
 			burn_left -= delta
 			_acc += burn_dps * delta
@@ -328,7 +347,8 @@ class _Status extends Node2D:
 				if dmg > 0 and target.alive():
 					_acc -= dmg
 					target.burn_tick(dmg)
-		if not target.alive() or (burn_left <= 0.0 and slow_left <= 0.0 and soak_left <= 0.0 and shock_left <= 0.0):
+		if not target.alive() or (burn_left <= 0.0 and slow_left <= 0.0 and soak_left <= 0.0 and shock_left <= 0.0
+				and wither_left <= 0.0):
 			queue_free()
 			return
 		var on := burn_left > 0.0
@@ -342,7 +362,7 @@ class _Status extends Node2D:
 		if _drips.visible:
 			_drips.frame = int(_t * DRIPS_FPS + get_instance_id() % DRIPS_FRAMES) % DRIPS_FRAMES
 			_drips.modulate.a = clampf(soak_left / 0.4, 0.0, 1.0)
-		if shock_left > 0.0:
+		if shock_left > 0.0 or wither_left > 0.0:
 			_spark_t -= delta
 			if _spark_t <= 0.0:
 				_spark_t = SPARK_EVERY
@@ -350,6 +370,18 @@ class _Status extends Node2D:
 		queue_redraw()
 
 	func _draw() -> void:
+		if wither_left > 0.0:
+			# Nawia: ciemna mgiełka nad głową (kilka czarnych kłębków) z białymi drobinkami, przesuwa się co SPARK_EVERY
+			var a := clampf(wither_left / 0.4, 0.0, 1.0)
+			var rng := RandomNumberGenerator.new()
+			rng.seed = get_instance_id() + _spark_seed
+			var top := -target.center_height * 2.0 - 3.0
+			for i in 4:
+				var p := Vector2(rng.randf_range(-7.0, 7.0), top + rng.randf_range(-3.0, 3.0))
+				draw_circle(p, rng.randf_range(2.0, 3.5), Color(0.03, 0.02, 0.05, 0.75 * a))
+			for i in 2:
+				var p := Vector2(rng.randf_range(-7.0, 7.0), top + rng.randf_range(-4.0, 2.0))
+				draw_rect(Rect2(p.round(), Vector2.ONE), Color(0.95, 0.95, 1.0, 0.9 * a))
 		if shock_left > 0.0:
 			# dwa małe zygzaki iskier przy celu, co SPARK_EVERY w innym miejscu
 			var rng := RandomNumberGenerator.new()

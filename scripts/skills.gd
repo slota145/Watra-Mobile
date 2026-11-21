@@ -194,6 +194,23 @@ const DATA := {
 		"mana": 36, "cooldown": 8.0, "weapon": "book", "mastery": 15, "main": true, "range": 160.0, "power": 1.6,
 		"description": "Pod 4 wrogami oddalonymi od siebie pojawiają się pieczęcie, a po chwili wybuchają i ranią wszystkich wokół.",
 	},
+	# Mroczna kosa (ustalone z autorem 21.11.2026): żywioł Nawia - trafienia wysysają życie i osłabiają wrogów (ProtoScythe).
+	"s_reap": {
+		"name": "Żniwo", "icon": preload("res://assets/skills/scythe/s_reap.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "scythe", "mastery": 1, "main": true, "range": 54.0, "power": 0.85,
+		"description": "Kosa zatacza szeroki łuk przed tobą i tnie wszystkich wrogów w zasięgu. Nawia wysysa z nich życie i osłabia ich ciosy.",
+	},
+	"s_square": {
+		"name": "Cięcie Światowida", "icon": preload("res://assets/skills/scythe/s_square.png"),
+		"mana": 26, "cooldown": 6.0, "weapon": "scythe", "mastery": 3, "main": true, "range": 50.0, "power": 1.0,
+		"description": "Kosa tnie cztery razy dookoła ciebie - cięcia układają się w kwadrat, a po chwili każdy bok wybucha na zewnątrz, raniąc i odpychając wrogów.",
+	},
+	"s_mow": {
+		"name": "Pokos", "icon": preload("res://assets/skills/scythe/s_mow.png"),
+		"mana": 36, "cooldown": 7.0, "weapon": "scythe", "mastery": 10, "main": false, "range": 120.0, "power": 1.6,
+		"charge": true,
+		"description": "Przytrzymaj, żeby naładować, i puść: kosa kosi stożek przed tobą - im dłużej ładujesz, tym dalej, szerzej i mocniej. Nie może stać pod dużym przyciskiem.",
+	},
 }
 ## Poziomy umiejętności: najwyższy, przyrost obrażeń na poziom, poziomy z mniejszym kosztem many i odnowieniem
 ## (o COST_STEP każdy), z większym obszarem (o AREA_STEP każdy) i z nowym działaniem.
@@ -214,7 +231,8 @@ const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "slam": 140, "st
 		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200,
 		"k_slash": 40, "k_dance": 60, "k_riposte": 90, "k_perun": 140, "k_flash": 200,
 		"b_shot": 40, "b_seeker": 60, "b_rain": 90, "b_power": 140, "b_ballista": 200,
-		"a_missiles": 40, "a_circle": 60, "a_orbs": 90, "a_beam": 140, "a_seals": 200}
+		"a_missiles": 40, "a_circle": 60, "a_orbs": 90, "a_beam": 140, "a_seals": 200,
+		"s_reap": 40, "s_square": 60, "s_mow": 140}
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
@@ -247,6 +265,9 @@ const PERKS := {
 	"a_orbs": ["Kule o 30% silniejsze.", "Dwie kule więcej na orbicie."],
 	"a_beam": ["Promień przeskakuje na drugiego wroga obok.", "Obszar wokół celu o połowę większy."],
 	"a_seals": ["6 pieczęci zamiast 4.", "Wybuch ogłusza wrogów na 0,5 s."],
+	"s_reap": ["Co trzeci zamach - pełny obrót dookoła.", "Zamach zostawia smugę Nawii, która przez chwilę rani."],
+	"s_square": ["Wybuch sięga o 30% dalej.", "Boki wybuchają dwa razy."],
+	"s_mow": ["Ładuje się o 1/3 szybciej.", "Pełne naładowanie ogłusza wrogów na 1 s."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
@@ -260,13 +281,15 @@ const TAGS := {
 	"k_flash": ["melee"], "b_shot": ["projectile"], "b_seeker": ["projectile"], "b_rain": ["area", "projectile"],
 	"b_power": ["area"], "b_ballista": ["minion"], "a_missiles": ["projectile"], "a_circle": ["area"],
 	"a_orbs": ["projectile"], "a_beam": ["area"], "a_seals": ["area"],
+	"s_reap": ["melee", "area"], "s_square": ["melee", "area"], "s_mow": ["melee", "area"],
 }
 const TAG_NAMES := {"melee": "wręcz", "projectile": "pocisk", "area": "obszar", "minion": "przywołaniec"}
 const TAG_STATS := {"melee": "melee_dmg_pct", "projectile": "proj_dmg_pct", "area": "area_dmg_pct", "minion": "minion_dmg_pct"}
 ## Kolejność w oknie umiejętności.
 const ORDER := ["strike", "whirl", "throw", "slam", "steel_ring", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
 		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash",
-		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista", "a_missiles", "a_circle", "a_orbs", "a_beam", "a_seals"]
+		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista", "a_missiles", "a_circle", "a_orbs", "a_beam", "a_seals",
+		"s_reap", "s_square", "s_mow"]
 
 
 ## Znaczniki umiejętności (TAGS; brak - pusta lista).

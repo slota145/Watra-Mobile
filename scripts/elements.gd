@@ -20,6 +20,13 @@ const NATURE := "nature"
 const ARCANE := "arcane"
 const ARCANE_LEECH := 0.03
 const ARCANE_LEECH_MAX := 3
+## Nawia (mroczna kosa, ustalone z autorem 21.11.2026): trafienia wysysają życie (NAWIA_LEECH obrażeń, najwyżej
+## NAWIA_LEECH_MAX zdrowia na trafienie; ProtoWeapon._deal), a trafiony wróg przez NAWIA_WEAK_TIME s zadaje o NAWIA_WEAK
+## mniej obrażeń (ProtoTarget.wither - ciemna mgiełka nad głową).
+const NAWIA_LEECH := 0.02
+const NAWIA_LEECH_MAX := 4
+const NAWIA_WEAK := 0.15
+const NAWIA_WEAK_TIME := 2.0
 ## Żywioły (bez fizycznych) w kolejności do pokazywania.
 const ALL: Array[String] = [FIRE, WATER, COLD, LIGHTNING, EARTH, AIR, NAWIA, NATURE, ARCANE]
 const NAMES := {PHYSICAL: "Fizyczne", FIRE: "Ogień", WATER: "Woda", COLD: "Lód", LIGHTNING: "Grom", EARTH: "Ziemia",

@@ -187,6 +187,13 @@ const UNIQUE := {
 		"text": "Dopóki rzucasz promień, co pół sekundy emanuje od ciebie magia, która rani wrogów wokół (40% siły)."},
 	"a_seals": {"name": "Kamień Splecionych Pieczęci", "short": "Wiązki",
 		"text": "Pieczęcie łączy magiczna wiązka, która rani każdego wroga, który jej dotknie, aż do wybuchu."},
+	# mroczna kosa (pomysły autora 21.11.2026)
+	"s_reap": {"name": "Kamień Żniwiarza", "short": "Fala Nawii",
+		"text": "Każdy trafiony wróg ładuje kosę - po 15 trafieniach od ciebie rozchodzi się fala Nawii, która rani wszystkich wokół."},
+	"s_square": {"name": "Kamień Czterech Stron", "short": "4 kwadraty",
+		"text": "Pojawiają się 3 widmowe kosy: wszystkie cztery tną naraz i dookoła ciebie powstają 4 takie kwadraty."},
+	"s_mow": {"name": "Kamień Rzędów Nawii", "short": "Rzędy wybuchów",
+		"text": "Po cięciu w stożku wybucha Nawia - rzędami, a w każdym rzędzie od prawej do lewej (45% siły każdy wybuch)."},
 	# glewia ognia (ustalone z autorem 14.11.2026)
 	"g_thrust": {"name": "Kamień Trójzęba", "short": "3 pchnięcia",
 		"text": "Glewia dźga trzy razy naraz w wąskim stożku przed sobą - każdy wróg obrywa raz."},

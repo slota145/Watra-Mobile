@@ -1233,5 +1233,80 @@
       34
     ],
     "columns": 3
+  },
+  "scythe_swing": {
+    "effect": "675402d6-d776-46db-b18d-42cc346562ea",
+    "name": "Kosa - Żniwo (czarny zamach z białą krawędzią, gaśnie powoli; łuk od góry-lewej zgodnie z zegarem, zaczepienie = środek łuku)",
+    "frame": [
+      66,
+      65
+    ],
+    "frames": 14,
+    "fps": 16,
+    "anchor": [
+      29,
+      37
+    ],
+    "columns": 4
+  },
+  "scythe_line": {
+    "effect": "e0bd6388-c977-4164-931c-ad5a2570b55c",
+    "name": "Kosa - proste cięcie (Cięcie Światowida, w prawo, zaczepienie = środek; długość ok. 102 px)",
+    "frame": [
+      123,
+      37
+    ],
+    "frames": 12,
+    "fps": 16,
+    "anchor": [
+      54,
+      21
+    ],
+    "columns": 4
+  },
+  "scythe_hit": {
+    "effect": "3c37a44f-30d3-4da0-8fe2-6777d2eaa064",
+    "name": "Kosa - trafienie Nawii (czarny rozbłysk z białą obręczą; też wybuch Nawii po powiększeniu)",
+    "frame": [
+      72,
+      64
+    ],
+    "frames": 10,
+    "fps": 13,
+    "anchor": [
+      41,
+      27
+    ],
+    "columns": 4
+  },
+  "scythe_blast": {
+    "effect": "d94aafa9-9a08-46f1-808b-2641c59f029e",
+    "name": "Kosa - wybuch Nawii (biały błysk, czarny dym, iskry; zaczepienie = środek)",
+    "frame": [
+      84,
+      81
+    ],
+    "frames": 12,
+    "fps": 14,
+    "anchor": [
+      43,
+      39
+    ],
+    "columns": 4
+  },
+  "scythe_wave": {
+    "effect": "b4dbbd22-6c24-451e-8b01-f5dbbeb7e743",
+    "name": "Kosa - fala Nawii (pierścień po ziemi; kamień unikalny Żniwa, zaczepienie = środek pierścienia)",
+    "frame": [
+      116,
+      99
+    ],
+    "frames": 12,
+    "fps": 14,
+    "anchor": [
+      58,
+      74
+    ],
+    "columns": 4
   }
 }
