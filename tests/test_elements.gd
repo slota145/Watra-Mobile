@@ -87,16 +87,17 @@ func _test_mastery(game: Node) -> void:
 func _test_resists(game: Node) -> void:
 	_check(DungeonLevels.base_resist(1) == 0.0 and is_equal_approx(DungeonLevels.base_resist(101), DungeonLevels.RESIST_MAX)
 			and DungeonLevels.base_resist(500) == DungeonLevels.RESIST_MAX, "wspólna odporność: 0% na 1., %d%% na 101." % roundi(DungeonLevels.base_resist(101) * 100))
-	var r: Dictionary = Dungeons.resists(Dungeons.VOLCANO, 45)
-	var base := DungeonLevels.base_resist(45)
+	var lvl := Dungeons.cycle_length() + Dungeons.first_level(Dungeons.VOLCANO)  # Wulkaniczne w drugim kręgu
+	var r: Dictionary = Dungeons.resists(Dungeons.VOLCANO, lvl)
+	var base := DungeonLevels.base_resist(lvl)
 	_check(is_equal_approx(r[Elements.PHYSICAL], base) and is_equal_approx(r[Elements.FIRE], base + 0.2)
 			and is_equal_approx(r[Elements.WATER], base - 0.2), "wulkan: fizyczne %.2f, ogień +20%%, woda -20%%" % base)
-	_check(Dungeons.resist_text(Dungeons.VOLCANO, 45).contains("Odporność potworów") and Dungeons.resist_text(Dungeons.VOLCANO, 45).contains("Mniej"),
-			"opis odporności: " + Dungeons.resist_text(Dungeons.VOLCANO, 45))
+	_check(Dungeons.resist_text(Dungeons.VOLCANO, lvl).contains("Odporność potworów") and Dungeons.resist_text(Dungeons.VOLCANO, lvl).contains("Mniej"),
+			"opis odporności: " + Dungeons.resist_text(Dungeons.VOLCANO, lvl))
 	_check(Items.AFFIXES.has("pen_pct") and Gems.JEWELS.ruby.pool.has("pen_pct") and Items.CAPS.pen_pct > 0.0,
 			"przebicie odporności: premia przedmiotów i rubinów, z sufitem")
-	game.best_level = 45
-	game.dungeon_level = 45
+	game.best_level = lvl
+	game.dungeon_level = lvl
 	game.dev_immortal = true
 	var arena: Node = load("res://scenes/horde.tscn").instantiate()
 	root.add_child(arena)

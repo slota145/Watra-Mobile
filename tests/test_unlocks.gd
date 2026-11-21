@@ -40,7 +40,9 @@ func _test_data() -> void:
 	_check(_texts(Unlocks.on_beat(DungeonLevels.ARCHER_FROM - 1)).contains("strzelające"), "boss 1. poziomu: łucznicy (%s)" % _texts(Unlocks.on_beat(1)))
 	_check(_texts(Unlocks.on_beat(Gems.MIN_LEVEL - 1)).contains("Kamienie"), "kamienie po bossie 2. poziomu")
 	var ten := _texts(Unlocks.on_beat(10))
-	_check(ten.contains("Zatopione") and ten.contains(Weapons.name_of(Weapons.GLAIVE)), "boss 10.: nowy loch i glewia (%s)" % ten)
+	_check(ten.contains("Katakumby") and ten.contains(Weapons.name_of(Weapons.GLAIVE)), "boss 10.: nowy loch i glewia (%s)" % ten)
+	var cycle := _texts(Unlocks.on_beat(Dungeons.cycle_length()))
+	_check(cycle.contains("Drugi krąg"), "po ostatnim lochu: drugi krąg (%s)" % cycle)
 	_check(_texts(Unlocks.new_at(DungeonGoals.KINDS["shrine"])).contains("kapliczka"), "nowość na 5. poziomie: kapliczka")
 	_check(not _texts(Unlocks.new_at(11)).contains(Weapons.name_of(Weapons.GLAIVE)), "bronie nie są nowością lochu")
 	var next := Unlocks.next_after(5)
@@ -89,7 +91,7 @@ func _test_base() -> void:
 	await process_frame
 	result.show_victory(10, 100, 11, 50, 90.0)
 	result.add_unlock_lines(Unlocks.on_beat(10))
-	_check(result._summary.text.contains("Odblokowano: ") and result._summary.text.contains("Zatopione"), "okno zwycięstwa: co odblokowano")
+	_check(result._summary.text.contains("Odblokowano: ") and result._summary.text.contains("Katakumby"), "okno zwycięstwa: co odblokowano")
 	result.queue_free()
 
 

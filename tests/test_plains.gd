@@ -1,5 +1,5 @@
 extends SceneTree
-## Test czwartego lochu - Górskie równiny (Dungeons.PLAINS, 15.11.2026): od 31. poziomu, porażenie bohatera (więcej
+## Test czwartego lochu - Górskie równiny (Dungeons.PLAINS, 15.11.2026): od 16. poziomu, porażenie bohatera (więcej
 ## obrażeń przez chwilę), potwory (ptakoczłek wojownik z doskokiem po czerwonym pasie, miotacz oszczepów, szaman
 ## burzy z piorunem w kole pod postacią) i boss Gromoskrzydły (orzeł z Watry: burza piorunów, nurkowanie w pasie,
 ## podmuch z odrzutem i piórami; lata - ozdoby go nie zatrzymują).
@@ -26,10 +26,10 @@ func _run() -> void:
 	var game: Node = root.get_node("Game")
 	DirAccess.remove_absolute(game.save_path)
 	game.load_game()
-	_check(Dungeons.for_level(31) == Dungeons.PLAINS and ProtoHorde.make_monster(Dungeons.PLAINS, "goblin") is ProtoBirdman
+	_check(Dungeons.for_level(Dungeons.first_level(Dungeons.PLAINS)) == Dungeons.PLAINS and ProtoHorde.make_monster(Dungeons.PLAINS, "goblin") is ProtoBirdman
 			and ProtoHorde.make_monster(Dungeons.PLAINS, "archer") is ProtoBirdmanThrower
 			and ProtoHorde.make_monster(Dungeons.PLAINS, "brute") is ProtoBirdmanShaman,
-			"od 31: Górskie równiny - wojownik, miotacz, szaman burzy")
+			"od 16: Górskie równiny - wojownik, miotacz, szaman burzy")
 	await _test_monsters(game)
 	await _test_eagle(game)
 	game.reset_hero()
@@ -54,7 +54,7 @@ func _clear_decor(hero: ProtoHero) -> void:
 
 
 func _test_monsters(game: Node) -> void:
-	var arena := _arena(game, 31)
+	var arena := _arena(game, Dungeons.first_level(Dungeons.PLAINS))
 	await process_frame
 	var hero: ProtoHero = arena.hero
 	var horde: ProtoHorde = arena.horde_spawner
@@ -64,7 +64,7 @@ func _test_monsters(game: Node) -> void:
 	hero.max_hp = 100000
 	hero.hp = hero.max_hp
 	_clear_decor(hero)
-	_check(arena.climate == Dungeons.PLAINS and arena.summon_button.text == "Przyzwij Gromoskrzydłego", "poziom 31: Górskie równiny")
+	_check(arena.climate == Dungeons.PLAINS and arena.summon_button.text == "Przyzwij Gromoskrzydłego", "poziom 16: Górskie równiny")
 	# porażenie: więcej obrażeń przez chwilę
 	hero.protection = 0.0
 	hero.dodge = 0.0
@@ -134,7 +134,7 @@ func _test_monsters(game: Node) -> void:
 
 
 func _test_eagle(game: Node) -> void:
-	var arena := _arena(game, 32)
+	var arena := _arena(game, Dungeons.first_level(Dungeons.PLAINS) + 1)
 	await process_frame
 	var hero: ProtoHero = arena.hero
 	var horde: ProtoHorde = arena.horde_spawner

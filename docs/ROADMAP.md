@@ -173,6 +173,22 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 - **Piąty loch - Wulkaniczne równiny (15.11.2026):** zrobiony (szczegóły w `docs/historia.md`). Do oceny: podpalenie,
   płonąca ziemia, czytelność salamander na bazalcie, ilość lawy na podłożu, ataki Żywiołaka. Dalej (autor: po jednej
   krainie na żywioł broni) - kolejne lochy dla nowych broni; potem Pajęcze korzenie / Oblężony gród.
+- **Drabinka lochów po 5 poziomów (21.11.2026):** zrobiona (szczegóły w `docs/historia.md`). Do oceny na telefonie:
+  czy lochy nie zmieniają się za szybko, czy drugi krąg (te same lochy, silniejsze potwory) nie nudzi.
+- [ ] **Szósty loch - Podniebne wyspy, loch powietrzny (ustalenia z autorem 21.11.2026):**
+  - **Klimat:** skaliste wysepki nad morzem chmur, ruiny chramu Strzyboga, wstęgi i dzwonki wietrzne; podłoga z jasnego
+    kamienia i chmur, bez trawy (inaczej niż hale Górskich równin). Żywioł potworów: **powietrze**; charakter odporności
+    (propozycja Claude): powietrze +20%, ziemia -20% (Górskie równiny mają grom/zimno).
+  - **Potwory - duchy wiatru** (bez ptasich cech, te mają ptakoczłeki): **latawiec** (zwykły; słowiański demon powietrza,
+    szybki, przelatuje przez gracza), **wiła** (strzelająca; rzuca ostrzami wiatru), **wichrowiec** (silny; wirujący
+    stwór, przy ciosie wciąga do siebie). Grafiki: SpriteKiln.
+  - **Boss: Gryf** z Watry (gotowa grafika z animacją lotu i tornado `gryf_tornado`).
+  - **Wiatr:** podmuchy (strzałki pokazują kierunek, potem przez 2-3 s wiatr spycha gracza, potwory i pociski w jedną
+    stronę) i trąby powietrzne wędrujące po mapie (wciągają, wyrzucają, ranią).
+  - **Drabinka:** po Górskich równinach - 1-5 gobliny, 6-10 Zatopione, 11-15 Katakumby, 16-20 Równiny,
+    21-25 Podniebne wyspy, 26-30 Wulkaniczne; potem drugi krąg (31-60), trzeci (61-90), od 101 losowo.
+  - **Progi przywiązane do poziomów** (bronie 10/15/20, kosa 25, modyfikatory 20, talizmany 5, aury 8, sufit przedmiotów
+    i wolniejszy wzrost siły 40, losowe od 101) **zostają bez zmian** - poziom dalej oznacza siłę potworów.
 
 - **Baza: żar i złoto (12.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: ceny ulepszeń
   i ich odczuwalność (czy +10% potworów widać), ceny kowala i kupca (przedmioty u kupca tanie wobec klucza),

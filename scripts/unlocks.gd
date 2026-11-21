@@ -36,9 +36,11 @@ static func all() -> Array[Dictionary]:
 	for kind: String in DungeonGoals.KINDS:
 		_add(out, int(DungeonGoals.KINDS[kind]), "goal", goals.get(kind, kind), [], GOAL_ICONS.get(kind))
 	for id: String in Dungeons.ORDER:
-		var from := int(Dungeons.get_data(id).from)
+		var from := Dungeons.first_level(id)
 		if from > 1:
 			_add(out, from, "dungeon", "Nowy loch: %s (boss: %s)", [Dungeons.name_of(id), Dungeons.get_data(id).boss])
+	if Dungeons.cycle_length() + 1 < Dungeons.RANDOM_FROM:
+		_add(out, Dungeons.cycle_length() + 1, "dungeon", "Drugi krąg lochów: te same lochy od początku, silniejsze potwory")
 	_add(out, DungeonMods.FROM_LEVEL, "dungeon", "Modyfikatory lochów: trudniej, ale lepsze nagrody (przy wyborze poziomu)")
 	_add(out, Dungeons.RANDOM_FROM, "dungeon", "Loch losowy przy każdym wejściu")
 	for id: String in Weapons.ORDER:
