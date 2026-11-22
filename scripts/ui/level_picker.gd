@@ -8,6 +8,8 @@ extends Control
 ## Drabinka odblokowań (Unlocks): pod opisem poziomu nowości od tego poziomu, a na najwyższym dostępnym - najbliższe
 ## odblokowanie (który boss i co da); przycisk „Drabinka odblokowań” (sygnał `ladder` - arena otwiera UnlocksWindow, po zamknięciu wybór wraca).
 ## Przy ponad 10 dostępnych poziomach (np. tryb deweloperski „wszystkie poziomy”) dochodzą skoki o 10 (−10 / +10).
+## Z kluczem do Gniazda Żmija (Pinnacles, `Game.zmij_keys`) nad przyciskami pojawia się przycisk „Żmij Gorynycz”
+## z poziomem klucza (strzałki obok wybierają inny klucz, gdy są z różnych poziomów) - sygnał `pinnacle`.
 
 signal enter(level: int)
 signal canceled
@@ -15,6 +17,8 @@ signal upgrades
 signal ladder
 ## „Modyfikatory” (od DungeonMods.FROM_LEVEL) - arena otwiera ModsWindow.
 signal mods
+## Walka ze Żmijem z kluczem z poziomu `key_level` (Pinnacles).
+signal pinnacle(key_level: int)
 
 var level := 1
 var max_level := 1
@@ -29,6 +33,13 @@ var ladder_button: Button
 var mods_button: Button
 var _level_label: Label
 var _info: Label
+var zmij_button: Button
+var _zmij_row: HBoxContainer
+var _zmij_prev: Button
+var _zmij_next: Button
+## Klucze Żmija [[poziom, sztuk], ...] (od najsilniejszego) i który jest wybrany.
+var _keys: Array = []
+var _key := 0
 
 
 func _ready() -> void:
@@ -73,6 +84,26 @@ func _ready() -> void:
 	gap.custom_minimum_size = Vector2(0, 8)
 	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(gap)
+	_zmij_row = HBoxContainer.new()
+	_zmij_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_zmij_row.add_theme_constant_override("separation", 5)
+	column.add_child(_zmij_row)
+	_zmij_prev = _button(_zmij_row, "◀", Vector2(44, 52))
+	_zmij_prev.pressed.connect(func() -> void: _show_key(_key - 1))
+	zmij_button = _button(_zmij_row, "", Vector2(200, 52))
+	zmij_button.icon = Pinnacles.KEY_ICON
+	zmij_button.expand_icon = false
+	zmij_button.add_theme_constant_override("icon_max_width", 28)
+	zmij_button.add_theme_font_size_override("font_size", 13)
+	zmij_button.add_theme_color_override("font_color", Color(1, 0.72, 0.45))
+	zmij_button.pressed.connect(func() -> void:
+		if _keys.is_empty():
+			return
+		visible = false
+		get_tree().paused = false
+		pinnacle.emit(int(_keys[_key][0])))
+	_zmij_next = _button(_zmij_row, "▶", Vector2(44, 52))
+	_zmij_next.pressed.connect(func() -> void: _show_key(_key + 1))
 	var extra := HBoxContainer.new()  # dwa mniejsze przyciski obok siebie - mniej miejsca w pionie
 	extra.alignment = BoxContainer.ALIGNMENT_CENTER
 	extra.add_theme_constant_override("separation", 8)
@@ -113,6 +144,8 @@ func open(current: int, unlocked: int) -> void:
 	minus10_button.visible = max_level > 10
 	plus10_button.visible = max_level > 10
 	set_level(current)
+	_keys = Pinnacles.key_list(_game().zmij_keys)
+	_show_key(0)
 	visible = true
 	get_tree().paused = true
 
@@ -157,6 +190,20 @@ func set_level(value: int) -> void:
 			for e: Dictionary in next:
 				lines.append("• " + e.text)
 	_info.text = "\n".join(lines)
+
+
+## Przycisk Żmija z kluczem nr `index` (od najsilniejszego); bez kluczy - schowany.
+func _show_key(index: int) -> void:
+	_zmij_row.visible = not _keys.is_empty()
+	if _keys.is_empty():
+		return
+	_key = clampi(index, 0, _keys.size() - 1)
+	var k: Array = _keys[_key]
+	zmij_button.text = tr("Żmij Gorynycz\nklucz: poziom %d (x%d)") % [k[0], k[1]]
+	_zmij_prev.visible = _keys.size() > 1
+	_zmij_next.visible = _keys.size() > 1
+	_zmij_prev.disabled = _key <= 0
+	_zmij_next.disabled = _key >= _keys.size() - 1
 
 
 ## Autoload Game przez drzewo (odwołanie wprost nie kompiluje się w części testów).

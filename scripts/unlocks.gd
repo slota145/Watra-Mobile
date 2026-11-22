@@ -43,6 +43,8 @@ static func all() -> Array[Dictionary]:
 		_add(out, Dungeons.cycle_length() + 1, "dungeon", "Drugi krąg lochów: te same lochy od początku, silniejsze potwory")
 	_add(out, DungeonMods.FROM_LEVEL, "dungeon", "Modyfikatory lochów: trudniej, ale lepsze nagrody (przy wyborze poziomu)")
 	_add(out, Dungeons.RANDOM_FROM, "dungeon", "Loch losowy przy każdym wejściu")
+	_add(out, Pinnacles.KEY_FROM, "loot", "Boss szczytowy: klucz do Gniazda Żmija ze skrzyni bossa (rzadko)", [],
+			Pinnacles.KEY_ICON)
 	for id: String in Weapons.ORDER:
 		var beat := Weapons.unlock_level(id)
 		if beat > 0:

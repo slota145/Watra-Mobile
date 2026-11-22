@@ -31,6 +31,8 @@ var gems_dev_button: Button
 var talismans_dev_button: Button
 ## Tryb deweloperski: każda aura o poziom wyżej (nowe - poziom 1, Game.dev_auras).
 var uniques_dev_button: Button
+## Klucz do Gniazda Żmija (Pinnacles) z poziomu najwyższego przebitego lochu.
+var zmij_dev_button: Button
 var auras_dev_button: Button
 var runes_dev_button: Button
 var reset_button: Button
@@ -109,6 +111,8 @@ func _ready() -> void:
 	gems_dev_button.pressed.connect(func() -> void: _game.dev_gems())
 	runes_dev_button = _button(row, tr("+runy"))
 	runes_dev_button.pressed.connect(func() -> void: _game.dev_runes())
+	zmij_dev_button = _button(row, tr("+klucz Żmija"))
+	zmij_dev_button.pressed.connect(func() -> void: _game.dev_zmij_key())
 	row = _row()
 	talismans_dev_button = _button(row, tr("+talizmany"))
 	talismans_dev_button.pressed.connect(func() -> void: _game.dev_talismans())

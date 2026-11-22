@@ -34,11 +34,12 @@ func _run() -> void:
 
 
 func _test_data() -> void:
-	_check(Items.UNIQUES.size() == 6, "6 unikatów")
+	_check(Items.UNIQUES.size() == 8, "8 unikatów (6 z łupu i 2 Żmija)")
 	var slots := {}
 	for id in Items.UNIQUES:
 		var u: Dictionary = Items.UNIQUES[id]
-		slots[u.slot] = true
+		if not u.has("source"):
+			slots[u.slot] = true
 		var item := Items.make_unique(id, 25)
 		var ok: bool = Items.is_unique(item) and item.type == u.type and item.affixes.is_empty() \
 				and Items.potential_of(item).x == 0 and item.base.size() > 0
@@ -51,7 +52,7 @@ func _test_data() -> void:
 		_check(Runes.blocker(item, Runes.POLISH, 0) != "", "%s: kowal go nie przerabia" % id)
 		var back := Items.normalize(JSON.parse_string(JSON.stringify(item)))
 		_check(back == item, "%s: zapis i wczytanie bez zmian" % id)
-	_check(slots.size() == 6, "po jednym unikacie na miejsce")
+	_check(slots.size() == 6, "po jednym unikacie z łupu na miejsce")
 	var bad := Items.make_unique("crown", 10)
 	bad.ustats.damage_pct = 999.0
 	_check(Items.normalize(bad).ustats.damage_pct == 40.0, "wczytanie przycina premie do widełek")

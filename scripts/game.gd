@@ -140,6 +140,10 @@ var gems := {}
 var shards := 0
 ## Runy (Runes, 20.11.2026 - waluta-przedmioty zamiast złota u kowala): identyfikator -> ile sztuk.
 var runes := {}
+## Klucze do Gniazda Żmija (Pinnacles): poziom lochu, z którego wypadł (tekst) -> ile sztuk.
+var zmij_keys := {}
+## Klucz, z którym trwa walka ze Żmijem (poziom; 0 - zwykły loch). Nie idzie do zapisu: przerwana walka wraca do bazy.
+var pinnacle_key := 0
 ## Stan targu (Market) - pusty słownik: rynek jeszcze nie otwarty (powstaje przy pierwszym nadrabianiu).
 var market := {}
 ## Zegar rynku (sekundy); testy podmieniają go, żeby przesunąć czas.
@@ -372,6 +376,7 @@ func load_game() -> void:
 	gems = {}
 	shards = 0
 	runes = {}
+	zmij_keys = {}
 	market = {}
 	skill_gems = {}
 	skill_open = {}
@@ -417,6 +422,12 @@ func load_game() -> void:
 		shards = maxi(int(data.get("shards", 0)), 0)
 		market = Market.normalize(data.get("market", {}))
 		runes = {}
+		zmij_keys = {}
+		var raw_keys = data.get("zmij_keys", {})
+		if raw_keys is Dictionary:
+			for l in raw_keys:
+				if str(l).is_valid_int() and int(l) >= 1 and int(raw_keys[l]) > 0:
+					zmij_keys[str(int(l))] = int(raw_keys[l])
 		var raw_runes = data.get("runes", {})
 		if raw_runes is Dictionary:
 			for id in raw_runes:
@@ -570,7 +581,7 @@ func save_game() -> void:
 				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "ore": ore, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "start_weapon": start_weapon, "mastery": mastery, "mastery_xp": mastery_xp,
-				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes, "market": market,
+				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes, "zmij_keys": zmij_keys, "market": market,
 				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots,
 				"loot_filter": loot_filter, "essences": essences}))
 
@@ -660,6 +671,7 @@ func reset_hero() -> void:
 	gems = {}
 	shards = 0
 	runes = {}
+	zmij_keys = {}
 	market = {}
 	skill_gems = {}
 	skill_open = {}
@@ -1832,6 +1844,42 @@ func add_rune(id: String, amount := 1) -> void:
 	runes[id] = int(runes.get(id, 0)) + amount
 	_dirty = true
 	inventory_changed.emit()
+
+
+## Klucz do Gniazda Żmija z lochu `level` (łup ze skrzyni bossa) - zapis przy najbliższym `save_if_dirty`.
+func add_zmij_key(level: int, amount := 1) -> void:
+	if level < 1 or amount <= 0:
+		return
+	var k := str(level)
+	zmij_keys[k] = int(zmij_keys.get(k, 0)) + amount
+	_dirty = true
+	inventory_changed.emit()
+
+
+## Ile kluczy Żmija z poziomu `level`.
+func zmij_key_count(level: int) -> int:
+	return int(zmij_keys.get(str(level), 0))
+
+
+## Zużywa klucz Żmija z poziomu `level` (po zwycięstwie). false - takiego klucza nie ma.
+func use_zmij_key(level: int) -> bool:
+	var k := str(level)
+	if int(zmij_keys.get(k, 0)) <= 0:
+		return false
+	zmij_keys[k] = int(zmij_keys[k]) - 1
+	if zmij_keys[k] <= 0:
+		zmij_keys.erase(k)
+	_dirty = true
+	inventory_changed.emit()
+	return true
+
+
+## Tryb deweloperski: klucz Żmija z poziomu najwyższego przebitego lochu (najmniej Pinnacles.KEY_FROM).
+func dev_zmij_key() -> int:
+	var level := maxi(best_level, Pinnacles.KEY_FROM)
+	add_zmij_key(level)
+	save_game()
+	return level
 
 
 ## Tryb deweloperski: po 5 sztuk każdej runy.

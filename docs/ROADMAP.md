@@ -265,10 +265,8 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 - **Wiele postaci (pomysł autora 16.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na telefonie: czy
   stara postać przeszła bez strat, wygoda kart i formularza (klawiatura), wspólna skrzynia między postaciami.
 
-- **Boss szczytowy: Żmij Gorynycz (pomysł autora 15.11.2026):** trójgłowy ognisty smok z Watry
-  (`../Watra/assets/world_bosses/zmij.png`, ataki w `../Watra/scripts/world_boss.gd`: Zionięcie, Trzy Głowy, Uderzenie)
-  - zostawiony na później jako boss szczytowy (nie boss Wulkanicznych równin). Przyzywanie: klucz rzadko ze skrzyni
-  bossa (decyzja autora 16.11.2026); dopytać o próg, szansę, wygląd specjalnego lochu i nagrody.
+- ~~**Boss szczytowy: Żmij Gorynycz**~~ (zrobiony 22.11.2026, `docs/historia.md`; do oceny: siła, szansa 5% na klucz,
+  klucz zużywany dopiero po zwycięstwie, unikaty Kieł i Łuska Gorynycza). Kolejni bossowie szczytowi - do ustalenia.
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 

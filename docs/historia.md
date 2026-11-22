@@ -2,6 +2,44 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 22.11.2026 - Boss szczytowy: Żmij Gorynycz
+
+- **Ustalenia z autorem (22.11.2026, ankieta):** klucz rzadko ze skrzyni bossa **od lochu 30, ok. 5%**, pamięta poziom
+  lochu; arena **Pogorzelisko, sam na sam**; ataki z Watry + **gasnące głowy** w fazach; nagrody - **pewna legenda
+  i 2 unikaty tylko z Żmija** (25%), jeden poziom trudności (siła wg klucza). Moje decyzje do oceny: klucz zużywa się
+  dopiero po zwycięstwie (śmierć i ucieczka go nie zabierają), propozycje unikatów (Kieł i Łuska Gorynycza).
+- **Dane** `scripts/pinnacles.gd` (`Pinnacles`): `KEY_FROM` 30, `KEY_CHANCE` 0,05 (razy `loot_mult` lochu - `roll_key`),
+  `POWER` 1,3 (obrażenia Żmija ponad `DungeonLevels.BOSS_POWER`), skrzynia (`chest_items`): legenda (`Items.roll`
+  z rzadkością legendary), zwykła skrzynia bossa, kamienie, runy dwa razy, 25% unikat Żmija; żar skrzyni x3
+  (`CHEST_EMBERS`), doświadczenie x3 (`XP_MULT`). Ikona klucza `assets/watra/zmij_key.png`.
+- **Klucze w zapisie postaci:** `Game.zmij_keys` (poziom -> sztuk), `add_zmij_key`, `zmij_key_count`, `use_zmij_key`,
+  `dev_zmij_key` (przycisk „+klucz Żmija” w oknie deweloperskim - poziom najwyższego przebitego lochu, min. 30);
+  `Game.pinnacle_key` - poziom klucza trwającej walki (bez zapisu; baza go zeruje).
+- **Łup:** `{"zmij_key": poziom}` w skrzyni bossa (`arena._on_chief_died`); `ProtoLoot` - nazwa „Klucz do Gniazda Żmija
+  (poziom N)”, słup i dźwięk legendy, napis na środku ekranu, strzałka przy krawędzi, `Game.add_zmij_key` przy podniesieniu.
+- **Wejście:** `LevelPicker` - wiersz „Żmij Gorynycz / klucz: poziom N (xK)” nad „Drabinką” (tylko z kluczem; ◀ ▶ przy
+  kluczach z różnych poziomów, od najsilniejszego - `Pinnacles.key_list`), sygnał `pinnacle` -> `arena.enter_pinnacle`.
+- **Pogorzelisko** (`arena.gd`, `pinnacle`): `PINNACLE_ARENA` 440x680 (zamiast stałej `ARENA` w kodzie zmienna `area`),
+  podłoga i wystrój Wulkanicznych równin, Horda wyłączona, bez paska żaru; postać na dole (`PINNACLE_HERO`), kamera
+  110 px nad postacią (`PINNACLE_CAMERA` - smok mieści się pod paskami), Żmij od razu (`_start_pinnacle`, wspólne
+  `_add_boss` z `summon_chief`). Zwycięstwo: zużyty klucz, bez przebicia poziomu, okno `RunResult.show_pinnacle`
+  („Żmij Gorynycz pokonany!”, tylko „Powrót do bazy”); śmierć - „Jeszcze raz” z tym samym kluczem.
+- **Żmij** `scripts/proto/proto_zmij.gd` (`ProtoZmij`, po `ProtoChief`): arkusz z Watry (8 klatek skrzydeł, skala 0,8,
+  bez obracania), 2600 zdrowia bazowo, ogień: Zionięcie (wachlarz 130 px, 1 s, 30 + podpalenie, 5 plam płonącej ziemi),
+  Trzy Głowy (2 + faza kul, koła 22 px, 1,1 s, 24), skok (koło 50 px, 0,8 + 0,6 s lotu, 34, wstrząs). Przy 66% i 33%
+  gaśnie głowa (`_lose_head`: inny arkusz, słup ognia, ryk, 1,6 s gniewu, sygnał `phase_changed` - napis „Głowa Żmija
+  zgasła!”); faza 2 - drugie zionięcie w przeciwną stronę, faza 3 - po skoku krąg 8 ognistych słupów.
+- **Grafiki:** `tools/zmij_art.py` - kopia `zmij.png` z Watry do `assets/watra/bosses/` i warianty `zmij_2.png`,
+  `zmij_1.png` (głowy śledzone dopasowaniem wzorca, zwęglone - wycięcie odsłaniało dziury w skrzydłach), ikona klucza
+  z fragmentu klucza Welesa z Watry (przebarwiona). Efekty z Watry w `assets/watra/effects/zmij_*.png` (bez generacji).
+- **Unikaty Żmija** (`Items.UNIQUES` z `"source": "zmij"` - zwykły łup ich nie losuje): Kieł Gorynycza (kolczyk z kłem,
+  +15-20% obrażeń od żywiołów; co 3 s 3 kule ognia na najbliższych wrogów, 60-70% obrażeń broni i podpalenie) i Łuska
+  Gorynycza (zbroja, +8-12% odporności, +8-10% zdrowia; zraniona postać wybucha kręgiem ognia 60 px, 120-140%, co 4 s);
+  działanie w `ProtoUniques` (`_fang_volley`, `_on_hurt`).
+- Drabinka odblokowań: wpis przy lochu 30. Test `tests/test_zmij.gd`, zrzuty `tools/zmij_shots.gd`.
+- **Do oceny autora:** siła Żmija (obrażenia i zdrowie), szansa na klucz, czy klucz ma przepadać po śmierci, unikaty
+  (siła, nazwy), czy napis gniewu nie zasłania smoka.
+
 ## 21.11.2026 - Młot (broń ziemi) i Widmowe ostrza miecza
 
 - **Ustalenia z autorem:** jeden ciężki młot bojowy, żywioł ziemia (ogłusza i odpycha), za darmo od lochu 30 (wcześniej

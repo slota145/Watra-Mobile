@@ -153,6 +153,12 @@ const UNIQUES := {
 		"stats": {"proj_dmg_pct": [-25.0, -25.0]}, "power": [3.0, 3.0]},
 	"mokosz": {"name": "Zwierciadło Mokoszy", "slot": "amulet", "type": "amber", "flavor": "Każde zaklęcie ma swoje odbicie.",
 		"stats": {}, "power": [55.0, 60.0]},
+	# tylko ze skrzyni Żmija Gorynycza (Pinnacles, "source") - zwykły łup ich nie losuje
+	"zmij_fang": {"name": "Kieł Gorynycza", "slot": "earring", "type": "fang", "source": "zmij",
+		"flavor": "Trzy paszcze, jeden głód.", "stats": {"elem_dmg_pct": [15.0, 20.0]}, "power": [60.0, 70.0]},
+	"zmij_scale": {"name": "Łuska Gorynycza", "slot": "armor", "type": "plate", "source": "zmij",
+		"flavor": "Kto rani smoka, sam płonie.", "stats": {"element_res_pct": [8.0, 12.0], "hp_pct": [8.0, 10.0]},
+		"power": [120.0, 140.0]},
 }
 const UNIQUE_FROM := 10
 ## Poziomy unikatów (ankieta autora 21.11.2026): rozbity unikat daje esencję tego unikatu (Game.essences), esencje
@@ -172,6 +178,16 @@ const STRZYBOG_SHARDS := 3
 const STRZYBOG_POWER := 0.5
 const MOKOSZ_DELAY := 0.4
 const MOKOSZ_COST := 1.8
+## Kieł Gorynycza: co ZMIJ_FANG_EVERY s ZMIJ_FANG_BALLS kul ognia spada na najbliższych wrogów w ZMIJ_FANG_RANGE
+## (`power`% obrażeń broni ogniem w kole ZMIJ_FANG_RADIUS i podpalenie). Łuska Gorynycza: gdy postać dostanie
+## obrażenia, wokół niej wybucha ognisty krąg (ZMIJ_SCALE_RADIUS, `power`% obrażeń broni, podpalenie), najwyżej
+## co ZMIJ_SCALE_COOLDOWN s.
+const ZMIJ_FANG_EVERY := 3.0
+const ZMIJ_FANG_BALLS := 3
+const ZMIJ_FANG_RANGE := 150.0
+const ZMIJ_FANG_RADIUS := 20.0
+const ZMIJ_SCALE_RADIUS := 60.0
+const ZMIJ_SCALE_COOLDOWN := 4.0
 ## Ile losowych premii daje rzadkość (od-do; rzadki 3-5, legendarny zawsze 6 - decyzje autora 21.11.2026).
 const AFFIX_COUNT := {"common": Vector2i(0, 0), "magic": Vector2i(1, 2), "rare": Vector2i(3, 5), "legendary": Vector2i(6, 6),
 		"unique": Vector2i(0, 0)}
@@ -400,7 +416,8 @@ static func roll_base(slot: String, type: String, level: int) -> Dictionary:
 ## widełki); kuźnia podaje false.
 static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS, type := "", loot := true) -> Dictionary:
 	if rarity == "unique" or (rarity == "" and loot and randf() < unique_chance(level)):
-		var ids: Array = UNIQUES.keys().filter(func(id: String) -> bool: return slot == "" or UNIQUES[id].slot == slot)
+		var ids: Array = UNIQUES.keys().filter(func(id: String) -> bool:
+			return (slot == "" or UNIQUES[id].slot == slot) and not UNIQUES[id].has("source"))
 		return make_unique(ids.pick_random(), level)
 	if slot == "":
 		slot = SLOTS[randi() % SLOTS.size()]
@@ -502,6 +519,12 @@ static func unique_effect(id: String, power: float) -> String:
 		"mokosz":
 			return Lang.t("Umiejętności (oprócz zwykłego ataku) powtarzają się same po chwili z %d%% siły; koszt many x1,8") \
 					% roundi(power)
+		"zmij_fang":
+			return Lang.t("Co %d s %d kule ognia spadają na najbliższych wrogów: %d%% obrażeń broni i podpalenie") \
+					% [roundi(ZMIJ_FANG_EVERY), ZMIJ_FANG_BALLS, roundi(power)]
+		"zmij_scale":
+			return Lang.t("Gdy cię zranią, wokół wybucha ognisty krąg: %d%% obrażeń broni i podpalenie (co %d s)") \
+					% [roundi(power), roundi(ZMIJ_SCALE_COOLDOWN)]
 	return ""
 
 

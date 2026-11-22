@@ -99,6 +99,20 @@ func show_victory(level: int, banked: int, unlocked: int, kills: int, seconds: f
 	visible = true
 
 
+## Zwycięstwo nad bossem szczytowym (Pinnacles): poziom klucza, żar, czas walki; bez przycisku następnego poziomu.
+func show_pinnacle(boss: String, level: int, banked: int, seconds: float, deaths := 0) -> void:
+	var s := int(seconds)
+	_title.text = tr("%s pokonany!") % boss
+	_title.add_theme_color_override("font_color", Color(1, 0.6, 0.3))
+	var lines: Array[String] = [tr("Poziom klucza: %d") % level, tr("Żar do Watry: %d") % banked,
+			tr("Czas walki: %d:%02d") % [s / 60, s % 60]]
+	if deaths > 0:
+		lines.append(tr("Zgony (nieśmiertelność): %d") % deaths)
+	_summary.text = "\n".join(lines)
+	retry_button.visible = false  # zostaje „Powrót do bazy”
+	visible = true
+
+
 ## Dopisuje do podsumowania zdobyte doświadczenie i awans (`new_level` - nowy poziom postaci, 0 - bez awansu).
 func add_xp_lines(xp: int, new_level := 0) -> void:
 	if xp > 0:

@@ -39,8 +39,19 @@ extends Node2D
 ## poziomu, w oknie zwycięstwa linie „Odblokowano: …”.
 ## Modyfikatory lochów (DungeonMods, włączane przy wyborze poziomu od 20.): `mods`, działanie w `_apply_upgrades`
 ## i ProtoHorde (prędkość, obrażenia, żar, elity, rzadki łup), nazwy pod paskami (`mods_label`).
+## Boss szczytowy (Pinnacles, 22.11.2026): klucz do Gniazda Żmija (rzadko ze skrzyni bossa od Pinnacles.KEY_FROM) -
+## wybór przy Watrze ustawia `Game.pinnacle_key`, a scena lochu staje się Pogorzeliskiem (`pinnacle`: mniejsza arena
+## PINNACLE_ARENA z podłogą i wystrojem Wulkanicznych równin, bez Hordy i żaru do zbierania). Od razu wchodzi Żmij
+## (ProtoZmij), po nim skrzynia Żmija (Pinnacles.chest_items), a zwycięstwo zużywa klucz (bez przebicia poziomu lochu).
 
 const ARENA := Rect2(-360, -560, 720, 1120)
+## Pogorzelisko - arena bossa szczytowego (Żmij Gorynycz, Pinnacles): mniejsza, ok. 1,5 ekranu.
+const PINNACLE_ARENA := Rect2(-220, -340, 440, 680)
+## Pogorzelisko: tu staje postać, a tu ląduje Żmij.
+const PINNACLE_HERO := Vector2(0, 140)
+const PINNACLE_BOSS := Vector2(0, -30)
+## Pogorzelisko: kamera patrzy tyle pikseli nad postać - wielki smok mieści się nad nią pod paskami u góry.
+const PINNACLE_CAMERA := 110.0
 const DUMMIES := [Vector2(-100, 170), Vector2(100, 180), Vector2(0, 290)]
 const WATRA_POS := Vector2(0, -115)
 const STASH_POS := Vector2(-125, -135)
@@ -164,6 +175,9 @@ var stats_window: HeroStats
 ## Poziom lochu tej wyprawy (Game.dungeon_level) i jego rodzaj (Dungeons - od RANDOM_FROM losowany przy wejściu).
 var level := 1
 var climate := Dungeons.GOBLINS
+## Walka z bossem szczytowym (Żmij - Pinnacles) zamiast zwykłego lochu; `area` - prostokąt polany (ARENA albo PINNACLE_ARENA).
+var pinnacle := false
+var area := ARENA
 ## Wystrój lochu (ozdoby i poświaty, ProtoDecor).
 var decor: ProtoDecor
 var chief: ProtoChief
@@ -192,10 +206,17 @@ var _time := 0.0
 
 func _ready() -> void:
 	add_to_group(ProtoLoot.ANNOUNCE)
-	if horde:
+	if horde and Game.pinnacle_key > 0:
+		pinnacle = true
+		level = Game.pinnacle_key
+		climate = Dungeons.VOLCANO
+		area = PINNACLE_ARENA
+	elif horde:
 		level = Game.dungeon_level
 		climate = Dungeons.for_level(level)
 		mods = DungeonMods.active(level, Game.dungeon_mods)
+	else:
+		Game.pinnacle_key = 0  # baza: walka ze Żmijem skończona albo przerwana
 	_make_ground()
 	var world := Node2D.new()
 	world.name = "World"
@@ -206,13 +227,13 @@ func _ready() -> void:
 		decor = ProtoDecor.new()
 		decor.name = "Decor"
 		add_child(decor)
-		decor.scatter(world, climate, ARENA.grow(-24), Vector2(0, 40))
+		decor.scatter(world, climate, area.grow(-24), PINNACLE_HERO if pinnacle else Vector2(0, 40))
 	_make_hud()
 	hero = ProtoHero.new()
 	hero.name = "Hero"
-	hero.position = Vector2(0, 40)
+	hero.position = PINNACLE_HERO if pinnacle else Vector2(0, 40)
 	hero.joystick = joystick
-	hero.bounds = ARENA.grow(-16)
+	hero.bounds = area.grow(-16)
 	hero.gesture = Game.gesture
 	hero.immortal = Game.dev_immortal
 	world.add_child(hero)
@@ -224,6 +245,8 @@ func _ready() -> void:
 	camera.position_smoothing_speed = 8.0
 	# bez granic kamery: postać zawsze na środku ekranu, także przy brzegu polany (prośba autora 13.11.2026 -
 	# przy brzegu postać chowała się pod kciukiem); za brzegiem widać ciemny pas (`_make_ground`)
+	if pinnacle:
+		camera.position.y = -PINNACLE_CAMERA
 	hero.add_child(camera)
 
 	weapon = Weapons.make(Game.weapon)
@@ -248,7 +271,7 @@ func _ready() -> void:
 		horde_spawner.name = "Horde"
 		horde_spawner.hero = hero
 		horde_spawner.world = world
-		horde_spawner.bounds = ARENA.grow(-8)
+		horde_spawner.bounds = area.grow(-8)
 		horde_spawner.power = DungeonLevels.power(level)
 		horde_spawner.level = level
 		horde_spawner.climate = climate
@@ -266,12 +289,14 @@ func _ready() -> void:
 		horde_spawner.elite_killed.connect(func(_g: ProtoGoblin) -> void:
 			_gain_xp(roundi(HeroLevels.goblin_xp(level) * (Elites.XP * DungeonMods.mult(mods, "elite_xp") - 1))))
 		add_child(horde_spawner)
+		if pinnacle:
+			_start_pinnacle.call_deferred()
 		if climate == Dungeons.SKY:
 			wind = ProtoWind.new()
 			wind.name = "Wind"
 			wind.hero = hero
 			wind.world = world
-			wind.bounds = ARENA.grow(-40)
+			wind.bounds = area.grow(-40)
 			wind.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			add_child(wind)
 			wind.spawn_tornadoes()
@@ -409,17 +434,17 @@ func _make_ground() -> void:
 	var edge := ColorRect.new()
 	edge.color = EDGE_COLOR
 	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	edge.position = ARENA.position - Vector2(EDGE_PAD, EDGE_PAD)
-	edge.size = ARENA.size + Vector2(EDGE_PAD, EDGE_PAD) * 2.0
+	edge.position = area.position - Vector2(EDGE_PAD, EDGE_PAD)
+	edge.size = area.size + Vector2(EDGE_PAD, EDGE_PAD) * 2.0
 	edge.z_index = GROUND_Z
 	add_child(edge)
 	var grass := Sprite2D.new()
 	grass.texture = load(Dungeons.get_data(climate).ground) if horde else preload("res://assets/watra/grass.png")
 	grass.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	grass.region_enabled = true
-	grass.region_rect = Rect2(Vector2.ZERO, ARENA.size)
+	grass.region_rect = Rect2(Vector2.ZERO, area.size)
 	grass.centered = false
-	grass.position = ARENA.position
+	grass.position = area.position
 	grass.z_index = GROUND_Z
 	if horde:
 		grass.modulate = Dungeons.get_data(climate).tint  # loch: chłodniej i ciemniej (Horda)
@@ -442,17 +467,17 @@ func _make_ground() -> void:
 		shade.z_index = GROUND_Z
 		match side:
 			0:  # lewy
-				shade.position = ARENA.position
-				shade.size = Vector2(EDGE_SHADE, ARENA.size.y)
+				shade.position = area.position
+				shade.size = Vector2(EDGE_SHADE, area.size.y)
 			1:  # prawy
-				shade.position = Vector2(ARENA.end.x - EDGE_SHADE, ARENA.position.y)
-				shade.size = Vector2(EDGE_SHADE, ARENA.size.y)
+				shade.position = Vector2(area.end.x - EDGE_SHADE, area.position.y)
+				shade.size = Vector2(EDGE_SHADE, area.size.y)
 			2:  # górny
-				shade.position = ARENA.position
-				shade.size = Vector2(ARENA.size.x, EDGE_SHADE)
+				shade.position = area.position
+				shade.size = Vector2(area.size.x, EDGE_SHADE)
 			3:  # dolny
-				shade.position = Vector2(ARENA.position.x, ARENA.end.y - EDGE_SHADE)
-				shade.size = Vector2(ARENA.size.x, EDGE_SHADE)
+				shade.position = Vector2(area.position.x, area.end.y - EDGE_SHADE)
+				shade.size = Vector2(area.size.x, EDGE_SHADE)
 		add_child(shade)
 
 
@@ -569,6 +594,7 @@ func _make_hud() -> void:
 		picker = LevelPicker.new()
 		picker.visible = false
 		picker.enter.connect(enter_dungeon)
+		picker.pinnacle.connect(enter_pinnacle)
 		picker.upgrades.connect(open_upgrades)
 		safe.add_child(picker)
 		tree_window = DungeonTreeWindow.new()
@@ -973,7 +999,7 @@ func _track_loot(loot: ProtoLoot) -> void:
 	loot.picked.connect(func(item: Dictionary) -> void:
 		if item.has("rune"):
 			run_runes += 1
-		elif not item.has("gem") and not item.has("aura") and not item.has("talisman"):
+		elif not item.has("gem") and not item.has("aura") and not item.has("talisman") and not item.has(Pinnacles.KEY):
 			run_items += 1
 		notify_loot(item, tr("Podniesiono: %s") % ProtoLoot.name_of(item)))
 	loot.scrapped.connect(func(item: Dictionary, got: Dictionary, bag_full: bool) -> void:
@@ -1055,7 +1081,7 @@ func _make_boss_bar(column: VBoxContainer) -> void:
 	boss_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	boss_box.visible = false
 	column.add_child(boss_box)
-	var name_label := _hud_label(Dungeons.boss_of(climate))
+	var name_label := _hud_label(Lang.t(Pinnacles.BOSS_NAME) if pinnacle else Dungeons.boss_of(climate))
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_color_override("font_color", Color(1, 0.6, 0.45))
 	boss_box.add_child(name_label)
@@ -1163,14 +1189,14 @@ func _on_embers(e: int) -> void:
 func spawn_goal(kind: String) -> Node2D:
 	var others: Array = goals.filter(func(g: Node2D) -> bool: return is_instance_valid(g)).map(
 			func(g: Node2D) -> Vector2: return g.position)
-	var at := DungeonGoals.spot(ARENA, hero.position, others)
+	var at := DungeonGoals.spot(area, hero.position, others)
 	var goal: Node2D
 	match kind:
 		"skarbnik":
 			var spirit := ProtoSkarbnik.new()
 			spirit.hero = hero
 			spirit.level = level
-			spirit.bounds = ARENA.grow(-24)
+			spirit.bounds = area.grow(-24)
 			spirit.ore.connect(func(amount: int) -> void:
 				run_ore += Game.add_ore(maxi(1, roundi(amount * _goal_reward()))))
 			spirit.caught.connect(func(where: Vector2) -> void:
@@ -1294,6 +1320,9 @@ func _on_crystal_defended(at: Vector2, health: float) -> void:
 ## Napis na środku ekranu (nad postacią) na chwilę: pojawienie się celu, dar kapliczki.
 ## Pokaz łupu: legenda albo unikat wypadł (ProtoLoot.ANNOUNCE) - napis na środku ekranu.
 func announce_loot(item: Dictionary) -> void:
+	if item.has(Pinnacles.KEY):
+		announce(tr("Klucz do Gniazda Żmija!"), Pinnacles.KEY_COLOR)
+		return
 	var text := tr("Unikat: %s!") if Items.is_unique(item) else tr("Legendarny: %s!")
 	announce(text % Items.name_of(item), Items.color_of(item))
 
@@ -1385,16 +1414,35 @@ func summon_chief() -> void:
 			chief = ProtoGryf.new()
 		_:
 			chief = ProtoChief.new()
+	var spot := hero.position + CHIEF_OFFSET
+	if not area.grow(-40).has_point(spot):
+		spot = hero.position - CHIEF_OFFSET
+	_add_boss(spot)
+
+
+## Pogorzelisko: bez Hordy i paska żaru - od razu wchodzi Żmij Gorynycz.
+func _start_pinnacle() -> void:
+	phase = "boss"
+	horde_spawner.call_boss()
+	ember_bar.visible = false
+	summon_button.visible = false
+	var zmij := ProtoZmij.new()
+	zmij.phase_changed.connect(func(_p: int) -> void:
+		announce(tr("Głowa Żmija zgasła! Smok wpada w gniew."), Pinnacles.KEY_COLOR))
+	chief = zmij
+	_add_boss(PINNACLE_BOSS)
+	chief.power *= Pinnacles.POWER
+
+
+## Boss na polanie (w miejscu `spot`, przyciętym do brzegu): siła z poziomu lochu, pasek zdrowia, przywołani pomocnicy.
+func _add_boss(spot: Vector2) -> void:
 	chief.name = "Chief"
 	chief.hero = hero
-	chief.bounds = ARENA.grow(-24)
+	chief.bounds = area.grow(-24)
 	chief.power = DungeonLevels.power(level) * DungeonLevels.BOSS_POWER
 	chief.hp_mult = DungeonLevels.hp_mult(level)
 	chief.resists = Dungeons.resists(climate, level)
-	var spot := hero.position + CHIEF_OFFSET
-	if not ARENA.grow(-40).has_point(spot):
-		spot = hero.position - CHIEF_OFFSET
-	chief.position = spot.clamp(ARENA.position + Vector2(40, 40), ARENA.end - Vector2(40, 40))
+	chief.position = spot.clamp(area.position + Vector2(40, 40), area.end - Vector2(40, 40))
 	chief.health_changed.connect(func(hp: int, max_hp: int) -> void:
 		boss_bar.max_value = max_hp
 		boss_bar.value = hp)
@@ -1411,7 +1459,7 @@ func summon_chief() -> void:
 ## Wódz padł: pozostałe gobliny uciekają, po chwili spada skrzynia.
 func _on_chief_died(_c: ProtoChief) -> void:
 	phase = "loot"
-	_gain_xp(HeroLevels.chief_xp(level))
+	_gain_xp(HeroLevels.chief_xp(level) * (Pinnacles.XP_MULT if pinnacle else 1))
 	horde_spawner.scatter()
 	boss_box.visible = false
 	var at := chief.position
@@ -1422,7 +1470,12 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	chest.name = "Chest"
 	chest.hero = hero
 	chest.embers = DungeonLevels.chest_embers(level)
+	if pinnacle:
+		_fill_pinnacle_chest(at)
+		return
 	chest.items = Items.roll_chest(level, hero.gear.get("rarity_pct", 0.0), hero.gear.get("quantity_pct", 0.0))
+	if Pinnacles.roll_key(level, horde_spawner.loot_mult):  # klucz do Gniazda Żmija (od lochu Pinnacles.KEY_FROM)
+		chest.items.append({Pinnacles.KEY: level})
 	for id in Gems.roll_chest(level, horde_spawner.loot_mult * horde_spawner.gem_mult):
 		chest.items.append({"gem": id})
 	for id in Runes.roll_chest(level, horde_spawner.loot_mult * horde_spawner.rune_mult):
@@ -1432,6 +1485,18 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	var aura := Auras.roll_chest(level, false, horde_spawner.loot_mult * horde_spawner.gem_mult)  # kamień aury (od lochu Auras.MIN_LEVEL)
 	if aura != "":
 		chest.items.append({"aura": aura})
+	chest.loot_spawned.connect(_track_loot)
+	chest.position = at
+	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner.on_chest_ember))
+	chest.opened.connect(_on_chest_opened)
+	$World.add_child(chest)
+
+
+## Skrzynia Żmija: więcej żaru, pewna legenda, podwójne runy, szansa na unikat Żmija (Pinnacles.chest_items).
+func _fill_pinnacle_chest(at: Vector2) -> void:
+	chest.embers *= Pinnacles.CHEST_EMBERS
+	chest.items = Pinnacles.chest_items(level, hero.gear.get("rarity_pct", 0.0), hero.gear.get("quantity_pct", 0.0),
+			horde_spawner.loot_mult * horde_spawner.gem_mult)
 	chest.loot_spawned.connect(_track_loot)
 	chest.position = at
 	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner.on_chest_ember))
@@ -1455,6 +1520,16 @@ func victory() -> void:
 	weapon.attack_held = false
 	var banked := horde_spawner.embers
 	_bank()
+	if pinnacle:
+		Game.use_zmij_key(level)
+		Game.pinnacle_key = 0
+		Game.save_game()
+		result.show_pinnacle(Lang.t(Pinnacles.BOSS_NAME), level, banked, horde_spawner.time, hero.deaths)
+		result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)
+		result.add_loot_lines(run_items, run_runes, run_ore)
+		result.add_filter_line(run_filtered, run_filtered_ore)
+		get_tree().paused = true
+		return
 	var unlocked := level + 1 if Game.beat_level(level) else 0
 	Game.save_if_dirty()
 	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time, hero.deaths)
@@ -1468,6 +1543,13 @@ func victory() -> void:
 
 ## „Jeszcze raz” po śmierci albo „Następny poziom” po zwycięstwie.
 func _on_retry() -> void:
+	if pinnacle:  # Żmij: po zwycięstwie do bazy, po śmierci jeszcze raz (klucz został), o ile klucz jest
+		if phase == "won" or Game.zmij_key_count(level) <= 0:
+			Game.pinnacle_key = 0
+			Game.change_scene(BASE_SCENE)
+		else:
+			Game.change_scene(HORDE_SCENE)
+		return
 	if phase == "won":
 		Game.dungeon_level = mini(level + 1, Game.unlocked_level())
 		Game.save_game()
@@ -1554,7 +1636,17 @@ func open_picker() -> void:
 
 
 func enter_dungeon(chosen: int) -> void:
+	Game.pinnacle_key = 0
 	Game.dungeon_level = chosen
+	Game.save_game()
+	Game.change_scene(HORDE_SCENE)
+
+
+## Wejście do Gniazda Żmija z kluczem z poziomu `key_level` (wybór przy Watrze).
+func enter_pinnacle(key_level: int) -> void:
+	if Game.zmij_key_count(key_level) <= 0:
+		return
+	Game.pinnacle_key = key_level
 	Game.save_game()
 	Game.change_scene(HORDE_SCENE)
 
