@@ -282,7 +282,7 @@ const PERKS := {
 	"spectral_blades": ["Trzy ostrza zamiast dwóch.", "Cztery ostrza i szybsze ataki."],
 	"m_smash": ["Co trzecie uderzenie ogłusza na 0,6 s.", "Uderzenie wypuszcza dookoła falę wstrząsu (40% siły)."],
 	"m_throw": ["5 odbić zamiast 3.", "Każde trafienie wywołuje falę wstrząsu wokół celu (40% siły)."],
-	"m_leap": ["Krater o 30% większy.", "Z krateru wyskakuje pierścień skalnych kolców (50% siły)."],
+	"m_leap": ["Krater o 30% większy.", "Z krateru rozchodzi się fala skalnych kolców (50% siły)."],
 	"slam": ["Dłuższe ogłuszenie.", "Po pół sekundy uderza druga fala pęknięć."],
 	"m_quake": ["Fale co 0,4 s zamiast 0,5.", "Co trzecia fala ogłusza na 0,5 s."],
 	"steel_ring": ["Krąg trwa 8 s zamiast 6.", "Pięć mieczy zamiast trzech."],

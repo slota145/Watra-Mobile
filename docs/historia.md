@@ -17,12 +17,12 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   - `m_throw` Rzut młotem (3): wirując, odbija się od 3 wrogów (5. - 5), każdego ogłusza 0,4 s, wraca; 10. - fala wstrząsu
     przy trafieniu; Mnożenie - 2 odbicia więcej; Kamień Powrotu - rani po drodze z powrotem (60%);
   - `m_leap` Skok z uderzeniem (6, nie pod „Atak”): skok w stronę gałki albo do wroga (nietykalny w locie), krater 48 px
-    rani, ogłusza 0,8 s, odpycha; 5. - krater +30%, 10. - pierścień 6 kolców; Mnożenie - drugi, szerszy wstrząs;
+    rani, ogłusza 0,8 s, odpycha; 5. - krater +30%, 10. - fala kolców (po teście autora: 6 szczelin gwiazdą od krateru, kolce po kolei na zewnątrz, każdy wróg raz - `_spike_wave`); Mnożenie - drugi, szerszy wstrząs;
     Kamień Grzęzawiska - krater zostaje 4 s (spowalnia o 50%, rani co 0,5 s);
   - `slam` Rozłupanie Ziemi (10) - bez zmian działania, teraz młotem (`_process_slam` - obuch spada niżej);
   - `m_quake` Trzęsienie ziemi (15, trzymane - `charge`): co 0,5 s (5. - 0,4) fala 60 px rani i odpycha, postać idzie
     o 40% wolniej (`ProtoHero.form_speed`), mana co sekundę; 10. - co trzecia fala ogłusza; Mnożenie - drugie trafienie;
-    Kamień Uskoku - szczelina z kolcami w najbliższego wroga.
+    Kamień Uskoku - szczelina z kolcami w najbliższego wroga (po teście autora jak Rozłupanie: rosnąca szczelina w najbliższego wroga poza falą, kolce po kolei, każdy wróg raz - wspólna `_crack_line` z falą kolców skoku).
 - **Widmowe ostrza** (`spectral_blades`, miecz, mistrz. 10, w `ProtoWeapon` - `_spectral*`, bo kosa ma swoje `_blades`):
   przełącznik jak Kule Arkanów, rezerwuje 25% many (`ProtoHero.summon_reserved`); 2 ostrza (5. - 3, 10. - 4 i ataki
   częściej; Mnożenie - jedno więcej) krążą nad postacią i na zmianę wylatują do losowego wroga w 110 px, tną i wracają.

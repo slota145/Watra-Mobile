@@ -1,8 +1,10 @@
 extends SceneTree
-## Zrzuty młota w lochu: wzniesiony młot i uderzenie, rzut (w locie), skok (w powietrzu i krater z Grzęzawiskiem),
+## Zrzuty młota w lochu: wzniesiony młot i uderzenie, rzut (w locie), skok (w powietrzu, krater z Grzęzawiskiem i fala
+## kolców z 10. poziomu),
 ## trzęsienie ziemi, Rozłupanie Ziemi młotem, potem miecz z Widmowymi ostrzami (krążą i tną).
 ## Użycie: SCRIPT=tools/hammer_shots.gd tools/screenshot.sh <prefiks> [rozdzielczość jako RESOLUTION]
-## Pliki: <prefiks>_1_wzniesiony.png, _2_uderzenie.png, _3_rzut.png, _4_skok.png, _5_krater.png, _6_trzesienie.png,
+## Pliki: <prefiks>_1_wzniesiony.png, _2_uderzenie.png, _3_rzut.png, _4_skok.png, _5_krater.png, _5b_fala.png, _6_trzesienie.png,
+## _6b_uskok.png (szczelina Kamienia Uskoku),
 ## _7_rozlupanie.png, _8_ostrza.png, _9_ostrza_tna.png
 
 var _prefix := "/tmp/mlot"
@@ -73,6 +75,7 @@ func _run() -> void:
 	await _shot("3_rzut")
 	await create_timer(1.6).timeout
 	hammer.skill_gems["m_leap"] = [Gems.unique_of("m_leap")]
+	hammer.skill_levels["m_leap"] = 10
 	hero.mana = hero.max_mana
 	hammer.reset_cooldowns()
 	hammer.cast("m_leap")
@@ -80,13 +83,18 @@ func _run() -> void:
 	await _shot("4_skok")
 	await create_timer(0.35).timeout
 	await _shot("5_krater")
+	await create_timer(0.2).timeout
+	await _shot("5b_fala")
 	await create_timer(1.0).timeout
 	hero.mana = hero.max_mana
 	hammer.reset_cooldowns()
+	hammer.skill_gems["m_quake"] = [Gems.unique_of("m_quake")]
 	hammer.cast("m_quake")
 	hammer.charge_held = true
 	await create_timer(0.62).timeout
 	await _shot("6_trzesienie")
+	await create_timer(0.2).timeout
+	await _shot("6b_uskok")
 	hammer.charge_held = false
 	await create_timer(0.6).timeout
 	hero.mana = hero.max_mana

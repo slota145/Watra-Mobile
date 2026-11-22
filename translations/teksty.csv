@@ -1125,7 +1125,7 @@ void fragment() {
 "Wybuch sięga o 30% dalej.","","skills.gd"
 "Włączasz i wyłączasz jak aurę: 3 kule krążą wokół ciebie i ranią wrogów, których dotkną. Rezerwuje 20% many. Szybkość obrotu rośnie z szybkością rzucania, wielkość i odległość kul - z obszarem. Nie może stać pod dużym przyciskiem.","","skills.gd"
 "Włączasz i wyłączasz jak aurę: przy tobie unoszą się widmowe ostrza, które same wylatują do losowych wrogów w pobliżu, tną ich i wracają. Rezerwuje 25% many. Nie może stać pod dużym przyciskiem.","","skills.gd"
-"Z krateru wyskakuje pierścień skalnych kolców (50% siły).","","skills.gd"
+"Z krateru rozchodzi się fala skalnych kolców (50% siły).","","skills.gd"
 "Z precyzyjnego cięcia po okręgu piorun przeskakuje na wrogów obok.","","skills.gd"
 "Za pierwszą falą idzie druga.","","skills.gd"
 "Zabicie skokiem zwraca dwa razy więcej many.","","skills.gd"
