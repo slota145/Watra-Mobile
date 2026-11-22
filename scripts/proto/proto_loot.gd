@@ -11,7 +11,8 @@ extends Node2D
 ## bez limitu), świeci kolorem kamienia. Kamień aury ({"aura": identyfikator}, Auras) od razu uczy aury albo podnosi
 ## jej poziom (`Game.add_aura`, napis nad postacią), świeci jak rzadki; talizman ({"talisman": id}, Talismans) - tak samo
 ## (`Game.add_talisman`); runa ({"rune": id}, Runes) trafia do zapasu run (`Game.add_rune`); nazwę, kolor i ikonę
-## każdego łupu dają `name_of`, `color_of`, `icon_of`.
+## każdego łupu dają `name_of`, `color_of`, `icon_of`. Klucz do Gniazda Żmija ({"zmij_key": poziom lochu}, Pinnacles)
+## trafia do `Game.zmij_keys`, a przy wypadnięciu świeci jak legenda (słup, napis na środku ekranu, strzałka przy krawędzi).
 ## Pokaz łupu (krok 4 przebudowy przedmiotów, ankieta autora 21.11.2026): słupy światła rosnąco według rzadkości
 ## (BEAMS: rzadki niski, legendarny i unikat wysokie z iskrami, unikat pulsuje; anielski - jasny słup z aureolą),
 ## błysk i migająca gwiazdka przy premii ponad widełki, dźwięki z Watry (DROP_SOUNDS, PICKUP_SOUNDS), zielona strzałka
@@ -68,6 +69,8 @@ var _arrow: _Arrow
 
 ## Nazwa łupu (przedmiot albo kamień).
 static func name_of(loot: Dictionary) -> String:
+	if loot.has(Pinnacles.KEY):
+		return Pinnacles.key_name(int(loot[Pinnacles.KEY]))
 	if loot.has("aura"):
 		return Lang.t("Kamień aury: %s") % Auras.name_of(loot.aura)
 	if loot.has("talisman"):
@@ -78,6 +81,8 @@ static func name_of(loot: Dictionary) -> String:
 
 
 static func color_of(loot: Dictionary) -> Color:
+	if loot.has(Pinnacles.KEY):
+		return Pinnacles.KEY_COLOR
 	if loot.has("aura"):
 		return Auras.color_of(loot.aura)
 	if loot.has("talisman"):
@@ -88,6 +93,8 @@ static func color_of(loot: Dictionary) -> Color:
 
 
 static func icon_of(loot: Dictionary) -> Texture2D:
+	if loot.has(Pinnacles.KEY):
+		return Pinnacles.KEY_ICON
 	if loot.has("aura"):
 		return Auras.icon_of(loot.aura)
 	if loot.has("talisman"):
@@ -99,6 +106,8 @@ static func icon_of(loot: Dictionary) -> Texture2D:
 
 ## Rzadkość do poświaty: kamienie świecą jak magiczne, klucz i dłuto - jak rzadkie (ze słupem światła).
 func _rarity() -> String:
+	if item.has(Pinnacles.KEY):
+		return "legendary"
 	if item.has("aura") or item.has("talisman"):
 		return "rare"
 	if item.has("rune"):
@@ -140,7 +149,7 @@ func _ready() -> void:
 		add_child(star)
 	_sprite = Sprite2D.new()
 	_sprite.texture = icon_of(item)
-	_sprite.scale = Vector2.ONE * (0.6 if item.has("aura") else ICON_SCALE * (0.75 if item.has("gem") or item.has("rune") else 1.0))
+	_sprite.scale = Vector2.ONE * (0.6 if item.has("aura") else ICON_SCALE * (0.75 if item.has("gem") or item.has("rune") or item.has(Pinnacles.KEY) else 1.0))
 	add_child(_sprite)
 	var land := position + Vector2(randf_range(-spread, spread), randf_range(-spread * 0.3, spread * 0.5))
 	_sprite.position.y = -14.0
@@ -159,6 +168,14 @@ func _is_item() -> bool:
 ## Pokaz łupu przy wypadnięciu: dźwięk rzadkości, strzałka „lepszy”, przy legendzie i unikacie napis, wibracja
 ## i strzałka przy krawędzi ekranu.
 func _show_off() -> void:
+	if item.has(Pinnacles.KEY):
+		_play(LEGEND_DROP, -4.0, 0.8)
+		goal_icon = icon_of(item)
+		goal_color = Pinnacles.KEY_COLOR
+		add_to_group(GoalArrows.GROUP)
+		get_tree().call_group(ANNOUNCE, "announce_loot", item)
+		Input.vibrate_handheld(VIBRATE_MS)
+		return
 	if not _is_item():
 		return
 	var r: String = item.rarity
@@ -241,6 +258,9 @@ func _take() -> void:
 			_float_text(tr("%s - poziom %d!") % [Auras.name_of(item.aura), lvl], Auras.color_of(item.aura))
 		else:
 			_float_text(tr("%s - już najwyższy poziom") % Auras.name_of(item.aura), Color(0.8, 0.75, 0.7))
+	elif item.has(Pinnacles.KEY):
+		_game.add_zmij_key(int(item[Pinnacles.KEY]))
+		_float_text(tr("Klucz do Gniazda Żmija!"), Pinnacles.KEY_COLOR)
 	elif item.has("gem"):
 		_game.add_gem(item.gem)
 	elif item.has("rune"):
@@ -260,7 +280,7 @@ func _take() -> void:
 		scrapped.emit(item, got, bag_full)
 	else:
 		picked.emit(item)
-	if _is_item() and item.rarity in ["legendary", "unique"]:
+	if (_is_item() and item.rarity in ["legendary", "unique"]) or item.has(Pinnacles.KEY):
 		_play(LEGEND_PICKUP, -4.0, 1.0)
 	else:
 		_play(SOUND_RARE if _rarity() in ["rare", "legendary", "unique"] or item.has("gem") or item.has("aura") \

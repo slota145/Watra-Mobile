@@ -8,6 +8,10 @@ extends Node2D
 ##   ranią ogniem (ProtoWeapon.aura_hit) i podpalają wrogów, którzy w nich stoją;
 ## - Pierścień Strzyboga: `split` (z ProtoWeapon._deal przy trafieniu pociskiem) wypuszcza odłamki w pobliskich wrogów
 ##   (najwyżej raz na SPLIT_COOLDOWN s - Kule Arkanów i deszcz strzał trafiają bardzo często).
+## - Kieł Gorynycza (Żmij): co Items.ZMIJ_FANG_EVERY s kule ognia (efekt Żmija) spadają na najbliższych wrogów
+##   (ProtoWeapon.aura_hit ogniem w kole Items.ZMIJ_FANG_RADIUS i podpalenie);
+## - Łuska Gorynycza (Żmij): gdy postać dostanie obrażenia (ProtoHero.hurt), wokół wybucha ognisty krąg
+##   (Items.ZMIJ_SCALE_RADIUS, efekt uderzenia Żmija), najwyżej co Items.ZMIJ_SCALE_COOLDOWN s.
 ## Oko Licha i Zwierciadło Mokoszy działają w ProtoWeapon, Korona Czarnoboga - w ProtoHero i HeroStats.
 
 const FLAME_FX := preload("res://assets/effects/glaive_ground_fire.png")
@@ -26,6 +30,17 @@ const SHARD_RANGE := 90.0
 const SHARD_SPEED := 300.0
 const SHARD_COLOR := Color(0.75, 0.95, 1.0)
 const BASTION_COLOR := Color(0.85, 0.7, 0.4)
+const FANG_FX := preload("res://assets/watra/effects/zmij_fireball.png")
+const FANG_FX_FRAMES := 14
+const FANG_FX_FPS := 18.0
+const FANG_FX_ANCHOR := Vector2(54, 115)
+const FANG_FX_SIZE := 0.42
+## Kula spada tyle s, zanim uderzy (4. klatka efektu).
+const FANG_FALL := 4.0 / 18.0
+const SCALE_FX := preload("res://assets/watra/effects/zmij_slam.png")
+const SCALE_FX_FRAMES := 12
+const SCALE_FX_ANCHOR := Vector2(118, 86)
+const SCALE_FX_RADIUS := 95.0
 
 var weapon: ProtoWeapon
 var worn := {}:
@@ -41,11 +56,15 @@ var _flames: Array = []  # [Sprite2D, ile zostało s]
 var _split_ready := 0.0
 var _clock := 0.0
 var _bastion := 0
+var _fang_t := 0.0
+var _scale_ready := 0.0
 
 
 func _ready() -> void:
 	_hero = get_parent() as ProtoHero
 	z_index = -1
+	if _hero:
+		_hero.hurt.connect(_on_hurt)
 	_apply()
 
 
@@ -82,6 +101,52 @@ func _process(delta: float) -> void:
 				queue_redraw()
 	if worn.has("swarog"):
 		_process_trail(delta)
+	if worn.has("zmij_fang"):
+		_fang_t -= delta
+		if _fang_t <= 0.0:
+			_fang_t = Items.ZMIJ_FANG_EVERY
+			_fang_volley()
+
+
+## Kieł Gorynycza: kule ognia na najbliższych wrogów (efekt od razu, obrażenia, gdy kula spadnie).
+func _fang_volley() -> void:
+	var at := _hero.global_position
+	var near := weapon._near(at, Items.ZMIJ_FANG_RANGE).filter(func(t: ProtoTarget) -> bool:
+		return t.alive() and t.global_position.distance_to(at) <= Items.ZMIJ_FANG_RANGE)
+	near.sort_custom(func(a: ProtoTarget, b: ProtoTarget) -> bool:
+		return a.global_position.distance_squared_to(at) < b.global_position.distance_squared_to(at))
+	var world := _hero.get_parent()
+	for i in mini(near.size(), Items.ZMIJ_FANG_BALLS):
+		var spot: Vector2 = near[i].global_position
+		Fx.once(world, FANG_FX, FANG_FX_FRAMES, FANG_FX_FPS, spot, FANG_FX_ANCHOR, 20, FANG_FX_SIZE)
+		get_tree().create_timer(FANG_FALL, false).timeout.connect(_fang_hit.bind(spot))
+
+
+func _fang_hit(spot: Vector2) -> void:
+	if weapon == null or not is_instance_valid(weapon) or not worn.has("zmij_fang"):
+		return
+	var power: float = worn.zmij_fang / 100.0
+	for t in weapon._near(spot, Items.ZMIJ_FANG_RADIUS):
+		if t.alive() and t.global_position.distance_to(spot) <= Items.ZMIJ_FANG_RADIUS:
+			weapon.aura_hit(t, power, Elements.FIRE, spot)
+			if t.alive():
+				t.burn(float(weapon._roll(power * 0.5)), ProtoWeapon.BURN_TIME * weapon.duration_mult, weapon.penetration)
+
+
+## Łuska Gorynycza: zraniona postać wybucha ognistym kręgiem.
+func _on_hurt(_amount: int) -> void:
+	if not worn.has("zmij_scale") or weapon == null or _hero.dead or _clock < _scale_ready:
+		return
+	_scale_ready = _clock + Items.ZMIJ_SCALE_COOLDOWN
+	var at := _hero.global_position
+	Fx.once(_hero.get_parent(), SCALE_FX, SCALE_FX_FRAMES, 16.0, at, SCALE_FX_ANCHOR, -1,
+			Items.ZMIJ_SCALE_RADIUS / SCALE_FX_RADIUS * 1.2)
+	var power: float = worn.zmij_scale / 100.0
+	for t in weapon._near(at, Items.ZMIJ_SCALE_RADIUS):
+		if t.alive() and t.global_position.distance_to(at) <= Items.ZMIJ_SCALE_RADIUS:
+			weapon.aura_hit(t, power, Elements.FIRE, at)
+			if t.alive():
+				t.burn(float(weapon._roll(power * 0.5)), ProtoWeapon.BURN_TIME * weapon.duration_mult, weapon.penetration)
 
 
 ## Ślad Swaroga: nowy płomień co TRAIL_STEP drogi, gaśnięcie starych, co TRAIL_TICK s ogień w stojących w nim wrogach.
