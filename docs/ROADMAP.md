@@ -42,7 +42,7 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej.
   Fizyczne - miecz (bez żywiołu).
 
-- [ ] **Poprawki lodowego rapiera (uwagi autora po teście 25.11.2026; mechaniki zrobione - `docs/historia.md`, efekty w trakcie):**
+- [ ] **Poprawki lodowego rapiera (uwagi autora po teście 25.11.2026; zrobione - `docs/historia.md`; do oceny na telefonie: szansa riposty 35%, Rój Sopli, rozmiar cięcia i efektów):**
   - Riposta Morozka: stawiamy na ziemi krąg na jakiś czas; stojąc w nim, postać ma szansę na ripostę, gdy dosięgnie
     ją atak wroga; kamień unikalny zwiększa szansę, a wróg trafiony ripostą od razu zamarza.
   - Zwykły atak w cyklu: pchnięcie, krótkie proste cięcie w prawo, pchnięcie, cięcie w lewo i tak w kółko.

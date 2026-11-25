@@ -1,9 +1,9 @@
 extends SceneTree
-## Zrzuty lodowego rapiera w lochu: pchnięcie, znaki chłodu i zamrożony wróg, roztrzaskanie, wypad ze ścieżką szronu,
-## Riposta Morozka (zasłona i wybuch mrozu), Grad Pchnięć, Lodowy Kwiat z kryształami Wiecznej Zmarzliny.
+## Zrzuty lodowego rapiera w lochu: pchnięcie, cięcie, znaki chłodu i zamrożony wróg, roztrzaskanie, wypad ze ścieżką
+## szronu, krąg Riposty Morozka (z ripostą), Grad Pchnięć z kolcami, Rój Sopli.
 ## Użycie: SCRIPT=tools/rapier_shots.gd tools/screenshot.sh <prefiks> [rozdzielczość jako RESOLUTION]
-## Pliki: <prefiks>_1_pchniecie.png, _2_chlod.png, _3_roztrzaskanie.png, _4_wypad.png, _5_sciezka.png,
-## _6_zaslona.png, _7_mroz.png, _8_grad.png, _9_kwiat.png, _10_zmarzlina.png
+## Pliki: <prefiks>_1_pchniecie.png, _1b_ciecie.png, _2_chlod.png, _3_roztrzaskanie.png, _4_wypad.png, _5_sciezka.png,
+## _6_krag.png, _7_riposta.png, _8_grad.png, _9_roj.png, _10_roj_strzela.png
 
 var _prefix := "/tmp/rapier"
 
@@ -60,6 +60,11 @@ func _run() -> void:
 	rapier._attack()
 	await create_timer(0.16).timeout
 	await _shot("1_pchniecie")
+	await create_timer(0.3).timeout
+	rapier._cooldown = 0.0
+	rapier._attack()
+	await create_timer(0.13).timeout
+	await _shot("1b_ciecie")
 	gs[2].chill(0.25, 5.0, 2)
 	gs[3].freeze(5.0)
 	await create_timer(0.4).timeout
@@ -85,12 +90,16 @@ func _run() -> void:
 	rapier.reset_cooldowns()
 	rapier.cast("r_riposte")
 	await create_timer(0.6).timeout
-	await _shot("6_zaslona")
-	await create_timer(1.0).timeout
-	await _shot("7_mroz")
+	await _shot("6_krag")
+	hero.parry_left = 0.2
+	hero._invulnerable = 0.0
+	hero.take_damage(10)
+	await create_timer(0.12).timeout
+	await _shot("7_riposta")
 	await create_timer(0.8).timeout
 	hero.mana = hero.max_mana
 	rapier.reset_cooldowns()
+	rapier.skill_gems["r_flurry"] = [Gems.unique_of("r_flurry")]
 	rapier.cast("r_flurry")
 	rapier.charge_held = true
 	await create_timer(0.5).timeout
@@ -99,10 +108,9 @@ func _run() -> void:
 	await create_timer(0.5).timeout
 	hero.mana = hero.max_mana
 	rapier.reset_cooldowns()
-	rapier.skill_gems["r_bloom"] = [Gems.unique_of("r_bloom")]
-	rapier.cast("r_bloom")
-	await create_timer(0.4).timeout
-	await _shot("9_kwiat")
-	await create_timer(1.0).timeout
-	await _shot("10_zmarzlina")
+	rapier.cast("r_swarm")
+	await create_timer(0.3).timeout
+	await _shot("9_roj")
+	await create_timer(0.9).timeout
+	await _shot("10_roj_strzela")
 	quit()

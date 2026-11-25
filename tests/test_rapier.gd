@@ -241,6 +241,10 @@ func _test_skills(game: Node) -> void:
 	rapier.cast("r_flurry")
 	rapier.charge_held = true
 	await _wait(1.0)
+	for i in 4:  # kolce lecą w losowych wrogów - jeśli los ominął tego z tyłu, jeszcze chwila gradu
+		if gs[1].hp < gs[1].max_hp:
+			break
+		await _wait(0.6)
 	_check(rapier.flurry_thrusts >= 5 and gs[0].hp < gs[0].max_hp and hero.form_speed < 1.0,
 			"Grad Pchnięć: %d pchnięć, postać idzie wolniej" % rapier.flurry_thrusts)
 	_check(gs[1].hp < gs[1].max_hp, "Kamień Gradu: kolce lecą też w wroga z tyłu")

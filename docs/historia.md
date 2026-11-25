@@ -19,6 +19,11 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   34 many, 14 s odnowienia, chmura za plecami (`_Cloud`, `_cloud_spot`) na 8 s (5. - 11 s), co 0,45 s sopel w losowego
   wroga do 180 px (10. - dwa); Mnożenie - dodatkowy sopel; Kamień Szronowej Mgły - rozprysk szronu (30% i 2 znaki
   chłodu na wrogów obok). Ikona `icon_swarm` w `tools/rapier_icons.py`.
+- **Nowe efekty z kreatora** (darmowy `vfx_workbench`, zapisane w „My effects” autora jako „Lodowy rapier - …”;
+  `pixellab_src/vfx/ids.json`): `rapier_thrust2` (pchnięcie), `rapier_slash` (cięcie 120°), `rapier_hit2` (trafienie),
+  `rapier_lunge` (smuga wypadu), `riposte_circle` (krąg riposty, pętla), `riposte_flash` (błysk riposty), `icicle`
+  (sopel, pętla), `ice_cloud` (chmura roju, pętla). Rysowane w grze zostały tylko ścieżka szronu (rozsypane kryształki)
+  i znaki chłodu/bryła lodu na wrogach. Ikony umiejętności przebudowane z nowych efektów.
 
 ## 25.11.2026 - Lodowy rapier - pierwsza broń lodu
 

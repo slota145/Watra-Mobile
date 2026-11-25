@@ -34,24 +34,37 @@ const RAPIER_TEXTURE := preload("res://assets/weapons/rapier.png")
 const R_GRIP := Vector2(9.0, 10.0)
 const R_SCALE := 0.5
 const RAPIER_LEN := 29.0
-const THRUST_FX := preload("res://assets/effects/rapier_thrust.png")
+const THRUST_FX := preload("res://assets/effects/rapier_thrust2.png")
 const THRUST_FRAMES := 7
-const THRUST_ANCHOR := Vector2(5, 8)
-const THRUST_FX_LEN := 52.0
-const CUT_FX := preload("res://assets/effects/katana_cut.png")
-const CUT_FRAMES := 9
-const CUT_ANCHOR := Vector2(39, 46)
+const THRUST_ANCHOR := Vector2(5, 7)
+const THRUST_FX_LEN := 51.0
+const CUT_FX := preload("res://assets/effects/rapier_slash.png")
+const CUT_FRAMES := 7
+const CUT_ANCHOR := Vector2(6, 36)
 const CUT_FX_RADIUS := 40.0
-const HIT_ICE_FX := preload("res://assets/effects/rapier_hit.png")
-const HIT_ICE_FRAMES := 12
-const HIT_ICE_ANCHOR := Vector2(23, 17)
+const HIT_ICE_FX := preload("res://assets/effects/rapier_hit2.png")
+const HIT_ICE_FRAMES := 8
+const HIT_ICE_ANCHOR := Vector2(23, 23)
 const SPIKES_FX := preload("res://assets/effects/ice_spikes.png")
 const SPIKES_FRAMES := 18
 const SPIKES_ANCHOR := Vector2(30, 34)
-const TRAIL_FX := preload("res://assets/effects/rapier_trail.png")
-const TRAIL_FRAMES := 7
-const TRAIL_ANCHOR := Vector2(8, 10)
-const TRAIL_LEN := 64.0
+const TRAIL_FX := preload("res://assets/effects/rapier_lunge.png")
+const TRAIL_FRAMES := 8
+const TRAIL_ANCHOR := Vector2(6, 12)
+const TRAIL_LEN := 78.0
+const CIRCLE_FX := preload("res://assets/effects/riposte_circle.png")
+const CIRCLE_FRAMES := 12
+const CIRCLE_ANCHOR := Vector2(48, 28)
+const CIRCLE_FX_RADIUS := 45.0
+const FLASH_FX := preload("res://assets/effects/riposte_flash.png")
+const FLASH_FRAMES := 8
+const FLASH_ANCHOR := Vector2(24, 19)
+const ICICLE_FX := preload("res://assets/effects/icicle.png")
+const ICICLE_FRAMES := 6
+const ICICLE_ANCHOR := Vector2(22, 7)
+const CLOUD_FX := preload("res://assets/effects/ice_cloud.png")
+const CLOUD_FRAMES := 12
+const CLOUD_ANCHOR := Vector2(28, 22)
 const SHATTER_FX := preload("res://assets/effects/frost_shatter.png")
 const SHATTER_FRAMES := 10
 const SHATTER_ANCHOR := Vector2(31, 29)
@@ -411,10 +424,9 @@ func _slash_hit() -> void:
 			_hit(t, power, hero.global_position, basic)
 			_hit_fx(t.center())
 			hit = true
-	var fx := Fx.once(get_parent(), CUT_FX, CUT_FRAMES, 36.0, c.round(), CUT_ANCHOR, 21, reach / CUT_FX_RADIUS)
+	var fx := Fx.once(get_parent(), CUT_FX, CUT_FRAMES, 40.0, c.round(), CUT_ANCHOR, 21, reach / CUT_FX_RADIUS)
 	fx.rotation = _aim_dir.angle()
 	fx.flip_v = _move == "left"
-	fx.modulate = Color(0.85, 1.0, 1.1)
 	if hit:
 		Input.vibrate_handheld(10)
 
@@ -422,10 +434,8 @@ func _slash_hit() -> void:
 # --- Sople (kamień Sopli, Riposta, Grad, Rój) ---
 
 func _launch_icicle(from: Vector2, dir: Vector2, power: float, skill: String, distance := ICICLE_RANGE) -> void:
-	var node := _Icicle.new()
+	var node := Fx.loop(get_parent(), ICICLE_FX, ICICLE_FRAMES, 12.0, Vector2.ZERO, ICICLE_ANCHOR, 21)
 	node.rotation = dir.angle()
-	node.z_index = 21
-	get_parent().add_child(node)
 	node.global_position = from
 	_icicles.append({"node": node, "dir": dir, "left": distance, "power": power, "hits": [], "skill": skill})
 
@@ -662,12 +672,11 @@ func riposte_chance() -> float:
 ## Stawia szronowy krąg pod postacią (nowy zastępuje stary).
 func _place_circle() -> void:
 	_clear_circle()
-	var node := _RiposteCircle.new()
-	node.radius = _circle_radius()
-	node.z_index = -1
-	get_parent().add_child(node)
+	var radius := _circle_radius()
+	var node := Fx.loop(get_parent(), CIRCLE_FX, CIRCLE_FRAMES, 12.0, Vector2.ZERO, CIRCLE_ANCHOR, -1, radius / CIRCLE_FX_RADIUS)
 	node.global_position = hero.global_position
-	_circle = {"node": node, "at": hero.global_position, "radius": node.radius,
+	Fx.once(get_parent(), FLASH_FX, FLASH_FRAMES, 16.0, (hero.global_position + Vector2(0, -ORBIT_HEIGHT)).round(), FLASH_ANCHOR, 21)
+	_circle = {"node": node, "at": hero.global_position, "radius": radius,
 			"left": CIRCLE_TIME_LONG if _perk("r_riposte", 0) else CIRCLE_TIME}
 
 
@@ -709,6 +718,7 @@ func _on_parried() -> void:
 	if not in_circle():
 		return
 	ripostes += 1
+	Fx.once(get_parent(), FLASH_FX, FLASH_FRAMES, 18.0, _orbit_center().round(), FLASH_ANCHOR, 21)
 	var best := _nearest(COUNTER_RANGE * _area("r_riposte"))
 	if best == null:
 		return
@@ -799,9 +809,7 @@ func _cloud_spot() -> Vector2:
 func _summon_cloud() -> void:
 	if not _cloud.is_empty() and is_instance_valid(_cloud.node):
 		_cloud.node.queue_free()
-	var node := _Cloud.new()
-	node.z_index = 22
-	get_parent().add_child(node)
+	var node := Fx.loop(get_parent(), CLOUD_FX, CLOUD_FRAMES, 10.0, Vector2.ZERO, CLOUD_ANCHOR, 22)
 	node.global_position = _cloud_spot()
 	_cloud = {"node": node, "left": SWARM_TIME_LONG if _perk("r_swarm", 0) else SWARM_TIME}
 	_swarm_t = 0.15
@@ -838,65 +846,15 @@ func cloud_left() -> float:
 	return 0.0 if _cloud.is_empty() else float(_cloud.left)
 
 
-## Sopel: wydłużony, bladobłękitny kryształ z białym rdzeniem (szpic w prawo).
-class _Icicle extends Node2D:
-	func _draw() -> void:
-		draw_colored_polygon(PackedVector2Array([Vector2(-9, -2), Vector2(4, -2), Vector2(10, 0), Vector2(4, 2),
-				Vector2(-9, 2)]), Color(0.55, 0.85, 1.0, 0.9))
-		draw_line(Vector2(-8, -1), Vector2(7, 0), Color(0.95, 1.0, 1.0), 1.0)
-
-
 ## Ścieżka szronu wypadu: szeroki, bladobłękitny pas z białymi kryształkami.
 class _FrostPath extends Node2D:
 	var a := Vector2.ZERO
 	var b := Vector2.ZERO
 
 	func _draw() -> void:
-		draw_line(a, b, Color(0.7, 0.92, 1.0, 0.35), 10.0)
-		draw_line(a, b, Color(0.9, 0.98, 1.0, 0.45), 3.0)
-		var n := maxi(2, int(a.distance_to(b) / 12.0))
+		draw_line(a, b, Color(0.75, 0.94, 1.0, 0.1), 3.0)
+		var n := maxi(3, int(a.distance_to(b) / 7.0))
 		var side := (b - a).orthogonal().normalized()
-		for i in n:
-			var p := a.lerp(b, (i + 0.5) / n) + side * (4.0 if i % 2 else -4.0)
-			draw_rect(Rect2(p.round(), Vector2(2, 2)), Color(0.95, 1.0, 1.0, 0.8))
-
-
-## Krąg Riposty Morozka: spłaszczony szronowy krąg z wirującymi kryształkami.
-class _RiposteCircle extends Node2D:
-	var radius := 40.0
-	var _t := 0.0
-
-	func _process(delta: float) -> void:
-		_t += delta
-		queue_redraw()
-
-	func _draw() -> void:
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, CIRCLE_FLAT))
-		draw_circle(Vector2.ZERO, radius, Color(0.6, 0.85, 1.0, 0.1))
-		draw_arc(Vector2.ZERO, radius, 0.0, TAU, 40, Color(0.8, 0.96, 1.0, 0.75), 1.5)
-		draw_arc(Vector2.ZERO, radius * 0.8, 0.0, TAU, 40, Color(0.7, 0.9, 1.0, 0.35), 1.0)
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		for i in 8:
-			var a := _t * 0.8 + TAU * i / 8.0
-			var p := Vector2(cos(a), sin(a) * CIRCLE_FLAT) * radius
-			draw_colored_polygon(PackedVector2Array([p + Vector2(0, -3), p + Vector2(2, 0), p + Vector2(0, 3),
-					p + Vector2(-2, 0)]), Color(0.92, 0.99, 1.0, 0.95))
-
-
-## Chmura Roju Sopli: kłąb mroźnej mgły z wiszącymi soplami.
-class _Cloud extends Node2D:
-	var _t := 0.0
-
-	func _process(delta: float) -> void:
-		_t += delta
-		queue_redraw()
-
-	func _draw() -> void:
-		for i in 5:
-			var p := Vector2((i - 2) * 6.0, sin(_t * 2.0 + i) * 1.5)
-			draw_circle(p, 6.0 - absf(i - 2.0), Color(0.75, 0.92, 1.0, 0.55))
-		for i in 4:
-			var x := (i - 1.5) * 7.0
-			var y := 4.0 + sin(_t * 3.0 + i * 1.7) * 1.5
-			draw_colored_polygon(PackedVector2Array([Vector2(x - 1.5, y), Vector2(x + 1.5, y), Vector2(x, y + 7.0)]),
-					Color(0.85, 0.97, 1.0, 0.95))
+		for i in n:  # szron: rozsypane kryształki wzdłuż drogi, a nie pełny pas
+			var p := a.lerp(b, (i + 0.5) / n) + side * ((i * 7) % 9 - 4.0)
+			draw_rect(Rect2(p.round(), Vector2(2, 1) if i % 3 else Vector2(1, 2)), Color(0.9, 0.98, 1.0, 0.7))
