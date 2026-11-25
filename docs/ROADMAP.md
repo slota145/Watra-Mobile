@@ -42,7 +42,7 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej.
   Fizyczne - miecz (bez żywiołu).
 
-- [ ] **Loch natury - Prastary Bór (ustalenia z autorem 25.11.2026, w trakcie):** poziomy **36-40** (drugi krąg od 41),
+- [ ] **Loch natury - Prastary Bór (zrobiony 25.11.2026, `docs/historia.md`; do oceny na telefonie: Żywa puszcza, siła duchów lasu i Leszego):** poziomy **36-40** (drugi krąg od 41),
   żywioł natura (odporność na naturę, wrażliwość na ogień - propozycja Claude). Klimat **Prastary Bór** (grafiki
   z Prastarego Lasu Watry: ogromne dęby, omszałe głazy, świecące grzyby, menhiry). **Boss Leszy z Watry** (gotowy arkusz
   i ataki: korzenie, przebudzenie drzewców, wir liści - dopasowane do telefonu). **Potwory - duchy lasu** (SpriteKiln):
