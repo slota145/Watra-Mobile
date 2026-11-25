@@ -480,9 +480,10 @@ func load_game() -> void:
 					weapon_slots[id] = _read_slots(raw_ws[id], id)
 		var raw_levels = data.get("skill_levels", {})
 		if raw_levels is Dictionary:
-			for id in raw_levels:
-				if skills_owned.has(id) and int(raw_levels[id]) > 1:
-					skill_levels[id] = clampi(int(raw_levels[id]), 1, Skills.MAX_LEVEL)
+			for raw_id in raw_levels:
+				var id: String = Skills.RENAMED.get(raw_id, raw_id)
+				if skills_owned.has(id) and int(raw_levels[raw_id]) > 1:
+					skill_levels[id] = clampi(int(raw_levels[raw_id]), 1, Skills.MAX_LEVEL)
 		var raw_gems = data.get("gems", {})
 		if raw_gems is Dictionary:
 			for raw_id in raw_gems:
@@ -1162,6 +1163,8 @@ func _read_slots(raw, w: String) -> Array:
 	var slots: Array = []
 	for i in Skills.SLOTS:
 		var id = raw[i] if i < raw.size() else ""
+		if id is String:
+			id = Skills.RENAMED.get(id, id)
 		if id is String and id == "slam" and w == Weapons.SWORD and i != Skills.MAIN and skills_owned.has("spectral_blades"):
 			id = "spectral_blades"  # Rozłupanie Ziemi przeszło do młota (21.11.2026) - na jego miejscu Widmowe ostrza
 		var ok: bool = id is String and skills_owned.has(id) and not slots.has(id) and Skills.weapon_of(id) == w \

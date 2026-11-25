@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://gl81q1c3prln"
-path="res://.godot/imported/r_bloom.png-c30b85dd69fb4601292629a3d6472493.ctex"
+uid="uid://dtt582pekp6l6"
+path="res://.godot/imported/r_swarm.png-788f43f65010490e0d437928b29633df.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/unique_gems/r_bloom.png"
-dest_files=["res://.godot/imported/r_bloom.png-c30b85dd69fb4601292629a3d6472493.ctex"]
+source_file="res://assets/skills/rapier/r_swarm.png"
+dest_files=["res://.godot/imported/r_swarm.png-788f43f65010490e0d437928b29633df.ctex"]
 
 [params]
 

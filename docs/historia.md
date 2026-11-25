@@ -2,6 +2,24 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 25.11.2026 - Lodowy rapier: poprawki po pierwszym teście autora
+
+- **Zwykły atak w cyklu** (`ProtoRapier.CYCLE`, `cycle_move`): pchnięcie, krótkie cięcie w prawo, pchnięcie, cięcie
+  w lewo; cięcie - łuk `SLASH_ARC` 120° w zasięgu `SLASH_REACH` x0,75 pchnięcia (`_slash_hit`, `_blade_dir`).
+  5. poziom: pchnięcia o połowę dalej (`THRUST_LONG` 1,5); Kamień Sopli - drugie pchnięcie cyklu.
+- **Wypad do wroga** (`_lunge_target_for`): z gałką pierwszy wróg na drodze (pas `LUNGE_SEEK` 28 px), bez gałki
+  najdalszy w zasięgu; postać staje `LUNGE_STOP` 16 px przed nim i przebija go pchnięciem (`LUNGE_FINISH`); wybuch
+  z 10. poziomu przy wrogu.
+- **Riposta Morozka jako krąg** (`_circle`, `_RiposteCircle`): krąg 40 px na 6 s (5. - 9 s), postać w kręgu ma 35%
+  szansy na odbicie ciosu (`ProtoHero.parry_chance` - nowe pole, losowane w `take_damage`), kontra pchnięciem
+  w najbliższego; Kamień Mroźnej Riposty (zamiast Lodowego Pancerza) - +25% szansy i skontrowany wróg zamarza.
+  Bez zasłony i wybuchu na koniec; odnowienie 10 s.
+- **Kamień Gradu** - zamiast 2 znaków chłodu: co 0,3 s lecący kolec w losowego wroga do 160 px (50% pchnięcia).
+- **Rój Sopli** (`r_swarm`, zamiast Lodowego Kwiatu; `Skills.RENAMED` przenosi miejsce i poziom ze starego zapisu):
+  34 many, 14 s odnowienia, chmura za plecami (`_Cloud`, `_cloud_spot`) na 8 s (5. - 11 s), co 0,45 s sopel w losowego
+  wroga do 180 px (10. - dwa); Mnożenie - dodatkowy sopel; Kamień Szronowej Mgły - rozprysk szronu (30% i 2 znaki
+  chłodu na wrogów obok). Ikona `icon_swarm` w `tools/rapier_icons.py`.
+
 ## 25.11.2026 - Lodowy rapier - pierwsza broń lodu
 
 - **Ustalenia z autorem (25.11.2026, ankieta):** zasada „każdy żywioł ma co najmniej 2 bronie - magiczną i fizyczną”

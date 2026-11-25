@@ -1,6 +1,6 @@
 """Ikony umiejętności lodowego rapiera - broni lodu (64x64), jak tools/hammer_icons.py: ramka ikony Watry, tło nocnego
 granatu z lodową poświatą od dołu (motyw "frost" w tools/weapon_icons.py), na nim rapier (assets/weapons/rapier.png)
-i klatki efektów z kreatora przebarwionych na lód (rapier_thrust, ice_spikes, rapier_hit, frost_shatter).
+i klatki efektów z kreatora przebarwionych na lód (rapier_thrust, ice_spikes, rapier_hit, rapier_trail).
 Wynik: assets/skills/rapier/r_*.png. Uruchom: python tools/rapier_icons.py
 """
 import math
@@ -64,26 +64,25 @@ def icon_flurry():
     return wi.clip(img, inside, "frost")
 
 
-def icon_bloom():
-    """Lodowy Kwiat: rapier wbity szpicem w ziemię, dookoła pierścień kryształów."""
+def icon_swarm():
+    """Rój Sopli: mroźna chmura u góry, z niej lecą w dół-prawo trzy sople."""
     img, inside = wi.base("frost")
-    spikes = wi.scaled(wi.trim(wi.frame("ice_spikes", 5)), 0.42)
-    for i in range(6):
-        a = i / 6 * math.tau + 0.3
-        if math.sin(a) < 0:
-            wi.paste(img, spikes, (32 + math.cos(a) * 20, 44 + math.sin(a) * 9))
-    wi.paste(img, wi.rotated(wi.scaled(RAPIER, 0.75), -90), (32, 30))
-    for i in range(6):
-        a = i / 6 * math.tau + 0.3
-        if math.sin(a) >= 0:
-            wi.paste(img, spikes, (32 + math.cos(a) * 20, 44 + math.sin(a) * 9))
+    d = ImageDraw.Draw(img)
+    for x, y, r in ((18, 18, 7), (27, 14, 9), (37, 16, 8), (45, 20, 6), (30, 21, 7)):
+        d.ellipse((x - r, y - r * 0.7, x + r, y + r * 0.7), fill=(150, 205, 235, 230))
+    for x, y, r in ((24, 13, 4), (36, 13, 4)):
+        d.ellipse((x - r, y - r * 0.6, x + r, y + r * 0.6), fill=(225, 246, 255, 255))
+    for (x0, y0), (x1, y1) in (((20, 28), (28, 44)), ((32, 28), (42, 46)), ((44, 26), (54, 40))):
+        d.line(((x0, y0), (x1, y1)), fill=(120, 190, 230, 160), width=1)
+        d.polygon(((x1, y1), (x1 - 5, y1 - 4), (x1 - 2, y1 - 7)), fill=(220, 248, 255, 255))
+    wi.paste(img, wi.scaled(wi.trim(wi.frame("rapier_hit", 2)), 0.8), (44, 50))
     return wi.clip(img, inside, "frost")
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     for name, fn in (("r_thrust", icon_thrust), ("r_lunge", icon_lunge), ("r_riposte", icon_riposte),
-               ("r_flurry", icon_flurry), ("r_bloom", icon_bloom)):
+               ("r_flurry", icon_flurry), ("r_swarm", icon_swarm)):
         fn().save(os.path.join(OUT, name + ".png"))
         print(name)
 
