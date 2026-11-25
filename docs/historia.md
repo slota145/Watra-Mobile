@@ -2,6 +2,42 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 25.11.2026 - Kostur Leszego - pierwsza broń natury (magiczna)
+
+- **Pomysły autora (25.11.2026):** mechanika sadzonek (dwie umiejętności je zostawiają, dwie z nich korzystają bez
+  zużywania), zestaw 5 umiejętności i kamieni unikalnych; propozycje Claude zaakceptowane (nazwy, drzewce, loch 40),
+  limity większe na prośbę autora („pasterz drzew, a nie jego podróbka”): 12 sadzonek na 25 s, 10 drzewców na 12 s.
+  Teraz każdy żywioł ma co najmniej jedną broń.
+- **Trucizna natury** (wspólna - `Elements.POISON_*`, `ProtoTarget.poison`, `poison_stacks`, `is_poisoned`): każde
+  trafienie naturą dokłada znak (najwyżej 10), każdy znak zadaje 10% obrażeń trafienia na sekundę przez 4 s (nowe
+  trafienie odnawia czas); zielone liczby i bąbelki nad głową (`_Status`). `ProtoWeapon._deal` - żywioł `NATURE`.
+- **Broń** `scripts/proto/proto_staff.gd` (`ProtoStaff`, `Weapons.STAFF`, magiczna, od lochu 40): czary z uniesieniem
+  kostura (`l_cast` 0,2 s, błysk `nature_cast`; stany w `STRIKE_STATES` - szybkość rzucania), umiejętności
+  (mistrzostwo 1/3/6/10/15):
+  - **Biegnące Korzenie** (`l_roots`, zwykły, 0,9, 120 px): łańcuch 3 wrogów (5. - 5) - najbliższy nietrafiony do
+    70 px, wyskoki co 0,08 s, korzeń pod ziemią (Line2D), `root_burst`; 10. - co trzeci rzut dwa łańcuchy; Mnożenie
+    +2 wrogów; Kamień Zasiewu - zabity 35% na sadzonkę.
+  - **Żołądź Leszego** (`l_acorn`, 18 many, 3 s, 1,4, 160 px): leci na wysokości pasa 230 px/s, przebija, na końcu
+    sadzonka (5. - x1,5 dalej, 10. - dwa w wachlarzu; Mnożenie - boczne bez sadzonek); Kamień Muchołówki - mięsożerna
+    roślina (co 1 s kłapie na wroga do 34 px, 60% żołędzia).
+  - **Uścisk Boru** (`l_grasp`, 30 many, 9 s, 1,2, 110 px): 4 losowych wrogów (5. - 6, Mnożenie +2) - rani,
+    unieruchamia 1,5 s (`entangle`); po 0,5 s wciąga (dobicie `execute`, `pull_under`) tych z 50% zdrowia lub mniej
+    (10. - 60%), zawsze przynajmniej najsłabszego złapanego - nie elity ani bossa (`_tough`); w miejscu sadzonka;
+    Kamień Głogu - cierniowa sadzonka (co 1,2 s cierń w losowego wroga do 120 px, 50% Uścisku).
+  - **Pylenie Mchu** (`l_spores`, 26 many, 5 s, 1,0): obłok 50 px przy postaci i 40 px przy każdej sadzonce (5. - x1,3),
+    2 znaki trucizny (10. - 3), Mnożenie - drugi wybuch po 0,4 s; Kamień Purchawki - zatruty wróg po śmierci wybucha
+    (34 px, 50%; sygnał `died` goblina).
+  - **Strażnicy Boru** (`l_treants`, 40 many, 14 s, 0,8): drzewiec przy postaci i przy każdej sadzonce (najwyżej 10,
+    najstarszy odchodzi), 12 s (5. - 16), chodzi 40 px/s do najbliższego wroga do 140 px, cios co 1 s (10. - ogłusza
+    0,4 s); Mnożenie - drugi przy postaci; Kamień Leszego - co 3 s oplata najbliższego wroga (1,5 s, 50%). Klasa
+    `_Treant` (bez zdrowia - potwory go nie atakują).
+  - Sadzonki (`add_sapling`, `_saplings`): najwyżej 12 (najstarsza więdnie), 25 s; zwykła, mięsożerna, cierniowa.
+- **Grafiki:** kostur `tools/staff_art.py` -> `assets/weapons/staff.png` (sękate drewno, pnącze, poroże z zielonym
+  kamieniem); ikony `tools/staff_icons.py` (motyw „nature” w `tools/weapon_icons.py`); sadzonki i drzewiec ze SpriteKiln
+  (`art/specs/characters/{sapling,carnivore,thorn,treant}/`), efekty z kreatora (`root_burst`, `acorn`, `spores`,
+  `poison_hit`, `thorn`, `entangle`, `pull_under`, `nature_cast`) - bez nich kształty z kodu (`_Shape`).
+- Test `tests/test_staff.gd`.
+
 ## 25.11.2026 - Siódmy loch: Lodowe jaskinie (lód), Dziad Mróz, wymarzanie i koksowniki
 
 - **Ustalenia z autorem (ankieta 25.11.2026):** klimat lodowe jaskinie, potwory - duchy zimy, boss Dziad Mróz

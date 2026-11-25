@@ -42,7 +42,7 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej.
   Fizyczne - miecz (bez żywiołu).
 
-- [ ] **Kostur Leszego - pierwsza broń natury, magiczna (pomysły autora 25.11.2026; propozycje Claude zaakceptowane, limity większe - do zrobienia):**
+- [ ] **Kostur Leszego - pierwsza broń natury, magiczna (zrobiony 25.11.2026, `docs/historia.md`; do oceny na telefonie: siła trucizny, sadzonki, drzewce, płynność przy pełnych limitach):**
   natura truje - trucizna kumuluje się z każdym trafieniem (do zrobienia razem z kosturem, jak znaki chłodu lodu).
   Mechanika **sadzonek**: dwie umiejętności je zostawiają, dwie z nich korzystają, ale ich nie zużywają.
   - **Zwykły atak** (Claude: „Biegnące Korzenie”): korzenie wystrzeliwują z ziemi i przebijają kilku wrogów po kolei
