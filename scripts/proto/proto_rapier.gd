@@ -140,6 +140,9 @@ const SWARM_FORM := 0.5
 const SWARM_HOLD := 0.3
 const SWARM_EVERY := 0.1
 const SWARM_WAIT := 4.0
+## Nakładanie roju: najwyżej tyle sopli naraz i do ilu razy rośnie chmura.
+const SWARM_MAX := 48
+const SWARM_GROW_MAX := 2.0
 const SWARM_SIZE := Vector2(24.0, 10.0)
 const CLOUD_BEHIND := 16.0
 const CLOUD_HEIGHT := 46.0
@@ -170,7 +173,6 @@ var _circle := {}
 var _swarm: Array = []
 var _swarm_age := 0.0
 var _swarm_fire := 0.0
-var _swarm_wait := 0.0
 var _swarm_mist: Node2D
 ## Lecące sople ({"node", "dir", "left", "power", "hits", "skill"}) i ścieżki szronu ({"node", "a", "b", "left",
 ## "tick"}).
@@ -826,28 +828,31 @@ func _cloud_spot() -> Vector2:
 	return hero.global_position + back * CLOUD_BEHIND + Vector2(0, -CLOUD_HEIGHT)
 
 
-## Przyzwanie: sople pojawiają się po kolei w losowych miejscach chmury (stary rój wylatuje od razu - zostaje w grze).
+## Przyzwanie: sople pojawiają się po kolei w losowych miejscach chmury. Rój się nakłada (prośba autora 25.11.2026 -
+## przy dużej redukcji odnowienia): nowe sople dołączają do tych, które jeszcze czekają, chmura rośnie (najwyżej
+## SWARM_MAX sopli naraz - wydajność na słabszych telefonach), a każda partia wylatuje po swoim formowaniu.
 func _summon_swarm() -> void:
-	_clear_swarm()
 	var count := SWARM_COUNT_PERK if _perk("r_swarm", 0) else SWARM_COUNT
 	var extra := gem_power("r_swarm", "multi") / 100.0
-	var total := count + (SWARM_EXTRA if extra > 0.0 else 0)
+	var total := mini(count + (SWARM_EXTRA if extra > 0.0 else 0), SWARM_MAX - _swarm.size())
+	if total <= 0:
+		return
 	var center := _cloud_spot()
-	_swarm_mist = Fx.loop(get_parent(), CLOUD_FX, CLOUD_FRAMES, 10.0, Vector2.ZERO, CLOUD_ANCHOR, 20)
-	_swarm_mist.global_position = center
-	_swarm_mist.modulate.a = 0.0
+	if _swarm_mist == null or not is_instance_valid(_swarm_mist):
+		_swarm_mist = Fx.loop(get_parent(), CLOUD_FX, CLOUD_FRAMES, 10.0, Vector2.ZERO, CLOUD_ANCHOR, 20)
+		_swarm_mist.global_position = center
+		_swarm_mist.modulate.a = 0.0
+	var grow := clampf(sqrt(float(_swarm.size() + total) / SWARM_COUNT), 1.0, SWARM_GROW_MAX)  # większy rój - szersza chmura
 	for i in total:
 		var node := Fx.loop(get_parent(), ICICLE_FX, ICICLE_FRAMES, 12.0, Vector2.ZERO, ICICLE_ANCHOR, 21)
 		var a := randf() * TAU
-		var offset := Vector2(cos(a), sin(a)) * SWARM_SIZE * sqrt(randf())
+		var offset := Vector2(cos(a), sin(a)) * SWARM_SIZE * grow * sqrt(randf())
 		node.global_position = center + offset
 		node.scale = Vector2.ZERO
 		node.rotation = PI / 2.0 + randf_range(-0.5, 0.5)  # szpicem w dół, w różne strony
-		_swarm.append({"node": node, "offset": offset, "phase": randf() * TAU, "born": SWARM_FORM * i / total,
+		_swarm.append({"node": node, "offset": offset, "phase": randf() * TAU, "born": _swarm_age + SWARM_FORM * i / total,
+				"ready": _swarm_age + SWARM_FORM + SWARM_HOLD,
 				"power": _power("r_swarm") * (extra if i >= count else 1.0)})
-	_swarm_age = 0.0
-	_swarm_fire = 0.0
-	_swarm_wait = 0.0
 
 
 func _clear_swarm() -> void:
@@ -858,6 +863,8 @@ func _clear_swarm() -> void:
 	if _swarm_mist and is_instance_valid(_swarm_mist):
 		_swarm_mist.queue_free()
 	_swarm_mist = null
+	_swarm_age = 0.0
+	_swarm_fire = 0.0
 
 
 func _process_swarm(delta: float) -> void:
@@ -874,7 +881,8 @@ func _process_swarm(delta: float) -> void:
 		_swarm_mist.modulate.a = minf(_swarm_mist.modulate.a + delta * 2.0, 0.55)
 	# sople obracają się szpicem do najbliższego wroga (bez wrogów - w dół), zanim wylecą
 	var aim := PI / 2.0
-	var foe := _nearest_to(center, Skills.DATA.r_swarm.range * _area("r_swarm"))
+	var reach: float = Skills.DATA.r_swarm.range * _area("r_swarm")
+	var foe := _nearest_to(center, reach)
 	if foe:
 		aim = (foe.center() - center).angle()
 	for sw in _swarm:  # chmura faluje i płynie za postacią; nowe sople rosną z punktu
@@ -883,22 +891,29 @@ func _process_swarm(delta: float) -> void:
 		var bob := Vector2(sin(_swarm_age * 2.0 + sw.phase) * 1.5, sin(_swarm_age * 3.0 + sw.phase) * 2.0)
 		node.global_position = node.global_position.lerp(center + sw.offset + bob, 1.0 - exp(-8.0 * delta))
 		node.scale = Vector2.ONE * clampf((_swarm_age - sw.born) / 0.15, 0.0, 1.0)
-	if _swarm_age < SWARM_FORM + SWARM_HOLD or hero.dead:
+	if hero.dead:
 		return
-	# salwa: kolejny sopel co SWARM_EVERY, w losowego wroga w zasięgu; bez wrogów czekają (najwyżej SWARM_WAIT s)
-	_swarm_fire -= delta
-	var reach: float = Skills.DATA.r_swarm.range * _area("r_swarm")
-	while _swarm_fire <= 0.0 and not _swarm.is_empty():
+	# salwa: kolejny gotowy sopel co SWARM_EVERY w losowego wroga w zasięgu; bez wrogów czeka najwyżej SWARM_WAIT s
+	# od swojej gotowości i topnieje
+	while not _swarm.is_empty():
 		var sw: Dictionary = _swarm[0]
-		if _icicle_at_random((sw.node as Node2D).global_position, reach, sw.power, "r_swarm", [], sw.node) == null:
-			_swarm_fire = 0.0
-			_swarm_wait += delta
-			if _swarm_wait > SWARM_WAIT:  # nikt się nie pojawił - sople topnieją
-				_clear_swarm()
+		if _swarm_age < sw.ready:
+			_swarm_fire = 0.0  # partia jeszcze się formuje
 			return
+		_swarm_fire -= delta
+		if _swarm_fire > 0.0:
+			return
+		var node: Node2D = sw.node
+		if _icicle_at_random(node.global_position, reach, sw.power, "r_swarm", [], node) == null:
+			_swarm_fire = 0.0
+			if _swarm_age <= sw.ready + SWARM_WAIT:
+				return
+			node.queue_free()  # nikt się nie pojawił - sopel topnieje
+		else:
+			swarm_shots += 1
+			_swarm_fire += SWARM_EVERY
 		_swarm.pop_front()
-		swarm_shots += 1
-		_swarm_fire += SWARM_EVERY
+		delta = 0.0  # kolejne sople w tej samej klatce - tylko gdy zaległość (_swarm_fire <= 0)
 
 
 ## Najbliższy wróg od punktu `at` w zasięgu `reach` (null - brak).

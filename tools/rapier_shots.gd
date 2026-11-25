@@ -3,7 +3,7 @@ extends SceneTree
 ## szronu, krąg Riposty Morozka (z ripostą), Grad Pchnięć z kolcami, Rój Sopli.
 ## Użycie: SCRIPT=tools/rapier_shots.gd tools/screenshot.sh <prefiks> [rozdzielczość jako RESOLUTION]
 ## Pliki: <prefiks>_1_pchniecie.png, _1b_ciecie.png, _2_chlod.png, _3_roztrzaskanie.png, _4_wypad.png, _5_sciezka.png,
-## _6_krag.png, _7_riposta.png, _8_grad.png, _9_roj.png, _9b_roj_chmura.png, _10_roj_strzela.png
+## _6_krag.png, _7_riposta.png, _8_grad.png, _9_roj.png, _9b_roj_chmura.png, _10_roj_strzela.png, _11_roj_nalozony.png, _12_roj_nalozony_strzela.png
 
 var _prefix := "/tmp/rapier"
 
@@ -115,4 +115,16 @@ func _run() -> void:
 	await _shot("9b_roj_chmura")
 	await create_timer(0.5).timeout
 	await _shot("10_roj_strzela")
+	for g in gs:  # nałożony rój (duża redukcja odnowienia): 4 użycia bez wrogów w zasięgu, potem jeden wróg
+		g.queue_free()
+	await create_timer(1.5).timeout
+	for i in 4:
+		hero.mana = hero.max_mana
+		rapier.reset_cooldowns()
+		rapier.cast("r_swarm")
+	await create_timer(1.0).timeout
+	await _shot("11_roj_nalozony")
+	_goblin(arena, Vector2(90, 30))
+	await create_timer(0.5).timeout
+	await _shot("12_roj_nalozony_strzela")
 	quit()
