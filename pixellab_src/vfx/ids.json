@@ -1455,5 +1455,125 @@
     "source": "flicker_trail",
     "hue": "#b0f0ff",
     "boost": 1.6
+  },
+  "rapier_thrust2": {
+    "effect": "be08010d-3bec-40c0-b045-24fb6ad75044",
+    "name": "Lodowy rapier - pchnięcie",
+    "frame": [
+      57,
+      16
+    ],
+    "frames": 7,
+    "fps": 16,
+    "anchor": [
+      5,
+      7
+    ],
+    "columns": 3
+  },
+  "rapier_slash": {
+    "effect": "1baaedd1-f867-46c0-a506-7ed61e49b686",
+    "name": "Lodowy rapier - cięcie (łuk 120° po prawej, zgodnie z zegarem; zaczepienie = postać)",
+    "frame": [
+      48,
+      72
+    ],
+    "frames": 7,
+    "fps": 16,
+    "anchor": [
+      6,
+      36
+    ],
+    "columns": 3
+  },
+  "rapier_hit2": {
+    "effect": "c00f821c-8327-4d0f-a196-38e6568f6c05",
+    "name": "Lodowy rapier - trafienie",
+    "frame": [
+      48,
+      45
+    ],
+    "frames": 8,
+    "fps": 16,
+    "anchor": [
+      23,
+      23
+    ],
+    "columns": 3
+  },
+  "rapier_lunge": {
+    "effect": "157137e9-f36b-4536-882f-b54e37911880",
+    "name": "Lodowy rapier - wypad",
+    "frame": [
+      92,
+      30
+    ],
+    "frames": 8,
+    "fps": 16,
+    "anchor": [
+      6,
+      12
+    ],
+    "columns": 3
+  },
+  "riposte_circle": {
+    "effect": "5f350581-581e-42cc-8c2e-c9c6f47a1fd3",
+    "name": "Lodowy rapier - krąg riposty (pętla)",
+    "frame": [
+      96,
+      56
+    ],
+    "frames": 12,
+    "fps": 12,
+    "anchor": [
+      48,
+      28
+    ],
+    "columns": 4
+  },
+  "riposte_flash": {
+    "effect": "542541db-93ba-44dd-a4bb-2d01004f1dfd",
+    "name": "Lodowy rapier - błysk riposty",
+    "frame": [
+      43,
+      44
+    ],
+    "frames": 8,
+    "fps": 16,
+    "anchor": [
+      24,
+      19
+    ],
+    "columns": 3
+  },
+  "icicle": {
+    "effect": "80dd1e9d-ba45-43f3-aad8-078e5efdeaa8",
+    "name": "Lodowy rapier - sopel (pętla)",
+    "frame": [
+      35,
+      16
+    ],
+    "frames": 6,
+    "fps": 12,
+    "anchor": [
+      22,
+      7
+    ],
+    "columns": 3
+  },
+  "ice_cloud": {
+    "effect": "18dd4d2d-b850-4731-bf3d-8bba8e061c07",
+    "name": "Lodowy rapier - mroźna chmura (pętla)",
+    "frame": [
+      56,
+      44
+    ],
+    "frames": 12,
+    "fps": 10,
+    "anchor": [
+      28,
+      22
+    ],
+    "columns": 4
   }
 }

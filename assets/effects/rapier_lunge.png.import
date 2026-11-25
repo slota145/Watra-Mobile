@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://gl81q1c3prln"
-path="res://.godot/imported/r_bloom.png-c30b85dd69fb4601292629a3d6472493.ctex"
+uid="uid://0kho3xt8bipw"
+path="res://.godot/imported/rapier_lunge.png-f97cf4612eedc7b36ff3e56b7e030e4b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/watra/unique_gems/r_bloom.png"
-dest_files=["res://.godot/imported/r_bloom.png-c30b85dd69fb4601292629a3d6472493.ctex"]
+source_file="res://assets/effects/rapier_lunge.png"
+dest_files=["res://.godot/imported/rapier_lunge.png-f97cf4612eedc7b36ff3e56b7e030e4b.ctex"]
 
 [params]
 

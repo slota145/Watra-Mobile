@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c664dy0qomvu"
-path="res://.godot/imported/r_bloom.png-c1f801e24df6f7b6c53a82e5be325777.ctex"
+uid="uid://biit0rr6w2jul"
+path="res://.godot/imported/riposte_circle.png-6a3195eaa7874643fa9fb89894e472f7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/rapier/r_bloom.png"
-dest_files=["res://.godot/imported/r_bloom.png-c1f801e24df6f7b6c53a82e5be325777.ctex"]
+source_file="res://assets/effects/riposte_circle.png"
+dest_files=["res://.godot/imported/riposte_circle.png-6a3195eaa7874643fa9fb89894e472f7.ctex"]
 
 [params]
 

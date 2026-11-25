@@ -42,6 +42,19 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej.
   Fizyczne - miecz (bez żywiołu).
 
+- [ ] **Poprawki lodowego rapiera (uwagi autora po teście 25.11.2026; zrobione - `docs/historia.md`; do oceny na telefonie: szansa riposty 35%, Rój Sopli, rozmiar cięcia i efektów):**
+  - Riposta Morozka: stawiamy na ziemi krąg na jakiś czas; stojąc w nim, postać ma szansę na ripostę, gdy dosięgnie
+    ją atak wroga; kamień unikalny zwiększa szansę, a wróg trafiony ripostą od razu zamarza.
+  - Zwykły atak w cyklu: pchnięcie, krótkie proste cięcie w prawo, pchnięcie, cięcie w lewo i tak w kółko.
+  - Wypad doskakuje do (oddalonego?) wroga i postać zatrzymuje się przed nim.
+  - Grad Pchnięć: kamień unikalny - w trakcie gradu kolce lodu lecą w losowych wrogów.
+  - Lodowy Kwiat do wymiany: aura (każde trafienie wystrzeliwuje sople w losowych wrogów) albo przyzwana za postacią
+    chmura lodowych kolców, które lecą w losowych wrogów.
+  - Nowe, ładne efekty z kreatora dla każdej umiejętności rapiera.
+  - Decyzje autora (ankieta 25.11.2026): zamiast Lodowego Kwiatu **chmura kolców** za postacią (na czas, ok. 8 s,
+    potem odnowienie); wypad w stronę gałki do pierwszego wroga na drodze, bez gałki do najdalszego w zasięgu
+    (zatrzymanie przed wrogiem i pchnięcie); kamień Gradu - **lecące** kolce w losowych wrogów.
+
 - [ ] **Lodowy rapier (zrobiony 25.11.2026, `docs/historia.md`; do oceny na telefonie: tempo pchnięć, 4 znaki chłodu do zamrożenia, roztrzaskanie, siła zasłony, przebarwione efekty), potem loch lodu (do zrobienia):** pierwsza broń lodu - lodowy rapier (fizyczna);
   następnie loch lodu na drabince (31-35, przed kolejnym kręgiem). Ustalone 25.11.2026: za darmo od **lochu 35**;
   wygląd - cienka klinga z przezroczystego, bladoniebieskiego lodu, srebrny kosz rękojeści, efekty biało-błękitne
