@@ -83,7 +83,7 @@ const SUPPORT := {
 			"m_leap": "Po wylądowaniu drugi, szerszy wstrząs (%d%% obrażeń).",
 			"m_quake": "Każda fala uderza drugi raz (%d%% obrażeń).",
 			"l_roots": "Korzenie przebijają 2 wrogów więcej (te trafienia - %d%% obrażeń).",
-			"l_acorn": "Lecą 3 żołędzie wachlarzem (boczne - %d%% obrażeń, bez sadzonek).",
+			"l_acorn": "Lecą 3 żołędzie wachlarzem (boczne - %d%% obrażeń, wybuch korzeni bez sadzonek).",
 			"l_grasp": "Korzenie chwytają 2 wrogów więcej (%d%% obrażeń).",
 			"l_spores": "Po chwili zarodniki wybuchają drugi raz (%d%% obrażeń).",
 			"l_treants": "Przy tobie wyrasta drugi drzewiec (%d%% obrażeń).",

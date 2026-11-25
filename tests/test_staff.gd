@@ -152,13 +152,29 @@ func _test_seeds(game: Node) -> void:
 	var arena: Node = setup[0]
 	var staff := setup[1] as ProtoStaff
 	var hero: ProtoHero = arena.hero
-	# Żołądź: przelatuje przez wrogów, na końcu sadzonka
-	var gs: Array = await _dummies(arena, [Vector2(40, 0), Vector2(80, 0)])
+	# Żołądź (zmiana 25.11.2026): zatrzymuje się na pierwszym trafionym, wybuch korzeni rani obok, wyrasta sadzonka
+	var gs: Array = await _dummies(arena, [Vector2(60, 0), Vector2(80, 10), Vector2(170, 0)])
 	staff.reset_cooldowns()
 	_check(staff.cast("l_acorn"), "Żołądź Leszego")
+	await _wait(1.0)
+	var sap: Array = staff._saplings
+	_check(gs[0].hp < gs[0].max_hp and gs[1].hp < gs[1].max_hp and gs[2].hp == gs[2].max_hp and staff.saplings("sapling") == 1
+			and (sap[0].at as Vector2).distance_to(gs[0].global_position) < 4.0,
+			"żołądź zatrzymuje się na pierwszym wrogu: korzenie ranią obok, wyrasta przy nim sadzonka")
+	# bez wrogów - nie wylatuje za planszę
+	for g in gs:
+		g.queue_free()
+	await process_frame
+	staff._saplings.clear()
+	hero.position = Vector2(hero.bounds.end.x - 20.0, 0)
+	hero.facing = Vector2.RIGHT
+	staff.reset_cooldowns()
+	staff.cast("l_acorn")
 	await _wait(1.2)
-	_check(gs[0].hp < gs[0].max_hp and gs[1].hp < gs[1].max_hp and staff.saplings("sapling") == 1,
-			"żołądź przebija wrogów, na końcu wyrasta sadzonka")
+	_check(staff.saplings() == 1 and hero.bounds.has_point(staff._saplings[0].at), "bez wrogów żołądź spada w granicach planszy")
+	hero.position = Vector2.ZERO
+	staff._saplings.clear()
+	gs = []
 	# Muchołówka: mięsożerna roślina kłapie
 	staff.skill_gems["l_acorn"] = [Gems.unique_of("l_acorn")]
 	staff.reset_cooldowns()
@@ -169,8 +185,7 @@ func _test_seeds(game: Node) -> void:
 	var prey: ProtoGoblin = (await _dummies(arena, [plant.at + Vector2(14, 0)]))[0]
 	await _wait(1.3)
 	_check(prey.hp < prey.max_hp, "mięsożerna roślina kłapie na wroga obok")
-	for g in gs + [prey]:
-		g.queue_free()
+	prey.queue_free()
 	# Uścisk Boru: chwyta, wciąga słabych (zawsze przynajmniej jednego)
 	await _wait(0.2)
 	staff._saplings.clear()
