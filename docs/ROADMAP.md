@@ -42,6 +42,18 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej.
   Fizyczne - miecz (bez żywiołu).
 
+- [ ] **Loch mrozu - Lodowe jaskinie (ustalenia z autorem 25.11.2026, do zrobienia):** poziomy **31-35** na drabince
+  (`Dungeons.ORDER` po Wulkanicznych równinach; drugi krąg od 36), żywioł lód (odporność na lód, wrażliwość na ogień -
+  propozycja Claude). Klimat: **lodowe jaskinie** - niebieski, błyszczący lód, sople, zamarznięte wodospady, kryształy,
+  uwięzieni w lodzie wojownicy. **Potwory - duchy zimy:** Zmarzlak (zwykły, zamarznięty trup wojownika), Śnieżnica
+  (strzelająca - mroźna wiła rzuca soplami), Lodowy olbrzym (silny - uderza w ziemię, zamraża). **Boss: Dziad Mróz** -
+  stary duch zimy z lodową brodą i laską: mroźne tchnienie stożkiem, deszcz sopli z zapowiedzią, lodowe kolce z ziemi,
+  w drugiej fazie zamieć. **Mechanika: wymarzanie i ogniska** - postać powoli zbiera chłód i jest coraz wolniejsza,
+  płonące koksowniki w lochu ją rozgrzewają i dają premię („Dopóki płonie ogień”). **Marzanna nie jest bossem tego
+  lochu** - będzie bossem szczytowym. Grafiki: potwory i boss w SpriteKiln (za darmo), podłoga i ozdoby generatorami
+  (jak `tools/sky_floor.py`, `tools/sky_decor.py`), efekty z kreatora; lodowe efekty Watry (`ice_shatter`,
+  `frost_lance`, `legend_winter_breath`) do sprawdzenia. Wzór: Podniebne wyspy w `docs/historia.md` (21.11.2026).
+
 - [ ] **Poprawki lodowego rapiera (uwagi autora po teście 25.11.2026; zrobione - `docs/historia.md`; do oceny na telefonie: szansa riposty 35%, Rój Sopli, rozmiar cięcia i efektów):**
   - Riposta Morozka: stawiamy na ziemi krąg na jakiś czas; stojąc w nim, postać ma szansę na ripostę, gdy dosięgnie
     ją atak wroga; kamień unikalny zwiększa szansę, a wróg trafiony ripostą od razu zamarza.
@@ -298,7 +310,8 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   stara postać przeszła bez strat, wygoda kart i formularza (klawiatura), wspólna skrzynia między postaciami.
 
 - ~~**Boss szczytowy: Żmij Gorynycz**~~ (zrobiony 22.11.2026, `docs/historia.md`; do oceny: siła, szansa 5% na klucz,
-  klucz zużywany dopiero po zwycięstwie, unikaty Kieł i Łuska Gorynycza). Kolejni bossowie szczytowi - do ustalenia.
+  klucz zużywany dopiero po zwycięstwie, unikaty Kieł i Łuska Gorynycza). Kolejni bossowie szczytowi - do ustalenia;
+  **Marzanna ma być jednym z bossów szczytowych** (decyzja autora 25.11.2026 - nie boss lochu mrozu).
 
 ## Pomysły (luźne, od Claude - czekają na decyzję autora)
 
