@@ -122,7 +122,7 @@ const DATA := {
 	"l_acorn": {
 		"name": "Żołądź Leszego", "icon": preload("res://assets/skills/staff/l_acorn.png"),
 		"mana": 18, "cooldown": 3.0, "weapon": "staff", "mastery": 3, "main": true, "range": 160.0, "power": 1.4,
-		"description": "Ciskasz zaczarowany żołądź, który przelatuje przez wrogów i rani każdego trafionego. Tam, gdzie spadnie, wyrasta sadzonka (najwyżej 12 naraz, każda żyje 25 s).",
+		"description": "Ciskasz zaczarowany żołądź w najbliższego wroga - zatrzymuje się na pierwszym trafionym. Tam, gdzie upadnie, wybuchają korzenie (ranią wszystkich obok) i wyrasta sadzonka (najwyżej 12 naraz, każda żyje 25 s).",
 	},
 	"l_grasp": {
 		"name": "Uścisk Boru", "icon": preload("res://assets/skills/staff/l_grasp.png"),
@@ -344,7 +344,7 @@ const PERKS := {
 	"m_quake": ["Fale co 0,4 s zamiast 0,5.", "Co trzecia fala ogłusza na 0,5 s."],
 	"steel_ring": ["Krąg trwa 8 s zamiast 6.", "Pięć mieczy zamiast trzech."],
 	"l_roots": ["Korzenie przebijają 5 wrogów zamiast 3.", "Co trzeci rzut - dwa łańcuchy korzeni naraz."],
-	"l_acorn": ["Żołądź leci o połowę dalej.", "Ciskasz dwa żołędzie w wachlarzu."],
+	"l_acorn": ["Wybuch korzeni przy sadzeniu o 30% większy.", "Ciskasz dwa żołędzie w wachlarzu."],
 	"l_grasp": ["Chwyta do 6 wrogów zamiast 4.", "Wciąga wrogów z 60% zdrowia lub mniej."],
 	"l_spores": ["Obłoki o 30% większe.", "Każdy wybuch dokłada 3 znaki trucizny."],
 	"l_treants": ["Drzewce stoją 16 s zamiast 12.", "Ciosy drzewców ogłuszają na 0,4 s."],

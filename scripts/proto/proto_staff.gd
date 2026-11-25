@@ -37,7 +37,7 @@ const FX := {
 	"spores": [12, 16.0, Vector2(42, 30), 1.0],
 	"poison_hit": [8, 18.0, Vector2(14, 17), 0.7],
 	"thorn": [4, 16.0, Vector2(17, 8), 1.0],
-	"entangle": [8, 10.0, Vector2(20, 32), 0.7],
+	"entangle": [8, 10.0, Vector2(20, 32), 1.0],
 	"pull_under": [10, 14.0, Vector2(20, 32), 0.9],
 	"nature_cast": [8, 16.0, Vector2(20, 20), 0.8],
 }
@@ -59,10 +59,14 @@ const ROOT_STEP := 0.08
 const ROOT_DOUBLE_EVERY := 3
 const ROOT_EXTRA := 2
 const ROOT_SEED := 0.35
-## Żołądź: prędkość, szerokość trafienia, 5. poziom (dalej), wachlarz (10. poziom i Mnożenie).
+## Żołądź (zmiana po teście autora 25.11.2026): prędkość, szerokość trafienia, wielkość w locie, zatrzymuje się na
+## pierwszym trafionym; posadzenie - wybuch korzeni (zasięg, siła, 5. poziom - większy), wachlarz (10. poziom i Mnożenie).
 const ACORN_SPEED := 230.0
 const ACORN_HIT := 10.0
-const ACORN_LONG := 1.5
+const ACORN_SIZE := 1.6
+const PLANT_BURST := 36.0
+const PLANT_POWER := 0.8
+const PLANT_PERK_AREA := 1.3
 const ACORN_FAN := 0.25
 ## Uścisk Boru: ilu wrogów (5. poziom, Mnożenie), unieruchomienie, próg wciągnięcia (10. poziom), opóźnienie.
 const GRASP_TARGETS := 4
@@ -348,7 +352,7 @@ func _root_line(a: Vector2, b: Vector2) -> void:
 # --- Żołądź Leszego ---
 
 func _cast_acorn() -> void:
-	var reach: float = Skills.DATA.l_acorn.range * _area("l_acorn") * (ACORN_LONG if _perk("l_acorn", 0) else 1.0)
+	var reach: float = Skills.DATA.l_acorn.range * _area("l_acorn")
 	var best := _nearest(reach)
 	var from := _orbit_center()
 	var dir: Vector2 = (best.center() - from).normalized() if best else hero.facing.normalized()  # lot na wysokości pasa
@@ -369,7 +373,7 @@ func _cast_acorn() -> void:
 ## Pocisk (żołądź albo cierń) z `from` w kierunku `dir`; na końcu lotu - sadzonka rodzaju `seed` ("" - bez).
 func _launch(from: Vector2, dir: Vector2, power: float, skill: String, distance: float, seed: String,
 		fx := "acorn", speed := ACORN_SPEED) -> void:
-	var node := _fx(fx, from, 1.0, 21, get_parent())
+	var node := _fx(fx, from, ACORN_SIZE if fx == "acorn" else 1.0, 21, get_parent())
 	node.rotation = dir.angle()
 	_shots.append({"node": node, "dir": dir, "left": distance, "power": power, "hits": [], "skill": skill,
 			"seed": seed, "speed": speed})
@@ -393,15 +397,29 @@ func _process_shots(delta: float) -> void:
 			if p.distance_to(t.center()) <= ACORN_HIT:
 				sh.hits.append(t)
 				_hit(t, sh.power, a, sh.skill)
-				if sh.skill == "thorn":
-					_shots.erase(sh)
-					node.queue_free()
-					break
+				sh.left = 0.0  # żołądź i cierń zatrzymują się na pierwszym trafionym
+				sh["at"] = t.global_position
+				break
+		var ground: Vector2 = sh.get("at", node.global_position + Vector2(0, ORBIT_HEIGHT))
+		var inside := hero.bounds.grow(-8.0)
+		if not inside.has_point(ground):  # nie za planszą - spada przy brzegu
+			ground = ground.clamp(inside.position, inside.end)
+			sh.left = 0.0
 		if sh.left <= 0.0 and is_instance_valid(node):
-			if sh.seed != "":
-				add_sapling(node.global_position + Vector2(0, ORBIT_HEIGHT), sh.seed)
+			if sh.skill == "l_acorn":
+				_plant(ground, sh.seed, sh.power)
 			node.queue_free()
 			_shots.erase(sh)
+
+
+## Posadzenie żołędzia: wybuch korzeni wokół (rani wszystkich obok) i sadzonka rodzaju `seed` ("" - bez sadzonki).
+func _plant(at: Vector2, seed: String, power: float) -> void:
+	var radius := PLANT_BURST * _area("l_acorn") * (PLANT_PERK_AREA if _perk("l_acorn", 0) else 1.0)
+	_fx("root_burst", at, radius / 24.0, 2)
+	_ring_hits(at, radius, power * PLANT_POWER, "l_acorn")
+	if seed != "":
+		add_sapling(at, seed)
+	Input.vibrate_handheld(15)
 
 
 # --- Uścisk Boru ---
@@ -441,7 +459,7 @@ func _cast_grasp() -> void:
 
 ## Oplątanie cierniowymi korzeniami na `time` s (efekt przy wrogu, idzie za nim).
 func _hold_fx(t: ProtoTarget, time: float) -> void:
-	var fx := _fx("entangle", t.global_position, 1.0, 1, t)
+	var fx := _fx("entangle", t.global_position, clampf(t.center_height * 2.0 / 26.0, 1.2, 3.0), 1, t)
 	fx.position = Vector2.ZERO
 	fx.modulate.a = 0.85  # gęste pnącza - wróg prześwituje
 	get_tree().create_timer(time, false).timeout.connect(func() -> void:
@@ -520,7 +538,7 @@ func _plant_node(kind: String) -> Node2D:
 ## Animacja `anim` modelu SpriteKiln, potem `then` (kształt z kodu - nic).
 static func _play(node: Node, anim: StringName, then := &"") -> void:
 	if node.has_method("play_anim"):
-		node.play_anim(anim)
+		node.play_anim(anim, true)
 		if then != &"" and node.has_signal("anim_finished"):
 			node.anim_finished.connect(func(a: StringName) -> void:
 				if a == anim and is_instance_valid(node):
@@ -695,8 +713,10 @@ class _Treant extends Node2D:
 				weapon._hit(t, power * ProtoStaff.TREANT_ROOT_POWER, global_position, "l_treants")
 
 	func _anim(a: StringName) -> void:
-		if _body.has_method("play_anim") and _body.get("animation") != a and _body.get("animation") != &"attack" \
-				and _body.get("animation") != &"spawn":
+		# KilnSprite2D: bieżąca animacja to `anim` (`animation` to klip z kierunkiem, np. attack_s) - atak i wyrastanie
+		# grają do końca (zgłoszenie autora: drzewiec stał przy wrogach bez ataku)
+		var cur = _body.get("anim")
+		if _body.has_method("play_anim") and cur != a and cur != &"attack" and cur != &"spawn":
 			_body.play_anim(a)
 
 	func _nearest() -> ProtoTarget:

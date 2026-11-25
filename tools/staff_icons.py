@@ -62,16 +62,23 @@ def icon_acorn():
 
 
 def icon_grasp():
+    """Uścisk Boru: ciemna sylwetka wroga oplątana cierniowymi pnączami, które wyrastają z ziemi (bez czerwonego kółka -
+    uwaga autora 25.11.2026); gdy jest efekt `entangle` z kreatora - jego klatka na sylwetce."""
     img, inside = wi.base("nature")
     d = ImageDraw.Draw(img)
-    for k, (x0, y0) in enumerate(((12, 52), (52, 52), (20, 56), (44, 56))):
-        pts = [(x0 + (32 - x0) * t / 6 + math.sin(t + k) * 4, y0 - 34 * t / 6) for t in range(7)]
+    d.ellipse((24, 12, 40, 26), fill=(30, 36, 28, 255))  # głowa
+    d.rounded_rectangle((22, 24, 42, 52), 5, fill=(30, 36, 28, 255))  # tułów
+    for k in range(5):  # pnącza owijające się spiralnie od ziemi w górę
+        y0 = 54 - k * 8
+        pts = [(18 + i * 7, y0 - math.sin(i * 1.2 + k) * 3 - i * 1.2) for i in range(5)]
         d.line(pts, fill=ROOT_DARK, width=4)
-        d.line(pts, fill=(80, 112, 48, 255), width=2)
-        for i in range(1, 6, 2):
-            x, y = pts[i]
-            d.line([(x, y), (x + (3 if k % 2 else -3), y - 2)], fill=(200, 220, 150, 255), width=1)
-    d.ellipse((26, 14, 38, 24), outline=(220, 80, 60, 255), width=1)  # schwytany wróg (zarys)
+        d.line(pts, fill=(84, 120, 48, 255), width=2)
+        for x, y in pts[1::2]:
+            d.line([(x, y), (x + 2, y - 3)], fill=(210, 228, 160, 255), width=1)
+    if has_fx("entangle"):
+        wi.paste(img, wi.scaled(wi.trim(wi.frame("entangle", 3)), 1.3), (32, 36))
+    for x in (10, 54):  # korzenie z ziemi po bokach
+        root_spike(d, x, 58, 12, 4 if x < 32 else -4)
     return wi.clip(img, inside, "nature")
 
 

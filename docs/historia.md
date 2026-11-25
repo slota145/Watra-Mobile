@@ -41,6 +41,12 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   obciążają. Chwile ataków zgrane z animacjami SpriteKiln: kłapnięcie 0,26 s, cierń 0,22 s, cios drzewca 0,48 s;
   drzewiec chodzi 32 px/s (animacja ma 21,6 - szybciej, żeby nadążał za walką).
 - Test `tests/test_staff.gd`, zrzuty `tools/staff_shots.gd`.
+- **Poprawki po teście autora (25.11.2026):** drzewiec nie atakował - kod czytał `animation` (klip z kierunkiem,
+  np. `attack_s`) zamiast `anim` KilnSprite2D i co klatkę włączał `idle`; teraz atak i wyrastanie grają do końca,
+  a `_play` zaczyna animację od nowa. **Żołądź** zatrzymuje się na pierwszym trafionym wrogu, przy posadzeniu
+  wybuchają korzenie (`_plant`: 36 px, 80% siły; 5. poziom - x1,3 zamiast dalszego lotu), żołądź większy (x1,6),
+  bez wrogów spada w granicach planszy (8 px od brzegu). **Oplątanie** w wielkości wroga (skala od `center_height`).
+  Nowa ikona Uścisku Boru (sylwetka oplątana pnączami, bez czerwonego kółka).
 
 ## 25.11.2026 - Siódmy loch: Lodowe jaskinie (lód), Dziad Mróz, wymarzanie i koksowniki
 
