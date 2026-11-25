@@ -24,7 +24,7 @@ func _init() -> void:
 	element = Elements.NATURE
 	squeaks = false
 	fallback_color = Color(0.3, 0.26, 0.22)
-	anim_hit_at = 0.8  # szpony spadają w animacji `attack` (zdarzenie `hit`)
+	anim_hit_at = 0.74  # szpony spadają w animacji `attack` po 0,74 s (zdarzenie `hit`)
 
 
 func _strike() -> void:
