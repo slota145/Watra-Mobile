@@ -74,7 +74,7 @@ func _init() -> void:
 	base_hp = MROZ_HP
 	fallback_tint = Color(0.7, 0.88, 1.0)
 	keep_distance = KEEP_DISTANCE
-	anim_hit_at = {&"breath": 0.35, &"rain": 0.4, &"spikes": 0.5}
+	anim_hit_at = {&"breath": 0.35, &"rain": 0.32, &"spikes": 0.35}
 	anim_fallback = {&"breath": &"attack", &"rain": &"attack", &"spikes": &"attack", &"roar": &"idle",
 		&"slam": &"attack", &"throw": &"attack"}
 
@@ -190,6 +190,7 @@ func _breath_hit() -> void:
 	var fx := Fx.once(get_parent(), BREATH_FX, BREATH_FX_FRAMES, 14.0, (global_position + Vector2(0, -20.0)).round(),
 			BREATH_FX_ANCHOR, 20, BREATH_RADIUS / BREATH_FX_LENGTH)
 	fx.rotation = dir.angle()
+	fx.modulate = Color(1, 1, 1, 0.7)  # prześwituje - model Dziada ma własny stożek mrozu z ust
 	_sound(ROAR_SOUND, -12.0, 1.6)
 	_set_state("recover")
 
