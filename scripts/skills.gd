@@ -110,7 +110,7 @@ const DATA := {
 	"r_swarm": {
 		"name": "Rój Sopli", "icon": preload("res://assets/skills/rapier/r_swarm.png"),
 		"mana": 30, "cooldown": 8.0, "weapon": "rapier", "mastery": 15, "main": false, "range": 180.0, "power": 0.7,
-		"description": "Za twoimi plecami pojawia się 12 sopli, które tworzą chmurę i lecą za tobą, a po chwili wylatują jeden po drugim w losowych wrogów w pobliżu - przebijają i schładzają. Gdy nie ma wrogów, czekają do 4 s. Walczysz przy tym normalnie. Nie może stać pod dużym przyciskiem.",
+		"description": "Za twoimi plecami pojawia się 12 sopli, które tworzą chmurę i lecą za tobą, a po chwili wylatują jeden po drugim w losowych wrogów w pobliżu - przebijają i schładzają. Gdy nie ma wrogów, czekają do 4 s. Kolejne użycie dokłada sople do chmury (najwyżej 48). Walczysz przy tym normalnie. Nie może stać pod dużym przyciskiem.",
 	},
 	"m_quake": {
 		"name": "Trzęsienie ziemi", "icon": preload("res://assets/skills/hammer/m_quake.png"),

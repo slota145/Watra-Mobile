@@ -24,6 +24,9 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   która płynie za postacią; sople obracają się szpicem do najbliższego wroga, po 0,3 s wylatują po jednym co 0,1 s
   w losowych wrogów do 180 px (`_swarm`, `_process_swarm`, ten sam węzeł sopla leci dalej - `_launch_icicle(node)`);
   bez wrogów czekają do 4 s i topnieją. 10. poziom - 2 znaki chłodu na sopel. 30 many, 8 s odnowienia.
+- **Rój się nakłada** (prośba autora 25.11.2026 - przy dużej redukcji odnowienia): kolejne użycie dokłada sople do
+  chmury, która rośnie (do x2 szerzej), każda partia wylatuje po swoim formowaniu (pole `ready` sopla), sufit
+  `SWARM_MAX` 48 sopli naraz (wydajność); sopel bez wroga topnieje po 4 s od swojej gotowości.
 - **Nowe efekty z kreatora** (darmowy `vfx_workbench`, zapisane w „My effects” autora jako „Lodowy rapier - …”;
   `pixellab_src/vfx/ids.json`): `rapier_thrust2` (pchnięcie), `rapier_slash` (cięcie 120°), `rapier_hit2` (trafienie),
   `rapier_lunge` (smuga wypadu), `riposte_circle` (krąg riposty, pętla), `riposte_flash` (błysk riposty), `icicle`

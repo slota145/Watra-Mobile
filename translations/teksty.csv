@@ -1183,7 +1183,7 @@ void fragment() {
 "Z krateru rozchodzi się fala skalnych kolców (50% siły).","","skills.gd"
 "Z precyzyjnego cięcia po okręgu piorun przeskakuje na wrogów obok.","","skills.gd"
 "Za pierwszą falą idzie druga.","","skills.gd"
-"Za twoimi plecami pojawia się 12 sopli, które tworzą chmurę i lecą za tobą, a po chwili wylatują jeden po drugim w losowych wrogów w pobliżu - przebijają i schładzają. Gdy nie ma wrogów, czekają do 4 s. Walczysz przy tym normalnie. Nie może stać pod dużym przyciskiem.","","skills.gd"
+"Za twoimi plecami pojawia się 12 sopli, które tworzą chmurę i lecą za tobą, a po chwili wylatują jeden po drugim w losowych wrogów w pobliżu - przebijają i schładzają. Gdy nie ma wrogów, czekają do 4 s. Kolejne użycie dokłada sople do chmury (najwyżej 48). Walczysz przy tym normalnie. Nie może stać pod dużym przyciskiem.","","skills.gd"
 "Zabicie skokiem zwraca dwa razy więcej many.","","skills.gd"
 "Zamach odpycha wrogów.","","skills.gd"
 "Zamach zostawia smugę Nawii, która przez chwilę rani.","","skills.gd"

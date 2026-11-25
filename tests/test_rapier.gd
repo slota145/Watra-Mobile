@@ -272,6 +272,17 @@ func _test_skills(game: Node) -> void:
 	rapier.cast("r_swarm")
 	await _wait(ProtoRapier.SWARM_FORM + ProtoRapier.SWARM_HOLD + 0.5)
 	_check(rapier.swarm_left() == ProtoRapier.SWARM_COUNT, "bez wrogów sople czekają w chmurze")
+	for i in 5:  # przy dużej redukcji odnowienia rój się nakłada - sople dołączają do chmury, do sufitu
+		rapier.reset_cooldowns()
+		hero.mana = hero.max_mana
+		rapier.cast("r_swarm")
+		if i == 0:
+			_check(rapier.swarm_left() == ProtoRapier.SWARM_COUNT * 2, "drugi rój dokłada sople do chmury (%d)" % rapier.swarm_left())
+	_check(rapier.swarm_left() == ProtoRapier.SWARM_MAX, "najwyżej %d sopli naraz" % ProtoRapier.SWARM_MAX)
+	var late: ProtoGoblin = (await _dummies(arena, [Vector2(60, 0)]))[0]
+	await _wait(ProtoRapier.SWARM_FORM + ProtoRapier.SWARM_HOLD + ProtoRapier.SWARM_EVERY * 10)
+	_check(rapier.swarm_left() < ProtoRapier.SWARM_MAX and late.hp < late.max_hp, "gdy wróg się pojawi, nałożony rój strzela")
+	late.queue_free()
 	await _wait(ProtoRapier.SWARM_WAIT)
 	_check(rapier.swarm_left() == 0, "po chwili bez wrogów topnieją")
 	arena.queue_free()
