@@ -1,0 +1,398 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: treant
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.05, 0]}
+palette: "watra"
+size: 80
+extends: humanoid   # the template's skeleton only; head, hair, sword, coat, belt and neck removed
+
+# Drzewiec (Strażnik Boru): przywołaniec gracza z broni natury „Kostur Leszego” - leśny duch Leszego.
+# Niewysoki (ok. 38 px wobec 36 px człowieka, ta sama camera.scale; mniejszy od żużlowego golema i lodowego
+# olbrzyma), krępy chodzący pień: kora w ciepłych brązach z pionowymi bruzdami, ramiona-gałęzie zakończone
+# grubymi sękatymi dłońmi z korzeni, nogi z korzeni, na czubku i barkach kępy mchu i liści, kilka drobnych
+# grzybków, dwoje świecących jasnozielonych oczu w ciemnej szczelinie kory. Przyjazny, ale groźny dla wrogów.
+# Cała postać rośnie przez kość `big` (1.35 x `grow`) pod `root`; spawn wyrasta z kupki korzeni, śmierć
+# rozsypuje go w liście i drzazgi.
+brief:
+  summary: >
+    treant (forest guardian), a friendly summon of the player's nature staff: a short, stocky walking tree stump,
+    about 38 px tall against a 36 px human (same density), smaller than the slag golem. Warm brown bark with
+    vertical grooves, branch arms ending in thick knotty root hands, short root legs with splayed root toes,
+    mossy green tufts and leaves on the crown and the shoulders, a few small ochre mushrooms on the side,
+    two glowing light-green eyes in a dark slit of the bark
+  head: >
+    no separate head: the top of the trunk, a little narrower, leaning with `head_pitch`; a dark horizontal
+    slit in the bark with two round glowing light-green eyes (the face, minimal style); a mossy crown with leaf
+    tufts and two short twigs on top
+  must_keep:
+    - the tree read - a trunk silhouette (wider at the base), branch arms, root hands and feet, green crown
+    - the green eyes - the only glow, bright against the dark slit; friendly round shape, not slanted
+    - small - wider than tall in feel; never bigger than the slag golem
+  simplify:
+    - bark grooves are painted stripes, not geometry
+    - each hand is a knot with three thick root fingers; each foot three root toes
+  decisions:
+    - the whole body grows through the bone `big` (1.35 x grow); IK lengths and the hands follow `grow` too, so
+      spawn scales the whole tree up out of a mound of roots and soil (`mound`)
+    - the channel `rustle` sways the leaf tufts (idle, walk); `glow` drives the eyes; `litter` grows the death pile of
+      leaves and splinters
+    - attack - the right branch-arm swings back and up (held), one smear frame, then the root fist smashes down
+      in front (`hit`, socket `impact`)
+
+ramps:
+  # warm bark
+  bark:  ["#120805", "#2e190d", "#472914", "#61391c", "#7d4f28", "#9c6a3a"]
+  # root hands and feet: a touch lighter and redder
+  root:  ["#120805", "#361c0c", "#552f15", "#734320", "#915c2e", "#ad7a45"]
+  moss:  ["#0a1208", "#1e3a17", "#2f5a20", "#477a2a", "#679a3a", "#8fb85a"]
+  leaf:  ["#0b140a", "#24461c", "#3d6e26", "#5c9433", "#86b847", "#b4d46e"]
+  cap:   ["#1a0b06", "#5a1f10", "#8e3518", "#bb5a26", "#d98a45", "#efc27a"]
+  hollow: ["#070403", "#120905", "#1d1009"]
+  sprout: ["#0a2a10", "#2a8a30", "#5ae05a", "#a8ff8a", "#e8ffd0", "#ffffff"]
+  soil:  ["#0d0806", "#2a1a10", "#3f2a1b", "#584029", "#6f5438", "#8a6c4a"]
+  # the swing's smear: leafy green
+  fx_tail: ["#3d6e26"]
+  fx_mid:  ["#86b847"]
+  fx_core: ["#e8ffd0"]
+
+materials:
+  bark:    {ramp: bark, finish: matte, gamma: 0.95}
+  groove:  {ramp: bark, finish: matte, bands: [0, 2], line: false}
+  root:    {ramp: root, finish: matte}
+  moss:    {ramp: moss, finish: matte}
+  leaf:    {ramp: leaf, finish: soft}
+  cap:     {ramp: cap, finish: soft}
+  stem:    {ramp: bone, finish: matte}
+  hollow:  {ramp: hollow, bands: [0, 2], outline: false, line: false}
+  eye:     {ramp: sprout, emissive: true, band: 4, outline: false, glow: {color: "#8aff6a", mix: 0.35, radius: 1}}
+  soil:    {ramp: soil, finish: matte}
+
+remove: [use.sword, use.head, use.hair, parts.belt, parts.coat, parts.neck]
+
+shadow: {rx: 16, ry: 6, alpha: 120}
+snap: [root, torso_rot]
+
+channels:
+  hand_L: [0.50, -0.18, 0.12]
+  hand_R: [0.50, -0.18, 0.12]
+  foot_L: [0.16, 0, 0.02]
+  grow: 1        # the whole tree's size (spawn grows it from the mound)
+  glow: 1        # the eyes
+  rustle: 0      # leaf tufts sway (radians)
+  mound: 0       # spawn: mound of soil and roots at the feet
+  litter: 0      # death: pile of leaves and splinters
+
+bones:
+  big:        {parent: root, scale: "1.35*grow"}
+  torso_rot:  {parent: big, pos: "[0, 0.58 + bob, 0]", rot: "[lean + 0.04, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  fxspace:    {parent: big}
+  headbase:   {pos: [0, 0.48, 0.03], scale: "1.35*grow", rot: "[lean*0.6 - 0.04, twist, roll]"}
+  head:       {scale: 1.0}
+  crown:      {parent: head, pos: [0, 0.27, -0.05], rot: "[rustle*0.6, 0, rustle]"}
+  tuft_L:     {parent: pelvis, pos: [0.22, 0.42, -0.02], rot: "[0, 0, -0.25 - rustle*0.8]"}
+  shoulder_L: {pos: [0.28, 0.36, 0.0]}
+  hip_L:      {pos: [0.12, -0.02, 0.0]}
+  fist_L:     {parent: wrist_L, scale: "0.93*grow"}
+
+ik:   # world units: they follow `grow` like the bone `big`
+  arm_L: {lengths: "[0.41*grow, 0.39*grow]", pole: [0.4, 0.0, -1.0]}
+  leg_L: {space: big, lengths: "[0.37*grow, 0.355*grow]"}
+
+parts:
+  torso:           # the trunk: wider at the base, a knot on the belly
+    material: bark
+    space: pelvis
+    blend: 0.06
+    prims:
+      - cone: {a: [0, -0.06, 0], b: [0, 0.46, 0.0], r: [0.27, 0.21]}
+      - ellipsoid: {c: [0, 0.05, 0.02], r: [0.26, 0.14, 0.22]}
+      - ellipsoid: {c: [0.0, 0.38, -0.01], r: [0.27, 0.10, 0.19]}
+      - sphere: {c: [-0.08, 0.16, 0.19], r: 0.06}
+    paint:
+      - material: groove
+        stripes: {axis: x, width: 0.026, period: 0.10, offset: 0.02}
+      - material: moss
+        spots: {scale: 0.12, density: 0.22, seed: 7}
+  head:            # the top of the trunk, the face slit
+    material: bark
+    space: head
+    blend: 0.05
+    prims:
+      - cone: {a: [0, -0.04, 0], b: [0, 0.22, -0.01], r: [0.19, 0.16]}
+      - ellipsoid: {c: [0, 0.10, 0.07], r: [0.17, 0.05, 0.11]}
+    cut:             # the slit the eyes peer out of
+      - ellipsoid: {c: [0, 0.075, 0.225], r: [0.15, 0.045, 0.06]}
+    paint:
+      - material: groove
+        stripes: {axis: x, width: 0.026, period: 0.095, offset: 0.0}
+      - material: hollow
+        prims:
+          - ellipsoid: {c: [0, 0.075, 0.2], r: [0.15, 0.055, 0.13]}
+  eye_L:           # a round glowing eye in the slit
+    material: eye
+    space: head
+    when: "glow > 0.3"
+    prims:
+      - sphere: {c: [0.064, 0.078, 0.172], r: "0.048*min(glow, 1.2)"}
+  crown:           # moss cap and leaf tufts on top, two short twigs
+    material: moss
+    space: crown
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0], r: [0.19, 0.07, 0.17]}
+      - ellipsoid: {c: [0.09, 0.03, -0.04], r: [0.10, 0.07, 0.10]}
+      - ellipsoid: {c: [-0.07, 0.04, 0.02], r: [0.09, 0.07, 0.09]}
+  leaves:          # brighter leaf clusters over the moss
+    material: leaf
+    space: crown
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [-0.03, 0.09, -0.06], r: [0.11, 0.07, 0.10]}
+      - ellipsoid: {c: [0.12, 0.06, 0.05], r: [0.07, 0.05, 0.07]}
+      - ellipsoid: {c: [-0.14, 0.05, 0.06], r: [0.06, 0.05, 0.06]}
+  twigs:
+    material: bark
+    space: crown
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0.05, 0.08, -0.08], [0.10, 0.20, -0.12], [0.16, 0.26, -0.10]], r: [0.03, 0.016]}
+      - tube: {pts: [[-0.06, 0.10, -0.06], [-0.10, 0.19, -0.10], [-0.07, 0.25, -0.15]], r: [0.026, 0.014]}
+  tuft_L:          # moss and leaves on the shoulder
+    material: moss
+    space: tuft_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.10, 0.06, 0.11]}
+      - ellipsoid: {c: [0.04, 0.04, -0.02], r: [0.06, 0.05, 0.07]}
+  tuftleaf_L:
+    material: leaf
+    space: tuft_L
+    prims:
+      - ellipsoid: {c: [0.05, 0.06, 0.03], r: [0.05, 0.03, 0.05]}
+  shrooms:         # a few small ochre mushrooms on the left side of the trunk
+    material: cap
+    space: pelvis
+    blend: 0.01
+    prims:
+      - ellipsoid: {c: [0.235, 0.10, 0.10], r: [0.06, 0.028, 0.06], rot: [0.0, 0, -0.5]}
+      - ellipsoid: {c: [0.245, 0.01, 0.04], r: [0.045, 0.022, 0.045], rot: [0.0, 0, -0.5]}
+      - ellipsoid: {c: [-0.22, -0.02, 0.12], r: [0.045, 0.022, 0.045], rot: [0.0, 0, 0.5]}
+  arm_L:           # branch arm with a knot at the elbow
+    material: bark
+    space: big
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.09}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.085, 0.065]}
+      - sphere: {c: "@elbow_L", r: 0.07}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.065, 0.07]}
+    paint:
+      - material: groove
+        stripes: {axis: x, width: 0.026, period: 0.09}
+  twig_L:          # a small twig with a leaf on the upper arm
+    material: bark
+    space: big
+    min_cover: 2
+    prims:
+      - cone: {a: {between: ["@shoulder_L", "@elbow_L"], t: 0.5}, b: {at: elbow_L, off: [0.0, 0.14, -0.06]}, r: [0.025, 0.015]}
+  twigleaf_L:
+    material: leaf
+    space: big
+    prims:
+      - sphere: {c: {at: elbow_L, off: [0.0, 0.16, -0.07]}, r: 0.045}
+  hand_L:          # a knot with three thick root fingers
+    material: root
+    space: fist_L
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0, 0.08], r: [0.13, 0.11, 0.12]}
+      - cone: {a: [0.06, -0.02, 0.14], b: [0.10, -0.06, 0.30], r: [0.055, 0.03]}
+      - cone: {a: [0.0, -0.03, 0.16], b: [0.0, -0.08, 0.33], r: [0.06, 0.032]}
+      - cone: {a: [-0.06, -0.02, 0.14], b: [-0.11, -0.05, 0.29], r: [0.055, 0.03]}
+      - cone: {a: [0.0, 0.06, 0.08], b: [0.02, 0.12, 0.20], r: [0.045, 0.025]}
+  leg_L:           # short thick root legs
+    material: root
+    space: big
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.13, 0.10]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.10, 0.11]}
+    paint:
+      - material: groove
+        stripes: {axis: x, width: 0.026, period: 0.09}
+  foot_L:          # three splayed root toes
+    material: root
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.01, 0.03], r: [0.11, 0.06, 0.11]}
+      - cone: {a: [0.03, -0.02, 0.06], b: [0.13, -0.05, 0.19], r: [0.05, 0.025]}
+      - cone: {a: [0.0, -0.02, 0.07], b: [0.0, -0.05, 0.22], r: [0.05, 0.025]}
+      - cone: {a: [-0.03, -0.02, 0.06], b: [-0.12, -0.05, 0.18], r: [0.05, 0.025]}
+  mound:           # spawn: a mound of soil with roots poking out (root space: does not scale with `grow`)
+    material: soil
+    space: root
+    when: "mound > 0.02"
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.02], r: "[0.55, 0.22, 0.45]*mound"}
+      - ellipsoid: {c: [0.30, 0.0, 0.25], r: "[0.16, 0.10, 0.14]*mound"}
+      - ellipsoid: {c: [-0.32, 0.0, -0.10], r: "[0.17, 0.10, 0.14]*mound"}
+  mound_roots:
+    material: root
+    space: root
+    when: "mound > 0.02"
+    min_cover: 2
+    prims:
+      - tube: {pts: ["[0.10, 0.12*mound, 0.10]", "[0.45*mound, 0.25*mound, 0.25*mound]", "[0.62*mound, 0.02, 0.30*mound]"], r: [0.06, 0.025]}
+      - tube: {pts: ["[-0.08, 0.12*mound, 0.06]", "[-0.40*mound, 0.28*mound, 0.32*mound]", "[-0.55*mound, 0.02, 0.40*mound]"], r: [0.06, 0.025]}
+      - tube: {pts: ["[0.0, 0.14*mound, -0.08]", "[0.10*mound, 0.30*mound, -0.40*mound]", "[0.05, 0.02, -0.58*mound]"], r: [0.055, 0.025]}
+      - tube: {pts: ["[0.02, 0.15*mound, 0.12]", "[0.06, 0.40*mound, 0.20*mound]", "[-0.06, 0.48*mound, 0.12*mound]"], r: [0.05, 0.02]}
+  litter:          # death: a low heap of soil and rotten wood where he sank (root space)
+    material: soil
+    space: root
+    when: "litter > 0.02"
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.08], r: "[0.46, 0.10, 0.36]*litter"}
+    paint:
+      - material: groove
+        spots: {scale: 0.08, density: 0.25, seed: 3}
+  litter_moss:     # moss clumps from his crown and shoulders
+    material: moss
+    space: root
+    when: "litter > 0.02"
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [-0.10, 0.09, 0.04], r: "[0.22, 0.09, 0.18]*litter"}
+      - ellipsoid: {c: [0.22, 0.06, -0.08], r: "[0.10, 0.06, 0.10]*litter"}
+  leaves_fall:     # scattered green leaves
+    material: leaf
+    space: root
+    when: "litter > 0.02"
+    prims:
+      - ellipsoid: {c: [0.38, 0.02, 0.30], r: "[0.08, 0.025, 0.06]*litter", rot: [0, 0.6, 0]}
+      - ellipsoid: {c: [-0.44, 0.02, 0.22], r: "[0.08, 0.025, 0.06]*litter", rot: [0, -0.4, 0]}
+      - ellipsoid: {c: [0.02, 0.10, 0.20], r: "[0.09, 0.03, 0.07]*litter", rot: [0, 1.1, 0]}
+      - ellipsoid: {c: [0.30, 0.02, -0.30], r: "[0.07, 0.025, 0.05]*litter", rot: [0, 0.2, 0]}
+  leaves_dry:      # a few ochre leaves and the mushrooms' caps
+    material: cap
+    space: root
+    when: "litter > 0.02"
+    prims:
+      - ellipsoid: {c: [-0.22, 0.03, 0.50], r: "[0.07, 0.025, 0.05]*litter", rot: [0, 0.9, 0]}
+      - ellipsoid: {c: [0.16, 0.09, 0.16], r: "[0.06, 0.03, 0.05]*litter", rot: [0, -0.5, 0]}
+      - ellipsoid: {c: [-0.34, 0.05, -0.14], r: "[0.06, 0.025, 0.05]*litter", rot: [0, 0.3, 0]}
+  splinters:       # bark splinters and a broken twig sticking out of the heap
+    material: bark
+    space: root
+    when: "litter > 0.02"
+    min_cover: 2
+    prims:
+      - box: {c: [0.22, "0.11*litter", 0.20], half: "[0.04, 0.04, 0.17]*litter", rot: [0.5, 0.8, 0.2], round: 0.01}
+      - box: {c: [-0.28, "0.10*litter", 0.08], half: "[0.04, 0.04, 0.16]*litter", rot: [0.4, -0.6, 0.1], round: 0.01}
+      - box: {c: [0.05, "0.13*litter", 0.42], half: "[0.035, 0.035, 0.14]*litter", rot: [0.6, 0.1, 0.0], round: 0.01}
+      - box: {c: [0.14, "0.10*litter", -0.22], half: "[0.035, 0.035, 0.14]*litter", rot: [0.3, 1.4, 0.0], round: 0.01}
+      - cone: {a: "[-0.05, 0.10*litter, -0.05]", b: "[-0.12, 0.34*litter, -0.12]", r: [0.04, 0.018]}
+
+sockets:
+  impact: {bone: big, offset: [-0.10, 0.02, 0.55]}   # where the root fist lands (the slam's dust)
+  fist_R: {bone: wrist_R, offset: [0, 0, 0.15]}
+  eyes:   {bone: head, offset: [0, 0.06, 0.18]}
+
+animations:
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      bob: "0.0*sin(p)"
+      head_pitch: "0.04*sin(p - 0.8)"
+      rustle: "0.12*sin(p - 1.2)"
+      glow: "1.0 + 0.15*sin(p)"
+      hand_L: "[0.50, -0.18 + 0.025*sin(p - 0.6), 0.12]"
+      hand_R: "[0.50, -0.18 + 0.025*sin(p - 0.6), 0.12]"
+  # a heavy, rooted waddle: the trunk rocks side to side, the leaves bounce, arms swing against the legs
+  walk:
+    frames: 8
+    ms: 115
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: "0.06 + 0.02*cos(2*p)"
+      bob: "-0.04*cos(2*p) - 0.01"
+      squash: "1 - 0.03*cos(2*p)"
+      twist: "0.10*cos(p)"
+      roll: "0.08*sin(p)"
+      head_yaw: "-0.06*cos(p)"
+      rustle: "0.12*sin(2*p - 1.0)"
+      foot_L: "[0.16, 0.08*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.18 - 0.36*clamp(p/tau/0.5, 0, 1) + 0.36*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.16, 0.08*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.18 - 0.36*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.36*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      pitch_foot_L: "0.25*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
+      pitch_foot_R: "0.25*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
+      hand_L: "[0.50, -0.17 + 0.04*pos(cos(p)), 0.12 - 0.16*cos(p)]"
+      hand_R: "[0.50, -0.17 + 0.04*pos(-cos(p)), 0.12 + 0.16*cos(p)]"
+  # the right branch-arm swings back and up (held), one smear frame, the root fist smashes down in front (`hit`)
+  attack:
+    loop: false
+    keys:
+      - {ms: 100, event: windup, set: {lean: -0.04, bob: -0.03, squash: 0.95, twist: 0.12, rustle: -0.08,
+          hand_R: [0.44, 0.05, -0.22], hand_L: [0.48, -0.15, 0.20]}}
+      - {ms: 150, set: {lean: -0.16, bob: 0.0, squash: 1.02, twist: 0.25, head_pitch: -0.08, rustle: -0.14, glow: 1.2,
+          hand_R: [0.32, 0.62, -0.22], hand_L: [0.46, -0.12, 0.24], foot_L: [0.16, 0, 0.10], foot_R: [0.16, 0, -0.06]}}
+      - {ms: 180, set: {lean: -0.20, bob: 0.01, squash: 1.04, twist: 0.30, head_pitch: -0.10, rustle: -0.16, glow: 1.3,
+          hand_R: [0.26, 0.74, -0.14], hand_L: [0.46, -0.12, 0.26], foot_L: [0.16, 0, 0.10], foot_R: [0.16, 0, -0.06]}}
+      - {ms: 50, set: {lean: 0.15, bob: -0.02, squash: 1.0, twist: -0.12, head_pitch: 0.04, rustle: 0.10, glow: 1.4,
+          hand_R: [0.16, 0.40, 0.48], hand_L: [0.48, -0.16, 0.0], foot_L: [0.16, 0, 0.12], foot_R: [0.16, 0, -0.06],
+          smear_w: 0.12, smear_a0: 2.0, smear_a1: 0.7}}
+      - {ms: 90, event: hit, set: {root: [0, 0, 0.07], lean: 0.38, bob: -0.08, squash: 0.91, twist: -0.25, head_pitch: 0.10,
+          rustle: 0.18, glow: 1.5, hand_R: [0.10, -0.10, 0.62], hand_L: [0.50, -0.14, -0.08], foot_L: [0.16, 0, 0.16], foot_R: [0.16, 0, -0.06],
+          smear_w: 0.10, smear_a0: 1.0, smear_a1: -0.6, smear_fade: 0.6}}
+      - {ms: 120, set: {root: [0, 0, 0.07], lean: 0.34, bob: -0.07, squash: 0.94, twist: -0.22, head_pitch: 0.08, rustle: 0.10,
+          glow: 1.2, hand_R: [0.10, -0.09, 0.62], hand_L: [0.50, -0.15, -0.06], foot_L: [0.16, 0, 0.16], foot_R: [0.16, 0, -0.06]}}
+      - {ms: 120, set: {root: [0, 0, 0.03], lean: 0.12, bob: -0.02, squash: 0.98, twist: -0.06, rustle: -0.04,
+          hand_R: [0.36, -0.22, 0.30], hand_L: [0.50, -0.17, 0.06], foot_L: [0.16, 0, 0.08]}}
+  # grows out of the ground: a mound of soil with roots, the tree pushes up and swells, overshoots, settles
+  spawn:
+    loop: false
+    keys:
+      - {ms: 100, set: {grow: 0.22, mound: 1.0, glow: 0.0, bob: -0.10, squash: 0.8}}
+      - {ms: 100, set: {grow: 0.40, mound: 1.0, glow: 0.0, bob: -0.08, squash: 0.9, rustle: 0.1}}
+      - {ms: 100, set: {grow: 0.60, mound: 0.85, glow: 0.4, bob: -0.04, squash: 1.08, rustle: -0.1, head_pitch: -0.15}}
+      - {ms: 100, set: {grow: 0.82, mound: 0.6, glow: 0.8, squash: 1.10, rustle: 0.15, head_pitch: -0.2,
+          hand_L: [0.46, 0.05, 0.05], hand_R: [0.46, 0.05, 0.05]}}
+      - {ms: 100, set: {grow: 1.04, mound: 0.35, glow: 1.4, squash: 1.04, rustle: -0.12, head_pitch: -0.1,
+          hand_L: [0.52, -0.06, 0.10], hand_R: [0.52, -0.06, 0.10]}}
+      - {ms: 100, set: {grow: 1.0, mound: 0.15, glow: 1.2, bob: -0.03, squash: 0.94, rustle: 0.08, head_pitch: 0.06}}
+      - {ms: 120, set: {grow: 1.0, glow: 1.0, squash: 1.0, rustle: -0.03}}
+  # a short flinch: the trunk jolts back, the leaves shiver
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.03], lean: -0.10, bob: -0.02, squash: 0.96, head_pitch: -0.15, rustle: 0.2, glow: 1.5,
+          hand_L: [0.46, -0.24, 0.04], hand_R: [0.46, -0.24, 0.04]}}
+      - {ms: 70, set: {root: [0, 0, -0.015], lean: -0.04, bob: -0.01, squash: 0.99, head_pitch: -0.06, rustle: -0.12, glow: 1.2,
+          hand_L: [0.48, -0.21, 0.08], hand_R: [0.48, -0.21, 0.08]}}
+      - {ms: 80, set: {lean: 0.03, head_pitch: 0.02, rustle: 0.05}}
+  # death: struck back, sags forward and sinks into the ground, falling apart into a pile of leaves and bark
+  # splinters; the eyes go out
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.03], lean: -0.16, bob: -0.02, squash: 0.96, head_pitch: -0.2, rustle: 0.2, glow: 1.5,
+          hand_L: [0.52, -0.10, 0.0], hand_R: [0.52, -0.10, 0.0]}}
+      - {ms: 130, set: {root: [0, 0, -0.03], lean: 0.22, bob: -0.08, squash: 0.93, head_pitch: 0.25, rustle: -0.15, glow: 0.9,
+          hand_L: [0.52, -0.20, 0.16], hand_R: [0.52, -0.20, 0.16], foot_L: [0.20, 0, 0.06], foot_R: [0.20, 0, 0.0]}}
+      - {ms: 130, set: {grow: 0.86, lean: 0.32, bob: -0.16, squash: 0.82, head_pitch: 0.35, rustle: 0.2, glow: 0.5, litter: 0.35,
+          hand_L: [0.50, -0.14, 0.26], hand_R: [0.50, -0.14, 0.26], foot_L: [0.22, 0, 0.08], foot_R: [0.22, 0, 0.04]}}
+      - {ms: 120, set: {grow: 0.66, lean: 0.38, bob: -0.24, squash: 0.70, head_pitch: 0.45, rustle: -0.2, glow: 0.2, litter: 0.7,
+          hand_L: [0.50, -0.05, 0.32], hand_R: [0.50, -0.05, 0.32], foot_L: [0.24, 0, 0.10], foot_R: [0.24, 0, 0.06]}}
+      - {ms: 120, set: {grow: 0.42, lean: 0.40, bob: -0.30, squash: 0.60, head_pitch: 0.5, glow: 0.0, litter: 0.95,
+          hand_L: [0.50, 0.02, 0.36], hand_R: [0.50, 0.02, 0.36], foot_L: [0.24, 0, 0.10], foot_R: [0.24, 0, 0.06]}}
+      - {ms: 130, set: {grow: 0.22, lean: 0.40, bob: -0.32, squash: 0.58, head_pitch: 0.5, glow: 0.0, litter: 1.0,
+          hand_L: [0.50, 0.02, 0.36], hand_R: [0.50, 0.02, 0.36]}}
+      - {ms: 700, set: {grow: 0.12, lean: 0.40, bob: -0.32, squash: 0.58, head_pitch: 0.5, glow: 0.0, litter: 1.02,
+          hand_L: [0.50, 0.02, 0.36], hand_R: [0.50, 0.02, 0.36]}}
+
+timing:
+  attack: {hit: 480ms, total: 810ms}

@@ -112,6 +112,33 @@ const DATA := {
 		"mana": 30, "cooldown": 8.0, "weapon": "rapier", "mastery": 15, "main": false, "range": 180.0, "power": 0.7,
 		"description": "Za twoimi plecami pojawia się 12 sopli, które tworzą chmurę i lecą za tobą, a po chwili wylatują jeden po drugim w losowych wrogów w pobliżu - przebijają i schładzają. Gdy nie ma wrogów, czekają do 4 s. Kolejne użycie dokłada sople do chmury (najwyżej 48). Walczysz przy tym normalnie. Nie może stać pod dużym przyciskiem.",
 	},
+	# Kostur Leszego - broń natury (pomysły autora 25.11.2026, ProtoStaff): sadzonki zostawiają Żołądź i Uścisk Boru,
+	# a Pylenie Mchu i Strażnicy Boru z nich korzystają (bez zużywania).
+	"l_roots": {
+		"name": "Biegnące Korzenie", "icon": preload("res://assets/skills/staff/l_roots.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "staff", "mastery": 1, "main": true, "range": 120.0, "power": 0.9,
+		"description": "Korzenie wystrzeliwują z ziemi pod najbliższym wrogiem i biegną dalej pod ziemią, przebijając po kolei 3 wrogów (jak łańcuch błyskawic). Natura truje - trucizna rośnie z każdym trafieniem.",
+	},
+	"l_acorn": {
+		"name": "Żołądź Leszego", "icon": preload("res://assets/skills/staff/l_acorn.png"),
+		"mana": 18, "cooldown": 3.0, "weapon": "staff", "mastery": 3, "main": true, "range": 160.0, "power": 1.4,
+		"description": "Ciskasz zaczarowany żołądź, który przelatuje przez wrogów i rani każdego trafionego. Tam, gdzie spadnie, wyrasta sadzonka (najwyżej 12 naraz, każda żyje 25 s).",
+	},
+	"l_grasp": {
+		"name": "Uścisk Boru", "icon": preload("res://assets/skills/staff/l_grasp.png"),
+		"mana": 30, "cooldown": 9.0, "weapon": "staff", "mastery": 6, "main": false, "range": 110.0, "power": 1.2,
+		"description": "Cierniowe korzenie chwytają do 4 losowych wrogów wokół ciebie, ranią ich i unieruchamiają. Wrogowie z połową zdrowia lub mniej zostają wciągnięci pod ziemię, a w ich miejscu wyrasta sadzonka - zawsze przynajmniej jeden (nie elita ani boss). Nie może stać pod dużym przyciskiem.",
+	},
+	"l_spores": {
+		"name": "Pylenie Mchu", "icon": preload("res://assets/skills/staff/l_spores.png"),
+		"mana": 26, "cooldown": 5.0, "weapon": "staff", "mastery": 10, "main": true, "range": 50.0, "power": 1.0,
+		"description": "Wokół ciebie i wokół każdej sadzonki wybuchają trujące zarodniki: ranią i dokładają 2 znaki trucizny. Sadzonki zostają.",
+	},
+	"l_treants": {
+		"name": "Strażnicy Boru", "icon": preload("res://assets/skills/staff/l_treants.png"),
+		"mana": 40, "cooldown": 14.0, "weapon": "staff", "mastery": 15, "main": false, "range": 140.0, "power": 0.8,
+		"description": "Z ziemi wyrasta drzewiec przy tobie i przy każdej sadzonce (najwyżej 10 naraz). Przez 12 s chodzą za wrogami i biją ich gałęziami. Sadzonki zostają. Nie może stać pod dużym przyciskiem.",
+	},
 	"m_quake": {
 		"name": "Trzęsienie ziemi", "icon": preload("res://assets/skills/hammer/m_quake.png"),
 		"mana": 16, "cooldown": 0.0, "weapon": "hammer", "mastery": 15, "main": false, "range": 60.0, "power": 0.7,
@@ -296,6 +323,7 @@ const PERK_LEVELS := [5, 10]
 ## najdroższe; liczby jak dawne ceny w złocie - do oceny na telefonie).
 const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "spectral_blades": 140, "steel_ring": 200,
 		"m_smash": 40, "m_throw": 60, "m_leap": 90, "slam": 140, "m_quake": 200,
+		"l_roots": 40, "l_acorn": 60, "l_grasp": 90, "l_spores": 140, "l_treants": 200,
 		"r_thrust": 40, "r_lunge": 60, "r_riposte": 90, "r_flurry": 140, "r_swarm": 200,
 		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200,
 		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200,
@@ -315,6 +343,11 @@ const PERKS := {
 	"slam": ["Dłuższe ogłuszenie.", "Po pół sekundy uderza druga fala pęknięć."],
 	"m_quake": ["Fale co 0,4 s zamiast 0,5.", "Co trzecia fala ogłusza na 0,5 s."],
 	"steel_ring": ["Krąg trwa 8 s zamiast 6.", "Pięć mieczy zamiast trzech."],
+	"l_roots": ["Korzenie przebijają 5 wrogów zamiast 3.", "Co trzeci rzut - dwa łańcuchy korzeni naraz."],
+	"l_acorn": ["Żołądź leci o połowę dalej.", "Ciskasz dwa żołędzie w wachlarzu."],
+	"l_grasp": ["Chwyta do 6 wrogów zamiast 4.", "Wciąga wrogów z 60% zdrowia lub mniej."],
+	"l_spores": ["Obłoki o 30% większe.", "Każdy wybuch dokłada 3 znaki trucizny."],
+	"l_treants": ["Drzewce stoją 16 s zamiast 12.", "Ciosy drzewców ogłuszają na 0,4 s."],
 	"r_thrust": ["Pchnięcia sięgają o połowę dalej.", "W miejscu trafienia pchnięcia wyrasta lodowy kolec (40% siły)."],
 	"r_lunge": ["Ścieżka szronu leży 4 s zamiast 2.", "Przy wrogu wybucha mróz (60% siły, 2 znaki chłodu)."],
 	"r_riposte": ["Krąg trwa 9 s zamiast 6.", "Każda riposta wystrzeliwuje też sopel w najbliższego wroga (60% siły)."],
@@ -358,7 +391,8 @@ const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 const TAGS := {
 	"strike": ["melee"], "whirl": ["melee", "area"], "throw": ["projectile"], "slam": ["melee", "area"],
 	"steel_ring": ["melee"], "spectral_blades": ["melee"], "m_smash": ["melee", "area"], "m_throw": ["projectile"],
-	"m_leap": ["melee", "area"], "m_quake": ["area"], "r_thrust": ["melee"], "r_lunge": ["melee"], "r_riposte": ["melee", "area"],
+	"m_leap": ["melee", "area"], "m_quake": ["area"], "l_roots": ["area"], "l_acorn": ["projectile"], "l_grasp": ["area"],
+	"l_spores": ["area"], "l_treants": ["minion"], "r_thrust": ["melee"], "r_lunge": ["melee"], "r_riposte": ["melee", "area"],
 	"r_flurry": ["melee"], "r_swarm": ["projectile"], "g_thrust": ["melee"], "g_sweep": ["melee"], "g_trail": ["area"], "g_pillar": ["area"],
 	"g_dance": ["melee"], "h_bolt": ["projectile"], "h_wave": ["area"], "h_vortex": ["area"], "h_geyser": ["area"],
 	"h_guardian": ["minion"], "k_slash": ["melee"], "k_dance": ["melee"], "k_riposte": ["melee"], "k_perun": ["melee"],
@@ -374,7 +408,8 @@ const TAG_STATS := {"melee": "melee_dmg_pct", "projectile": "proj_dmg_pct", "are
 const RENAMED := {"r_bloom": "r_swarm"}
 ## Kolejność w oknie umiejętności.
 const ORDER := ["strike", "whirl", "throw", "spectral_blades", "steel_ring", "m_smash", "m_throw", "m_leap", "slam", "m_quake",
-		"r_thrust", "r_lunge", "r_riposte", "r_flurry", "r_swarm", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
+		"r_thrust", "r_lunge", "r_riposte", "r_flurry", "r_swarm", "l_roots", "l_acorn", "l_grasp", "l_spores",
+		"l_treants", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
 		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash",
 		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista", "a_missiles", "a_circle", "a_orbs", "a_beam", "a_seals",
 		"s_reap", "s_square", "s_dance", "s_mow", "s_mara"]

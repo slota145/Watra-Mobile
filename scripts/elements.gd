@@ -69,6 +69,12 @@ const CHILL_SLOW := 0.25
 const CHILL_TIME := 2.0
 const CHILL_STACKS := 4
 const CHILL_FREEZE := 1.0
+## Natura (Kostur Leszego, ustalone z autorem 25.11.2026 - ProtoTarget.poison): każde trafienie naturą dokłada znak
+## trucizny (najwyżej POISON_STACKS); każdy znak zadaje POISON_SHARE obrażeń trafienia na sekundę przez POISON_TIME s
+## (nowe trafienie odnawia czas wszystkich znaków).
+const POISON_SHARE := 0.1
+const POISON_TIME := 4.0
+const POISON_STACKS := 10
 ## Odporności potworów (nazwa potwora -> {żywioł: ułamek}). Gobliny Hordy nie mają żadnych; wpisy dojdą
 ## z nowymi rodzajami lochów i potworów (np. utopce odporne na wodę, wrażliwe na Grom).
 const MONSTER_RESIST := {}

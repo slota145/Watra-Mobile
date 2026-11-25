@@ -1575,5 +1575,125 @@
       22
     ],
     "columns": 4
+  },
+  "root_burst": {
+    "effect": "a1a22938-104a-474b-b876-e4a6548c3545",
+    "name": "Kostur Leszego - wybuch korzeni",
+    "frame": [
+      52,
+      48
+    ],
+    "frames": 10,
+    "columns": 4,
+    "fps": 14,
+    "anchor": [
+      26,
+      30
+    ]
+  },
+  "acorn": {
+    "effect": "7ce3f7ef-e9b4-4809-868f-917706c2ffdf",
+    "name": "Kostur Leszego - żołądź w locie (pętla)",
+    "frame": [
+      30,
+      16
+    ],
+    "frames": 6,
+    "columns": 3,
+    "fps": 14,
+    "anchor": [
+      19,
+      8
+    ]
+  },
+  "spores": {
+    "effect": "f9023b36-5e4c-4e58-9844-1d18882ba3de",
+    "name": "Kostur Leszego - wybuch zarodników",
+    "frame": [
+      84,
+      60
+    ],
+    "frames": 12,
+    "columns": 4,
+    "fps": 14,
+    "anchor": [
+      42,
+      30
+    ]
+  },
+  "poison_hit": {
+    "effect": "7e264fa8-c266-43ac-bf60-b2f5b6d2048b",
+    "name": "Kostur Leszego - trafienie trucizną",
+    "frame": [
+      29,
+      49
+    ],
+    "frames": 8,
+    "columns": 3,
+    "fps": 16,
+    "anchor": [
+      14,
+      17
+    ]
+  },
+  "thorn": {
+    "effect": "183902d6-0fc0-4bc8-ba02-8c3f3eb72dc9",
+    "name": "Kostur Leszego - cierń w locie (pętla)",
+    "frame": [
+      30,
+      16
+    ],
+    "frames": 4,
+    "columns": 2,
+    "fps": 16,
+    "anchor": [
+      17,
+      8
+    ]
+  },
+  "entangle": {
+    "effect": "020ee11e-0e97-40ac-bf70-bbdbc16f9dd5",
+    "name": "Kostur Leszego - oplątanie (pętla)",
+    "frame": [
+      40,
+      40
+    ],
+    "frames": 8,
+    "columns": 3,
+    "fps": 10,
+    "anchor": [
+      20,
+      32
+    ]
+  },
+  "pull_under": {
+    "effect": "2e8f9b67-1471-4122-afa6-029156330398",
+    "name": "Kostur Leszego - wciągnięcie pod ziemię",
+    "frame": [
+      40,
+      40
+    ],
+    "frames": 10,
+    "columns": 4,
+    "fps": 14,
+    "anchor": [
+      20,
+      32
+    ]
+  },
+  "nature_cast": {
+    "effect": "2f779b80-fd17-4fa0-baec-2621f4f74f71",
+    "name": "Kostur Leszego - błysk rzucania czaru",
+    "frame": [
+      40,
+      40
+    ],
+    "frames": 8,
+    "columns": 3,
+    "fps": 16,
+    "anchor": [
+      20,
+      20
+    ]
   }
 }

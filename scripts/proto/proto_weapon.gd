@@ -228,7 +228,7 @@ const SPECTRAL_SPIN_RADIUS := 24.0
 const SPECTRAL_PIERCE := 80.0
 const STRIKE_STATES := ["follow", "windup", "swing", "recover", "thrust_windup", "thrust", "thrust_recover",
 		"orb_windup", "orb_shot", "k_windup", "k_swing", "k_recover", "m_rise", "m_fall", "m_recover",
-		"r_wind", "r_out", "r_back"]
+		"r_wind", "r_out", "r_back", "l_cast", "l_after"]
 
 var hero: ProtoHero
 ## Żywioł obrażeń broni (Weapons.element_of; combo z przemoczeniem - Elements.soak_bonus). Ustawia podklasa.
@@ -996,6 +996,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		t.wither(Elements.NAWIA_WEAK_TIME)
 	elif elem == Elements.COLD:  # lód spowalnia, a znaki chłodu zamrażają (Elements.CHILL_*)
 		_on_chill(t, t.chill())
+	elif elem == Elements.NATURE:  # natura truje - znaki trucizny kumulują się (Elements.POISON_*)
+		t.poison(amount * Elements.POISON_SHARE, Elements.POISON_TIME * duration_mult, pen)
 	if talismans != null:
 		talismans.on_hit(t)
 		if crit:
