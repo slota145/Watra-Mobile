@@ -137,8 +137,10 @@ const SWARM_COUNT := 12
 const SWARM_COUNT_PERK := 16
 const SWARM_EXTRA := 4
 const SWARM_FORM := 0.5
-const SWARM_HOLD := 0.3
-const SWARM_EVERY := 0.1
+const SWARM_HOLD := 0.15
+const SWARM_EVERY := 0.05
+## Prędkość sopli roju (szybsze niż inne sople - prośba autora 25.11.2026).
+const SWARM_SPEED := 620.0
 const SWARM_WAIT := 4.0
 ## Nakładanie roju: najwyżej tyle sopli naraz i do ilu razy rośnie chmura.
 const SWARM_MAX := 48
@@ -449,18 +451,19 @@ func _slash_hit() -> void:
 
 ## Sopel lecący z `from` w kierunku `dir` (`node` - gotowy sopel z chmury roju; bez niego nowy).
 func _launch_icicle(from: Vector2, dir: Vector2, power: float, skill: String, distance := ICICLE_RANGE,
-		node: Node2D = null) -> void:
+		node: Node2D = null, speed := ICICLE_SPEED) -> void:
 	if node == null:
 		node = Fx.loop(get_parent(), ICICLE_FX, ICICLE_FRAMES, 12.0, Vector2.ZERO, ICICLE_ANCHOR, 21)
 	node.scale = Vector2.ONE
 	node.rotation = dir.angle()
 	node.global_position = from
-	_icicles.append({"node": node, "dir": dir, "left": distance, "power": power, "hits": [], "skill": skill})
+	_icicles.append({"node": node, "dir": dir, "left": distance, "power": power, "hits": [], "skill": skill,
+			"speed": speed})
 
 
 ## Sopel w losowego wroga w zasięgu `reach` od `from` (poza `skip`). Zwraca wroga, w którego leci (null - brak wrogów).
 func _icicle_at_random(from: Vector2, reach: float, power: float, skill: String, skip: Array = [],
-		node: Node2D = null) -> ProtoTarget:
+		node: Node2D = null, speed := ICICLE_SPEED) -> ProtoTarget:
 	var near: Array = []
 	for t in _near(from, reach):
 		if not skip.has(t):
@@ -469,14 +472,14 @@ func _icicle_at_random(from: Vector2, reach: float, power: float, skill: String,
 		return null
 	var t: ProtoTarget = near.pick_random()
 	var to := t.center() - from
-	_launch_icicle(from, to.normalized(), power, skill, to.length() + 40.0, node)
+	_launch_icicle(from, to.normalized(), power, skill, to.length() + 40.0, node, speed)
 	return t
 
 
 func _process_icicles(delta: float) -> void:
 	for ic in _icicles.duplicate():
 		var node: Node2D = ic.node
-		var step := ICICLE_SPEED * delta
+		var step: float = ic.speed * delta
 		var a := node.global_position
 		node.global_position += ic.dir * step
 		ic.left -= step
@@ -904,7 +907,7 @@ func _process_swarm(delta: float) -> void:
 		if _swarm_fire > 0.0:
 			return
 		var node: Node2D = sw.node
-		if _icicle_at_random(node.global_position, reach, sw.power, "r_swarm", [], node) == null:
+		if _icicle_at_random(node.global_position, reach, sw.power, "r_swarm", [], node, SWARM_SPEED) == null:
 			_swarm_fire = 0.0
 			if _swarm_age <= sw.ready + SWARM_WAIT:
 				return
