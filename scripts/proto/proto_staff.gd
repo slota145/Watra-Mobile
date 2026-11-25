@@ -89,6 +89,9 @@ const SAPLING_LIFE := 25.0
 const BITE_EVERY := 1.0
 const BITE_RANGE := 34.0
 const BITE_POWER := 0.6
+## Chwile w animacjach SpriteKiln: kłapnięcie mięsożernej (`hit`), wystrzał cierniowej (`release`).
+const BITE_AT := 0.26
+const THORN_AT := 0.22
 const THORN_EVERY := 1.2
 const THORN_RANGE := 120.0
 const THORN_POWER := 0.5
@@ -556,7 +559,9 @@ func _process_saplings(delta: float) -> void:
 			if best:
 				_face_node(s.node, best.global_position - (s.at as Vector2))
 				_play(s.node, &"attack", &"idle")
-				_hit(best, _power("l_acorn") * BITE_POWER, s.at, "l_acorn")
+				get_tree().create_timer(BITE_AT, false).timeout.connect(func() -> void:
+					if is_instance_valid(best) and best.alive() and hero and not hero.dead:
+						_hit(best, _power("l_acorn") * BITE_POWER, s.at, "l_acorn"))
 		else:
 			s.tick = THORN_EVERY
 			var near := _near(s.at, THORN_RANGE * _area("l_grasp"))
@@ -566,8 +571,10 @@ func _process_saplings(delta: float) -> void:
 				var dir: Vector2 = (t.center() - (at + Vector2(0, -10))).normalized()
 				_face_node(s.node, dir)
 				_play(s.node, &"attack", &"idle")
-				_launch(s.at + Vector2(0, -10), dir, _power("l_grasp") * THORN_POWER, "thorn", THORN_RANGE * 1.3, "",
-						"thorn", THORN_SPEED)
+				get_tree().create_timer(THORN_AT, false).timeout.connect(func() -> void:
+					if is_inside_tree():
+						_launch(at + Vector2(0, -10), dir, _power("l_grasp") * THORN_POWER, "thorn", THORN_RANGE * 1.3, "",
+								"thorn", THORN_SPEED))
 
 
 static func _face_node(node: Node, dir: Vector2) -> void:

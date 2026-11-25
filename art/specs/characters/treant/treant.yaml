@@ -7,16 +7,16 @@ size: 80
 extends: humanoid   # the template's skeleton only; head, hair, sword, coat, belt and neck removed
 
 # Drzewiec (Strażnik Boru): przywołaniec gracza z broni natury „Kostur Leszego” - leśny duch Leszego.
-# Niewysoki (ok. 40 px wobec 36 px człowieka, ta sama camera.scale; mniejszy od żużlowego golema i lodowego
+# Niewysoki (ok. 38 px wobec 36 px człowieka, ta sama camera.scale; mniejszy od żużlowego golema i lodowego
 # olbrzyma), krępy chodzący pień: kora w ciepłych brązach z pionowymi bruzdami, ramiona-gałęzie zakończone
 # grubymi sękatymi dłońmi z korzeni, nogi z korzeni, na czubku i barkach kępy mchu i liści, kilka drobnych
 # grzybków, dwoje świecących jasnozielonych oczu w ciemnej szczelinie kory. Przyjazny, ale groźny dla wrogów.
-# Cała postać rośnie przez kość `big` (1.45 x `grow`) pod `root`; spawn wyrasta z kupki korzeni, śmierć
+# Cała postać rośnie przez kość `big` (1.35 x `grow`) pod `root`; spawn wyrasta z kupki korzeni, śmierć
 # rozsypuje go w liście i drzazgi.
 brief:
   summary: >
     treant (forest guardian), a friendly summon of the player's nature staff: a short, stocky walking tree stump,
-    about 40 px tall against a 36 px human (same density), smaller than the slag golem. Warm brown bark with
+    about 38 px tall against a 36 px human (same density), smaller than the slag golem. Warm brown bark with
     vertical grooves, branch arms ending in thick knotty root hands, short root legs with splayed root toes,
     mossy green tufts and leaves on the crown and the shoulders, a few small ochre mushrooms on the side,
     two glowing light-green eyes in a dark slit of the bark
@@ -32,7 +32,7 @@ brief:
     - bark grooves are painted stripes, not geometry
     - each hand is a knot with three thick root fingers; each foot three root toes
   decisions:
-    - the whole body grows through the bone `big` (1.45 x grow); IK lengths and the hands follow `grow` too, so
+    - the whole body grows through the bone `big` (1.35 x grow); IK lengths and the hands follow `grow` too, so
       spawn scales the whole tree up out of a mound of roots and soil (`mound`)
     - the channel `rustle` sways the leaf tufts (idle, walk); `glow` drives the eyes; `litter` grows the death pile of
       leaves and splinters
@@ -69,7 +69,7 @@ materials:
 
 remove: [use.sword, use.head, use.hair, parts.belt, parts.coat, parts.neck]
 
-shadow: {rx: 17, ry: 6, alpha: 120}
+shadow: {rx: 16, ry: 6, alpha: 120}
 snap: [root, torso_rot]
 
 channels:
@@ -83,22 +83,22 @@ channels:
   litter: 0      # death: pile of leaves and splinters
 
 bones:
-  big:        {parent: root, scale: "1.45*grow"}
+  big:        {parent: root, scale: "1.35*grow"}
   torso_rot:  {parent: big, pos: "[0, 0.58 + bob, 0]", rot: "[lean + 0.04, twist, roll]"}
   legyaw:     {parent: big}
   footyaw:    {parent: big}
   fxspace:    {parent: big}
-  headbase:   {pos: [0, 0.48, 0.03], scale: "1.45*grow", rot: "[lean*0.6 - 0.04, twist, roll]"}
+  headbase:   {pos: [0, 0.48, 0.03], scale: "1.35*grow", rot: "[lean*0.6 - 0.04, twist, roll]"}
   head:       {scale: 1.0}
   crown:      {parent: head, pos: [0, 0.27, -0.05], rot: "[rustle*0.6, 0, rustle]"}
   tuft_L:     {parent: pelvis, pos: [0.22, 0.42, -0.02], rot: "[0, 0, -0.25 - rustle*0.8]"}
   shoulder_L: {pos: [0.28, 0.36, 0.0]}
   hip_L:      {pos: [0.12, -0.02, 0.0]}
-  fist_L:     {parent: wrist_L, scale: "grow"}
+  fist_L:     {parent: wrist_L, scale: "0.93*grow"}
 
 ik:   # world units: they follow `grow` like the bone `big`
-  arm_L: {lengths: "[0.44*grow, 0.42*grow]", pole: [0.4, 0.0, -1.0]}
-  leg_L: {space: big, lengths: "[0.40*grow, 0.38*grow]"}
+  arm_L: {lengths: "[0.41*grow, 0.39*grow]", pole: [0.4, 0.0, -1.0]}
+  leg_L: {space: big, lengths: "[0.37*grow, 0.355*grow]"}
 
 parts:
   torso:           # the trunk: wider at the base, a knot on the belly
@@ -135,7 +135,7 @@ parts:
     space: head
     when: "glow > 0.3"
     prims:
-      - sphere: {c: [0.064, 0.078, 0.172], r: "0.042*min(glow, 1.2)"}
+      - sphere: {c: [0.064, 0.078, 0.172], r: "0.048*min(glow, 1.2)"}
   crown:           # moss cap and leaf tufts on top, two short twigs
     material: moss
     space: crown
