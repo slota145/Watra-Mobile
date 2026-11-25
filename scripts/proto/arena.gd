@@ -185,6 +185,8 @@ var chief: ProtoChief
 var wind: ProtoWind
 ## Wymarzanie i koksowniki Lodowych jaskiń (null - inny loch).
 var frost: ProtoFrost
+## Żywa puszcza Prastarego Boru - korzenie chwytające postać (null - inny loch).
+var grove: ProtoGrove
 var chest: ProtoChest
 ## Etap wyprawy: horde (zbieranie żaru), boss (walka z Wodzem), loot (skrzynia), won (po zwycięstwie).
 var phase := "horde"
@@ -316,6 +318,13 @@ func _ready() -> void:
 			wind.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			add_child(wind)
 			wind.spawn_tornadoes()
+		if climate == Dungeons.FOREST and not pinnacle:
+			grove = ProtoGrove.new()
+			grove.name = "Grove"
+			grove.hero = hero
+			grove.bounds = area.grow(-20)
+			grove.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
+			world.add_child(grove)
 		if climate == Dungeons.FROST and not pinnacle:
 			frost = ProtoFrost.new()
 			frost.name = "Frost"
@@ -1430,6 +1439,8 @@ func summon_chief() -> void:
 			chief = ProtoGryf.new()
 		Dungeons.FROST:
 			chief = ProtoDziadMroz.new()
+		Dungeons.FOREST:
+			chief = ProtoLeszy.new()
 		_:
 			chief = ProtoChief.new()
 	var spot := hero.position + CHIEF_OFFSET
@@ -1466,7 +1477,7 @@ func _add_boss(spot: Vector2) -> void:
 		boss_bar.value = hp)
 	chief.summon_minions.connect(func(points: Array) -> void:
 		for p in points:
-			horde_spawner.spawn_at(p))
+			horde_spawner.spawn_at(p, chief.minion_kind))
 	chief.died.connect(_on_chief_died)
 	$World.add_child(chief)
 	boss_bar.max_value = chief.max_hp

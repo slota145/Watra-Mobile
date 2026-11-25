@@ -212,6 +212,14 @@ func spawn_pack(at: Vector2, count: int, objective: ProtoCrystal = null) -> Arra
 
 ## Potwór lochu `climate` w roli `kind` (goblin - zwykły, archer - strzelający, brute - silny).
 static func make_monster(climate_id: String, kind: String) -> ProtoGoblin:
+	if climate_id == Dungeons.FOREST:
+		match kind:
+			"archer":
+				return ProtoBorowiec.new()
+			"brute":
+				return ProtoWildTreant.new()
+			_:
+				return ProtoBlednik.new()
 	if climate_id == Dungeons.FROST:
 		match kind:
 			"archer":

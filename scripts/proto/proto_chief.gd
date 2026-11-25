@@ -79,6 +79,8 @@ var anim_fallback := ANIM_FALLBACK
 var keep_distance := SLAM_RANGE * 0.6
 ## Prędkość marszu (orzeł lata szybciej).
 var move_speed := SPEED
+## Rodzaj potworów przyzywanych okrzykiem (ProtoHorde.spawn_at: goblin, archer, brute).
+var minion_kind := "goblin"
 ## Chodzi po ziemi (ozdoby go zatrzymują); orzeł lata - nie.
 var grounded := true
 var max_hp := MAX_HP
