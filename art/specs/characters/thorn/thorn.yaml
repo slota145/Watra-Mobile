@@ -1,0 +1,223 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: thorn
+kind: character
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.40, 0]}
+palette: "watra"
+size: 32
+directions: 8
+shadow: {rx: 5.5, ry: 2.2, alpha: 90}
+
+# Cierniowa sadzonka - roślina „Kostura Leszego”, która strzela cierniami. Mała (ok. 17 px), klatka 32.
+# Własny szkielet: kopczyk ziemi, pięć pnączy na kościach v1-v5 rozchodzących się wokół (tuba z cierniami),
+# środkowa łodyga i gruby pęd-„lufa” na kości `gun`, wycelowany do przodu i w górę, z jasnym wylotem.
+brief:
+  summary: >
+    a small thorny bush, about 17 px tall: a mound of dark soil, five dark olive vines curling up and outward,
+    each bristling with long pale thorns, and in the middle one thick swollen dark wine-red shoot (like a rose hip) like a barrel, aimed
+    forward and up, with a pale lip and a dark hole at its tip
+  head: the barrel shoot is the creature's face - it turns with the facing; no eyes
+  must_keep:
+    - the spiky silhouette (thorns stick out of the outline in every direction)
+    - the barrel reads as the thickest, brightest-tipped thing, aimed along the facing
+  simplify:
+    - vines are tapered tubes with 5 thorn cones each; the barrel is a cone with a bulge, a lip ring and a dark hole
+  decisions:
+    - attack - the barrel swells and pulls back (the tension), then kicks back and a thorn bolt flies out of the
+      hole (event `release`, socket `muzzle` where the game spawns the projectile)
+    - death - the vines splay out and flop, the barrel droops forward, everything browns and sinks
+
+ramps:
+  vine:     ["#080a06", "#1c2412", "#2c381a", "#3e4c24", "#566634"]
+  vine_dry: ["#100a05", "#30220f", "#4c381b", "#685028", "#86693a"]
+  pod:      ["#10060a", "#2e1220", "#4c1e2c", "#6c2c38", "#8e4044", "#b2604e"]
+  thorn:    ["#1e1008", "#5a3a22", "#94704a", "#c4a272", "#e6d0a0"]
+  hole:     ["#0a0404", "#1e0a08", "#2e140c"]
+  soil:     ["#0c0705", "#2a170d", "#462a17", "#603c24", "#7c5436"]
+
+materials:
+  vine:     {ramp: vine, finish: matte}
+  vine_dry: {ramp: vine_dry, finish: matte}
+  pod:      {ramp: pod, finish: soft}
+  thorn:    {ramp: thorn, finish: matte, line: false}
+  hole:     {ramp: hole, emissive: true, band: 1, outline: false}
+  soil:     {ramp: soil, finish: matte}
+
+channels:
+  mound: 1.0     # soil mound scale (spawn)
+  grow: 1.0      # whole plant scale above the mound
+  sway: 0.0      # the whole bush leans sideways (radians)
+  spread: 0.0    # vines lean further out (+) or pull in (-) (radians)
+  aim: 0.0       # barrel pitch: + tips it down/forward, - raises it
+  recoil: 0.0    # barrel pushed along its axis (- = back)
+  swell: 1.0     # barrel thickness (tension before the shot)
+  shot: 0.0      # 0..1 the thorn bolt flying out of the barrel
+  load: 0.0      # 0..1 the bolt's tip showing in the hole (aiming)
+  wilt: 0.0      # death: vines flop out, the barrel droops
+  sink: 0.0      # plant sinks into the mound
+  dry: 0.0       # >= 0.5: the plant turns brown
+
+bones:
+  plant:  {parent: root, pos: "[0, 0.08 - sink, 0]", rot: "[0, 0, sway]", scale: "max(grow, 0.02)"}
+  # the barrel: local +z is its axis, aimed forward and ~30 degrees up
+  gun:    {parent: plant, pos: [0, 0.40, 0.02], rot: "[-0.50 + aim + 1.1*wilt, 0, 0]"}
+  bore:   {parent: gun, pos: "[0, 0, recoil]", scale: "[swell, swell, 1]"}
+  # five vines around the stem: yaw spreads them, the z-rotation leans them out (`spread`)
+  v1: {parent: plant, rot: "[0, 0.4, -(0.35 + spread + 0.9*wilt)]", scale: 1.25}
+  v2: {parent: plant, rot: "[0, 1.65, -(0.45 + spread + 0.9*wilt)]", scale: 1.1}
+  v3: {parent: plant, rot: "[0, 2.9, -(0.3 + spread + 0.9*wilt)]", scale: 1.2}
+  v4: {parent: plant, rot: "[0, 4.1, -(0.5 + spread + 0.9*wilt)]", scale: 1.05}
+  v5: {parent: plant, rot: "[0, 5.3, -(0.4 + spread + 0.9*wilt)]", scale: 1.15}
+
+parts:
+  mound:
+    material: soil
+    space: root
+    when: "mound > 0.05"
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0], r: "[0.18*mound, 0.07*mound, 0.17*mound]"}
+      - ellipsoid: {c: [-0.12, 0.0, 0.08], r: "[0.11*mound, 0.06*mound, 0.10*mound]"}
+      - ellipsoid: {c: [0.10, 0.0, -0.09], r: "[0.10*mound, 0.05*mound, 0.10*mound]"}
+  vines:
+    material: vine
+    space: plant
+    when: "grow > 0.1 and dry < 0.5"
+    min_cover: 2
+    prims: &vine_prims
+      - tube: {pts: [{at: v1, off: [0, 0, 0]}, {at: v1, off: [0.07, 0.30, 0]}, {at: v1, off: [0.20, 0.58, 0]}], r: [0.05, 0.016]}
+      - tube: {pts: [{at: v2, off: [0, 0, 0]}, {at: v2, off: [0.07, 0.30, 0]}, {at: v2, off: [0.20, 0.58, 0]}], r: [0.05, 0.016]}
+      - tube: {pts: [{at: v3, off: [0, 0, 0]}, {at: v3, off: [0.07, 0.30, 0]}, {at: v3, off: [0.20, 0.58, 0]}], r: [0.05, 0.016]}
+      - tube: {pts: [{at: v4, off: [0, 0, 0]}, {at: v4, off: [0.07, 0.30, 0]}, {at: v4, off: [0.20, 0.58, 0]}], r: [0.05, 0.016]}
+      - tube: {pts: [{at: v5, off: [0, 0, 0]}, {at: v5, off: [0.07, 0.30, 0]}, {at: v5, off: [0.20, 0.58, 0]}], r: [0.05, 0.016]}
+  vines_dry:
+    material: vine_dry
+    space: plant
+    when: "grow > 0.1 and dry >= 0.5"
+    min_cover: 2
+    prims: *vine_prims
+  thorns:
+    material: thorn
+    space: plant
+    when: "grow > 0.3"
+    min_cover: 1
+    prims:
+      - cone: {a: {at: v1, off: [0.06, 0.2, 0]}, b: {at: v1, off: [0.15, 0.24, 0.0]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v1, off: [0.05, 0.14, 0.02]}, b: {at: v1, off: [0.03, 0.2, 0.1]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v1, off: [0.06, 0.18, -0.02]}, b: {at: v1, off: [0.05, 0.25, -0.1]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v1, off: [0.11, 0.36, 0]}, b: {at: v1, off: [0.04, 0.43, 0.0]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v1, off: [0.14, 0.44, 0.01]}, b: {at: v1, off: [0.21, 0.46, 0.07]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v2, off: [0.06, 0.2, 0]}, b: {at: v2, off: [0.15, 0.24, 0.0]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v2, off: [0.05, 0.14, 0.02]}, b: {at: v2, off: [0.03, 0.2, 0.1]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v2, off: [0.06, 0.18, -0.02]}, b: {at: v2, off: [0.05, 0.25, -0.1]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v2, off: [0.11, 0.36, 0]}, b: {at: v2, off: [0.04, 0.43, 0.0]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v2, off: [0.14, 0.44, 0.01]}, b: {at: v2, off: [0.21, 0.46, 0.07]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v3, off: [0.06, 0.2, 0]}, b: {at: v3, off: [0.15, 0.24, 0.0]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v3, off: [0.05, 0.14, 0.02]}, b: {at: v3, off: [0.03, 0.2, 0.1]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v3, off: [0.06, 0.18, -0.02]}, b: {at: v3, off: [0.05, 0.25, -0.1]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v3, off: [0.11, 0.36, 0]}, b: {at: v3, off: [0.04, 0.43, 0.0]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v3, off: [0.14, 0.44, 0.01]}, b: {at: v3, off: [0.21, 0.46, 0.07]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v4, off: [0.06, 0.2, 0]}, b: {at: v4, off: [0.15, 0.24, 0.0]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v4, off: [0.05, 0.14, 0.02]}, b: {at: v4, off: [0.03, 0.2, 0.1]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v4, off: [0.06, 0.18, -0.02]}, b: {at: v4, off: [0.05, 0.25, -0.1]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v4, off: [0.11, 0.36, 0]}, b: {at: v4, off: [0.04, 0.43, 0.0]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v4, off: [0.14, 0.44, 0.01]}, b: {at: v4, off: [0.21, 0.46, 0.07]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v5, off: [0.06, 0.2, 0]}, b: {at: v5, off: [0.15, 0.24, 0.0]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v5, off: [0.05, 0.14, 0.02]}, b: {at: v5, off: [0.03, 0.2, 0.1]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v5, off: [0.06, 0.18, -0.02]}, b: {at: v5, off: [0.05, 0.25, -0.1]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v5, off: [0.11, 0.36, 0]}, b: {at: v5, off: [0.04, 0.43, 0.0]}, r: [0.02, 0.004]}
+      - cone: {a: {at: v5, off: [0.14, 0.44, 0.01]}, b: {at: v5, off: [0.21, 0.46, 0.07]}, r: [0.02, 0.004]}
+  stem:
+    material: vine
+    space: plant
+    when: "grow > 0.1"
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0, 0], b: "@gun", r: [0.075, 0.06]}
+  barrel:
+    material: pod
+    space: bore
+    when: "grow > 0.1 and dry < 0.5"
+    blend: 0.05
+    prims: &barrel_prims
+      - ellipsoid: {c: [0, 0, 0.06], r: [0.10, 0.10, 0.13]}
+      - cone: {a: [0, 0, 0.06], b: [0, 0, 0.33], r: [0.09, 0.065]}
+  barrel_dry:
+    material: vine_dry
+    space: bore
+    when: "grow > 0.1 and dry >= 0.5"
+    blend: 0.05
+    prims: *barrel_prims
+  # the pale lip around the hole and three thorns on the barrel
+  barrel_thorns:
+    material: thorn
+    space: bore
+    when: "grow > 0.3"
+    min_cover: 1
+    prims:
+      - torus: {c: [0, 0, 0.33], R: 0.06, r: 0.025, rot: [1.5708, 0, 0]}
+      - cone: {a: [0.08, 0.02, 0.06], b: [0.17, 0.05, 0.04], r: [0.022, 0.004]}
+      - cone: {a: [-0.08, 0.02, 0.06], b: [-0.17, 0.05, 0.04], r: [0.022, 0.004]}
+      - cone: {a: [0, 0.09, 0.03], b: [0, 0.17, -0.03], r: [0.022, 0.004]}
+  hole:
+    material: hole
+    space: bore
+    when: "grow > 0.3"
+    priority: 2
+    prims:
+      - cylinder: {a: [0, 0, 0.30], b: [0, 0, 0.345], r: 0.045}
+  # the thorn bolt: its tip peeks out of the hole while aiming, then it flies out along the barrel
+  bolt:
+    material: thorn
+    space: gun
+    when: "shot > 0 or load > 0"
+    min_cover: 2
+    priority: 2
+    prims:
+      - cone: {a: "[0, 0, 0.26 + 0.07*load + 0.55*shot]", b: "[0, 0, 0.36 + 0.07*load + 0.60*shot]", r: [0.03, 0.006]}
+
+sockets:
+  muzzle: {bone: gun, offset: [0, 0, 0.36]}   # the hole: where the game spawns the thorn projectile
+
+# the game's contract: the thorn leaves 220 ms into the 420 ms shot (after a 220 ms tensing telegraph)
+timing: {attack: {release: 220ms, total: 420ms}}
+
+animations:
+  # the vines sway a pixel, the barrel bobs and breathes
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      sway: "0.05*sin(p)"
+      spread: "0.05*sin(p + 1.5)"
+      aim: "0.06*sin(p - 0.7)"
+      swell: "1 + 0.05*sin(p)"
+  # the vines uncurl out of the mound, the barrel pops up last with an overshoot
+  spawn:
+    loop: false
+    keys:
+      - {ms: 60, set: {mound: 0.4, grow: 0.0}}
+      - {ms: 60, set: {mound: 0.9, grow: 0.0}}
+      - {ms: 70, set: {mound: 1.05, grow: 0.35, spread: -0.3, aim: 0.6}}
+      - {ms: 70, set: {grow: 0.75, spread: -0.15, aim: 0.3}}
+      - {ms: 90, set: {grow: 1.10, spread: 0.08, aim: -0.15, swell: 1.1}}
+      - {ms: 100, set: {grow: 0.98, spread: 0.0, aim: 0.03}}
+  # tenses (the barrel swells and pulls back, the vines draw in, a thorn tip shows), then kicks and shoots;
+  # the bolt is drawn only on the release frame, then the game's projectile (spawned at `muzzle`) takes over
+  attack:
+    loop: false
+    keys:
+      - {ms: 100, event: windup, set: {swell: 1.15, recoil: -0.03, spread: -0.10, aim: -0.06, load: 0.5}}
+      - {ms: 120, set: {swell: 1.28, recoil: -0.05, spread: -0.16, aim: -0.10, load: 1.0}}
+      - {ms: 50, event: release, set: {swell: 0.82, recoil: -0.07, spread: 0.10, aim: -0.18, shot: 0.35}}
+      - {ms: 60, set: {swell: 0.92, recoil: -0.03, spread: 0.06, aim: -0.08}}
+      - {ms: 90, set: {swell: 1.02, spread: 0.02, aim: 0.0}}
+  # the vines splay out and flop, the barrel droops, everything browns and sinks
+  death:
+    loop: false
+    keys:
+      - {ms: 70, set: {swell: 1.15, spread: -0.12, aim: -0.12}}
+      - {ms: 80, set: {swell: 0.9, wilt: 0.20}}
+      - {ms: 90, set: {swell: 0.85, wilt: 0.45, dry: 1}}
+      - {ms: 100, set: {swell: 0.82, wilt: 0.56, dry: 1, sink: 0.03, grow: 0.95}}
+      - {ms: 330, set: {swell: 0.8, wilt: 0.62, dry: 1, sink: 0.05, grow: 0.88}}

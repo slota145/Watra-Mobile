@@ -1,0 +1,200 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: carnivore
+kind: character
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.50, 0.05]}
+palette: "watra"
+size: 48
+directions: 8
+shadow: {rx: 6, ry: 2.4, alpha: 90}
+
+# Mięsożerna roślina - sadzonka „Kostura Leszego”, która gryzie wrogów obok siebie. Mała (ok. 20 px), klatka 48,
+# bo kłapnięcie wychyla paszczę do przodu. Własny szkielet: kopczyk z liśćmi przy ziemi, łodyga z trzech kości,
+# głowa z zawiasem z tyłu i dwa płaty paszczy (jak muchołówka) na kościach `jaw_up` / `jaw_lo`.
+brief:
+  summary: >
+    a small carnivorous plant, about 20 px tall: a mound of dark soil with three broad leaves lying on the
+    ground, a thick dark green stalk curving up and a big flytrap head of two rounded lobes hinged at the back,
+    pale thorn-teeth along both rims and a blood-red inside of the maw
+  head: >
+    the flytrap head is the creature: two dark green lobes ~8 px wide, open about 40 degrees towards its
+    facing, the red inside showing between them, 5 pale teeth on each rim; no eyes (a plant)
+  must_keep:
+    - the open jaws with the red inside and the pale teeth (it reads as a biter even in a crowd)
+    - the head turns towards the facing direction (8 directions)
+  simplify:
+    - lobes are flattened ellipsoids; the red inside is a thinner ellipsoid poking out of each lobe's inner face
+    - teeth are tiny cones with min_cover, the rim is not modelled
+  decisions:
+    - the stalk is short and thick so the head stays the biggest mass
+    - attack - the stalk pulls back with the jaws gaping wide (windup), then whips forward and the jaws snap
+      shut (event `hit` on that frame); socket `bite` at the snap point
+    - death - the jaws go slack, the head flops diagonally (forward and to its left) to the ground, so it reads in every direction, the plant browns (material switch on `dry`)
+
+ramps:
+  trap:   ["#08120a", "#163a1c", "#25562a", "#367234", "#4f8f42", "#76ad5c"]
+  trap_dry: ["#120c06", "#3a2a12", "#5a4220", "#7a5e30", "#9a7c46"]
+  maw:    ["#1a0406", "#5a0c14", "#8c1a20", "#b8322c", "#dc5a44"]
+  tooth:  ["#2a2418", "#8a8060", "#c8bc94", "#ece2c0"]
+  soil:   ["#0c0705", "#2a170d", "#462a17", "#603c24", "#7c5436"]
+  stalk:  ["#0a1008", "#1e3418", "#2e4c20", "#42662a", "#5c8238"]
+
+materials:
+  trap:     {ramp: trap, finish: soft}
+  trap_dry: {ramp: trap_dry, finish: matte}
+  maw:      {ramp: maw, finish: soft}
+  tooth:    {ramp: tooth, finish: matte, line: false}
+  soil:     {ramp: soil, finish: matte}
+  stalk:    {ramp: stalk, finish: matte}
+
+channels:
+  mound: 1.0     # soil mound scale (spawn)
+  grow: 1.0      # whole plant scale above the mound
+  sway: 0.0      # stalk bend sideways (radians per segment)
+  lean: 0.0      # stalk bend forward (+) / back (-) (radians per segment)
+  headp: 0.0     # head pitch: + tips the jaws down
+  gape: 0.50     # half the jaw opening (radians); 0 = shut
+  push: 0.0      # head moved forward along the facing (units) - the lunge
+  wilt: 0.0      # death: stalk flops over
+  sink: 0.0      # plant sinks into the mound
+  dry: 0.0       # >= 0.5: the plant turns brown
+  leafs: 0.0     # ground leaves lift (radians)
+  reach: 1.0     # stalk segment length (the lunge stretches it)
+
+bones:
+  plant:  {parent: root, pos: "[0, 0.08 - sink, 0]", scale: "max(grow, 0.02)"}
+  neck0:  {parent: plant, rot: "[0.5*lean + 0.3*wilt, 0, sway + 0.3*wilt]"}
+  neck1:  {parent: neck0, pos: "[0, 0.26*reach, 0]", rot: "[lean + 0.7*wilt, 0, sway + 0.7*wilt]"}
+  neck2:  {parent: neck1, pos: "[0, 0.22*reach, 0]", rot: "[lean + 0.7*wilt, 0, 0.5*sway + 0.7*wilt]"}
+  # the head: hinge at the origin, the jaws point along +z (the facing), tilted a little up; undo the stalk lean so the head stays level
+  head:   {parent: neck2, pos: "[0, 0.12, push]", rot: "[-0.15 + headp - 1.5*lean + 0.6*wilt, 0, 0]", scale: 1.0}
+  jaw_up: {parent: head, rot: "[-gape, 0, 0]"}
+  jaw_lo: {parent: head, rot: "[gape, 0, 0]"}
+  gleaf_L: {parent: root, pos: [0.06, 0.04, 0.0], rot: "[-0.25 - leafs, 1.2, 0]"}
+  gleaf_b: {parent: root, pos: [0, 0.04, -0.06], rot: "[-0.25 - leafs, 3.14, 0]"}
+
+parts:
+  mound:
+    material: soil
+    space: root
+    when: "mound > 0.05"
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0], r: "[0.20*mound, 0.12*mound, 0.18*mound]"}
+      - ellipsoid: {c: [0.10, 0.0, 0.07], r: "[0.10*mound, 0.06*mound, 0.09*mound]"}
+  ground_leaves:
+    material: trap
+    space: root
+    when: "mound > 0.5 and dry < 0.5"
+    prims: &gleaf_prims
+      - ellipsoid: {c: {at: gleaf_L, off: [0, 0, 0.17]}, r: [0.09, 0.03, 0.17], align: ["@gleaf_L", {at: gleaf_L, off: [0, 0, 1]}]}
+      - ellipsoid: {c: {at: gleaf_R, off: [0, 0, 0.17]}, r: [0.09, 0.03, 0.17], align: ["@gleaf_R", {at: gleaf_R, off: [0, 0, 1]}]}
+      - ellipsoid: {c: {at: gleaf_b, off: [0, 0, 0.16]}, r: [0.09, 0.03, 0.16], align: ["@gleaf_b", {at: gleaf_b, off: [0, 0, 1]}]}
+  ground_leaves_dry:
+    material: trap_dry
+    space: root
+    when: "mound > 0.5 and dry >= 0.5"
+    prims: *gleaf_prims
+  stalk:
+    material: stalk
+    space: plant
+    when: "grow > 0.08"
+    blend: 0.04
+    prims:
+      - cone: {a: "@neck0", b: "@neck1", r: [0.07, 0.055]}
+      - cone: {a: "@neck1", b: "@neck2", r: [0.055, 0.048]}
+      - cone: {a: "@neck2", b: "@head", r: [0.048, 0.05]}
+  lobes:
+    material: trap
+    space: head
+    when: "grow > 0.15 and dry < 0.5"
+    blend: 0.03
+    prims: &lobe_prims
+      - sphere: {c: [0, 0, -0.01], r: 0.06}
+      - ellipsoid: {c: {at: jaw_up, off: [0, 0.04, 0.17]}, r: [0.19, 0.05, 0.155], align: ["@jaw_up", {at: jaw_up, off: [0, 0, 1]}]}
+      - ellipsoid: {c: {at: jaw_lo, off: [0, -0.04, 0.17]}, r: [0.19, 0.05, 0.155], align: ["@jaw_lo", {at: jaw_lo, off: [0, 0, 1]}]}
+  lobes_dry:
+    material: trap_dry
+    space: head
+    when: "grow > 0.15 and dry >= 0.5"
+    blend: 0.03
+    prims: *lobe_prims
+  # the red inside of the maw: a thinner ellipsoid poking out of each lobe's inner face
+  maw:
+    material: maw
+    space: head
+    when: "grow > 0.15"
+    priority: 2
+    prims:
+      - ellipsoid: {c: {at: jaw_up, off: [0, 0.0, 0.17]}, r: [0.15, 0.022, 0.125], align: ["@jaw_up", {at: jaw_up, off: [0, 0, 1]}]}
+      - ellipsoid: {c: {at: jaw_lo, off: [0, 0.0, 0.17]}, r: [0.15, 0.022, 0.125], align: ["@jaw_lo", {at: jaw_lo, off: [0, 0, 1]}]}
+  teeth_up:
+    material: tooth
+    space: jaw_up
+    when: "grow > 0.3"
+    min_cover: 2
+    priority: 2
+    prims:
+      - cone: {a: [0.000, 0.0, 0.285], b: [0.000, -0.055, 0.30], r: [0.024, 0.006]}
+      - cone: {a: [0.080, 0.0, 0.255], b: [0.090, -0.055, 0.275], r: [0.024, 0.006]}
+      - cone: {a: [-0.080, 0.0, 0.255], b: [-0.090, -0.055, 0.275], r: [0.024, 0.006]}
+      - cone: {a: [0.140, 0.0, 0.185], b: [0.160, -0.05, 0.195], r: [0.022, 0.006]}
+      - cone: {a: [-0.140, 0.0, 0.185], b: [-0.160, -0.05, 0.195], r: [0.022, 0.006]}
+  teeth_lo:
+    material: tooth
+    space: jaw_lo
+    when: "grow > 0.3"
+    min_cover: 2
+    priority: 2
+    prims:
+      - cone: {a: [0.040, 0.0, 0.280], b: [0.045, 0.055, 0.295], r: [0.024, 0.006]}
+      - cone: {a: [-0.040, 0.0, 0.280], b: [-0.045, 0.055, 0.295], r: [0.024, 0.006]}
+      - cone: {a: [0.115, 0.0, 0.225], b: [0.130, 0.05, 0.24], r: [0.022, 0.006]}
+      - cone: {a: [-0.115, 0.0, 0.225], b: [-0.130, 0.05, 0.24], r: [0.022, 0.006]}
+
+sockets:
+  bite: {bone: head, offset: [0, 0, 0.26]}   # the snap point: where the bite effect / damage goes
+
+# the game's contract: the bite lands 260 ms into the 570 ms attack (after a 260 ms pull-back telegraph)
+timing: {attack: {hit: 260ms, total: 570ms}}
+
+animations:
+  # the maw breathes open and shut a little, the stalk sways, the head lags behind it
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      gape: "0.50 + 0.07*sin(p)"
+      sway: "0.05*sin(p)"
+      lean: "0.04*sin(p + 1.0)"
+      headp: "0.06*sin(p - 0.8)"
+      leafs: "0.06*sin(p + 2.0)"
+  # pushes out of the mound as a shut bud, then the jaws spring open with an overshoot
+  spawn:
+    loop: false
+    keys:
+      - {ms: 60, set: {mound: 0.4, grow: 0.0, gape: 0.0}}
+      - {ms: 60, set: {mound: 0.9, grow: 0.0, gape: 0.0, leafs: 0.3}}
+      - {ms: 70, set: {mound: 1.05, grow: 0.35, gape: 0.0, lean: -0.1, leafs: 0.15}}
+      - {ms: 70, set: {grow: 0.75, gape: 0.1, lean: -0.05}}
+      - {ms: 90, set: {grow: 1.10, gape: 0.68, lean: 0.06, headp: -0.1}}
+      - {ms: 100, set: {grow: 0.98, gape: 0.46, lean: 0.0}}
+  # pulls back gaping wide (telegraph), whips forward and snaps shut (hit), holds, recovers
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {lean: -0.14, gape: 0.62, headp: -0.18, reach: 0.95}}
+      - {ms: 140, set: {lean: -0.20, gape: 0.70, headp: -0.24, reach: 0.9, sway: 0.03}}
+      - {ms: 50, event: hit, set: {lean: "0.20 - 0.08*pulse(yaw, 0, 70)", push: 0.10, reach: 1.3, gape: 0.10, headp: "0.10 - 0.45*pulse(yaw, 0, 70)"}}
+      - {ms: 80, set: {lean: "0.22 - 0.08*pulse(yaw, 0, 70)", push: 0.12, reach: 1.3, gape: 0.08, headp: "0.12 - 0.45*pulse(yaw, 0, 70)"}}
+      - {ms: 90, set: {lean: 0.10, push: 0.04, reach: 1.12, gape: 0.24, headp: 0.04}}
+      - {ms: 90, set: {lean: 0.03, gape: 0.45}}
+  # a last spasm, the jaws go slack, the stalk flops over and the plant browns and sinks
+  death:
+    loop: false
+    keys:
+      - {ms: 70, set: {gape: 0.80, lean: -0.12, headp: -0.2}}
+      - {ms: 80, set: {gape: 0.30, wilt: 0.20, reach: 0.9}}
+      - {ms: 90, set: {gape: 0.15, wilt: 0.42, reach: 0.75, dry: 1, leafs: -0.15}}
+      - {ms: 100, set: {gape: 0.20, wilt: 0.62, reach: 0.62, dry: 1, sink: 0.03, leafs: -0.2}}
+      - {ms: 330, set: {gape: 0.24, wilt: 0.72, reach: 0.55, dry: 1, sink: 0.06, grow: 0.92, leafs: -0.2}}
