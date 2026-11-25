@@ -27,6 +27,8 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - **Rój się nakłada** (prośba autora 25.11.2026 - przy dużej redukcji odnowienia): kolejne użycie dokłada sople do
   chmury, która rośnie (do x2 szerzej), każda partia wylatuje po swoim formowaniu (pole `ready` sopla), sufit
   `SWARM_MAX` 48 sopli naraz (wydajność); sopel bez wroga topnieje po 4 s od swojej gotowości.
+- **Szybszy rój** (prośba autora po teście 25.11.2026): sople wylatują co 0,05 s (było 0,1), czekają po uformowaniu
+  0,15 s (było 0,3) i lecą `SWARM_SPEED` 620 px/s (inne sople rapiera - 330; prędkość w danych sopla `speed`).
 - **Nowe efekty z kreatora** (darmowy `vfx_workbench`, zapisane w „My effects” autora jako „Lodowy rapier - …”;
   `pixellab_src/vfx/ids.json`): `rapier_thrust2` (pchnięcie), `rapier_slash` (cięcie 120°), `rapier_hit2` (trafienie),
   `rapier_lunge` (smuga wypadu), `riposte_circle` (krąg riposty, pętla), `riposte_flash` (błysk riposty), `icicle`
