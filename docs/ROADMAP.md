@@ -42,7 +42,7 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej.
   Fizyczne - miecz (bez żywiołu).
 
-- [ ] **Loch mrozu - Lodowe jaskinie (ustalenia z autorem 25.11.2026, do zrobienia):** poziomy **31-35** na drabince
+- [ ] **Loch mrozu - Lodowe jaskinie (zrobiony 25.11.2026, `docs/historia.md`; do oceny na telefonie: tempo wymarzania, koksowniki, siła potworów i Dziada Mroza):** poziomy **31-35** na drabince
   (`Dungeons.ORDER` po Wulkanicznych równinach; drugi krąg od 36), żywioł lód (odporność na lód, wrażliwość na ogień -
   propozycja Claude). Klimat: **lodowe jaskinie** - niebieski, błyszczący lód, sople, zamarznięte wodospady, kryształy,
   uwięzieni w lodzie wojownicy. **Potwory - duchy zimy:** Zmarzlak (zwykły, zamarznięty trup wojownika), Śnieżnica
