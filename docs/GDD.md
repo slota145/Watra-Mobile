@@ -34,6 +34,9 @@ ostatnia osada Ostoja i jej ogień. Hasło: **„Dopóki płonie ogień, Ostoja 
     przeciwników, więcej doświadczenia, więcej łupu. Zmiany małe, żeby grind miał sens, ale każda odczuwalna
     (rosnące ceny kolejnych stopni zamiast niewidocznych +1%).
 
+- **Bronie i żywioły** (25.11.2026): **każdy żywioł ma co najmniej 2 bronie - magiczną i fizyczną** (lista braków
+  w `docs/ROADMAP.md`).
+
 - **Baza i waluty** (ustalone 12.11.2026):
   - **drzewko lochów** przy Watrze (od 20.11.2026 zamiast ulepszeń lochów za złoto, jak atlas w PoE): punkt za każdy
     przebity poziom lochu, 4 gałęzie - Horda, łup, nauka, cele na mapie; cofanie punktów za darmo;

@@ -36,6 +36,25 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   telefonie: siła i tempo uderzeń młota, rzut (odbicia), skok (czy nie wrzuca w tłum za daleko), trzęsienie (koszt many,
   spowolnienie postaci), czy ostrza miecza nie są za słabe/za mocne, rezerwacja 25% many, kamienie unikalne.
 
+- **Zasada (decyzja autora 25.11.2026): każdy żywioł ma co najmniej 2 bronie - magiczną i fizyczną.** Stan na dziś:
+  ogień - glewia (fizyczna), brak magicznej; woda - hydrosfera (magiczna), brak fizycznej; lód - brak obu; Grom - katana
+  (fizyczna), brak magicznej; ziemia - młot (fizyczny), brak magicznej; powietrze - łuk (fizyczny), brak magicznej;
+  natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej.
+  Fizyczne - miecz (bez żywiołu).
+
+- [ ] **Lodowy rapier, potem loch lodu (wybór autora 25.11.2026):** pierwsza broń lodu - lodowy rapier (fizyczna);
+  następnie loch lodu na drabince (31-35, przed kolejnym kręgiem). Ustalone 25.11.2026: za darmo od **lochu 35**;
+  wygląd - cienka klinga z przezroczystego, bladoniebieskiego lodu, srebrny kosz rękojeści, efekty biało-błękitne
+  z kryształkami i mgiełką mrozu; lód spowalnia i po kilku trafieniach zamraża, a **roztrzaskanie**: zamrożony wróg
+  trafiony rapierem pęka i rani sąsiadów. 5 umiejętności (każda z nowym działaniem na 5. i 10. poziomie i kamieniem
+  unikalnym, jak inne bronie):
+  - **Pchnięcie Szronu** (zwykły atak): szybkie, długie pchnięcie w linię; 5. - co 3. pchnięcie przebija na wylot,
+    10. - w miejscu trafienia lodowy kolec;
+  - **Wypad** (doskok): błyskawiczny wypad naprzód przez wrogów, zostawia ścieżkę szronu (spowalnia);
+  - **Riposta Morozka** (parada): krótka zasłona - ciosy wrogów odbite, potem kontra: mróz zamraża wszystkich wokół;
+  - **Grad Pchnięć** (trzymany): seria błyskawicznych pchnięć w stożek, każde dokłada chłodu;
+  - **Lodowy Kwiat**: rapier wbija się w ziemię, dookoła wyrastają kryształy; zamrożeni pękają.
+
 - [ ] **Żywioł światła - przeciwieństwo Nawii (pomysł autora 21.11.2026, do ustalenia):** dziś bronie nie mają lodu,
   ziemi i natury, a lochy - lodu, ziemi, natury i Arkanów. Propozycje Claude (czekają na decyzję): nazwa (Światło /
   Prawia - świat bogów w opozycji do Nawii), działanie inne niż ogień (np. oślepia - wróg chybia, piętno - trafienia
