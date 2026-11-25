@@ -47,6 +47,8 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   wybuchają korzenie (`_plant`: 36 px, 80% siły; 5. poziom - x1,3 zamiast dalszego lotu), żołądź większy (x1,6),
   bez wrogów spada w granicach planszy (8 px od brzegu). **Oplątanie** w wielkości wroga (skala od `center_height`).
   Nowa ikona Uścisku Boru (sylwetka oplątana pnączami, bez czerwonego kółka).
+- **Kamień Purchawki osłabiony** (zgłoszenie autora: wybuchał każdy umierający, bo kostur zatruwa przy każdym
+  trafieniu): wybuch przy śmierci z szansą `ProtoStaff.puff_chance` - 5% za każdy znak trucizny (10 znaków - 50%).
 
 ## 25.11.2026 - Siódmy loch: Lodowe jaskinie (lód), Dziad Mróz, wymarzanie i koksowniki
 

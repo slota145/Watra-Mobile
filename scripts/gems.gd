@@ -186,7 +186,7 @@ const UNIQUE := {
 	"l_grasp": {"name": "Kamień Głogu", "short": "Cierniowa sadzonka",
 		"text": "Z wciągniętych wrogów wyrasta cierniowa sadzonka zamiast zwykłej - co 1,2 s strzela cierniem w losowego wroga (50% siły Uścisku). Liczy się jako sadzonka."},
 	"l_spores": {"name": "Kamień Purchawki", "short": "Zatruci wybuchają",
-		"text": "Zatruty wróg po śmierci wybucha takimi samymi zarodnikami (50% siły Pylenia, mniejszy obłok)."},
+		"text": "Zatruty wróg po śmierci może wybuchnąć takimi samymi zarodnikami (50% siły Pylenia, mniejszy obłok): 5% szansy za każdy znak trucizny, do 50%."},
 	"l_treants": {"name": "Kamień Leszego", "short": "Drzewce oplatają",
 		"text": "Drzewce co 3 s oplatają korzeniami najbliższego wroga: unieruchomiony na 1,5 s, obrywa 50% siły ciosu drzewca."},
 	# lodowy rapier - broń lodu (ustalone z autorem 25.11.2026; kamienie - propozycje Claude)

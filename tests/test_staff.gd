@@ -241,16 +241,30 @@ func _test_spores_treants(game: Node) -> void:
 			"Pylenie Mchu: zarodniki przy postaci i przy każdej sadzonce")
 	_check(gs[1].poison_stacks() >= ProtoStaff.SPORE_POISON and staff.saplings() == 2,
 			"zarodniki dokładają %d znaki trucizny, sadzonki zostają" % gs[1].poison_stacks())
-	# Purchawka: zatruty wróg po śmierci wybucha
+	# Purchawka: zatruty wróg po śmierci może wybuchnąć - szansa 5% za znak trucizny (do 50%)
 	staff.skill_gems["l_spores"] = [Gems.unique_of("l_spores")]
-	var victim: ProtoGoblin = (await _dummies(arena, [Vector2(0, -120)], 20))[0]
-	var near: ProtoGoblin = (await _dummies(arena, [Vector2(14, -120)]))[0]
-	staff._hit(victim, 0.01, Vector2.ZERO, "l_roots")
-	_check(victim.is_poisoned(), "wróg zatruty")
-	var hp_near := near.hp
-	staff._hit(victim, 100.0, Vector2.ZERO, "l_roots")
-	await process_frame
-	_check(not victim.alive() and near.hp < hp_near, "Kamień Purchawki: zatruty wybucha zarodnikami po śmierci")
+	var probe: ProtoGoblin = (await _dummies(arena, [Vector2(0, -200)]))[0]
+	staff._hit(probe, 0.01, Vector2.ZERO, "l_roots")
+	_check(probe.is_poisoned() and is_equal_approx(ProtoStaff.puff_chance(probe), ProtoStaff.PUFF_PER_STACK),
+			"szansa wybuchu: 1 znak - %d%%" % roundi(ProtoStaff.puff_chance(probe) * 100))
+	for i in 12:
+		staff._hit(probe, 0.01, Vector2.ZERO, "l_roots")
+	_check(is_equal_approx(ProtoStaff.puff_chance(probe), 0.5), "pełna trucizna (10 znaków) - 50%")
+	probe.queue_free()
+	var booms := 0
+	var tries := 30
+	for i in tries:
+		var victim: ProtoGoblin = (await _dummies(arena, [Vector2(0, -120)], 20))[0]
+		var near: ProtoGoblin = (await _dummies(arena, [Vector2(14, -120)]))[0]
+		for k in 10:
+			staff._hit(victim, 0.0001, Vector2.ZERO, "l_roots")
+		var hp_near := near.hp
+		staff._hit(victim, 100.0, Vector2.ZERO, "l_roots")
+		await process_frame
+		if near.hp < hp_near:
+			booms += 1
+		near.queue_free()
+	_check(booms > 3 and booms < tries - 3, "Kamień Purchawki: przy pełnej truciźnie wybucha mniej więcej co drugi (%d z %d)" % [booms, tries])
 	# Strażnicy Boru: przy postaci i przy każdej sadzonce
 	staff.reset_cooldowns()
 	staff.cast("l_treants")
