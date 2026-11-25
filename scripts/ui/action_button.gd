@@ -30,6 +30,11 @@ var _finger := -1
 var _flash := 0.0
 
 
+## Drgnięcie `deny` i miejsce przycisku sprzed niego.
+var _deny_tween: Tween
+var _rest_x := 0.0
+
+
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR  # ikona 64 px pomniejszona bez gubienia pikseli
@@ -76,11 +81,17 @@ func set_state(left: float, total: float, lacks_mana: bool) -> void:
 
 
 ## Krótkie drgnięcie w bok - umiejętności nie dało się użyć (odnowienie albo brak many).
+## Szybkie stukanie przerywa poprzednie drgnięcie i wraca do miejsca sprzed niego (zgłoszenie autora 25.11.2026:
+## każde kolejne drgnięcie zaczynało się w połowie poprzedniego i przycisk odjeżdżał w bok).
 func deny() -> void:
-	var x := position.x
-	var tween := create_tween()
+	if _deny_tween and _deny_tween.is_valid():
+		_deny_tween.kill()
+		position.x = _rest_x
+	else:
+		_rest_x = position.x
+	_deny_tween = create_tween()
 	for dx in [3.0, -3.0, 2.0, 0.0]:
-		tween.tween_property(self, "position:x", x + dx, 0.04)
+		_deny_tween.tween_property(self, "position:x", _rest_x + dx, 0.04)
 
 
 ## Złoty błysk i podskok przy odblokowaniu miejsca.

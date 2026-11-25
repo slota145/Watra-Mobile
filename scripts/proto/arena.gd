@@ -266,6 +266,20 @@ func _ready() -> void:
 	hero.hurt.connect(func(_amount: int) -> void: talismans_node.on_hurt())
 	_link_talismans()
 	gear = _gear()
+	# paski zdrowia i many (w lochu i w bazie - prośba autora 25.11.2026)
+	hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
+		health_bar.max_value = max_hp
+		health_bar.value = hp
+		health_text.text = "%d / %d" % [hp, max_hp])
+	hero.mana_changed.connect(func(mana: int, max_mana: int) -> void:
+		mana_bar.max_value = max_mana
+		mana_bar.value = mana
+		mana_text.text = "%d / %d" % [mana, hero.mana_cap()]
+		_show_reserved())
+	hero.shield_changed.connect(func(shield: int, _shield_max: int) -> void:
+		shield_bar.visible = shield > 0
+		shield_bar.anchor_right = float(shield) / maxf(hero.max_hp, 1.0)
+		shield_bar.offset_right = 0.0)
 	if horde:
 		horde_spawner = ProtoHorde.new()
 		horde_spawner.name = "Horde"
@@ -300,19 +314,6 @@ func _ready() -> void:
 			wind.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			add_child(wind)
 			wind.spawn_tornadoes()
-		hero.health_changed.connect(func(hp: int, max_hp: int) -> void:
-			health_bar.max_value = max_hp
-			health_bar.value = hp
-			health_text.text = "%d / %d" % [hp, max_hp])
-		hero.mana_changed.connect(func(mana: int, max_mana: int) -> void:
-			mana_bar.max_value = max_mana
-			mana_bar.value = mana
-			mana_text.text = "%d / %d" % [mana, hero.mana_cap()]
-			_show_reserved())
-		hero.shield_changed.connect(func(shield: int, _shield_max: int) -> void:
-			shield_bar.visible = shield > 0
-			shield_bar.anchor_right = float(shield) / maxf(hero.max_hp, 1.0)
-			shield_bar.offset_right = 0.0)
 		horde_spawner.monster_died.connect(func(g: ProtoGoblin) -> void:
 			auras_node.on_monster_died(g)
 			talismans_node.on_kill(g))
@@ -512,6 +513,7 @@ func _make_hud() -> void:
 		xp_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		xp_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		top.add_child(xp_box)
+		_make_vitals(xp_box)
 		_make_xp_row(xp_box)
 	if horde:
 		_make_horde_bar(top)
@@ -631,14 +633,8 @@ func _make_hud() -> void:
 	layer.add_child(pause_menu)
 
 
-## Pasek u góry w lochu: zdrowie Wojciecha, pod nim pasek żaru (do przyzwania Wodza), a niżej poziom lochu,
-## liczba pokonanych potworów, żar z wyprawy i czas.
-func _make_horde_bar(top: HBoxContainer) -> void:
-	var box := VBoxContainer.new()
-	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.add_theme_constant_override("separation", 2)
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	top.add_child(box)
+## Paski zdrowia (z tarczą Opieki Mokoszy) i many (z rezerwacją aur i ikonami aur) w `box` - w lochu i w bazie.
+func _make_vitals(box: VBoxContainer) -> void:
 	health_bar = ProgressBar.new()
 	health_bar.max_value = ProtoHero.MAX_HP
 	health_bar.value = ProtoHero.MAX_HP
@@ -697,6 +693,17 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	aura_icons.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mana_reserved.add_child(aura_icons)
 	mana_text = _bar_text(mana_bar, 9)
+
+
+## Pasek u góry w lochu: zdrowie Wojciecha, pod nim pasek żaru (do przyzwania Wodza), a niżej poziom lochu,
+## liczba pokonanych potworów, żar z wyprawy i czas.
+func _make_horde_bar(top: HBoxContainer) -> void:
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 2)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(box)
+	_make_vitals(box)
 	_make_xp_row(box)
 	ember_bar = ProgressBar.new()
 	ember_bar.max_value = _summon_cost()
