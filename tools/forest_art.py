@@ -4,7 +4,8 @@
   nie robi szwów; brzegi plam ostre, piksel w piksel);
 - ozdoby `assets/watra/decor/forest/` (dęby, sosny, pnie, kłody, omszałe głazy, menhiry, świecące grzyby, krąg grzybów,
   ciernisty krzak, szponiaste drzewo) - kopie z Watry;
-- boss Leszy `assets/watra/bosses/leshy.png` (arkusz 4x2 klatki 52x70) i jego efekty `assets/watra/effects/leshy_roots.png`,
+- boss Leszy `assets/watra/bosses/leshy.png` (arkusz używany w Watrze - `leshy_pl.png`, 4x5 klatek 90x84; uwaga
+  autora 25.11.2026: `leshy.png` w Watrze to stary, nieużywany arkusz) i jego efekty `assets/watra/effects/leshy_roots.png`,
   `leshy_leaves.png`.
 Użycie: python tools/forest_art.py [ścieżka do assets Watry, domyślnie ../Watra/assets]
 """
@@ -62,7 +63,7 @@ def main() -> None:
 	for src, name in DECOR.items():
 		shutil.copyfile(WATRA / f"ancient/{src}.png", dest / f"{name}.png")
 	(ROOT / "assets/watra/bosses").mkdir(parents=True, exist_ok=True)
-	shutil.copyfile(WATRA / "ancient/leshy.png", ROOT / "assets/watra/bosses/leshy.png")
+	shutil.copyfile(WATRA / "ancient/leshy_pl.png", ROOT / "assets/watra/bosses/leshy.png")
 	for fx in ("leshy_roots", "leshy_leaves"):
 		shutil.copyfile(WATRA / f"effects/{fx}.png", ROOT / f"assets/watra/effects/{fx}.png")
 	print("->", dest)

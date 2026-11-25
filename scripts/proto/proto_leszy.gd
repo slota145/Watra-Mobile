@@ -2,8 +2,9 @@ class_name ProtoLeszy
 extends ProtoChief
 ## Leszy, Pan Puszczy - boss Prastarego Boru (Dungeons.FOREST, ustalone z autorem 25.11.2026; z Prastarego Lasu Watry -
 ## scripts/leshy.gd): wysoki, chudy duch lasu z ciałem z kory, brodą z mchu, porożem i kosturem. Grafika z Watry
-## (assets/watra/bosses/leshy.png, 4x2 klatki 52x70: 0-3 chód, 4 spoczynek, 5 wezwanie, 6 korzenie, 7 wir liści;
-## arkusz patrzy w prawo, odbijany - „udawany model” ProtoStormEagle._EagleSprite). Reszta (wejście, pasek zdrowia,
+## (assets/watra/bosses/leshy.png = `leshy_pl.png` Watry, 4x5 klatek 90x84: 0-3 chód, 4-7 wezwanie, 8-11 korzenie,
+## 12-15 wir liści, 16 spoczynek; w ataku klatki 0-2 rozciągają się na zapowiedź, 3. - uderzenie; arkusz patrzy w prawo,
+## odbijany - „udawany model” ProtoStormEagle._EagleSprite). Reszta (wejście, pasek zdrowia,
 ## trafienia, śmierć, skrzynia) jak u Wodza (ProtoChief). Ataki z ostrzeżeniem, żywioł natura:
 ## - Korzenie: czerwony pas w stronę postaci (ROOTS_LENGTH x ROOTS_WIDTH), po ROOTS_WARN s z ziemi wzdłuż pasa wybuchają
 ##   korzenie (leshy_roots z Watry) - ranią i na chwilę trzymają (prawie pełne spowolnienie);
@@ -13,12 +14,13 @@ extends ProtoChief
 
 const SHEET := preload("res://assets/watra/bosses/leshy.png")
 const SHEET_COLS := 4
-const SHEET_ROWS := 2
+const SHEET_ROWS := 5
+const SHEET_SCALE := 0.85
 const WALK_FPS := 6.0
-const FRAME_IDLE := 4
-const FRAME_SUMMON := 5
-const FRAME_ROOTS := 6
-const FRAME_LEAVES := 7
+const FRAME_IDLE := 16
+const FRAME_SUMMON := 4
+const FRAME_ROOTS := 8
+const FRAME_LEAVES := 12
 const LESZY_HP := 1300
 const LESZY_SPEED := 30.0
 const KEEP_DISTANCE := 75.0
@@ -65,7 +67,8 @@ func _make_sprite() -> Node2D:
 	s.texture = SHEET
 	s.hframes = SHEET_COLS
 	s.vframes = SHEET_ROWS
-	s.offset = Vector2(0, -33)
+	s.offset = Vector2(0, -38)
+	s.scale = Vector2.ONE * SHEET_SCALE
 	s.frame = FRAME_IDLE
 	return s
 
@@ -96,17 +99,24 @@ func _animate(delta: float, moving: bool) -> void:
 		return
 	match state:
 		"roots":
-			s.frame = FRAME_ROOTS
+			s.frame = FRAME_ROOTS + _swing(ROOTS_WARN)
 		"leaves":
-			s.frame = FRAME_LEAVES
+			s.frame = FRAME_LEAVES + _swing(LEAVES_WARN)
 		"awaken", "enter":
-			s.frame = FRAME_SUMMON
+			s.frame = FRAME_SUMMON + _swing(AWAKEN_TIME)
+		"recover":
+			pass  # zostaje ostatnia klatka ataku (uderzenie) - jak w Watrze
 		_:
 			if moving:
 				_walk_t += delta * WALK_FPS
 				s.frame = int(_walk_t) % 4
 			else:
 				s.frame = FRAME_IDLE
+
+
+## Klatka ataku: 0-2 rozłożone na zapowiedź `warn`, 3 - uderzenie (pod koniec).
+func _swing(warn: float) -> int:
+	return mini(int(_timer / maxf(warn, 0.01) * 3.0), 2) if _timer < warn else 3
 
 
 func _choose_attack(distance: float) -> void:

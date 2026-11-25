@@ -16,8 +16,9 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - **Żywa puszcza** `proto_grove.gd` (`arena.grove`, tylko w tym lochu): co 5-8 s czerwone koło 26 px pod postacią
   (trochę przed nią, gdy idzie - `velocity` x 0,5 s), po 1 s korzenie z ziemi - w kole 8 obrażeń (natura) i trzymanie
   (spowolnienie 90% -> `ProtoHero.slow` ogranicza do 80%) na 1 s; zejście z koła = unik.
-- **Boss Leszy** `proto_leszy.gd` (po `ProtoChief`, 1300 zdrowia; arkusz z Watry 4x2 klatki 52x70 jako „udawany model”
-  `ProtoStormEagle._EagleSprite`, klatki ustawiane w `_animate`): korzenie pasem 230x30 do postaci (1 s; 26 + trzymanie
+- **Boss Leszy** `proto_leszy.gd` (po `ProtoChief`, 1300 zdrowia; arkusz używany w Watrze - `leshy_pl.png`, 4x5 klatek
+  90x84, skala 0,85; uwaga autora: najpierw przeniesiony był stary, nieużywany `leshy.png`; jako „udawany model”
+  `ProtoStormEagle._EagleSprite`, klatki w `_animate`: chód, a w atakach 3 klatki zapowiedzi i uderzenie - `_swing`): korzenie pasem 230x30 do postaci (1 s; 26 + trzymanie
   1,2 s; 7 wybuchów `leshy_roots` po kolei), wir liści (wachlarz 70°, 130 px, 1 s, 24; `leshy_leaves`), przebudzenie
   (co najwyżej co 12 s: 2 dzikie drzewce - nowe pole `ProtoChief.minion_kind`, arena przyzywa `spawn_at(p, kind)`).
 - **Grafiki bez generacji:** `tools/forest_art.py` - podłoga `assets/watra/forest_floor.png` (kafelki mchu, liści
