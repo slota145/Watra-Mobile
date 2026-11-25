@@ -253,15 +253,26 @@ func _test_skills(game: Node) -> void:
 	_check(rapier._state == "follow" and hero.form_speed == 1.0, "puszczenie kończy grad")
 	for g in gs:
 		g.queue_free()
-	# Rój Sopli: chmura za plecami strzela soplami w losowych wrogów; walczy się normalnie
+	# Rój Sopli: sople pojawiają się za plecami, tworzą chmurę, potem wylatują po kolei w losowych wrogów
 	await _wait(0.6)
 	gs = await _dummies(arena, [Vector2(80, -30), Vector2(-90, 40)])
 	rapier.reset_cooldowns()
-	_check(rapier.cast("r_swarm") and rapier.cloud_left() > 0.0 and rapier._state == "follow", "Rój Sopli: chmura")
-	await _wait(2.0)
-	_check(rapier.swarm_shots >= 3 and gs[0].hp < gs[0].max_hp and gs[1].hp < gs[1].max_hp,
-			"chmura strzela soplami w losowych wrogów (%d)" % rapier.swarm_shots)
-	await _wait(ProtoRapier.SWARM_TIME)
-	_check(rapier.cloud_left() == 0.0, "chmura znika po czasie")
+	_check(rapier.cast("r_swarm") and rapier.swarm_left() == ProtoRapier.SWARM_COUNT and rapier._state == "follow",
+			"Rój Sopli: %d sopli w chmurze, walczysz dalej" % rapier.swarm_left())
+	await _wait(ProtoRapier.SWARM_FORM)
+	_check(rapier.swarm_shots == 0, "najpierw chmura się formuje")
+	await _wait(ProtoRapier.SWARM_HOLD + ProtoRapier.SWARM_EVERY * ProtoRapier.SWARM_COUNT + 0.3)
+	_check(rapier.swarm_shots == ProtoRapier.SWARM_COUNT and rapier.swarm_left() == 0
+			and gs[0].hp < gs[0].max_hp and gs[1].hp < gs[1].max_hp,
+			"potem wszystkie wylatują po kolei w losowych wrogów (%d)" % rapier.swarm_shots)
+	for g in gs:
+		g.queue_free()
+	await _wait(0.8)
+	rapier.reset_cooldowns()
+	rapier.cast("r_swarm")
+	await _wait(ProtoRapier.SWARM_FORM + ProtoRapier.SWARM_HOLD + 0.5)
+	_check(rapier.swarm_left() == ProtoRapier.SWARM_COUNT, "bez wrogów sople czekają w chmurze")
+	await _wait(ProtoRapier.SWARM_WAIT)
+	_check(rapier.swarm_left() == 0, "po chwili bez wrogów topnieją")
 	arena.queue_free()
 	await process_frame

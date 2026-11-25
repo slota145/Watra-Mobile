@@ -86,7 +86,7 @@ const SUPPORT := {
 			"r_lunge": "Obok ciebie leci lodowe odbicie, które też przebija (%d%% obrażeń).",
 			"r_riposte": "Każda riposta trafia dwa razy (%d%% obrażeń).",
 			"r_flurry": "Każde pchnięcie ma drugie, widmowe obok (%d%% obrażeń).",
-			"r_swarm": "Z każdym soplem wylatuje drugi, w innego wroga (%d%% obrażeń).",
+			"r_swarm": "W chmurze pojawiają się 4 sople więcej (%d%% obrażeń).",
 			"steel_ring": "Krąży o jeden widmowy miecz więcej (%d%% obrażeń).",
 			"k_flash": "Każdy skok tnie też pobliskiego wroga (%d%% obrażeń).",
 		}},

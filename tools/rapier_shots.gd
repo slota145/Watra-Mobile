@@ -3,7 +3,7 @@ extends SceneTree
 ## szronu, krąg Riposty Morozka (z ripostą), Grad Pchnięć z kolcami, Rój Sopli.
 ## Użycie: SCRIPT=tools/rapier_shots.gd tools/screenshot.sh <prefiks> [rozdzielczość jako RESOLUTION]
 ## Pliki: <prefiks>_1_pchniecie.png, _1b_ciecie.png, _2_chlod.png, _3_roztrzaskanie.png, _4_wypad.png, _5_sciezka.png,
-## _6_krag.png, _7_riposta.png, _8_grad.png, _9_roj.png, _10_roj_strzela.png
+## _6_krag.png, _7_riposta.png, _8_grad.png, _9_roj.png, _9b_roj_chmura.png, _10_roj_strzela.png
 
 var _prefix := "/tmp/rapier"
 
@@ -111,6 +111,8 @@ func _run() -> void:
 	rapier.cast("r_swarm")
 	await create_timer(0.3).timeout
 	await _shot("9_roj")
-	await create_timer(0.9).timeout
+	await create_timer(0.4).timeout
+	await _shot("9b_roj_chmura")
+	await create_timer(0.5).timeout
 	await _shot("10_roj_strzela")
 	quit()

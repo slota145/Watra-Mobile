@@ -25,9 +25,11 @@ extends ProtoWeapon
 ##   many (koszt na sekundę), co FLURRY_EVERY s pchnięcie w losowym kierunku stożka; postać idzie wolniej
 ##   (ProtoHero.form_speed); 5. - szybciej, 10. - co piąte lodowy kolec na końcu; kamień unikalny (Gradu) - co
 ##   FLURRY_SPIKE_GEM s lecący kolec w losowego wroga.
-## - „Rój Sopli” (`r_swarm`): chmura lodowych kolców za plecami postaci na SWARM_TIME s (`_cloud`) - co SWARM_EVERY s
-##   sopel w losowego wroga w zasięgu; 5. - chmura dłużej, 10. - po dwa sople; Mnożenie - dodatkowy sopel w innego
-##   wroga; kamień unikalny (Szronowej Mgły) - trafiony sopel rozpryskuje się szronem na wrogów obok.
+## - „Rój Sopli” (`r_swarm`, pomysł autora 25.11.2026): za plecami postaci po kolei pojawia się SWARM_COUNT sopli, które
+##   tworzą falującą chmurę (`_swarm`) i lecą za postacią; po SWARM_FORM + SWARM_HOLD s wylatują po jednym co
+##   SWARM_EVERY s w losowych wrogów w zasięgu (bez wrogów czekają do SWARM_WAIT s); 5. - SWARM_COUNT_PERK sopli,
+##   10. - każdy sopel dokłada 2 znaki chłodu; Mnożenie - SWARM_EXTRA sopli więcej (słabszych); kamień unikalny
+##   (Szronowej Mgły) - trafiony sopel rozpryskuje się szronem na wrogów obok.
 
 const RAPIER_TEXTURE := preload("res://assets/weapons/rapier.png")
 ## Punkt chwytu w obrazku (środek owijki), skala w grze i długość od chwytu do szpica w grze (px).
@@ -129,12 +131,18 @@ const FLURRY_GHOST_TURN := 0.18
 const FLURRY_SPIKE_GEM := 0.3
 const FLURRY_GEM_RANGE := 160.0
 const FLURRY_GEM_POWER := 0.5
-## Rój Sopli: czas (5. poziom), co ile sopel, miejsce chmury za plecami, kamień Szronowej Mgły (zasięg i siła rozprysku).
-const SWARM_TIME := 8.0
-const SWARM_TIME_LONG := 11.0
-const SWARM_EVERY := 0.45
-const CLOUD_BEHIND := 14.0
-const CLOUD_HEIGHT := 34.0
+## Rój Sopli: ile sopli (5. poziom, Mnożenie), formowanie chmury (s), chwila w chmurze przed salwą, co ile sopel
+## wylatuje, ile najdłużej czekają na wrogów, rozmiar chmury (półosie), miejsce za plecami, kamień Szronowej Mgły.
+const SWARM_COUNT := 12
+const SWARM_COUNT_PERK := 16
+const SWARM_EXTRA := 4
+const SWARM_FORM := 0.5
+const SWARM_HOLD := 0.3
+const SWARM_EVERY := 0.1
+const SWARM_WAIT := 4.0
+const SWARM_SIZE := Vector2(24.0, 10.0)
+const CLOUD_BEHIND := 16.0
+const CLOUD_HEIGHT := 46.0
 const SPLASH_RADIUS := 30.0
 const SPLASH_POWER := 0.3
 const SPIKE_RADIUS := 16.0
@@ -156,10 +164,14 @@ var _lunge_free := 0.0
 var _flurry_t := 0.0
 var _flurry_mana_t := 0.0
 var _flurry_gem_t := 0.0
-var _swarm_t := 0.0
-## Krąg riposty ({"node", "at", "radius", "left"}; pusty - brak) i chmura roju ({"node", "left"}).
+## Krąg riposty ({"node", "at", "radius", "left"}; pusty - brak).
 var _circle := {}
-var _cloud := {}
+## Sople roju w chmurze ({"node", "offset", "phase", "power"}), czas od przyzwania, mgiełka pod nimi.
+var _swarm: Array = []
+var _swarm_age := 0.0
+var _swarm_fire := 0.0
+var _swarm_wait := 0.0
+var _swarm_mist: Node2D
 ## Lecące sople ({"node", "dir", "left", "power", "hits", "skill"}) i ścieżki szronu ({"node", "a", "b", "left",
 ## "tick"}).
 var _icicles: Array = []
@@ -183,7 +195,7 @@ func _ready() -> void:
 
 
 func _world_fx() -> Array:
-	return super._world_fx() + [_icicles, _paths, _circle, _cloud]
+	return super._world_fx() + [_icicles, _paths, _circle, _swarm, [_swarm_mist]]
 
 
 func _exit_tree() -> void:
@@ -213,7 +225,7 @@ func _process(delta: float) -> void:
 		if _lunge_free <= 0.0:  # Zamieć: czas na darmowy wypad minął - zwykłe odnowienie
 			_cd["r_lunge"] = maxf(cooldown_full("r_lunge") - LUNGE_FREE_TIME, 0.0)
 	_process_circle(delta)
-	_process_cloud(delta)
+	_process_swarm(delta)
 	_process_icicles(delta)
 	_process_paths(delta)
 
@@ -433,15 +445,20 @@ func _slash_hit() -> void:
 
 # --- Sople (kamień Sopli, Riposta, Grad, Rój) ---
 
-func _launch_icicle(from: Vector2, dir: Vector2, power: float, skill: String, distance := ICICLE_RANGE) -> void:
-	var node := Fx.loop(get_parent(), ICICLE_FX, ICICLE_FRAMES, 12.0, Vector2.ZERO, ICICLE_ANCHOR, 21)
+## Sopel lecący z `from` w kierunku `dir` (`node` - gotowy sopel z chmury roju; bez niego nowy).
+func _launch_icicle(from: Vector2, dir: Vector2, power: float, skill: String, distance := ICICLE_RANGE,
+		node: Node2D = null) -> void:
+	if node == null:
+		node = Fx.loop(get_parent(), ICICLE_FX, ICICLE_FRAMES, 12.0, Vector2.ZERO, ICICLE_ANCHOR, 21)
+	node.scale = Vector2.ONE
 	node.rotation = dir.angle()
 	node.global_position = from
 	_icicles.append({"node": node, "dir": dir, "left": distance, "power": power, "hits": [], "skill": skill})
 
 
 ## Sopel w losowego wroga w zasięgu `reach` od `from` (poza `skip`). Zwraca wroga, w którego leci (null - brak wrogów).
-func _icicle_at_random(from: Vector2, reach: float, power: float, skill: String, skip: Array = []) -> ProtoTarget:
+func _icicle_at_random(from: Vector2, reach: float, power: float, skill: String, skip: Array = [],
+		node: Node2D = null) -> ProtoTarget:
 	var near: Array = []
 	for t in _near(from, reach):
 		if not skip.has(t):
@@ -450,7 +467,7 @@ func _icicle_at_random(from: Vector2, reach: float, power: float, skill: String,
 		return null
 	var t: ProtoTarget = near.pick_random()
 	var to := t.center() - from
-	_launch_icicle(from, to.normalized(), power, skill, to.length() + 40.0)
+	_launch_icicle(from, to.normalized(), power, skill, to.length() + 40.0, node)
 	return t
 
 
@@ -465,8 +482,11 @@ func _process_icicles(delta: float) -> void:
 			ic.hits.append(t)
 			_hit(t, ic.power, a, ic.skill)
 			_hit_fx(t.center())
-			if ic.skill == "r_swarm" and _unique("r_swarm"):
-				_frost_splash(t, ic.power)
+			if ic.skill == "r_swarm":
+				if _perk("r_swarm", 1):
+					t.chill()  # 10. poziom: drugi znak chłodu
+				if _unique("r_swarm"):
+					_frost_splash(t, ic.power)
 		if ic.left <= 0.0:
 			node.queue_free()
 			_icicles.erase(ic)
@@ -535,7 +555,7 @@ func _start(id: String) -> void:
 			hero.form_speed = FLURRY_WALK
 			_set_state("r_flurry")
 		"r_swarm":
-			_summon_cloud()
+			_summon_swarm()
 	skill_used.emit(id)
 
 
@@ -800,50 +820,102 @@ func _flurry_thrust(reach: float) -> void:
 
 # --- Rój Sopli ---
 
-## Miejsce chmury: za plecami postaci, nad jej głową.
+## Środek chmury: za plecami postaci, nad jej głową.
 func _cloud_spot() -> Vector2:
 	var back := -hero.facing.normalized() if hero.facing.length() > 0.1 else Vector2.LEFT
 	return hero.global_position + back * CLOUD_BEHIND + Vector2(0, -CLOUD_HEIGHT)
 
 
-func _summon_cloud() -> void:
-	if not _cloud.is_empty() and is_instance_valid(_cloud.node):
-		_cloud.node.queue_free()
-	var node := Fx.loop(get_parent(), CLOUD_FX, CLOUD_FRAMES, 10.0, Vector2.ZERO, CLOUD_ANCHOR, 22)
-	node.global_position = _cloud_spot()
-	_cloud = {"node": node, "left": SWARM_TIME_LONG if _perk("r_swarm", 0) else SWARM_TIME}
-	_swarm_t = 0.15
+## Przyzwanie: sople pojawiają się po kolei w losowych miejscach chmury (stary rój wylatuje od razu - zostaje w grze).
+func _summon_swarm() -> void:
+	_clear_swarm()
+	var count := SWARM_COUNT_PERK if _perk("r_swarm", 0) else SWARM_COUNT
+	var extra := gem_power("r_swarm", "multi") / 100.0
+	var total := count + (SWARM_EXTRA if extra > 0.0 else 0)
+	var center := _cloud_spot()
+	_swarm_mist = Fx.loop(get_parent(), CLOUD_FX, CLOUD_FRAMES, 10.0, Vector2.ZERO, CLOUD_ANCHOR, 20)
+	_swarm_mist.global_position = center
+	_swarm_mist.modulate.a = 0.0
+	for i in total:
+		var node := Fx.loop(get_parent(), ICICLE_FX, ICICLE_FRAMES, 12.0, Vector2.ZERO, ICICLE_ANCHOR, 21)
+		var a := randf() * TAU
+		var offset := Vector2(cos(a), sin(a)) * SWARM_SIZE * sqrt(randf())
+		node.global_position = center + offset
+		node.scale = Vector2.ZERO
+		node.rotation = PI / 2.0 + randf_range(-0.5, 0.5)  # szpicem w dół, w różne strony
+		_swarm.append({"node": node, "offset": offset, "phase": randf() * TAU, "born": SWARM_FORM * i / total,
+				"power": _power("r_swarm") * (extra if i >= count else 1.0)})
+	_swarm_age = 0.0
+	_swarm_fire = 0.0
+	_swarm_wait = 0.0
 
 
-func _process_cloud(delta: float) -> void:
-	if _cloud.is_empty():
+func _clear_swarm() -> void:
+	for sw in _swarm:
+		if is_instance_valid(sw.node):
+			sw.node.queue_free()
+	_swarm.clear()
+	if _swarm_mist and is_instance_valid(_swarm_mist):
+		_swarm_mist.queue_free()
+	_swarm_mist = null
+
+
+func _process_swarm(delta: float) -> void:
+	if _swarm.is_empty():
+		if _swarm_mist and is_instance_valid(_swarm_mist):
+			_swarm_mist.modulate.a -= delta * 3.0
+			if _swarm_mist.modulate.a <= 0.0:
+				_clear_swarm()
 		return
-	_cloud.left -= delta
-	var node: Node2D = _cloud.node
-	node.global_position = node.global_position.lerp(_cloud_spot(), 1.0 - exp(-6.0 * delta))
-	node.modulate.a = clampf(_cloud.left / 0.5, 0.0, 1.0)
-	_swarm_t -= delta
-	if _swarm_t <= 0.0 and not hero.dead:
-		_swarm_t = SWARM_EVERY
-		var reach: float = Skills.DATA.r_swarm.range * _area("r_swarm")
-		var power := _power("r_swarm")
-		var used: Array = []
-		for i in (2 if _perk("r_swarm", 1) else 1):
-			var t := _icicle_at_random(node.global_position, reach, power, "r_swarm", used)
-			if t:
-				used.append(t)
-				swarm_shots += 1
-		var extra := gem_power("r_swarm", "multi") / 100.0
-		if extra > 0.0 and not used.is_empty():
-			_icicle_at_random(node.global_position, reach, power * extra, "r_swarm", used)
-	if _cloud.left <= 0.0:
-		node.queue_free()
-		_cloud = {}
+	_swarm_age += delta
+	var center := _cloud_spot()
+	if _swarm_mist and is_instance_valid(_swarm_mist):
+		_swarm_mist.global_position = _swarm_mist.global_position.lerp(center, 1.0 - exp(-6.0 * delta))
+		_swarm_mist.modulate.a = minf(_swarm_mist.modulate.a + delta * 2.0, 0.55)
+	# sople obracają się szpicem do najbliższego wroga (bez wrogów - w dół), zanim wylecą
+	var aim := PI / 2.0
+	var foe := _nearest_to(center, Skills.DATA.r_swarm.range * _area("r_swarm"))
+	if foe:
+		aim = (foe.center() - center).angle()
+	for sw in _swarm:  # chmura faluje i płynie za postacią; nowe sople rosną z punktu
+		var node: Node2D = sw.node
+		node.rotation = lerp_angle(node.rotation, aim + sin(sw.phase) * 0.25, 1.0 - exp(-5.0 * delta))
+		var bob := Vector2(sin(_swarm_age * 2.0 + sw.phase) * 1.5, sin(_swarm_age * 3.0 + sw.phase) * 2.0)
+		node.global_position = node.global_position.lerp(center + sw.offset + bob, 1.0 - exp(-8.0 * delta))
+		node.scale = Vector2.ONE * clampf((_swarm_age - sw.born) / 0.15, 0.0, 1.0)
+	if _swarm_age < SWARM_FORM + SWARM_HOLD or hero.dead:
+		return
+	# salwa: kolejny sopel co SWARM_EVERY, w losowego wroga w zasięgu; bez wrogów czekają (najwyżej SWARM_WAIT s)
+	_swarm_fire -= delta
+	var reach: float = Skills.DATA.r_swarm.range * _area("r_swarm")
+	while _swarm_fire <= 0.0 and not _swarm.is_empty():
+		var sw: Dictionary = _swarm[0]
+		if _icicle_at_random((sw.node as Node2D).global_position, reach, sw.power, "r_swarm", [], sw.node) == null:
+			_swarm_fire = 0.0
+			_swarm_wait += delta
+			if _swarm_wait > SWARM_WAIT:  # nikt się nie pojawił - sople topnieją
+				_clear_swarm()
+			return
+		_swarm.pop_front()
+		swarm_shots += 1
+		_swarm_fire += SWARM_EVERY
 
 
-## Ile sekund zostało chmurze (0 - brak; testy).
-func cloud_left() -> float:
-	return 0.0 if _cloud.is_empty() else float(_cloud.left)
+## Najbliższy wróg od punktu `at` w zasięgu `reach` (null - brak).
+func _nearest_to(at: Vector2, reach: float) -> ProtoTarget:
+	var best: ProtoTarget = null
+	var best_d := reach
+	for t in _near(at, reach):
+		var d := at.distance_to(t.global_position)
+		if d <= best_d:
+			best = t
+			best_d = d
+	return best
+
+
+## Ile sopli czeka w chmurze roju (testy).
+func swarm_left() -> int:
+	return _swarm.size()
 
 
 ## Ścieżka szronu wypadu: szeroki, bladobłękitny pas z białymi kryształkami.

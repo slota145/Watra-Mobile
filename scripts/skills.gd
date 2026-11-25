@@ -106,11 +106,11 @@ const DATA := {
 		"charge": true,
 		"description": "Przytrzymaj: dopóki trzymasz przycisk i starcza many, rapier zasypuje stożek przed tobą seriami błyskawicznych pchnięć, a każde dokłada chłodu. Idziesz wtedy wolniej. Mana co sekundę. Nie może stać pod dużym przyciskiem.",
 	},
-	# Rój Sopli (decyzja autora 25.11.2026 - zamiast Lodowego Kwiatu): chmura za postacią na czas.
+	# Rój Sopli (decyzja autora 25.11.2026 - zamiast Lodowego Kwiatu): chmura sopli za postacią, potem salwa.
 	"r_swarm": {
 		"name": "Rój Sopli", "icon": preload("res://assets/skills/rapier/r_swarm.png"),
-		"mana": 34, "cooldown": 14.0, "weapon": "rapier", "mastery": 15, "main": false, "range": 180.0, "power": 0.7,
-		"description": "Przyzywasz za plecami chmurę lodowych kolców na 8 s: co chwilę wylatuje z niej sopel w losowego wroga w pobliżu, przebija i schładza. Walczysz przy tym normalnie. Nie może stać pod dużym przyciskiem.",
+		"mana": 30, "cooldown": 8.0, "weapon": "rapier", "mastery": 15, "main": false, "range": 180.0, "power": 0.7,
+		"description": "Za twoimi plecami pojawia się 12 sopli, które tworzą chmurę i lecą za tobą, a po chwili wylatują jeden po drugim w losowych wrogów w pobliżu - przebijają i schładzają. Gdy nie ma wrogów, czekają do 4 s. Walczysz przy tym normalnie. Nie może stać pod dużym przyciskiem.",
 	},
 	"m_quake": {
 		"name": "Trzęsienie ziemi", "icon": preload("res://assets/skills/hammer/m_quake.png"),
@@ -319,7 +319,7 @@ const PERKS := {
 	"r_lunge": ["Ścieżka szronu leży 4 s zamiast 2.", "Przy wrogu wybucha mróz (60% siły, 2 znaki chłodu)."],
 	"r_riposte": ["Krąg trwa 9 s zamiast 6.", "Każda riposta wystrzeliwuje też sopel w najbliższego wroga (60% siły)."],
 	"r_flurry": ["Pchnięcia o 25% szybsze.", "Co piąte pchnięcie - lodowy kolec na końcu stożka (60% siły)."],
-	"r_swarm": ["Chmura trwa 11 s zamiast 8.", "Wylatują po dwa sople naraz."],
+	"r_swarm": ["16 sopli zamiast 12.", "Każdy sopel dokłada 2 znaki chłodu zamiast jednego."],
 	"g_thrust": ["Podpalenie dwa razy silniejsze.", "Co trzecie pchnięcie dźga dwa razy."],
 	"g_sweep": ["Zamach odpycha wrogów.", "Zaraz po nim drugi zamach w drugą stronę."],
 	"g_trail": ["Bruzda płonie 5 s zamiast 3.", "5 cięć zamiast 3."],

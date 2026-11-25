@@ -19,6 +19,11 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   34 many, 14 s odnowienia, chmura za plecami (`_Cloud`, `_cloud_spot`) na 8 s (5. - 11 s), co 0,45 s sopel w losowego
   wroga do 180 px (10. - dwa); Mnożenie - dodatkowy sopel; Kamień Szronowej Mgły - rozprysk szronu (30% i 2 znaki
   chłodu na wrogów obok). Ikona `icon_swarm` w `tools/rapier_icons.py`.
+- **Rój Sopli jako prawdziwa chmura sopli** (pomysł autora 25.11.2026, liczby - Claude): za plecami postaci po kolei
+  (0,5 s) pojawia się 12 sopli (5. poziom - 16, Mnożenie - +4 słabsze) w falującej chmurze 24x10 px, 46 px nad ziemią,
+  która płynie za postacią; sople obracają się szpicem do najbliższego wroga, po 0,3 s wylatują po jednym co 0,1 s
+  w losowych wrogów do 180 px (`_swarm`, `_process_swarm`, ten sam węzeł sopla leci dalej - `_launch_icicle(node)`);
+  bez wrogów czekają do 4 s i topnieją. 10. poziom - 2 znaki chłodu na sopel. 30 many, 8 s odnowienia.
 - **Nowe efekty z kreatora** (darmowy `vfx_workbench`, zapisane w „My effects” autora jako „Lodowy rapier - …”;
   `pixellab_src/vfx/ids.json`): `rapier_thrust2` (pchnięcie), `rapier_slash` (cięcie 120°), `rapier_hit2` (trafienie),
   `rapier_lunge` (smuga wypadu), `riposte_circle` (krąg riposty, pętla), `riposte_flash` (błysk riposty), `icicle`
