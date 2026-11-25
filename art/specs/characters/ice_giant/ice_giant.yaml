@@ -1,0 +1,322 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: ice_giant
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.32, 0]}
+palette: "watra"
+size: 80
+extends: humanoid   # the template's skeleton only; head, hair, sword, coat, belt and neck removed
+
+# Lodowy olbrzym: silny wróg lochu „Lodowe jaskinie” (duchy zimy). Masywny, mocno przygarbiony olbrzym z brył
+# niebieskiego lodu i ośnieżonej skały (ok. 44 px wobec 36 px człowieka, ta sama camera.scale, jak żużlowy golem):
+# lodowy tułów i ręce, ośnieżone głazy na barkach i garbie, z których wyrastają jasne kryształy lodu, ogromne
+# pięści z lodowych brył, krótkie skalne nogi, mała głowa wysunięta do przodu pod garbem, małe jasnoniebieskie
+# świecące oczy i słabo świecące zimne jądro w piersi. Wolny czołg; uderza obiema pięściami w ziemię.
+# Cała postać rośnie przez kość `big` (1.75) pod `root`, jak żużlowy golem; przy śmierci rozpada się na bryły lodu.
+brief:
+  summary: >
+    ice giant of the ice caves: a hulking, hunched, slow tank of blue ice and snow-covered rock. About 44 px tall
+    against a 36 px human (same density) and very broad: a translucent-looking blue ice body and arms, snow-capped
+    rock boulders on the shoulders and a big hump on the back, pale ice crystals jutting up from the shoulders and
+    the spine, huge ice-block fists hanging low (gorilla-like), short thick dark rock legs
+  head: >
+    no face but the eyes: a small rounded ice-and-rock head pushed forward and low under the hump, with a snowy
+    brow ridge; two tiny glowing pale-blue eyes under the brow (the face, minimal style)
+  must_keep:
+    - the crystals - pale, almost white ice spikes on both shoulders and along the back, the silhouette's signature
+      (the slag golem has smooth boulders; the giant has a jagged crowned back)
+    - the hunch - the head is low and forward, the back hump is the highest mass
+    - the mass - the shoulders and the fists are the widest shapes; the fists are bigger than the head
+    - the cold glow - small bright eyes and a faint core in the chest; death puts them out
+    - death shatters him into a scatter of ice chunks
+  simplify:
+    - no fingers: each fist is one ice block with a knuckle ridge and two small crystal studs
+    - snow is painted on the top of the boulders and the head, not separate geometry
+  decisions:
+    - the whole body grows through the bone `big` (1.75); IK lengths are world units, set by hand (as the golem)
+    - torso leaned forward 0.32 at rest (the golem 0.16); the head bone compensates so the face looks ahead
+    - the channel `glow` drives the eyes and the core (idle breathing pulses it, death to 0); `shards` grows the ice chunks of
+      the death pile
+    - attack - both fists high over the head (held, the game's red circle shows meanwhile), one fast smear frame,
+      then the fists hit the ground in front (`hit`, socket `impact` between the fists on the ground)
+    - frame 80 px, camera.center y 1.32 (raised fists and the back crystals fit)
+
+ramps:
+  # body ice: deep navy to pale cyan
+  ice:     ["#060a16", "#14284a", "#21497a", "#3477ab", "#64aad6", "#a9dcf2"]
+  # crystals: brighter, whiter ice (they must read against the body)
+  crystal: ["#0b1e33", "#2a6a9a", "#4fa3d2", "#8fd4f0", "#cdf1fb", "#ffffff"]
+  # snow on top of the rock
+  snow:    ["#0e1220", "#4a5670", "#8090a8", "#b3c0d2", "#dde6f0", "#f6f9fc"]
+  # frozen rock: cold blue-grey
+  rock:    ["#06070b", "#191d27", "#2a303c", "#3e4655", "#57606f", "#727c8b"]
+  # cold glow: eyes and core
+  frost:   ["#081c30", "#1f6aa8", "#4cb8f0", "#9fe6ff", "#e2faff", "#ffffff"]
+  # the slam's smear: icy
+  fx_tail: ["#3477ab"]
+  fx_mid:  ["#9fe6ff"]
+  fx_core: ["#ffffff"]
+
+materials:
+  ice:     {ramp: ice, finish: glossy, gamma: 0.95}
+  crystal: {ramp: crystal, finish: glossy, crease: true, edge_highlight: true}
+  snow:    {ramp: snow, finish: matte, bands: [1, 5]}
+  rock:    {ramp: rock, finish: matte, crease: true, edge_highlight: true, gamma: 0.9}
+  core:    {ramp: frost, emissive: true, band: 3, outline: false, glow: {color: "#4cb8f0", mix: 0.25, radius: 1}}
+  core_hot: {ramp: frost, emissive: true, band: 5, outline: false}
+  eye:     {ramp: frost, emissive: true, band: 3, outline: false, glow: {color: "#9fe6ff", mix: 0.35, radius: 1}}
+
+remove: [use.sword, use.head, use.hair, parts.belt, parts.coat, parts.neck]
+
+shadow: {rx: 24, ry: 8, alpha: 130}
+snap: [root, torso_rot]   # whole-pixel body motion: the slow heavy breathing does not boil
+
+channels:
+  hand_L: [0.50, -0.20, 0.16]
+  hand_R: [0.50, -0.20, 0.16]
+  foot_L: [0.18, 0, 0.02]
+  glow: 1        # eyes and the chest core (idle pulses it, death puts it out)
+  shards: 0      # death: the ice chunks round his feet
+  crumble: 0     # death: the shoulder boulders and the hump break down (shrink)
+  crown: 1       # length of the shoulder and spine crystals (death breaks them off)
+  smear_r: 0.55
+  smear_y: 0.55
+  smear_z: 0.35
+
+bones:
+  big:        {parent: root, scale: 1.75}
+  torso_rot:  {parent: big, pos: "[0, 0.61 + bob, 0]", rot: "[lean + 0.32, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  fxspace:    {parent: big}
+  headbase:   {pos: [0, 0.40, 0.28], scale: 1.75, rot: "[lean*0.5 - 0.30, twist, roll]"}
+  head:       {scale: "1.0 - 0.55*crumble"}
+  shoulder_L: {pos: [0.39, 0.38, 0.02]}
+  hip_L:      {pos: [0.16, -0.02, 0.0]}
+
+ik:   # world units (not scaled by `big`)
+  arm_L: {lengths: [0.66, 0.62], pole: [0.4, 0.0, -1.0]}
+  leg_L: {space: big, lengths: [0.49, 0.47]}
+
+parts:
+  torso:           # ice belly and chest, a rock hump on the back
+    material: ice
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.03, 0.03], r: [0.23, 0.16, 0.19]}
+      - ellipsoid: {c: [0, 0.25, 0.06], r: [0.30, 0.17, 0.21]}
+      - ellipsoid: {c: [0, 0.38, -0.02], r: [0.36, 0.12, 0.21]}
+    paint:
+      - material: core
+        prims:
+          - sphere: {c: [0, 0.08, 0.215], r: "0.07*glow"}
+      - material: core_hot
+        prims:
+          - sphere: {c: [0, 0.08, 0.225], r: "0.032*glow"}
+  hump:            # the snow-capped rock hump behind the head
+    material: rock
+    space: pelvis
+    blend: {mode: chamfer, k: 0.04}
+    prims:
+      - box: {c: [0, 0.42, -0.14], half: "[0.24, 0.13, 0.15]*(1 - 0.4*crumble)", rot: [-0.3, 0, 0], round: 0.06}
+      - box: {c: [0.06, 0.28, -0.20], half: "[0.18, 0.12, 0.10]*(1 - 0.4*crumble)", rot: [-0.1, 0.3, 0.1], round: 0.05}
+    paint:
+      - material: snow
+        prims:
+          - box: {c: [0, 0.62, -0.14], half: [0.5, 0.10, 0.5]}
+  pauldron_L:      # a big snow-capped boulder on the shoulder
+    material: rock
+    space: pelvis
+    blend: {mode: chamfer, k: 0.04}
+    prims:
+      - box: {c: [0.37, 0.45, 0.0], half: "[0.16, 0.12, 0.17]*(1 - 0.75*crumble)", rot: [0.15, 0.3, -0.35], round: 0.06}
+    paint:
+      - material: snow
+        prims:
+          - box: {c: [0.37, 0.62, 0.0], half: [0.4, 0.10, 0.4], rot: [0, 0, -0.35]}
+  crystals_L:      # pale ice spikes jutting from the shoulder boulder (outwards, up, back)
+    material: crystal
+    space: pelvis
+    blend: 0.01
+    priority: 2
+    min_cover: 2
+    prims:
+      - cone: {a: [0.40, 0.52, -0.02], b: "[0.40, 0.52, -0.02] + [0.12, 0.34, -0.08]*crown", r: [0.065, 0.012]}
+      - cone: {a: [0.30, 0.52, -0.08], b: "[0.30, 0.52, -0.08] + [0.0, 0.24, -0.14]*crown", r: [0.050, 0.010]}
+      - cone: {a: [0.47, 0.48, 0.06], b: "[0.47, 0.48, 0.06] + [0.15, 0.16, 0.0]*crown", r: [0.040, 0.008]}
+  spine_crystals:  # the crown of spikes along the back hump
+    material: crystal
+    space: pelvis
+    blend: 0.01
+    priority: 2
+    min_cover: 2
+    prims:
+      - cone: {a: [0.0, 0.50, -0.16], b: "[0.0, 0.50, -0.16] + [0.0, 0.42, -0.14]*crown", r: [0.075, 0.014]}
+      - cone: {a: [0.12, 0.46, -0.20], b: "[0.12, 0.46, -0.20] + [0.08, 0.3, -0.18]*crown", r: [0.055, 0.010]}
+      - cone: {a: [-0.12, 0.46, -0.20], b: "[-0.12, 0.46, -0.20] + [-0.08, 0.32, -0.16]*crown", r: [0.055, 0.010]}
+      - cone: {a: [0.0, 0.32, -0.26], b: "[0.0, 0.32, -0.26] + [0.04, 0.22, -0.24]*crown", r: [0.050, 0.010]}
+  head:            # a small rounded rock head, pushed forward under the hump, snowy brow
+    material: rock
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0.02], r: [0.125, 0.10, 0.11]}
+      - box: {c: [0, 0.135, 0.08], half: [0.13, 0.035, 0.06], rot: [-0.2, 0, 0], round: 0.025}
+    paint:
+      - material: snow
+        prims:
+          - box: {c: [0, 0.23, 0.0], half: [0.3, 0.07, 0.3]}
+  eye_L:           # a tiny glowing eye under the brow
+    material: eye
+    space: head
+    when: "glow > 0.35"
+    prims:
+      - sphere: {c: [0.055, 0.09, 0.11], r: 0.027}
+  arm_L:           # huge ice arms (in `big` space, the radii grow with it); the forearm thickens to the fist
+    material: ice
+    space: big
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: "0.11*(1 - 0.3*crumble)"}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: "[0.11, 0.08]*(1 - 0.3*crumble)"}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: "[0.08, 0.10]*(1 - 0.3*crumble)"}
+  hand_L:          # an ice-block fist with a knuckle ridge and two small crystal studs (world units)
+    material: ice
+    space: wrist_L
+    blend: {mode: chamfer, k: 0.04}
+    prims:
+      - box: {c: [0, 0, 0.21], half: "[0.26, 0.24, 0.23]*(1 - 0.45*crumble)", rot: [0.2, 0.3, 0.1], round: 0.09}
+      - box: {c: [0, -0.02, 0.40], half: "[0.23, 0.18, 0.08]*(1 - 0.45*crumble)", rot: [0, 0, 0.0], round: 0.05}
+  knuckles_L:      # crystal studs on the back of the fist
+    material: crystal
+    space: wrist_L
+    priority: 2
+    prims:
+      - cone: {a: [0.08, 0.16, 0.24], b: [0.12, 0.36, 0.20], r: [0.07, 0.015]}
+      - cone: {a: [-0.10, 0.16, 0.18], b: [-0.14, 0.32, 0.10], r: [0.06, 0.012]}
+  leg_L:           # short thick rock legs
+    material: rock
+    space: big
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.15, 0.13]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.12, 0.13]}
+  boot_L:          # a heavy flat rock foot, snow on top
+    material: rock
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.05], r: [0.13, 0.06, 0.16]}
+  shards:          # death: ice chunks over the collapsed body and around it (sizes grow with `shards`)
+    material: ice
+    space: big
+    when: "shards > 0.02"
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.10, 0.10], half: "[0.26, 0.14, 0.24]*shards", rot: [0.2, 0.4, 0.1], round: 0.04}
+      - box: {c: [0.38, 0.07, 0.30], half: "[0.12, 0.08, 0.11]*shards", rot: [0.2, 0.5, 0.1], round: 0.02}
+      - box: {c: [-0.42, 0.06, 0.16], half: "[0.12, 0.08, 0.12]*shards", rot: [0.1, -0.4, 0.2], round: 0.02}
+      - box: {c: [0.08, 0.07, 0.42], half: "[0.12, 0.08, 0.10]*shards", rot: [0.3, 0.8, 0.0], round: 0.02}
+      - box: {c: [-0.26, 0.06, 0.36], half: "[0.10, 0.07, 0.09]*shards", rot: [0.0, 0.3, 0.3], round: 0.02}
+      - box: {c: [0.34, 0.06, -0.20], half: "[0.11, 0.07, 0.10]*shards", rot: [0.2, 1.1, 0.0], round: 0.02}
+      - box: {c: [-0.32, 0.06, -0.18], half: "[0.11, 0.08, 0.10]*shards", rot: [0.1, 0.6, 0.2], round: 0.02}
+      - box: {c: [0.18, 0.20, 0.24], half: "[0.13, 0.14, 0.12]*shards", rot: [0.3, -0.4, 0.2], round: 0.02}
+      - box: {c: [-0.18, 0.19, 0.25], half: "[0.13, 0.13, 0.12]*shards", rot: [0.2, 0.5, -0.2], round: 0.02}
+  shard_spikes:    # death: crystal shards sticking out of the pile
+    material: crystal
+    space: big
+    when: "shards > 0.02"
+    priority: 2
+    prims:
+      - cone: {a: [0.05, 0.12, 0.05], b: "[0.05, 0.12, 0.05] + [0.06, 0.34, -0.10]*shards", r: [0.06, 0.01]}
+      - cone: {a: [-0.18, 0.08, 0.20], b: "[-0.18, 0.08, 0.20] + [-0.16, 0.24, 0.06]*shards", r: [0.05, 0.01]}
+      - cone: {a: [0.26, 0.06, 0.14], b: "[0.26, 0.06, 0.14] + [0.18, 0.20, 0.08]*shards", r: [0.045, 0.01]}
+
+sockets:
+  impact: {bone: big, offset: [0, 0.02, 0.64]}   # the ground in front where the fists land (the slam's frost burst)
+  fist_L: {bone: wrist_L, offset: [0, 0, 0.21]}
+  core:   {bone: pelvis, offset: [0, 0.08, 0.215]}
+
+animations:
+  # heavy breathing: the hunched back heaves, the fists sway a little, the eyes and core pulse
+  idle:
+    frames: 8
+    ms: 160
+    channels:
+      bob: "0.03*sin(p)"
+      squash: "1 + 0.025*sin(p)"
+      lean: "0.05 - 0.03*sin(p)"
+      head_pitch: "0.06*sin(p - 0.8)"
+      glow: "1.0 + 0.25*sin(p)"
+      hand_L: "[0.50, -0.20 + 0.03*sin(p - 0.6), 0.16]"
+      hand_R: "[0.50, -0.20 + 0.03*sin(p - 0.6), 0.16]"
+  walk:
+    frames: 8
+    ms: 140
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: "0.08 + 0.03*cos(2*p)"
+      bob: "-0.05*cos(2*p) - 0.01"
+      squash: "1 - 0.035*cos(2*p)"
+      twist: "0.10*cos(p)"
+      roll: "0.07*sin(p)"
+      head_yaw: "-0.06*cos(p)"
+      foot_L: "[0.18, 0.08*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.22 - 0.44*clamp(p/tau/0.5, 0, 1) + 0.44*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.18, 0.08*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.22 - 0.44*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.44*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      pitch_foot_L: "0.25*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
+      pitch_foot_R: "0.25*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
+      hand_L: "[0.50, -0.19 + 0.04*pos(cos(p)), 0.16 - 0.16*cos(p)]"
+      hand_R: "[0.50, -0.19 + 0.04*pos(-cos(p)), 0.16 + 0.16*cos(p)]"
+  # both fists raised high over the head (held: the game's warning circle), one fast smear frame, the fists
+  # slam the ground in front (`hit`), a short hold, a slow recovery
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {lean: 0.20, bob: -0.06, squash: 0.93, head_pitch: 0.08,
+          hand_L: [0.26, -0.14, 0.34], hand_R: [0.26, -0.14, 0.34]}}
+      - {ms: 150, set: {lean: -0.05, bob: 0.0, squash: 1.0, head_pitch: -0.05, glow: 1.2,
+          hand_L: [0.26, 0.40, 0.28], hand_R: [0.26, 0.40, 0.28], foot_L: [0.19, 0, 0.10], foot_R: [0.19, 0, -0.05]}}
+      - {ms: 210, set: {lean: -0.30, bob: 0.03, squash: 1.05, head_pitch: -0.14, glow: 1.35,
+          hand_L: [0.18, 0.86, 0.06], hand_R: [0.18, 0.86, 0.06], foot_L: [0.19, 0, 0.12], foot_R: [0.19, 0, -0.06]}}
+      - {ms: 200, set: {lean: -0.35, bob: 0.04, squash: 1.07, head_pitch: -0.17, glow: 1.45,
+          hand_L: [0.16, 0.92, 0.0], hand_R: [0.16, 0.92, 0.0], foot_L: [0.19, 0, 0.12], foot_R: [0.19, 0, -0.06]}}
+      - {ms: 60, set: {lean: 0.12, bob: -0.02, squash: 1.0, head_pitch: 0.05, glow: 1.4,
+          hand_L: [0.14, 0.45, 0.54], hand_R: [0.14, 0.45, 0.54], foot_L: [0.19, 0, 0.16], foot_R: [0.19, 0, -0.07],
+          smear_w: 0.12, smear_a0: 2.0, smear_a1: 0.7}}
+      - {ms: 90, event: hit, set: {root: [0, 0, 0.05], lean: 0.50, bob: -0.12, squash: 0.88, head_pitch: 0.12, glow: 1.6,
+          hand_L: [0.14, 0.12, 0.52], hand_R: [0.14, 0.12, 0.52], foot_L: [0.19, 0, 0.20], foot_R: [0.19, 0, -0.08],
+          smear_w: 0.10, smear_a0: 1.0, smear_a1: -0.6, smear_fade: 0.6}}
+      - {ms: 130, set: {root: [0, 0, 0.05], lean: 0.47, bob: -0.11, squash: 0.91, head_pitch: 0.10, glow: 1.3,
+          hand_L: [0.14, 0.13, 0.52], hand_R: [0.14, 0.13, 0.52], foot_L: [0.19, 0, 0.20], foot_R: [0.19, 0, -0.08]}}
+      - {ms: 140, set: {root: [0, 0, 0.03], lean: 0.22, bob: -0.04, squash: 0.97, glow: 1.1,
+          hand_L: [0.34, -0.28, 0.36], hand_R: [0.34, -0.28, 0.36], foot_L: [0.19, 0, 0.08]}}
+  # hit: barely flinches - the body jolts back about a pixel, the eyes and core flare
+  hit:
+    loop: false
+    keys:
+      - {ms: 80, set: {root: [0, 0, -0.025], lean: -0.06, bob: -0.02, squash: 0.97, head_pitch: -0.12, glow: 1.6,
+          hand_L: [0.46, -0.30, 0.12], hand_R: [0.46, -0.30, 0.12]}}
+      - {ms: 80, set: {root: [0, 0, -0.015], lean: -0.02, bob: -0.01, squash: 0.99, head_pitch: -0.05, glow: 1.3,
+          hand_L: [0.45, -0.32, 0.14], hand_R: [0.45, -0.32, 0.14]}}
+      - {ms: 80, set: {lean: 0.05, head_pitch: 0.02}}
+  # death: struck back, the knees buckle, he sags forward and shatters into a pile of ice chunks; the glow dies
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.03], lean: -0.18, bob: -0.02, squash: 0.96, head_pitch: -0.2, glow: 1.5,
+          hand_L: [0.56, -0.12, 0.06], hand_R: [0.56, -0.12, 0.06]}}
+      - {ms: 150, set: {root: [0, 0, -0.03], lean: 0.22, bob: -0.14, squash: 0.94, head_pitch: 0.25, glow: 0.8,
+          hand_L: [0.56, -0.10, 0.16], hand_R: [0.56, -0.10, 0.16], foot_L: [0.21, 0, 0.06], foot_R: [0.21, 0, 0.0]}}
+      - {ms: 140, set: {lean: 0.35, bob: -0.28, squash: 0.85, head_pitch: 0.35, glow: 0.5, shards: 0.35, crown: 0.75, crumble: 0.2,
+          hand_L: [0.48, -0.06, 0.26], hand_R: [0.48, -0.06, 0.26], foot_L: [0.25, 0, 0.10], foot_R: [0.25, 0, 0.06]}}
+      - {ms: 120, set: {lean: 0.30, bob: -0.36, squash: 0.66, head_pitch: 0.45, glow: 0.25, shards: 0.75, crown: 0.4, crumble: 0.55,
+          hand_L: [0.47, 0.04, 0.30], hand_R: [0.47, 0.04, 0.30], foot_L: [0.27, 0, 0.12], foot_R: [0.27, 0, 0.08]}}
+      - {ms: 120, set: {lean: 0.12, bob: -0.46, squash: 0.48, head_pitch: 0.5, glow: 0.0, shards: 1.08, crown: 0.25, crumble: 0.9,
+          hand_L: [0.44, 0.14, 0.26], hand_R: [0.44, 0.14, 0.26], foot_L: [0.27, 0, 0.10], foot_R: [0.27, 0, 0.06]}}
+      - {ms: 150, set: {lean: 0.08, bob: -0.48, squash: 0.46, head_pitch: 0.5, glow: 0.0, shards: 1.12, crown: 0.22, crumble: 1.0,
+          hand_L: [0.44, 0.14, 0.26], hand_R: [0.44, 0.14, 0.26], foot_L: [0.27, 0, 0.10], foot_R: [0.27, 0, 0.06]}}
+      - {ms: 700, set: {lean: 0.08, bob: -0.48, squash: 0.46, head_pitch: 0.5, glow: 0.0, shards: 1.1, crown: 0.22, crumble: 1.0,
+          hand_L: [0.44, 0.14, 0.26], hand_R: [0.44, 0.14, 0.26], foot_L: [0.27, 0, 0.10], foot_R: [0.27, 0, 0.06]}}
+
+timing:
+  attack: {hit: 740ms, total: 1100ms}

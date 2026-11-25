@@ -2,6 +2,33 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 25.11.2026 - Siódmy loch: Lodowe jaskinie (lód), Dziad Mróz, wymarzanie i koksowniki
+
+- **Ustalenia z autorem (ankieta 25.11.2026):** klimat lodowe jaskinie, potwory - duchy zimy, boss Dziad Mróz
+  (**Marzanna zostaje na bossa szczytowego**), mechanika - wymarzanie i ogniska. Liczby - propozycje Claude.
+- **Drabinka:** `Dungeons.FROST` („Lodowe jaskinie”) na **31-35** po Wulkanicznych równinach; krąg ma teraz 35 poziomów
+  (drugi od 36). Odporności: lód +20%, ogień -20%. Wpis w drabince odblokowań sam (Unlocks z `Dungeons.ORDER`).
+- **Potwory** (SpriteKiln, `art/specs/characters/<nazwa>/` -> `assets/spritekiln/<nazwa>/`; do czasu grafiki - zastępczy
+  kolor): Zmarzlak `proto_zmarzlak.gd` (zwykły, 50 zdrowia, wolny; cios lodem spowalnia o 25% na 2 s i dokłada 10
+  chłodu), Śnieżnica `proto_sniezyca.gd` (strzelająca, jak wiła; sopel - `ProtoArrow.ice`: sopel z kreatora, lód,
+  spowalnia o 20% na 1,5 s i dokłada 8 chłodu; 150 px/s, 260 px), Lodowy olbrzym `proto_ice_giant.gd` (silny, jak
+  goblin osiłek, 190 zdrowia; trafiona postać prawie zamarza - spowolnienie 60% na 1,2 s, 25 chłodu; pęka lód).
+- **Wymarzanie i koksowniki** `proto_frost.gd` (`arena.frost`, tylko w tym lochu): chłód postaci
+  `ProtoHero.frost_cold` 0-100 rośnie o 3,3/s (pełny po ok. 30 s), spowalnia do 40% (ProtoHero.slow, niebieska barwa),
+  przy 100 co sekundę 3% zdrowia (lód, „Zamarzasz!”); lodowe ciosy dokładają (`ProtoFrost.chill_hero`). 5 koksowników
+  (grafika z katakumb Watry) z dala od siebie, startu i ozdób, z poświatą i kręgiem ciepła 46 px: w kręgu chłód spada
+  35/s, a postać dostaje „Rozgrzanie” - +20% obrażeń broni (`ProtoWeapon.warm_mult`) na 8 s. Pasek chłodu pod
+  stopami postaci.
+- **Boss Dziad Mróz** `proto_dziad_mroz.gd` (po `ProtoChief`, 1250 zdrowia): mroźne tchnienie (wachlarz 70°, 120 px,
+  1,1 s; 24 + spowolnienie 50% i 30 chłodu; efekt - zionięcie Żmija przebarwione na lód `frost_breath`), deszcz sopli
+  (7 kół, sopel Wodnika `wodnik_icicle`, 18 + 12 chłodu), lodowe kolce (pas 210x26 do postaci, 0,9 s, 8 kryształów
+  `ice_spikes` po kolei, 26 + 20 chłodu); poniżej połowy zdrowia ryk i **zamieć** do końca walki (śnieg na ekranie -
+  `_Snow`, +4 chłodu/s, 10 sopli w deszczu). Animacje SpriteKiln: idle, walk, roar, breath, rain, spikes, hit, death.
+- **Grafiki bez generacji PixelLab:** podłoga `tools/frost_floor.py` -> `assets/watra/frost_floor.png` (granatowa skała
+  jaskini i tafle lodu z rysami i szronem), ozdoby `tools/frost_decor.py` -> `assets/watra/decor/frost/` (kryształy
+  i stalagmity rysowane, wojownik z katakumb Watry w bryle lodu, głazy, gruz i kości przebarwione, koksowniki).
+- Test `tests/test_frost.gd`.
+
 ## 25.11.2026 - Poprawki interfejsu: odjeżdżający przycisk umiejętności, paski zdrowia i many w bazie
 
 - **Przycisk umiejętności odjeżdżał w bok** (zgłoszenie autora ze zrzutem): drgnięcie `ActionButton.deny` (stuknięcie

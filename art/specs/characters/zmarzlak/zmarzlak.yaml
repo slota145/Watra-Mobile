@@ -1,0 +1,358 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: zmarzlak
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.80, 0]}
+palette: "watra"
+size: 48
+extends: humanoid   # its skeleton, IK and smear; here only what differs (sword and hair kits removed)
+
+# Zmarzlak: the basic melee enemy of the "Lodowe jaskinie" (ice caves) dungeon - a winter spirit, the frozen
+# corpse of an old Slavic warrior. About 34 px tall (the human is 36 px, same camera.scale), stiff and a little
+# stooped: pale blue frosted skin, a torn mail shirt and a conical helm with a nasal, both rimed with frost,
+# a frozen beard with icicles, icicles hanging from the forearms, a frosted bearded axe in the right hand,
+# eyes glowing a cold light blue. Moves slowly and stiffly.
+brief:
+  summary: >
+    frozen corpse of a Slavic warrior (ice caves): about 34 px tall, broad-shouldered but stooped and stiff;
+    pale blue-grey frosted skin on the bare forearms and face, a grey-blue mail shirt to mid-thigh with a
+    torn ragged hem and white frost blotches, a dark frozen belt, dark blue-grey trousers and wrapped boots,
+    a pointed conical helm (spangenhelm) with a nasal bar, frost on its top, a white frozen beard ending in
+    icicles, icicles hanging under both forearms, a frosted bearded axe held low in the right hand
+  head: >
+    the head kit (broad, square jaw) under an own conical helm: the helm's rim just above the eyes, a nasal
+    bar down the middle; face minimal (style): only two small glowing ice-blue eyes (emissive) either side of
+    the nasal; a frost-white beard covers the jaw and chin and hangs in three icicles
+  must_keep:
+    - the cold pale-blue skin and the white frost - it must read as "frozen" against a pale icy floor (dark outline)
+    - the pointed conical helm silhouette (the Slavic warrior read)
+    - the glowing ice-blue eyes
+    - the icicles under the beard and the forearms
+    - the axe in the right hand
+  simplify:
+    - the mail is a smooth shirt with a fine painted grid, not modelled rings
+    - frost is painted spots and a cap on the helm, not geometry
+    - fingers are not modelled - the fists are round knobs
+  decisions:
+    - a bearded axe (the axe kit) rather than a sword - a broader, more readable shape at 34 px
+    - eyes are lit in every direction except n, ne, nw (pulled into the skull there, the helm and nape show)
+    - death - the knees lock and the corpse tips forward stiff as a plank onto its front, the axe falls beside it;
+      the eyes go out on the last frames
+
+ramps:
+  # pale frozen skin: blue-grey, the deep tones toward cold navy
+  frost_skin: ["#0a111c", "#2b3d55", "#4b6684", "#7491ae", "#a3bfd4", "#d4e7f2"]
+  # grey-blue steel of the mail and the helm
+  mail:       ["#080b10", "#262e3a", "#414c5b", "#5f6c7c", "#8492a2", "#aebac6"]
+  # white-blue rime (frost spots, the beard)
+  rime:       ["#16263a", "#6a8eae", "#a5c6de", "#d4e9f5", "#f3fbff"]
+  # translucent-looking icicles: deeper cyan-blue
+  ice:        ["#0b1d30", "#2f6d99", "#68aed6", "#a8dcf2", "#e8faff"]
+  # frozen dark blue-grey cloth of the trousers and the boot wraps
+  frozen_cloth: ["#07090d", "#151b25", "#222b38", "#323e4d", "#465364"]
+  # dark frozen leather (belt, boots, the haft)
+  frozen_leather: ["#0b0a0c", "#262123", "#3d3436", "#564b4b", "#716463"]
+  # the dark sunken sockets round the eyes, under the helm's rim
+  hollow:     ["#05080e", "#0e1624", "#182334"]
+  # cold glowing eyes: ice blue to white
+  frost_eye:  ["#0a2740", "#2fa8ff", "#6fdcff", "#d8f8ff"]
+  # the axe's smear: cold ice-white instead of the template's warm fire
+  fx_tail:    ["#4a86b8"]
+  fx_mid:     ["#b4dcf2"]
+  fx_core:    ["#f2fbff"]
+
+materials:
+  skin:    {ramp: frost_skin, gamma: 0.8, finish: soft}
+  mail:    {ramp: mail, finish: metal}
+  helm:    {ramp: mail, finish: metal, bands: [1, 4]}
+  rime:    {ramp: rime, finish: soft}
+  ice:     {ramp: ice, finish: glossy}
+  cloth:   {ramp: frozen_cloth, finish: matte}
+  leather: {ramp: frozen_leather, finish: matte}
+  haftwood: {ramp: frozen_leather, finish: matte, bands: [2, 4]}
+  axeiron: {ramp: mail, finish: metal}
+  hollow:  {ramp: hollow, bands: [0, 1], line: false, outline: false}
+  eye:     {ramp: frost_eye, emissive: true, band: 2, outline: false, glow: {color: "#7fdcff", mix: 0.3, radius: 1}}
+
+remove: [use.hair, use.sword]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 1.05, jaw: 0.8, chin: 0.4, nose: 0, ears: 0}}
+  - {kit: axe, as: axe, at: wrist_R, with: {length: 0.52, reach: 0.2, head: 0.28, tilt: 1.1, pitch: axe_pitch},
+     materials: {steel: axeiron, wood: haftwood}}
+
+shadow: {rx: 9.5, ry: 3.3, alpha: 120}
+
+channels:
+  lean: 0.06
+  hand_L: [0.29, 0.10, 0.10]
+  hand_R: [0.29, 0.12, 0.16]
+  foot_L: [0.12, 0, 0.02]
+  axe_pitch: 0       # the axe leans forward/down (+) from its rest at the fist
+  eyes_lit: 1        # 0 puts the eyes out (the end of death)
+  # the attack's smear is a vertical arc (overhead chop) centred on fxspace
+  smear_y: 0
+  smear_z: 0.05
+  smear_r: 0.55
+
+bones:
+  # hip height 0.80 (human 0.84), a slight permanent stoop (+0.10)
+  torso_rot: {parent: root, pos: "[0, 0.80 + bob, 0]", rot: "[lean + 0.10, twist, roll]"}
+  headbase:  {parent: pelvis, pos: [0, 0.64, 0.05], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5 + 0.06, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch - 0.3, head_yaw, 0]", scale: 1.16}
+  shoulder_L: {parent: pelvis, pos: [0.26, 0.51, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.11, -0.02, 0.0]}
+  # smear frame of the overhead chop: at the right shoulder, rolled so the arc runs in the vertical
+  # front-back plane (t = 0 forward, pi/2 up); it follows the lunge (root)
+  fxspace:    {parent: root, pos: [-0.22, 0.86, 0], rot: "[0, twist*0.3, 1.5708]"}
+
+ik:
+  arm_L: {lengths: [0.28, 0.26], pole: [0.3, 0.0, -1.0]}
+  leg_L: {lengths: [0.40, 0.38]}
+
+parts:
+  torso:             # a broad chest in a mail shirt; frost blotches and a fine ring grid painted on it
+    material: mail
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.05, 0], r: [0.19, 0.14, 0.15]}
+      - ellipsoid: {c: [0, 0.26, 0.0], r: [0.19, 0.16, 0.14]}
+      - ellipsoid: {c: [0, 0.44, -0.01], r: [0.265, 0.14, 0.155]}
+    paint:
+      - material: rime
+        spots: {scale: 0.06, density: 0.22, seed: 7}
+      - material: rime
+        prims:          # frost settled on the shoulders (the top of the shoulders, seen from above)
+          - ellipsoid: {c: [0.17, 0.56, -0.02], r: [0.10, 0.06, 0.12]}
+          - ellipsoid: {c: [-0.17, 0.56, -0.02], r: [0.10, 0.06, 0.12]}
+  coat:              # the mail skirt to mid-thigh with a torn, ragged hem
+    material: mail
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.05, -0.01], b: [0, -0.24, -0.02], r: [0.19, 0.22]}
+    cut:
+      - box: {c: [0.10, -0.25, 0.19], half: [0.035, 0.07, 0.08], rot: [0, 0, 0.3]}
+      - box: {c: [-0.08, -0.24, 0.19], half: [0.03, 0.06, 0.08], rot: [0, 0, -0.3]}
+      - box: {c: [0.21, -0.25, -0.03], half: [0.08, 0.06, 0.03], rot: [0.3, 0, 0]}
+      - box: {c: [-0.02, -0.25, -0.21], half: [0.035, 0.07, 0.08], rot: [0, 0, 0.3]}
+      - box: {c: [-0.21, -0.25, -0.08], half: [0.08, 0.05, 0.03], rot: [-0.3, 0, 0]}
+      - cone: {a: [0, -0.12, 0.22], b: [0, -0.30, 0.26], r: [0.02, 0.06]}   # a split in front
+    paint:
+      - material: rime
+        spots: {scale: 0.05, density: 0.2, seed: 11}
+  belt:              # a dark frozen leather belt
+    material: leather
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.08, 0], b: [0, 0.135, 0], r: 0.198}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.52, 0], b: [0, 0.64, 0.05], r: [0.075, 0.07]}
+  eye_L:             # a small glowing ice-blue eye; pulled into the head from behind
+    material: eye
+    space: head
+    when: "eyes_lit > 0.5"
+    min_cover: 2
+    prims:
+      - extrude: {c: "[0.052, 0.15, 0.125 - 0.10*(abs(yaw) > 100)]", rot: [0, 0.45, 0], depth: 0.04, profile: {rect: [0.022, 0.018], round: 0.005}}
+  helm:              # the conical helm (spangenhelm): a pointed cone over the head, its rim just above the eyes
+    material: helm
+    space: head
+    blend: 0.02
+    prims:
+      - revolve: {c: [0, 0, -0.055],
+                  profile: {polygon: [[0, 0.46], [0.035, 0.415], [0.11, 0.33], [0.16, 0.27], [0.172, 0.245],
+                                      [0.172, 0.225], [0, 0.225]], round: 0.008}}
+    paint:
+      - material: rime     # frost on the tip and in blotches
+        prims:
+          - box: {c: [0, 0.45, 0], half: [0.3, 0.065, 0.3]}
+  helm_rim:          # a band round the lower edge of the helm
+    material: helm
+    space: head
+    prims:
+      - torus: {c: [0, 0.235, -0.055], R: 0.172, r: 0.018}
+  nasal:             # a bar from the rim down over the nose, between the eyes
+    material: helm
+    space: head
+    priority: 2
+    prims:
+      - extrude: {c: [0, 0.17, 0.135], depth: 0.045, profile: {polygon: [[-0.024, 0.06], [0.024, 0.06], [0.018, -0.05], [-0.018, -0.05]]}}
+  head:              # the kit's head: dark sunken sockets painted round the eyes so the glow reads
+    paint:
+      - material: hollow
+        prims:
+          - box: {c: [0, 0.15, 0.12], half: [0.11, 0.042, 0.08]}
+  beard:             # a frozen white beard over the jaw and chin
+    material: rime
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.085], r: [0.10, 0.07, 0.065]}
+      - ellipsoid: {c: [0.085, 0.04, 0.05], r: [0.04, 0.05, 0.06]}
+      - ellipsoid: {c: [-0.085, 0.04, 0.05], r: [0.04, 0.05, 0.06]}
+  beard_ice:         # icicles hanging from the beard
+    material: ice
+    space: head
+    priority: 2
+    min_cover: 2
+    line: false
+    prims:
+      - cone: {a: [0, -0.02, 0.10], b: [0, -0.16, 0.10], r: [0.03, 0.006]}
+      - cone: {a: [0.06, 0.0, 0.08], b: [0.065, -0.11, 0.08], r: [0.024, 0.005]}
+      - cone: {a: [-0.06, 0.0, 0.08], b: [-0.065, -0.12, 0.08], r: [0.024, 0.005]}
+  arm_L:             # mail sleeve to the elbow, the bare frozen forearm
+    material: mail
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.085}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.075, 0.062]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.058, 0.05]}
+    paint:
+      - material: skin
+        prims:
+          - sphere: {c: "@wrist_L", r: 0.21}
+  arm_ice_L:         # two icicles hanging from the outside of the forearm (wrist frame: z along the forearm)
+    material: ice
+    space: wrist_L
+    priority: 2
+    min_cover: 2
+    line: false
+    prims:
+      - cone: {a: [0.045, -0.01, -0.14], b: [0.075, -0.02, -0.01], r: [0.026, 0.006]}
+      - cone: {a: [0.04, -0.035, -0.06], b: [0.06, -0.05, 0.05], r: [0.022, 0.005]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.058}
+  leg_L:
+    material: cloth
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.09, 0.068]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.068, 0.056]}
+    paint:
+      - material: leather       # cross-wrapped boot bindings on the shins (onuce)
+        stripes: {axis: y, at: [0.10, 0.24], width: 0.05}
+  boot_L:
+    material: leather
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.10, 0], b: [0, -0.02, 0.0], r: [0.065, 0.065]}
+      - ellipsoid: {c: [0, -0.04, 0.05], r: [0.065, 0.045, 0.11]}
+    paint:
+      - material: rime
+        prims:
+          - box: {c: [0, -0.07, 0.10], half: [0.2, 0.03, 0.1]}
+
+sockets:
+  hit: {bone: axe_haft, offset: [0, 0.42, 0.20]}   # the middle of the axe's edge: where a chop lands
+
+animations:
+  idle:
+    frames: 6
+    ms: 170
+    channels:
+      bob: "0.02*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.29, 0.10 + 0.015*sin(p - 0.6), 0.10]"
+      hand_R: "[0.29, 0.12 + 0.015*sin(p - 0.9), 0.16]"
+      axe_pitch: "0.04*sin(p - 0.9)"
+      coat: "0.1*sin(p - 1.0)"
+  # slow, stiff march: short steps on nearly straight legs (each foot planted half the cycle, sliding back at a
+  # constant speed, then swung forward low), the body rocking side to side like a frozen block, the arms
+  # barely swinging, the axe dragging low
+  walk:
+    frames: 8
+    ms: 125
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.08
+      bob: "-0.022*cos(2*p) + 0.005"
+      roll: "0.06*sin(p)"
+      twist: "0.05*cos(p)"
+      head_yaw: "-0.04*cos(p)"
+      head_pitch: "0.04*cos(2*p - 0.6)"
+      foot_L: "[0.12, 0.05*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.17 - 0.34*clamp(p/tau/0.5, 0, 1) + 0.34*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.12, 0.05*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.17 - 0.34*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.34*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      pitch_foot_L: "0.2*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
+      pitch_foot_R: "0.2*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
+      hand_L: "[0.29, 0.10 + 0.015*pos(cos(p)), 0.10 - 0.07*cos(p)]"
+      hand_R: "[0.29, 0.12 + 0.015*pos(-cos(p)), 0.16 + 0.07*cos(p)]"
+      axe_pitch: "0.08*cos(p - 0.6)"
+      coat: "0.3*sin(2*p - 0.6)"
+  # heavy overhead chop with the right hand: the axe raised high behind the helm (held - a slow, stiff
+  # windup), one fast strike down with a vertical ice smear, the bit lands (hit) low in front,
+  # follow-through, slow recovery. 900 ms, hit at 500 ms.
+  attack:
+    loop: false
+    keys:
+      - {ms: 100, event: windup, set: {twist: -0.12, lean: 0.0, bob: -0.02, squash: 0.97, coat: -0.2,
+          hand_R: [0.30, 0.36, 0.06], axe_pitch: 0.5, hand_L: [0.29, 0.14, 0.14], head_pitch: -0.05}}
+      - {ms: 150, set: {twist: -0.28, lean: -0.1, bob: -0.02, squash: 1.0, coat: -0.3,
+          hand_R: "[0.30, 0.54, -0.06*pulse(yaw, 90, 70)]", axe_pitch: "1.1 - 0.5*pulse(abs(yaw), 180, 60)", hand_L: [0.29, 0.20, 0.18], head_pitch: -0.1,
+          foot_L: [0.12, 0, 0.10], foot_R: [0.12, 0, -0.06]}}
+      - {ms: 190, set: {twist: -0.32, lean: -0.16, bob: -0.02, squash: 1.0, coat: -0.35,
+          hand_R: "[0.30 + 0.10*pulse(abs(yaw), 0, 70), 0.57 - 0.08*pulse(abs(yaw), 0, 70), -0.08 - 0.08*pulse(yaw, 90, 70)]", axe_pitch: "1.7 - 0.9*pulse(abs(yaw), 180, 60) + 0.25*pulse(abs(yaw), 0, 70) + 0.45*pulse(yaw, -45, 40)", hand_L: [0.30, 0.22, 0.20], head_pitch: -0.12,
+          foot_L: [0.12, 0, 0.10], foot_R: [0.12, 0, -0.06]}}
+      - {ms: 60, set: {root: [0, 0, 0.05], twist: 0.12, lean: 0.25, bob: -0.04, squash: 0.96, coat: 0.5,
+          hand_R: [0.12, 0.30, 0.32], axe_pitch: 0.0, hand_L: [0.29, 0.06, 0.02], head_pitch: 0.06,
+          foot_L: [0.12, 0, 0.20], foot_R: [0.12, 0, -0.08],
+          smear_w: 0.09, smear_a0: 1.9, smear_a1: -0.5}}
+      - {ms: 80, event: hit, set: {root: [0, 0, 0.11], twist: 0.18, lean: 0.34, bob: -0.07, squash: 0.94, coat: 0.6,
+          hand_R: [0.10, 0.04, 0.38], axe_pitch: 0.1, hand_L: [0.29, 0.04, 0.0], head_pitch: 0.1,
+          foot_L: [0.12, 0, 0.20], foot_R: [0.12, 0, -0.08],
+          smear_w: 0.07, smear_a0: 0.9, smear_a1: -0.7, smear_fade: 0.6}}
+      - {ms: 110, set: {root: [0, 0, 0.08], twist: 0.1, lean: 0.24, bob: -0.04, coat: 0.2,
+          hand_R: [0.18, 0.04, 0.30], axe_pitch: 0.25, hand_L: [0.29, 0.07, 0.05],
+          foot_L: [0.12, 0, 0.16], foot_R: [0.12, 0, -0.06]}}
+      - {ms: 110, set: {root: [0, 0, 0.04], twist: 0.04, lean: 0.14, bob: -0.02, coat: 0.0,
+          hand_R: [0.25, 0.08, 0.22], axe_pitch: 0.1, hand_L: [0.29, 0.09, 0.08],
+          foot_L: [0.12, 0, 0.09], foot_R: [0.12, 0, -0.02]}}
+      - {ms: 100, set: {root: [0, 0, 0.01], lean: 0.07, coat: -0.05, hand_R: [0.29, 0.11, 0.17], axe_pitch: 0.02,
+          foot_L: [0.12, 0, 0.03]}}
+  # hit: a short stiff jolt - the whole body rocks back as one block, frost shaken, then settles
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.22, roll: 0.05, bob: -0.02, squash: 0.96, head_pitch: -0.2,
+          coat: -0.5, hand_L: [0.33, 0.16, 0.06], hand_R: [0.33, 0.18, 0.10], axe_pitch: -0.3}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.08, roll: -0.03, bob: -0.01, squash: 0.98, head_pitch: -0.08,
+          coat: -0.2, hand_L: [0.31, 0.12, 0.08], hand_R: [0.31, 0.14, 0.13], axe_pitch: -0.12}}
+      - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.06, head_pitch: 0.02, coat: 0.1,
+          hand_L: [0.29, 0.10, 0.10], hand_R: [0.29, 0.12, 0.16]}}
+  # death: a stiff jolt back, the frozen knees give way, it drops onto its knees and tips forward like a
+  # block onto its front, the axe falling flat beside it; the eyes go out on the last two frames. 1250 ms,
+  # the last frame held.
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: -0.25, bob: -0.02, squash: 0.96, head_pitch: -0.25,
+          coat: -0.5, hand_L: [0.33, 0.16, 0.08], hand_R: [0.33, 0.18, 0.10], axe_pitch: -0.3}}
+      - {ms: 120, set: {root: [0, 0, -0.04], lean: -0.05, roll: 0.05, bob: -0.12, squash: 0.97, head_pitch: 0.08,
+          coat: 0.1, hand_L: [0.30, 0.0, 0.14], hand_R: [0.30, 0.0, 0.18], axe_pitch: 0.2,
+          foot_L: [0.12, 0, 0.04], foot_R: [0.12, 0, -0.02]}}
+      - {ms: 120, set: {root: "[0, 0, -0.08*(1 - pulse(abs(yaw), 180, 90))]", lean: 0.12, roll: 0.05, bob: -0.32, squash: 0.95, head_pitch: 0.2,
+          coat: 0.3, hand_L: [0.31, -0.08, 0.16], hand_R: [0.31, -0.08, 0.18], axe_pitch: 0.5,
+          foot_L: [0.12, 0.0, -0.18], foot_R: [0.12, 0.0, -0.22], pitch_foot_L: -0.8, pitch_foot_R: -0.8}}
+      - {ms: 110, set: {root: "[0, 0, -0.12*(1 - pulse(abs(yaw), 180, 90))]", lean: 0.6, roll: 0.03, bob: -0.45, squash: 0.95, head_pitch: 0.25,
+          coat: 0.4, hand_L: [0.33, 0.06, 0.30], hand_R: [0.33, 0.14, 0.30], axe_pitch: 1.2,
+          foot_L: [0.12, 0.0, -0.32], foot_R: [0.12, 0.0, -0.35], pitch_foot_L: -1.2, pitch_foot_R: -1.2}}
+      - {ms: 100, set: {root: "[0, 0, -0.14*(1 - pulse(abs(yaw), 180, 90))]", lean: 1.0, roll: 0.03, bob: -0.56, squash: 0.93, head_pitch: 0.3,
+          coat: 0.3, hand_L: [0.34, 0.28, 0.20], hand_R: [0.36, 0.28, 0.22], axe_pitch: 1.3,
+          foot_L: [0.12, 0.0, -0.44], foot_R: [0.13, 0.0, -0.46], pitch_foot_L: -1.4, pitch_foot_R: -1.4}}
+      - {ms: 90, set: {root: "[0, 0, -0.17*(1 - pulse(abs(yaw), 180, 90))]", lean: 1.22, roll: 0.03, bob: -0.62, squash: 0.88, head_pitch: 0.4,
+          coat: 0.2, hand_L: [0.34, 0.20, 0.14], hand_R: [0.38, 0.22, 0.12], axe_pitch: 1.5,
+          foot_L: [0.13, 0.0, -0.46], foot_R: [0.15, 0.0, -0.48], pitch_foot_L: -1.5, pitch_foot_R: -1.5}}
+      - {ms: 100, set: {eyes_lit: 0, root: "[0, 0, -0.17*(1 - pulse(abs(yaw), 180, 90))]", lean: 1.18, roll: 0.03, bob: -0.60, squash: 0.9, head_pitch: 0.4,
+          coat: 0.2, hand_L: [0.34, 0.18, 0.15], hand_R: [0.38, 0.20, 0.13], axe_pitch: 1.55,
+          foot_L: [0.13, 0.0, -0.46], foot_R: [0.15, 0.0, -0.48], pitch_foot_L: -1.5, pitch_foot_R: -1.5}}
+      - {ms: 500, set: {eyes_lit: 0, root: "[0, 0, -0.17*(1 - pulse(abs(yaw), 180, 90))]", lean: 1.2, roll: 0.03, bob: -0.61, squash: 0.89, head_pitch: 0.4,
+          coat: 0.2, hand_L: [0.34, 0.18, 0.15], hand_R: [0.38, 0.20, 0.13], axe_pitch: 1.55,
+          foot_L: [0.13, 0.0, -0.46], foot_R: [0.15, 0.0, -0.48], pitch_foot_L: -1.5, pitch_foot_R: -1.5}}

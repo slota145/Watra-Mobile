@@ -135,6 +135,8 @@ var parry_left := 0.0
 ## Krąg Riposty Morozka (lodowy rapier): szansa (0-1), że cios zostanie odbity jak gardą (`parried`); broń ustawia ją
 ## co klatkę, gdy postać stoi w kręgu.
 var parry_chance := 0.0
+## Chłód w Lodowych jaskiniach (0-ProtoFrost.MAX_COLD; zbiera i rozgrzewa ProtoFrost).
+var frost_cold := 0.0
 ## Ruch wymuszony przez broń (wyskok Riposty, krok Tańca ostrza): skąd, dokąd, czas, upływ, wysokość podskoku.
 var _leap_from := Vector2.ZERO
 var _leap_to := Vector2.ZERO

@@ -183,6 +183,8 @@ var decor: ProtoDecor
 var chief: ProtoChief
 ## Wiatr Podniebnych wysp: podmuchy i wędrowne trąby (ProtoWind; null w innych lochach).
 var wind: ProtoWind
+## Wymarzanie i koksowniki Lodowych jaskiń (null - inny loch).
+var frost: ProtoFrost
 var chest: ProtoChest
 ## Etap wyprawy: horde (zbieranie żaru), boss (walka z Wodzem), loot (skrzynia), won (po zwycięstwie).
 var phase := "horde"
@@ -314,6 +316,13 @@ func _ready() -> void:
 			wind.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			add_child(wind)
 			wind.spawn_tornadoes()
+		if climate == Dungeons.FROST and not pinnacle:
+			frost = ProtoFrost.new()
+			frost.name = "Frost"
+			frost.hero = hero
+			frost.weapon = weapon
+			world.add_child(frost)
+			frost.place_braziers(world, area.grow(-50), hero.position)
 		horde_spawner.monster_died.connect(func(g: ProtoGoblin) -> void:
 			auras_node.on_monster_died(g)
 			talismans_node.on_kill(g))
@@ -1419,6 +1428,8 @@ func summon_chief() -> void:
 			chief = ProtoFireElemental.new()
 		Dungeons.SKY:
 			chief = ProtoGryf.new()
+		Dungeons.FROST:
+			chief = ProtoDziadMroz.new()
 		_:
 			chief = ProtoChief.new()
 	var spot := hero.position + CHIEF_OFFSET

@@ -1,0 +1,560 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: dziad_mroz
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.55, 0]}
+palette: "watra"
+size: 112
+extends: humanoid   # the template's skeleton, head kit and channels; the coat, beard, hat and staff below are his own
+
+# Dziad Mróz (boss "Lodowych jaskiń"): pradawny duch zimy, wysoki starzec ok. 50 px z czapą (człowiek 36 px, ta sama
+# camera.scale). Długi, ciężki kożuch w lodowym błękicie obszyty białym futrem (dół, przód, kołnierz, mankiety),
+# długa lodowa broda z soplami do pasa, krzaczaste oszronione brwi, wysoka futrzana czapa, oczy świecą zimnym
+# błękitem. W lewej dłoni (na ekranie po prawej w s) długa sękata laska z dużym świecącym kryształem lodu na szczycie.
+# Dostojny i groźny, nie Mikołaj: bez czerwieni, bez uśmiechu, szczupła twarz w cieniu brwi i czapy.
+# Klatka 112 px: laska uniesiona nad głowę w rain musi się zmieścić.
+brief:
+  summary: >
+    boss of the ice caves, Dziad Mróz (Grandfather Frost, an ancient Slavic spirit of winter, not a jolly Santa): a
+    tall stern old man, about 50 px tall with the hat (the human is 36 px, same density), in a long heavy sheepskin
+    coat of icy blue trimmed with thick white fur down to the boots, a long icy white beard with icicles reaching
+    the belt, bushy frosted brows over cold glowing blue eyes, a tall fur hat, and a long gnarled dark staff with a
+    big glowing ice crystal on top in his left hand
+  proportions: "hat about 1/6 of the height, head and beard 1/4, the coat a long cone down to the ankles; tall, broad shouldered, slightly stooped"
+  head: >
+    the head kit (no nose) in pale cold blue-grey skin, mostly hidden: a tall fur hat (white fur band, deep blue
+    crown) down to the brows, two bushy white brows jutting out over the eyes, two glowing ice-blue eyes 1-2 px in
+    their shadow, a drooping moustache and a long beard from the cheeks to the belt that ends in icicles; long
+    white hair falls from under the hat on the back; face minimal (eyes only)
+  must_keep:
+    - the glowing ice crystal on the staff (the key accent), on the screen's right in s
+    - the long white icy beard with icicles down the front
+    - the tall fur hat silhouette
+    - the long icy-blue coat with white fur trim
+    - the glowing cold blue eyes under heavy brows
+  simplify:
+    - the fur is smooth thick bands (no hair strands); its fluffiness is a few darker spots
+    - the knots of the staff are a few bumps on a bent tube
+    - icicles are thin cones under the beard and the hem of the moustache
+  decisions:
+    - the staff is in the left hand so that it stands on the screen's right in s, like the Necromancer's
+    - no red at all (unlike Santa) - white, ice blue and a deep blue crown on the hat; the only warm-ish tone is the
+      dark wood of the staff, which gives the value contrast against the white
+    - the beard hangs from its own bone (half the head's pitch) so it swings less than the head
+
+ramps:
+  # the coat: icy blue sheepskin
+  frostcoat: ["#080c18", "#1f3156", "#33558a", "#4f7fb4", "#7eaad2", "#aecde6"]
+  # white fur trim and hat band, a little blue in the shadows
+  fur:       ["#11151f", "#4a5670", "#7988a2", "#a9b8cc", "#d5e1ec", "#f4f8fc"]
+  # the icy beard, brows and hair: whiter and colder than the fur
+  beard:     ["#0d1622", "#3d5873", "#6f93ae", "#a5c6da", "#d4eaf3", "#f6fcff"]
+  # pale cold skin
+  frostskin: ["#0f1119", "#3a4458", "#66758e", "#93a4bb", "#bccbdb", "#e0e9f1"]
+  # deep blue crown of the hat, the sash and the felt boots
+  deepblue:  ["#05081a", "#111c40", "#1e2f63", "#2f4787", "#4663a6", "#6683bf"]
+  # dark old gnarled wood of the staff, cold brown-grey
+  gnarl:     ["#0c0909", "#2a1f1d", "#45352f", "#625045", "#80705f", "#9f9282"]
+  # icicles: clear pale ice
+  ice:       ["#0b1c2c", "#2c6c8e", "#4fa6c8", "#8fd5ea", "#d0f2fb", "#ffffff"]
+  # the glowing frost light: crystal, eyes, breath
+  frostglow: ["#0b3550", "#2f9fd0", "#7fdcf5", "#c8f6ff", "#ffffff"]
+  # the dead crystal (death): dull grey ice
+  deadice:   ["#0d1118", "#323c4a", "#556271", "#7d8a98", "#a6b1bc"]
+  fx_core: ["#f4fdff"]
+  fx_mid:  ["#a8e6f7"]
+  fx_tail: ["#3f8fc0"]
+
+materials:
+  skin:     {ramp: frostskin, gamma: 0.8, finish: soft}
+  coat:     {ramp: frostcoat, finish: matte}
+  fur:      {ramp: fur, finish: matte}
+  furdark:  {ramp: fur, finish: matte, bands: [2, 3]}
+  hatfur:   {ramp: fur, finish: matte, bands: [1, 4]}
+  beard:    {ramp: beard, finish: soft, gamma: 0.85}
+  deep:     {ramp: deepblue, finish: matte}
+  wood:     {ramp: gnarl, finish: matte, bands: [1, 4]}
+  ice:      {ramp: ice, finish: glossy}
+  crystal:  {ramp: frostglow, emissive: true, band: 3, outline: false, glow: {color: "#8fe3fa", mix: 0.4, radius: 1}}
+  crystaldk: {ramp: frostglow, emissive: true, band: 1, outline: false}
+  eye:      {ramp: frostglow, emissive: true, band: 2, outline: false, glow: {color: "#8fe3fa", mix: 0.3, radius: 1}}
+  breath:   {ramp: frostglow, emissive: true, band: 3, outline: false, glow: {color: "#c8f6ff", mix: 0.3, radius: 1}}
+  dead:     {ramp: deadice, finish: glossy}
+  socket:   {ramp: deepblue, bands: [0, 1], line: false}
+
+remove: [use.hair, use.sword, animations.attack]
+
+use:
+  - {kit: head, at: head, with: {width: 0.95, jaw: 0.6, chin: 0.7, nose: 0, ears: 0}}
+
+shadow: {rx: 17, ry: 6, alpha: 115}
+snap: [root, torso_rot]   # the slow breathing moves in whole pixels (less boiling)
+
+channels:
+  hand_L: [0.38, 0.10, 0.24]     # the staff hand (left, screen right in s)
+  hand_R: [0.28, 0.00, 0.10]     # the free hand
+  foot_L: [0.15, 0, 0.02]
+  staff_pitch: 0    # extra lean of the staff (+: top forward/down)
+  staff_splay: 0    # staff leaned outwards (+) or across the body (-)
+  staff_yaw: 0      # staff turned about the vertical
+  beard_sway: 0     # extra swing of the beard (+: tip forward)
+  sglow: 0          # 0..1 a ring of frost light flaring round the crystal (casts)
+  breath: 0         # 0..1 a cone of frost breath out of the mouth
+  frost: 0          # 0..1 death: a mound of hoarfrost grows where he sinks; >0.6 eyes and crystal go dark
+
+bones:
+  # the whole body x1.3 (about 50 px with the hat); hip height 0.84 as the template, a permanent small stoop
+  big:        {parent: root, scale: 1.3}
+  torso_rot:  {parent: big, pos: "[0, 0.84 + bob, 0]", rot: "[lean + 0.04, twist, roll]"}
+  legyaw:     {parent: big, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: big, rot: "[0, twist*0.4, 0]"}
+  headbase:   {parent: pelvis, pos: [0, 0.69, 0.05], inherit_rot: false, inherit_scale: false, scale: 1.3,
+               rot: "[lean*0.5 + 0.06, twist, roll]"}
+  head:       {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.0}
+  beardbase:  {parent: headbase, rot: "[head_pitch*0.5 + beard_sway, head_yaw*0.5, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.29, 0.54, -0.02]}
+  hip_L:      {parent: pelvis, pos: [0.12, -0.02, 0.0]}
+  fxspace:    {parent: big, rot: "[0, twist*0.3, 0]"}
+  # the staff keeps its own world lean (the wrist only carries it): upright, a little outwards (left hand),
+  # following the torso's twist and lean
+  staff:      {parent: wrist_L, pos: [0, 0, 0.04], inherit_rot: false,
+               rot: "[-0.05 + staff_pitch + lean*0.5, twist + staff_yaw, -0.10 - staff_splay]"}
+  stafftop:   {parent: staff, pos: [0, 1.30, 0]}
+
+ik:
+  arm_L: {lengths: [0.42, 0.40]}
+  leg_L: {space: big, lengths: [0.525, 0.50]}
+
+parts:
+  torso:           # a broad chest and shoulders under the coat
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: coat
+    space: pelvis
+    blend: 0.07
+    prims:
+      - ellipsoid: {c: [0, 0.20, 0], r: [0.21, 0.24, 0.15]}
+      - ellipsoid: {c: [0, 0.46, -0.01], r: [0.29, 0.15, 0.17]}
+  coat:            # the long heavy coat: a cone from the chest to the ankles
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: coat
+    space: coatbase
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0.46, -0.01], b: [0, -0.62, -0.04], r: [0.21, 0.36]}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.66}
+    paint:
+      - material: furdark      # a few darker tufts are not needed on the coat: a seam line down the back
+        prims:
+          - box: {c: [0, -0.1, -0.45], half: [0.012, 0.55, 0.2]}
+  hem:             # the thick white fur round the hem
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: fur
+    space: coatbase
+    prims:
+      - torus: {c: [0, -0.62, -0.04], R: 0.355, r: 0.055}
+    paint:
+      - material: furdark
+        spots: {scale: 0.04, density: 0.12, seed: 3}
+  placket:         # the coat's closed front: a deep blue strip under the beard, so the white beard stands out
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: deep
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.10, 0.22], b: [0, -0.60, 0.33], r: [0.035, 0.06]}
+  collar:          # a thick fur collar round the shoulders (mostly behind the beard)
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: fur
+    space: pelvis
+    prims:
+      - torus: {c: [0, 0.58, -0.02], R: 0.19, r: 0.085, rot: [0.15, 0, 0]}
+    paint:
+      - material: furdark
+        spots: {scale: 0.04, density: 0.12, seed: 7}
+  belt:            # a deep blue sash round the waist
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: deep
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.04, -0.01], b: [0, 0.12, -0.01], r: 0.235}
+  neck: {when: "0"}
+  leg_L:           # legs: only the lower legs show under the coat in the walk
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: deep
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.10, 0.08]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.08, 0.07]}
+  boot_L:          # felt boots
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: deep
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.10, 0], b: [0, -0.02, 0.0], r: [0.075, 0.075]}
+      - ellipsoid: {c: [0, -0.04, 0.05], r: [0.075, 0.05, 0.12]}
+  head:            # the head kit's face, with dark hollows round the eyes so the eyes glow out of shadow
+    when: "frost < 0.95"   # death: gone into the frost mound
+    paint:
+      - material: socket
+        prims:
+          - ellipsoid: {c: [0.05, 0.115, 0.12], r: [0.045, 0.035, 0.05]}
+          - ellipsoid: {c: [-0.05, 0.115, 0.12], r: [0.045, 0.035, 0.05]}
+  hair:            # long white hair from under the hat down the back
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: beard
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.10, -0.08], r: [0.15, 0.17, 0.11]}
+      - ellipsoid: {c: [0, -0.10, -0.12], r: [0.15, 0.16, 0.09]}
+  eye_L:           # a glowing ice-blue eye under the brow
+    material: eye
+    space: head
+    when: "frost < 0.6"
+    prims:
+      - sphere: {c: [0.05, 0.112, 0.125], r: 0.034}
+  brow_L:          # a bushy frosted brow jutting out over the eye, its outer end swept up
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: beard
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0.05, 0.168, 0.118], r: [0.05, 0.02, 0.03], rot: [0, 0, -0.25]}
+      - cone: {a: [0.08, 0.18, 0.10], b: [0.14, 0.215, 0.08], r: [0.026, 0.012]}
+  moustache_L:     # a drooping moustache from under the nose out and down over the beard
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: beard
+    space: head
+    blend: 0.02
+    prims:
+      - tube: {pts: [[0.0, 0.065, 0.14], [0.07, 0.06, 0.145], [0.10, -0.02, 0.13]], r: [0.028, 0.018]}
+  beard:           # the long beard: wide at the cheeks, down the chest to the belt, a little forked at the end
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: beard
+    space: beardbase
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.01, 0.07], r: [0.125, 0.07, 0.085]}
+      - cone: {a: [0, -0.01, 0.10], b: [0, -0.44, 0.15], r: [0.12, 0.06]}
+  beardlock_L:     # a side lock of the beard: gives a strand line down each side
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: beard
+    space: beardbase
+    prims:
+      - tube: {pts: [[0.11, 0.03, 0.05], [0.12, -0.18, 0.12], [0.06, -0.40, 0.13]], r: [0.045, 0.02]}
+  icicles:         # icicles hanging from the end of the beard
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: ice
+    space: beardbase
+    min_cover: 2
+    prims:
+      - cone: {a: [0, -0.42, 0.15], b: [0, -0.58, 0.16], r: [0.035, 0.006]}
+      - cone: {a: [0.045, -0.38, 0.14], b: [0.055, -0.50, 0.15], r: [0.025, 0.006]}
+      - cone: {a: [-0.045, -0.38, 0.14], b: [-0.055, -0.50, 0.15], r: [0.025, 0.006]}
+  hat_band:        # the fur band of the tall hat, a touch greyer than the beard so the two do not merge
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: hatfur
+    space: head
+    prims:
+      - cylinder: {a: [0, 0.235, -0.035], b: [0, 0.37, -0.05], r: 0.178, round: 0.055}
+    paint:
+      - material: furdark
+        spots: {scale: 0.035, density: 0.12, seed: 9}
+  hat:             # the tall crown of the fur hat, deep blue, rounded and leaning back
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: deep
+    space: head
+    prims:
+      - revolve: {c: [0, 0.35, -0.07], rot: [-0.2, 0, 0],
+                  profile: {bezier: [[0.13, 0.0], [0.14, 0.12], [0.12, 0.22], [0.09, 0.29], [0, 0.30], [-0.09, 0.29], [-0.12, 0.22], [-0.14, 0.12], [-0.13, 0.0], [0, 0.0]]}}
+  arm_L:           # heavy arms in the coat's sleeves
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: coat
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.11}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.10, 0.09]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.09, 0.11]}
+  cuff_L:          # the sleeve's fur cuff
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: fur
+    space: wrist_L
+    prims:
+      - cylinder: {a: [0, 0, -0.08], b: [0, 0, -0.01], r: 0.12, round: 0.03}
+  hand_L:          # a big bony old hand
+    when: "frost < 0.95"   # death: gone into the frost mound
+    material: skin
+    space: wrist_L
+    blend: 0.02
+    prims:
+      - sphere: {c: [0, 0, 0.045], r: 0.065}
+  staff_shaft:     # a long gnarled staff: a bent tube with knots
+    material: wood
+    space: staff
+    priority: 2
+    min_cover: 2
+    blend: 0.02
+    prims:
+      - tube: {pts: [[0, -1.16, 0], [0.05, -0.45, 0], [-0.05, 0.40, 0], [0.02, 1.20, 0]], r: [0.032, 0.042]}
+      - sphere: {c: [0.035, -0.50, 0.0], r: 0.048}
+      - sphere: {c: [-0.035, 0.38, 0.01], r: 0.05}
+      - sphere: {c: [0.0, 0.88, -0.01], r: 0.048}
+  staff_claw:      # three wooden prongs cradling the crystal
+    material: wood
+    space: stafftop
+    priority: 2
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0, -0.14, 0], [0.15, -0.02, 0], [0.09, 0.16, 0]], r: [0.038, 0.014]}
+      - tube: {pts: [[0, -0.14, 0], [-0.075, -0.02, 0.13], [-0.045, 0.16, 0.08]], r: [0.038, 0.014]}
+      - tube: {pts: [[0, -0.14, 0], [-0.075, -0.02, -0.13], [-0.045, 0.16, -0.08]], r: [0.038, 0.014]}
+  crystal:         # the big glowing ice crystal: a long bipyramid with two small side shards
+    material: crystal
+    space: stafftop
+    when: "frost < 0.6"
+    priority: 3
+    prims:
+      - cone: {a: [0, 0.06, 0], b: [0, 0.50, 0], r: [0.125, 0.01]}
+      - cone: {a: [0, 0.06, 0], b: [0, -0.08, 0], r: [0.125, 0.02]}
+      - cone: {a: [0.05, 0.04, 0.02], b: [0.18, 0.26, 0.03], r: [0.06, 0.008]}
+      - cone: {a: [-0.05, 0.03, -0.02], b: [-0.16, 0.22, -0.03], r: [0.055, 0.008]}
+    paint:
+      - material: crystaldk     # a darker facet line down the middle so it reads as a gem, not a blob
+        prims:
+          - box: {c: [0, 0.15, 0], half: [0.012, 0.2, 0.2], rot: "[0, -radians(yaw), 0]"}
+  crystal_dead:    # death: the crystal's light goes out, dull grey ice
+    material: dead
+    space: stafftop
+    when: "frost >= 0.6"
+    priority: 3
+    prims:
+      - cone: {a: [0, 0.06, 0], b: [0, 0.50, 0], r: [0.125, 0.01]}
+      - cone: {a: [0, 0.06, 0], b: [0, -0.08, 0], r: [0.125, 0.02]}
+      - cone: {a: [0.05, 0.04, 0.02], b: [0.18, 0.26, 0.03], r: [0.06, 0.008]}
+      - cone: {a: [-0.05, 0.03, -0.02], b: [-0.16, 0.22, -0.03], r: [0.055, 0.008]}
+  crystal_flare:   # a ring of frost light flaring round the crystal (casts)
+    material: crystal
+    space: stafftop
+    when: "sglow > 0.05"
+    priority: 3
+    min_cover: 2
+    prims:
+      - torus: {c: [0, 0.18, 0], R: "0.24 + 0.06*sglow", r: "0.016 + 0.012*sglow", rot: "[1.5708, -radians(yaw), 0]"}
+  breath_cloud:    # the frost breath: a cone of icy light out of the mouth
+    material: breath
+    space: head
+    when: "breath > 0.05"
+    priority: 2
+    prims:
+      - cone: {a: [0, 0.05, 0.16], b: "[0, -0.02 - 0.06*breath, 0.20 + 0.42*breath]", r: "[0.03, 0.03 + 0.10*breath]"}
+  frost_pile:      # death: a mound of hoarfrost and ice shards where he sinks
+    material: beard
+    space: big
+    when: "frost > 0.05"
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0, 0.02], r: "[0.58*frost, 0.30*frost, 0.50*frost]"}
+      - ellipsoid: {c: [0.12, 0.14, -0.06], r: "[0.32*frost, 0.24*frost, 0.30*frost]"}
+      - ellipsoid: {c: [-0.16, 0.10, 0.12], r: "[0.28*frost, 0.18*frost, 0.26*frost]"}
+    paint:
+      - material: furdark
+        spots: {scale: 0.05, density: 0.15, seed: 11}
+  frost_shards:
+    material: ice
+    space: big
+    when: "frost > 0.5"
+    min_cover: 2
+    prims:
+      - cone: {a: [0.26, 0.05, 0.22], b: "[0.40, 0.48*frost, 0.34]", r: [0.075, 0.01]}
+      - cone: {a: [-0.32, 0.05, 0.10], b: "[-0.50, 0.40*frost, 0.14]", r: [0.07, 0.01]}
+      - cone: {a: [0.10, 0.10, -0.28], b: "[0.14, 0.60*frost, -0.40]", r: [0.08, 0.01]}
+      - cone: {a: [-0.10, 0.05, 0.36], b: "[-0.16, 0.34*frost, 0.52]", r: [0.06, 0.01]}
+  frost_burst:     # death: the moment he falls apart, a burst of glittering frost flakes where the body stood
+    material: breath
+    space: big
+    when: "abs(frost - 0.96) < 0.02"
+    min_cover: 2
+    prims:
+      - sphere: {c: [0.0, 1.05, 0.05], r: 0.05}
+      - sphere: {c: [0.24, 0.86, 0.10], r: 0.045}
+      - sphere: {c: [-0.26, 0.92, -0.04], r: 0.045}
+      - sphere: {c: [0.14, 1.30, -0.10], r: 0.04}
+      - sphere: {c: [-0.12, 1.22, 0.16], r: 0.04}
+      - sphere: {c: [0.36, 0.56, -0.08], r: 0.04}
+      - sphere: {c: [-0.38, 0.62, 0.12], r: 0.04}
+      - sphere: {c: [0.08, 0.70, 0.30], r: 0.045}
+      - sphere: {c: [-0.06, 1.50, 0.0], r: 0.035}
+  hat_fallen:      # death: his fur hat left lying on the frost mound
+    material: hatfur
+    space: big
+    when: "frost >= 0.95"
+    prims:
+      - cylinder: {a: [0.02, 0.30, 0.08], b: [0.08, 0.42, -0.0], r: 0.17, round: 0.05}
+  hat_fallen_crown:
+    material: deep
+    space: big
+    when: "frost >= 0.95"
+    prims:
+      - ellipsoid: {align: [[0.08, 0.40, 0.0], [0.22, 0.62, -0.16]], c: [0.14, 0.50, -0.07], r: [0.12, 0.12, 0.17]}
+
+sockets:
+  crystal: {bone: stafftop, offset: [0, 0.20, 0]}          # the crystal: the rain of icicles is cast from here
+  mouth: {bone: head, offset: [0, 0.05, 0.18]}              # the frost breath starts here
+  staff_foot: {bone: staff, offset: [0, -1.16, 0]}            # the butt of the staff: the ice spikes burst from here
+
+animations:
+  idle:
+    frames: 8
+    ms: 160
+    channels:
+      bob: "0.04*sin(p)"
+      squash: "1 + 0.012*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.6)"
+      beard_sway: "0.04*sin(p - 1.2)"
+      hand_L: "[0.38, 0.10 + 0.03*sin(p - 0.6), 0.24]"
+      hand_R: "[0.28, 0.00 + 0.03*sin(p - 0.8), 0.10]"
+      staff_pitch: "0.02*sin(p - 1.0)"
+      coat: "0.10*sin(p - 1.2)"
+      sglow: "0"
+  # a slow, dignified stride: short steps under the long coat, the body lowest at each contact, the staff planted
+  # like a pilgrim's and swaying with the step, the free hand barely swinging, the beard and hem lagging behind
+  walk:
+    frames: 8
+    ms: 125
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.08
+      bob: "-0.03*cos(2*p)"
+      squash: "1 - 0.01*cos(2*p)"
+      twist: "0.06*cos(p)"
+      roll: "0.03*sin(p)"
+      head_yaw: "-0.04*cos(p)"
+      head_pitch: "0.03*cos(2*p - 0.6)"
+      beard_sway: "-0.05 + 0.04*cos(2*p - 1.0)"
+      foot_L: "[0.15, 0.09*pos(-sin(p)), 0.03 + 0.20*cos(p)]"
+      foot_R: "[0.15, 0.09*pos(sin(p)), 0.03 - 0.20*cos(p)]"
+      pitch_foot_L: "0.35*pos(-sin(p))"
+      pitch_foot_R: "0.35*pos(sin(p))"
+      hand_L: "[0.38, 0.12 + 0.03*pos(cos(p)), 0.26 - 0.08*cos(p)]"
+      hand_R: "[0.28, 0.02 + 0.02*pos(-cos(p)), 0.10 + 0.08*cos(p)]"
+      staff_pitch: "0.06*cos(p - 0.5)"
+      coat: "-0.08 + 0.15*sin(2*p - 0.8)"
+  # entrance / second phase: he gathers himself, then rises to his full height with the staff thrust high and the
+  # free arm flung wide (`roar` at the peak), the crystal flaring, a trembling held beat, then he settles
+  roar:
+    loop: false
+    keys:
+      - {ms: 150, set: {bob: -0.05, lean: 0.18, squash: 0.95, head_pitch: 0.18, coat: 0.2, beard_sway: 0.06,
+          hand_L: [0.34, 0.02, 0.28], hand_R: [0.22, -0.04, 0.24]}}
+      - {ms: 160, set: {bob: 0.02, lean: -0.04, squash: 1.02, head_pitch: -0.10, coat: -0.15,
+          hand_L: [0.42, 0.40, 0.18], hand_R: [0.46, 0.22, 0.14], staff_splay: 0.08, sglow: 0.5}}
+      - {ms: 130, event: roar, set: {bob: 0.05, lean: -0.16, squash: 1.05, head_pitch: -0.28, coat: -0.3, beard_sway: -0.08,
+          hand_L: [0.46, 0.66, 0.10], hand_R: [0.62, 0.40, 0.08], staff_splay: 0.16, sglow: 1.0}}
+      - {ms: 110, set: {root: [0.03, 0, 0], roll: 0.03, bob: 0.05, lean: -0.15, squash: 1.05, head_pitch: -0.26, coat: -0.28, beard_sway: -0.06,
+          hand_L: [0.47, 0.65, 0.10], hand_R: [0.63, 0.38, 0.08], staff_splay: 0.18, sglow: 0.8}}
+      - {ms: 110, set: {root: [-0.03, 0, 0], roll: -0.03, bob: 0.05, lean: -0.16, squash: 1.05, head_pitch: -0.28, coat: -0.3, beard_sway: -0.08,
+          hand_L: [0.45, 0.67, 0.10], hand_R: [0.61, 0.41, 0.08], staff_splay: 0.15, sglow: 1.0}}
+      - {ms: 110, set: {root: [0.02, 0, 0], roll: 0.02, bob: 0.04, lean: -0.14, squash: 1.04, head_pitch: -0.24, coat: -0.25, beard_sway: -0.05,
+          hand_L: [0.45, 0.60, 0.11], hand_R: [0.60, 0.36, 0.09], staff_splay: 0.15, sglow: 0.8}}
+      - {ms: 110, set: {root: [-0.02, 0, 0], roll: -0.02, bob: 0.04, lean: -0.14, squash: 1.04, head_pitch: -0.24, coat: -0.25, beard_sway: -0.05,
+          hand_L: [0.45, 0.61, 0.11], hand_R: [0.60, 0.37, 0.09], staff_splay: 0.14, sglow: 0.9}}
+      - {ms: 150, set: {bob: 0.02, lean: 0.0, coat: 0.05, head_pitch: -0.05,
+          hand_L: [0.40, 0.28, 0.20], hand_R: [0.40, 0.12, 0.12], staff_splay: 0.05, sglow: 0.3}}
+      - {ms: 130, set: {coat: 0.08}}
+  # frost breath: a deep inhale (rearing back, the chest swelling), then he bends forward and blows a cone of frost
+  # at the hero (`release` when the blowing starts: socket `mouth`), holds it, then straightens
+  breath:
+    loop: false
+    keys:
+      - {ms: 150, event: windup, set: {bob: 0.02, lean: -0.08, squash: 1.03, head_pitch: -0.14, coat: -0.1, beard_sway: 0.04,
+          hand_L: [0.38, 0.14, 0.20], hand_R: [0.24, 0.18, 0.22]}}
+      - {ms: 200, set: {bob: 0.04, lean: -0.16, squash: 1.05, head_pitch: -0.26, coat: -0.2, beard_sway: 0.06,
+          hand_L: [0.38, 0.16, 0.16], hand_R: [0.26, 0.24, 0.20]}}
+      - {ms: 80, event: release, set: {root: [0, 0, 0.04], bob: -0.03, lean: 0.23, squash: 0.96, head_pitch: 0.12, coat: 0.3, beard_sway: -0.22,
+          hand_L: [0.38, 0.10, 0.34], hand_R: [0.34, 0.04, 0.10], breath: 0.45}}
+      - {ms: 150, set: {root: [0, 0, 0.05], bob: -0.04, lean: 0.26, squash: 0.95, head_pitch: 0.14, coat: 0.35, beard_sway: -0.26,
+          hand_L: [0.38, 0.10, 0.36], hand_R: [0.34, 0.03, 0.08], breath: 0.85}}
+      - {ms: 150, set: {root: [0, 0, 0.05], bob: -0.04, lean: 0.26, squash: 0.95, head_pitch: 0.15, coat: 0.33, beard_sway: -0.28,
+          hand_L: [0.38, 0.10, 0.36], hand_R: [0.34, 0.03, 0.08], breath: 1.0}}
+      - {ms: 150, set: {root: [0, 0, 0.05], bob: -0.04, lean: 0.25, squash: 0.95, head_pitch: 0.14, coat: 0.3, beard_sway: -0.26,
+          hand_L: [0.38, 0.10, 0.36], hand_R: [0.34, 0.03, 0.08], breath: 0.9}}
+      - {ms: 140, set: {root: [0, 0, 0.03], bob: -0.02, lean: 0.18, head_pitch: 0.06, coat: 0.15, beard_sway: -0.1,
+          hand_L: [0.38, 0.10, 0.30], hand_R: [0.30, 0.02, 0.10], breath: 0.3}}
+      - {ms: 180, set: {root: [0, 0, 0.01], lean: 0.06, coat: 0.0, hand_L: [0.38, 0.10, 0.25]}}
+  # rain of icicles: he lifts the staff high over his head, the free hand raised too, the crystal flares (`release`
+  # at the flash: the icicles are cast from socket `crystal`), a trembling held beat, then lowers it
+  rain:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {bob: -0.03, lean: 0.06, squash: 0.97, head_pitch: 0.06, coat: 0.1,
+          hand_L: [0.34, 0.20, 0.24], hand_R: [0.26, 0.10, 0.20], sglow: 0.3}}
+      - {ms: 200, set: {bob: 0.02, lean: -0.10, squash: 1.03, head_pitch: -0.20, coat: -0.15, beard_sway: 0.04,
+          hand_L: [0.30, 0.58, 0.16], hand_R: [0.36, 0.46, 0.16], staff_splay: -0.04, sglow: 0.6}}
+      - {ms: 90, event: release, set: {bob: 0.05, lean: -0.16, squash: 1.05, head_pitch: -0.32, coat: -0.3, beard_sway: 0.08,
+          hand_L: [0.26, 0.82, 0.10], hand_R: [0.34, 0.74, 0.12], staff_splay: -0.08, sglow: 1.0}}
+      - {ms: 150, set: {root: [0.02, 0, 0], bob: 0.05, lean: -0.16, squash: 1.05, head_pitch: -0.30, coat: -0.28, beard_sway: 0.07,
+          hand_L: [0.27, 0.81, 0.10], hand_R: [0.35, 0.73, 0.12], staff_splay: -0.07, sglow: 0.8}}
+      - {ms: 150, set: {root: [-0.02, 0, 0], bob: 0.05, lean: -0.15, squash: 1.05, head_pitch: -0.30, coat: -0.28, beard_sway: 0.07,
+          hand_L: [0.25, 0.83, 0.10], hand_R: [0.33, 0.75, 0.12], staff_splay: -0.09, sglow: 1.0}}
+      - {ms: 150, set: {bob: 0.02, lean: -0.04, head_pitch: -0.08, coat: -0.05,
+          hand_L: [0.34, 0.36, 0.20], hand_R: [0.34, 0.16, 0.14], sglow: 0.3}}
+      - {ms: 140, set: {coat: 0.06}}
+  # ice spikes: the staff lifted high in both hands, then its butt slammed into the ground (`hit` on the slam: the
+  # spikes burst out from socket `staff_foot`), a held crouch, recovery
+  spikes:
+    loop: false
+    keys:
+      - {ms: 130, event: windup, set: {bob: 0.01, lean: -0.04, coat: -0.1, head_pitch: -0.05,
+          hand_L: [0.32, 0.34, 0.26], hand_R: [0.06, 0.26, 0.30], sglow: 0.3}}
+      - {ms: 220, set: {bob: 0.04, lean: -0.14, squash: 1.04, coat: -0.25, head_pitch: -0.18, beard_sway: 0.06,
+          hand_L: [0.26, 0.58, 0.22], hand_R: [0.0, 0.52, 0.26], staff_splay: -0.06, sglow: 0.8}}
+      - {ms: 70, event: hit, set: {root: [0, 0, 0.05], bob: -0.06, lean: 0.26, squash: 0.93, coat: 0.45, head_pitch: 0.14, beard_sway: 0.14,
+          hand_L: [0.26, 0.0, 0.36], hand_R: [0.0, 0.06, 0.36], staff_pitch: 0.05, staff_splay: -0.06, sglow: 1.0}}
+      - {ms: 160, set: {root: [0, 0, 0.05], bob: -0.05, lean: 0.27, squash: 0.94, coat: 0.5, head_pitch: 0.16, beard_sway: 0.1,
+          hand_L: [0.26, 0.01, 0.37], hand_R: [0.0, 0.07, 0.37], staff_pitch: 0.05, staff_splay: -0.06, sglow: 0.5}}
+      - {ms: 150, set: {root: [0, 0, 0.03], bob: -0.01, lean: 0.12, coat: 0.15,
+          hand_L: [0.32, 0.06, 0.30], hand_R: [0.16, 0.02, 0.18]}}
+      - {ms: 140, set: {root: [0, 0, 0.01], lean: 0.06, hand_L: [0.37, 0.09, 0.25], hand_R: [0.27, 0.0, 0.11]}}
+      - {ms: 130, set: {coat: 0.05}}
+  # hit: a short flinch (the boss does not stop): jolted back, the coat and beard flap, back again
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.05], bob: 0.02, lean: -0.15, squash: 0.96, head_pitch: -0.2, coat: -0.35, beard_sway: 0.12,
+          hand_L: [0.40, 0.14, 0.16], hand_R: [0.32, 0.06, 0.02], staff_pitch: -0.1}}
+      - {ms: 70, set: {root: [0, 0, -0.02], bob: 0.01, lean: -0.05, squash: 0.98, head_pitch: -0.08, coat: -0.12, beard_sway: 0.05,
+          hand_L: [0.39, 0.12, 0.20], hand_R: [0.30, 0.03, 0.06], staff_pitch: -0.05}}
+      - {ms: 70, set: {lean: 0.08, head_pitch: 0.02, coat: 0.05}}
+  # death: struck back, the light of the eyes and the crystal dies, he sags to his knees and sinks into a growing
+  # mound of hoarfrost; the staff tips over and falls beside it; the last frame (the frost mound with ice shards
+  # and the dead staff) is held
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.04], bob: 0.03, lean: -0.26, squash: 1.03, head_pitch: -0.32, coat: -0.45, beard_sway: 0.15,
+          hand_L: [0.44, 0.26, 0.12], hand_R: [0.42, 0.20, 0.0], staff_splay: 0.1, sglow: 0.6}}
+      - {ms: 140, set: {root: [0, 0, -0.05], bob: -0.10, lean: 0.22, squash: 0.92, head_pitch: 0.30, coat: 0.3, beard_sway: 0.1,
+          hand_L: [0.36, -0.02, 0.22], hand_R: [0.30, -0.06, 0.18], staff_splay: 0.35, frost: 0.25,
+          foot_L: [0.15, 0, 0.12], foot_R: [0.15, 0, -0.08]}}
+      - {ms: 140, set: {root: [0, 0, -0.05], bob: -0.20, lean: 0.25, squash: 0.86, head_pitch: 0.32, coat: 0.3, beard_sway: 0.1, frost: 0.5,
+          hand_L: [0.40, -0.16, 0.22], hand_R: [0.32, -0.20, 0.20], staff_splay: 0.75, staff_pitch: "-0.45*pulse(yaw, -90, 70)",
+          foot_L: [0.15, 0, 0.12], foot_R: [0.15, 0, -0.08]}}
+      - {ms: 130, set: {root: [0, 0, -0.05], bob: -0.30, lean: 0.20, squash: 0.78, head_pitch: 0.30, coat: 0.2, frost: 0.7,
+          hand_L: [0.44, -0.28, 0.20], hand_R: [0.34, -0.32, 0.20], staff_splay: 1.20, staff_pitch: "-0.72*pulse(yaw, -90, 70)",
+          foot_L: [0.15, 0, 0.12], foot_R: [0.15, 0, -0.08]}}
+      - {ms: 120, set: {root: [0, 0, -0.05], bob: -0.40, lean: 0.24, squash: 0.68, head_pitch: 0.40, coat: 0.1, frost: 0.88,
+          hand_L: [0.46, -0.36, 0.18], hand_R: [0.36, -0.38, 0.20], staff_splay: 1.50, staff_pitch: "-0.9*pulse(yaw, -90, 70)",
+          foot_L: [0.15, 0, 0.12], foot_R: [0.15, 0, -0.08]}}
+      - {ms: 130, set: {root: [0, 0, -0.05], bob: -0.50, lean: 0.15, squash: 0.50, head_pitch: 0.45, coat: 0.1, frost: 0.96,
+          hand_L: [0.46, -0.36, 0.18], hand_R: [0.36, -0.38, 0.20], staff_splay: 1.55, staff_pitch: "-0.9*pulse(yaw, -90, 70)",
+          foot_L: [0.15, 0, 0.12], foot_R: [0.15, 0, -0.08]}}
+      - {ms: 700, set: {root: [0, 0, -0.05], bob: -0.50, lean: 0.15, squash: 0.50, head_pitch: 0.45, coat: 0.1, frost: 1.0,
+          hand_L: [0.46, -0.36, 0.18], hand_R: [0.36, -0.38, 0.20], staff_splay: 1.55, staff_pitch: "-0.9*pulse(yaw, -90, 70)",
+          foot_L: [0.15, 0, 0.12], foot_R: [0.15, 0, -0.08]}}
+
+timing:
+  roar: {roar: 310ms, total: 1160ms}
+  breath: {release: 350ms, total: 1200ms}
+  rain: {release: 320ms, total: 1000ms}
+  spikes: {hit: 350ms, total: 1000ms}
