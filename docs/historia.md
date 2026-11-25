@@ -2,6 +2,15 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 25.11.2026 - Poprawki interfejsu: odjeżdżający przycisk umiejętności, paski zdrowia i many w bazie
+
+- **Przycisk umiejętności odjeżdżał w bok** (zgłoszenie autora ze zrzutem): drgnięcie `ActionButton.deny` (stuknięcie
+  w odnawiającą się umiejętność) zapamiętywało miejsce w połowie poprzedniego drgnięcia - przy szybkim stukaniu
+  przycisk przesuwał się coraz dalej. Teraz nowe drgnięcie przerywa poprzednie i wraca do miejsca sprzed niego
+  (`_deny_tween`, `_rest_x`).
+- **Paski zdrowia i many także w bazie** (prośba autora): `arena._make_vitals` (zdrowie z tarczą, mana z rezerwacją
+  i ikonami aur) - w lochu w `_make_horde_bar`, w bazie nad poziomem postaci; sygnały postaci podpięte dla obu scen.
+
 ## 25.11.2026 - Lodowy rapier: poprawki po pierwszym teście autora
 
 - **Zwykły atak w cyklu** (`ProtoRapier.CYCLE`, `cycle_move`): pchnięcie, krótkie cięcie w prawo, pchnięcie, cięcie
