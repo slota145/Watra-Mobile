@@ -103,6 +103,31 @@ func burn(total: float, time: float, pen := 0.0) -> void:
 	st.burn_left = maxf(st.burn_left, time)
 
 
+## Trucizna natury (Elements.POISON_*): dokłada znak (najwyżej Elements.POISON_STACKS), każdy zadaje `per_stack`
+## obrażeń na sekundę (najsilniejszy znak wyznacza siłę wszystkich), czas odnawia się do `time`. Zielone liczby.
+func poison(per_stack: float, time := Elements.POISON_TIME, pen := 0.0) -> void:
+	if not alive() or per_stack <= 0.0 or time <= 0.0:
+		return
+	var st := _status()
+	if st.poison_left <= 0.0:
+		st.poison_stacks = 0
+		st.poison_dps = 0.0
+	st.poison_stacks = mini(st.poison_stacks + 1, Elements.POISON_STACKS)
+	st.poison_dps = maxf(st.poison_dps, per_stack * (1.0 - resist(Elements.NATURE, pen)))
+	st.poison_left = maxf(st.poison_left, time)
+
+
+## Ile znaków trucizny ma wróg (0 - nie jest zatruty).
+func poison_stacks() -> int:
+	var st := _st_live()
+	return st.poison_stacks if st and st.poison_left > 0.0 else 0
+
+
+## Czy wróg jest zatruty (kamień Pylenia Mchu - zatruci wybuchają po śmierci).
+func is_poisoned() -> bool:
+	return poison_stacks() > 0
+
+
 ## Spowolnienie o `amount` (0-1, np. 0.25 - o 25%) na `time` sekund (silniejsze wygrywa).
 func slow(amount: float, time: float) -> void:
 	if not alive() or amount <= 0.0:
@@ -332,6 +357,12 @@ class _Status extends Node2D:
 	## Lód: znaki chłodu (zerują się z końcem spowolnienia) i czas zamrożenia.
 	var chill := 0
 	var frozen_left := 0.0
+	## Natura: znaki trucizny, obrażenia na sekundę jednego znaku, czas, zebrane ułamki obrażeń.
+	var poison_stacks := 0
+	var poison_dps := 0.0
+	var poison_left := 0.0
+	var _poison_acc := 0.0
+	var _poison_tick := BURN_TICK
 	var _acc := 0.0
 	var _tick := BURN_TICK
 	var _t := 0.0
@@ -393,7 +424,20 @@ class _Status extends Node2D:
 				if dmg > 0 and target.alive():
 					_acc -= dmg
 					target.burn_tick(dmg)
-		if not target.alive() or (burn_left <= 0.0 and slow_left <= 0.0 and soak_left <= 0.0 and shock_left <= 0.0
+		if poison_left > 0.0:
+			poison_left -= delta
+			_poison_acc += poison_dps * poison_stacks * delta
+			_poison_tick -= delta
+			if _poison_tick <= 0.0 or poison_left <= 0.0:
+				_poison_tick = BURN_TICK
+				var pdmg := int(_poison_acc)
+				if pdmg > 0 and target.alive():
+					_poison_acc -= pdmg
+					target.color_next = Elements.color_of(Elements.NATURE)
+					target.burn_tick(pdmg)
+			if poison_left <= 0.0:
+				poison_stacks = 0
+		if not target.alive() or (burn_left <= 0.0 and poison_left <= 0.0 and slow_left <= 0.0 and soak_left <= 0.0 and shock_left <= 0.0
 				and wither_left <= 0.0 and frozen_left <= 0.0):
 			queue_free()
 			return
@@ -440,6 +484,14 @@ class _Status extends Node2D:
 					p += Vector2(rng.randf_range(-3.0, 3.0), rng.randf_range(-4.0, 4.0))
 					pts.append(p)
 				draw_polyline(pts, SPARK, 1.0)
+		if poison_left > 0.0 and poison_stacks > 0:
+			# trucizna: zielone bąbelki unoszą się nad głową - im więcej znaków, tym więcej bąbelków
+			var a := clampf(poison_left * 2.0, 0.0, 1.0)
+			var top := -target.center_height * 2.0 - 2.0
+			for i in mini(poison_stacks, 5):
+				var k := fmod(_t * 0.8 + i * 0.37, 1.0)
+				var p := Vector2(sin(i * 2.3 + _t * 2.0) * 5.0, top - k * 8.0)
+				draw_circle(p, 1.2 + (i % 2) * 0.6, Color(0.55, 0.95, 0.35, 0.85 * a * (1.0 - k * 0.6)))
 		if frozen_left > 0.0:
 			# zamrożony: bladobłękitna, półprzezroczysta bryła lodu na celu z białymi refleksami i kryształkami
 			var a := clampf(frozen_left / 0.25, 0.0, 1.0)

@@ -18,6 +18,7 @@ const BOOK := "book"
 const SCYTHE := "scythe"
 const HAMMER := "hammer"
 const RAPIER := "rapier"
+const STAFF := "staff"
 ## name - nazwa, element - żywioł obrażeń (Elements), unlock - poziom lochu, po którego przebiciu broń jest za darmo,
 ## start - do wyboru przy tworzeniu postaci (START; decyzja autora 21.11.2026: miecz, łuk albo księga, dwie niewybrane
 ## od lochu 5 - Game.start_weapon), magic - broń magiczna (premia obrażeń magicznych, szybkość rzucania czarów).
@@ -45,8 +46,11 @@ const DATA := {
 	# lodowy rapier - pierwsza broń lodu (ustalone z autorem 25.11.2026): spowalnia, zamraża i roztrzaskuje, od lochu 35
 	"rapier": {"name": "Lodowy rapier", "short": "Rapier", "element": Elements.COLD, "unlock": 35,
 		"icon": preload("res://assets/skills/rapier/r_thrust.png")},
+	# Kostur Leszego - pierwsza broń natury, magiczna (pomysły autora 25.11.2026): truje, sadzonki, drzewce; od lochu 40
+	"staff": {"name": "Kostur Leszego", "short": "Kostur", "element": Elements.NATURE, "unlock": 40, "magic": true,
+		"icon": preload("res://assets/skills/staff/l_roots.png")},
 }
-const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana", "scythe", "hammer", "rapier"]
+const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana", "scythe", "hammer", "rapier", "staff"]
 ## Bronie do wyboru przy tworzeniu postaci.
 const START: Array[String] = ["sword", "bow", "book"]
 ## Najwyższy poziom mistrzostwa (jak poziom postaci).
@@ -109,6 +113,8 @@ static func script_of(id: String) -> Script:
 			return ProtoHammer
 		RAPIER:
 			return ProtoRapier
+		STAFF:
+			return ProtoStaff
 	return ProtoWeapon
 
 
