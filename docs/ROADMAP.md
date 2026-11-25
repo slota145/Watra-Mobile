@@ -42,7 +42,7 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej.
   Fizyczne - miecz (bez żywiołu).
 
-- [ ] **Kostur Leszego - pierwsza broń natury, magiczna (pomysły autora 25.11.2026, propozycje Claude do potwierdzenia):**
+- [ ] **Kostur Leszego - pierwsza broń natury, magiczna (pomysły autora 25.11.2026; propozycje Claude zaakceptowane, limity większe - do zrobienia):**
   natura truje - trucizna kumuluje się z każdym trafieniem (do zrobienia razem z kosturem, jak znaki chłodu lodu).
   Mechanika **sadzonek**: dwie umiejętności je zostawiają, dwie z nich korzystają, ale ich nie zużywają.
   - **Zwykły atak** (Claude: „Biegnące Korzenie”): korzenie wystrzeliwują z ziemi i przebijają kilku wrogów po kolei
@@ -56,8 +56,11 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
     (każdego rodzaju) - obrażenia i zatrucie; kamień unikalny - zatruci wrogowie po śmierci wybuchają zarodnikami.
   - **Przyzwanie** (autor: drzewce albo chodzące ciernie; Claude poleca drzewce - „Strażnicy Boru”): jeden przy
     postaci i po jednym przy każdej sadzonce, atakują wrogów; kamień unikalny - drzewce oplatają wrogów korzeniami.
-  - Propozycje Claude: najwyżej 8 sadzonek (najstarsza więdnie), życie ok. 20 s; drzewce na czas (ok. 10 s), najwyżej
-    6 naraz; za darmo od lochu 40. Grafika kostura i drzewca - generator/SpriteKiln, efekty z kreatora.
+  - Ustalone 25.11.2026: nazwy z propozycji Claude, przyzwanie to **drzewce** („Strażnicy Boru”), za darmo od
+    **lochu 40**, trucizna jako znaki kumulujące się z trafieniami. Limity większe, niż proponował Claude (autor:
+    „żeby gracz poczuł się jak pasterz drzew, a nie jego podróbka”): **najwyżej 12 sadzonek** (najstarsza więdnie),
+    życie ok. **25 s**; drzewce na czas (ok. **12 s**), **najwyżej 10 naraz** - sprawdzić liczbę klatek na telefonie
+    (`tools/combat_bench.gd`). Grafika kostura - generator, drzewiec - SpriteKiln, efekty z kreatora.
 
 - [ ] **Loch mrozu - Lodowe jaskinie (zrobiony 25.11.2026, `docs/historia.md`; do oceny na telefonie: tempo wymarzania, koksowniki, siła potworów i Dziada Mroza):** poziomy **31-35** na drabince
   (`Dungeons.ORDER` po Wulkanicznych równinach; drugi krąg od 36), żywioł lód (odporność na lód, wrażliwość na ogień -
