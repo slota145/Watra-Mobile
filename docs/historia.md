@@ -36,7 +36,11 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   kamieniem); ikony `tools/staff_icons.py` (motyw „nature” w `tools/weapon_icons.py`); sadzonki i drzewiec ze SpriteKiln
   (`art/specs/characters/{sapling,carnivore,thorn,treant}/`), efekty z kreatora (`root_burst`, `acorn`, `spores`,
   `poison_hit`, `thorn`, `entangle`, `pull_under`, `nature_cast`) - bez nich kształty z kodu (`_Shape`).
-- Test `tests/test_staff.gd`.
+- **Wydajność** (`tools/combat_bench.gd`, `WEAPON=staff SKILL=l_treants EVERY=0.5`, loch 45, 150 potworów, bez aur):
+  logika średnio 2,66 ms na klatkę (katana w tych samych warunkach 2,61 ms) - pełne limity sadzonek i drzewców nie
+  obciążają. Chwile ataków zgrane z animacjami SpriteKiln: kłapnięcie 0,26 s, cierń 0,22 s, cios drzewca 0,48 s;
+  drzewiec chodzi 32 px/s (animacja ma 21,6 - szybciej, żeby nadążał za walką).
+- Test `tests/test_staff.gd`, zrzuty `tools/staff_shots.gd`.
 
 ## 25.11.2026 - Siódmy loch: Lodowe jaskinie (lód), Dziad Mróz, wymarzanie i koksowniki
 

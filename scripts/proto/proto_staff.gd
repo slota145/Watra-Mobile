@@ -32,16 +32,16 @@ const NATURE := Color(0.55, 0.95, 0.35)
 const ROOT_COLOR := Color(0.42, 0.28, 0.16)
 ## Efekty z kreatora: nazwa -> [klatki, fps, zaczepienie, skala]. Brak pliku - kształt z kodu (`_fx`).
 const FX := {
-	"root_burst": [9, 18.0, Vector2(20, 44), 0.8],
-	"acorn": [5, 12.0, Vector2(12, 6), 1.0],
-	"spores": [11, 16.0, Vector2(40, 28), 1.0],
-	"poison_hit": [8, 18.0, Vector2(16, 16), 0.8],
-	"thorn": [4, 12.0, Vector2(10, 4), 1.0],
-	"entangle": [7, 10.0, Vector2(18, 34), 0.8],
-	"pull_under": [9, 14.0, Vector2(20, 34), 0.9],
-	"nature_cast": [7, 16.0, Vector2(18, 18), 0.8],
+	"root_burst": [10, 18.0, Vector2(26, 30), 0.75],
+	"acorn": [6, 14.0, Vector2(19, 8), 1.0],
+	"spores": [12, 16.0, Vector2(42, 30), 1.0],
+	"poison_hit": [8, 18.0, Vector2(14, 17), 0.7],
+	"thorn": [4, 16.0, Vector2(17, 8), 1.0],
+	"entangle": [8, 10.0, Vector2(20, 32), 0.7],
+	"pull_under": [10, 14.0, Vector2(20, 32), 0.9],
+	"nature_cast": [8, 16.0, Vector2(20, 20), 0.8],
 }
-const SPORES_FX_RADIUS := 38.0
+const SPORES_FX_RADIUS := 40.0
 const SCENES := {"sapling": "res://assets/spritekiln/sapling/sapling.tscn",
 	"carnivore": "res://assets/spritekiln/carnivore/carnivore.tscn",
 	"thorn": "res://assets/spritekiln/thorn/thorn.tscn", "treant": "res://assets/spritekiln/treant/treant.tscn"}
@@ -101,7 +101,9 @@ const THORN_SPEED := 260.0
 const MAX_TREANTS := 10
 const TREANT_LIFE := 12.0
 const TREANT_LIFE_LONG := 16.0
-const TREANT_SPEED := 40.0
+const TREANT_SPEED := 32.0
+## Cios w animacji `attack` drzewca (zdarzenie `hit`).
+const TREANT_HIT_AT := 0.48
 const TREANT_SEEK := 140.0
 const TREANT_REACH := 18.0
 const TREANT_EVERY := 1.0
@@ -441,6 +443,7 @@ func _cast_grasp() -> void:
 func _hold_fx(t: ProtoTarget, time: float) -> void:
 	var fx := _fx("entangle", t.global_position, 1.0, 1, t)
 	fx.position = Vector2.ZERO
+	fx.modulate.a = 0.85  # gęste pnącza - wróg prześwituje
 	get_tree().create_timer(time, false).timeout.connect(func() -> void:
 		if is_instance_valid(fx):
 			fx.queue_free())
@@ -675,9 +678,13 @@ class _Treant extends Node2D:
 				_cooldown = ProtoStaff.TREANT_EVERY
 				ProtoStaff._face_node(_body, to)
 				ProtoStaff._play(_body, &"attack", &"idle")
-				weapon._hit(_target, power, global_position, "l_treants")
-				if weapon._perk("l_treants", 1) and _target.alive():
-					_target.stun(ProtoStaff.TREANT_STUN)
+				var foe := _target
+				get_tree().create_timer(ProtoStaff.TREANT_HIT_AT, false).timeout.connect(func() -> void:
+					if leaving or not is_instance_valid(foe) or not foe.alive() or not is_instance_valid(weapon):
+						return
+					weapon._hit(foe, power, global_position, "l_treants")
+					if weapon._perk("l_treants", 1) and foe.alive():
+						foe.stun(ProtoStaff.TREANT_STUN))
 		if weapon._unique("l_treants") and _root_t <= 0.0:
 			_root_t = ProtoStaff.TREANT_ROOT_EVERY
 			var near := weapon.targets_near(global_position, ProtoStaff.TREANT_ROOT_RANGE)
