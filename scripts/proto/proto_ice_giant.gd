@@ -25,7 +25,7 @@ func _init() -> void:
 	element = Elements.COLD
 	squeaks = false
 	fallback_color = Color(0.55, 0.75, 0.95)
-	anim_hit_at = 0.75  # pięści spadają w animacji `attack` (zdarzenie `hit`)
+	anim_hit_at = 0.74  # pięści spadają w animacji `attack` po 0,74 s (zdarzenie `hit`)
 
 
 func _strike() -> void:
