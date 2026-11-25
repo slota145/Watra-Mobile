@@ -17,6 +17,7 @@ const BOW := "bow"
 const BOOK := "book"
 const SCYTHE := "scythe"
 const HAMMER := "hammer"
+const RAPIER := "rapier"
 ## name - nazwa, element - żywioł obrażeń (Elements), unlock - poziom lochu, po którego przebiciu broń jest za darmo,
 ## start - do wyboru przy tworzeniu postaci (START; decyzja autora 21.11.2026: miecz, łuk albo księga, dwie niewybrane
 ## od lochu 5 - Game.start_weapon), magic - broń magiczna (premia obrażeń magicznych, szybkość rzucania czarów).
@@ -41,8 +42,11 @@ const DATA := {
 	# młot - broń ziemi (ustalone z autorem 21.11.2026): ogłusza i odpycha, za darmo od lochu 30 (po pierwszym kręgu)
 	"hammer": {"name": "Młot", "element": Elements.EARTH, "unlock": 30,
 		"icon": preload("res://assets/skills/hammer/m_smash.png")},
+	# lodowy rapier - pierwsza broń lodu (ustalone z autorem 25.11.2026): spowalnia, zamraża i roztrzaskuje, od lochu 35
+	"rapier": {"name": "Lodowy rapier", "short": "Rapier", "element": Elements.COLD, "unlock": 35,
+		"icon": preload("res://assets/skills/rapier/r_thrust.png")},
 }
-const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana", "scythe", "hammer"]
+const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana", "scythe", "hammer", "rapier"]
 ## Bronie do wyboru przy tworzeniu postaci.
 const START: Array[String] = ["sword", "bow", "book"]
 ## Najwyższy poziom mistrzostwa (jak poziom postaci).
@@ -103,6 +107,8 @@ static func script_of(id: String) -> Script:
 			return ProtoScythe
 		HAMMER:
 			return ProtoHammer
+		RAPIER:
+			return ProtoRapier
 	return ProtoWeapon
 
 

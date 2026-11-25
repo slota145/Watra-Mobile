@@ -2,6 +2,44 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 25.11.2026 - Lodowy rapier - pierwsza broń lodu
+
+- **Ustalenia z autorem (25.11.2026, ankieta):** zasada „każdy żywioł ma co najmniej 2 bronie - magiczną i fizyczną”
+  (`docs/GDD.md`, lista braków w `docs/ROADMAP.md`); pierwsza broń lodu - lodowy rapier (fizyczna), potem loch lodu.
+  Za darmo od **lochu 35** (loch lodu wejdzie na drabinkę jako 31-35), wygląd: cienka klinga z bladoniebieskiego lodu
+  i srebrny kosz; lód spowalnia i zamraża, a **roztrzaskanie** - zamrożony wróg trafiony rapierem pęka i rani sąsiadów.
+  Zestaw 5 umiejętności zaakceptowany; kamienie unikalne i liczby - propozycje Claude.
+- **Chłód lodu (wspólny, każda broń lodu):** `Elements.CHILL_SLOW` 25% na `CHILL_TIME` 2 s, `CHILL_STACKS` 4 znaki
+  zamrażają na `CHILL_FREEZE` 1 s (potem `ProtoTarget.FREEZE_IMMUNE` 2 s odporności). `ProtoTarget.chill` (znaki,
+  zerują się z końcem spowolnienia), `chill_stacks`, `is_frozen`, `thaw`; `freeze` okrywa wroga bryłą lodu (też combo
+  wody z lodem). Znaki chłodu - kryształki nad głową, zamrożenie - półprzezroczysta bryła (`_Status._draw`).
+  `ProtoWeapon._deal`: żywioł `COLD` woła `t.chill()` i `_on_chill` (do nadpisania przez broń lodu).
+- **Broń** `scripts/proto/proto_rapier.gd` (`ProtoRapier`, `Weapons.RAPIER`, `Elements.COLD`): roztrzaskanie w `_hit`
+  (`SHATTER_RADIUS` 34 px, `SHATTER_POWER` 60% trafienia, bez łańcucha), umiejętności (mistrzostwo 1/3/6/10/15):
+  - **Pchnięcie Szronu** (`r_thrust`, zwykły, siła 1,05, zasięg 58): linia trafienia 9 px, szybciej niż miecz
+    (przerwa 0,36 s; stany `r_wind`/`r_out`/`r_back` w `STRIKE_STATES`); 5. - co trzecie x2 dalej, 10. - lodowy kolec
+    przy pierwszym trafionym (40%); Kamień Sopli - co 4. sopel (200 px, przebija, 60%; `_icicles`); Mnożenie - drugie
+    pchnięcie w innego wroga.
+  - **Wypad** (`r_lunge`, 22 many, 4 s, 110 px, 1,6): `ProtoHero.leap` w 0,18 s, nietykalny, pas 14 px; ścieżka szronu
+    (`_FrostPath`, 2 s / 5. - 4 s, spowalnia o 40%); 10. - wybuch mrozu na końcu (40 px, 60%, 2 znaki); Kamień Zamieci -
+    drugi wypad przez 1,5 s bez many i odnowienia (`_lunge_free`); Mnożenie - lodowe odbicie obok.
+  - **Riposta Morozka** (`r_riposte`, 25 many, 8 s, 1,8): zasłona 1,5 s (5. - 2,5 s) - `hero.parry_left` odnawiane co
+    klatkę, każdy cios odbity (`parried`) i kontra pchnięciem (50%); na koniec wybuch 60 px z pełnym chłodem (zamraża);
+    10. - sopel z każdego odbicia; Kamień Lodowego Pancerza - `hero.fortify` 30% +5% za odbicie (do 50%) na 4 s.
+  - **Grad Pchnięć** (`r_flurry`, trzymany, 14 many/s, 0,45): pchnięcie co 0,12 s (5. - 0,09) w stożku ±26°, chód 60%;
+    10. - co 5. lodowy kolec na końcu; Kamień Gradu - 2 znaki chłodu; Mnożenie - widmowe pchnięcie obok.
+  - **Lodowy Kwiat** (`r_bloom`, 38 many, 7 s, 2,0): rapier wbija się w ziemię, pierścień 10 kryształów (50 px,
+    5. - x1,3), 2 znaki chłodu; 10. - drugi pierścień x1,6 po 0,4 s (70%); Kamień Wiecznej Zmarzliny - kryształy
+    zostają 3 s, co 0,5 s chłód i 25% (`_fields`).
+- **Grafiki (bez generacji PixelLab):** rapier `tools/rapier_art.py` -> `assets/weapons/rapier.png`; ikony
+  `tools/rapier_icons.py` (motyw „frost” w `tools/weapon_icons.py`) -> `assets/skills/rapier/`; kamienie unikalne
+  w `tools/unique_gem_art.py`; efekty z kreatora przebarwione na lód (`pixellab_src/vfx/ids.json`: `rapier_thrust` z
+  pchnięcia glewii, `ice_spikes` ze skalnych kolców, `rapier_hit` z trafienia miecza, `rapier_trail` ze smugi Mgnienia)
+  i `frost_shatter`; zasłona, ścieżka, sople i kryształy rysowane w grze.
+- Test `tests/test_rapier.gd`, zrzuty `tools/rapier_shots.gd`.
+- **Do oceny autora:** tempo pchnięć, czy 4 znaki do zamrożenia to nie za dużo/za mało, siła roztrzaskania, zasłona
+  (czy nie za mocna - odbija wszystko), czy przebarwione efekty wystarczą, czy robić własne w kreatorze.
+
 ## 22.11.2026 - Boss szczytowy: Żmij Gorynycz
 
 - **Ustalenia z autorem (22.11.2026, ankieta):** klucz rzadko ze skrzyni bossa **od lochu 30, ok. 5%**, pamięta poziom

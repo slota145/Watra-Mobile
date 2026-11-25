@@ -42,7 +42,7 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej.
   Fizyczne - miecz (bez żywiołu).
 
-- [ ] **Lodowy rapier, potem loch lodu (wybór autora 25.11.2026):** pierwsza broń lodu - lodowy rapier (fizyczna);
+- [ ] **Lodowy rapier (zrobiony 25.11.2026, `docs/historia.md`; do oceny na telefonie: tempo pchnięć, 4 znaki chłodu do zamrożenia, roztrzaskanie, siła zasłony, przebarwione efekty), potem loch lodu (do zrobienia):** pierwsza broń lodu - lodowy rapier (fizyczna);
   następnie loch lodu na drabince (31-35, przed kolejnym kręgiem). Ustalone 25.11.2026: za darmo od **lochu 35**;
   wygląd - cienka klinga z przezroczystego, bladoniebieskiego lodu, srebrny kosz rękojeści, efekty biało-błękitne
   z kryształkami i mgiełką mrozu; lód spowalnia i po kilku trafieniach zamraża, a **roztrzaskanie**: zamrożony wróg

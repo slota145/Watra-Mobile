@@ -153,15 +153,55 @@ func is_withered() -> bool:
 	return st != null and st.wither_left > 0.0
 
 
-## Zamrożenie przemoczonego lodem (combo, Elements.SOAK_FREEZE): ogłusza na `time` s, potem przez FREEZE_IMMUNE s
-## nie da się zamrozić znowu (żeby woda z lodem nie trzymały wroga w miejscu bez końca). Zwraca, czy zamroziło.
+## Zamrożenie (combo lodu z przemoczeniem - Elements.SOAK_FREEZE, chłód lodowego rapiera - `chill`): ogłusza na
+## `time` s i okrywa wroga lodem, potem przez FREEZE_IMMUNE s nie da się zamrozić znowu (żeby lód nie trzymał wroga
+## w miejscu bez końca). Zwraca, czy zamroziło.
 func freeze(time: float) -> bool:
 	var now := Time.get_ticks_msec() / 1000.0
 	if not alive() or now < _freeze_ready:
 		return false
 	_freeze_ready = now + time + FREEZE_IMMUNE
 	stun(time)
+	var st := _status()
+	st.frozen_left = maxf(st.frozen_left, time)
+	st.chill = 0
 	return true
+
+
+## Chłód lodu (Elements.CHILL_*): spowalnia o `amount` na `time` s i dokłada `stacks` znaków chłodu; po
+## Elements.CHILL_STACKS znakach wróg zamarza na `freeze_time` s. Znaki znikają, gdy spowolnienie minie. Zwraca, czy
+## zamroziło.
+func chill(amount := Elements.CHILL_SLOW, time := Elements.CHILL_TIME, stacks := 1, freeze_time := Elements.CHILL_FREEZE) -> bool:
+	if not alive():
+		return false
+	slow(amount, time)
+	var st := _status()
+	if st.frozen_left > 0.0:
+		return false
+	st.chill += stacks
+	if st.chill >= Elements.CHILL_STACKS:
+		st.chill = 0
+		return freeze(freeze_time)
+	return false
+
+
+## Ile znaków chłodu ma wróg (testy, okno pomocy).
+func chill_stacks() -> int:
+	var st := _st_live()
+	return st.chill if st and st.slow_left > 0.0 else 0
+
+
+## Czy wróg jest zamrożony (roztrzaskanie lodowego rapiera).
+func is_frozen() -> bool:
+	var st := _st_live()
+	return st != null and st.frozen_left > 0.0
+
+
+## Kończy zamrożenie (roztrzaskanie - lód pęka; ogłuszenie potwora mija samo).
+func thaw() -> void:
+	var st := _st_live()
+	if st:
+		st.frozen_left = 0.0
 
 
 ## Czy wróg płonie (podpalenie trwa) - kamień Spalenie, talizman Lont Pożogi.
@@ -289,6 +329,9 @@ class _Status extends Node2D:
 	var soak_left := 0.0
 	var shock_left := 0.0
 	var wither_left := 0.0
+	## Lód: znaki chłodu (zerują się z końcem spowolnienia) i czas zamrożenia.
+	var chill := 0
+	var frozen_left := 0.0
 	var _acc := 0.0
 	var _tick := BURN_TICK
 	var _t := 0.0
@@ -337,6 +380,9 @@ class _Status extends Node2D:
 		soak_left -= delta
 		shock_left -= delta
 		wither_left -= delta
+		frozen_left -= delta
+		if slow_left <= 0.0:
+			chill = 0
 		if burn_left > 0.0:
 			burn_left -= delta
 			_acc += burn_dps * delta
@@ -348,7 +394,7 @@ class _Status extends Node2D:
 					_acc -= dmg
 					target.burn_tick(dmg)
 		if not target.alive() or (burn_left <= 0.0 and slow_left <= 0.0 and soak_left <= 0.0 and shock_left <= 0.0
-				and wither_left <= 0.0):
+				and wither_left <= 0.0 and frozen_left <= 0.0):
 			queue_free()
 			return
 		var on := burn_left > 0.0
@@ -394,6 +440,26 @@ class _Status extends Node2D:
 					p += Vector2(rng.randf_range(-3.0, 3.0), rng.randf_range(-4.0, 4.0))
 					pts.append(p)
 				draw_polyline(pts, SPARK, 1.0)
+		if frozen_left > 0.0:
+			# zamrożony: bladobłękitna, półprzezroczysta bryła lodu na celu z białymi refleksami i kryształkami
+			var a := clampf(frozen_left / 0.25, 0.0, 1.0)
+			var h := target.center_height
+			var w := maxf(h * 0.75, 8.0)
+			var block := PackedVector2Array([Vector2(-w, 1), Vector2(-w - 1, -h * 1.2), Vector2(-w * 0.4, -h * 2.0 - 2.0),
+					Vector2(w * 0.5, -h * 2.0), Vector2(w + 1, -h * 1.1), Vector2(w, 1)])
+			draw_colored_polygon(block, Color(0.65, 0.9, 1.0, 0.38 * a))
+			block.append(block[0])
+			draw_polyline(block, Color(0.88, 0.98, 1.0, 0.85 * a), 1.0)
+			draw_line(Vector2(-w * 0.55, -h * 1.6), Vector2(-w * 0.15, -h * 0.5), Color(1, 1, 1, 0.7 * a), 1.0)
+			draw_line(Vector2(w * 0.35, -h * 1.75), Vector2(w * 0.55, -h * 1.2), Color(1, 1, 1, 0.55 * a), 1.0)
+		elif chill > 0 and slow_left > 0.0:
+			# znaki chłodu: tyle kryształków nad głową, ile zebrał (do zamrożenia - Elements.CHILL_STACKS)
+			var a := clampf(slow_left * 2.0, 0.0, 1.0)
+			var top := -target.center_height * 2.0 - 4.0
+			for i in chill:
+				var c := Vector2((i - (chill - 1) / 2.0) * 4.0, top)
+				draw_colored_polygon(PackedVector2Array([c + Vector2(0, -2), c + Vector2(1.5, 0), c + Vector2(0, 2),
+						c + Vector2(-1.5, 0)]), Color(0.75, 0.95, 1.0, 0.95 * a))
 		if slow_left > 0.0 and soak_left <= 0.0:  # przemoczenie pokazują krople, szronowy krąg - samo spowolnienie
 			var a := clampf(slow_left * 2.0, 0.0, 1.0)
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.45))
