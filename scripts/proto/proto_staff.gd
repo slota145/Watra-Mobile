@@ -86,6 +86,9 @@ const SPORE_POISON_PERK := 3
 const SPORE_ECHO := 0.4
 const PUFF_RADIUS := 34.0
 const PUFF_POWER := 0.5
+## Szansa wybuchu zatrutego przy śmierci: za każdy znak trucizny (prośba autora 25.11.2026 - wcześniej wybuchał każdy
+## zatruty, a kostur zatruwa przy każdym trafieniu; teraz łańcuchy zdarzają się, ale nie cały czas).
+const PUFF_PER_STACK := 0.05
 ## Sadzonki: najwyżej, życie, mięsożerna (co ile, zasięg, siła względem żołędzia), cierniowa (co ile, zasięg, siła
 ## względem Uścisku, prędkość ciernia).
 const MAX_SAPLINGS := 12
@@ -504,10 +507,15 @@ func _spore_burst(at: Vector2, radius: float, power: float) -> void:
 				t.poison(amount * Elements.POISON_SHARE, Elements.POISON_TIME * duration_mult, penetration)
 
 
-## Kamień Purchawki: zatruty wróg po śmierci wybucha zarodnikami.
+## Kamień Purchawki: zatruty wróg po śmierci z szansą `puff_chance` wybucha zarodnikami.
 func _on_victim_died(g: ProtoGoblin) -> void:
-	if is_inside_tree() and _unique("l_spores") and g.is_poisoned():
+	if is_inside_tree() and _unique("l_spores") and randf() < puff_chance(g):
 		_spore_burst(g.global_position, PUFF_RADIUS * _area("l_spores"), _power("l_spores") * PUFF_POWER)
+
+
+## Szansa wybuchu przy śmierci (kamień Purchawki): PUFF_PER_STACK za każdy znak trucizny (10 znaków - 50%).
+static func puff_chance(t: ProtoTarget) -> float:
+	return t.poison_stacks() * PUFF_PER_STACK
 
 
 # --- Sadzonki ---

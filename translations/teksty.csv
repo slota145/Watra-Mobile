@@ -495,7 +495,7 @@
 "Zaraz po pchnięciu drugie, w kolejnego wroga (%d%% obrażeń).","","gems.gd"
 "Zaraz po uderzeniu drugie, w kolejnego wroga (%d%% obrażeń).","","gems.gd"
 "Zatruci wybuchają","","gems.gd"
-"Zatruty wróg po śmierci wybucha takimi samymi zarodnikami (50% siły Pylenia, mniejszy obłok).","","gems.gd"
+"Zatruty wróg po śmierci może wybuchnąć takimi samymi zarodnikami (50% siły Pylenia, mniejszy obłok): 5% szansy za każdy znak trucizny, do 50%.","","gems.gd"
 "Żar","","gems.gd, hero_stats.gd, loot_filter.gd"
 "+%d%% obrażeń","","gems.gd, items.gd, skills.gd"
 "%d (wolne %d)","","hero_stats.gd"
