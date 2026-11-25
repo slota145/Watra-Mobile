@@ -61,6 +61,9 @@ func hit_hero(hero: ProtoHero, amount: int, element := Elements.PHYSICAL) -> voi
 		amount = maxi(1, roundi(amount * (1.0 - aura_weak)))
 	if is_withered():  # osłabiony Nawią (mroczna kosa)
 		amount = maxi(1, roundi(amount * (1.0 - Elements.NAWIA_WEAK)))
+	if is_branded() and randf() < Elements.PRAWIA_MISS:  # oślepiony Prawią - chybia
+		hero.enemy_missed(true)
+		return
 	hero.take_damage(amount, element)
 
 
@@ -176,6 +179,21 @@ func wither(time: float) -> void:
 func is_withered() -> bool:
 	var st := _st_live()
 	return st != null and st.wither_left > 0.0
+
+
+## Piętno Prawii: przez `time` s wróg jest oślepiony (chybia Elements.PRAWIA_MISS ciosów - `hit_hero`), a trafienia
+## Prawią w niego leczą postać (ProtoWeapon._deal); nad głową świeci złote słoneczko.
+func brand(time: float) -> void:
+	if not alive() or time <= 0.0:
+		return
+	var st := _status()
+	st.brand_left = maxf(st.brand_left, time)
+
+
+## Czy wróg nosi piętno Prawii.
+func is_branded() -> bool:
+	var st := _st_live()
+	return st != null and st.brand_left > 0.0
 
 
 ## Zamrożenie (combo lodu z przemoczeniem - Elements.SOAK_FREEZE, chłód lodowego rapiera - `chill`): ogłusza na
@@ -354,6 +372,7 @@ class _Status extends Node2D:
 	var soak_left := 0.0
 	var shock_left := 0.0
 	var wither_left := 0.0
+	var brand_left := 0.0
 	## Lód: znaki chłodu (zerują się z końcem spowolnienia) i czas zamrożenia.
 	var chill := 0
 	var frozen_left := 0.0
@@ -411,6 +430,7 @@ class _Status extends Node2D:
 		soak_left -= delta
 		shock_left -= delta
 		wither_left -= delta
+		brand_left -= delta
 		frozen_left -= delta
 		if slow_left <= 0.0:
 			chill = 0
@@ -438,7 +458,7 @@ class _Status extends Node2D:
 			if poison_left <= 0.0:
 				poison_stacks = 0
 		if not target.alive() or (burn_left <= 0.0 and poison_left <= 0.0 and slow_left <= 0.0 and soak_left <= 0.0 and shock_left <= 0.0
-				and wither_left <= 0.0 and frozen_left <= 0.0):
+				and wither_left <= 0.0 and brand_left <= 0.0 and frozen_left <= 0.0):
 			queue_free()
 			return
 		var on := burn_left > 0.0
@@ -452,7 +472,7 @@ class _Status extends Node2D:
 		if _drips.visible:
 			_drips.frame = int(_t * DRIPS_FPS + get_instance_id() % DRIPS_FRAMES) % DRIPS_FRAMES
 			_drips.modulate.a = clampf(soak_left / 0.4, 0.0, 1.0)
-		if shock_left > 0.0 or wither_left > 0.0:
+		if shock_left > 0.0 or wither_left > 0.0 or brand_left > 0.0:
 			_spark_t -= delta
 			if _spark_t <= 0.0:
 				_spark_t = SPARK_EVERY
@@ -460,6 +480,17 @@ class _Status extends Node2D:
 		queue_redraw()
 
 	func _draw() -> void:
+		if brand_left > 0.0:
+			# Prawia: złote słoneczko nad głową - jasna tarcza i obracające się promienie
+			var a := clampf(brand_left / 0.4, 0.0, 1.0)
+			var gold := Elements.color_of(Elements.PRAWIA)
+			var c := Vector2(0, -target.center_height * 2.0 - 4.0)
+			var turn := _t * 2.0
+			for i in 6:
+				var d := Vector2.from_angle(turn + i * TAU / 6.0)
+				draw_line(c + d * 3.0, c + d * (5.0 + (i % 2)), Color(gold, 0.8 * a), 1.0)
+			draw_circle(c, 2.5, Color(gold, 0.95 * a))
+			draw_circle(c, 1.2, Color(1.0, 1.0, 0.92, a))
 		if wither_left > 0.0:
 			# Nawia: ciemna mgiełka nad głową (kilka czarnych kłębków) z białymi drobinkami, przesuwa się co SPARK_EVERY
 			var a := clampf(wither_left / 0.4, 0.0, 1.0)

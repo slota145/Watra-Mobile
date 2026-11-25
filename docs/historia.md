@@ -2,6 +2,21 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 25.11.2026 - Żywioł Prawia (światło bogów) - fundament
+
+- **Ustalenia z autorem (ankieta 25.11.2026):** nazwa **Prawia** (świat bogów, przeciwieństwo Nawii), działanie
+  „oślepia + piętno”, pierwsza broń - Słoneczna włócznia Dadźboga (fizyczna, osobny PR). Liczby - propozycje Claude.
+- **Dane:** `Elements.PRAWIA` („Prawia”, złoty kolor `Color(1.0, 0.9, 0.5)`), w `Elements.ALL` (10 żywiołów) -
+  wspólna odporność głębi lochów i odporność postaci działają same.
+- **Działanie:** każde trafienie Prawią oślepia i piętnuje wroga na `PRAWIA_BRAND_TIME` = 3 s (`ProtoTarget.brand`,
+  `is_branded`; z kamieniem wydłużającym czas - `duration_mult`). Oślepiony chybia 20% ciosów w postać
+  (`ProtoTarget.hit_hero`, złoty napis „Chybił!” - `ProtoHero.enemy_missed(true)`). Każde kolejne trafienie Prawią
+  w napiętnowanego leczy postać o 3% obrażeń, najwyżej 5 zdrowia na trafienie (`ProtoWeapon._deal`, ułamki w `_nawia_acc`).
+  Różnica z Nawią: Nawia leczy każdym ciosem i osłabia, Prawia leczy dopiero na piętnie i daje chybienia.
+- **Wygląd:** nad napiętnowanym wrogiem złote słoneczko z obracającymi się promieniami (`ProtoTarget._Status._draw`).
+- **Testy:** `test_elements.gd` (10 żywiołów, nazwa), `test_scythe.gd` - `_test_prawia` (piętno, leczenie od drugiego
+  trafienia, chybienia oślepionego).
+
 ## 25.11.2026 - Ósmy loch: Prastary Bór (natura), Leszy z Watry, Żywa puszcza
 
 - **Ustalenia z autorem (ankieta 25.11.2026):** klimat Prastary Bór (grafiki Prastarego Lasu Watry), potwory - duchy

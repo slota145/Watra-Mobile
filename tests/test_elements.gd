@@ -33,8 +33,8 @@ func _run() -> void:
 
 
 func _test_elements() -> void:
-	_check(Elements.ALL.size() == 9 and Elements.ALL.has(Elements.ARCANE) and not Elements.ALL.has(Elements.PHYSICAL),
-			"9 żywiołów (z Arkanami) bez fizycznych")
+	_check(Elements.ALL.size() == 10 and Elements.ALL.has(Elements.ARCANE) and Elements.ALL.has(Elements.PRAWIA)
+			and not Elements.ALL.has(Elements.PHYSICAL), "10 żywiołów (z Arkanami i Prawią) bez fizycznych")
 	var ok := true
 	for id in Elements.ALL + [Elements.PHYSICAL]:
 		ok = ok and Elements.is_element(id) and Elements.name_of(id) != "" and Elements.COLORS.has(id)
@@ -42,7 +42,7 @@ func _test_elements() -> void:
 		ok = ok and Elements.effect_text(id) != ""
 	_check(ok, "każdy żywioł ma nazwę, kolor i opis działania")
 	_check(Elements.name_of(Elements.LIGHTNING) == "Grom" and Elements.name_of(Elements.NAWIA) == "Nawia"
-			and not Elements.is_element("chaos"), "nazwy ustalone z autorem (Grom, Nawia)")
+			and Elements.name_of(Elements.PRAWIA) == "Prawia" and not Elements.is_element("chaos"), "nazwy ustalone z autorem (Grom, Nawia, Prawia)")
 	_check(Elements.reduce(100, 0.0) == 100 and Elements.reduce(100, 0.3) == 70 and Elements.reduce(100, -0.5) == 150,
 			"odporność zmniejsza, wrażliwość zwiększa")
 	_check(Elements.reduce(100, 0.99) == 25 and Elements.reduce(100, -3.0) == 200, "odporność najwyżej 75%, wrażliwość najwyżej x2")
