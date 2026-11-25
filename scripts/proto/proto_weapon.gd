@@ -336,6 +336,8 @@ var duration_mult := 1.0
 var _echo_pending := ""
 var _splashing := false
 var bonus_mult := 1.0
+## Rozgrzanie przy koksowniku w Lodowych jaskiniach (ProtoFrost) - mnożnik obrażeń broni.
+var warm_mult := 1.0
 
 var _state := "follow"
 var _t := 0.0
@@ -741,7 +743,7 @@ func _set_state(state: String) -> void:
 
 ## Obrażenia jednego trafienia: zwykłe cięcie razy `power` (mnożnik umiejętności).
 func _roll(power := 1.0) -> int:
-	return maxi(1, roundi(randi_range(damage.x, damage.y) * damage_mult * bonus_mult * power))
+	return maxi(1, roundi(randi_range(damage.x, damage.y) * damage_mult * bonus_mult * warm_mult * power))
 
 
 ## Siła kamienia rodzaju `kind` w umiejętności `skill` (Gems.SUPPORT `values`; 0 - brak kamienia).

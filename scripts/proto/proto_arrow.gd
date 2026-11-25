@@ -55,6 +55,17 @@ const WIND_HIT := preload("res://assets/effects/whirl.png")
 const WIND_HIT_FRAMES := 8
 const WIND_HIT_ANCHOR := Vector2(48, 40)
 const WIND_PUSH := 10.0
+## Sopel (Śnieżnica, Dziad Mróz): sopel z kreatora (jak w Roju Sopli rapiera), trafienie - lodowa gwiazdka; lód
+## spowalnia postać o ICE_SLOW na ICE_TIME s i dokłada chłodu w Lodowych jaskiniach (ProtoFrost.add_cold).
+const ICE_FLY := preload("res://assets/effects/icicle.png")
+const ICE_FLY_FRAMES := 6
+const ICE_FLY_ANCHOR := Vector2(22, 7)
+const ICE_HIT := preload("res://assets/effects/rapier_hit2.png")
+const ICE_HIT_FRAMES := 8
+const ICE_HIT_ANCHOR := Vector2(23, 23)
+const ICE_SLOW := 0.2
+const ICE_TIME := 1.5
+const ICE_COLD := 8.0
 const SOAK_SLOW := 0.25
 const SOAK_TIME := 2.0
 
@@ -76,6 +87,8 @@ var orb := false
 var nawia := false
 ## Ostrze wiatru (wiła, Gryf).
 var wind := false
+## Sopel (Śnieżnica, Dziad Mróz).
+var ice := false
 
 var _flown := 0.0
 var _done := false
@@ -90,6 +103,8 @@ func _ready() -> void:
 		element = Elements.WATER
 	if wind:
 		element = Elements.AIR
+	if ice:
+		element = Elements.COLD
 	_sprite = Sprite2D.new()
 	_sprite.texture = ORB_FLY if orb else (NAWIA_FLY if nawia else (WATER_FLY if bubble else FLY))
 	_sprite.hframes = ORB_FLY_FRAMES if orb else (NAWIA_FLY_FRAMES if nawia else (WATER_FLY_FRAMES if bubble else FLY_FRAMES))
@@ -100,6 +115,10 @@ func _ready() -> void:
 		_sprite.hframes = WIND_FLY_FRAMES
 		_sprite.offset = -WIND_FLY_ANCHOR
 		_sprite.scale = Vector2.ONE * WIND_FLY_SIZE
+	if ice:
+		_sprite.texture = ICE_FLY
+		_sprite.hframes = ICE_FLY_FRAMES
+		_sprite.offset = -ICE_FLY_ANCHOR
 	_sprite.modulate = tint
 	_sprite.position = Vector2(0, -_height)
 	_sprite.rotation = direction.angle()
@@ -122,6 +141,9 @@ func _process(delta: float) -> void:
 			hero.ignite(ignite, 3.0)
 		if wind:
 			hero.drift(direction * WIND_PUSH)
+		if ice:
+			hero.slow(ICE_SLOW, ICE_TIME, Elements.COLORS[Elements.COLD])
+			ProtoFrost.chill_hero(hero, ICE_COLD)
 		_finish(true)
 		return
 	if _flown >= fly_range:
@@ -133,7 +155,9 @@ func _finish(hit: bool) -> void:
 	_done = true
 	if hit:
 		var fx: Sprite2D
-		if wind:
+		if ice:
+			fx = Fx.once(get_parent(), ICE_HIT, ICE_HIT_FRAMES, 16.0, global_position + Vector2(0, -_height), ICE_HIT_ANCHOR, 20, 0.7)
+		elif wind:
 			fx = Fx.once(get_parent(), WIND_HIT, WIND_HIT_FRAMES, 20.0, global_position + Vector2(0, -_height), WIND_HIT_ANCHOR, 20, 0.35)
 		elif orb:
 			fx = Fx.once(get_parent(), ORB_HIT, ORB_HIT_FRAMES, 18.0, global_position + Vector2(0, -_height), ORB_HIT_ANCHOR, 20, 0.5)

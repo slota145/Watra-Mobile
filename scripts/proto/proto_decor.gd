@@ -56,6 +56,16 @@ const DATA := {
 		{"f": "menhir_2", "frames": 2, "fps": 1.2, "r": 15.0, "w": 1.0, "light": Color(0.6, 0.85, 1.0), "glow": 26.0},
 		{"f": "rubble", "w": 3.0, "flat": true}, {"f": "wind_chime", "w": 1.5},
 	],
+	# Lodowe jaskinie (25.11.2026): kryształy, stalagmity i bryła z wojownikiem rysowane generatorem, głazy i kości
+	# z Watry przebarwione (tools/frost_decor.py); koksowniki stawia mechanika wymarzania (ProtoFrost)
+	Dungeons.FROST: [
+		{"f": "crystal_0", "w": 2.5, "light": Color(0.55, 0.85, 1.0), "glow": 24.0},
+		{"f": "crystal_1", "w": 2.0, "light": Color(0.55, 0.85, 1.0), "glow": 24.0},
+		{"f": "crystal_2", "w": 2.5, "light": Color(0.55, 0.85, 1.0), "glow": 20.0},
+		{"f": "stalagmite_0", "r": 7.0, "w": 2.5}, {"f": "stalagmite_1", "r": 7.0, "w": 2.0},
+		{"f": "frozen_warrior", "r": 11.0, "w": 1.0}, {"f": "boulder", "w": 3.0}, {"f": "cairn", "w": 1.5},
+		{"f": "rubble", "w": 3.0, "flat": true}, {"f": "bones", "w": 2.0, "flat": true},
+	],
 	Dungeons.VOLCANO: [
 		{"f": "bones", "w": 2.0, "flat": true}, {"f": "boulders", "w": 4.0},
 		{"f": "campfire", "w": 2.0, "frames": 4, "fps": 9.0, "light": Color(1.0, 0.5, 0.15), "glow": 48.0},
