@@ -84,6 +84,33 @@ const DATA := {
 		"mana": 38, "cooldown": 7.0, "weapon": "hammer", "mastery": 10, "main": true, "range": 70.0, "power": 2.2,
 		"description": "Młot spada z góry na wrogów: fala pęknięć rani wszystkich wokół i ogłusza, a dalej przez tłum biegnie szczelina, z której wyskakują skalne kolce.",
 	},
+	# Lodowy rapier - broń lodu (ustalone z autorem 25.11.2026, ProtoRapier): spowalnia, zamraża, roztrzaskuje.
+	"r_thrust": {
+		"name": "Pchnięcie Szronu", "icon": preload("res://assets/skills/rapier/r_thrust.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "rapier", "mastery": 1, "main": true, "range": 58.0, "power": 1.05,
+		"description": "Rapier wystrzeliwuje szybkim, długim pchnięciem w najbliższego wroga i rani wszystkich na linii pchnięcia.",
+	},
+	"r_lunge": {
+		"name": "Wypad", "icon": preload("res://assets/skills/rapier/r_lunge.png"),
+		"mana": 22, "cooldown": 4.0, "weapon": "rapier", "mastery": 3, "main": false, "range": 110.0, "power": 1.6,
+		"description": "Błyskawiczny wypad naprzód (w stronę gałki, bez niej - w najbliższego wroga): przebijasz wszystkich po drodze i zostawiasz ścieżkę szronu, która spowalnia. W wypadzie jesteś nietykalny. Nie może stać pod dużym przyciskiem.",
+	},
+	"r_riposte": {
+		"name": "Riposta Morozka", "icon": preload("res://assets/skills/rapier/r_riposte.png"),
+		"mana": 25, "cooldown": 8.0, "weapon": "rapier", "mastery": 6, "main": false, "range": 60.0, "power": 1.8,
+		"description": "Rapier staje w zasłonie na 1,5 s: każdy cios wroga zostaje odbity, a każde odbicie to szybka kontra pchnięciem. Na koniec mróz wybucha dookoła i zamraża wszystkich w pobliżu. Nie może stać pod dużym przyciskiem.",
+	},
+	"r_flurry": {
+		"name": "Grad Pchnięć", "icon": preload("res://assets/skills/rapier/r_flurry.png"),
+		"mana": 14, "cooldown": 0.0, "weapon": "rapier", "mastery": 10, "main": false, "range": 62.0, "power": 0.45,
+		"charge": true,
+		"description": "Przytrzymaj: dopóki trzymasz przycisk i starcza many, rapier zasypuje stożek przed tobą seriami błyskawicznych pchnięć, a każde dokłada chłodu. Idziesz wtedy wolniej. Mana co sekundę. Nie może stać pod dużym przyciskiem.",
+	},
+	"r_bloom": {
+		"name": "Lodowy Kwiat", "icon": preload("res://assets/skills/rapier/r_bloom.png"),
+		"mana": 38, "cooldown": 7.0, "weapon": "rapier", "mastery": 15, "main": true, "range": 70.0, "power": 2.0,
+		"description": "Rapier wbija się w ziemię, a dookoła ciebie wyrastają pierścieniem lodowe kryształy: ranią, mocno schładzają, a zamrożeni wrogowie pękają.",
+	},
 	"m_quake": {
 		"name": "Trzęsienie ziemi", "icon": preload("res://assets/skills/hammer/m_quake.png"),
 		"mana": 16, "cooldown": 0.0, "weapon": "hammer", "mastery": 15, "main": false, "range": 60.0, "power": 0.7,
@@ -268,6 +295,7 @@ const PERK_LEVELS := [5, 10]
 ## najdroższe; liczby jak dawne ceny w złocie - do oceny na telefonie).
 const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "spectral_blades": 140, "steel_ring": 200,
 		"m_smash": 40, "m_throw": 60, "m_leap": 90, "slam": 140, "m_quake": 200,
+		"r_thrust": 40, "r_lunge": 60, "r_riposte": 90, "r_flurry": 140, "r_bloom": 200,
 		"g_thrust": 40, "g_sweep": 60, "g_trail": 90, "g_pillar": 140, "g_dance": 200,
 		"h_bolt": 40, "h_wave": 60, "h_vortex": 90, "h_geyser": 140, "h_guardian": 200,
 		"k_slash": 40, "k_dance": 60, "k_riposte": 90, "k_perun": 140, "k_flash": 200,
@@ -286,6 +314,11 @@ const PERKS := {
 	"slam": ["Dłuższe ogłuszenie.", "Po pół sekundy uderza druga fala pęknięć."],
 	"m_quake": ["Fale co 0,4 s zamiast 0,5.", "Co trzecia fala ogłusza na 0,5 s."],
 	"steel_ring": ["Krąg trwa 8 s zamiast 6.", "Pięć mieczy zamiast trzech."],
+	"r_thrust": ["Co trzecie pchnięcie przebija dwa razy dalej.", "W miejscu trafienia wyrasta lodowy kolec (40% siły)."],
+	"r_lunge": ["Ścieżka szronu leży 4 s zamiast 2.", "Na końcu wypadu wybucha mróz (60% siły, 2 znaki chłodu)."],
+	"r_riposte": ["Zasłona trwa 2,5 s zamiast 1,5.", "Każde odbicie wystrzeliwuje też sopel w najbliższego wroga (60% siły)."],
+	"r_flurry": ["Pchnięcia o 25% szybsze.", "Co piąte pchnięcie - lodowy kolec na końcu stożka (60% siły)."],
+	"r_bloom": ["Kwiat o 30% większy.", "Po chwili wyrasta drugi, szerszy pierścień kryształów."],
 	"g_thrust": ["Podpalenie dwa razy silniejsze.", "Co trzecie pchnięcie dźga dwa razy."],
 	"g_sweep": ["Zamach odpycha wrogów.", "Zaraz po nim drugi zamach w drugą stronę."],
 	"g_trail": ["Bruzda płonie 5 s zamiast 3.", "5 cięć zamiast 3."],
@@ -324,7 +357,8 @@ const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
 const TAGS := {
 	"strike": ["melee"], "whirl": ["melee", "area"], "throw": ["projectile"], "slam": ["melee", "area"],
 	"steel_ring": ["melee"], "spectral_blades": ["melee"], "m_smash": ["melee", "area"], "m_throw": ["projectile"],
-	"m_leap": ["melee", "area"], "m_quake": ["area"], "g_thrust": ["melee"], "g_sweep": ["melee"], "g_trail": ["area"], "g_pillar": ["area"],
+	"m_leap": ["melee", "area"], "m_quake": ["area"], "r_thrust": ["melee"], "r_lunge": ["melee"], "r_riposte": ["melee", "area"],
+	"r_flurry": ["melee"], "r_bloom": ["area"], "g_thrust": ["melee"], "g_sweep": ["melee"], "g_trail": ["area"], "g_pillar": ["area"],
 	"g_dance": ["melee"], "h_bolt": ["projectile"], "h_wave": ["area"], "h_vortex": ["area"], "h_geyser": ["area"],
 	"h_guardian": ["minion"], "k_slash": ["melee"], "k_dance": ["melee"], "k_riposte": ["melee"], "k_perun": ["melee"],
 	"k_flash": ["melee"], "b_shot": ["projectile"], "b_seeker": ["projectile"], "b_rain": ["area", "projectile"],
@@ -336,7 +370,8 @@ const TAGS := {
 const TAG_NAMES := {"melee": "wręcz", "projectile": "pocisk", "area": "obszar", "minion": "przywołaniec"}
 const TAG_STATS := {"melee": "melee_dmg_pct", "projectile": "proj_dmg_pct", "area": "area_dmg_pct", "minion": "minion_dmg_pct"}
 ## Kolejność w oknie umiejętności.
-const ORDER := ["strike", "whirl", "throw", "spectral_blades", "steel_ring", "m_smash", "m_throw", "m_leap", "slam", "m_quake", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
+const ORDER := ["strike", "whirl", "throw", "spectral_blades", "steel_ring", "m_smash", "m_throw", "m_leap", "slam", "m_quake",
+		"r_thrust", "r_lunge", "r_riposte", "r_flurry", "r_bloom", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
 		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash",
 		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista", "a_missiles", "a_circle", "a_orbs", "a_beam", "a_seals",
 		"s_reap", "s_square", "s_dance", "s_mow", "s_mara"]

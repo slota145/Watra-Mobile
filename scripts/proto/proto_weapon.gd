@@ -227,7 +227,8 @@ const SPECTRAL_SPIN_TICK := 0.25
 const SPECTRAL_SPIN_RADIUS := 24.0
 const SPECTRAL_PIERCE := 80.0
 const STRIKE_STATES := ["follow", "windup", "swing", "recover", "thrust_windup", "thrust", "thrust_recover",
-		"orb_windup", "orb_shot", "k_windup", "k_swing", "k_recover", "m_rise", "m_fall", "m_recover"]
+		"orb_windup", "orb_shot", "k_windup", "k_swing", "k_recover", "m_rise", "m_fall", "m_recover",
+		"r_wind", "r_out", "r_back"]
 
 var hero: ProtoHero
 ## Żywioł obrażeń broni (Weapons.element_of; combo z przemoczeniem - Elements.soak_bonus). Ustawia podklasa.
@@ -991,6 +992,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 			_nawia_acc -= gain
 			hero.heal(gain)
 		t.wither(Elements.NAWIA_WEAK_TIME)
+	elif elem == Elements.COLD:  # lód spowalnia, a znaki chłodu zamrażają (Elements.CHILL_*)
+		_on_chill(t, t.chill())
 	if talismans != null:
 		talismans.on_hit(t)
 		if crit:
@@ -1038,6 +1041,11 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		_chained = true
 		for n in _chain_from(t, maxi(1, roundi(elem_base * p / 100.0))):
 			n.shock(DISCHARGE_SHOCK)  # piorun z kamienia poraża jak katana (decyzja autora 17.11.2026)
+
+
+## Trafienie lodem schłodziło wroga `t` (`froze` - właśnie zamarzł). Broń lodu dopisuje swoje działanie.
+func _on_chill(_t: ProtoTarget, _froze: bool) -> void:
+	pass
 
 
 ## Kamienie z Path of Exile po trafieniu (20.11.2026): Odrzut, Twardość, Egzekucja, Rozprysk (wrogowie obok celu

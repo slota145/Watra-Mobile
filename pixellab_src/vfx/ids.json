@@ -1383,5 +1383,77 @@
       65
     ],
     "columns": 4
+  },
+  "rapier_thrust": {
+    "effect": "fc0bcebd-0dfb-47dc-ba76-180cd73f9352",
+    "name": "Lodowy rapier - pchnięcie szronu (pchnięcie glewii przebarwione na lód)",
+    "frame": [
+      58,
+      16
+    ],
+    "frames": 7,
+    "fps": 16,
+    "anchor": [
+      5,
+      8
+    ],
+    "columns": 3,
+    "taper": 14,
+    "source": "glaive_thrust",
+    "hue": "#8fdcff",
+    "boost": 1.0
+  },
+  "ice_spikes": {
+    "effect": "0f2cd75b-75ec-4abb-afe6-66960a29bb45",
+    "name": "Lodowy rapier - lodowe kryształy (skalne kolce przebarwione na lód)",
+    "frame": [
+      61,
+      46
+    ],
+    "frames": 18,
+    "columns": 5,
+    "fps": 16,
+    "anchor": [
+      30,
+      34
+    ],
+    "source": "slam_spikes",
+    "hue": "#9fe4ff",
+    "boost": 2.2
+  },
+  "rapier_hit": {
+    "effect": "c6789000-6891-435e-aa71-9c751f0cfed2",
+    "name": "Lodowy rapier - trafienie (trafienie miecza przebarwione na lód)",
+    "frame": [
+      42,
+      39
+    ],
+    "frames": 12,
+    "fps": 20,
+    "anchor": [
+      23,
+      17
+    ],
+    "columns": 4,
+    "source": "sword_hit",
+    "hue": "#a8ecff",
+    "boost": 1.0
+  },
+  "rapier_trail": {
+    "effect": "f655299b-2754-4093-881d-a5b827bdee3b",
+    "name": "Lodowy rapier - smuga wypadu (smuga Mgnienia przebarwiona na lód)",
+    "frame": [
+      74,
+      19
+    ],
+    "frames": 7,
+    "fps": 16,
+    "anchor": [
+      8,
+      10
+    ],
+    "source": "flicker_trail",
+    "hue": "#b0f0ff",
+    "boost": 1.6
   }
 }

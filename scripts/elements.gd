@@ -62,6 +62,13 @@ const SOAK_CHAIN_EXTRA := 2
 const SOAK_FREEZE := 0.6
 const SHOCK_BONUS := 0.15
 const SOAKED_BY := [LIGHTNING, COLD]
+## Lód (lodowy rapier, ustalone z autorem 25.11.2026 - ProtoTarget.chill): każde trafienie lodem spowalnia o CHILL_SLOW
+## na CHILL_TIME s i dokłada znak chłodu; CHILL_STACKS znaków zamraża wroga na CHILL_FREEZE s (potem chwila odporności
+## - ProtoTarget.FREEZE_IMMUNE). Bossy się nie zatrzymują (jak przy ogłuszeniu), ale też liczą się jako zamrożone.
+const CHILL_SLOW := 0.25
+const CHILL_TIME := 2.0
+const CHILL_STACKS := 4
+const CHILL_FREEZE := 1.0
 ## Odporności potworów (nazwa potwora -> {żywioł: ułamek}). Gobliny Hordy nie mają żadnych; wpisy dojdą
 ## z nowymi rodzajami lochów i potworów (np. utopce odporne na wodę, wrażliwe na Grom).
 const MONSTER_RESIST := {}
