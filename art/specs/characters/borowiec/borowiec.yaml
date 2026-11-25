@@ -1,0 +1,454 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: borowiec
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.68, 0]}
+palette: "watra"
+size: 48
+extends: humanoid   # its skeleton, body, kits and animations: write here only what differs
+
+# Borowiec: potwór strzelający lochu „Prastary Bór” - duch boru, sługa Leszego. Wielkości goblina (ten sam
+# szkielet co goblin łucznik, art/specs/characters/goblin_archer), ale chudszy i bardziej przygarbiony:
+# skóra jak ciemna kora z plamami mchu, długie spiczaste uszy opadające na boki, dwa rogi-gałązki z listkami,
+# świecące żółtozielone oczy, przepaska z liści na futrzanym pasie, łuk z wygiętej cierniowej gałęzi,
+# na plecach wiązka cierni owinięta liściem. Strzela cierniami. Śmierć: rozsypuje się w liście i korę.
+brief:
+  summary: >
+    borowiec, a forest spirit of the old pine wood and a servant of Leshy: goblin-sized (the goblin archer's
+    skeleton) but thinner and more hunched; skin of dark grey-brown bark with patches of green moss, long
+    pointed ears drooping out to the sides, two small branching twig horns with a leaf at each tip, glowing
+    yellow-green eyes, a skirt of green leaves on a pale grey fur belt, a bow of a bent thorny branch in the
+    left hand, a bundle of thorns tied with a leaf on the back; it shoots thorns
+  head: >
+    the head kit, narrower and with a longer chin than the goblin's, in bark with moss spots on the crown; two
+    slanted glowing yellow-green eyes (no nose, no mouth); long pointed ears sweeping out and a little DOWN
+    (the goblin's go up and back); two twig horns rising up and back from the crown, each with a short side
+    fork and a small green leaf at the tip - the horns and the drooping ears make the silhouette
+  must_keep:
+    - the twig horns with leaves and the drooping ears: the read against the goblin archer (bald, ears up)
+    - dark bark skin with green moss, not the goblin's green skin
+    - the yellow-green glow of the eyes (the only emissive part)
+    - the thorny bow in the left hand and the thorns over the right shoulder
+    - thin, long limbs and the strong hunch
+  simplify:
+    - moss is painted spots on the bark, not geometry
+    - the bow's thorns are a few short pale spikes on the outside of the limbs; a leaf sprig at the top tip
+    - the projectile is a long thorn (dark shaft, pale point) with a leaf at the back instead of fletching
+  decisions:
+    - the accent is the green of the leaves (skirt, horn leaves, quiver wrap) and the yellow-green eyes; the bark is
+      cool and dark so the green pops in a crowd
+    - fur belt pale grey-brown, separating the dark bark torso from the green leaf skirt
+    - the attack copies the goblin archer's contract (same skeleton, same 930 ms, release at 630 ms)
+    - the whole body sits under the bone `big` (scale `grow`), so the death can crumble it down into a pile of
+      leaves and bark (`litter`) while loose leaves burst outwards (`scatter`) and the eyes fade (`glow`)
+
+ramps:
+  # dark, cool grey-brown bark (the skin)
+  bark:     ["#0b0807", "#241a15", "#382a20", "#4f3e2e", "#685541", "#836f55"]
+  moss:     ["#0a1208", "#1e3a17", "#2f5a20", "#477a2a", "#679a3a", "#8fb85a"]
+  # leaves of the skirt and the horn tips: a touch yellower than the moss
+  leaf:     ["#0b140a", "#24461c", "#3d6e26", "#5c9433", "#86b847", "#b4d46e"]
+  # pale grey-brown fur of the belt
+  fur:      ["#0e0b0a", "#33291f", "#544433", "#76634b", "#978265", "#b4a284"]
+  # the bow: a bent olive-grey thorn branch
+  thornwood: ["#100d08", "#3a3420", "#5a522e", "#7a713e", "#9a9054", "#b8ae74"]
+  # pale thorn points
+  thorn:    ["#1a140c", "#5a4a30", "#8f7a52", "#bfae80", "#e2d6ae", "#f2ecd2"]
+  # glowing yellow-green eyes
+  eye:      ["#1d2a05", "#8fc21a", "#d4f050", "#f8ffc0"]
+
+materials:
+  skin:     {ramp: bark, gamma: 0.85, finish: matte}
+  moss:     {ramp: moss, finish: matte}
+  leaf:     {ramp: leaf, finish: soft}
+  fur:      {ramp: fur, finish: matte}
+  bow_wood: {ramp: thornwood, finish: matte, bands: [2, 5]}
+  thorn:    {ramp: thorn, finish: matte, bands: [2, 5]}
+  eye:      {ramp: eye, emissive: true, band: 2, outline: false, glow: {color: "#c8f03a", mix: 0.3, radius: 1}}
+
+remove: [use.hair, use.sword]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 0.88, jaw: 0.15, chin: 1.0, nose: 0, ears: 0}}
+  # a bent thorn branch bow (about 14 px tip to tip) in the left fist; lean, turn and cheat are channels so the
+  # attack can bring it upright in front (as the goblin archer)
+  - {kit: bow, as: bow, at: wrist_L,
+     with: {length: 0.78, depth: 0.13, thick: 0.065, tilt: bow_tilt, roll: bow_roll, pitch: 0, cheat: bow_cheat},
+     materials: {wood: bow_wood, leather: fur}}
+
+shadow: {rx: 8, ry: 3, alpha: 120}
+
+channels:
+  hand_L: [0.27, 0.04, 0.08]
+  hand_R: [0.27, 0.05, 0.16]
+  foot_L: [0.10, 0, 0.02]
+  bow_tilt: -0.9    # bow lean about the hand's x (kit param)
+  bow_roll: 0.8     # bow turn about its grip
+  bow_cheat: 1      # the kit's per-direction profile cheat (0 in the draw)
+  arm_up: [0, 0, 1] # the arm IK's up vector: [0, 1, 0] when the forearm points forward (the draw)
+  draw: 0           # 1: the string is pulled to the right fist, the kit's string hidden
+  nocked: 0         # 1: a thorn lies on the bow from the right fist through the grip
+  grow: 1           # the whole body's size (death crumbles it down)
+  glow: 1           # the eyes (0: out)
+  rustle: 0         # sway of the horn leaves and ear tips (radians)
+  litter: 0         # death: the pile of leaves and bark left behind
+  scatter: 0        # death: loose leaves and bark flakes bursting outwards (0..1 how far, they fall as it grows)
+
+bones:
+  big:       {parent: root, scale: "grow"}
+  # hip height 0.55 (as the goblin); the +0.25 is the borowiec's deep hunch
+  torso_rot: {parent: big, pos: "[0, 0.55 + bob, 0]", rot: "[lean + 0.25, twist, roll]"}
+  legyaw:    {parent: big}
+  footyaw:   {parent: big}
+  fxspace:   {parent: big}
+  headbase:  {parent: pelvis, pos: [0, 0.44, 0.08], inherit_rot: false, inherit_scale: false,
+              scale: "grow", rot: "[lean*0.5 - 0.10, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.4}
+  horn_L:    {parent: head, pos: [0.055, 0.22, -0.03], rot: "[-0.45 + rustle*0.5, 0, -0.35 - rustle]"}
+  shoulder_L: {parent: pelvis, pos: [0.16, 0.34, 0.0]}
+  coatbase:   {parent: pelvis, rot: "[-coat*0.25 - 0.2, 0, 0]"}   # the skirt hangs straight despite the hunch
+  hip_L:      {parent: pelvis, pos: [0.07, -0.02, 0.0]}
+  # the thorn bundle on the back, leaning so its top sits behind the right shoulder (x < 0 is the right side)
+  quiver:     {parent: pelvis, pos: [-0.05, 0.22, -0.15], rot: [-0.3, 0, 0.75]}
+
+ik:   # world units: they follow `grow` like the bone `big`
+  arm_L: {lengths: "[0.20*grow, 0.19*grow]", up: arm_up}
+  leg_L: {space: big, lengths: [0.27, 0.26]}
+
+parts:
+  torso:           # a thin bark body, ribs-narrow at the waist
+    material: skin
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.03, 0.01], r: [0.12, 0.09, 0.10]}
+      - ellipsoid: {c: [0, 0.17, 0.01], r: [0.10, 0.10, 0.08]}
+      - ellipsoid: {c: [0, 0.30, 0.0], r: [0.15, 0.09, 0.09]}
+    paint:
+      - material: moss
+        spots: {scale: 0.09, density: 0.16, seed: 11}
+  coat:            # skirt of leaves: pointed leaf tips cut into the hem
+    material: leaf
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.0, 0.0], b: [0, -0.06, -0.01], r: [0.13, 0.16]}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.17}
+      - box: {c: [0.06, -0.18, 0.16], half: [0.025, 0.07, 0.08], rot: [0, 0, 0.6]}
+      - box: {c: [-0.06, -0.18, 0.16], half: [0.025, 0.07, 0.08], rot: [0, 0, -0.6]}
+      - box: {c: [0.15, -0.18, 0.06], half: [0.08, 0.07, 0.025], rot: [0.6, 0, 0]}
+      - box: {c: [0.15, -0.18, -0.08], half: [0.08, 0.07, 0.025], rot: [-0.6, 0, 0]}
+      - box: {c: [-0.15, -0.18, 0.06], half: [0.08, 0.07, 0.025], rot: [0.6, 0, 0]}
+      - box: {c: [-0.15, -0.18, -0.08], half: [0.08, 0.07, 0.025], rot: [-0.6, 0, 0]}
+      - box: {c: [0.0, -0.18, -0.17], half: [0.025, 0.07, 0.08], rot: [0, 0, 0.6]}
+  belt:            # a pale fur belt, lumpy
+    material: fur
+    space: pelvis
+    blend: 0.02
+    prims:
+      - cylinder: {a: [0, 0.06, 0.005], b: [0, 0.12, 0.005], r: 0.15}
+      - sphere: {c: [0.10, 0.08, 0.11], r: 0.05}
+      - sphere: {c: [-0.12, 0.09, 0.06], r: 0.045}
+      - sphere: {c: [0.02, 0.08, -0.14], r: 0.05}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.34, 0], b: [0, 0.44, 0.06], r: [0.05, 0.04]}
+  head:            # the kit's head in bark, moss on the crown
+    paint:
+      - material: moss
+        prims:
+          - ellipsoid: {c: [-0.05, 0.28, -0.08], r: [0.07, 0.04, 0.07]}
+  eye_L:           # a slanted glowing eye
+    material: eye
+    space: head
+    when: "glow > 0.3"
+    prims:
+      - extrude: {c: [0.07, 0.13, 0.108], rot: [0, 0.6, -0.35], depth: 0.04, profile: {rect: [0.026, 0.018], round: 0.006}}
+  ear_L:           # long pointed ear sweeping out and a little down (the goblin's go up)
+    material: skin
+    space: head
+    blend: 0.02
+    prims:
+      - cone: {a: [0.10, 0.12, -0.03], r: [0.045, 0.01],
+               b: "[0.36 - 0.12*pulse(yaw*sx, 90, 60) - 0.10*pulse(yaw*sx, -90, 60),
+                    0.06 + 0.04*rustle - 0.04*pulse(yaw*sx, -90, 60),
+                    -0.06 - 0.18*pulse(yaw*sx, 90, 60) - 0.05*pulse(yaw*sx, -90, 60)]"}
+  horn_L:          # a twig horn: main twig up and back, a short side fork, a leaf at the tip
+    material: bow_wood
+    space: horn_L
+    blend: 0.015
+    min_cover: 2
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.02, 0.17, 0], r: [0.026, 0.013]}
+      - cone: {a: [0.01, 0.08, 0], b: [0.08, 0.13, 0.0], r: [0.016, 0.01]}
+  horn_leaf_L:
+    material: leaf
+    space: horn_L
+    min_cover: 2
+    prims:
+      - ellipsoid: {c: [0.04, 0.2, 0.0], r: [0.035, 0.05, 0.02], rot: [0, 0, -0.5]}
+      - ellipsoid: {c: [0.105, 0.14, 0.0], r: [0.03, 0.022, 0.018], rot: [0, 0, -0.3]}
+  arm_L:
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.045}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.04, 0.032]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.034, 0.028]}
+  shoulder_moss_L:  # a tuft of moss on the shoulder
+    material: moss
+    space: pelvis
+    prims:
+      - ellipsoid: {c: [0.15, 0.37, -0.01], r: [0.06, 0.035, 0.06]}
+  hand_L:          # a small knotty hand
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.03], r: 0.045}
+  leg_L:
+    material: skin
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.05, 0.034]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.034, 0.028]}
+  boot_L:          # a root-like foot: heel and three splayed root toes
+    material: skin
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.07, 0], b: [0, -0.02, 0.0], r: [0.032, 0.04]}
+      - cone: {a: [0, -0.04, 0.0], b: [0.05, -0.05, 0.13], r: [0.03, 0.014]}
+      - cone: {a: [0, -0.04, 0.0], b: [-0.04, -0.05, 0.13], r: [0.03, 0.014]}
+      - cone: {a: [0, -0.04, 0.0], b: [0.0, -0.05, 0.15], r: [0.03, 0.014]}
+  bow_thorns:      # pale spikes on the outside of the bent branch, a leaf sprig at its top tip
+    material: thorn
+    space: bow_stave
+    when: "grow > 0.5"
+    min_cover: 1
+    prims:
+      - cone: {a: [-0.02, 0.17, 0], b: [0.04, 0.2, 0], r: [0.016, 0.004]}
+      - cone: {a: [-0.06, 0.28, 0], b: [0.0, 0.32, 0], r: [0.016, 0.004]}
+      - cone: {a: [-0.02, -0.17, 0], b: [0.04, -0.2, 0], r: [0.016, 0.004]}
+      - cone: {a: [-0.06, -0.28, 0], b: [0.0, -0.32, 0], r: [0.016, 0.004]}
+  bow_leaf:
+    material: leaf
+    space: bow_stave
+    when: "grow > 0.5"
+    min_cover: 2
+    prims:
+      - ellipsoid: {c: [-0.10, 0.42, 0.0], r: [0.04, 0.025, 0.02], rot: [0, 0, 0.6]}
+  quiver:          # a bundle of bark strips holding the thorns, on the back
+    material: bow_wood
+    space: quiver
+    blend: 0.02
+    prims:
+      - cone: {a: [0, -0.12, 0], b: [0, 0.16, 0], r: [0.04, 0.055]}
+  quiver_rim:      # a leaf wrapped round the bundle (the green accent again, seen from n)
+    material: leaf
+    space: quiver
+    prims:
+      - torus: {c: [0, 0.08, 0], R: 0.052, r: 0.022}
+  quiver_arrows:   # three long thorns sticking out of the bundle
+    material: thorn
+    space: quiver
+    min_cover: 2
+    prims:
+      - cone: {a: [0.0, 0.1, 0.0], b: [0.0, 0.34, 0.01], r: [0.024, 0.006]}
+      - cone: {a: [0.028, 0.1, 0.0], b: [0.055, 0.30, -0.015], r: [0.022, 0.006]}
+      - cone: {a: [-0.028, 0.1, 0.0], b: [-0.06, 0.31, 0.02], r: [0.022, 0.006]}
+  bow_string: {when: "draw < 0.5 and grow > 0.5"}
+  bow_limbs: {when: "grow > 0.5"}   # the IK wrist does not shrink with `big`: in death the bow drops (dropped_bow)
+  bow_riser: {when: "grow > 0.5"}
+  drawn_string:    # the string pulled to the right fist
+    material: string
+    when: "draw > 0.5"
+    priority: 2
+    min_cover: 1
+    line: false
+    prims:
+      - cylinder: {a: {at: bow_stave, off: [-0.13, 0.38, 0]}, b: "@wrist_R", r: 0.014}
+      - cylinder: {a: {at: bow_stave, off: [-0.13, -0.38, 0]}, b: "@wrist_R", r: 0.014}
+  arrow_shaft:     # the nocked thorn: a dark shaft from the right fist through the bow grip
+    material: bow_wood
+    when: "nocked > 0.5"
+    priority: 2
+    min_cover: 1
+    prims:
+      - cone: {a: {between: ["@wrist_R", "@bow"], t: -0.05}, b: {between: ["@wrist_R", "@bow"], t: 1.2}, r: [0.016, 0.022]}
+  arrow_head:      # its long pale point
+    material: thorn
+    when: "nocked > 0.5"
+    priority: 3
+    min_cover: 1
+    prims:
+      - cone: {a: {between: ["@wrist_R", "@bow"], t: 1.18}, b: {between: ["@wrist_R", "@bow"], t: 1.5}, r: [0.028, 0.004]}
+  arrow_fletch:    # a leaf at the back instead of feathers
+    material: leaf
+    when: "nocked > 0.5"
+    priority: 2
+    min_cover: 1
+    prims:
+      - cone: {a: {between: ["@wrist_R", "@bow"], t: 0.02}, b: {between: ["@wrist_R", "@bow"], t: 0.2}, r: [0.028, 0.012]}
+  # death: what is left of it (root space, outside `big`)
+  dropped_bow:     # the thorn bow fallen flat beside the pile, its curve bent outwards
+    material: bow_wood
+    space: root
+    when: "grow <= 0.5"
+    min_cover: 1
+    prims:
+      - cone: {a: [0.20, 0.03, 0.10], b: [0.30, 0.03, -0.12], r: [0.03, 0.02]}
+      - cone: {a: [0.20, 0.03, 0.10], b: [0.27, 0.03, 0.32], r: [0.03, 0.02]}
+  dropped_thorns:
+    material: thorn
+    space: root
+    when: "grow <= 0.5"
+    min_cover: 1
+    prims:
+      - cone: {a: [0.25, 0.03, -0.02], b: [0.31, 0.04, 0.0], r: [0.016, 0.004]}
+      - cone: {a: [0.24, 0.03, 0.22], b: [0.30, 0.04, 0.22], r: [0.016, 0.004]}
+  litter:          # a low pile of bark chunks
+    material: skin
+    space: root
+    when: "litter > 0.02"
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.02], r: "[0.20, 0.06, 0.16]*litter"}
+      - box: {c: [0.14, "0.04*litter", 0.12], half: "[0.03, 0.025, 0.09]*litter", rot: [0.3, 0.8, 0.2], round: 0.01}
+      - box: {c: [-0.16, "0.04*litter", 0.0], half: "[0.03, 0.025, 0.08]*litter", rot: [0.2, -0.6, 0.1], round: 0.01}
+      - cone: {a: "[-0.02, 0.05*litter, -0.02]", b: "[0.02, 0.18*litter, -0.08]", r: [0.022, 0.01]}
+  litter_moss:
+    material: moss
+    space: root
+    when: "litter > 0.02"
+    prims:
+      - ellipsoid: {c: [-0.06, 0.06, 0.03], r: "[0.10, 0.05, 0.09]*litter"}
+  litter_leaves:   # leaves fallen round the pile
+    material: leaf
+    space: root
+    when: "litter > 0.02"
+    prims:
+      - ellipsoid: {c: [0.22, 0.02, 0.16], r: "[0.06, 0.02, 0.04]*litter", rot: [0, 0.6, 0]}
+      - ellipsoid: {c: [-0.24, 0.02, 0.14], r: "[0.06, 0.02, 0.04]*litter", rot: [0, -0.4, 0]}
+      - ellipsoid: {c: [0.05, 0.07, 0.14], r: "[0.06, 0.025, 0.04]*litter", rot: [0, 1.1, 0]}
+      - ellipsoid: {c: [0.18, 0.02, -0.16], r: "[0.05, 0.02, 0.04]*litter", rot: [0, 0.2, 0]}
+      - ellipsoid: {c: [-0.14, 0.02, -0.18], r: "[0.05, 0.02, 0.04]*litter", rot: [0, 1.3, 0]}
+  litter_fur:      # the fur belt dropped on the pile
+    material: fur
+    space: root
+    when: "litter > 0.02"
+    prims:
+      - ellipsoid: {c: [0.06, 0.05, -0.04], r: "[0.10, 0.03, 0.06]*litter", rot: [0, 0.5, 0]}
+  scatter_leaves:  # leaves bursting outwards and up, falling back as `scatter` grows past 0.6
+    material: leaf
+    space: root
+    when: "scatter > 0.02 and scatter < 0.98"
+    min_cover: 2
+    prims:
+      - ellipsoid: {c: "[0.32*scatter, 0.30 + 0.5*scatter - 0.75*scatter**2, 0.20*scatter]", r: [0.04, 0.022, 0.03], rot: "[0, 0.5, 2*scatter]"}
+      - ellipsoid: {c: "[-0.34*scatter, 0.42 + 0.45*scatter - 0.8*scatter**2, 0.06*scatter]", r: [0.04, 0.022, 0.03], rot: "[0, -0.3, -2*scatter]"}
+      - ellipsoid: {c: "[0.08*scatter, 0.55 + 0.5*scatter - 0.9*scatter**2, 0.30*scatter]", r: [0.035, 0.02, 0.03], rot: "[1.5*scatter, 1.0, 0]"}
+      - ellipsoid: {c: "[-0.18*scatter, 0.25 + 0.4*scatter - 0.6*scatter**2, -0.30*scatter]", r: [0.04, 0.022, 0.03], rot: "[0, 0.9, scatter]"}
+      - ellipsoid: {c: "[0.24*scatter, 0.48 + 0.5*scatter - 0.9*scatter**2, -0.22*scatter]", r: [0.035, 0.02, 0.03], rot: "[0, 0.2, -scatter]"}
+  scatter_bark:    # bark flakes flying off
+    material: skin
+    space: root
+    when: "scatter > 0.02 and scatter < 0.98"
+    min_cover: 2
+    prims:
+      - box: {c: "[-0.30*scatter, 0.35 + 0.35*scatter - 0.6*scatter**2, 0.22*scatter]", half: [0.03, 0.02, 0.04], rot: "[2*scatter, 0.4, 0]"}
+      - box: {c: "[0.36*scatter, 0.38 + 0.3*scatter - 0.6*scatter**2, -0.06*scatter]", half: [0.03, 0.02, 0.04], rot: "[0, 0.8, 2.5*scatter]"}
+
+# the game's contract: the thorn leaves 630 ms into the 930 ms shot (after a 280 ms held full draw)
+timing: {attack: {release: 630ms, total: 930ms}}
+
+sockets:
+  arrow: {bone: bow, offset: [0, 0, 0.03]}   # the bow grip: where the shot thorn (projectile) spawns
+
+animations:
+  idle:
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.05*sin(p - 0.5)"
+      hand_L: [0.27, 0.04, 0.08]   # still in the torso: the thin bow blinks if the fist bobs on its own
+      hand_R: "[0.27, 0.05 + 0.015*sin(p - 0.6), 0.16]"
+      coat: "0.15*sin(p - 1.0)"
+      rustle: "0.12*sin(p - 1.2)"
+  # a light, creeping trot (matched to the goblin archer); the bow arm swings less than the free right arm
+  walk:
+    frames: 8
+    ms: 90
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.12
+      bob: "-0.028*cos(2*p) + 0.005"
+      squash: "1 - 0.02*cos(2*p)"
+      twist: "0.09*cos(p)"
+      head_yaw: "-0.06*cos(p)"
+      head_pitch: "0.04*cos(2*p - 0.6)"
+      rustle: "0.15*cos(2*p - 1.0)"
+      foot_L: "[0.10, 0.08*sin(pi*clamp((p/tau - 0.375)/0.625, 0, 1)), 0.03 + 0.277 - 0.554*clamp(p/tau/0.375, 0, 1) + 0.554*clamp((p/tau - 0.375)/0.625, 0, 1)**2*(3 - 2*clamp((p/tau - 0.375)/0.625, 0, 1))]"
+      foot_R: "[0.10, 0.08*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1)), 0.03 + 0.277 - 0.554*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.375, 0, 1) + 0.554*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1))]"
+      pitch_foot_L: "0.35*sin(pi*clamp((p/tau - 0.375)/0.625, 0, 1))"
+      pitch_foot_R: "0.35*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.375)/0.625, 0, 1))"
+      hand_L: "[0.24, 0.04 + 0.02*pos(cos(p)), 0.07 - 0.07*cos(p)]"
+      hand_R: "[0.28, 0.07 + 0.03*pos(-cos(p)), 0.15 + 0.10*cos(p)]"
+      bow_tilt: "-0.9 + 0.12*cos(p - 0.5)"
+      coat: "0.4*sin(2*p - 0.6)"
+  # draw and shoot forward (the goblin archer's contract): raise the bow, nock a thorn, draw, hold the full
+  # draw (the aiming telegraph), release with a small recoil, recover
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {twist: -0.15, lean: 0.05, bob: -0.01, squash: 0.98, coat: -0.1, head_pitch: -0.05, rustle: -0.1,
+          hand_L: [0.24, 0.22, 0.18], bow_tilt: -0.45, bow_roll: -0.5, bow_cheat: 0.5, arm_up: [0, 0.6, 0.8],
+          hand_R: [0.12, 0.40, -0.10]}}
+      - {ms: 110, set: {twist: "-0.3 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.05, coat: -0.15, head_pitch: 0.02, rustle: 0.05,
+          hand_L: "[0.22 + 0.10*pulse(yaw, -15, 80), 0.38, 0.27 - 0.05*pulse(yaw, -15, 80)]", bow_tilt: 0, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [-0.10, 0.37, 0.17], nocked: 1, draw: 1}}
+      - {ms: 120, set: {twist: "-0.35 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.08, squash: 1.01, coat: -0.2, head_pitch: 0.04,
+          hand_L: "[0.22 + 0.10*pulse(yaw, -15, 80), 0.40, 0.29 - 0.05*pulse(yaw, -15, 80)]", bow_tilt: 0, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [-0.03, 0.41, 0.08], nocked: 1, draw: 1}}
+      - {ms: 280, set: {twist: "-0.38 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.09, squash: 1.02, coat: -0.2, head_pitch: 0.05, rustle: 0.1,
+          hand_L: "[0.22 + 0.10*pulse(yaw, -15, 80), 0.41, 0.30 - 0.05*pulse(yaw, -15, 80)]", bow_tilt: 0, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [0.04, 0.44, -0.04], nocked: 1, draw: 1}}
+      - {ms: 70, event: release, set: {root: [0, 0, -0.03], twist: "-0.4 + 0.25*pulse(yaw, -15, 80) + 0.45*pulse(yaw, -45, 40)", lean: -0.14, squash: 0.98, coat: 0.1, head_pitch: 0.02, rustle: -0.2,
+          hand_L: "[0.22 + 0.10*pulse(yaw, -15, 80), 0.43, 0.26 - 0.05*pulse(yaw, -15, 80)]", bow_tilt: -0.2, bow_roll: "-1.5708 + 1.0*pulse(yaw, -15, 80) + 0.6*pulse(abs(yaw), 180, 60)",
+          bow_cheat: 0, arm_up: [0.45, 1, 0], hand_R: [0.14, 0.46, -0.13]}}
+      - {ms: 100, set: {root: [0, 0, -0.02], twist: -0.25, lean: -0.02, coat: 0.2, rustle: 0.1,
+          hand_L: [0.22, 0.30, 0.24], bow_tilt: -0.3, bow_roll: -1.2, bow_cheat: 0, arm_up: [0, 1, 0],
+          hand_R: [0.20, 0.28, -0.06]}}
+      - {ms: 130, set: {twist: -0.05, lean: 0.03, coat: 0.05,
+          hand_L: [0.23, 0.06, 0.09], bow_tilt: -0.75, bow_roll: 0.4,
+          hand_R: [0.26, 0.06, 0.15]}}
+  # hit reaction: body and head snap back, the horn leaves shake, then return
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.35, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5, rustle: 0.35,
+          hand_L: [0.30, 0.14, -0.04], hand_R: [0.33, 0.16, 0.04], bow_tilt: -1.2}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.18, bob: -0.01, squash: 0.98, head_pitch: -0.12, coat: -0.2, rustle: -0.25,
+          hand_L: [0.27, 0.07, 0.02], hand_R: [0.30, 0.10, 0.10], bow_tilt: -1.05}}
+      - {ms: 70, set: {root: [0, 0, -0.01], lean: 0.0, head_pitch: 0.02, coat: 0.1, rustle: 0.08,
+          hand_L: [0.24, 0.04, 0.05], hand_R: [0.28, 0.06, 0.15]}}
+  # death: struck back, sags, then crumbles down into leaves and bark - the body shrinks into a pile while
+  # loose leaves and bark flakes burst out and fall, the eyes fade; the pile stays (last frame long)
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: -0.35, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5, rustle: 0.4,
+          hand_L: [0.30, 0.16, -0.02], hand_R: [0.33, 0.18, 0.04], bow_tilt: -1.2}}
+      - {ms: 110, set: {root: [0, 0, -0.06], twist: 0.2, roll: 0.08, lean: 0.2, bob: -0.06, squash: 0.92, head_pitch: 0.3,
+          coat: 0.2, rustle: -0.3, glow: 0.8, hand_L: [0.30, -0.02, 0.10], hand_R: [0.32, 0.0, 0.12], bow_tilt: -0.6}}
+      - {ms: 110, set: {root: [0, 0, -0.06], twist: 0.15, roll: 0.1, lean: 0.35, bob: -0.12, squash: 0.85, head_pitch: 0.4,
+          grow: 0.85, glow: 0.6, litter: 0.3, scatter: 0.15, coat: 0.3, hand_L: [0.32, -0.08, 0.12], hand_R: [0.33, -0.06, 0.12], bow_tilt: -0.4}}
+      - {ms: 110, set: {root: [0, 0, -0.06], twist: 0.1, lean: 0.4, bob: -0.18, squash: 0.75, head_pitch: 0.45,
+          grow: 0.65, glow: 0.4, litter: 0.6, scatter: 0.35, hand_L: [0.32, -0.10, 0.14], hand_R: [0.33, -0.08, 0.14], bow_tilt: -0.3}}
+      - {ms: 110, set: {root: [0, 0, -0.06], lean: 0.4, bob: -0.22, squash: 0.7, head_pitch: 0.5,
+          grow: 0.42, glow: 0.0, litter: 0.85, scatter: 0.55, hand_L: [0.32, -0.10, 0.14], hand_R: [0.33, -0.08, 0.14], bow_tilt: -0.3}}
+      - {ms: 110, set: {root: [0, 0, -0.06], lean: 0.4, bob: -0.24, squash: 0.65, head_pitch: 0.5,
+          grow: 0.22, glow: 0.0, litter: 0.97, scatter: 0.78, hand_L: [0.32, -0.10, 0.14], hand_R: [0.33, -0.08, 0.14], bow_tilt: -0.3}}
+      - {ms: 600, set: {root: [0, 0, -0.06], lean: 0.4, bob: -0.24, squash: 0.65, head_pitch: 0.5,
+          grow: 0.05, glow: 0.0, litter: 1.0, scatter: 1.0, hand_L: [0.32, -0.10, 0.14], hand_R: [0.33, -0.08, 0.14], bow_tilt: -0.3}}

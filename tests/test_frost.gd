@@ -29,8 +29,8 @@ func _run() -> void:
 	DirAccess.remove_absolute(game.save_path)
 	game.load_game()
 	_check(Dungeons.first_level(Dungeons.FROST) == 31 and Dungeons.for_level(35) == Dungeons.FROST
-			and Dungeons.for_level(30) == Dungeons.VOLCANO and Dungeons.for_level(36) == Dungeons.GOBLINS
-			and Dungeons.cycle_length() == 35, "drabinka: Lodowe jaskinie 31-35, drugi krąg od 36")
+			and Dungeons.for_level(30) == Dungeons.VOLCANO and Dungeons.for_level(36) == Dungeons.FOREST,
+			"drabinka: Lodowe jaskinie 31-35, po nich Prastary Bór")
 	var r := Dungeons.resists(Dungeons.FROST, 31)
 	var base := DungeonLevels.base_resist(31)
 	_check(is_equal_approx(r[Elements.COLD], base + 0.2) and is_equal_approx(r[Elements.FIRE], base - 0.2),

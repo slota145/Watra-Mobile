@@ -2,6 +2,30 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 25.11.2026 - Ósmy loch: Prastary Bór (natura), Leszy z Watry, Żywa puszcza
+
+- **Ustalenia z autorem (ankieta 25.11.2026):** klimat Prastary Bór (grafiki Prastarego Lasu Watry), potwory - duchy
+  lasu (nowe w SpriteKiln), boss Leszy z Watry, mechanika Żywa puszcza. Liczby - propozycje Claude.
+- **Drabinka:** `Dungeons.FOREST` („Prastary Bór”) na **36-40** po Lodowych jaskiniach; krąg ma teraz 40 poziomów
+  (drugi od 41). Odporności: natura +20%, ogień -20%.
+- **Potwory** (SpriteKiln; do czasu grafiki - zastępczy kolor): Błędnik `proto_blednik.gd` (zwykły, 30 zdrowia, szybki
+  44 px/s; natura, przypala - `ProtoHero.ignite`), Borowiec `proto_borowiec.gd` (strzelający, jak goblin łucznik;
+  cierń - `ProtoArrow.thorn`, efekty `thorn`/`poison_hit` Kostura Leszego; strzał 0,63 s), dziki drzewiec
+  `proto_wild_treant.gd` (silny, jak goblin osiłek, 200 zdrowia; korzenie trzymają trafioną postać - spowolnienie 70%
+  na 1 s; w kole `leshy_roots`).
+- **Żywa puszcza** `proto_grove.gd` (`arena.grove`, tylko w tym lochu): co 5-8 s czerwone koło 26 px pod postacią
+  (trochę przed nią, gdy idzie - `velocity` x 0,5 s), po 1 s korzenie z ziemi - w kole 8 obrażeń (natura) i trzymanie
+  (spowolnienie 90% -> `ProtoHero.slow` ogranicza do 80%) na 1 s; zejście z koła = unik.
+- **Boss Leszy** `proto_leszy.gd` (po `ProtoChief`, 1300 zdrowia; arkusz używany w Watrze - `leshy_pl.png`, 4x5 klatek
+  90x84, skala 0,85; uwaga autora: najpierw przeniesiony był stary, nieużywany `leshy.png`; jako „udawany model”
+  `ProtoStormEagle._EagleSprite`, klatki w `_animate`: chód, a w atakach 3 klatki zapowiedzi i uderzenie - `_swing`): korzenie pasem 230x30 do postaci (1 s; 26 + trzymanie
+  1,2 s; 7 wybuchów `leshy_roots` po kolei), wir liści (wachlarz 70°, 130 px, 1 s, 24; `leshy_leaves`), przebudzenie
+  (co najwyżej co 12 s: 2 dzikie drzewce - nowe pole `ProtoChief.minion_kind`, arena przyzywa `spawn_at(p, kind)`).
+- **Grafiki bez generacji:** `tools/forest_art.py` - podłoga `assets/watra/forest_floor.png` (kafelki mchu, liści
+  i ziemi Watry według szumu), ozdoby `assets/watra/decor/forest/` (dęby, sosny, pnie, kłody, głazy, menhiry, świecące
+  grzyby, krąg grzybów, ciernisty krzak), Leszy i jego efekty z Watry.
+- Test `tests/test_forest.gd`, zrzuty `tools/forest_shots.gd`.
+
 ## 25.11.2026 - Kostur Leszego - pierwsza broń natury (magiczna)
 
 - **Pomysły autora (25.11.2026):** mechanika sadzonek (dwie umiejętności je zostawiają, dwie z nich korzystają bez

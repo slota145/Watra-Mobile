@@ -66,6 +66,17 @@ const DATA := {
 		{"f": "frozen_warrior", "r": 11.0, "w": 1.0}, {"f": "boulder", "w": 3.0}, {"f": "cairn", "w": 1.5},
 		{"f": "rubble", "w": 3.0, "flat": true}, {"f": "bones", "w": 2.0, "flat": true},
 	],
+	# Prastary Bór (25.11.2026): dęby, sosny, pnie, głazy, menhiry i grzyby z Prastarego Lasu Watry (tools/forest_art.py)
+	Dungeons.FOREST: [
+		{"f": "oak_0", "r": 12.0, "w": 2.0}, {"f": "oak_1", "r": 12.0, "w": 2.0}, {"f": "oak_2", "r": 12.0, "w": 1.5},
+		{"f": "pine_0", "r": 10.0, "w": 1.5}, {"f": "pine_1", "r": 10.0, "w": 1.5}, {"f": "claw_tree", "r": 8.0, "w": 1.0},
+		{"f": "ancient_stump", "r": 14.0, "w": 1.0}, {"f": "rotten_stump", "r": 12.0, "w": 1.5}, {"f": "stump", "w": 2.0},
+		{"f": "fallen_log", "r": 14.0, "w": 1.5}, {"f": "hollow_log", "w": 1.5}, {"f": "mossy_rock", "w": 2.0},
+		{"f": "mossy_rocks", "w": 2.0}, {"f": "boulder", "w": 2.0}, {"f": "menhir_0", "r": 12.0, "w": 0.7},
+		{"f": "menhir_1", "r": 14.0, "w": 0.5}, {"f": "thorn_bush", "w": 2.0},
+		{"f": "glow_shroom", "w": 3.0, "light": Color(0.45, 0.8, 1.0), "glow": 22.0},
+		{"f": "mushroom_ring", "w": 2.0, "flat": true},
+	],
 	Dungeons.VOLCANO: [
 		{"f": "bones", "w": 2.0, "flat": true}, {"f": "boulders", "w": 4.0},
 		{"f": "campfire", "w": 2.0, "frames": 4, "fps": 9.0, "light": Color(1.0, 0.5, 0.15), "glow": 48.0},

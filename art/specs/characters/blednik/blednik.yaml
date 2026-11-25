@@ -1,0 +1,280 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: blednik
+kind: character
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.80, 0]}
+palette: "watra"
+size: 48
+directions: 8
+shadow: {rx: 5.0, ry: 2.0, alpha: 100}
+
+# Błędnik: zwykły, najczęstszy i szybki potwór lochu "Prastary Bór" (duchy lasu). Błędny ognik, który wodzi
+# wędrowców na manowce: mały duch z bladozielono-żółtego płomienia. Doskakuje i parzy zielonym ogniem.
+# Wzór budowy: fire_wisp (ten sam lot, billboard i rozmiar), ale leśny, chłodniejszy i bardziej "duszkowy":
+# jasny brzeg płomienia z ciemniejszym, przejrzystym wnętrzem (odwrotnie niż ognik, który ma gorący środek),
+# długi rozmyty ogon z tyłu zamiast korony, dwa wirujące listki i iskierki.
+brief:
+  summary: >
+    a small floating will-o'-wisp of the old forest, about 15 px across, hovering ~9 px above a small ground
+    shadow: a teardrop of pale green-yellow ghost fire with a bright glowing rim and a darker, see-through
+    green hollow inside, two black slit eyes in the hollow, a long wavy flame tail streaming back and up,
+    a few tiny pale sparks and two small olive leaves circling it
+  head: >
+    the whole wisp is the head: two black slit eyes (3 px wide, 1 px tall, slanted down to the middle - a sly,
+    mean look) in the upper half of the dark hollow; no mouth; seen from n the face is hidden
+  must_keep:
+    - the ring read: bright pale rim, darker green hollow inside (the "ghost" look, unlike the fire wisp)
+    - the black slit eyes in the hollow (the creature read)
+    - the flame tail behind and above (the teardrop silhouette that tells the direction)
+    - the gap of air between the ball and its shadow (it floats)
+    - two small leaves circling it (the forest read)
+  simplify:
+    - the fire layers are spheres pushed towards the camera (a billboard frame `bb` that undoes the yaw and the
+      38 degree pitch), so the hollow always faces the viewer and reads as a ring
+    - the tail is a tube of three to four points waving with channel `wave`
+    - sparks are 1-2 px emissive dots; leaves are flat ellipsoids on a second, tilted orbit
+  decisions:
+    - every fire material is emissive (unlit, flat), on a ramp of its own (`wisp`), so it reads as a light
+      source on dark forest floors; only the eyes and the leaves are not glowing
+    - walk is a fast drift, leaning into the motion, the tail streams long and flat behind
+    - attack (600 ms) - shrinks and pulls back (telegraph), then lunges forward and bursts a cone of green fire
+      to the front (event `hit` on that frame, socket `burn` at the centre of the burst), then recovers
+    - death - the flame gutters, flares, then blows apart into sparks; the leaves fall to the ground (last frame long)
+
+ramps:
+  wisp:   ["#0a1c10", "#2f7a3a", "#86cf58", "#d2ef7e", "#f6ffd0"]
+  hollow: ["#06130c", "#1d4a33", "#2f6a44", "#3f7f50"]
+  slit:   ["#000000", "#020504", "#05100a"]
+  leaf:   ["#110c05", "#3e3412", "#6b5f1f", "#968a35", "#bdb25e"]
+
+materials:
+  fire_green: {ramp: wisp, emissive: true, band: 2}
+  fire_pale:  {ramp: wisp, emissive: true, band: 3}
+  fire_white: {ramp: wisp, emissive: true, band: 4, glow: {color: "#c8f070", mix: 0.25, radius: 1}}
+  hollow:     {ramp: hollow, emissive: true, band: 2, outline: false}
+  hollow_deep: {ramp: hollow, emissive: true, band: 1, outline: false}
+  slit:       {ramp: slit, emissive: true, band: 0, outline: false}
+  spark:      {ramp: wisp, emissive: true, band: 4, outline: false}
+  leaf:       {ramp: leaf, finish: matte, two_sided: true}
+
+channels:
+  hover: 0.0        # vertical offset of the ball (bobbing)
+  swell: 1.0        # scale of the whole ball
+  squash: 1.0       # vertical stretch of the ball (> 1 taller and thinner)
+  core: 1.0         # scale of the hollow (smaller = more bright rim)
+  wave: 0.0         # tail and flame wave phase (radians)
+  tail: 1.0         # tail length
+  trail: 0.0        # tail tilted down/back (walk), radians
+  lean: 0.0         # ball leaning forward
+  push: 0.0         # ball moved forward (+z) - the attack lunge
+  blink: 1.0        # eye height scale (squint < 1)
+  orb: 0.0          # spark orbit angle
+  orb_r: 1.0        # spark orbit radius scale
+  spark_s: 1.0      # spark size
+  leaf_a: 0.0       # leaf orbit angle
+  leaf_r: 1.0       # leaf orbit radius scale
+  blast: 0.0        # 0..1 the burst of fire to the front
+  burst: 0.0        # death: sparks flying outward (0..1)
+  spark_r: 0.0      # death spark size
+  fall: 0.0         # death: leaves fallen to the ground (0..1)
+  alive: 1.0        # 0 hides the ball (after the death burst)
+
+bones:
+  center: {parent: root, pos: "[0, 0.92 + hover, push]"}
+  body:   {parent: center, rot: "[lean, 0, 0]", scale: "[swell/sqrt(squash), swell*squash, swell/sqrt(squash)]"}
+  # billboard: +z towards the camera (undo the yaw, then tilt up by the 38 degree pitch)
+  bb_yaw: {parent: body, rot: "[0, -radians(yaw), 0]"}
+  bb:     {parent: bb_yaw, rot: [-0.663, 0, 0]}
+  hole:   {parent: bb}
+  tailb:  {parent: body, pos: [0, 0.06, -0.12], rot: "[trail, 0, 0]"}
+  orbit:  {parent: center, rot: "[0.30, orb, 0]"}
+  leaves: {parent: center, rot: "[-0.45, leaf_a, 0.2]"}
+  face:   {parent: bb_yaw, rot: [-0.663, 0, 0]}
+  # the burst of fire; facing the camera (s) it would hide behind the hollow, so it is cheated lower there
+  blastb: {parent: center, pos: "[0, -0.20*pulse(yaw, 0, 60), 0.06*pulse(yaw, 0, 60)]"}
+
+parts:
+  ball:
+    material: fire_green
+    space: body
+    when: "alive > 0"
+    prims:
+      - sphere: {c: [0, 0, 0], r: 0.36}
+  # the bright rim: a pale shell just in front of the ball, around the hollow
+  rim:
+    material: fire_pale
+    space: bb
+    when: "alive > 0"
+    prims:
+      - sphere: {c: [0, 0.0, 0.10], r: 0.31}
+  hollow:
+    material: hollow
+    space: hole
+    when: "alive > 0"
+    prims:
+      - ellipsoid: {c: [0, -0.01, 0.45], r: "[0.215*core, 0.215*core, 0.04]"}
+  hollow_deep:
+    material: hollow_deep
+    space: hole
+    when: "abs(yaw) < 100 and alive > 0"
+    prims:
+      - ellipsoid: {c: "[0, -0.135*core, 0.50]", r: "[0.12*core, 0.055*core, 0.02]"}
+  # a pale lick of fire on top, leaning back towards the tail
+  lick:
+    material: fire_green
+    space: body
+    when: "alive > 0"
+    blend: 0.06
+    prims:
+      - cone: {a: [0, 0.22, 0.0], b: "[0.04*sin(wave), 0.40 + 0.04*sin(wave + 1), -0.16]", r: [0.11, 0.02]}
+  # the long wavy tail streaming back and up
+  tail:
+    material: fire_green
+    space: tailb
+    when: "alive > 0"
+    blend: 0.05
+    prims:
+      - tube: {pts: ["[0, 0, 0]", "[0.07*sin(wave), 0.08*tail, -0.30*tail]", "[-0.08*sin(wave + 1.3), 0.18*tail, -0.50*tail]", "[0.07*sin(wave + 2.6), 0.30*tail, -0.70*tail]"], r: [0.26, 0.03]}
+  tail_core:
+    material: fire_pale
+    space: tailb
+    when: "alive > 0"
+    blend: 0.04
+    prims:
+      - tube: {pts: ["[0, 0.03, -0.06]", "[0.05*sin(wave), 0.10*tail, -0.28*tail]", "[-0.05*sin(wave + 1.3), 0.18*tail, -0.44*tail]"], r: [0.11, 0.02]}
+  eyes:
+    material: slit
+    space: face
+    when: "abs(yaw) < 100 and alive > 0"
+    priority: 3
+    prims:
+      - ellipsoid: {c: "[0.20*sin(radians(yaw)) + 0.115*cos(radians(yaw)), 0.02, 0.55]",
+                    r: "[0.056*(0.55 + 0.45*abs(cos(radians(yaw)))), 0.028*blink, 0.03]", rot: [0, 0, -0.45]}
+      - ellipsoid: {c: "[0.20*sin(radians(yaw)) - 0.115*cos(radians(yaw)), 0.02, 0.55]",
+                    r: "[0.056*(0.55 + 0.45*abs(cos(radians(yaw)))), 0.028*blink, 0.03]", rot: [0, 0, 0.45]}
+  sparks:
+    material: spark
+    space: orbit
+    min_cover: 2
+    when: "spark_s > 0"
+    prims:
+      - sphere: {c: "[0.52*orb_r, 0.18, 0]", r: "0.032*spark_s"}
+      - sphere: {c: "[-0.30*orb_r, -0.10, 0.44*orb_r]", r: "0.030*spark_s"}
+      - sphere: {c: "[-0.22*orb_r, 0.28, -0.46*orb_r]", r: "0.028*spark_s"}
+      - sphere: {c: "[0.10*orb_r, -0.24, -0.50*orb_r]", r: "0.026*spark_s"}
+  # two small olive leaves circling the wisp (they fall to the ground in the death)
+  leaf_pair:
+    material: leaf
+    space: leaves
+    when: "fall < 0.5"
+    min_cover: 2
+    prims:
+      - ellipsoid: {c: "[0.50*leaf_r, 0.02, 0]", r: [0.075, 0.016, 0.042], rot: [0.3, 0.6, 0.4]}
+      - ellipsoid: {c: "[-0.50*leaf_r, -0.02, 0.05]", r: [0.068, 0.016, 0.038], rot: [-0.3, -0.8, -0.3]}
+  leaf_fallen:
+    material: leaf
+    space: root
+    when: "fall >= 0.5"
+    min_cover: 2
+    prims:
+      - ellipsoid: {c: [0.30, 0.02, 0.08], r: [0.075, 0.014, 0.042], rot: [0, 0.6, 0]}
+      - ellipsoid: {c: [-0.26, 0.02, -0.06], r: [0.068, 0.014, 0.038], rot: [0, -0.9, 0]}
+  # attack: a cone of green fire bursting to the front
+  blast_outer:
+    material: fire_green
+    space: blastb
+    when: "blast > 0"
+    blend: 0.04
+    prims:
+      - cone: {a: [0, -0.04, 0.24], b: "[0, -0.03, 0.24 + 0.36*blast]", r: "[0.12, 0.20*blast]"}
+      # three flame tongues fanning out at the front
+      - cone: {a: "[0, -0.03, 0.24 + 0.34*blast]", b: "[0.03, 0.04, 0.24 + 0.64*blast]", r: "[0.10*blast, 0.015]"}
+      - cone: {a: "[0.08*blast, -0.04, 0.24 + 0.30*blast]", b: "[0.30*blast, 0.02, 0.24 + 0.52*blast]", r: "[0.08*blast, 0.015]"}
+      - cone: {a: "[-0.08*blast, -0.04, 0.24 + 0.30*blast]", b: "[-0.30*blast, 0.02, 0.24 + 0.50*blast]", r: "[0.08*blast, 0.015]"}
+  blast_mid:
+    material: fire_pale
+    space: blastb
+    when: "blast > 0"
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0.04, 0.26], b: "[0, 0.08, 0.24 + 0.34*blast]", r: "[0.09, 0.14*blast]"}
+  blast_inner:
+    material: fire_white
+    space: blastb
+    when: "blast > 0"
+    priority: 2
+    prims:
+      - ellipsoid: {c: "[0, 0.13, 0.30 + 0.14*blast]", r: "[0.06, 0.05, 0.07 + 0.08*blast]"}
+  death_sparks:
+    material: spark
+    space: center
+    when: "spark_r > 0"
+    min_cover: 2
+    prims:
+      - sphere: {c: "[0.45*burst, 0.32*burst, 0]", r: spark_r}
+      - sphere: {c: "[-0.45*burst, 0.24*burst, 0.1]", r: spark_r}
+      - sphere: {c: "[0.15*burst, 0.55*burst, 0.3*burst]", r: spark_r}
+      - sphere: {c: "[-0.2*burst, 0.48*burst, -0.3*burst]", r: spark_r}
+      - sphere: {c: "[0.35*burst, -0.15*burst, 0.3*burst]", r: spark_r}
+      - sphere: {c: "[-0.32*burst, -0.2*burst, -0.25*burst]", r: spark_r}
+      - sphere: {c: "[0.08*burst, 0.05*burst, 0.5*burst]", r: spark_r}
+      - sphere: {c: "[-0.05*burst, 0.15*burst, -0.5*burst]", r: spark_r}
+
+sockets:
+  burn: {bone: blastb, offset: [0, -0.02, 0.62]}   # centre of the burst of fire (where the burn effect / damage goes)
+
+animations:
+  idle:
+    frames: 8
+    ms: 130
+    channels:
+      hover: "0.05*sin(p)"
+      wave: "p"
+      tail: "1 + 0.08*sin(p + 1)"
+      squash: "1 + 0.03*sin(2*p)"
+      core: "1 + 0.05*sin(p + 2)"
+      orb: "p"
+      leaf_a: "-p"
+  walk:
+    frames: 8
+    ms: 90
+    channels:
+      hover: "0.03*sin(2*p)"
+      lean: 0.18
+      trail: "-0.30 + 0.05*sin(2*p)"
+      wave: "2*p"
+      tail: "1.15 + 0.07*sin(2*p + 1)"
+      squash: "1 + 0.03*sin(2*p)"
+      orb: "p"
+      orb_r: 1.1
+      leaf_a: "-p"
+      leaf_r: 1.1
+  # doskok-przypalenie: kurczy się i cofa (zapowiedź), potem skacze do przodu i bucha zielonym ogniem
+  attack:
+    loop: false
+    keys:
+      - {ms: 100, event: windup, set: {swell: 0.92, squash: 0.88, core: 0.9, push: -0.04, lean: -0.10, blink: 0.7, tail: 0.85, wave: 0.8, orb: 0.4, leaf_a: -0.3}}
+      - {ms: 150, set: {swell: 0.80, core: 0.78, push: -0.08, lean: -0.20, blink: 0.5, tail: 0.75, wave: 1.8, hover: -0.02, orb: 0.9, orb_r: 0.85, leaf_a: -0.7, leaf_r: 0.9}}
+      # the strike: lunge forward, stretched, the burst of fire to the front
+      - {ms: 60, event: hit, set: {swell: 1.10, squash: 0.92, core: 1.10, push: 0.22, lean: 0.30, blink: 0.4, trail: -0.15, tail: 1.05, wave: 2.8, blast: 0.9, orb: 1.5, orb_r: 1.25, leaf_a: -1.2, leaf_r: 1.2}}
+      - {ms: 70, set: {swell: 1.06, squash: 0.96, core: 1.05, push: 0.24, lean: 0.26, blink: 0.5, trail: -0.10, tail: 1.05, wave: 3.6, blast: 1.0, orb: 2.0, orb_r: 1.2, leaf_a: -1.6, leaf_r: 1.15}}
+      - {ms: 100, set: {swell: 1.02, push: 0.13, lean: 0.12, blink: 0.8, trail: -0.05, tail: 1.0, wave: 4.5, blast: 0.4, orb: 2.6, orb_r: 1.05, leaf_a: -2.1}}
+      - {ms: 120, set: {push: 0.03, lean: 0.03, tail: 1.0, wave: 5.4, orb: 3.1, leaf_a: -2.6}}
+  # trafiony: płomień przygasa i się kuli, potem buch i wraca
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {swell: 0.84, squash: 0.86, core: 0.72, push: -0.08, lean: -0.25, blink: 0.3, hover: -0.03, trail: 0.35, tail: 0.7, wave: 1.0, orb_r: 0.85}}
+      - {ms: 70, set: {swell: 1.06, squash: 1.06, core: 1.08, push: -0.05, lean: -0.10, blink: 0.6, tail: 1.08, wave: 2.2, orb_r: 1.1}}
+      - {ms: 90, set: {swell: 0.98, push: -0.01, wave: 3.2}}
+  # śmierć: przygasa, buchnie ostatni raz i rozwiewa się w iskry; listki spadają na ziemię
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {swell: 0.84, squash: 0.86, core: 0.72, push: -0.06, lean: -0.25, blink: 0.2, hover: -0.03, trail: 0.35, tail: 0.7, wave: 1.0}}
+      - {ms: 110, set: {swell: 1.12, squash: 1.10, core: 1.12, blink: 0.2, tail: 1.05, wave: 2.0, orb_r: 1.3, hover: 0.02}}
+      - {ms: 90, set: {swell: 0.72, squash: 1.15, core: 1.15, blink: 0.1, tail: 1.0, wave: 3.0, burst: 0.4, spark_r: 0.055, orb_r: 1.5, spark_s: 1.2, leaf_r: 1.3, hover: 0.04}}
+      - {ms: 100, set: {swell: 0.45, squash: 1.2, core: 1.1, tail: 0.7, wave: 4.0, burst: 0.8, spark_r: 0.05, orb_r: 1.7, spark_s: 1.0, leaf_r: 1.4, hover: 0.06}}
+      - {ms: 110, set: {swell: 0.2, squash: 1.25, core: 1.0, tail: 0.4, wave: 5.0, burst: 1.15, spark_r: 0.04, orb_r: 1.85, spark_s: 0.7, leaf_r: 1.3, hover: -0.3}}
+      - {ms: 120, set: {alive: 0, burst: 1.45, spark_r: 0.03, orb_r: 2.0, spark_s: 0.4, hover: -0.6, fall: 1}}
+      - {ms: 500, set: {alive: 0, burst: 1.6, spark_r: 0.0, spark_s: 0.0, fall: 1}}

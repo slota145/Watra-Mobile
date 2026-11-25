@@ -1,0 +1,392 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: wild_treant
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.40, 0]}
+palette: "watra"
+size: 96
+extends: humanoid   # the template's skeleton only; head, hair, sword, coat, belt and neck removed
+
+# Dziki drzewiec: silny wróg lochu „Prastary Bór” (duchy lasu, sługa Leszego). Przeciwieństwo przyjaznego
+# drzewca gracza (treant.yaml: krępy, ciepły brąz, mech i liście, okrągłe zielone oczy): wysoki (ok. 46 px wobec
+# 36 px człowieka, ta sama camera.scale, jak lodowy olbrzym), mocno pochylony, z ciemnej, popękanej, szaro-czarnej
+# kory; bez liści, tylko kilka uschniętych; długie, chude ramiona-gałęzie zakończone szponami z korzeni, połamane
+# konary sterczące jak kolce z grzbietu i barków, blade porosty i huby, w szczelinie kory skośne bursztynowo-
+# czerwone świecące oczy, a w piersi pęknięcie żarzące się żarem. Uderza obiema szponiastymi gałęziami w ziemię.
+# Cała postać rośnie przez kość `big` (1.8) pod `root`; przy śmierci łamie się i rozpada w drzazgi i próchno.
+brief:
+  summary: >
+    wild treant of the primeval forest, a hostile servant of Leshy: a tall, gaunt, strongly hunched dead tree on
+    root legs, about 46 px tall against a 36 px human (same density). Dark, cracked grey-black bark, no foliage but
+    a few withered brown leaves, long thin branch arms hanging to the knees and ending in long hooked root talons,
+    broken snags sticking out of the shoulders and the back like spikes, pale lichen blotches and shelf fungi,
+    slanted glowing amber-red eyes in a bark slit and a glowing ember crack in the chest
+  head: >
+    no separate head: a narrow, long stump of a head pushed forward and low between the shoulder snags, its top
+    broken off into jagged splinters; a dark slit with two slanted glowing amber-red eyes under a heavy bark brow
+  must_keep:
+    - the opposite of the player's treant - tall and gaunt, not stocky; cold grey-black, not warm brown; dead, no
+      green; slanted red eyes, not round green ones
+    - the spikes - broken snags on both shoulders and along the spine, the silhouette's signature
+    - the long arms - thin branch arms whose talons hang below the knees; the talons are the widest shape at the bottom
+    - the hunch - the head is low and forward, the shoulder snags are the highest points
+    - the glow - eyes and the chest crack; death puts them out
+    - death breaks him apart into splinters and rotten wood
+  simplify:
+    - bark cracks are painted stripes, lichen painted spots
+    - each claw is a knot with four hooked root talons; each foot four root toes
+  decisions:
+    - the whole body grows through the bone `big` (1.8); IK lengths are world units, set by hand (as the ice giant)
+    - torso leaned forward 0.34 at rest; the head bone compensates so the face looks ahead
+    - the channel `glow` drives the eyes and the chest crack; `creak` rocks the snags; `crumble` shrinks the snags
+      and the head at death; `litter` grows the pile of splinters and rotten wood
+    - attack - both branch arms high over the head (held, the game's red circle shows meanwhile), one fast smear
+      frame, the talons rake into the ground in front (`hit`, socket `impact` between the claws on the ground)
+    - frame 96 px, camera.center y 1.40 (raised arms and the snags fit)
+
+ramps:
+  # dead bark: cold grey-black with a faint brown
+  bark:     ["#060607", "#17161a", "#27252a", "#3a363b", "#504b4e", "#6a6363"]
+  # snags and talons: weathered, lighter grey wood (they read against the dark body)
+  deadwood: ["#09080a", "#262326", "#3d393b", "#585251", "#766e6a", "#968c84"]
+  # pale grey-green lichen
+  lichen:   ["#0d110e", "#33402f", "#55654c", "#788868", "#9eaa86", "#c0c6a6"]
+  # shelf fungi: sickly pale ochre
+  fungus:   ["#15110c", "#4a4232", "#776b52", "#a0937a", "#c4b9a0", "#e2dccb"]
+  # a few withered leaves
+  dryleaf:  ["#100805", "#3a1e0e", "#5c3218", "#7a4724", "#94603a"]
+  hollow:   ["#030203", "#0b080a", "#140f12"]
+  # eyes: amber-red glow
+  emberglow: ["#2a0505", "#8a140c", "#e0401a", "#ff8a2a", "#ffc65a", "#fff0b0"]
+  # rotten wood of the death pile
+  rot:      ["#0a0605", "#1d140d", "#2d2116", "#3e2f20", "#52402c", "#68543a"]
+  # the slam's smear: ember-tinged
+  fx_tail: ["#5a1a0c"]
+  fx_mid:  ["#e0401a"]
+  fx_core: ["#ffc65a"]
+
+materials:
+  bark:     {ramp: bark, finish: matte, crease: true, gamma: 0.95}
+  crack:    {ramp: bark, finish: matte, bands: [0, 1], line: false}
+  deadwood: {ramp: deadwood, finish: matte, crease: true, edge_highlight: true}
+  lichen:   {ramp: lichen, finish: matte}
+  fungus:   {ramp: fungus, finish: soft}
+  dryleaf:  {ramp: dryleaf, finish: matte}
+  hollow:   {ramp: hollow, bands: [0, 2], outline: false, line: false}
+  eye:      {ramp: emberglow, emissive: true, band: 4, outline: false, glow: {color: "#ff5a1f", mix: 0.4, radius: 1}}
+  ember:    {ramp: emberglow, emissive: true, band: 3, outline: false, line: false, glow: {color: "#e0401a", mix: 0.3, radius: 1}}
+  rot:      {ramp: rot, finish: matte}
+
+remove: [use.sword, use.head, use.hair, parts.belt, parts.coat, parts.neck, parts.hand_L, parts.boot_L]
+
+shadow: {rx: 22, ry: 7, alpha: 130}
+snap: [root, torso_rot]
+
+channels:
+  hand_L: [0.50, -0.50, 0.30]
+  hand_R: [0.50, -0.50, 0.30]
+  foot_L: [0.17, 0, 0.02]
+  glow: 1        # eyes and the chest crack
+  creak: 0       # the shoulder snags rock (radians)
+  crumble: 0     # death: snags and head break down (shrink)
+  shrink: 1      # death: the whole tree sinks into its heap (scales the body, IK and claws)
+  litter: 0      # death: the pile of splinters and rotten wood
+  smear_r: 0.60
+  smear_y: 0.60
+  smear_z: 0.35
+
+bones:
+  big:        {parent: root, scale: "1.8*shrink"}
+  torso_rot:  {parent: big, pos: "[0, 0.66 + bob, 0]", rot: "[lean + 0.34, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  fxspace:    {parent: big}
+  headbase:   {pos: [0, 0.50, 0.25], scale: "1.8*shrink", rot: "[lean*0.5 - 0.30, twist, roll]"}
+  head:       {scale: "1.0 - 0.45*crumble"}
+  snag_L:     {parent: pelvis, pos: [0.22, 0.44, -0.02], rot: "[0, 0, -creak]"}
+  shoulder_L: {pos: [0.27, 0.40, 0.02]}
+  hip_L:      {pos: [0.13, -0.02, 0.0]}
+  clawb_L:    {parent: wrist_L, scale: shrink}
+
+ik:   # world units (not scaled by `big`)
+  arm_L: {lengths: "[0.74*shrink, 0.70*shrink]", pole: [0.4, 0.0, -1.0]}
+  leg_L: {space: big, lengths: "[0.54*shrink, 0.52*shrink]"}
+
+parts:
+  torso:           # a tall gaunt trunk, narrower at the chest, cracked bark, a glowing ember crack
+    material: bark
+    space: pelvis
+    blend: 0.05
+    prims:
+      - cone: {a: [0, -0.06, 0], b: [0, 0.48, 0.0], r: [0.20, 0.18]}
+      - ellipsoid: {c: [0, 0.02, 0.0], r: [0.20, 0.13, 0.17]}
+      - ellipsoid: {c: [0, 0.40, -0.03], r: [0.26, 0.10, 0.17]}
+      - sphere: {c: [0.07, 0.10, 0.15], r: 0.05}
+    paint:
+      - material: crack
+        stripes: {axis: x, width: 0.03, period: 0.11, offset: 0.03}
+      - material: lichen
+        spots: {scale: 0.10, density: 0.16, seed: 11}
+      - material: crack
+        prims:
+          - box: {c: [0.0, 0.20, 0.20], half: [0.055, 0.15, 0.08], rot: [0, 0, 0.15]}
+      - material: ember
+        prims:
+          - box: {c: [0.015, 0.27, 0.20], half: ["0.032*min(glow, 1.3)", 0.08, 0.08], rot: [0, 0, 0.35]}
+          - box: {c: [-0.01, 0.17, 0.20], half: ["0.034*min(glow, 1.3)", 0.07, 0.08], rot: [0, 0, -0.30]}
+          - box: {c: [0.02, 0.09, 0.20], half: ["0.020*min(glow, 1.3)", 0.04, 0.08], rot: [0, 0, 0.25]}
+  head:            # a narrow stump pushed forward, broken off at the top, heavy brow over the eye slit
+    material: bark
+    space: head
+    blend: 0.04
+    prims:
+      - cone: {a: [0, -0.04, -0.02], b: [0, 0.22, 0.0], r: [0.13, 0.11]}
+      - box: {c: [0, 0.13, 0.10], half: [0.14, 0.035, 0.06], rot: [-0.25, 0, 0], round: 0.02}
+      - cone: {a: [0, 0.0, 0.06], b: [0, -0.10, 0.12], r: [0.08, 0.04]}
+    cut:
+      - ellipsoid: {c: [0, 0.075, 0.15], r: [0.12, 0.035, 0.05]}
+    paint:
+      - material: crack
+        stripes: {axis: x, width: 0.028, period: 0.09, offset: 0.0}
+      - material: hollow
+        prims:
+          - ellipsoid: {c: [0, 0.075, 0.13], r: [0.12, 0.045, 0.10]}
+  head_splinters:  # the broken jagged top of the head
+    material: deadwood
+    space: head
+    min_cover: 2
+    prims:
+      - cone: {a: [0.05, 0.18, -0.01], b: "[0.08, 0.36, -0.06]*(1 - 0.5*crumble)", r: [0.045, 0.01]}
+      - cone: {a: [-0.05, 0.18, 0.01], b: "[-0.07, 0.30, 0.02]*(1 - 0.5*crumble)", r: [0.04, 0.01]}
+      - cone: {a: [0.0, 0.18, -0.06], b: "[0.01, 0.28, -0.14]*(1 - 0.5*crumble)", r: [0.035, 0.01]}
+  eye_L:           # a slanted glowing amber-red eye in the slit (angry: inner corner low)
+    material: eye
+    space: head
+    when: "glow > 0.3"
+    prims:
+      - ellipsoid: {c: [0.05, 0.072, 0.135], r: ["0.038*min(glow, 1.2)", 0.018, 0.02], rot: [0, 0, 0.45]}
+  snags_L:         # broken branches sticking out of the shoulder like spikes (out, up, back)
+    material: deadwood
+    space: snag_L
+    blend: 0.01
+    priority: 2
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0, 0, 0], "[0.10, 0.22, -0.04]*(1 - 0.6*crumble)", "[0.16, 0.42, -0.10]*(1 - 0.6*crumble)"], r: [0.06, 0.014]}
+      - cone: {a: [0.04, 0.02, -0.06], b: "[0.04, 0.02, -0.06] + [0.24, 0.10, -0.14]*(1 - 0.7*crumble)", r: [0.045, 0.01]}
+      - cone: {a: "[0.09, 0.20, -0.04]*(1 - 0.6*crumble)", b: "[0.09, 0.20, -0.04]*(1 - 0.6*crumble) + [0.12, 0.06, 0.02]*(1 - crumble)", r: [0.025, 0.008]}
+  dryleaf_L:       # a withered leaf hanging off the shoulder snag
+    material: dryleaf
+    space: snag_L
+    when: "crumble < 0.5"
+    prims:
+      - ellipsoid: {c: [0.24, 0.10, -0.10], r: [0.05, 0.018, 0.035], rot: [0.3, 0.4, -0.9]}
+  spine_snags:     # broken branches along the back
+    material: deadwood
+    space: pelvis
+    blend: 0.01
+    priority: 2
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0.0, 0.42, -0.14], "[0.03, 0.62, -0.24]*(1 - 0.5*crumble) + [0, 0.21*crumble, 0]", "[-0.02, 0.80, -0.30]*(1 - 0.6*crumble) + [0, 0.32*crumble, 0]"], r: [0.06, 0.014]}
+      - cone: {a: [-0.10, 0.34, -0.17], b: "[-0.10, 0.34, -0.17] + [-0.16, 0.28, -0.18]*(1 - 0.7*crumble)", r: [0.05, 0.012]}
+      - cone: {a: [0.10, 0.24, -0.18], b: "[0.10, 0.24, -0.18] + [0.12, 0.22, -0.22]*(1 - 0.7*crumble)", r: [0.045, 0.01]}
+      - cone: {a: [0.0, 0.10, -0.18], b: "[0.0, 0.10, -0.18] + [-0.04, 0.16, -0.22]*(1 - 0.7*crumble)", r: [0.04, 0.01]}
+  spine_leaf:      # a withered leaf on a back snag
+    material: dryleaf
+    space: pelvis
+    when: "crumble < 0.5"
+    prims:
+      - ellipsoid: {c: [-0.22, 0.58, -0.32], r: [0.055, 0.018, 0.04], rot: [0.5, 0.2, 0.8]}
+  fungus:          # shelf fungi (huby) on the side of the trunk and the hip
+    material: fungus
+    space: pelvis
+    blend: 0.01
+    prims:
+      - ellipsoid: {c: [-0.19, 0.20, 0.06], r: [0.07, 0.022, 0.06], rot: [0, 0, 0.35]}
+      - ellipsoid: {c: [-0.20, 0.12, 0.04], r: [0.055, 0.018, 0.05], rot: [0, 0, 0.35]}
+      - ellipsoid: {c: [0.19, -0.02, 0.08], r: [0.05, 0.018, 0.045], rot: [0, 0, -0.35]}
+  arm_L:           # long thin branch arms with a knot at the elbow and a broken twig
+    material: bark
+    space: big
+    blend: 0.025
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.07}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.065, 0.045]}
+      - sphere: {c: "@elbow_L", r: 0.052}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.045, 0.05]}
+    paint:
+      - material: lichen
+        spots: {scale: 0.06, density: 0.14, seed: 5}
+  twig_L:          # a broken twig spur on the forearm
+    material: deadwood
+    space: big
+    min_cover: 2
+    prims:
+      - cone: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.35}, b: {at: elbow_L, off: [0.06, 0.12, -0.08]}, r: [0.025, 0.012]}
+  claw_L:          # a knot with four long hooked root talons (world units)
+    material: deadwood
+    space: clawb_L
+    blend: 0.03
+    priority: 2
+    min_cover: 2
+    prims:
+      - ellipsoid: {c: [0, 0, 0.06], r: [0.10, 0.08, 0.10]}
+      - tube: {pts: [[0.07, 0.0, 0.10], [0.20, -0.04, 0.30], [0.18, -0.24, 0.44]], r: [0.05, 0.012]}
+      - tube: {pts: [[0.02, 0.0, 0.12], [0.06, -0.04, 0.36], [0.02, -0.26, 0.50]], r: [0.05, 0.012]}
+      - tube: {pts: [[-0.04, 0.0, 0.11], [-0.11, -0.04, 0.32], [-0.13, -0.25, 0.44]], r: [0.05, 0.012]}
+      - tube: {pts: [[-0.07, 0.02, 0.06], [-0.22, 0.0, 0.16], [-0.27, -0.18, 0.24]], r: [0.045, 0.012]}
+  leg_L:           # long root legs
+    material: bark
+    space: big
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.11, 0.08]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.08, 0.09]}
+    paint:
+      - material: crack
+        stripes: {axis: x, width: 0.028, period: 0.09}
+  foot_L:          # four splayed root toes
+    material: bark
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.01, 0.02], r: [0.09, 0.05, 0.09]}
+      - cone: {a: [0.03, -0.02, 0.05], b: [0.15, -0.05, 0.17], r: [0.04, 0.015]}
+      - cone: {a: [0.0, -0.02, 0.06], b: [0.02, -0.05, 0.22], r: [0.04, 0.015]}
+      - cone: {a: [-0.03, -0.02, 0.05], b: [-0.13, -0.05, 0.16], r: [0.04, 0.015]}
+      - cone: {a: [0.0, -0.02, -0.03], b: [0.04, -0.05, -0.16], r: [0.035, 0.012]}
+  litter:          # death: a heap of rotten wood where he broke apart (root space)
+    material: rot
+    space: root
+    when: "litter > 0.02"
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.03, 0.12], r: "[0.44, 0.12, 0.32]*litter"}
+      - ellipsoid: {c: [0.30, 0.04, -0.16], r: "[0.18, 0.10, 0.14]*litter"}
+      - ellipsoid: {c: [-0.28, 0.05, 0.30], r: "[0.16, 0.11, 0.13]*litter"}
+      - ellipsoid: {c: [-0.10, 0.10, -0.04], r: "[0.20, 0.14, 0.16]*litter"}
+    paint:
+      - material: lichen
+        spots: {scale: 0.08, density: 0.18, seed: 4}
+  litter_logs:     # death: broken chunks of the trunk in the heap
+    material: bark
+    space: root
+    when: "litter > 0.02"
+    blend: 0.02
+    prims:
+      - cylinder: {a: "[-0.30, 0.12, 0.10]", b: "[0.10, 0.16*litter, 0.40]", r: "0.13*litter", round: 0.03}
+      - cylinder: {a: "[0.12, 0.10, -0.05]", b: "[0.45, 0.10*litter, 0.22]", r: "0.10*litter", round: 0.03}
+  splinters:       # death: grey splinters and the broken snags sticking out of the heap
+    material: deadwood
+    space: root
+    when: "litter > 0.02"
+    min_cover: 2
+    priority: 2
+    prims:
+      - box: {c: [0.28, "0.12*litter", 0.34], half: "[0.035, 0.035, 0.20]*litter", rot: [0.5, 0.8, 0.2], round: 0.01}
+      - box: {c: [-0.38, "0.10*litter", 0.20], half: "[0.035, 0.035, 0.18]*litter", rot: [0.4, -0.6, 0.1], round: 0.01}
+      - box: {c: [0.02, "0.10*litter", 0.62], half: "[0.03, 0.03, 0.14]*litter", rot: [0.6, 0.1, 0.0], round: 0.01}
+      - box: {c: [0.48, "0.08*litter", -0.08], half: "[0.03, 0.03, 0.15]*litter", rot: [0.3, 1.4, 0.0], round: 0.01}
+      - cone: {a: "[-0.05, 0.14*litter, -0.05]", b: "[-0.14, 0.52*litter, -0.20]", r: [0.05, 0.014]}
+      - cone: {a: "[0.18, 0.12*litter, 0.02]", b: "[0.34, 0.40*litter, -0.10]", r: [0.04, 0.012]}
+  embers_dying:    # death: a last ember in the heap where the chest was
+    material: ember
+    space: root
+    when: "litter > 0.2 and litter < 0.9"
+    prims:
+      - sphere: {c: [0.0, "0.14*litter", 0.30], r: 0.035}
+
+sockets:
+  impact: {bone: big, offset: [0, 0.02, 0.66]}   # the ground in front where the talons rake in (the slam's dust)
+  claw_L: {bone: wrist_L, offset: [0, -0.1, 0.30]}
+  chest:  {bone: pelvis, offset: [0, 0.18, 0.20]}
+  eyes:   {bone: head, offset: [0, 0.075, 0.14]}
+
+animations:
+  # creaking sway: the gaunt trunk rocks side to side, the snags lag behind, the talons swing, the glow pulses
+  idle:
+    frames: 8
+    ms: 160
+    channels:
+      bob: "0.025*sin(2*p)"
+      roll: "0.05*sin(p)"
+      twist: "0.04*sin(p - 0.5)"
+      lean: "0.03*sin(2*p - 0.6)"
+      head_pitch: "0.06*sin(p - 0.9)"
+      creak: "0.10*sin(p - 1.0)"
+      glow: "1.0 + 0.25*sin(p)"
+      hand_L: "[0.50 + 0.03*sin(p - 0.8), -0.50, 0.30 + 0.04*sin(p - 1.2)]"
+      hand_R: "[0.50 - 0.03*sin(p - 0.8), -0.50, 0.30 - 0.04*sin(p - 1.2)]"
+  # a slow, stalking lurch: long strides, the trunk rolls, the talons drag and swing against the legs
+  walk:
+    frames: 8
+    ms: 130
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: "0.06 + 0.03*cos(2*p)"
+      bob: "-0.05*cos(2*p) - 0.01"
+      squash: "1 - 0.03*cos(2*p)"
+      twist: "0.10*cos(p)"
+      roll: "0.07*sin(p)"
+      head_yaw: "-0.06*cos(p)"
+      creak: "0.10*sin(2*p - 1.0)"
+      foot_L: "[0.17, 0.09*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.24 - 0.48*clamp(p/tau/0.5, 0, 1) + 0.48*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.17, 0.09*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.24 - 0.48*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.48*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      pitch_foot_L: "0.25*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
+      pitch_foot_R: "0.25*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
+      hand_L: "[0.50, -0.49 + 0.05*pos(cos(p)), 0.30 - 0.20*cos(p)]"
+      hand_R: "[0.50, -0.49 + 0.05*pos(-cos(p)), 0.30 + 0.20*cos(p)]"
+  # both branch arms raised high over the head (held: the game's warning circle), one fast smear frame, the
+  # talons rake into the ground in front (`hit`), a short hold, a slow recovery
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {lean: 0.18, bob: -0.06, squash: 0.94, head_pitch: 0.08, creak: -0.05,
+          hand_L: [0.40, -0.42, 0.40], hand_R: [0.40, -0.42, 0.40]}}
+      - {ms: 150, set: {lean: -0.08, bob: 0.0, squash: 1.0, head_pitch: -0.06, glow: 1.2, creak: -0.10,
+          hand_L: [0.24, 0.24, 0.40], hand_R: [0.24, 0.24, 0.40], foot_L: [0.18, 0, 0.10], foot_R: [0.18, 0, -0.05]}}
+      - {ms: 210, set: {lean: -0.32, bob: 0.03, squash: 1.05, head_pitch: -0.16, glow: 1.35, creak: -0.14,
+          hand_L: [0.26, 0.92, 0.04], hand_R: [0.26, 0.92, 0.04], foot_L: [0.18, 0, 0.12], foot_R: [0.18, 0, -0.06]}}
+      - {ms: 200, set: {lean: -0.36, bob: 0.04, squash: 1.07, head_pitch: -0.18, glow: 1.45, creak: -0.16,
+          hand_L: [0.24, 0.98, -0.04], hand_R: [0.24, 0.98, -0.04], foot_L: [0.18, 0, 0.12], foot_R: [0.18, 0, -0.06]}}
+      - {ms: 60, set: {lean: 0.14, bob: -0.02, squash: 1.0, head_pitch: 0.05, glow: 1.4, creak: 0.08,
+          hand_L: [0.18, 0.42, 0.62], hand_R: [0.18, 0.42, 0.62], foot_L: [0.18, 0, 0.16], foot_R: [0.18, 0, -0.07],
+          smear_w: 0.12, smear_a0: 2.0, smear_a1: 0.7}}
+      - {ms: 90, event: hit, set: {root: [0, 0, 0.05], lean: 0.50, bob: -0.12, squash: 0.90, head_pitch: 0.12, glow: 1.6, creak: 0.16,
+          hand_L: [0.16, -0.10, 0.62], hand_R: [0.16, -0.10, 0.62], foot_L: [0.18, 0, 0.20], foot_R: [0.18, 0, -0.08],
+          smear_w: 0.10, smear_a0: 1.0, smear_a1: -0.6, smear_fade: 0.6}}
+      - {ms: 130, set: {root: [0, 0, 0.05], lean: 0.47, bob: -0.11, squash: 0.92, head_pitch: 0.10, glow: 1.3, creak: 0.06,
+          hand_L: [0.16, -0.09, 0.62], hand_R: [0.16, -0.09, 0.62], foot_L: [0.18, 0, 0.20], foot_R: [0.18, 0, -0.08]}}
+      - {ms: 140, set: {root: [0, 0, 0.03], lean: 0.20, bob: -0.04, squash: 0.97, glow: 1.1, creak: -0.04,
+          hand_L: [0.36, -0.46, 0.34], hand_R: [0.36, -0.46, 0.34], foot_L: [0.18, 0, 0.08]}}
+  # hit: the trunk jolts back about a pixel, the snags shudder, the glow flares
+  hit:
+    loop: false
+    keys:
+      - {ms: 80, set: {root: [0, 0, -0.03], lean: -0.08, bob: -0.02, squash: 0.97, head_pitch: -0.14, glow: 1.6, creak: 0.18,
+          hand_L: [0.44, -0.58, 0.14], hand_R: [0.44, -0.58, 0.14]}}
+      - {ms: 80, set: {root: [0, 0, -0.015], lean: -0.03, bob: -0.01, squash: 0.99, head_pitch: -0.05, glow: 1.3, creak: -0.10,
+          hand_L: [0.42, -0.56, 0.18], hand_R: [0.42, -0.56, 0.18]}}
+      - {ms: 80, set: {lean: 0.04, head_pitch: 0.02, creak: 0.04}}
+  # death: struck back, the trunk cracks and buckles forward, snags snap off, he collapses into a heap of
+  # rotten wood and grey splinters; the eyes and the ember crack go out
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.03], lean: -0.18, bob: -0.02, squash: 0.96, head_pitch: -0.2, glow: 1.6, creak: 0.2,
+          hand_L: [0.52, -0.42, 0.06], hand_R: [0.52, -0.42, 0.06]}}
+      - {ms: 150, set: {root: [0, 0, -0.03], lean: 0.24, bob: -0.14, squash: 0.94, head_pitch: 0.25, glow: 0.9, creak: -0.2,
+          hand_L: [0.52, -0.36, 0.18], hand_R: [0.52, -0.36, 0.18], foot_L: [0.21, 0, 0.06], foot_R: [0.21, 0, 0.0]}}
+      - {ms: 140, set: {lean: 0.46, bob: -0.20, squash: 0.88, head_pitch: 0.35, glow: 0.6, litter: 0.35, crumble: 0.3, creak: 0.25,
+          shrink: 0.88, hand_L: [0.48, -0.20, 0.30], hand_R: [0.48, -0.20, 0.30], foot_L: [0.25, 0, 0.10], foot_R: [0.25, 0, 0.06]}}
+      - {ms: 120, set: {lean: 0.60, bob: -0.30, squash: 0.74, head_pitch: 0.45, glow: 0.25, litter: 0.75, crumble: 0.65,
+          shrink: 0.68, hand_L: [0.47, -0.04, 0.32], hand_R: [0.47, -0.04, 0.32], foot_L: [0.27, 0, 0.12], foot_R: [0.27, 0, 0.08]}}
+      - {ms: 120, set: {lean: 0.70, bob: -0.36, squash: 0.60, head_pitch: 0.5, glow: 0.0, litter: 1.02, crumble: 0.9,
+          shrink: 0.45, hand_L: [0.44, 0.10, 0.26], hand_R: [0.44, 0.10, 0.26], foot_L: [0.27, 0, 0.10], foot_R: [0.27, 0, 0.06]}}
+      - {ms: 150, set: {lean: 0.70, bob: -0.38, squash: 0.56, head_pitch: 0.5, glow: 0.0, litter: 1.1, crumble: 1.0,
+          shrink: 0.28, hand_L: [0.44, 0.10, 0.26], hand_R: [0.44, 0.10, 0.26], foot_L: [0.27, 0, 0.10], foot_R: [0.27, 0, 0.06]}}
+      - {ms: 700, set: {lean: 0.70, bob: -0.38, squash: 0.56, head_pitch: 0.5, glow: 0.0, litter: 1.1, crumble: 1.0,
+          shrink: 0.2, hand_L: [0.44, 0.10, 0.26], hand_R: [0.44, 0.10, 0.26], foot_L: [0.27, 0, 0.10], foot_R: [0.27, 0, 0.06]}}
+
+timing:
+  attack: {hit: 740ms, total: 1100ms}
