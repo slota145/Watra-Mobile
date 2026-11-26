@@ -29,8 +29,8 @@ func _run() -> void:
 	DirAccess.remove_absolute(game.save_path)
 	game.load_game()
 	_check(Dungeons.first_level(Dungeons.TEMPLE) == 41 and Dungeons.for_level(45) == Dungeons.TEMPLE
-			and Dungeons.for_level(46) == Dungeons.GOBLINS and Dungeons.cycle_length() == 45,
-			"drabinka: Świątynia Słońca 41-45, drugi krąg od 46")
+			and Dungeons.for_level(46) == Dungeons.MINE,
+			"drabinka: Świątynia Słońca 41-45, po niej Kopalnia karłów")
 	var r := Dungeons.resists(Dungeons.TEMPLE, 41)
 	var base := DungeonLevels.base_resist(41)
 	_check(is_equal_approx(r[Elements.PRAWIA], base + 0.2) and is_equal_approx(r[Elements.NAWIA], base - 0.2),

@@ -80,6 +80,12 @@ const DATA := {
 	# Świątynia Słońca (26.11.2026): kolumny, posągi i misy z ogniem z Katakumb Watry przebarwione na piaskowiec,
 	# złamane kolumny z Zatopionych podziemi, mozaika słońca i gruz (tools/temple_art.py); kolumny dają cień przed
 	# Promieniami słońca (ProtoSunbeams.sheltered)
+	# Kopalnia karłów (26.11.2026) - ozdoby dopisuje pomocnik lochu (tools/mine_art.py)
+	Dungeons.MINE: [
+	],
+	# Wieża Kościeja (26.11.2026) - ozdoby dopisuje pomocnik lochu (tools/tower_art.py)
+	Dungeons.TOWER: [
+	],
 	Dungeons.TEMPLE: [
 		{"f": "pillar_0", "r": 8.0, "w": 3.0}, {"f": "pillar_2", "r": 9.0, "w": 3.0},
 		{"f": "statue_0", "r": 8.0, "w": 1.0}, {"f": "statue_1", "r": 9.0, "w": 1.0}, {"f": "statue_2", "r": 8.0, "w": 1.0},

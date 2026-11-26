@@ -189,6 +189,10 @@ var frost: ProtoFrost
 var grove: ProtoGrove
 ## Promienie słońca Świątyni Słońca - pasy palącego światła (null - inny loch).
 var sunbeams: ProtoSunbeams
+## Osuwiska Kopalni karłów - głazy ze stropu (null - inny loch).
+var rockfall: ProtoRockfall
+## Magiczne pieczęcie Wieży Kościeja (null - inny loch).
+var seals: ProtoSeals
 var chest: ProtoChest
 ## Etap wyprawy: horde (zbieranie żaru), boss (walka z Wodzem), loot (skrzynia), won (po zwycięstwie).
 var phase := "horde"
@@ -320,6 +324,20 @@ func _ready() -> void:
 			wind.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			add_child(wind)
 			wind.spawn_tornadoes()
+		if climate == Dungeons.MINE and not pinnacle:
+			rockfall = ProtoRockfall.new()
+			rockfall.name = "Rockfall"
+			rockfall.hero = hero
+			rockfall.bounds = area.grow(-20)
+			rockfall.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
+			world.add_child(rockfall)
+		if climate == Dungeons.TOWER and not pinnacle:
+			seals = ProtoSeals.new()
+			seals.name = "Seals"
+			seals.hero = hero
+			seals.bounds = area.grow(-20)
+			seals.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
+			world.add_child(seals)
 		if climate == Dungeons.TEMPLE and not pinnacle:
 			sunbeams = ProtoSunbeams.new()
 			sunbeams.name = "Sunbeams"
@@ -1452,6 +1470,10 @@ func summon_chief() -> void:
 			chief = ProtoLeszy.new()
 		Dungeons.TEMPLE:
 			chief = ProtoSwarozyc.new()
+		Dungeons.MINE:
+			chief = ProtoDwarfKing.new()
+		Dungeons.TOWER:
+			chief = ProtoKosciej.new()
 		_:
 			chief = ProtoChief.new()
 	var spot := hero.position + CHIEF_OFFSET
