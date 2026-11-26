@@ -2,6 +2,13 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - Słoneczna włócznia: poprawki autora po pierwszym teście
+
+- **Kołowrót Słońca** nie przesuwa już postaci - obroty w miejscu (usunięte kroki `hero.leap`).
+- **Rzut Dadźboga**: leci świetlista włócznia-widmo (`ProtoSpear._light_spear` - rozjaśniona, z dodawaną złotą poświatą
+  `THROW_GLOW_SCALE`) ze świetlną smugą (`_light_trail` - dodawana linia, gruba i jasna przy włóczni, `THROW_TRAIL_*`).
+  Prawdziwa włócznia zostaje w dłoni - w trakcie lotu można walczyć i używać innych umiejętności (bez stanu „p_throw”).
+
 ## 26.11.2026 - Słoneczna włócznia Dadźboga - pierwsza broń Prawii, Katakumby wrażliwe na Prawię
 
 - **Ustalenia z autorem (26.11.2026):** broń fizyczna Prawii, 5 umiejętności. Autor podmienił Grad Promieni (za bardzo

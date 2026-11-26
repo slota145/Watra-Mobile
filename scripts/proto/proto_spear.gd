@@ -8,14 +8,14 @@ extends ProtoWeapon
 ## - „Promienne Pchnięcie” (`p_thrust`, zwykły atak): długie pchnięcie rani wszystkich na linii; 5. poziom - co trzecie
 ##   pchnięcie to promień dwa razy dalej, 10. - rozbłysk światła przy pierwszym trafionym; kamień unikalny (Trzech
 ##   Promieni) - dwa dodatkowe promienie w wachlarzu; Mnożenie - drugie pchnięcie w innego wroga.
-## - „Rzut Dadźboga” (`p_throw`): włócznia leci (gałka, bez niej najbliższy wróg) THROW_DIST px, przebija wszystkich
-##   i wraca do ręki, raniąc drugi raz; 5. - dalej, 10. - przy zawróceniu pierścień światła; kamień unikalny (Sieci
+## - „Rzut Dadźboga” (`p_throw`): świetlista włócznia-widmo ze świetlną smugą (prawdziwa zostaje w dłoni - można walczyć
+##   dalej) leci (gałka, bez niej najbliższy wróg) THROW_DIST px, przebija wszystkich i wraca, raniąc drugi raz; 5. - dalej, 10. - przy zawróceniu pierścień światła; kamień unikalny (Sieci
 ##   Swaroga) - wracając, ciągnie trafionych za sobą ku postaci; Mnożenie - 3 włócznie wachlarzem.
 ## - „Wschód Słońca” (`p_sunrise`): włócznia unosi się i wbija w ziemię - pierścień światła rani (i piętnuje)
 ##   wszystkich wokół; 5. - krąg większy, 10. - drugi rozbłysk; kamień unikalny (Południa) - włócznia-widmo zostaje
 ##   wbita jako słup światła i co chwilę rani wrogów obok; Mnożenie - drugi, szerszy rozbłysk.
 ## - „Kołowrót Słońca” (`p_wheel`, pomysł autora 26.11.2026 - ruch jak Taniec Marzanny, wybuch jak Cięcie Światowida):
-##   kilka kroków naprzód z włócznią wirującą nad głową - dwa obroty (złote okręgi `sun_spin`), wir rani co WHEEL_TICK;
+##   postać stoi w miejscu z włócznią wirującą nad głową - dwa obroty (złote okręgi `sun_spin`), wir rani co WHEEL_TICK;
 ##   potem od cięć rozchodzi się pierścień światła, który rani i odpycha; 5. - pierścień dalej, 10. - trzy obroty;
 ##   kamień unikalny (Swarożyca) - z pierścienia wylatuje 8 promieni; Mnożenie - pierścień drugi raz.
 ## - „Zenit” (`p_zenith`, pomysł autora 26.11.2026 - deszcz włóczni): z nieba po kolei spada ZENITH_COUNT włóczni
@@ -80,6 +80,10 @@ const TURN_RADIUS := 40.0
 const TURN_POWER := 0.6
 const THROW_PULL := 170.0
 const THROW_FAN := 0.35
+## Świetlista włócznia rzutu: skala poświaty (względem obrazka), smuga (szerokość u włóczni, ile ostatnich pozycji).
+const THROW_GLOW_SCALE := Vector2(1.2, 3.0)
+const THROW_TRAIL_WIDTH := 10.0
+const THROW_TRAIL_POINTS := 16
 ## Wschód Słońca: wzniesienie i upadek włóczni (s), wysokość, promień kręgu (5. - większy), drugi rozbłysk z 10.
 ## (po ilu s, siła), Mnożenie (po ilu s, mnożnik promienia), kamień Południa (czas słupa, co ile rani, promień, siła).
 const RISE_TIME := 0.18
@@ -100,7 +104,6 @@ const PILLAR_POWER := 0.2
 const WHEEL_SPINS := 2
 const WHEEL_SPINS_PERK := 3
 const WHEEL_SPIN_TIME := 0.4
-const WHEEL_STEP := 26.0
 const WHEEL_RADIUS := 44.0
 const WHEEL_TICK := 0.13
 const WHEEL_SPIN_POWER := 0.35
@@ -140,11 +143,10 @@ var _throws: Array = []
 ## Wschód Słońca: miejsce wbicia, zaplanowane rozbłyski ({"at", "t", "radius", "power"}), słupy Południa.
 var _flashes: Array = []
 var _pillars: Array = []
-## Kołowrót: obroty do zrobienia, zrobione, odliczanie wiru, kierunek kroków.
+## Kołowrót: obroty do zrobienia, zrobione, odliczanie wiru.
 var _spins := 0
 var spins_done := 0
 var _wheel_tick := 0.0
-var _wheel_dir := Vector2.RIGHT
 ## Zenit: spadające włócznie ({"at", "t", "delay", "power", "radius", "big", "warn", "node", "hit", "glow", "tick"}).
 var _drops: Array = []
 ## Ile włóczni Zenitu uderzyło (testy).
@@ -185,10 +187,6 @@ func _process(delta: float) -> void:
 			_process_sunrise()
 		"p_wheel":
 			_process_wheel(delta)
-		"p_throw":  # włócznia w locie - bez pchnięć, dopóki nie wróci
-			position = hero.position
-			if _throws.is_empty() or hero.dead:
-				_end_skill()
 	_process_throws(delta)
 	_process_flashes(delta)
 	_process_pillars(delta)
@@ -378,7 +376,6 @@ func _start(id: String) -> void:
 			_spins = WHEEL_SPINS_PERK if _perk(id, 1) else WHEEL_SPINS
 			spins_done = 0
 			_wheel_tick = 0.0
-			_wheel_dir = _aim_for(Skills.DATA[id].range * 2.0)
 			_spin_step()
 			_set_state("p_wheel")
 		"p_zenith":
@@ -398,7 +395,8 @@ func _throw_dist() -> float:
 	return THROW_DIST * _area("p_throw") * (THROW_LONG if _perk("p_throw", 0) else 1.0)
 
 
-## Wypuszcza włócznię (z Mnożeniem trzy wachlarzem); włócznia w dłoni znika, dopóki nie wróci.
+## Ciska świetlistą włócznię-widmo (z Mnożeniem trzy wachlarzem) ze świetlną smugą za nią. Prawdziwa włócznia
+## zostaje w dłoni - w trakcie lotu można walczyć i używać innych umiejętności (prośba autora 26.11.2026).
 func _cast_throw() -> void:
 	var dir := _aim_for(_throw_dist())
 	_aim_dir = dir
@@ -406,22 +404,71 @@ func _cast_throw() -> void:
 	if gem_power("p_throw", "multi") > 0.0:
 		angles = [0.0, -THROW_FAN, THROW_FAN]
 	for a in angles:
-		var node := Sprite2D.new()
-		node.texture = SPEAR_TEXTURE
-		node.scale = Vector2.ONE * P_SCALE
-		node.z_index = 6
-		if a != 0.0:
-			node.modulate = Color(1.0, 0.95, 0.75, 0.7)
-		get_parent().add_child(node)
+		var node := _light_spear(0.7 if a != 0.0 else 1.0)
 		var d: Vector2 = dir.rotated(a)
 		node.global_position = _orbit_center()
 		node.rotation = d.angle()
+		var trail := _light_trail()
 		var power := _power("p_throw") * (1.0 if a == 0.0 else gem_power("p_throw", "multi") / 100.0)
-		_throws.append({"node": node, "dir": d, "from": _orbit_center(), "dist": 0.0, "back": false, "hits": [],
-				"power": power, "turned": false, "main": a == 0.0})
-	_sprite.visible = false
+		_throws.append({"node": node, "trail": trail, "dir": d, "from": _orbit_center(), "dist": 0.0, "back": false,
+				"hits": [], "power": power, "turned": false, "main": a == 0.0})
 	_thrust_fx(_orbit_center(), dir, 40.0)
-	_set_state("p_throw")
+
+
+## Świetlista włócznia-widmo: rozjaśniona włócznia, pod nią dodawana złota poświata (szersza i dłuższa).
+func _light_spear(alpha := 1.0) -> Sprite2D:
+	var node := Sprite2D.new()
+	node.texture = SPEAR_TEXTURE
+	node.scale = Vector2.ONE * P_SCALE
+	node.modulate = Color(1.0, 0.97, 0.85, alpha)
+	node.z_index = 6
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	var glow := Sprite2D.new()  # poświata: ta sama włócznia powiększona, dodawana (świeci, nie zasłania)
+	glow.texture = SPEAR_TEXTURE
+	glow.scale = THROW_GLOW_SCALE
+	glow.modulate = Color(GOLD, 0.55 * alpha)
+	glow.material = add
+	glow.show_behind_parent = true
+	node.add_child(glow)
+	var core := Sprite2D.new()  # rozjaśnienie samej włóczni
+	core.texture = SPEAR_TEXTURE
+	core.modulate = Color(1.0, 0.95, 0.7, 0.5 * alpha)
+	core.material = add
+	node.add_child(core)
+	get_parent().add_child(node)
+	return node
+
+
+## Świetlna smuga za lecącą włócznią: dodawana linia, gruba i jasna przy włóczni, cienka i przezroczysta na końcu.
+func _light_trail() -> Line2D:
+	var line := Line2D.new()
+	line.width = THROW_TRAIL_WIDTH
+	var taper := Curve.new()
+	taper.add_point(Vector2(0.0, 0.1))
+	taper.add_point(Vector2(1.0, 1.0))
+	line.width_curve = taper
+	var grad := Gradient.new()
+	grad.set_color(0, Color(GOLD, 0.0))
+	grad.set_color(1, Color(1.0, 0.97, 0.8, 0.85))
+	line.gradient = grad
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	line.material = add
+	line.z_index = 5
+	get_parent().add_child(line)
+	return line
+
+
+## Dopisuje punkt smugi (najwyżej THROW_TRAIL_POINTS ostatnich pozycji włóczni).
+static func _trail_push(line: Line2D, at: Vector2) -> void:
+	if not is_instance_valid(line):
+		return
+	line.add_point(at)
+	while line.get_point_count() > THROW_TRAIL_POINTS:
+		line.remove_point(0)
 
 
 func _process_throws(delta: float) -> void:
@@ -448,12 +495,14 @@ func _process_throws(delta: float) -> void:
 			var step: float = THROW_BACK_SPEED * delta
 			if to.length() <= step + 4.0 or hero.dead:
 				node.queue_free()
+				var trail: Line2D = th.trail
+				if is_instance_valid(trail):  # smuga gaśnie po złapaniu
+					trail.create_tween().tween_property(trail, "modulate:a", 0.0, 0.15).finished.connect(trail.queue_free)
 				_throws.erase(th)
-				if th.main and _state == "p_throw":
-					_end_skill()  # włócznia w dłoni - dalej walczysz
 				continue
 			node.global_position += to.normalized() * step
 			node.rotation = (-to).angle()  # wraca drzewcem naprzód, grotem od postaci - jak przyciągana
+		_trail_push(th.trail, node.global_position + Vector2.from_angle(node.rotation) * -6.0)
 		for t in _line_targets(a, node.global_position, THROW_WIDTH * _area("p_throw"), th.hits):
 			th.hits.append(t)
 			_hit(t, th.power, a, "p_throw")
@@ -561,12 +610,8 @@ func _wheel_radius() -> float:
 	return WHEEL_RADIUS * _area("p_wheel")
 
 
-## Jeden obrót: krok naprzód (jak Taniec Marzanny) i złoty okrąg cięcia wokół postaci.
+## Jeden obrót: złoty okrąg cięcia wokół postaci (postać stoi w miejscu - prośba autora 26.11.2026).
 func _spin_step() -> void:
-	var stick: Vector2 = hero.joystick.vector if hero.joystick else Vector2.ZERO
-	if stick.length() > 0.2:
-		_wheel_dir = stick.normalized()
-	hero.leap(hero.global_position + _wheel_dir * WHEEL_STEP * _area("p_wheel"), WHEEL_SPIN_TIME)
 	if not Fx.crowded(SPIN_FX, 12):
 		var fx := Fx.once(hero, SPIN_FX, SPIN_FRAMES, SPIN_FPS * 1.2, hero.global_position + Vector2(0, -10),
 				SPIN_ANCHOR, 3, _wheel_radius() / SPIN_FX_RADIUS * SPIN_FX_SIZE)

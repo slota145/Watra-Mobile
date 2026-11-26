@@ -1,7 +1,7 @@
 extends SceneTree
 ## Test Słonecznej włóczni Dadźboga - pierwszej broni Prawii (ustalona z autorem 26.11.2026): dane (Prawia, loch 45,
 ## 5 umiejętności z kamieniami unikalnymi, Katakumby wrażliwe na Prawię), Promienne Pchnięcie (linia, piętno, promień
-## z 5. poziomu, Trzy Promienie), Rzut Dadźboga (lot i powrót, dwa trafienia, Sieć Swaroga ściąga), Wschód Słońca
+## z 5. poziomu, Trzy Promienie), Rzut Dadźboga (świetlista włócznia ze smugą, broń zostaje w dłoni, lot i powrót, dwa trafienia, Sieć Swaroga ściąga), Wschód Słońca
 ## (krąg wokół postaci, słup Południa), Kołowrót Słońca (obroty, pierścień rani i odpycha, 3 obroty z 10. poziomu)
 ## i Zenit (deszcz włóczni na wrogów, ogromna włócznia Dadźboga).
 
@@ -146,14 +146,16 @@ func _test_throw(game: Node) -> void:
 	var arena: Node = setup[0]
 	var spear: ProtoSpear = setup[1] as ProtoSpear
 	var gs: Array = await _dummies(arena, [Vector2(70, 0), Vector2(0, 90)])
-	_check(spear.cast("p_throw") and spear.throws_flying() == 1 and not spear._sprite.visible,
-			"Rzut: włócznia leci, w dłoni jej nie ma")
+	_check(spear.cast("p_throw") and spear.throws_flying() == 1 and spear._sprite.visible and spear._state == "follow",
+			"Rzut: leci świetlista włócznia, prawdziwa zostaje w dłoni")
+	_check(spear.cast("p_sunrise"), "w trakcie lotu można użyć innej umiejętności")
+	await _wait(0.05)
+	_check((spear._throws[0].trail as Line2D).get_point_count() > 1, "za lecącą włócznią świetlna smuga")
 	await _wait(0.3)
 	var hp1: int = gs[0].hp
 	_check(_hurt(gs[0]) and not _hurt(gs[1]), "lecąca włócznia trafia wroga na drodze")
 	await _wait(0.9)
-	_check(spear.throws_flying() == 0 and spear._sprite.visible and gs[0].hp < hp1,
-			"włócznia wraca do ręki i rani drugi raz")
+	_check(spear.throws_flying() == 0 and gs[0].hp < hp1, "włócznia wraca i rani drugi raz")
 	# Sieć Swaroga: wracając, ciągnie wroga ku postaci
 	spear.skill_gems["p_throw"] = [Gems.unique_of("p_throw")]
 	var far: ProtoGoblin = (await _dummies(arena, [Vector2(130, 0)]))[0]
@@ -199,7 +201,7 @@ func _test_wheel(game: Node) -> void:
 	_check(spear.spins_done == 0, "pierwszy obrót w toku")
 	await _wait(ProtoSpear.WHEEL_SPIN_TIME * ProtoSpear.WHEEL_SPINS + 0.1)
 	_check(spear.spins_done == ProtoSpear.WHEEL_SPINS and spear._state == "follow", "dwa obroty, potem koniec")
-	_check(hero.position.distance_to(start) > 20.0, "obroty przesuwają postać naprzód")
+	_check(hero.position.distance_to(start) < 1.0, "postać stoi w miejscu w czasie obrotów")
 	_check(_hurt(gs[0]) and _hurt(gs[1]) and not _hurt(gs[2]), "pierścień światła rani wrogów w zasięgu, dalekiego nie (%s %s %s, postać %s)"
 			% [_hurt(gs[0]), _hurt(gs[1]), _hurt(gs[2]), str(hero.position)])
 	# 10. poziom: trzy obroty
