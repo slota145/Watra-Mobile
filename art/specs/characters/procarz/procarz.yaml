@@ -1,0 +1,301 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: procarz
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.95, 0]}
+palette: "watra"
+size: 64          # klatka 64 (ta sama gęstość): proca zakręcona nad głową i upadek przy śmierci
+extends: humanoid   # szkielet, IK, smuga i zestaw głowy szablonu; miecz i włosy usunięte
+
+# Karzeł-procarz (strzelający wróg lochu „Kopalnia karłów”, żywioł ziemia): krępy karzeł-górnik ok. 30 px
+# (człowiek 36 px, ta sama camera.scale), niski i szeroki. Długa ruda broda do pasa, żelazny hełm górniczy
+# z rondem, szaroniebieska koszula, skórzany fartuch od piersi do kolan, ciężkie buty. W prawej dłoni (na ekranie
+# po lewej w s) proca z rzemieni z kamieniem w kołysce, przy lewym biodrze woreczek kamieni. Opętany przez Hordę:
+# oczy świecą chorym fioletem Nawii (to samo światło co u Króla Karłów).
+brief:
+  summary: >
+    dwarf slinger of the dwarven mine: a stocky dwarf miner about 30 px tall (the human is 36 px, same density),
+    short and very broad, a long braided ginger beard to the belt, an iron miner's kettle helmet with a brim, a
+    grey-blue shirt, a long brown leather apron from the chest to the knees, heavy boots; a leather sling hanging
+    from the right fist with a stone in its cradle, a pouch of stones on the left hip; eyes glowing the sick violet
+    of the Horde
+  proportions: "dwarf: head and beard 1/3 of the height, shoulders as wide as he is tall to the belt, short legs"
+  head: >
+    the head kit (no nose, broad jaw) in warm skin, mostly beard: a wide ginger beard from the cheeks down to the
+    belt, a bushy moustache, a round iron kettle helmet with a flat brim low over the brows; two small violet
+    glowing eyes between the brim and the beard; face minimal (eyes only)
+  must_keep:
+    - the long ginger beard down the front (the dwarf's read) against the brown apron
+    - the iron helmet with the brim
+    - the sling with the stone in the right hand (whirled over the head in the attack)
+    - short and wide - clearly shorter than a human and the goblins' size class
+  simplify:
+    - the sling is two thin cords and a small leather cradle; the stone a small grey ball
+    - the braids are two thinner locks at the beard's sides
+  decisions:
+    - the body is widened by the pelvis scale (x1.35) and shortened by the hips (0.55) and legs, not by a `big` bone
+    - the sling hangs from its own bone with its own world angle (`sling_pitch`, `sling_spin`), so it can hang
+      down at rest and spin flat over the head in the attack
+    - attack - the arm rises, the sling whirls over the head (3 frames of spin), the arm whips forward and the
+      stone leaves (`release` 600 ms, socket `stone`; the stone vanishes from the cradle)
+    - death - knocked back, sits down hard, then topples onto his back, the sling falls loose
+
+ramps:
+  # szaroniebieska koszula
+  shirt:   ["#0b0b0e", "#2b313f", "#475569", "#627c8f", "#87a0aa", "#adbfc3"]
+  # ruda broda karła
+  ginger:  ["#120708", "#511b16", "#893922", "#b86332", "#cb945c", "#d6b98d"]
+  # brązowy skórzany fartuch i rzemienie
+  apron:   ["#110908", "#432418", "#6d4428", "#916a3a", "#b0924f", "#bfa973"]
+  # chory fiolet Hordy w oczach
+  hordeglow: ["#2a0f3d", "#7a3cc4", "#b884ff", "#e6d2ff", "#ffffff"]
+
+materials:
+  skin:    {ramp: skin, gamma: 0.75, finish: soft}
+  cloth:   {ramp: shirt, finish: matte, bands: [1, 3]}
+  beard:   {ramp: ginger, finish: soft, gamma: 0.9}
+  apron:   {ramp: apron, finish: soft}
+  leather: {ramp: apron, bands: [1, 3], finish: soft}
+  dark_leather: {ramp: apron, bands: [1, 2]}
+  steel:   {ramp: steel, finish: metal, bands: [1, 3]}
+  stone:   {ramp: stone, finish: matte}
+  socket:  {ramp: skin, bands: [0, 1], line: false}
+  eye:     {ramp: hordeglow, emissive: true, band: 2, outline: false, glow: {color: "#b884ff", mix: 0.3, radius: 1}}
+
+remove: [use.sword, use.hair, parts.neck]
+
+use:
+  - {kit: head, at: head, with: {width: 1.15, jaw: 0.9, chin: 0.3, nose: 0, ears: 0}}
+  - {kit: pouch, as: pouch, at: pelvis, with: {width: 0.13, thick: 0.07, angle: 1.3, radius: 0.24, y: 0.05}}
+
+shadow: {rx: 12, ry: 4.5, alpha: 120}
+snap: [root, torso_rot]   # oddech w całych pikselach (mniej migotania)
+
+channels:
+  hand_L: [0.32, 0.06, 0.08]
+  hand_R: [0.32, 0.08, 0.12]
+  foot_L: [0.14, 0, 0.02]
+  sling_pitch: 3.0   # kąt procy od pionu w górę (3.14: zwisa w dół, 1.57: poziomo)
+  sling_spin: 0      # obrót procy wokół pionu (zakręcanie nad głową)
+  stone: 1           # 1: kamień w kołysce, 0: wypuszczony
+  beard_sway: 0      # wychylenie brody (+: koniec w przód)
+
+bones:
+  torso_rot:  {parent: root, pos: "[0, 0.55 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:     {scale: "[1.35/sqrt(squash), 0.95*squash, 1.25/sqrt(squash)]"}
+  headbase:   {pos: [0, 0.57, 0.05], scale: 1.0}
+  head:       {scale: 1.38}
+  beardbase:  {parent: headbase, rot: "[head_pitch*0.5 + beard_sway, head_yaw*0.5, 0]", scale: 1.38}
+  shoulder_L: {pos: [0.24, 0.50, 0.0]}
+  hip_L:      {pos: [0.11, -0.02, 0.0]}
+  helm:       {parent: head, pos: [0, 0.035, -0.035], rot: [-0.15, 0, 0]}   # odchylony w tył: rondo nie zasłania oczu
+  # proca: własny kąt w przestrzeni postaci (dłoń ją tylko niesie); rzemień wzdłuż osi y kości
+  sling:      {parent: wrist_R, pos: [0, 0, 0.05], inherit_rot: false, rot: "[sling_pitch, sling_spin, 0]"}
+
+ik:
+  arm_L: {lengths: [0.24, 0.23]}
+  leg_L: {lengths: [0.275, 0.26]}
+
+parts:
+  torso:           # beczkowata pierś karła w koszuli
+    material: cloth
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.01], r: [0.18, 0.13, 0.15]}
+      - ellipsoid: {c: [0, 0.24, 0.01], r: [0.18, 0.15, 0.15]}
+      - ellipsoid: {c: [0, 0.42, 0.0], r: [0.23, 0.13, 0.15]}
+  coat:            # dół koszuli spod pasa
+    prims:
+      - cone: {a: [0, 0.05, -0.01], b: [0, -0.18, -0.03], r: [0.19, 0.22]}
+    cut:
+      - cone: {a: [0, -0.06, 0.20], b: [0, -0.30, 0.28], r: [0.05, 0.12]}
+  apron:           # długi skórzany fartuch od piersi do kolan (z przodu), z szelką na karku
+    material: apron
+    space: coatbase
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.18, 0.15], half: [0.15, 0.24, 0.03], rot: [-0.05, 0, 0], round: 0.02}
+      - box: {c: [0, -0.20, 0.21], half: [0.17, 0.16, 0.025], rot: [0.12, 0, 0], round: 0.02}
+  belt:            # gruby pas
+    material: leather
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.07, 0], b: [0, 0.14, 0], r: 0.205}
+  head:            # ciemne zagłębienia oczu pod rondem
+    paint:
+      - material: socket
+        prims:
+          - ellipsoid: {c: [0.05, 0.12, 0.12], r: [0.045, 0.03, 0.05]}
+          - ellipsoid: {c: [-0.05, 0.12, 0.12], r: [0.045, 0.03, 0.05]}
+  eye_L:           # małe fioletowe oko Hordy
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.05, 0.13, 0.12], r: 0.032}
+  helm:            # żelazny hełm-kapalin: okrągła kopuła i płaskie rondo nisko nad brwiami
+    material: steel
+    space: helm
+    blend: 0.01
+    prims:
+      - ellipsoid: {c: [0, 0.195, -0.02], r: [0.15, 0.12, 0.155]}
+      - cylinder: {a: [0, 0.195, -0.02], b: [0, 0.215, -0.02], r: 0.17, round: 0.008}
+    cut:
+      - plane: {n: [0, -1, 0], at: -0.195}   # kopuła tylko nad rondem (oczy pod nim widać)
+  moustache_L:     # krzaczasty wąs
+    material: beard
+    space: head
+    blend: 0.02
+    prims:
+      - tube: {pts: [[0.0, 0.05, 0.13], [0.07, 0.045, 0.13], [0.10, -0.01, 0.11]], r: [0.022, 0.016]}
+  beard:           # szeroka
+    material: beard
+    space: beardbase
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, -0.01, 0.06], r: [0.13, 0.06, 0.09]}
+      - cone: {a: [0, 0.0, 0.09], b: [0, -0.24, 0.13], r: [0.13, 0.07]}
+  braid_L:         # dwa cieńsze warkocze po bokach brody
+    material: beard
+    space: beardbase
+    prims:
+      - tube: {pts: [[0.10, 0.0, 0.06], [0.11, -0.12, 0.11], [0.07, -0.26, 0.12]], r: [0.035, 0.02]}
+  arm_L:           # krótkie, grube ramiona
+    material: cloth
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.085}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.08, 0.07]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.07, 0.065]}
+  hand_L:          # duża pięść
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.065}
+  leg_L:           # krótkie nogi w koszuli (spodnie tego samego koloru)
+    material: cloth
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.10, 0.08]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.08, 0.065]}
+  boot_L:          # ciężkie buty
+    material: leather
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.10, 0], b: [0, -0.02, 0.0], r: [0.075, 0.075]}
+      - ellipsoid: {c: [0, -0.04, 0.05], r: [0.08, 0.05, 0.12]}
+  sling_cords:     # dwa rzemienie procy od pięści do kołyski
+    material: leather
+    space: sling
+    priority: 2
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0, 0, 0], [0.035, 0.19, 0], [0.04, 0.36, 0]], r: 0.025}
+      - tube: {pts: [[0, 0, 0], [-0.035, 0.19, 0], [-0.04, 0.36, 0]], r: 0.025}
+  sling_cradle:    # skórzana kołyska
+    material: leather
+    space: sling
+    priority: 2
+    prims:
+      - ellipsoid: {c: [0, 0.39, 0], r: [0.055, 0.045, 0.04]}
+  sling_stone:     # kamień w kołysce
+    material: stone
+    space: sling
+    when: "stone > 0.5"
+    priority: 3
+    prims:
+      - sphere: {c: [0, 0.41, 0.0], r: 0.045}
+
+sockets:
+  stone: {bone: sling, offset: [0, 0.41, 0]}   # kamień w kołysce: stąd wylatuje pocisk
+  hand: {bone: wrist_R, offset: [0, 0, 0.05]}
+
+animations:
+  # spokojny oddech, broda faluje opóźniona, proca kołysze się w dłoni
+  idle:
+    frames: 6
+    ms: 150
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      beard_sway: "0.04*sin(p - 1.0)"
+      hand_L: "[0.32, 0.06 + 0.02*sin(p - 0.6), 0.08]"
+      hand_R: "[0.32, 0.08 + 0.02*sin(p - 0.6), 0.12]"
+      sling_pitch: "3.0 + 0.10*sin(p - 1.2)"
+      coat: "0.12*sin(p - 1.0)"
+  # krępy, kołyszący się krok karła: krótkie kroki, ciało przechyla się na boki, broda i fartuch opóźnione,
+  # proca dynda w prawej dłoni
+  walk:
+    frames: 8
+    ms: 105
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.08
+      bob: "-0.03*cos(2*p)"
+      squash: "1 - 0.015*cos(2*p)"
+      twist: "0.08*cos(p)"
+      roll: "0.06*sin(p)"
+      head_yaw: "-0.05*cos(p)"
+      beard_sway: "0.06*sin(2*p - 1.0)"
+      foot_L: "[0.14, 0.08*pos(-sin(p)), 0.02 + 0.16*cos(p)]"
+      foot_R: "[0.14, 0.08*pos(sin(p)), 0.02 - 0.16*cos(p)]"
+      pitch_foot_L: "0.35*pos(-sin(p))"
+      pitch_foot_R: "0.35*pos(sin(p))"
+      hand_L: "[0.32, 0.07 + 0.03*pos(cos(p)), 0.08 - 0.12*cos(p)]"
+      hand_R: "[0.32, 0.09 + 0.03*pos(-cos(p)), 0.12 + 0.12*cos(p)]"
+      sling_pitch: "3.0 - 0.25*cos(p - 0.8)"
+      coat: "0.4*sin(2*p - 0.6)"
+  # rzut z procy: ręka idzie nad głowę, proca zakręca płasko nad hełmem (3 klatki obrotu), ręka cofnięta, potem
+  # smagnięcie w przód - kamień wylatuje (`release` 600 ms, socket `stone`), powrót
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {twist: -0.15, lean: 0.0, bob: -0.02, squash: 0.97, head_pitch: -0.05,
+          hand_R: [0.26, 0.62, 0.04], sling_pitch: 1.5, sling_spin: -1.0, foot_L: [0.14, 0, 0.10], foot_R: [0.14, 0, -0.06]}}
+      - {ms: 120, set: {twist: -0.18, lean: -0.04, head_pitch: -0.10,
+          hand_R: [0.22, 0.84, 0.0], sling_pitch: 1.45, sling_spin: 1.1, foot_L: [0.14, 0, 0.10], foot_R: [0.14, 0, -0.06], beard_sway: -0.05}}
+      - {ms: 120, set: {twist: -0.18, lean: -0.05, head_pitch: -0.10,
+          hand_R: [0.21, 0.86, -0.01], sling_pitch: 1.45, sling_spin: 3.2, foot_L: [0.14, 0, 0.10], foot_R: [0.14, 0, -0.06], beard_sway: -0.05}}
+      - {ms: 120, set: {twist: -0.22, lean: -0.06, head_pitch: -0.10,
+          hand_R: [0.22, 0.84, 0.0], sling_pitch: 1.45, sling_spin: 5.3, foot_L: [0.14, 0, 0.10], foot_R: [0.14, 0, -0.06], beard_sway: -0.06}}
+      - {ms: 120, set: {twist: -0.40, lean: -0.10, bob: -0.02, squash: 0.97, head_pitch: -0.05,
+          hand_R: [0.26, 0.70, -0.18], sling_pitch: 2.0, sling_spin: 3.14, foot_L: [0.14, 0, 0.12], foot_R: [0.14, 0, -0.08], beard_sway: -0.08}}
+      - {ms: 100, event: release, set: {root: [0, 0, 0.06], twist: 0.30, lean: 0.18, squash: 1.03, head_pitch: 0.05,
+          hand_R: [0.12, 0.40, 0.40], sling_pitch: 1.15, sling_spin: 0.0, stone: 0, foot_L: [0.14, 0, 0.18], foot_R: [0.14, 0, -0.08],
+          beard_sway: 0.10, coat: 0.3}}
+      - {ms: 150, set: {root: [0, 0, 0.03], twist: 0.12, lean: 0.10, head_pitch: 0.02,
+          hand_R: [0.26, 0.18, 0.26], sling_pitch: 2.4, stone: 0, foot_L: [0.14, 0, 0.10], foot_R: [0.14, 0, -0.03], beard_sway: 0.04, coat: 0.1}}
+  # trafienie: szarpnięcie w tył, broda podskakuje, powrót
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.05], lean: -0.18, squash: 0.96, head_pitch: -0.22, twist: 0.06, beard_sway: 0.15, coat: -0.3,
+          hand_L: [0.36, 0.12, 0.02], hand_R: [0.36, 0.14, 0.06], sling_pitch: 2.5}}
+      - {ms: 70, set: {root: [0, 0, -0.03], lean: -0.08, squash: 0.98, head_pitch: -0.10, beard_sway: 0.08, coat: -0.15,
+          hand_L: [0.34, 0.09, 0.05], hand_R: [0.34, 0.11, 0.09], sling_pitch: 2.8}}
+      - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.06, head_pitch: 0.03, beard_sway: -0.03, coat: 0.05}}
+  # śmierć: odrzucony w tył, siada ciężko na ziemi, przewraca się na plecy; proca wypada z dłoni (luźno leży)
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.05], lean: -0.25, squash: 0.96, head_pitch: -0.30, beard_sway: 0.2, coat: -0.35,
+          hand_L: [0.38, 0.20, 0.0], hand_R: [0.38, 0.22, 0.04], sling_pitch: 2.2}}
+      - {ms: 130, set: {root: [0, 0, -0.08], lean: -0.15, bob: -0.16, squash: 0.94, head_pitch: -0.15, beard_sway: 0.1, coat: 0.2,
+          hand_L: [0.36, 0.04, 0.10], hand_R: [0.36, 0.04, 0.12], sling_pitch: 2.6,
+          foot_L: [0.14, 0.0, 0.18], foot_R: [0.14, 0.0, 0.16]}}
+      - {ms: 130, set: {root: [0, 0, -0.10], lean: -0.40, bob: -0.30, squash: 0.94, head_pitch: -0.10, coat: 0.3,
+          hand_L: [0.36, -0.06, 0.06], hand_R: [0.36, -0.06, 0.08], sling_pitch: 2.0,
+          foot_L: [0.14, 0.02, 0.26], foot_R: [0.14, 0.02, 0.24]}}
+      - {ms: 110, set: {root: [0, 0, -0.14], lean: -1.10, bob: -0.36, squash: 0.96, head_pitch: -0.05, beard_sway: 0.25, coat: 0.4,
+          hand_L: [0.40, 0.10, 0.0], hand_R: [0.40, 0.10, 0.02], sling_pitch: 1.6,
+          foot_L: [0.14, 0.10, 0.28], foot_R: [0.14, 0.08, 0.26]}}
+      - {ms: 100, set: {root: [0, 0, -0.16], lean: -1.45, bob: -0.40, squash: 0.95, head_pitch: 0.05, beard_sway: 0.35, coat: 0.5,
+          hand_L: [0.42, 0.16, -0.04], hand_R: [0.42, 0.16, -0.02], sling_pitch: 1.4,
+          foot_L: [0.14, 0.14, 0.26], foot_R: [0.14, 0.10, 0.24]}}
+      - {ms: 600, set: {root: [0, 0, -0.16], lean: -1.40, bob: -0.39, squash: 0.97, head_pitch: 0.05, beard_sway: 0.32, coat: 0.45,
+          hand_L: [0.42, 0.14, -0.02], hand_R: [0.42, 0.14, 0.0], sling_pitch: 1.4,
+          foot_L: [0.14, 0.08, 0.28], foot_R: [0.14, 0.04, 0.26]}}
+
+timing:
+  attack: {release: 600ms, total: 850ms}
