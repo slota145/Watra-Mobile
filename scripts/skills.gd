@@ -122,7 +122,7 @@ const DATA := {
 	"p_throw": {
 		"name": "Rzut Dadźboga", "icon": preload("res://assets/skills/spear/p_throw.png"),
 		"mana": 20, "cooldown": 4.0, "weapon": "spear", "mastery": 3, "main": true, "range": 150.0, "power": 1.4,
-		"description": "Ciskasz włócznię (w stronę gałki, bez niej - w najbliższego wroga): przelatuje przez wszystkich na drodze, a potem sama wraca do ręki i rani ich drugi raz.",
+		"description": "Ciskasz świetlistą włócznię (w stronę gałki, bez niej - w najbliższego wroga): przelatuje przez wszystkich na drodze, zostawiając smugę światła, a potem wraca do ciebie i rani ich drugi raz. Twoja włócznia zostaje w dłoni - możesz walczyć dalej.",
 	},
 	"p_sunrise": {
 		"name": "Wschód Słońca", "icon": preload("res://assets/skills/spear/p_sunrise.png"),
@@ -132,7 +132,7 @@ const DATA := {
 	"p_wheel": {
 		"name": "Kołowrót Słońca", "icon": preload("res://assets/skills/spear/p_wheel.png"),
 		"mana": 30, "cooldown": 6.0, "weapon": "spear", "mastery": 10, "main": true, "range": 60.0, "power": 1.0,
-		"description": "Robisz dwa obroty z włócznią wirującą nad głową, idąc naprzód (w stronę gałki) i raniąc wszystkich wokół. Po nich od cięć rozchodzi się pierścień światła, który rani mocno i odpycha.",
+		"description": "Robisz dwa obroty z włócznią wirującą nad głową, raniąc wszystkich wokół. Po nich od cięć rozchodzi się pierścień światła, który rani mocno i odpycha.",
 	},
 	"p_zenith": {
 		"name": "Zenit", "icon": preload("res://assets/skills/spear/p_zenith.png"),
