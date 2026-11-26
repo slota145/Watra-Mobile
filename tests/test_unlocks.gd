@@ -42,7 +42,7 @@ func _test_data() -> void:
 	var ten := _texts(Unlocks.on_beat(10))
 	_check(ten.contains("Katakumby") and ten.contains(Weapons.name_of(Weapons.GLAIVE)), "boss 10.: nowy loch i glewia (%s)" % ten)
 	var cycle := _texts(Unlocks.on_beat(Dungeons.cycle_length()))
-	_check(cycle.contains("Drugi krąg"), "po ostatnim lochu: drugi krąg (%s)" % cycle)
+	_check(_texts(Unlocks.on_beat(Dungeons.DEEP_FROM - 1)).contains("Głębiny"), "po ostatnim lochu: Głębiny (%s)" % cycle)
 	_check(_texts(Unlocks.new_at(DungeonGoals.KINDS["shrine"])).contains("kapliczka"), "nowość na 5. poziomie: kapliczka")
 	_check(not _texts(Unlocks.new_at(11)).contains(Weapons.name_of(Weapons.GLAIVE)), "bronie nie są nowością lochu")
 	var next := Unlocks.next_after(5)

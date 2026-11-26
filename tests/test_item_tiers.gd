@@ -1,5 +1,5 @@
 extends SceneTree
-## Test przebudowy przedmiotów (21.11.2026): stopnie premii T7-T1 z poziomu lochu, sufit siły na lochu 40, 3 bazy na
+## Test przebudowy przedmiotów (21.11.2026): stopnie premii T7-T1 z poziomu lochu, sufit siły na lochu Items.MAX_LEVEL (55 od 26.11.2026), 3 bazy na
 ## miejsce ze stałą cechą i ikonami, rzadki 3-5 premii, nowe premie (poziom umiejętności, znaczniki, osłabieni, pełne
 ## zdrowie, szybkość po zabiciu, łup, ruda), przeliczenie starych przedmiotów, Runa Szlifu w stopniu, wykuwanie bazy
 ## i wolniejszy wzrost potworów po lochu 40. Krok 2: przedmioty legendarne (6 premii, lepsze stopnie), premie ponad
@@ -100,11 +100,11 @@ func _test_bases() -> void:
 	var stud := Items.roll(1, "earring", "common", Items.GOBLIN_WEIGHTS, "stud")
 	_check(stud.base.has("damage") and stud.base.has("attack_speed_pct") and stud.base.has("cast_speed_pct"),
 			"kolczyk z pazurem: obrażenia ciosu + szybkość ataku i rzucania")
-	var p40 := Items.roll(40, "armor", "common", Items.GOBLIN_WEIGHTS, "plate")
+	var p40 := Items.roll(Items.MAX_LEVEL, "armor", "common", Items.GOBLIN_WEIGHTS, "plate")
 	var p100 := Items.roll(100, "armor", "common", Items.GOBLIN_WEIGHTS, "plate")
 	var p20 := Items.roll(20, "armor", "common", Items.GOBLIN_WEIGHTS, "plate")
-	_check(p40.base.hp == p100.base.hp and p20.base.hp < p40.base.hp, "stała cecha rośnie do lochu 40 (%d, %d, %d)"
-			% [p20.base.hp, p40.base.hp, p100.base.hp])
+	_check(p40.base.hp == p100.base.hp and p20.base.hp < p40.base.hp, "stała cecha rośnie do sufitu (loch %d: %d, %d, %d)"
+			% [Items.MAX_LEVEL, p20.base.hp, p40.base.hp, p100.base.hp])
 	_check(Items.name_of(Items.roll(1, "boots", "common", Items.GOBLIN_WEIGHTS, "bast")) == "Łapcie z łyka"
 			and Items.name_of(Items.roll(40, "ring", "common", Items.GOBLIN_WEIGHTS, "gold")) == "Pierścień złotego runa", "nazwy baz według stopnia")
 
@@ -112,8 +112,8 @@ func _test_bases() -> void:
 func _test_convert() -> void:
 	var old := Items.normalize({"slot": "helmet", "rarity": "rare", "level": 60, "tier": 4, "base": {"hp": 900},
 			"affixes": [{"stat": "damage_pct", "value": 45.0}, {"stat": "move_pct", "value": 4.0}]})
-	_check(old.type == "helm" and old.base.hp == Items.implicit_value("hp", Items.BASES.helmet.helm.implicit.hp, 40),
-			"stary hełm: pierwsza baza, zdrowie z sufitu lochu 40 (%d)" % old.base.hp)
+	_check(old.type == "helm" and old.base.hp == Items.implicit_value("hp", Items.BASES.helmet.helm.implicit.hp, Items.MAX_LEVEL),
+			"stary hełm: pierwsza baza, zdrowie z sufitu lochu %d (%d)" % [Items.MAX_LEVEL, old.base.hp])
 	_check(old.affixes[0].tier == 1 and old.affixes[0].value == Items.tier_range("damage_pct", 1).y and old.affixes[1].tier == 7,
 			"stare premie: najbliższy stopień (T%d, T%d)" % [old.affixes[0].tier, old.affixes[1].tier])
 	var again := Items.normalize(JSON.parse_string(JSON.stringify(old)))
