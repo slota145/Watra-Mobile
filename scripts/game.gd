@@ -101,6 +101,8 @@ var best_level := 0
 var unlocks_seen := 0
 ## Czy gracz otworzył już wybór Głębi przy Czarnej Watrze (znaczek „Nowość!” nad nią gaśnie - Głębiny, 26.11.2026).
 var deep_seen := false
+## Wylosowane zestawy Głębin (DeepRuns; numer poziomu jako tekst -> zestaw) - widoczne przy wyborze, zużyte po wejściu.
+var deep_rolls := {}
 ## Włączone modyfikatory lochów (DungeonMods; działają od DungeonMods.FROM_LEVEL).
 var dungeon_mods: Array = []
 ## Poziom lochu wybrany przy Watrze (na niego wchodzi scena lochu).
@@ -358,6 +360,7 @@ func load_game() -> void:
 	best_level = 0
 	unlocks_seen = 0
 	deep_seen = false
+	deep_rolls = {}
 	dungeon_mods = []
 	dungeon_level = 1
 	hero_level = 1
@@ -416,6 +419,12 @@ func load_game() -> void:
 		best_level = int(data.get("best_level", 0))
 		unlocks_seen = int(data.get("unlocks_seen", 0))
 		deep_seen = bool(data.get("deep_seen", false))
+		deep_rolls = {}
+		var rolls = data.get("deep_rolls", {})
+		if rolls is Dictionary:
+			for key in rolls:
+				if rolls[key] is Dictionary and DeepRuns.valid(rolls[key]):
+					deep_rolls[str(key)] = DeepRuns.normalize(rolls[key])
 		var mods = data.get("dungeon_mods", [])
 		dungeon_mods = (mods as Array).filter(func(m) -> bool: return DungeonMods.DATA.has(m)) if mods is Array else []
 		dungeon_level = clampi(int(data.get("dungeon_level", 1)), 1, unlocked_level())
@@ -583,7 +592,7 @@ func save_game() -> void:
 	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify({"name": char_name, "ssf": ssf, "created": created, "dev": _dev_data(),
-				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "deep_seen": deep_seen, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
+				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "deep_seen": deep_seen, "deep_rolls": deep_rolls, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "ore": ore, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "start_weapon": start_weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes, "zmij_keys": zmij_keys, "market": market,
@@ -1141,6 +1150,35 @@ func bank_embers(amount: int) -> void:
 	embers += amount
 	embers_brought += amount
 	save_game()
+
+
+## Zestaw Głębi na poziomie `level` (DeepRuns): wylosowany przy pierwszym pokazaniu, potem ten sam aż do wejścia.
+func deep_roll(level: int) -> Dictionary:
+	var key := str(level)
+	if not deep_rolls.has(key):
+		deep_rolls[key] = DeepRuns.roll(level)
+		save_game()
+	return deep_rolls[key]
+
+
+## Przelosowanie zestawu Głębi za żar (DeepRuns.reroll_cost). Zwraca false, gdy brakuje żaru.
+func reroll_deep(level: int) -> bool:
+	var cost := DeepRuns.reroll_cost(level)
+	if embers < cost:
+		return false
+	embers -= cost
+	embers_changed.emit()
+	deep_rolls[str(level)] = DeepRuns.roll(level)
+	save_game()
+	return true
+
+
+## Wejście w Głębię: zestaw tej Głębi (zużyty - następnym razem losuje się nowy).
+func take_deep_roll(level: int) -> Dictionary:
+	var r := deep_roll(level)
+	deep_rolls.erase(str(level))
+	save_game()
+	return r
 
 
 ## Najwyższy poziom lochu, na który można wejść (jeden nad najwyższym przebitym).

@@ -28,6 +28,7 @@ func _run() -> void:
 	game.best_level = 62
 	game.deep_seen = false
 	game.dungeon_level = 63
+	game.embers = 500
 	game.save_game()
 	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
 	root.add_child(arena)

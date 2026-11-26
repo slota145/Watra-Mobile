@@ -77,6 +77,8 @@ var power := 1.0
 var level := 1
 ## Rodzaj lochu (Dungeons) - jakie potwory idą w strumieniu.
 var climate := Dungeons.GOBLINS
+## Zestaw Głębi (DeepRuns; puste - zwykły loch): każda rola z innego lochu, sługi bossa z lochu bossa, odporności zestawu.
+var deep_roll := {}
 ## Drzewko lochów: mnożnik liczby potworów (częściej i więcej naraz), mnożnik szans łupu, dodatkowy zasięg zbierania.
 var density := 1.0
 var loot_mult := 1.0
@@ -180,7 +182,7 @@ func _roll_kind() -> String:
 ## Goblin w danym miejscu (strumień albo okrzyk Wodza; `kind`: goblin, archer - łucznik, brute - osiłek).
 ## Liczy się do pokonanych i daje iskrę. `elite_traits` - cechy elity (puste - zwykły goblin).
 func spawn_at(pos: Vector2, kind := "goblin", elite_traits: Array[String] = []) -> ProtoGoblin:
-	var g := make_monster(climate, kind)
+	var g := make_monster(DeepRuns.climate_for(deep_roll, kind) if not deep_roll.is_empty() else climate, kind)
 	g.hero = hero
 	g.bounds = bounds
 	g.power = power
@@ -189,7 +191,7 @@ func spawn_at(pos: Vector2, kind := "goblin", elite_traits: Array[String] = []) 
 	if not elite_traits.is_empty():
 		ProtoElite.promote(g, elite_traits)
 	g.hp_mult = DungeonLevels.hp_mult(level)
-	g.resists = Dungeons.resists(climate, level)
+	g.resists = monster_resists()
 	g.speed *= mod_speed
 	g.damage_mult *= mod_damage * DungeonLevels.MONSTER_DAMAGE
 	_alive += 1
@@ -208,6 +210,11 @@ func spawn_pack(at: Vector2, count: int, objective: ProtoCrystal = null) -> Arra
 		g.objective = objective
 		out.append(g)
 	return out
+
+
+## Odporności potworów tej wyprawy: Głębia - para zestawu (DeepRuns.resists), inaczej charakter lochu.
+func monster_resists() -> Dictionary:
+	return DeepRuns.resists(deep_roll, level) if not deep_roll.is_empty() else Dungeons.resists(climate, level)
 
 
 ## Potwór lochu `climate` w roli `kind` (goblin - zwykły, archer - strzelający, brute - silny).

@@ -12,7 +12,8 @@ extends Control
 ## z poziomem klucza (strzałki obok wybierają inny klucz, gdy są z różnych poziomów) - sygnał `pinnacle`.
 ## Głębiny (decyzja autora 26.11.2026): przy zwykłej Watrze poziomy 1 do końca drabinki (Dungeons.DEEP_FROM - 1), przy
 ## Czarnej Watrze (`deep`) Głębie od Dungeons.DEEP_FROM do najwyższej odblokowanej - napis „Głębia N”, loch i modyfikatory
-## losowe przy każdym wejściu (bez przycisku modyfikatorów i Żmija).
+## losowe przy każdym wejściu (bez przycisku modyfikatorów i Żmija). Krok 2 (26.11.2026): zestaw Głębi (DeepRuns -
+## tło, potwory, boss, mechanika, modyfikatory, odporności) widać pod numerem, a „Przelosuj” losuje nowy za żar.
 
 signal enter(level: int)
 signal canceled
@@ -38,6 +39,8 @@ var cancel_button: Button
 var upgrades_button: Button
 var ladder_button: Button
 var mods_button: Button
+## Głębie: nowy zestaw za żar (DeepRuns.reroll_cost).
+var reroll_button: Button
 var _level_label: Label
 var _info: Label
 var zmij_button: Button
@@ -125,6 +128,11 @@ func _ready() -> void:
 	mods_button.pressed.connect(func() -> void:
 		visible = false
 		mods.emit())
+	reroll_button = _button(extra, "", Vector2(106, 48))
+	reroll_button.add_theme_font_size_override("font_size", 12)
+	reroll_button.pressed.connect(func() -> void:
+		if _game().reroll_deep(level):
+			set_level(level))
 	upgrades_button = _button(extra, tr("Drzewko"), Vector2(106, 48))
 	upgrades_button.icon = preload("res://assets/watra/ember_icon.png")
 	upgrades_button.add_theme_constant_override("icon_max_width", 20)
@@ -179,9 +187,14 @@ func set_level(value: int) -> void:
 	minus10_button.disabled = level <= min_level
 	plus10_button.disabled = level >= max_level
 	var lines: Array[String] = []
-	if Dungeons.is_random(level):
+	reroll_button.visible = deep
+	if deep:
+		lines.append_array(DeepRuns.describe(_game().deep_roll(level)))
+		var cost := DeepRuns.reroll_cost(level)
+		reroll_button.text = tr("Przelosuj\n%d żaru") % cost
+		reroll_button.disabled = _game().embers < cost
+	elif Dungeons.is_random(level):
 		lines.append(tr("Loch losowy przy każdym wejściu"))
-		lines.append(tr("Losowe modyfikatory: %d") % DungeonMods.deep_count(level))
 	else:
 		var id := Dungeons.for_level(level)
 		var cycle := Dungeons.cycle_of(level)

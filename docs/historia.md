@@ -2,6 +2,27 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - Głębiny, krok 2: zestawy Głębin (mieszane potwory, losowy boss i mechanika, przelosowanie)
+
+- **Ustalenia z autorem (ankieta 26.11.2026):** każda rola potworów z innego lochu, boss losowy spośród wszystkich,
+  jedna losowa mechanika lochu, zestaw widoczny przy wyborze Głębi z przelosowaniem za żar rosnącym z Głębią, losowa
+  para odporności; nagrody Głębin - jeszcze nie.
+- **Zestaw** `scripts/deep_runs.gd` (`DeepRuns.roll`): tło (`ground` - podłoga i ozdoby lochu), `goblin`/`archer`/
+  `brute` z trzech różnych lochów, `boss` z dowolnego lochu, `mechanic` z lochów z mechaniką (`MECHANICS`: wiatr
+  Podniebnych wysp, wymarzanie, Żywa puszcza, Promienie słońca, Osuwiska, Magiczne pieczęcie), `mods`
+  (`DungeonMods.roll_deep`), `up`/`down` - żywioł +20% i inny -20% (`DeepRuns.resists`, wspólna odporność głębi
+  zostaje). Sługi bossa (np. mniejszy Swarożyc) z lochu bossa (`DeepRuns.climate_for`).
+- **Zapis:** `Game.deep_rolls` (poziom -> zestaw; `normalize` po JSON). `Game.deep_roll(level)` losuje przy pierwszym
+  pokazaniu i trzyma do wejścia, `take_deep_roll` zużywa przy wejściu (następnym razem nowy), `reroll_deep` - nowy
+  zestaw za żar `DeepRuns.reroll_cost` = 50 + 10 x Głębia (Głębia 10 - 150).
+- **Wybór Głębi:** pod numerem opis zestawu (`DeepRuns.describe` - tło, potwory, boss, mechanika, modyfikatory,
+  odporności) i przycisk „Przelosuj” z ceną (nieaktywny bez żaru).
+- **Wyprawa:** `arena.deep_roll`; `climate` = tło, `arena.mechanic()` i `arena.boss_climate()` z zestawu (mechaniki
+  i bossowie wybierani przez nie zamiast przez loch), `ProtoHorde.deep_roll` - potwory roli z lochu z zestawu,
+  `ProtoHorde.monster_resists()` - odporności potworów i bossa.
+- Test `tests/test_deeps.gd` (zestawy, zapis, przelosowanie, wyprawa z ustalonym zestawem), zrzut wyboru
+  `tools/deep_shots.gd`.
+
 ## 26.11.2026 - Głębiny: głębokie lochy oddzielone od zwykłej drabinki, Czarna Watra
 
 - **Ustalenia z autorem (ankieta 26.11.2026):** zwykła drabinka 1-55 (11 lochów) bez drugiego kręgu, dalej Głębiny;

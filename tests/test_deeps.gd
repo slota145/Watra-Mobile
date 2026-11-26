@@ -3,6 +3,8 @@ extends SceneTree
 ## (Głębia N = poziom 55+N, stare zapisy przeliczają się same), losowy loch i losowe modyfikatory (1-3 z Głębią), sufit
 ## siły przedmiotów 55, drabinka odblokowań, wybór poziomu (Watra do 55, Czarna Watra - Głębie), plansza otwarcia
 ## Głębin po bossie na 55, Czarna Watra i przycisk „Głębiny” w bazie dopiero po ich otwarciu, napis „Głębia N” w lochu.
+## Krok 2: zestawy Głębin (DeepRuns - tło, każda rola z innego lochu, losowy boss, jedna mechanika, para odporności),
+## zapis zestawu, przelosowanie za żar, wyprawa z zestawem.
 
 var _failed := 0
 
@@ -26,6 +28,8 @@ func _run() -> void:
 	await _test_picker(game)
 	await _test_base(game)
 	await _test_deep_run(game)
+	_test_rolls(game)
+	await _test_roll_run(game)
 	game.reset_hero()
 	game.best_level = 0
 	game.save_game()
@@ -67,7 +71,8 @@ func _test_picker(game: Node) -> void:
 	_check(p.deep and p.level == 56 and p.min_level == 56 and p.max_level == 71 and p._level_label.text == "Głębia 1"
 			and not p.mods_button.visible, "Czarna Watra: Głębie 1-16, napis „Głębia 1”, bez wyboru modyfikatorów")
 	p.set_level(70)
-	_check(p._level_label.text == "Głębia 15" and p._info.text.contains("losowy"), "Głębia 15: loch losowy")
+	_check(p._level_label.text == "Głębia 15" and p._info.text.contains("Boss:") and p._info.text.contains("Mechanika:")
+			and p.reroll_button.visible, "Głębia 15: zestaw (boss, mechanika) i przycisk „Przelosuj”")
 	p.close()
 	p.queue_free()
 	var r: RunResult = load("res://scripts/ui/run_result.gd").new()
@@ -119,5 +124,65 @@ func _test_deep_run(game: Node) -> void:
 	await process_frame
 	_check(Dungeons.ORDER.has(arena.climate) and arena.mods.size() == 2 and arena.level_label.text == "Głębia 12",
 			"Głębia 12: losowy loch (%s), 2 losowe modyfikatory, na pasku „Głębia 12”" % arena.climate)
+	arena.queue_free()
+	await process_frame
+
+
+func _test_rolls(game: Node) -> void:
+	var ok := true
+	for i in 40:
+		var r := DeepRuns.roll(60)
+		ok = ok and DeepRuns.valid(r) and r.goblin != r.archer and r.archer != r.brute and r.goblin != r.brute \
+				and r.up != r.down and DeepRuns.MECHANICS.has(r.mechanic)
+	_check(ok, "zestaw: każda rola z innego lochu, mechanika z lochów z mechaniką, dwa różne żywioły odporności")
+	_check(DeepRuns.reroll_cost(Dungeons.level_of_deep(10)) == 150, "przelosowanie Głębi 10: 150 żaru")
+	game.reset_hero()
+	var a: Dictionary = game.deep_roll(60)
+	_check(game.deep_roll(60) == a, "zestaw Głębi stały aż do wejścia")
+	game.embers = 10
+	_check(not game.reroll_deep(60) and game.deep_roll(60) == a, "bez żaru nie da się przelosować")
+	game.embers = 1000
+	var seen_new := false
+	for i in 5:
+		game.embers = 1000
+		game.reroll_deep(60)
+		seen_new = seen_new or game.deep_roll(60) != a
+	_check(seen_new and game.embers == 1000 - DeepRuns.reroll_cost(60), "przelosowanie: nowy zestaw za żar")
+	game.save_game()
+	var kept: Dictionary = game.deep_roll(60)
+	game.load_game()
+	_check(game.deep_roll(60) == kept, "zestaw przechodzi zapis gry")
+	var taken: Dictionary = game.take_deep_roll(60)
+	_check(taken == kept and not game.deep_rolls.has("60"), "wejście zużywa zestaw")
+
+
+func _test_roll_run(game: Node) -> void:
+	game.reset_hero()
+	game.best_level = 60
+	var lvl := Dungeons.level_of_deep(3)
+	game.dungeon_level = lvl
+	game.deep_rolls[str(lvl)] = {"level": lvl, "ground": Dungeons.FROST, "goblin": Dungeons.TEMPLE,
+			"archer": Dungeons.MINE, "brute": Dungeons.TOWER, "boss": Dungeons.FOREST, "mechanic": Dungeons.MINE,
+			"mods": [], "up": Elements.FIRE, "down": Elements.COLD}
+	var arena: Node = load("res://scenes/horde.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var horde: ProtoHorde = arena.horde_spawner
+	horde.running = false
+	_check(arena.climate == Dungeons.FROST and arena.rockfall != null and arena.frost == null and arena.mods.is_empty(),
+			"zestaw: tło Lodowe jaskinie, mechanika Osuwiska (bez wymarzania)")
+	var g := horde.spawn_at(Vector2(100, 0), "goblin")
+	var ar := horde.spawn_at(Vector2(120, 0), "archer")
+	var br := horde.spawn_at(Vector2(140, 0), "brute")
+	_check(g is ProtoPoludnica and ar is ProtoProcarz and br is ProtoRuneGolem,
+			"potwory z trzech lochów: Południca, karzeł-procarz, runiczny golem")
+	var base := DungeonLevels.base_resist(lvl)
+	_check(is_equal_approx(g.resists[Elements.FIRE], base + DeepRuns.RESIST)
+			and is_equal_approx(g.resists[Elements.COLD], base - DeepRuns.RESIST), "odporności z zestawu: ogień +20%, lód -20%")
+	_check(arena.summon_button.text == "Przyzwij Leszego", "boss z zestawu: Leszy")
+	horde.add_embers(DungeonLevels.summon_cost(horde.level))
+	arena.summon_chief()
+	_check(arena.chief is ProtoLeszy and is_equal_approx(arena.chief.resists[Elements.FIRE], base + DeepRuns.RESIST),
+			"przyzwany Leszy z odpornościami zestawu")
 	arena.queue_free()
 	await process_frame

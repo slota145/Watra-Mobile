@@ -179,6 +179,9 @@ var stats_window: HeroStats
 ## Poziom lochu tej wyprawy (Game.dungeon_level) i jego rodzaj (Dungeons - od RANDOM_FROM losowany przy wejściu).
 var level := 1
 var climate := Dungeons.GOBLINS
+## Zestaw Głębi tej wyprawy (DeepRuns; puste - zwykły loch): `climate` to wtedy tło (podłoga i ozdoby), a potwory, boss,
+## mechanika, modyfikatory i odporności - z zestawu.
+var deep_roll := {}
 ## Walka z bossem szczytowym (Żmij - Pinnacles) zamiast zwykłego lochu; `area` - prostokąt polany (ARENA albo PINNACLE_ARENA).
 var pinnacle := false
 var area := ARENA
@@ -228,7 +231,12 @@ func _ready() -> void:
 	elif horde:
 		level = Game.dungeon_level
 		climate = Dungeons.for_level(level)
-		mods = DungeonMods.roll_deep(level) if Dungeons.is_deep(level) else DungeonMods.active(level, Game.dungeon_mods)
+		if Dungeons.is_deep(level):  # Głębia: zestaw wylosowany zawczasu (widoczny przy wyborze), zużyty po wejściu
+			deep_roll = Game.take_deep_roll(level)
+			climate = deep_roll.ground
+			mods.assign(deep_roll.mods)
+		else:
+			mods = DungeonMods.active(level, Game.dungeon_mods)
 	else:
 		Game.pinnacle_key = 0  # baza: walka ze Żmijem skończona albo przerwana
 	_make_ground()
@@ -303,6 +311,7 @@ func _ready() -> void:
 		horde_spawner.power = DungeonLevels.power(level)
 		horde_spawner.level = level
 		horde_spawner.climate = climate
+		horde_spawner.deep_roll = deep_roll
 		horde_spawner.mod_speed = DungeonMods.mult(mods, "speed")
 		horde_spawner.mod_damage = DungeonMods.mult(mods, "damage")
 		horde_spawner.mod_embers = DungeonMods.mult(mods, "embers")
@@ -319,7 +328,7 @@ func _ready() -> void:
 		add_child(horde_spawner)
 		if pinnacle:
 			_start_pinnacle.call_deferred()
-		if climate == Dungeons.SKY:
+		if mechanic() == Dungeons.SKY:
 			wind = ProtoWind.new()
 			wind.name = "Wind"
 			wind.hero = hero
@@ -328,35 +337,35 @@ func _ready() -> void:
 			wind.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			add_child(wind)
 			wind.spawn_tornadoes()
-		if climate == Dungeons.MINE and not pinnacle:
+		if mechanic() == Dungeons.MINE and not pinnacle:
 			rockfall = ProtoRockfall.new()
 			rockfall.name = "Rockfall"
 			rockfall.hero = hero
 			rockfall.bounds = area.grow(-20)
 			rockfall.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			world.add_child(rockfall)
-		if climate == Dungeons.TOWER and not pinnacle:
+		if mechanic() == Dungeons.TOWER and not pinnacle:
 			seals = ProtoSeals.new()
 			seals.name = "Seals"
 			seals.hero = hero
 			seals.bounds = area.grow(-20)
 			seals.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			world.add_child(seals)
-		if climate == Dungeons.TEMPLE and not pinnacle:
+		if mechanic() == Dungeons.TEMPLE and not pinnacle:
 			sunbeams = ProtoSunbeams.new()
 			sunbeams.name = "Sunbeams"
 			sunbeams.hero = hero
 			sunbeams.bounds = area.grow(-20)
 			sunbeams.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			world.add_child(sunbeams)
-		if climate == Dungeons.FOREST and not pinnacle:
+		if mechanic() == Dungeons.FOREST and not pinnacle:
 			grove = ProtoGrove.new()
 			grove.name = "Grove"
 			grove.hero = hero
 			grove.bounds = area.grow(-20)
 			grove.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			world.add_child(grove)
-		if climate == Dungeons.FROST and not pinnacle:
+		if mechanic() == Dungeons.FROST and not pinnacle:
 			frost = ProtoFrost.new()
 			frost.name = "Frost"
 			frost.hero = hero
@@ -1147,7 +1156,7 @@ func _make_boss_bar(column: VBoxContainer) -> void:
 	boss_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	boss_box.visible = false
 	column.add_child(boss_box)
-	var name_label := _hud_label(Lang.t(Pinnacles.BOSS_NAME) if pinnacle else Dungeons.boss_of(climate))
+	var name_label := _hud_label(Lang.t(Pinnacles.BOSS_NAME) if pinnacle else Dungeons.boss_of(boss_climate()))
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_color_override("font_color", Color(1, 0.6, 0.45))
 	boss_box.add_child(name_label)
@@ -1172,7 +1181,7 @@ func _make_boss_bar(column: VBoxContainer) -> void:
 ## Wodza przypadkiem w ferworze walki), widoczny przy pełnym pasku żaru.
 func _make_summon_button(column: VBoxContainer) -> void:
 	summon_button = Button.new()
-	summon_button.text = Lang.t(Dungeons.get_data(climate).summon)
+	summon_button.text = Lang.t(Dungeons.get_data(boss_climate()).summon)
 	summon_button.icon = preload("res://assets/watra/ember_icon.png")
 	summon_button.add_theme_constant_override("icon_max_width", 22)
 	summon_button.custom_minimum_size = Vector2(200, 52)
@@ -1467,7 +1476,7 @@ func summon_chief() -> void:
 	summon_button.visible = false
 	ember_bar.visible = false
 	horde_spawner.call_boss()
-	match climate:
+	match boss_climate():
 		Dungeons.FLOODED:
 			chief = ProtoWodnik.new()
 		Dungeons.CATACOMBS:
@@ -1496,6 +1505,16 @@ func summon_chief() -> void:
 	_add_boss(spot)
 
 
+## Loch, którego mechanika działa w tej wyprawie (Głębia - z zestawu, inaczej loch wyprawy).
+func mechanic() -> String:
+	return str(deep_roll.mechanic) if not deep_roll.is_empty() else climate
+
+
+## Loch, którego boss przychodzi w tej wyprawie (Głębia - z zestawu, inaczej loch wyprawy).
+func boss_climate() -> String:
+	return str(deep_roll.boss) if not deep_roll.is_empty() else climate
+
+
 ## Pogorzelisko: bez Hordy i paska żaru - od razu wchodzi Żmij Gorynycz.
 func _start_pinnacle() -> void:
 	phase = "boss"
@@ -1517,7 +1536,7 @@ func _add_boss(spot: Vector2) -> void:
 	chief.bounds = area.grow(-24)
 	chief.power = DungeonLevels.power(level) * DungeonLevels.BOSS_POWER
 	chief.hp_mult = DungeonLevels.hp_mult(level)
-	chief.resists = Dungeons.resists(climate, level)
+	chief.resists = horde_spawner.monster_resists()
 	chief.position = spot.clamp(area.position + Vector2(40, 40), area.end - Vector2(40, 40))
 	chief.health_changed.connect(func(hp: int, max_hp: int) -> void:
 		boss_bar.max_value = max_hp
