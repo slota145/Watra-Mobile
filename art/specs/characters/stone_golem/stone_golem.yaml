@@ -41,7 +41,7 @@ ramps:
   # żyły miedzi
   copper:  ["#110808", "#582820", "#985031", "#c68450", "#d6b68b", "#e7dcc3"]
   # żyły srebra
-  silver:  ["#0c0c0d", "#3e3f44", "#696b73", "#93989e", "#bfc2c6", "#eaebec"]
+  silver:  ["#0c0d12", "#4a5260", "#7f8a9c", "#b4c0cf", "#dfe8f0", "#ffffff"]
   # ciepły bursztyn oczu
   amber:   ["#3a1404", "#a8500e", "#ff9a2a", "#ffc860", "#fff0b0"]
   # smuga uderzenia: kurz skalny
@@ -50,9 +50,9 @@ ramps:
   fx_core: ["#f1edda"]
 
 materials:
-  rock:    {ramp: rock, finish: matte, crease: true, edge_highlight: true, bands: [1, 4]}
+  rock:    {ramp: rock, finish: matte, crease: true, edge_highlight: true, bands: [1, 4], gamma: 1.15}
   copper:  {ramp: copper, finish: metal, bands: [1, 4]}
-  silver:  {ramp: silver, finish: metal, bands: [2, 5]}
+  silver:  {ramp: silver, finish: metal, bands: [3, 5]}
   eye:     {ramp: amber, emissive: true, band: 3, outline: false, glow: {color: "#ffb13b", mix: 0.35, radius: 1}}
   eyedim:  {ramp: amber, emissive: true, band: 1, outline: false}
 
@@ -105,9 +105,9 @@ parts:
           - box: {c: [0.16, 0.08, 0.2], half: [0.016, 0.09, 0.2], rot: [0, 0, -0.3]}
       - material: silver       # cieńsze żyły srebra
         prims:
-          - box: {c: [-0.13, 0.20, 0.2], half: [0.016, 0.12, 0.2], rot: [0, 0, -0.4]}
-          - box: {c: [0.14, 0.40, -0.2], half: [0.12, 0.016, 0.2], rot: [0, 0, -0.3]}
-          - box: {c: [-0.04, 0.03, 0.2], half: [0.10, 0.014, 0.2], rot: [0, 0, 0.2]}
+          - box: {c: [-0.13, 0.20, 0.2], half: [0.02, 0.12, 0.2], rot: [0, 0, -0.4]}
+          - box: {c: [0.14, 0.40, -0.2], half: [0.12, 0.02, 0.2], rot: [0, 0, -0.3]}
+          - box: {c: [-0.04, 0.03, 0.2], half: [0.10, 0.02, 0.2], rot: [0, 0, 0.2]}
   pauldron_L:      # wielki głaz na barku, wznoszący się obok głowy
     when: "rubble < 0.9"
     material: rock

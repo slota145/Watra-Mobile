@@ -1,0 +1,512 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: dwarf_king
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.55, 0.05]}
+palette: "watra"
+size: 128         # klatka 128 (ta sama gęstość): młot wzniesiony nad głowę (slam, summon) musi się zmieścić
+extends: humanoid   # szkielet, IK, smuga i zestaw głowy szablonu; miecz i włosy usunięte
+
+# Król Karłów Kowal (boss lochu „Kopalnia karłów”, żywioł ziemia): opętany przez Hordę król karłów. Masywny karzeł
+# (proporcje procarza, całe ciało x1.55 przez kość `big`; ok. 48 px, ale bardzo szeroki), długa rudo-siwa broda
+# zaplatana w dwa warkocze z żelaznymi pierścieniami, żelazna korona z zębami, ciemnoczerwona koszula, okopcony
+# kuźniany fartuch, karwasze, ciężkie buty. W prawej dłoni (na ekranie po lewej w s) wielki młot kowalski
+# z żarzącymi się śladami na obuchu. Oczy świecą chorym fioletem Hordy (warstwa emisyjna) - przy śmierci gasną.
+brief:
+  summary: >
+    boss of the dwarven mine, the Dwarf King Smith possessed by the Horde: a massive dwarf about 48 px tall and very
+    broad (the human is 36 px, same density; the slinger's proportions x1.55), a long ginger-grey beard braided into
+    two thick braids with iron rings, an iron crown with teeth, a dark red shirt, a scorched leather forge apron,
+    iron bracers, heavy boots; a huge smith's hammer in his right hand with glowing ember marks on its head; the
+    eyes glow the sick violet of the Horde
+  proportions: "dwarf: head, crown and beard 1/3 of the height, shoulders as wide as the hammer is long, short legs"
+  head: >
+    the head kit (no nose, broad square jaw) in weathered skin, mostly beard: a wide ginger-grey beard from the
+    cheeks to the belt with two braids, a heavy moustache, bushy brows; an iron crown ring with five teeth on the
+    brow; two glowing violet eyes in dark hollows under the brows; face minimal (eyes only)
+  must_keep:
+    - the iron crown with teeth (the king's read) over the bushy brows
+    - the long braided ginger-grey beard down the front against the dark apron
+    - the huge smith's hammer with glowing embers on its head (the widest shape in the attacks)
+    - the violet Horde eyes (they go out at death)
+    - clearly the boss of the dwarves - the slinger's kind, much bigger and broader
+  simplify:
+    - the crown is a ring with five cone teeth; the braids are tubes with two iron rings
+    - the embers on the hammer are painted spots and a band, not geometry
+  decisions:
+    - the whole body grows through the bone `big` (1.55), the pelvis widened x1.35 like the slinger
+    - the hammer is oriented in the torso's space at the right wrist (like the goblin brute's club) so the swing
+      angles are exact in every key; at rest it hangs head down beside the right leg (a dragged weight)
+    - shards - a short overhead strike onto an unseen anvil on the ground in front; stone shards and sparks
+      fly up from the impact (`shards` channel, socket `impact`)
+    - summon - he raises the hammer high in both hands and roars (head back), a violet Horde flare bursts round
+      the hammer head (`flare`, socket `hammer_head`)
+    - death - struck back, he sinks onto his knees, the hammer falls from his hand onto the ground, the head drops,
+      the violet light of the eyes fades (`horde` channel to 0)
+
+ramps:
+  # rudo-siwa broda
+  beardgrey: ["#120708", "#4f1e17", "#84402a", "#ac6a42", "#c09670", "#d2c2ae"]
+  # ciemnoczerwona koszula króla
+  royal:     ["#0e0608", "#3a1218", "#5e1c20", "#7e2c28", "#9a4632", "#b06a4c"]
+  # okopcony kuźniany fartuch
+  forge:     ["#100a0a", "#3b271e", "#5e4631", "#7e6746", "#9a895c", "#afa079"]
+  # kute żelazo: korona, karwasze, młot
+  iron:      ["#0c0c0d", "#323237", "#52545b", "#71757d", "#92979b", "#b2b6b8"]
+  # chory fiolet Hordy (oczy, rozbłysk)
+  hordeglow: ["#2a0f3d", "#7a3cc4", "#b884ff", "#e6d2ff", "#ffffff"]
+  # żar na obuchu młota i iskry
+  ember:     ["#3a0a04", "#c2300e", "#ff7a1a", "#ffc23d", "#fff4b0"]
+  fx_tail:   ["#7a3cc4"]
+  fx_mid:    ["#b884ff"]
+  fx_core:   ["#f0e4ff"]
+
+materials:
+  skin:    {ramp: skin, finish: soft, bands: [1, 4]}
+  cloth:   {ramp: royal, finish: matte, bands: [1, 4]}
+  beard:   {ramp: beardgrey, finish: soft}
+  apron:   {ramp: forge, finish: soft, bands: [1, 4]}
+  leather: {ramp: forge, finish: soft, bands: [1, 3]}
+  iron:    {ramp: iron, finish: metal, edge_highlight: true}
+  haft:    {ramp: wood, finish: matte, bands: [1, 3]}
+  socket:  {ramp: skin, bands: [0, 1], line: false}
+  eye:     {ramp: hordeglow, emissive: true, band: 2, outline: false, glow: {color: "#b884ff", mix: 0.4, radius: 1}}
+  eyedead: {ramp: iron, bands: [0, 1], line: false}
+  ember:   {ramp: ember, emissive: true, band: 2, outline: false, glow: {color: "#ff7a1a", mix: 0.3, radius: 1}}
+  spark:   {ramp: ember, emissive: true, band: 3, outline: false}
+  flare:   {ramp: hordeglow, emissive: true, band: 1, outline: false, glow: {color: "#b884ff", mix: 0.35, radius: 1}}
+  shard:   {ramp: stone, finish: matte}
+
+remove: [use.sword, use.hair, parts.neck]
+
+use:
+  - {kit: head, at: head, with: {width: 1.2, jaw: 1.0, chin: 0.3, nose: 0, ears: 0}}
+
+shadow: {rx: 22, ry: 7.5, alpha: 125}
+snap: [root, torso_rot]   # powolny oddech w całych pikselach (mniej migotania)
+
+channels:
+  hand_L: [0.32, 0.06, 0.10]
+  hand_R: [0.32, 0.06, 0.14]
+  foot_L: [0.15, 0, 0.02]
+  ham_pitch: 0      # kąt młota od pozycji spoczynku wokół osi x tułowia (-: obuch w górę, dalej nad głowę i w tył)
+  ham_splay: 0      # młot odchylony w poprzek ciała (+) lub na zewnątrz (-)
+  ham_yaw: 0        # młot obrócony w bok wokół pionu tułowia
+  beard_sway: 0     # wychylenie brody (+: koniec w przód)
+  horde: 1          # światło Hordy w oczach (śmierć je gasi)
+  flare: 0          # 0..1 fioletowy rozbłysk wokół obucha (summon)
+  shards: 0         # 0..1 odłamki i iskry wylatujące z ziemi przed nim (shards)
+  dropped: 0        # 1: młot leży na ziemi (śmierć)
+
+bones:
+  big:        {parent: root, scale: 1.55}
+  torso_rot:  {parent: big, pos: "[0, 0.55 + bob, 0]", rot: "[lean + 0.04, twist, roll]"}
+  pelvis:     {scale: "[1.35/sqrt(squash), 0.95*squash, 1.25/sqrt(squash)]"}
+  legyaw:     {parent: big, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: big, rot: "[0, twist*0.4, 0]"}
+  fxspace:    {parent: big, rot: "[0, twist*0.3, 0]"}
+  headbase:   {pos: [0, 0.57, 0.05], scale: 1.55}
+  head:       {scale: 1.38}
+  beardbase:  {parent: headbase, rot: "[head_pitch*0.5 + beard_sway, head_yaw*0.5, 0]", scale: 1.38}
+  crown:      {parent: head, pos: [0, 0.05, -0.02], rot: [-0.15, 0, 0]}
+  shoulder_L: {pos: [0.25, 0.50, 0.0]}
+  hip_L:      {pos: [0.11, -0.02, 0.0]}
+  # młot: wzdłuż osi y kości od pięści, zorientowany w przestrzeni tułowia (nie nadgarstka, który się obraca przy
+  # uniesionych rękach); w spoczynku (2.5 wokół x) zwisa obuchem w dół, lekko na zewnątrz
+  hammer:     {parent: torso_rot, at: wrist_R, inherit_scale: false, scale: 1.55,
+               rot: "[2.5 + ham_pitch, ham_yaw, -0.25 + ham_splay]"}
+  # odłamki i rozbłysk przy ziemi przed nim
+  impactfx:   {parent: big, pos: [0, 0, 0.62], rot: "[0, -radians(yaw), 0]"}
+
+ik:   # jednostki świata (kość `big` ich nie skaluje)
+  arm_L: {lengths: [0.37, 0.36]}
+  leg_L: {space: big, lengths: [0.275, 0.26]}
+
+parts:
+  torso:           # potężna beczkowata pierś w ciemnoczerwonej koszuli
+    material: cloth
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.02], r: [0.19, 0.13, 0.16]}
+      - ellipsoid: {c: [0, 0.24, 0.01], r: [0.19, 0.15, 0.16]}
+      - ellipsoid: {c: [0, 0.42, 0.0], r: [0.24, 0.13, 0.16]}
+  coat:            # dół koszuli spod pasa
+    prims:
+      - cone: {a: [0, 0.05, -0.01], b: [0, -0.18, -0.03], r: [0.19, 0.22]}
+    cut:
+      - cone: {a: [0, -0.06, 0.20], b: [0, -0.30, 0.28], r: [0.05, 0.12]}
+  apron:           # okopcony kuźniany fartuch od piersi do kolan, z wypalonymi plamami
+    material: apron
+    space: coatbase
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.18, 0.16], half: [0.16, 0.24, 0.03], rot: [-0.05, 0, 0], round: 0.02}
+      - box: {c: [0, -0.20, 0.22], half: [0.18, 0.16, 0.025], rot: [0.12, 0, 0], round: 0.02}
+    paint:
+      - material: leather
+        spots: {scale: 0.05, density: 0.25, seed: 5}
+  belt:            # gruby pas z żelazną klamrą
+    material: leather
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.07, 0], b: [0, 0.15, 0], r: 0.21}
+  buckle:
+    material: iron
+    space: pelvis
+    prims:
+      - box: {c: [0, 0.11, 0.215], half: [0.055, 0.045, 0.02], round: 0.01}
+  head:            # ciemne zagłębienia oczu pod krzaczastymi brwiami
+    paint:
+      - material: socket
+        prims:
+          - ellipsoid: {c: [0.05, 0.13, 0.12], r: [0.045, 0.03, 0.05]}
+          - ellipsoid: {c: [-0.05, 0.13, 0.12], r: [0.045, 0.03, 0.05]}
+  eye_L:           # fioletowe oko Hordy
+    material: eye
+    space: head
+    when: "horde > 0.3"
+    prims:
+      - sphere: {c: [0.05, 0.13, 0.12], r: 0.033}
+  eyedead_L:       # zgasłe oko (śmierć)
+    material: eyedead
+    space: head
+    when: "horde <= 0.3"
+    prims:
+      - sphere: {c: [0.05, 0.13, 0.12], r: 0.028}
+  hair:            # rudo-siwe włosy z tyłu głowy, spod korony
+    material: beard
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.19, -0.04], r: [0.145, 0.125, 0.14]}
+      - ellipsoid: {c: [0, 0.03, -0.10], r: [0.14, 0.12, 0.08]}
+  brow_L:          # krzaczasta brew
+    material: beard
+    space: head
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.055, 0.175, 0.12], r: [0.05, 0.02, 0.03], rot: [0, 0, -0.2]}
+  crown:           # żelazna korona: obręcz na czubku głowy (odchylona w tył, nie zasłania oczu) i pięć zębów
+    material: iron
+    space: crown
+    blend: 0.01
+    prims:
+      - torus: {c: [0, 0.18, -0.02], R: 0.12, r: 0.026, elongate: [0, 0.016, 0]}
+      - cone: {a: [0, 0.20, 0.10], b: [0, 0.31, 0.10], r: [0.03, 0.006]}
+      - cone: {a: [0.085, 0.20, 0.065], b: [0.10, 0.29, 0.07], r: [0.028, 0.006]}
+      - cone: {a: [-0.085, 0.20, 0.065], b: [-0.10, 0.29, 0.07], r: [0.028, 0.006]}
+      - cone: {a: [0.10, 0.20, -0.08], b: [0.115, 0.28, -0.09], r: [0.026, 0.006]}
+      - cone: {a: [-0.10, 0.20, -0.08], b: [-0.115, 0.28, -0.09], r: [0.026, 0.006]}
+  moustache_L:     # ciężki wąs
+    material: beard
+    space: head
+    blend: 0.02
+    prims:
+      - tube: {pts: [[0.0, 0.05, 0.13], [0.07, 0.045, 0.135], [0.11, -0.02, 0.11]], r: [0.026, 0.018]}
+  beard:           # szeroka broda od policzków do pasa
+    material: beard
+    space: beardbase
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, -0.01, 0.06], r: [0.14, 0.06, 0.09]}
+      - cone: {a: [0, 0.0, 0.09], b: [0, -0.26, 0.14], r: [0.14, 0.07]}
+  braid_L:         # gruby warkocz z dwoma żelaznymi pierścieniami
+    material: beard
+    space: beardbase
+    prims:
+      - tube: {pts: [[0.10, 0.0, 0.07], [0.12, -0.16, 0.12], [0.08, -0.36, 0.13]], r: [0.04, 0.025]}
+  braidring_L:
+    material: iron
+    space: beardbase
+    prims:
+      - sphere: {c: [0.105, -0.20, 0.125], r: 0.036}
+      - sphere: {c: [0.085, -0.31, 0.13], r: 0.03}
+  arm_L:           # grube ramiona: rękaw do łokcia, dalej podwinięty - gołe, kowalskie przedramię
+    material: cloth
+    space: big
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.09}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.085, 0.075]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.075, 0.07]}
+    paint:
+      - material: skin
+        prims:
+          - sphere: {c: "@wrist_L", r: 0.24}
+  bracer_L:        # żelazny karwasz
+    material: iron
+    space: big
+    blend: 0.02
+    prims:
+      - cone: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.3}, b: "@wrist_L", r: [0.08, 0.085]}
+  hand_L:          # duża pięść (nadgarstek nie jest skalowany: jednostki świata)
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.06], r: 0.10}
+  leg_L:           # krótkie nogi w ciemnych spodniach
+    material: leather
+    space: big
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.10, 0.085]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.085, 0.07]}
+  boot_L:          # ciężkie buty z żelaznym okuciem
+    material: leather
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.10, 0], b: [0, -0.02, 0.0], r: [0.08, 0.08]}
+      - ellipsoid: {c: [0, -0.04, 0.05], r: [0.085, 0.05, 0.12]}
+  # --- młot kowalski (w dłoni) ---
+  ham_haft:        # trzonek okuty żelazem przy dłoni
+    when: "dropped < 0.5"
+    material: haft
+    space: hammer
+    priority: 2
+    prims:
+      - cylinder: {a: [0, -0.12, 0], b: [0, 0.52, 0], r: 0.036}
+  ham_head:        # ciężki obuch: prostopadłościan z żarzącymi się śladami
+    when: "dropped < 0.5"
+    material: iron
+    space: hammer
+    priority: 2
+    blend: {mode: chamfer, k: 0.02}
+    prims:
+      - box: {c: [0, 0.60, 0], half: [0.09, 0.10, 0.19], round: 0.015}
+      - box: {c: [0, 0.60, 0.19], half: [0.10, 0.11, 0.03], round: 0.01}
+      - box: {c: [0, 0.60, -0.19], half: [0.10, 0.11, 0.03], round: 0.01}
+    paint:
+      - material: ember
+        prims:
+          - box: {c: [0, 0.60, 0.23], half: [0.075, 0.08, 0.03]}
+          - box: {c: [0, 0.60, -0.23], half: [0.075, 0.08, 0.03]}
+      - material: ember
+        spots: {scale: 0.03, density: 0.2, seed: 11}
+  flare:           # fioletowy rozbłysk Hordy wokół obucha (summon)
+    when: "flare > 0.05 and dropped < 0.5"
+    material: flare
+    space: hammer
+    prims:
+      - sphere: {c: [0, 0.60, 0], r: "0.05 + 0.11*flare"}
+    paint:
+      - material: eye          # jaśniejsze jądro rozbłysku
+        prims:
+          - sphere: {c: [0, 0.60, 0], r: "0.07*flare"}
+  # --- młot leżący na ziemi (śmierć) ---
+  ham_fallen_haft:
+    when: "dropped >= 0.5"
+    material: haft
+    space: big
+    priority: 2
+    prims:
+      - cylinder: {a: [-0.40, 0.03, 0.30], b: [0.05, 0.03, 0.55], r: 0.022}
+  ham_fallen_head:
+    when: "dropped >= 0.5"
+    material: iron
+    space: big
+    priority: 2
+    prims:
+      - box: {c: [0.10, 0.07, 0.56], half: [0.06, 0.06, 0.12], rot: [0, 0.45, 0], round: 0.01}
+    paint:
+      - material: ember
+        spots: {scale: 0.03, density: 0.15, seed: 11}
+  # --- odłamki i iskry spod młota (shards) ---
+  shard_rocks:
+    when: "shards > 0.05"
+    material: shard
+    space: impactfx
+    prims:
+      - box: {c: "[0.10*shards, 0.10 + 0.50*shards, 0.05]", half: [0.04, 0.035, 0.035], rot: [0.5, 0.3, 0.8], round: 0.01}
+      - box: {c: "[-0.30*shards, 0.08 + 0.35*shards, 0.02]", half: [0.035, 0.03, 0.03], rot: [0.2, 0.7, 0.3], round: 0.01}
+      - box: {c: "[0.32*shards, 0.06 + 0.30*shards, -0.02]", half: [0.035, 0.03, 0.03], rot: [0.9, 0.1, 0.4], round: 0.01}
+      - box: {c: "[-0.12*shards, 0.12 + 0.62*shards, -0.04]", half: [0.03, 0.03, 0.03], rot: [0.3, 0.2, 1.1], round: 0.01}
+      - box: {c: "[0.20*shards, 0.05 + 0.20*shards, 0.12]", half: [0.03, 0.025, 0.03], rot: [0.6, 0.9, 0.1], round: 0.01}
+  shard_sparks:
+    when: "shards > 0.05 and shards < 0.95"
+    material: spark
+    space: impactfx
+    min_cover: 2
+    prims:
+      - sphere: {c: "[0.22*shards, 0.15 + 0.45*shards, 0.06]", r: "0.025*(1.2 - shards)"}
+      - sphere: {c: "[-0.20*shards, 0.12 + 0.55*shards, 0.04]", r: "0.025*(1.2 - shards)"}
+      - sphere: {c: "[0.02, 0.10 + 0.70*shards, 0.08]", r: "0.022*(1.2 - shards)"}
+      - sphere: {c: "[-0.35*shards, 0.08 + 0.25*shards, 0.06]", r: "0.02*(1.2 - shards)"}
+
+sockets:
+  hammer_head: {bone: hammer, offset: [0, 0.60, 0]}   # obuch: tu trafia cios, tu rozbłyska przyzwanie
+  impact: {bone: big, offset: [0, 0.02, 0.62]}        # ziemia przed nim (slam, shards: odłamki)
+  head: {bone: head, offset: [0, 0.15, 0.1]}          # okrzyk (summon)
+
+animations:
+  # ciężki oddech: pierś unosi się o piksel, broda faluje opóźniona, młot kołysze się w dłoni, oczy pulsują
+  idle:
+    frames: 8
+    ms: 160
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      beard_sway: "0.04*sin(p - 1.0)"
+      hand_L: "[0.32, 0.06 + 0.02*sin(p - 0.6), 0.10]"
+      hand_R: "[0.32, 0.06 + 0.02*sin(p - 0.6), 0.14]"
+      ham_pitch: "0.04*sin(p - 1.0)"
+      coat: "0.10*sin(p - 1.0)"
+  # ciężki, kołyszący krok króla: ciało opada przy każdym postawieniu stopy, przechyla się na boki, młot ciągnięty
+  # przy prawej nodze kołysze się opóźniony, broda i fartuch za krokiem
+  walk:
+    frames: 8
+    ms: 125
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.08
+      bob: "-0.03*cos(2*p)"
+      squash: "1 - 0.015*cos(2*p)"
+      twist: "0.08*cos(p)"
+      roll: "0.05*sin(p)"
+      head_yaw: "-0.05*cos(p)"
+      beard_sway: "0.05*sin(2*p - 1.0)"
+      foot_L: "[0.15, 0.07*pos(-sin(p)), 0.02 + 0.15*cos(p)]"
+      foot_R: "[0.15, 0.07*pos(sin(p)), 0.02 - 0.15*cos(p)]"
+      pitch_foot_L: "0.35*pos(-sin(p))"
+      pitch_foot_R: "0.35*pos(sin(p))"
+      hand_L: "[0.32, 0.07 + 0.03*pos(cos(p)), 0.10 - 0.12*cos(p)]"
+      hand_R: "[0.32, 0.07 + 0.02*pos(-cos(p)), 0.14 + 0.06*cos(p)]"
+      ham_pitch: "-0.10*cos(p - 0.7)"
+      coat: "0.35*sin(2*p - 0.6)"
+  # zwykły cios: młot wędruje nad prawe ramię (zamach), krótkie przytrzymanie, szybki cios z góry w przód ze smugą
+  # (`hit` 450 ms, socket `hammer_head`), powrót
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {twist: -0.20, lean: 0.05, bob: -0.03, squash: 0.96, head_pitch: 0.05,
+          hand_R: [0.26, 0.30, 0.10], hand_L: [0.10, 0.20, 0.24], ham_pitch: -1.6, ham_splay: 0.15,
+          foot_L: [0.15, 0, 0.10], foot_R: [0.15, 0, -0.06]}}
+      - {ms: 200, set: {twist: -0.30, lean: -0.15, bob: 0.0, squash: 1.02, head_pitch: -0.10,
+          hand_R: [0.18, 0.56, -0.04], hand_L: [0.10, 0.50, 0.04], ham_pitch: "-3.0 + 0.9*pulse(abs(yaw), 180, 70)", ham_splay: 0.25,
+          foot_L: [0.15, 0, 0.12], foot_R: [0.15, 0, -0.06], coat: -0.2}}
+      - {ms: 130, set: {twist: 0.0, lean: 0.10, bob: -0.02, squash: 1.0, head_pitch: 0.0,
+          hand_R: [0.10, 0.46, 0.30], hand_L: [0.04, 0.42, 0.30], ham_pitch: -2.0, ham_splay: 0.25,
+          foot_L: [0.15, 0, 0.16], foot_R: [0.15, 0, -0.07],
+          smear_w: 0.12, smear_a0: 2.0, smear_a1: 0.7, smear_r: 0.6, smear_y: 0.6, smear_z: 0.3}}
+      - {ms: 90, event: hit, set: {root: [0, 0, 0.08], twist: 0.10, lean: 0.35, bob: -0.06, squash: 0.92, head_pitch: 0.12,
+          hand_R: [0.10, 0.06, 0.40], hand_L: [0.04, 0.06, 0.38], ham_pitch: -1.15, ham_splay: 0.25, ham_yaw: "-0.7*pulse(abs(yaw), 180, 60)",
+          foot_L: [0.15, 0, 0.20], foot_R: [0.15, 0, -0.08], coat: 0.4,
+          smear_w: 0.10, smear_a0: 1.0, smear_a1: -0.6, smear_fade: 0.6, smear_r: 0.6, smear_y: 0.6, smear_z: 0.3}}
+      - {ms: 100, set: {root: [0, 0, 0.08], twist: 0.10, lean: 0.33, bob: -0.05, squash: 0.94, head_pitch: 0.10,
+          hand_R: [0.10, 0.07, 0.40], hand_L: [0.04, 0.07, 0.38], ham_pitch: -1.15, ham_splay: 0.25, ham_yaw: "-0.7*pulse(abs(yaw), 180, 60)",
+          foot_L: [0.15, 0, 0.20], foot_R: [0.15, 0, -0.08], coat: 0.3}}
+      - {ms: 110, set: {root: [0, 0, 0.03], lean: 0.12, bob: -0.01,
+          hand_R: [0.28, 0.04, 0.22], hand_L: [0.28, 0.04, 0.14], ham_pitch: -0.4, ham_splay: 0.1, foot_L: [0.15, 0, 0.08]}}
+  # wielki zamach: przysiad, młot w obu dłoniach wędruje wysoko nad głowę i w tył, długie przytrzymanie z drżeniem
+  # (czerwone koło w grze), szybki zamach ze smugą, obuch wbija się w ziemię przed nim (`hit` 900 ms, socket
+  # `impact`), ciało zgięte nad młotem, powolny powrót
+  slam:
+    loop: false
+    keys:
+      - {ms: 150, event: windup, set: {lean: 0.22, bob: -0.06, squash: 0.92, head_pitch: 0.10, twist: -0.08,
+          hand_R: [0.20, 0.04, 0.30], hand_L: [0.02, 0.04, 0.32], ham_pitch: -1.2, ham_splay: 0.2,
+          foot_L: [0.16, 0, 0.12], foot_R: [0.16, 0, -0.08]}}
+      - {ms: 200, set: {lean: -0.05, bob: -0.01, squash: 1.0, head_pitch: -0.05, twist: -0.12,
+          hand_R: [0.16, 0.42, 0.10], hand_L: [0.04, 0.38, 0.12], ham_pitch: "-2.4 + 0.9*pulse(abs(yaw), 180, 70)", ham_splay: 0.3,
+          foot_L: [0.16, 0, 0.14], foot_R: [0.16, 0, -0.08], coat: -0.2}}
+      - {ms: 250, set: {lean: -0.28, bob: 0.02, squash: 1.05, head_pitch: -0.18, twist: -0.10,
+          hand_R: [0.08, 0.66, -0.04], hand_L: [0.0, 0.62, -0.02], ham_pitch: "-3.1 + 0.9*pulse(abs(yaw), 180, 70)", ham_splay: 0.32,
+          foot_L: [0.16, 0, 0.16], foot_R: [0.16, 0, -0.08], coat: -0.35, beard_sway: -0.08}}
+      - {ms: 220, set: {root: [0.02, 0, 0], lean: -0.33, bob: 0.03, squash: 1.07, head_pitch: -0.22, twist: -0.10,
+          hand_R: [0.07, 0.70, -0.08], hand_L: [-0.01, 0.66, -0.06], ham_pitch: "-3.2 + 0.9*pulse(abs(yaw), 180, 70)", ham_splay: 0.32,
+          foot_L: [0.16, 0, 0.16], foot_R: [0.16, 0, -0.08], coat: -0.4, beard_sway: -0.10}}
+      - {ms: 80, set: {lean: 0.12, bob: -0.02, squash: 1.0, head_pitch: 0.05, twist: 0.0,
+          hand_R: [0.06, 0.52, 0.32], hand_L: [-0.02, 0.48, 0.32], ham_pitch: -2.1, ham_splay: 0.32,
+          foot_L: [0.16, 0, 0.20], foot_R: [0.16, 0, -0.08], coat: 0.2,
+          smear_w: 0.14, smear_a0: 2.0, smear_a1: 0.7, smear_r: 0.65, smear_y: 0.65, smear_z: 0.3}}
+      - {ms: 150, event: hit, set: {root: [0, 0, 0.12], lean: 0.42, bob: -0.08, squash: 0.88, head_pitch: 0.15, twist: 0.04,
+          hand_R: [0.06, -0.02, 0.44], hand_L: [-0.02, -0.02, 0.42], ham_pitch: -1.05, ham_splay: 0.32, ham_yaw: "-0.8*pulse(abs(yaw), 180, 60)",
+          foot_L: [0.16, 0, 0.24], foot_R: [0.16, 0, -0.10], coat: 0.6, beard_sway: 0.15, shards: 0.3,
+          smear_w: 0.12, smear_a0: 1.0, smear_a1: -0.6, smear_fade: 0.6, smear_r: 0.65, smear_y: 0.65, smear_z: 0.3}}
+      - {ms: 120, set: {root: [0, 0, 0.12], lean: 0.40, bob: -0.07, squash: 0.92, head_pitch: 0.12, twist: 0.04,
+          hand_R: [0.06, -0.01, 0.44], hand_L: [-0.02, -0.01, 0.42], ham_pitch: -1.05, ham_splay: 0.32, ham_yaw: "-0.8*pulse(abs(yaw), 180, 60)",
+          foot_L: [0.16, 0, 0.24], foot_R: [0.16, 0, -0.10], coat: 0.4, beard_sway: 0.08, shards: 0.75}}
+      - {ms: 130, set: {root: [0, 0, 0.05], lean: 0.15, bob: -0.02, squash: 0.98, coat: 0.1,
+          hand_R: [0.26, 0.02, 0.26], hand_L: [0.22, 0.02, 0.20], ham_pitch: -0.5, ham_splay: 0.15, foot_L: [0.15, 0, 0.10]}}
+  # odłamki: krótkie uderzenie z góry w niewidoczne kowadło (ziemię) przed sobą; spod obucha sypią się odłamki
+  # skał i iskry (`release` 600 ms, socket `impact`)
+  shards:
+    loop: false
+    keys:
+      - {ms: 130, event: windup, set: {lean: 0.18, bob: -0.05, squash: 0.94, head_pitch: 0.08, twist: -0.10,
+          hand_R: [0.22, 0.10, 0.28], hand_L: [0.06, 0.08, 0.30], ham_pitch: -1.3, ham_splay: 0.2,
+          foot_L: [0.15, 0, 0.12], foot_R: [0.15, 0, -0.06]}}
+      - {ms: 200, set: {lean: -0.12, bob: 0.0, squash: 1.03, head_pitch: -0.10, twist: -0.12,
+          hand_R: [0.14, 0.54, 0.06], hand_L: [0.04, 0.50, 0.08], ham_pitch: "-2.7 + 0.9*pulse(abs(yaw), 180, 70)", ham_splay: 0.3,
+          foot_L: [0.15, 0, 0.14], foot_R: [0.15, 0, -0.07], coat: -0.25}}
+      - {ms: 150, set: {lean: -0.16, bob: 0.01, squash: 1.04, head_pitch: -0.12, twist: -0.12,
+          hand_R: [0.13, 0.56, 0.04], hand_L: [0.03, 0.52, 0.06], ham_pitch: "-2.8 + 0.9*pulse(abs(yaw), 180, 70)", ham_splay: 0.3,
+          foot_L: [0.15, 0, 0.14], foot_R: [0.15, 0, -0.07], coat: -0.3}}
+      - {ms: 120, set: {lean: 0.20, bob: -0.03, squash: 0.98, head_pitch: 0.05, twist: 0.0,
+          hand_R: [0.08, 0.34, 0.38], hand_L: [0.0, 0.30, 0.38], ham_pitch: -1.8, ham_splay: 0.3,
+          foot_L: [0.15, 0, 0.18], foot_R: [0.15, 0, -0.08],
+          smear_w: 0.11, smear_a0: 1.8, smear_a1: 0.4, smear_r: 0.6, smear_y: 0.6, smear_z: 0.3}}
+      - {ms: 120, event: release, set: {root: [0, 0, 0.08], lean: 0.40, bob: -0.07, squash: 0.90, head_pitch: 0.12, twist: 0.04,
+          hand_R: [0.06, -0.02, 0.44], hand_L: [-0.02, -0.02, 0.42], ham_pitch: -1.05, ham_splay: 0.32, ham_yaw: "-0.8*pulse(abs(yaw), 180, 60)",
+          foot_L: [0.15, 0, 0.22], foot_R: [0.15, 0, -0.09], coat: 0.5, beard_sway: 0.12, shards: 0.35}}
+      - {ms: 140, set: {root: [0, 0, 0.08], lean: 0.36, bob: -0.06, squash: 0.93, head_pitch: 0.10, twist: 0.04,
+          hand_R: [0.06, -0.01, 0.44], hand_L: [-0.02, -0.01, 0.42], ham_pitch: -1.05, ham_splay: 0.32, ham_yaw: "-0.8*pulse(abs(yaw), 180, 60)",
+          foot_L: [0.15, 0, 0.22], foot_R: [0.15, 0, -0.09], coat: 0.3, shards: 0.8}}
+      - {ms: 140, set: {root: [0, 0, 0.03], lean: 0.12, bob: -0.01, coat: 0.05,
+          hand_R: [0.28, 0.04, 0.22], hand_L: [0.26, 0.04, 0.14], ham_pitch: -0.4, ham_splay: 0.1, foot_L: [0.15, 0, 0.08]}}
+  # przyzwanie: przysiad, unosi młot wysoko w obu dłoniach obuchem do góry, głowa w tył - okrzyk; wokół obucha
+  # wybucha fioletowy rozbłysk Hordy (`release` 600 ms, socket `hammer_head`), drżenie, opuszcza młot
+  summon:
+    loop: false
+    keys:
+      - {ms: 150, event: windup, set: {lean: 0.15, bob: -0.05, squash: 0.95, head_pitch: 0.12,
+          hand_R: [0.20, 0.14, 0.26], hand_L: [0.06, 0.12, 0.28], ham_pitch: -1.6, ham_splay: 0.1, flare: 0.15}}
+      - {ms: 220, set: {lean: -0.05, bob: 0.0, squash: 1.0, head_pitch: -0.10,
+          hand_R: [0.14, 0.52, 0.16], hand_L: [0.04, 0.50, 0.16], ham_pitch: -2.4, ham_splay: 0.05, flare: 0.35, coat: -0.1}}
+      - {ms: 230, set: {lean: -0.14, bob: 0.03, squash: 1.04, head_pitch: -0.28,
+          hand_R: [0.10, 0.78, 0.10], hand_L: [0.02, 0.76, 0.10], ham_pitch: -2.55, ham_splay: 0.02, flare: 0.6, coat: -0.25, beard_sway: -0.1}}
+      - {ms: 130, event: release, set: {lean: -0.18, bob: 0.05, squash: 1.06, head_pitch: -0.35,
+          hand_R: [0.10, 0.84, 0.08], hand_L: [0.02, 0.82, 0.08], ham_pitch: -2.55, ham_splay: 0.02, flare: 1.0, coat: -0.3, beard_sway: -0.15}}
+      - {ms: 130, set: {root: [0.02, 0, 0], roll: 0.02, lean: -0.18, bob: 0.05, squash: 1.06, head_pitch: -0.33,
+          hand_R: [0.11, 0.83, 0.08], hand_L: [0.03, 0.81, 0.08], ham_pitch: -2.55, ham_splay: 0.02, flare: 0.7, coat: -0.28, beard_sway: -0.12}}
+      - {ms: 140, set: {lean: 0.02, bob: 0.01, head_pitch: -0.04,
+          hand_R: [0.28, 0.20, 0.20], hand_L: [0.24, 0.12, 0.16], ham_pitch: -0.9, flare: 0.15, coat: -0.05}}
+  # trafienie: krótkie szarpnięcie w tył (boss się nie zatrzymuje), broda odskakuje, młot się kołysze, powrót
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.05], bob: 0.01, lean: -0.14, squash: 0.96, head_pitch: -0.18, twist: 0.06, coat: -0.3,
+          beard_sway: 0.15, hand_R: [0.34, 0.10, 0.08], hand_L: [0.36, 0.10, 0.04], ham_pitch: -0.25}}
+      - {ms: 70, set: {root: [0, 0, -0.03], lean: -0.07, squash: 0.98, head_pitch: -0.09, twist: 0.03, coat: -0.15,
+          beard_sway: 0.08, hand_R: [0.33, 0.08, 0.11], hand_L: [0.34, 0.08, 0.07], ham_pitch: -0.12}}
+      - {ms: 70, set: {root: [0, 0, -0.01], lean: 0.06, head_pitch: 0.03, coat: 0.05, beard_sway: -0.03}}
+      - {ms: 70, set: {coat: 0.02}}
+  # śmierć: odrzucony w tył, chwieje się, osuwa na kolana; młot wypada mu z dłoni i leży przed nim, głowa opada,
+  # fioletowe światło Hordy w oczach gaśnie (ostatnia klatka przytrzymana)
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.05], lean: -0.22, squash: 0.97, head_pitch: -0.30, coat: -0.35, beard_sway: 0.2,
+          hand_R: [0.36, 0.16, 0.06], hand_L: [0.38, 0.18, 0.0], ham_pitch: -0.3}}
+      - {ms: 150, set: {root: [0, 0, -0.06], lean: 0.05, bob: -0.10, squash: 0.95, head_pitch: 0.10, coat: 0.1, twist: 0.06,
+          hand_R: [0.34, 0.02, 0.16], hand_L: [0.34, 0.0, 0.12], ham_pitch: 0.2,
+          foot_L: [0.15, 0, 0.16], foot_R: [0.15, 0, -0.12], horde: 0.9}}
+      - {ms: 150, set: {root: [0, 0, -0.06], lean: 0.18, bob: -0.20, squash: 0.94, head_pitch: 0.25, coat: 0.25,
+          hand_R: [0.32, -0.04, 0.24], hand_L: [0.32, -0.06, 0.20], dropped: 1,
+          foot_L: [0.15, 0, 0.18], foot_R: [0.15, 0, -0.22], pitch_foot_R: 0.9, horde: 0.75}}
+      - {ms: 140, set: {root: [0, 0, -0.06], lean: 0.24, bob: -0.24, squash: 0.94, head_pitch: 0.40, coat: 0.3,
+          hand_R: [0.32, -0.08, 0.22], hand_L: [0.32, -0.10, 0.20], dropped: 1,
+          foot_L: [0.15, 0, 0.18], foot_R: [0.15, 0, -0.24], pitch_foot_R: 0.9, horde: 0.5}}
+      - {ms: 140, set: {root: [0, 0, -0.06], lean: 0.26, bob: -0.25, squash: 0.94, head_pitch: 0.48, coat: 0.3, beard_sway: 0.05,
+          hand_R: [0.32, -0.10, 0.20], hand_L: [0.32, -0.12, 0.18], dropped: 1,
+          foot_L: [0.15, 0, 0.18], foot_R: [0.15, 0, -0.24], pitch_foot_R: 0.9, horde: 0.35}}
+      - {ms: 800, set: {root: [0, 0, -0.06], lean: 0.28, bob: -0.25, squash: 0.94, head_pitch: 0.52, coat: 0.3, beard_sway: 0.05,
+          hand_R: [0.32, -0.11, 0.19], hand_L: [0.32, -0.13, 0.17], dropped: 1,
+          foot_L: [0.15, 0, 0.18], foot_R: [0.15, 0, -0.24], pitch_foot_R: 0.9, horde: 0.0}}
+
+timing:
+  attack: {hit: 450ms, total: 750ms}
+  slam: {hit: 900ms, total: 1300ms}
+  shards: {release: 600ms, total: 1000ms}
+  summon: {release: 600ms, total: 1000ms}
