@@ -2,6 +2,17 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - Pamięć oręża (tańsze ulepszanie umiejętności nowej broni)
+
+- **Decyzje autora (ankieta 26.11.2026):** ulepszenie umiejętności do poziomu, który ma już najwyżej ulepszona
+  umiejętność **innej** broni, kosztuje **ćwierć** ceny żaru; w oknie przekreślona stara cena i nowa na zielono
+  z napisem „Pamięć oręża”.
+- `Skills.MEMORY_DISCOUNT` = 0,25; `Game.memory_level(id)` (najwyższy poziom umiejętności innych broni),
+  `memory_discount(id)`, `skill_upgrade_cost(id)` (zamiast `Skills.upgrade_price` w `skill_upgrade_problem`
+  i `upgrade_skill`). Limit z mistrzostwa (`Skills.level_cap`) zostaje - działa razem z doganianiem mistrzostwa.
+- Okno umiejętności: `SkillsWindow.memory_labels` (RichTextLabel z `[s]` pod miejscem umiejętności, tylko przy
+  kamieniu run i przy zniżce). Test w `tests/test_spare_weapon.gd` (`_test_memory`), zrzut `tools/spare_shots.gd` (`_4_pamiec`).
+
 ## 26.11.2026 - kamienie „rzuć, gdy…” (Odwet, Przebłysk, Stypa)
 
 - **Ustalenia z autorem (dwie ankiety 26.11.2026, jak „Cast when…” z PoE):** zdarzenia - otrzymane obrażenia,

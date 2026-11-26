@@ -36,8 +36,8 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   x3 doganiania nie za szybko / za wolno, miejsce i wielkość przycisku zamiany, odnowienie 1 s, czy 100% mistrzostwa
   dla zapasowej nie za dużo):** problem autora - nowa broń zaczyna od mistrzostwa 1, więc trzeba się cofać w rozwoju.
   Odrzucone: dwie bronie naraz z 2-4 dodatkowymi miejscami (ciasno pod kciukiem, nie rozwiązuje kolejnych broni) i gacha
-  (rozwiązuje odblokowanie, a nie poziomy; losowość frustruje). Dalej do rozważenia: tańsze ulepszanie umiejętności żarem
-  do poziomu osiągniętego na innej broni.
+  (rozwiązuje odblokowanie, a nie poziomy; losowość frustruje). Tańsze ulepszanie żarem - Pamięć oręża (zrobiona
+  26.11.2026: ćwierć ceny do poziomu najlepszej umiejętności innej broni; do oceny, czy nie za tanio).
 - [ ] **Kamienie „rzuć, gdy…” (zrobione 26.11.2026, `docs/historia.md`; do oceny na telefonie: siła 50-80%, przerwa
   1,5-0,5 s, próg Odwetu 15% zdrowia, czy widmowa kopia broni jest czytelna, czy nie za dużo efektów przy Stypie
   w tłumie; katana - Sąd Peruna rzucany od razu w pełni naładowany).**

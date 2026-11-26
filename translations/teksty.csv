@@ -1375,6 +1375,7 @@ void fragment() {
 "Odblokuje ją mistrzostwo: %s, poziom %d. Rośnie od pokonanych potworów i bossów.","","skills_window.gd"
 "Odłóż","","skills_window.gd"
 "Otworzyć gniazdo w: %s? Zużyje Klucz Runiczny (masz %d). Stuknij jeszcze raz.","","skills_window.gd"
+"Pamięć oręża","","skills_window.gd"
 "Po lochu %d albo Pieczęcią Oręża","","skills_window.gd"
 "Pod „Atak”","Under “Attack”","skills_window.gd"
 "Poz. %d: %s","","skills_window.gd"

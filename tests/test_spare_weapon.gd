@@ -25,6 +25,7 @@ func _run() -> void:
 	game.load_game()
 	game.reset_hero()
 	_test_game(game)
+	_test_memory(game)
 	await _test_arena(game)
 	await _test_horde(game)
 	game.reset_hero()
@@ -62,6 +63,32 @@ func _test_game(game: Node) -> void:
 	_check(game.set_spare("") and game.spare_weapon == "" and not game.swap_weapons(), "zdjęcie zapasowej - nie ma czego zamienić")
 	game.mastery["glaive"] = 10
 	_check(game.mastery_mult("glaive") == 1.0, "dogoniona broń - bez mnożnika")
+
+
+## Pamięć oręża: poziomy do najwyżej ulepszonej umiejętności innej broni za ćwierć ceny żaru.
+func _test_memory(game: Node) -> void:
+	game.reset_hero()
+	game.hero_level = 20
+	game.best_level = 12
+	game.mastery["sword"] = 20
+	game.dev_skills()
+	game.skill_levels["whirl"] = 4
+	game.set_weapon("glaive")
+	game.mastery["glaive"] = 20
+	game._unlock_skills()
+	_check(game.memory_level("g_sweep") == 4 and game.memory_level("whirl") == 0, "Pamięć oręża: Młynek miecza na 4")
+	var full: int = Skills.upgrade_price("g_sweep", 1)
+	_check(game.memory_discount("g_sweep") and game.skill_upgrade_cost("g_sweep") == ceili(full * Skills.MEMORY_DISCOUNT),
+			"glewia: 2. poziom za ćwierć ceny (%d zamiast %d)" % [game.skill_upgrade_cost("g_sweep"), full])
+	game.embers = 100000
+	var before: int = game.embers
+	game.upgrade_skill("g_sweep")
+	_check(before - game.embers == ceili(full * Skills.MEMORY_DISCOUNT), "ulepszenie pobiera tańszą cenę")
+	game.skill_levels["g_sweep"] = 4
+	_check(not game.memory_discount("g_sweep") and game.skill_upgrade_cost("g_sweep") == Skills.upgrade_price("g_sweep", 4),
+			"powyżej poziomu innej broni - pełna cena")
+	game.set_weapon("sword")
+	game.reset_hero()
 
 
 func _test_arena(game: Node) -> void:
