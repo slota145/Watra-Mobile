@@ -30,8 +30,8 @@ func _run() -> void:
 	game.load_game()
 	_check(Dungeons.first_level(Dungeons.SKY) == 21 and Dungeons.for_level(25) == Dungeons.SKY
 			and Dungeons.for_level(26) == Dungeons.VOLCANO and Dungeons.for_level(20) == Dungeons.PLAINS
-			and Dungeons.cycle_length() == 40 and Dungeons.for_level(61) == Dungeons.SKY,
-			"drabinka: Podniebne wyspy 21-25 (po Górskich równinach), drugi krąg 61-65 (od 25.11.2026 krąg ma 40 poziomów)")
+			and Dungeons.cycle_length() == 45 and Dungeons.for_level(66) == Dungeons.SKY,
+			"drabinka: Podniebne wyspy 21-25 (po Górskich równinach), drugi krąg 66-70 (od 26.11.2026 krąg ma 45 poziomów)")
 	var r := Dungeons.resists(Dungeons.SKY, 21)
 	var base := DungeonLevels.base_resist(21)
 	_check(is_equal_approx(r[Elements.AIR], base + 0.2) and is_equal_approx(r[Elements.EARTH], base - 0.2),

@@ -1,7 +1,7 @@
 class_name Dungeons
 ## Rodzaje lochów (ustalone z autorem 15.11.2026). Wspólna drabinka poziomów (decyzja autora 21.11.2026): każdy loch
 ## trwa LEVELS_PER poziomów w kolejności ORDER (1-5 gobliny, 6-10 Zatopione podziemia, 11-15 Katakumby, 16-20 Górskie
-## równiny, 21-25 Podniebne wyspy, 26-30 Wulkaniczne równiny, 31-35 Lodowe jaskinie, 36-40 Prastary Bór), a po ostatnim lochu drabinka zaczyna się od nowa - drugi krąg (26-50) i kolejne,
+## równiny, 21-25 Podniebne wyspy, 26-30 Wulkaniczne równiny, 31-35 Lodowe jaskinie, 36-40 Prastary Bór, 41-45 Świątynia Słońca), a po ostatnim lochu drabinka zaczyna się od nowa - drugi krąg (26-50) i kolejne,
 ## (31-60, 61-90) z coraz silniejszymi potworami (siła zależy tylko od poziomu - DungeonLevels). Od RANDOM_FROM (endgame) przy każdym
 ## wejściu losuje się loch spośród wszystkich. Do 21.11.2026 każdy loch trwał 10 poziomów (od 41 Wulkaniczne do 100).
 ## Każdy loch: nazwa, boss, podłoże (tekstura z Watry powtarzana na polanie i jej odcień), żywioł potworów
@@ -18,11 +18,12 @@ const VOLCANO := "volcano"
 const SKY := "sky"
 const FROST := "frost"
 const FOREST := "forest"
+const TEMPLE := "temple"
 ## Od tego poziomu (włącznie z nim) loch jest losowy przy każdym wejściu.
 const RANDOM_FROM := 101
 ## Ile poziomów trwa każdy loch na drabince.
 const LEVELS_PER := 5
-const ORDER: Array[String] = [GOBLINS, FLOODED, CATACOMBS, PLAINS, SKY, VOLCANO, FROST, FOREST]
+const ORDER: Array[String] = [GOBLINS, FLOODED, CATACOMBS, PLAINS, SKY, VOLCANO, FROST, FOREST, TEMPLE]
 ## Odporności potworów (decyzja autora 17.11.2026, wariant jak Last Epoch/PoE): wspólna odporność na wszystko - także
 ## fizyczne - rośnie z głębią (DungeonLevels.base_resist), a lochy mają do niej łagodny charakter (RESISTS: żywioł ->
 ## dodatek, ujemny - wrażliwość), żeby wybór broni coś znaczył, ale żadna nie była bezużyteczna. Gracz zmniejsza
@@ -37,6 +38,7 @@ const RESISTS := {
 	SKY: {Elements.AIR: 0.2, Elements.EARTH: -0.2},
 	FROST: {Elements.COLD: 0.2, Elements.FIRE: -0.2},
 	FOREST: {Elements.NATURE: 0.2, Elements.FIRE: -0.2},
+	TEMPLE: {Elements.PRAWIA: 0.2, Elements.NAWIA: -0.2},
 }
 const DATA := {
 	GOBLINS: {"name": "Leże goblinów", "boss": "Wódz Goblinów", "summon": "Przyzwij Wodza",
@@ -66,6 +68,11 @@ const DATA := {
 	FOREST: {"name": "Prastary Bór", "boss": "Leszy", "summon": "Przyzwij Leszego",
 		"ground": "res://assets/watra/forest_floor.png", "tint": Color(0.86, 0.9, 0.84), "element": Elements.NATURE,
 		"description": "Mroczna puszcza pradawnych dębów i świecących grzybów. Błędniki parzą zielonym ogniem, borowcy strzelają cierniami, dzikie drzewce biją szponami w ziemię; korzenie same chwytają śmiałków. Nad borem panuje Leszy."},
+	# dziewiąty loch (ustalony z autorem 26.11.2026): Zajęta Świątynia Słońca - Prawia, Południce, Żar-ptaki, kumiry,
+	# boss Swarożyc-strażnik, mechanika Promienie słońca (ProtoSunbeams)
+	TEMPLE: {"name": "Świątynia Słońca", "boss": "Swarożyc", "summon": "Przyzwij Swarożyca",
+		"ground": "res://assets/watra/temple_floor.png", "tint": Color(0.92, 0.88, 0.82), "element": Elements.PRAWIA,
+		"description": "Sanktuarium Dadźboga zajęte przez Hordę; jego strażnicy oszaleli od światła. Południce tną sierpami i oślepiają, żar-ptaki strzelają promieniami, kamienne kumiry miażdżą pięściami, a przez posadzkę suną palące promienie słońca - chroni tylko cień kolumn. Świątyni strzeże Swarożyc."},
 }
 
 

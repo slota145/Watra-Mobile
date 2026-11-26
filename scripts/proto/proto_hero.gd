@@ -111,6 +111,10 @@ var chill_left := 0.0
 ## Porażenie piorunem (żywioł Grom): przez `shock_left` s postać dostaje SHOCK_MULT obrażeń i miga na żółto.
 const SHOCK_MULT := 1.25
 var shock_left := 0.0
+## Oślepienie Prawią (Południca w Świątyni Słońca, 26.11.2026): przez `blind_left` s ciosy postaci zadają o BLIND_WEAK
+## mniej (ProtoWeapon._deal), postać błyska złotem.
+const BLIND_WEAK := 0.25
+var blind_left := 0.0
 ## Podpalenie (żywioł ognia): co BURN_TICK s traci `burn_damage` zdrowia (mniej o odporność na żywioły), przez `burn_left` s.
 const BURN_TICK := 0.5
 var burn_damage := 0
@@ -183,6 +187,11 @@ func _process(delta: float) -> void:
 		if chill_left <= 0.0:  # spowolnienie ma pierwszeństwo w kolorze
 			var on := int(shock_left * 12.0) % 2 == 0
 			_sprite.self_modulate = Color(1.35, 1.3, 0.6) if on and shock_left > 0.0 else Color.WHITE
+	if blind_left > 0.0:
+		blind_left -= delta
+		if chill_left <= 0.0 and shock_left <= 0.0:
+			var lit := int(blind_left * 10.0) % 2 == 0
+			_sprite.self_modulate = Color(1.45, 1.35, 0.95) if lit and blind_left > 0.0 else Color.WHITE
 	if dead:
 		velocity = Vector2.ZERO
 		_leap_time = 0.0
@@ -302,6 +311,15 @@ func _burn_hit() -> void:
 func shock(time: float) -> void:
 	if not dead:
 		shock_left = maxf(shock_left, time)
+
+
+## Oślepienie Prawią na `time` s (napis przy pierwszym): ciosy postaci słabsze o BLIND_WEAK.
+func blind(time: float) -> void:
+	if dead:
+		return
+	if blind_left <= 0.0:
+		_spawn_text(tr("Oślepiony!"), Elements.color_of(Elements.PRAWIA))
+	blind_left = maxf(blind_left, time)
 
 
 ## Trafienie przez potwora: czerwony błysk, liczba nad głową, krótka nietykalność; przy zerze - śmierć.
