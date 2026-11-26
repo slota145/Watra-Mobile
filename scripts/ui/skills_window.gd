@@ -25,6 +25,8 @@ extends Control
 ## Bronie (13.11.2026; od 20.11.2026 lista zamiast rzędu): pod mistrzostwem przycisk z bronią w ręku otwiera listę broni
 ## (Weapons.ORDER, `weapon_menu`) - przy kamieniu run stuknięcie dostępnej broni bierze ją do ręki (Game.set_weapon), a niedostępnej - odblokowuje ją Pieczęcią Oręża z sakwy
 ## (drugie stuknięcie potwierdza; Game.unseal_weapon - od 20.11.2026 zamiast kupna za złoto). Lista pokazuje tylko umiejętności broni w ręku.
+## Broń zapasowa (26.11.2026): w wierszu dostępnej broni drugi przycisk „Zapas” (Game.set_spare; „Odłóż” ją zdejmuje),
+## w stanie broni jej mistrzostwo i doganianie (Game.mastery_mult). Na przycisku broni w ręku - też zapasowa.
 ## Zatrzymuje grę, gdy jest otwarte (PROCESS_MODE_ALWAYS).
 
 signal closed
@@ -403,7 +405,8 @@ func refresh() -> void:
 			_game.mastery_level(), _game.weapon_xp(), need] if need > 0 \
 			else tr("Mistrzostwo: %s, poziom %d") % [Weapons.name_of(_game.weapon), _game.mastery_level()]
 	weapon_button.icon = Weapons.icon_of(_game.weapon)
-	weapon_button.text = tr("%s  ▾ Zmień broń") % Weapons.name_of(_game.weapon)
+	weapon_button.text = tr("%s  ▾ Zmień broń") % Weapons.name_of(_game.weapon) if _game.spare_weapon == "" \
+			else tr("%s + %s  ▾ Bronie") % [Weapons.short_name_of(_game.weapon), Weapons.short_name_of(_game.spare_weapon)]
 	_refresh_weapon_menu()
 	if Skills.weapon_of(gem_skill) != _game.weapon:
 		gem_skill = Skills.basic_of(_game.weapon)
@@ -618,6 +621,24 @@ func _on_weapon(w: String) -> void:
 		menu_hint.text = why
 
 
+## Przycisk „Zapas” / „Odłóż” w wierszu broni: ustawia albo zdejmuje broń zapasową (tylko przy kamieniu run).
+func _on_spare(w: String) -> void:
+	_buy_armed = ""
+	var why := ""
+	if not can_shop:
+		why = tr("Broń zapasową wybierzesz przy kamieniu run w bazie.")
+	elif w == _game.spare_weapon:
+		_game.set_spare("")
+	elif _game.set_spare(w):
+		_play(preload("res://assets/watra/ember_pickup_big.ogg"))
+		why = tr("%s - broń zapasowa. W lochu zamienisz ją przyciskiem przy umiejętnościach; obie bronie zbierają mistrzostwo.") \
+				% Weapons.name_of(w)
+	refresh()
+	if why != "":
+		hint.text = why
+		menu_hint.text = why
+
+
 ## Lista broni: przyciemnione tło, okno z wierszem każdej broni (przewijane palcem), pod nim podpowiedź i „Wróć”.
 var menu_hint: Label
 
@@ -684,9 +705,19 @@ func _make_weapon_menu() -> void:
 		b.add_theme_font_size_override("font_size", 13)
 		b.clip_text = true
 		b.pressed.connect(_on_weapon.bind(w))
-		row.add_child(b)
+		var buttons := VBoxContainer.new()  # „Weź” nad „Zapas” - nazwa broni ma miejsce w wierszu
+		buttons.add_theme_constant_override("separation", 4)
+		buttons.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(buttons)
+		buttons.add_child(b)
+		var spare := Button.new()
+		spare.custom_minimum_size = Vector2(84, 44)
+		spare.add_theme_font_size_override("font_size", 13)
+		spare.clip_text = true
+		spare.pressed.connect(_on_spare.bind(w))
+		buttons.add_child(spare)
 		weapon_buttons[w] = b
-		weapon_rows[w] = {"box": box, "state": state}
+		weapon_rows[w] = {"box": box, "state": state, "spare": spare}
 	menu_hint = _label(col, "", 11, DIM)
 	menu_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	menu_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -714,12 +745,21 @@ func _refresh_weapon_menu() -> void:
 		st.set_border_width_all(2 if held else 1)
 		(weapon_rows[w].box as PanelContainer).add_theme_stylebox_override("panel", st)
 		var state: Label = weapon_rows[w].state
-		if held:
-			state.text = tr("W ręku")
-			b.text = tr("W ręku")
-		elif ready:
-			state.text = tr("Dostępna")
-			b.text = tr("Weź")
+		var spare_b: Button = weapon_rows[w].spare
+		var is_spare: bool = w == _game.spare_weapon
+		spare_b.visible = ready and not held
+		spare_b.text = tr("Odłóż") if is_spare else tr("Zapas")
+		_tab_look(spare_b, is_spare)
+		if is_spare:
+			st.border_color = Color(0.85, 0.65, 0.35)
+			st.set_border_width_all(2)
+		if held or ready:
+			b.text = tr("W ręku") if held else tr("Weź")
+			var lvl: int = _game.mastery_level(w)
+			var mult: float = _game.mastery_mult(w)
+			var where := tr("W ręku") if held else (tr("Zapasowa") if is_spare else tr("Dostępna"))
+			state.text = tr("%s, mistrzostwo %d, szybsze x%d") % [where, lvl, roundi(mult)] if mult > 1.0 \
+					else tr("%s, mistrzostwo %d") % [where, lvl]
 		else:
 			state.text = tr("Po lochu %d albo Pieczęcią Oręża") % Weapons.unlock_level(w)
 			b.text = tr("Na pewno?") if _buy_armed == "weapon:" + w else tr("Pieczęć")

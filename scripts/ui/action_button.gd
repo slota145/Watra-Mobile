@@ -15,6 +15,8 @@ signal released
 @export var icon: Texture2D
 ## Wolne miejsce (na razie nic nie robi poza mignięciem).
 @export var empty := false
+## Znaczek zamiany (dwie strzałki w kółku w dolnym rogu) - przycisk broni zapasowej (ActionCluster.swap).
+var swap_mark := false
 ## Miejsce zablokowane do tego poziomu postaci (0 - odblokowane).
 var locked_level := 0:
 	set(value):
@@ -44,6 +46,8 @@ func _ready() -> void:
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
+		if event.pressed and not is_visible_in_tree():
+			return  # ukryty przycisk (np. zamiana broni bez broni zapasowej) nie łapie dotyku
 		var center := get_global_rect().get_center()
 		if event.pressed and _finger == -1 and event.position.distance_to(center) <= radius + 4.0:
 			_finger = event.index
@@ -136,6 +140,8 @@ func _draw() -> void:
 		var side := radius * 1.3
 		var tint := Color(0.45, 0.55, 1.0) if no_mana else Color.WHITE
 		draw_texture_rect(icon, Rect2(c - Vector2.ONE * side / 2.0, Vector2.ONE * side), false, tint)
+	if swap_mark:
+		_draw_swap_mark(c + Vector2(radius * 0.62, radius * 0.62))
 	if cooldown_left > 0.0 and cooldown_total > 0.0:
 		# ciemny wycinek: tyle koła, ile odnowienia zostało (od góry, zgodnie z ruchem wskazówek)
 		var k := clampf(cooldown_left / cooldown_total, 0.0, 1.0)
@@ -148,3 +154,18 @@ func _draw() -> void:
 		var at := c + Vector2(-radius, fs * 0.35)
 		draw_string_outline(font, at, text, HORIZONTAL_ALIGNMENT_CENTER, radius * 2.0, fs, 4, Color(0, 0, 0, 0.9))
 		draw_string(font, at, text, HORIZONTAL_ALIGNMENT_CENTER, radius * 2.0, fs, Color(1, 0.95, 0.85))
+
+
+## Znaczek zamiany: ciemne kółko z dwiema półokrągłymi strzałkami (jedna w prawo u góry, druga w lewo u dołu).
+func _draw_swap_mark(at: Vector2) -> void:
+	var r := 8.0
+	var col := Color(1.0, 0.85, 0.5)
+	draw_circle(at, r, Color(0.08, 0.06, 0.06, 0.9))
+	draw_arc(at, r, 0.0, TAU, 20, Color(1.0, 0.8, 0.45, 0.8), 1.0)
+	var a := 4.5
+	draw_arc(at, a, PI * 1.1, PI * 1.9, 8, col, 1.5)
+	draw_arc(at, a, PI * 0.1, PI * 0.9, 8, col, 1.5)
+	var tip1 := at + Vector2.from_angle(PI * 1.9) * a
+	var tip2 := at + Vector2.from_angle(PI * 0.9) * a
+	draw_colored_polygon(PackedVector2Array([tip1 + Vector2(2.5, -1.5), tip1 + Vector2(-1.5, -2.5), tip1 + Vector2(0.5, 2.5)]), col)
+	draw_colored_polygon(PackedVector2Array([tip2 + Vector2(-2.5, 1.5), tip2 + Vector2(1.5, 2.5), tip2 + Vector2(-0.5, -2.5)]), col)

@@ -134,6 +134,9 @@ var mastery_xp := {}
 ## (broń -> lista jak `skill_slots`; obecna broń ma swoje w `skill_slots`).
 var weapons_bought: Array = []
 var weapon_slots := {}
+## Broń zapasowa (decyzja autora 26.11.2026): druga broń zabierana do lochu, zamieniana z bronią w ręku przyciskiem
+## przy umiejętnościach (`swap_weapons`); dostaje tyle samo mistrzostwa co broń w ręku. "" - brak.
+var spare_weapon := ""
 ## Odblokowane umiejętności (identyfikatory ze Skills; zwykły cios zawsze) i co stoi w miejscach
 ## (Skills.SLOTS; 0 - duży przycisk, "" - puste miejsce).
 var skills_owned: Array = [Skills.STRIKE]
@@ -379,6 +382,7 @@ func load_game() -> void:
 	mastery_xp = {}
 	weapons_bought = []
 	weapon_slots = {}
+	spare_weapon = ""
 	skills_owned = [Skills.STRIKE]
 	skill_slots = _default_slots()
 	skill_levels = {}
@@ -490,6 +494,8 @@ func load_game() -> void:
 					skills_owned.append(id)
 		_unlock_by_mastery()
 		skill_slots = _read_slots(data.get("skill_slots", []), weapon)
+		var raw_spare = data.get("spare_weapon", "")
+		spare_weapon = raw_spare if raw_spare is String and raw_spare != weapon and weapon_available(raw_spare) else ""
 		var raw_ws = data.get("weapon_slots", {})
 		if raw_ws is Dictionary:
 			for id in raw_ws:
@@ -599,7 +605,7 @@ func save_game() -> void:
 				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "deep_seen": deep_seen, "deep_rolls": deep_rolls, "nawia_shards": nawia_shards, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "ore": ore, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "start_weapon": start_weapon, "mastery": mastery, "mastery_xp": mastery_xp,
-				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes, "zmij_keys": zmij_keys, "market": market,
+				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "spare_weapon": spare_weapon, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes, "zmij_keys": zmij_keys, "market": market,
 				"skill_gems": skill_gems, "skill_open": skill_open, "tree": tree, "auras": auras, "auras_on": auras_on, "talismans": talismans, "talisman_slots": talisman_slots,
 				"loot_filter": loot_filter, "essences": essences}))
 
@@ -683,6 +689,7 @@ func reset_hero() -> void:
 	mastery_xp = {}
 	weapons_bought = []
 	weapon_slots = {}
+	spare_weapon = ""
 	skills_owned = [Skills.STRIKE]
 	skill_slots = _default_slots()
 	skill_levels = {}
@@ -1254,12 +1261,15 @@ func unseal_weapon(id: String) -> bool:
 
 
 ## Bierze do ręki inną broń: jej własne miejsca umiejętności (pierwszy raz - jej zwykły cios pod „Atak”) i mistrzostwo;
-## od razu odblokowuje jej umiejętności, do których starcza mistrzostwa. Zwraca false, gdy niedostępna.
+## od razu odblokowuje jej umiejętności, do których starcza mistrzostwa. Wzięcie broni zapasowej zamienia je
+## miejscami (dotychczasowa broń w ręku zostaje zapasową). Zwraca false, gdy niedostępna.
 func set_weapon(id: String) -> bool:
 	if not weapon_available(id):
 		return false
 	if id == weapon:
 		return true
+	if id == spare_weapon:
+		spare_weapon = weapon
 	weapon_slots[weapon] = skill_slots
 	weapon = id
 	skill_slots = weapon_slots.get(id, _default_slots(id))
@@ -1270,6 +1280,36 @@ func set_weapon(id: String) -> bool:
 	skills_changed.emit()
 	mastery_changed.emit(mastery_level(), weapon_xp(), mastery_needed())
 	return true
+
+## Ustawia broń zapasową ("" - bez niej). Zwraca false, gdy broń niedostępna albo to broń w ręku.
+func set_spare(id: String) -> bool:
+	if id != "" and (id == weapon or not weapon_available(id)):
+		return false
+	spare_weapon = id
+	if id != "":
+		_unlock_skills(id)
+	save_game()
+	weapon_changed.emit()
+	return true
+
+
+## Zamienia broń w ręku z zapasową (przycisk w lochu). Zwraca false, gdy nie ma zapasowej.
+func swap_weapons() -> bool:
+	return spare_weapon != "" and set_weapon(spare_weapon)
+
+
+## Najwyższe mistrzostwo spośród wszystkich broni (do doganiania - `Weapons.CATCH_UP`).
+func best_mastery() -> int:
+	var best := 1
+	for w in mastery:
+		best = maxi(best, int(mastery[w]))
+	return best
+
+
+## Mnożnik mistrzostwa broni `id`: Weapons.CATCH_UP, dopóki ma niższe mistrzostwo niż najlepsza broń (doganianie).
+func mastery_mult(id := "") -> float:
+	return Weapons.CATCH_UP if mastery_level(id) < best_mastery() else 1.0
+
 
 ## Poziom mistrzostwa broni (domyślnie tej w ręku).
 func mastery_level(id := "") -> int:
@@ -1287,26 +1327,43 @@ func mastery_needed() -> int:
 	return 0 if lvl >= Weapons.MAX_MASTERY else Weapons.xp_to_next(lvl)
 
 
-## Mistrzostwo dla broni w ręku (pokonany potwór albo boss - tyle samo co doświadczenie postaci). Nowe progi od razu
-## odblokowują umiejętności (sygnał `skill_unlocked` dla każdej). Zwraca liczbę awansów mistrzostwa.
+## Mistrzostwo dla broni w ręku i zapasowej - obie tyle samo (pokonany potwór albo boss - tyle samo co doświadczenie
+## postaci; broń słabsza od najlepszej dostaje więcej - `mastery_mult`). Nowe progi od razu odblokowują umiejętności
+## (sygnał `skill_unlocked` dla każdej). Zwraca liczbę awansów mistrzostwa broni w ręku.
 func add_mastery(amount: int) -> int:
-	var lvl := mastery_level()
+	if amount <= 0:
+		return 0
+	var ups := 0
+	var spare_ups := 0
+	# mnożniki liczone przed dodaniem: awans jednej broni nie zmienia doganiania drugiej w tym samym trafieniu
+	var mult := mastery_mult()
+	var spare_mult := mastery_mult(spare_weapon) if spare_weapon != "" else 1.0
+	ups = _gain_mastery(weapon, roundi(amount * mult))
+	if spare_weapon != "":
+		spare_ups = _gain_mastery(spare_weapon, roundi(amount * spare_mult))
+	_dirty = true
+	if ups + spare_ups > 0:
+		save_game()
+	mastery_changed.emit(mastery_level(), weapon_xp(), mastery_needed())
+	return ups
+
+
+## Dodaje mistrzostwo jednej broni i odblokowuje jej nowe umiejętności. Zwraca liczbę awansów.
+func _gain_mastery(w: String, amount: int) -> int:
+	var lvl := mastery_level(w)
 	if amount <= 0 or lvl >= Weapons.MAX_MASTERY:
 		return 0
-	var xp := weapon_xp() + amount
+	var xp := weapon_xp(w) + amount
 	var ups := 0
 	while lvl < Weapons.MAX_MASTERY and xp >= Weapons.xp_to_next(lvl):
 		xp -= Weapons.xp_to_next(lvl)
 		lvl += 1
 		ups += 1
-	mastery[weapon] = lvl
-	mastery_xp[weapon] = 0 if lvl >= Weapons.MAX_MASTERY else xp
-	_dirty = true
+	mastery[w] = lvl
+	mastery_xp[w] = 0 if lvl >= Weapons.MAX_MASTERY else xp
 	if ups > 0:
-		for id in _unlock_skills():
+		for id in _unlock_skills(w):
 			skill_unlocked.emit(id)
-		save_game()
-	mastery_changed.emit(lvl, weapon_xp(), mastery_needed())
 	return ups
 
 
@@ -1320,21 +1377,27 @@ func _unlock_by_mastery() -> void:
 				skills_owned.append(id)
 
 
-## Dopisuje do odblokowanych umiejętności broni w ręku te, do których starcza mistrzostwa, i wstawia każdą w pierwsze
-## wolne odblokowane małe miejsce (jeśli jest). Zwraca nowo odblokowane.
-func _unlock_skills() -> Array[String]:
+## Dopisuje do odblokowanych umiejętności broni (domyślnie w ręku; zapasowa - jej miejsca w `weapon_slots`) te,
+## do których starcza mistrzostwa, i wstawia każdą w pierwsze wolne odblokowane małe miejsce (jeśli jest).
+## Zwraca nowo odblokowane.
+func _unlock_skills(w := "") -> Array[String]:
+	if w == "":
+		w = weapon
+	var slots: Array = skill_slots if w == weapon else weapon_slots.get(w, _default_slots(w))
 	var added: Array[String] = []
-	for id in Skills.unlocked_at(weapon, mastery_level()):
+	for id in Skills.unlocked_at(w, mastery_level(w)):
 		if skills_owned.has(id):
 			continue
 		skills_owned.append(id)
 		added.append(id)
-		if skill_slots.has(id):
+		if slots.has(id):
 			continue
 		for i in range(1, Skills.open_slots(hero_level)):
-			if skill_slots[i] == "":
-				skill_slots[i] = id
+			if slots[i] == "":
+				slots[i] = id
 				break
+	if w != weapon:
+		weapon_slots[w] = slots
 	if not added.is_empty():
 		skills_changed.emit()
 	return added
