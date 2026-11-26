@@ -488,7 +488,15 @@ func _test_windows(game: Node) -> void:
 		if p is GemSlot and p.gem == "rime:1" and not p.is_queued_for_deletion():
 			rime_slot = p
 	rime_slot.pressed.emit()
-	_check(picker.actions["whirl"].disabled, "pełna umiejętność przygaszona („brak wolnego gniazda”)")
+	_check(not picker.actions.has("whirl") and picker.actions.has("throw"), "pełna umiejętność ukryta - tylko te, gdzie da się włożyć")
+	# kolejność: najpierw umiejętności z przycisków (broni w ręku i zapasowej), potem reszta
+	var order: Array = []
+	for b in picker.list.find_children("*", "Button", true, false):
+		for k in picker.actions:
+			if picker.actions[k] == b and Skills.has(k):
+				order.append(k)
+	var on_bar: Array = order.filter(func(k: String) -> bool: return game.skill_slots.has(k))
+	_check(order.slice(0, on_bar.size()) == on_bar, "najpierw umiejętności z przycisków (%s)" % str(order))
 	picker.close()
 	game.skill_gems.erase("whirl")
 	game.gems.erase("ember:2")

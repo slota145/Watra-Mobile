@@ -2,6 +2,14 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - „Gdzie włożyć” tylko z pasującymi umiejętnościami
+
+- Prośba autora: po stuknięciu kamienia umiejętności w sakwie (`GemPicker._build_gem`, tryb „najpierw kamień”)
+  lista pokazuje tylko umiejętności, do których kamień da się teraz włożyć (wolne gniazdo i brak problemu
+  `Game.skill_socket_problem`); najpierw „na przyciskach” - z miejsc broni w ręku (`Game.skill_slots`) i zapasowej
+  (`weapon_slots[spare_weapon]`), potem „pozostałe”. Gdy nic nie pasuje - jedno zdanie zamiast listy. Wiersz -
+  `GemPicker._socket_row`. Test w `tests/test_gems.gd`.
+
 ## 26.11.2026 - Pamięć oręża (tańsze ulepszanie umiejętności nowej broni)
 
 - **Decyzje autora (ankieta 26.11.2026):** ulepszenie umiejętności do poziomu, który ma już najwyżej ulepszona

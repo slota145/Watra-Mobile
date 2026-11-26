@@ -233,34 +233,44 @@ func _build_gem() -> void:
 		for line in Gems.description(gem):
 			_label(list, line, 12, TEXT, true)
 	elif Gems.is_support(gem):
-		_label(list, tr("Gdzie włożyć:"), 12, GOLD)
-		var any := false
+		# tylko umiejętności, do których kamień da się teraz włożyć; najpierw te z przycisków broni w ręku
+		# i zapasowej (prośba autora 26.11.2026), potem reszta
+		var fit: Array[String] = []
 		for id in Skills.ORDER:
-			if not _game.skills_owned.has(id):
-				continue
-			any = true
-			var free: int = _game.free_skill_socket(id)
-			if Gems.is_unique(gem) and Gems.unique_skill(gem) != id:
-				continue  # kamień unikalny pasuje tylko do swojej umiejętności - innych nie pokazujemy
-			var problem: String = _game.skill_socket_problem(id, free, gem) if free >= 0 else "full"
-			var reason := tr("Brak wolnego gniazda (otwiera je Klucz Runiczny).") if problem == "full" \
-					else tr("Ma już kamień tego rodzaju.") if problem == "same" \
-					else tr("Nie działa w zwykłym ciosie.") if problem == "basic" \
-				else tr("Działa tylko w umiejętnościach natychmiastowych.") if problem == "trigger" \
-					else tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(gem)) if problem == "skill" else ""
-			var b := _row(id, Skills.icon_of(id), Skills.name_of(id), GOLD, Gems.support_text(gem, id), reason, tr("Włóż"))
-			b.disabled = problem != ""
-			b.pressed.connect(func() -> void:
-				if _game.socket_skill(id, _game.free_skill_socket(id), gem):
-					_done(PUT_SOUND))
-		if not any:
-			_label(list, tr("Najpierw kup umiejętność przy kamieniu run w bazie."), 12, DIM, true)
+			if _game.skills_owned.has(id):
+				var free: int = _game.free_skill_socket(id)
+				if free >= 0 and _game.skill_socket_problem(id, free, gem) == "":
+					fit.append(id)
+		var worn: Array = _game.skill_slots.duplicate()
+		if _game.spare_weapon != "":
+			worn.append_array(_game.weapon_slots.get(_game.spare_weapon, []))
+		var first := fit.filter(func(id: String) -> bool: return worn.has(id))
+		var rest := fit.filter(func(id: String) -> bool: return not worn.has(id))
+		if fit.is_empty():
+			_label(list, tr("Teraz nie pasuje do żadnej umiejętności (brak wolnego gniazda albo kamień tego rodzaju już siedzi)."),
+					12, DIM, true)
+		if not first.is_empty():
+			_label(list, tr("Gdzie włożyć - na przyciskach:"), 12, GOLD)
+			for id: String in first:
+				_socket_row(id)
+		if not rest.is_empty():
+			_label(list, tr("Gdzie włożyć - pozostałe:") if not first.is_empty() else tr("Gdzie włożyć:"), 12, GOLD)
+			for id: String in rest:
+				_socket_row(id)
 	else:
 		_label(list, tr("Gdzie włożyć:"), 12, GOLD)
 		_item_rows(func(it: Dictionary) -> String: return "" if _game.free_item_socket(it) >= 0 \
 				else tr("Brak wolnego gniazda (dorabia je Dłuto Jubilera)."),
 				func(it: Dictionary) -> String: return Gems.jewel_text(gem, it.slot), tr("Włóż"),
 				func(it: Dictionary) -> bool: return _game.socket_item(it, _game.free_item_socket(it), gem), PUT_SOUND)
+
+
+## Wiersz umiejętności, do której wybrany kamień da się włożyć (w pierwsze wolne gniazdo).
+func _socket_row(id: String) -> void:
+	var b := _row(id, Skills.icon_of(id), Skills.name_of(id), GOLD, Gems.support_text(gem, id), "", tr("Włóż"))
+	b.pressed.connect(func() -> void:
+		if _game.socket_skill(id, _game.free_skill_socket(id), gem):
+			_done(PUT_SOUND))
 
 
 ## Klucz: umiejętności, które mają jeszcze zamknięte gniazda.
