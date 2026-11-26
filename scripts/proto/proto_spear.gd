@@ -47,6 +47,8 @@ const SPIN_FRAMES := 11
 const SPIN_FPS := 16.0
 const SPIN_ANCHOR := Vector2(48, 23)
 const SPIN_FX_RADIUS := 46.0
+## Okręgi obrotu nieco większe niż wir (cienkie - mniejsze ginęły pod postacią; zrzut 26.11.2026).
+const SPIN_FX_SIZE := 1.3
 const BEAM_FX := preload("res://assets/effects/sky_beam.png")
 const BEAM_FRAMES := 14
 const BEAM_FPS := 14.0
@@ -230,8 +232,9 @@ func _line_targets(a: Vector2, b: Vector2, width: float, skip: Array = []) -> Ar
 
 ## Złoty pierścień światła na ziemi o promieniu `radius` w `at`.
 func _ring_fx(at: Vector2, radius: float, z := 2) -> void:
-	if not Fx.crowded(RING_FX, 24):
-		Fx.once(get_parent(), RING_FX, RING_FRAMES, RING_FPS, at.round(), RING_ANCHOR, z, radius / RING_FX_RADIUS)
+	if not Fx.crowded(RING_FX, 24):  # duży pierścień półprzezroczysty - nie zasłania wrogów
+		var fx := Fx.once(get_parent(), RING_FX, RING_FRAMES, RING_FPS, at.round(), RING_ANCHOR, z, radius / RING_FX_RADIUS)
+		fx.modulate.a = clampf(1.3 - radius / RING_FX_RADIUS * 0.35, 0.65, 1.0)
 
 
 ## Smuga pchnięcia od `from` w kierunku `dir` na długość `length`.
@@ -565,8 +568,8 @@ func _spin_step() -> void:
 		_wheel_dir = stick.normalized()
 	hero.leap(hero.global_position + _wheel_dir * WHEEL_STEP * _area("p_wheel"), WHEEL_SPIN_TIME)
 	if not Fx.crowded(SPIN_FX, 12):
-		var fx := Fx.once(hero, SPIN_FX, SPIN_FRAMES, SPIN_FPS * 1.6, hero.global_position + Vector2(0, -10),
-				SPIN_ANCHOR, 3, _wheel_radius() / SPIN_FX_RADIUS)
+		var fx := Fx.once(hero, SPIN_FX, SPIN_FRAMES, SPIN_FPS * 1.2, hero.global_position + Vector2(0, -10),
+				SPIN_ANCHOR, 3, _wheel_radius() / SPIN_FX_RADIUS * SPIN_FX_SIZE)
 		fx.scale.x *= -1.0 if spins_done % 2 else 1.0  # kolejne okręgi kręcą się w drugą stronę
 
 
@@ -658,7 +661,7 @@ func _process_drops(delta: float) -> void:
 		if d.t < 0.0:
 			continue
 		var scale_k: float = ZENITH_BIG_SCALE if d.big else 1.0
-		if d.warn == null:
+		if d.node == null:
 			d.warn = _warn_ring(d.at, d.radius)
 			var node := Sprite2D.new()
 			node.texture = SPEAR_TEXTURE
@@ -686,6 +689,7 @@ func _process_drops(delta: float) -> void:
 							d.radius / BEAM_FX_RADIUS)
 				if is_instance_valid(d.warn):
 					(d.warn as Node).queue_free()
+				d.warn = null  # bez martwego węzła w liście (sprzątanie przy zmianie broni - _world_fx)
 				d.left = ZENITH_GLOW if _perk("p_zenith", 1) else ZENITH_STUCK
 				if is_instance_valid(node):
 					node.global_position = d.at + Vector2(0, 4)  # grot wbity w ziemię
