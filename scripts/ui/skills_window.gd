@@ -10,13 +10,9 @@ extends Control
 ## Zakładka „Aury” (Auras, 19.11.2026): lista aur z rezerwacją many i działaniem na obecnym poziomie, przycisk
 ## „Włącz” / „Wyłącz” (Game.toggle_aura; powód odmowy w podpowiedzi), u góry suma rezerwacji; aury jeszcze
 ## niezdobyte są szare z napisem, skąd je wziąć.
-## Zakładka „Kamienie” (Gems, część 4 rozwoju postaci): stuknięcie umiejętności na liście wybiera ją, na dole jej
-## 5 gniazd (otwarte Game.skill_open_count, zamknięte z kluczem - stuknięcie otwiera Kluczem Runicznym, drugie
-## potwierdza) i sakwa z kamieniami umiejętności. Pod każdym gniazdem krótko, co robi jego kamień (Gems.short_text).
-## Wkładanie (13.11.2026): stuknięcie otwartego gniazda otwiera GemPicker z pasującymi kamieniami i ich działaniem
-## w tej umiejętności („Włóż”, „Wymień”, „Wyjmij”), stuknięcie kamienia w sakwie - GemPicker z listą umiejętności,
-## (sakwa pokazuje tylko kamienie pasujące do wybranej umiejętności; jej kamień unikalny za złotą kreską „Unikalny”),
-## gdzie pasuje; można też przeciągnąć kamień na gniazdo (GemSlot), a z gniazda do sakwy (wyjęcie za darmo).
+## Zakładka „Kamienie” (Gems; od 26.11.2026 bez gniazd i sakwy na dole - decyzja autora): lista umiejętności
+## z małymi ikonami ich kamieni; stuknięcie odblokowanej umiejętności otwiera jej kartę w GemPicker (`open_skill`:
+## gniazda, kamienie do włożenia, Wyjmij, Ulepsz, Otwórz kluczem, strzałki do sąsiednich umiejętności broni w ręku).
 ## W każdym wierszu listy małe ikony kamieni z gniazd tej umiejętności.
 ## Poziomy umiejętności (13.11.2026): przy nazwie „poz. X/10”, mana i odnowienie już z premią poziomu, pod opisem
 ## nowe działania z 5. i 10. poziomu (złote - odblokowane) i co da następny poziom. Odblokowana umiejętność ma z prawej
@@ -78,21 +74,10 @@ var skill_scroll: ScrollContainer
 var aura_scroll: ScrollContainer
 var aura_list: VBoxContainer
 var slots_row: HBoxContainer
-var gems_box: VBoxContainer
-var socket_slots: Array[GemSlot] = []
-## Krótkie opisy pod gniazdami i wysuwany wybór kamienia.
-var socket_labels: Array[Label] = []
+## Wysuwany wybór kamienia (karta umiejętności).
 var picker: GemPicker
-var pouch_row: HBoxContainer
-var pouch_empty: Label
 ## Małe ikony kamieni w wierszach listy (wiersz -> pojemnik).
 var row_gems: Array[HBoxContainer] = []
-## Zakładka „Kamienie”: umiejętność, której gniazda widać, wybrany kamień z sakwy i wybrane gniazdo.
-var gem_skill := Skills.STRIKE
-var selected_gem := ""
-var selected_socket := -1
-## Pierwsze stuknięcie zamkniętego gniazda (drugie zużywa klucz).
-var _key_armed := false
 ## Wybrana umiejętność z listy ("" - żadna) albo wybrane miejsce (-1 - żadne).
 var selected_skill := ""
 var selected_slot := -1
@@ -181,7 +166,6 @@ func _ready() -> void:
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.custom_minimum_size = Vector2(0, 30)
 	_make_slots(column)
-	_make_gems(column)
 	var bottom := HBoxContainer.new()
 	bottom.add_theme_constant_override("separation", 6)
 	column.add_child(bottom)
@@ -306,62 +290,12 @@ func _make_slots(column: VBoxContainer) -> void:
 		cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 
-## Zakładka „Kamienie”: rząd 5 gniazd wybranej umiejętności, pod nim przewijana sakwa z kamieniami umiejętności.
-func _make_gems(column: VBoxContainer) -> void:
-	gems_box = VBoxContainer.new()
-	gems_box.add_theme_constant_override("separation", 4)
-	gems_box.visible = false
-	column.add_child(gems_box)
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 3)
-	gems_box.add_child(row)
-	for i in Gems.SKILL_SOCKETS:
-		var cell := VBoxContainer.new()
-		cell.custom_minimum_size = Vector2(58, 0)
-		cell.add_theme_constant_override("separation", 0)
-		row.add_child(cell)
-		var slot := GemSlot.new(48.0)
-		slot.area = "socket"
-		slot.index = i
-		slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		slot.pressed.connect(_on_socket_pressed.bind(i))
-		slot.dropped.connect(_on_dropped_to_socket.bind(i))
-		cell.add_child(slot)
-		socket_slots.append(slot)
-		var cap := _label(cell, "", 9, DIM)
-		cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cap.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		cap.custom_minimum_size = Vector2(58, 24)
-		socket_labels.append(cap)
-	var scroll := ScrollContainer.new()
-	TouchUi.drag_scroll(scroll)  # przewijanie palcem po wierszach i przyciskach
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.custom_minimum_size = Vector2(0, 52)
-	gems_box.add_child(scroll)
-	var holder := HBoxContainer.new()
-	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(holder)
-	pouch_row = HBoxContainer.new()
-	pouch_row.add_theme_constant_override("separation", 4)
-	holder.add_child(pouch_row)
-	pouch_empty = _label(holder, tr("Sakwa pusta - kamienie wypadają w lochach od poziomu %d.") % Gems.MIN_LEVEL, 11, DIM)
-	pouch_empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	pouch_empty.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	pouch_empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-
-
 ## Przełącza dolną część: miejsca na przyciskach walki albo kamienie w umiejętnościach.
 func set_gems_mode(on: bool) -> void:
 	gems_mode = on
 	aura_mode = false
 	selected_skill = ""
 	selected_slot = -1
-	selected_gem = ""
-	selected_socket = -1
-	_key_armed = false
-	if on and (not _game.skills_owned.has(gem_skill) or Skills.weapon_of(gem_skill) != _game.weapon):
-		gem_skill = Skills.basic_of(_game.weapon)
 	refresh()
 
 
@@ -381,9 +315,6 @@ func open(shop := false) -> void:
 	selected_skill = ""
 	selected_slot = -1
 	_buy_armed = ""
-	selected_gem = ""
-	selected_socket = -1
-	_key_armed = false
 	_aura_problem = ""
 	refresh()
 	visible = true
@@ -403,11 +334,9 @@ func back() -> void:
 		weapon_menu.visible = false
 	elif picker.visible:
 		picker.close()
-	elif selected_skill != "" or selected_slot >= 0 or selected_gem != "" or selected_socket >= 0:
+	elif selected_skill != "" or selected_slot >= 0:
 		selected_skill = ""
 		selected_slot = -1
-		selected_gem = ""
-		selected_socket = -1
 		refresh()
 	else:
 		close()
@@ -423,14 +352,12 @@ func refresh() -> void:
 	weapon_button.text = tr("%s  ▾ Zmień broń") % Weapons.name_of(_game.weapon) if _game.spare_weapon == "" \
 			else tr("%s + %s  ▾ Bronie") % [Weapons.short_name_of(_game.weapon), Weapons.short_name_of(_game.spare_weapon)]
 	_refresh_weapon_menu()
-	if Skills.weapon_of(gem_skill) != _game.weapon:
-		gem_skill = Skills.basic_of(_game.weapon)
 	for i in Skills.ORDER.size():
 		var id: String = Skills.ORDER[i]
 		row_boxes[i].visible = Skills.weapon_of(id) == _game.weapon
 		var owned: bool = _game.skills_owned.has(id)
 		list_icons[i].draggable = owned
-		list_icons[i].show_skill(id, 0, (gem_skill == id) if gems_mode else (selected_skill == id))
+		list_icons[i].show_skill(id, 0, false if gems_mode else (selected_skill == id))
 		_show_row_gems(i)
 		list_icons[i].modulate = Color.WHITE if owned else Color(0.6, 0.6, 0.6)
 		var buy := buy_buttons[i]
@@ -480,13 +407,12 @@ func refresh() -> void:
 	skill_scroll.visible = not aura_mode
 	aura_scroll.visible = aura_mode
 	slots_row.visible = not gems_mode and not aura_mode
-	gems_box.visible = gems_mode
 	clear_button.visible = not gems_mode and not aura_mode
 	if aura_mode:
 		_refresh_auras()
 		return
 	if gems_mode:
-		_refresh_gems()
+		hint.text = tr("Stuknij umiejętność, żeby otworzyć jej kamienie: gniazda i kamienie do włożenia.")
 		return
 	clear_button.text = tr("Zdejmij")
 	clear_button.disabled = selected_slot < 0
@@ -501,14 +427,12 @@ func refresh() -> void:
 func _on_list_pressed(i: int) -> void:
 	var id: String = Skills.ORDER[i]
 	if gems_mode:
-		_key_armed = false
-		selected_socket = -1
 		if not _game.skills_owned.has(id):
 			refresh()
 			hint.text = _locked_hint(id)
 			return
-		gem_skill = id
-		refresh()
+		picker.open_skill(id, Skills.of_weapon(_game.weapon).filter(
+				func(s: String) -> bool: return _game.skills_owned.has(s)))
 		return
 	selected_slot = -1
 	if not _game.skills_owned.has(id):
@@ -559,12 +483,6 @@ func _on_dropped_to_list(_skill: String, from_area: String, from_index: int) -> 
 
 
 func _on_clear() -> void:
-	if gems_mode:
-		if selected_socket >= 0:
-			_game.unsocket_skill(gem_skill, selected_socket)
-			selected_socket = -1
-			refresh()
-		return
 	if selected_slot >= 0:
 		var slot := selected_slot
 		selected_slot = -1
@@ -914,160 +832,6 @@ func _show_row_gems(i: int) -> void:
 		icon.custom_minimum_size = Vector2(16, 16)
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		box.add_child(icon)
-
-
-## Zakładka „Kamienie”: gniazda wybranej umiejętności, sakwa i podpowiedź.
-func _refresh_gems() -> void:
-	var sockets: Array = _game.skill_sockets(gem_skill)
-	var open: int = _game.skill_open_count(gem_skill)
-	for i in Gems.SKILL_SOCKETS:
-		socket_slots[i].show_gem(sockets[i] if i < open else "", 0, selected_socket == i, i >= open)
-		var cap := socket_labels[i]
-		if i >= open:
-			cap.text = tr("zamknięte")
-			cap.add_theme_color_override("font_color", Color(1, 0.85, 0.6, 0.45))
-		elif sockets[i] == "":
-			cap.text = tr("puste")
-			cap.add_theme_color_override("font_color", DIM)
-		else:
-			cap.text = Gems.short_text(sockets[i], gem_skill)
-			cap.add_theme_color_override("font_color", Gems.color_of(sockets[i]))
-	for c in pouch_row.get_children():
-		pouch_row.remove_child(c)
-		c.queue_free()
-	# tylko kamienie, które pasują do wybranej umiejętności (prośba autora 15.11.2026): klucz, zwykłe kamienie wsparcia,
-	# a za złotą kreską jej kamień unikalny (unikalne innych umiejętności są ukryte)
-	var list: Array = []
-	var uniques: Array = []
-	for id in _game.gem_list("support"):
-		if not Gems.is_unique(id):
-			list.append(id)
-		elif Gems.unique_skill(id) == gem_skill:
-			uniques.append(id)
-	if _game.gem_count(Gems.KEY) > 0:
-		list.push_front(Gems.KEY)
-	if not list.has(selected_gem) and not uniques.has(selected_gem):
-		selected_gem = ""
-	for k in list.size() + uniques.size():
-		var id: String = list[k] if k < list.size() else uniques[k - list.size()]
-		if k == list.size():
-			pouch_row.add_child(_unique_divider())
-		var slot := GemSlot.new(44.0)
-		slot.area = "pouch"
-		slot.index = k
-		slot.show_gem(id, _game.gem_count(id), selected_gem == id)
-		slot.pressed.connect(_on_pouch_pressed.bind(id))
-		slot.dropped.connect(_on_dropped_to_pouch)
-		pouch_row.add_child(slot)
-	pouch_empty.visible = list.is_empty() and uniques.is_empty()
-	clear_button.text = tr("Wyjmij")
-	clear_button.disabled = selected_socket < 0
-	var skill_name := Skills.name_of(gem_skill)
-	if _key_armed:
-		hint.text = tr("Otworzyć gniazdo w: %s? Zużyje Klucz Runiczny (masz %d). Stuknij jeszcze raz.") \
-				% [skill_name, _game.gem_count(Gems.KEY)]
-	elif selected_gem != "" and Gems.is_special(selected_gem):
-		hint.text = tr("%s: %s") % [Gems.name_of(selected_gem), Gems.description(selected_gem)[0]]
-	elif selected_gem != "":
-		hint.text = tr("%s w: %s - %s Stuknij gniazdo.") % [Gems.name_of(selected_gem), skill_name,
-				Gems.support_text(selected_gem, gem_skill)]
-	elif selected_socket >= 0:
-		var id: String = sockets[selected_socket]
-		hint.text = tr("%s: %s „Wyjmij” odkłada kamień do sakwy.") % [Gems.name_of(id), Gems.support_text(id, gem_skill)]
-	else:
-		hint.text = tr("Kamienie w: %s. Stuknij gniazdo, żeby włożyć kamień, albo kamień, żeby zobaczyć, gdzie pasuje.") % skill_name
-
-
-## Złota kreska z napisem „Unikalny” oddzielająca kamień unikalny umiejętności od zwykłych kamieni w sakwie.
-func _unique_divider() -> Control:
-	var box := HBoxContainer.new()
-	box.add_theme_constant_override("separation", 3)
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var line := ColorRect.new()
-	line.color = GOLD
-	line.custom_minimum_size = Vector2(2, 40)
-	line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(line)
-	var text := _label(box, tr("Unikalny"), 9, GOLD)
-	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	text.size_flags_vertical = Control.SIZE_FILL
-	return box
-
-
-## Kamień w sakwie: GemPicker z listą umiejętności, gdzie pasuje (klucz - gdzie otworzyć gniazdo).
-func _on_pouch_pressed(id: String) -> void:
-	_key_armed = false
-	selected_socket = -1
-	selected_gem = ""
-	refresh()
-	picker.open_gem(id)
-
-
-func _on_socket_pressed(i: int) -> void:
-	var open: int = _game.skill_open_count(gem_skill)
-	if i >= open:
-		selected_gem = ""
-		selected_socket = -1
-		if _game.gem_count(Gems.KEY) <= 0:
-			_key_armed = false
-			refresh()
-			hint.text = tr("Gniazdo zamknięte. Otwiera je Klucz Runiczny - rzadki łup ze skrzyni Wodza.")
-		elif not _key_armed:
-			_key_armed = true
-			refresh()
-		else:
-			_key_armed = false
-			if _game.open_skill_socket(gem_skill):
-				_play(preload("res://assets/watra/glass_002.ogg"))
-			refresh()
-		return
-	_key_armed = false
-	selected_gem = ""
-	selected_socket = -1
-	refresh()
-	picker.open_skill_socket(gem_skill, i)
-
-
-## Wkłada kamień w gniazdo z komunikatem, gdy się nie da.
-func _put(id: String, i: int) -> void:
-	var problem: String = _game.skill_socket_problem(gem_skill, i, id)
-	selected_gem = ""
-	selected_socket = -1
-	if problem == "" and _game.socket_skill(gem_skill, i, id):
-		_play(preload("res://assets/watra/handleSmallLeather.ogg"))
-		refresh()
-		return
-	refresh()
-	if problem == "same":
-		hint.text = tr("%s ma już kamień tego rodzaju.") % Skills.name_of(gem_skill)
-	elif problem == "skill":
-		hint.text = tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(id))
-	elif problem == "basic":
-		hint.text = tr("Nie działa w zwykłym ciosie.")
-	elif problem == "trigger":
-		hint.text = tr("Działa tylko w umiejętnościach natychmiastowych.")
-
-
-func _on_dropped_to_socket(gem: String, from_area: String, from_index: int, i: int) -> void:
-	_key_armed = false
-	if from_area == "pouch":
-		_put(gem, i)
-	elif from_area == "socket" and from_index != i:
-		# przeniesienie między gniazdami tej samej umiejętności: wyjęcie i włożenie
-		var old: String = _game.skill_sockets(gem_skill)[i]
-		_game.unsocket_skill(gem_skill, from_index)
-		if old != "":
-			_game.unsocket_skill(gem_skill, i)
-			_game.socket_skill(gem_skill, from_index, old)
-		_put(gem, i)
-
-
-func _on_dropped_to_pouch(_gem: String, from_area: String, from_index: int) -> void:
-	if from_area == "socket":
-		selected_socket = -1
-		_game.unsocket_skill(gem_skill, from_index)
-		refresh()
 
 
 func _button(parent: Control, text: String) -> Button:

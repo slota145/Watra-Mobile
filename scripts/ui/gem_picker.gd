@@ -1,7 +1,12 @@
 class_name GemPicker
 extends Control
-## Wybór kamienia wysuwany od dołu ekranu (ustalone z autorem 13.11.2026) - dwie drogi wkładania kamieni:
-## - „najpierw gniazdo” (`open_skill_socket`, `open_item_socket`): lista tylko pasujących kamieni z sakwy, przy każdym
+## Wybór kamienia wysuwany od dołu ekranu (ustalone z autorem 13.11.2026) - drogi wkładania kamieni:
+## - karta umiejętności (`open_skill`, decyzje autora 26.11.2026 - zamiast gniazd i sakwy w zakładce „Kamienie”): u góry
+##   5 gniazd umiejętności (zaznaczone - pierwsze puste), pod nimi tylko kamienie, które da się włożyć w zaznaczone
+##   gniazdo, z „Włóż”/„Wymień”; okno zostaje otwarte, a zaznaczenie przechodzi na następne wolne gniazdo. Zajęte
+##   gniazdo - jego kamień z „Wyjmij” i „Ulepsz”; zamknięte - „Otwórz” Kluczem Runicznym (drugie stuknięcie
+##   potwierdza). Strzałki ‹ › w nagłówku - poprzednia / następna umiejętność (`skill_order`);
+## - „najpierw gniazdo” (`open_item_socket`): lista tylko pasujących kamieni z sakwy, przy każdym
 ##   co zrobi w tej umiejętności albo w tym przedmiocie (Gems.support_text, Gems.jewel_text); kamień, którego nie da się
 ##   włożyć, jest przygaszony z powodem (kamienie unikalne innych umiejętności są ukryte - prośba autora 15.11.2026); u góry kamień, który już siedzi w gnieździe, z przyciskiem „Wyjmij”;
 ## - „najpierw kamień” (`open_gem` - stuknięcie kamienia w sakwie): opis kamienia i lista miejsc, gdzie pasuje (kamień
@@ -23,7 +28,7 @@ const RED := Color(1, 0.5, 0.42)
 const PUT_SOUND := preload("res://assets/watra/handleSmallLeather.ogg")
 const GEM_SOUND := preload("res://assets/watra/glass_002.ogg")
 
-## Tryb: "skill_socket", "item_socket" albo "gem".
+## Tryb: "skill" (karta umiejętności), "item_socket" albo "gem".
 var mode := ""
 var skill := ""
 var item: Dictionary = {}
@@ -38,6 +43,12 @@ var scroll: ScrollContainer
 var close_button: Button
 ## Przyciski akcji w wierszach (do testów): klucz wiersza -> przycisk.
 var actions := {}
+## Karta umiejętności: umiejętności do przechodzenia strzałkami, pola 5 gniazd i strzałki.
+var skill_order: Array = []
+var socket_row: HBoxContainer
+var card_slots: Array[GemSlot] = []
+var prev_button: Button
+var next_button: Button
 var _panel: PanelContainer
 var _game: Node
 
@@ -74,8 +85,24 @@ func _ready() -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 5)
 	_panel.add_child(col)
-	title_label = _label(col, "", 16, GOLD, true)  # zawijane - długa nazwa nie rozpycha okna poza ekran
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 4)
+	col.add_child(header)
+	prev_button = _arrow(header, "‹", -1)
+	title_label = _label(header, "", 16, GOLD, true)  # zawijane - długa nazwa nie rozpycha okna poza ekran
+	title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	next_button = _arrow(header, "›", 1)
 	sub_label = _label(col, "", 11, DIM, true)
+	socket_row = HBoxContainer.new()
+	socket_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	socket_row.add_theme_constant_override("separation", 6)
+	col.add_child(socket_row)
+	for i in Gems.SKILL_SOCKETS:
+		var slot := GemSlot.new(48.0)
+		slot.index = i
+		slot.pressed.connect(_on_card_socket.bind(i))
+		socket_row.add_child(slot)
+		card_slots.append(slot)
 	scroll = ScrollContainer.new()
 	TouchUi.drag_scroll(scroll)  # przewijanie palcem po wierszach i przyciskach
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -92,11 +119,12 @@ func _ready() -> void:
 	col.add_child(close_button)
 
 
-## Gniazdo `i` umiejętności: pasujące kamienie umiejętności.
-func open_skill_socket(skill_id: String, i: int) -> void:
-	_open("skill_socket")
+## Karta umiejętności: jej gniazda i kamienie do włożenia; `order` - umiejętności pod strzałkami ‹ ›.
+func open_skill(skill_id: String, order: Array = []) -> void:
+	_open("skill")
 	skill = skill_id
-	index = i
+	skill_order = order
+	index = _first_free(-1)
 	_build()
 
 
@@ -130,6 +158,9 @@ func _open(new_mode: String) -> void:
 	gem = ""
 	title_label.remove_theme_color_override("font_color")
 	title_label.add_theme_color_override("font_color", GOLD)
+	socket_row.visible = new_mode == "skill"
+	prev_button.visible = false
+	next_button.visible = false
 	visible = true
 
 
@@ -139,8 +170,8 @@ func _build() -> void:
 		c.queue_free()
 	actions.clear()
 	match mode:
-		"skill_socket":
-			_build_skill_socket()
+		"skill":
+			_build_skill()
 		"item_socket":
 			_build_item_socket()
 		"gem":
@@ -156,28 +187,106 @@ func _fit() -> void:
 
 # --- najpierw gniazdo ---
 
-func _build_skill_socket() -> void:
-	title_label.text = tr("%s - gniazdo %d") % [Skills.name_of(skill), index + 1]
-	var current: String = _game.skill_sockets(skill)[index]
+## Karta umiejętności: gniazda u góry, pod nimi - zależnie od zaznaczonego gniazda - kamień w nim (Wyjmij, Ulepsz),
+## otwieranie kluczem (zamknięte) i kamienie z sakwy, które da się w nie włożyć.
+func _build_skill() -> void:
+	title_label.text = Skills.name_of(skill)
+	var many := skill_order.size() > 1 and skill_order.has(skill)
+	prev_button.visible = many
+	next_button.visible = many
+	var sockets: Array = _game.skill_sockets(skill)
+	var open: int = _game.skill_open_count(skill)
+	for i in Gems.SKILL_SOCKETS:
+		card_slots[i].show_gem(sockets[i] if i < open else "", 0, i == index, i >= open)
+	if index >= open:
+		sub_label.text = tr("Gniazdo %d - zamknięte") % (index + 1)
+		_key_row()
+		return
+	var current: String = sockets[index]
+	sub_label.text = tr("Gniazdo %d - stuknij kamień, żeby go włożyć, albo inne gniazdo") % (index + 1) if current == "" \
+			else tr("Gniazdo %d - wyjmij kamień albo wymień go na inny") % (index + 1)
 	_current_row(current, Gems.support_text(current, skill) if current != "" else "")
-	var gems: Array = _game.gem_list("support")
-	sub_label.text = tr("Kamienie umiejętności z sakwy - co zrobią w: %s") % Skills.name_of(skill)
-	if gems.is_empty():
-		_label(list, tr("Brak kamieni umiejętności. Wypadają w lochach od poziomu %d.") % Gems.MIN_LEVEL, 12, DIM, true)
-	for id in gems:
-		var problem: String = _game.skill_socket_problem(skill, index, id)
-		if problem == "skill":
-			continue  # kamień unikalny innej umiejętności - nie pokazujemy (prośba autora 15.11.2026)
-		var reason := tr("%s ma już kamień tego rodzaju.") % Skills.name_of(skill) if problem == "same" \
-				else tr("Nie działa w zwykłym ciosie.") if problem == "basic" \
-				else tr("Działa tylko w umiejętnościach natychmiastowych.") if problem == "trigger" \
-				else tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(id)) if problem == "skill" else ""
-		var b := _row(id, Gems.icon_of(id), Gems.name_of(id), Gems.color_of(id), Gems.support_text(id, skill),
-				reason, tr("Wymień") if current != "" else tr("Włóż"))
-		b.disabled = problem != ""
+	var fit: Array = []
+	for id in _game.gem_list("support"):
+		if _game.skill_socket_problem(skill, index, id) == "":
+			fit.append(id)
+	if fit.is_empty():
+		_label(list, tr("Brak kamieni, które pasują do tego gniazda. Kamienie wypadają w lochach od poziomu %d.")
+				% Gems.MIN_LEVEL, 12, DIM, true)
+		return
+	_label(list, tr("Kamienie z sakwy - co zrobią w: %s") % Skills.name_of(skill), 12, GOLD, true)
+	for id in fit:
+		var b := _row(id, Gems.icon_of(id), Gems.name_of(id), Gems.color_of(id), Gems.support_text(id, skill), "",
+				tr("Wymień") if current != "" else tr("Włóż"))
 		b.pressed.connect(func() -> void:
 			if _game.socket_skill(skill, index, id):
-				_done(PUT_SOUND))
+				_card_done(PUT_SOUND, true))
+
+
+## Zamknięte gniazdo: „Otwórz” Kluczem Runicznym (drugie stuknięcie potwierdza) albo skąd wziąć klucz.
+func _key_row() -> void:
+	var keys: int = _game.gem_count(Gems.KEY)
+	if keys <= 0:
+		_label(list, tr("Gniazdo zamknięte. Otwiera je Klucz Runiczny - rzadki łup ze skrzyni Wodza."), 12, DIM, true)
+		return
+	var b := _row("key", Gems.icon_of(Gems.KEY), Gems.name_of(Gems.KEY), Gems.color_of(Gems.KEY),
+			tr("Otwiera kolejne gniazdo tej umiejętności (masz %d).") % keys, "",
+			tr("Na pewno?") if armed == "key" else tr("Otwórz"))
+	b.pressed.connect(func() -> void:
+		if armed != "key":
+			armed = "key"
+			_build()
+			return
+		armed = ""
+		if _game.open_skill_socket(skill):
+			index = _game.skill_open_count(skill) - 1
+			_card_done(GEM_SOUND, false))
+
+
+## Stuknięcie gniazda na karcie - zaznacza je.
+func _on_card_socket(i: int) -> void:
+	index = i
+	armed = ""
+	_build()
+
+
+## Po zmianie na karcie: dźwięk, odświeżenie okna pod spodem; `advance` - zaznaczenie na następne wolne gniazdo.
+func _card_done(sound: AudioStream, advance: bool) -> void:
+	_play(sound)
+	changed.emit()
+	if advance:
+		index = _first_free(index)
+	_build()
+
+
+## Pierwsze puste otwarte gniazdo po `after` (dookoła); brak - zostaje `after` (na starcie: 0).
+func _first_free(after: int) -> int:
+	var sockets: Array = _game.skill_sockets(skill)
+	var open: int = _game.skill_open_count(skill)
+	for k in open:
+		var i := (after + 1 + k) % open
+		if sockets[i] == "":
+			return i
+	return maxi(after, 0)
+
+
+## Strzałka w nagłówku karty: poprzednia (-1) / następna (1) umiejętność z `skill_order`.
+func _arrow(parent: Control, text: String, step: int) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(44, 44)
+	b.add_theme_font_size_override("font_size", 20)
+	b.visible = false
+	b.pressed.connect(func() -> void:
+		var at := skill_order.find(skill)
+		if at < 0:
+			return
+		skill = skill_order[(at + step + skill_order.size()) % skill_order.size()]
+		armed = ""
+		index = _first_free(-1)
+		_build())
+	parent.add_child(b)
+	return b
 
 
 func _build_item_socket() -> void:
@@ -203,11 +312,14 @@ func _current_row(current: String, effect: String) -> void:
 	var b := _row("out", Gems.icon_of(current), tr("W gnieździe: %s") % Gems.name_of(current), Gems.color_of(current),
 			effect, "", tr("Wyjmij"))
 	b.pressed.connect(func() -> void:
-		var ok: bool = _game.unsocket_skill(skill, index) if mode == "skill_socket" else _game.unsocket_item(item, index)
+		var ok: bool = _game.unsocket_skill(skill, index) if mode == "skill" else _game.unsocket_item(item, index)
 		if ok:
-			_done(PUT_SOUND))
+			if mode == "skill":
+				_card_done(PUT_SOUND, false)  # karta zostaje otwarta
+			else:
+				_done(PUT_SOUND))
 	_upgrade_row(current, func() -> String:
-		return _game.upgrade_gem(current, skill, {}, index) if mode == "skill_socket" \
+		return _game.upgrade_gem(current, skill, {}, index) if mode == "skill" \
 				else _game.upgrade_gem(current, "", item, index))
 	var sep := HSeparator.new()
 	list.add_child(sep)

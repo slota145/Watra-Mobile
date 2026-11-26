@@ -2,7 +2,7 @@ extends SceneTree
 ## Zrzuty kamieni: okno umiejętności (zakładka „Kamienie”), okno „Postać” z sakwą i opisem broni z gniazdami,
 ## a w lochu walka - Rzut mieczem z Mnożeniem (widmowe miecze), Żar, Szron i Piorun na goblinach.
 ## Użycie: SCRIPT=tools/gem_shots.gd tools/screenshot.sh <prefiks> (rozdzielczość jako RESOLUTION)
-## Pliki: <prefiks>_1_umiejetnosci.png, _1b_gniazdo, _1c_kamien (wybór kamienia), _2_postac, _2b_statystyki, _2c_sakwa,
+## Pliki: <prefiks>_1_umiejetnosci.png, _1b_gniazdo (karta umiejętności), _1d_zajete (zaznaczone zajęte gniazdo), _1c_kamien (wybór kamienia), _2_postac, _2b_statystyki, _2c_sakwa,
 ## _2d_zaznaczanie (sakwa: „Zaznacz kilka”), _2e_ulepsz (okno kamienia z ulepszaniem), _2f_szlachetny,
 ## _3_opis, _3b_gniazdo, _4_rzut.png, _5_zar.png
 
@@ -53,16 +53,19 @@ func _run() -> void:
 	arena.open_skills()
 	var win: SkillsWindow = arena.skills_window
 	win.set_gems_mode(true)
-	win.list_icons[Skills.ORDER.find("throw")].pressed.emit()
 	await create_timer(0.2).timeout
 	await _shot("1_umiejetnosci")
-	win.socket_slots[2].pressed.emit()  # puste gniazdo: pasujące kamienie
+	win.list_icons[Skills.ORDER.find("throw")].pressed.emit()  # karta umiejętności: gniazda i kamienie
 	await create_timer(0.2).timeout
 	await _shot("1b_gniazdo")
+	for k in win.picker.actions:  # „Włóż” pierwszego kamienia z listy - zaznaczenie przechodzi dalej
+		win.picker.actions[k].pressed.emit()
+		break
+	win.picker.card_slots[0].pressed.emit()  # zajęte gniazdo: Wyjmij, Ulepsz
+	await create_timer(0.2).timeout
+	await _shot("1d_zajete")
 	win.picker.close()
-	for p in win.pouch_row.find_children("*", "GemSlot", true, false):
-		if p.gem == "ember:1":
-			p.pressed.emit()  # kamień z sakwy: gdzie pasuje
+	win.picker.open_gem("ember:1")  # kamień z sakwy: gdzie pasuje
 	await create_timer(0.2).timeout
 	await _shot("1c_kamien")
 	win.picker.close()
