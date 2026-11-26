@@ -20,7 +20,8 @@ SOURCES = {"strike": "fury", "whirl": "momentum", "throw": "chain", "slam": "her
            "s_reap": "echo", "s_square": "split", "s_mow": "brutal", "s_dance": "momentum", "s_mara": "venom",
            "spectral_blades": "echo", "m_smash": "brutal", "m_throw": "chain", "m_leap": "area", "m_quake": "herald",
            "r_thrust": "pierce", "r_lunge": "momentum", "r_riposte": "warlord", "r_flurry": "frost_edge", "r_swarm": "rime",
-           "l_roots": "chain", "l_acorn": "venom", "l_grasp": "pierce", "l_spores": "area", "l_treants": "warlord"}
+           "l_roots": "chain", "l_acorn": "venom", "l_grasp": "pierce", "l_spores": "area", "l_treants": "warlord",
+           "p_thrust": "split", "p_throw": "chain", "p_sunrise": "herald", "p_wheel": "area", "p_zenith": "brutal"}
 HUE = 42 / 360.0  # złoto
 # ikony z prawie bezbarwnym kamieniem (szary) - złocone po jasności, nie po nasyceniu
 FORCE = {"g_thrust"}

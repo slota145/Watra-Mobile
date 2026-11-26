@@ -97,6 +97,10 @@ def base(theme="fire"):
             r = int(14 + 8 * t + 70 * glow)
             g = int(22 + 14 * t + 100 * glow)
             b = int(38 + 22 * t + 120 * glow)
+        elif theme == "sun":  # głęboki brąz nocy ze złotą poświatą wschodzącego słońca od dołu (włócznia Prawii)
+            r = int(30 + 14 * t + 130 * glow)
+            g = int(20 + 10 * t + 96 * glow)
+            b = int(26 - 6 * t + 30 * glow)
         elif theme == "water":  # granat z turkusową poświatą od dołu
             r = int(10 + 6 * t + 20 * glow)
             g = int(20 + 20 * t + 70 * glow)

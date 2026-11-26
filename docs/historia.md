@@ -2,6 +2,35 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - Słoneczna włócznia Dadźboga - pierwsza broń Prawii, Katakumby wrażliwe na Prawię
+
+- **Ustalenia z autorem (26.11.2026):** broń fizyczna Prawii, 5 umiejętności. Autor podmienił Grad Promieni (za bardzo
+  jak rapier) na **Kołowrót Słońca** (dwa obroty nad głową jak Taniec Marzanny, potem wybuch światła po pierścieniu
+  jak przy Cięciu Światowida), a Zenit na **deszcz włóczni z nieba**. Pomysł autora z 3 aniołami (Claude: słowiańscy
+  Swarożyce zamiast aniołów) - odłożony na później jako kamień unikalny Zenitu (wymaga nowych postaci). Katakumby
+  wrażliwe na Prawię zamiast ognia (`Dungeons.RESISTS`, decyzja autora). Liczby i kamienie unikalne - propozycje Claude.
+- **Dane:** `Weapons.SPEAR` („Słoneczna włócznia”, Prawia, fizyczna, od lochu 45), umiejętności `p_*` w `Skills`
+  (opisy, działania 5./10. poziomu, ceny, znaczniki), kamienie unikalne i opisy Mnożenia w `Gems`.
+- **Broń** `scripts/proto/proto_spear.gd` (`ProtoSpear`, po `ProtoWeapon`):
+  - **Promienne Pchnięcie** (`p_thrust`, zwykły atak, zasięg 72): rani wszystkich na linii; 5. - co trzecie to promień
+    x2 dalej, 10. - rozbłysk przy pierwszym trafionym (40%); Kamień Trzech Promieni - 2 boczne promienie (50%).
+  - **Rzut Dadźboga** (`p_throw`): włócznia leci 150 px (gałka / najbliższy wróg), przebija, wraca i rani drugi raz;
+    w dłoni jej wtedy nie ma; 5. - +30% dalej, 10. - pierścień przy zawróceniu (60%); Kamień Sieci Swaroga - wracając
+    ciągnie wrogów ku postaci (`push_away` z ujemną siłą); Mnożenie - 3 wachlarzem.
+  - **Wschód Słońca** (`p_sunrise`): włócznia unosi się i wbija u stóp - krąg 62 px (5. - +30%, 10. - drugi rozbłysk
+    60%); Kamień Południa - słup-widmo 4 s, co 0,5 s rani (20%); Mnożenie - drugi, szerszy rozbłysk.
+  - **Kołowrót Słońca** (`p_wheel`): 2 obroty po 0,4 s (10. - 3) z krokiem naprzód (gałka / najbliższy wróg), wir
+    44 px rani co 0,13 s (35%), potem pierścień 92 px (5. - +30%) rani 160% i odpycha; Kamień Swarożyca - 8 promieni
+    (50%); Mnożenie - pierścień drugi raz.
+  - **Zenit** (`p_zenith`): 6 włóczni (5. - 8, Mnożenie +3) w 1 s - na wrogów w 130 px, potem losowo; złoty krąg
+    ostrzeżenia 0,25 s, upadek z nieba 0,18 s, promień z nieba, trafienie 26 px; 10. - wbite świecą 2 s i ranią;
+    Kamień Dadźboga - ogromna włócznia na elitę/bossa albo najzdrowszego (300%, 44 px).
+- **Grafika:** `assets/weapons/spear.png` (`tools/spear_art.py`, piksel po pikselu), ikony `assets/skills/spear/`
+  (`tools/spear_icons.py`, motyw tła „sun” w `tools/weapon_icons.py`), kamienie unikalne `tools/unique_gem_art.py`.
+- **Efekty z kreatora** (złote, w „My effects” autora): `spear_thrust`, `spear_hit`, `sun_ring`, `sun_spin`, `sky_beam`
+  (`pixellab_src/vfx/ids.json`, `tools/vfx_art.py`).
+- **Testy:** `tests/test_spear.gd` (dane, Katakumby, wszystkie umiejętności i kamienie unikalne).
+
 ## 25.11.2026 - Żywioł Prawia (światło bogów) - fundament
 
 - **Ustalenia z autorem (ankieta 25.11.2026):** nazwa **Prawia** (świat bogów, przeciwieństwo Nawii), działanie

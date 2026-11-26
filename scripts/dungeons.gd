@@ -31,7 +31,7 @@ const ORDER: Array[String] = [GOBLINS, FLOODED, CATACOMBS, PLAINS, SKY, VOLCANO,
 const RESISTS := {
 	GOBLINS: {},
 	FLOODED: {Elements.WATER: 0.2, Elements.LIGHTNING: -0.2},
-	CATACOMBS: {Elements.NAWIA: 0.2, Elements.FIRE: -0.2},
+	CATACOMBS: {Elements.NAWIA: 0.2, Elements.PRAWIA: -0.2},  # nieumarli wrażliwi na światło bogów (decyzja autora 26.11.2026)
 	PLAINS: {Elements.LIGHTNING: 0.2, Elements.COLD: -0.2},
 	VOLCANO: {Elements.FIRE: 0.2, Elements.WATER: -0.2},
 	SKY: {Elements.AIR: 0.2, Elements.EARTH: -0.2},

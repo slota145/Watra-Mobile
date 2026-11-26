@@ -19,6 +19,7 @@ const SCYTHE := "scythe"
 const HAMMER := "hammer"
 const RAPIER := "rapier"
 const STAFF := "staff"
+const SPEAR := "spear"
 ## name - nazwa, element - żywioł obrażeń (Elements), unlock - poziom lochu, po którego przebiciu broń jest za darmo,
 ## start - do wyboru przy tworzeniu postaci (START; decyzja autora 21.11.2026: miecz, łuk albo księga, dwie niewybrane
 ## od lochu 5 - Game.start_weapon), magic - broń magiczna (premia obrażeń magicznych, szybkość rzucania czarów).
@@ -49,8 +50,12 @@ const DATA := {
 	# Kostur Leszego - pierwsza broń natury, magiczna (pomysły autora 25.11.2026): truje, sadzonki, drzewce; od lochu 40
 	"staff": {"name": "Kostur Leszego", "short": "Kostur", "element": Elements.NATURE, "unlock": 40, "magic": true,
 		"icon": preload("res://assets/skills/staff/l_roots.png")},
+	# Słoneczna włócznia Dadźboga - pierwsza broń Prawii, fizyczna (ustalona z autorem 26.11.2026): oślepia i piętnuje,
+	# trafienia w napiętnowanych leczą; od lochu 45
+	"spear": {"name": "Słoneczna włócznia", "short": "Włócznia", "element": Elements.PRAWIA, "unlock": 45,
+		"icon": preload("res://assets/skills/spear/p_thrust.png")},
 }
-const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana", "scythe", "hammer", "rapier", "staff"]
+const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana", "scythe", "hammer", "rapier", "staff", "spear"]
 ## Bronie do wyboru przy tworzeniu postaci.
 const START: Array[String] = ["sword", "bow", "book"]
 ## Najwyższy poziom mistrzostwa (jak poziom postaci).
@@ -115,6 +120,8 @@ static func script_of(id: String) -> Script:
 			return ProtoRapier
 		STAFF:
 			return ProtoStaff
+		SPEAR:
+			return ProtoSpear
 	return ProtoWeapon
 
 
