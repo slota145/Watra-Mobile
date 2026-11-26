@@ -77,6 +77,16 @@ const DATA := {
 		{"f": "glow_shroom", "w": 3.0, "light": Color(0.45, 0.8, 1.0), "glow": 22.0},
 		{"f": "mushroom_ring", "w": 2.0, "flat": true},
 	],
+	# Świątynia Słońca (26.11.2026): kolumny, posągi i misy z ogniem z Katakumb Watry przebarwione na piaskowiec,
+	# złamane kolumny z Zatopionych podziemi, mozaika słońca i gruz (tools/temple_art.py); kolumny dają cień przed
+	# Promieniami słońca (ProtoSunbeams.sheltered)
+	Dungeons.TEMPLE: [
+		{"f": "pillar_0", "r": 8.0, "w": 3.0}, {"f": "pillar_2", "r": 9.0, "w": 3.0},
+		{"f": "statue_0", "r": 8.0, "w": 1.0}, {"f": "statue_1", "r": 9.0, "w": 1.0}, {"f": "statue_2", "r": 8.0, "w": 1.0},
+		{"f": "brazier", "r": 8.0, "w": 2.0, "light": Color(1.0, 0.75, 0.35), "glow": 46.0},
+		{"f": "pillar_fallen", "r": 14.0, "w": 1.2}, {"f": "pillar_stump", "r": 10.0, "w": 1.5},
+		{"f": "sun_mosaic", "w": 2.0, "flat": true}, {"f": "rubble", "w": 3.0, "flat": true},
+	],
 	Dungeons.VOLCANO: [
 		{"f": "bones", "w": 2.0, "flat": true}, {"f": "boulders", "w": 4.0},
 		{"f": "campfire", "w": 2.0, "frames": 4, "fps": 9.0, "light": Color(1.0, 0.5, 0.15), "glow": 48.0},

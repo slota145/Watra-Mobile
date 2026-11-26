@@ -965,6 +965,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 		var d := t.global_position.distance_to(hero.global_position)
 		mult *= 1.0 + point_blank if d <= Talismans.POINT_BLANK_NEAR else (1.0 - point_blank * 0.5 \
 				if d >= Talismans.POINT_BLANK_FAR else 1.0)
+	if hero != null and hero.blind_left > 0.0:  # postać oślepiona (Południca) - słabsze ciosy
+		mult *= 1.0 - ProtoHero.BLIND_WEAK
 	amount = roundi(amount * mult)
 	var boost := elem_total() if elem != Elements.PHYSICAL else 1.0  # premia żywiołów (broń żywiołu)
 	amount = roundi(amount * boost * magic_mult)  # broń magiczna: premia obrażeń magicznych

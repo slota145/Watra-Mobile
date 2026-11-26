@@ -1,0 +1,322 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: kumir
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.42, 0]}
+palette: "watra"
+size: 96
+extends: humanoid   # tylko szkielet szablonu; głowa, włosy, miecz, płaszcz, pas i szyja usunięte
+
+# Kumir: silny, powolny wróg lochu „Zajęta Świątynia Słońca” (żywioł Prawia - światło bogów). Ożywiony kamienny
+# posąg-bożek ze słowiańskiej świątyni: masywny, kanciasty, z jasnego piaskowca w ciepłym beżu i ochrze,
+# ok. 48 px wobec 36 px człowieka (ta sama camera.scale, jak żużlowy golem i dziki drzewiec). Ciężkie bloki
+# zamiast mięśni, wyprostowana, sztywna postawa słupa-bożka, płaska twarz-maska z wyrytymi rysami, na piersi
+# wyryta złota tarcza słońca (koło z promieniami), pęknięcia w kamieniu z prześwitującym złotym światłem
+# (warstwa świecąca: oczy, pęknięcia, znak słońca). Duże kamienne pięści-bloki.
+# Cała postać rośnie przez kość `big` (1.55) pod `root`; przy śmierci kruszy się w stos bloków piaskowca.
+brief:
+  summary: >
+    kumir of the occupied Temple of the Sun: an animated sandstone idol statue from a Slavic temple, a slow heavy
+    tank. About 48 px tall against a 36 px human (same density), upright and stiff like a carved pillar: big
+    angular blocks of warm beige-ochre sandstone instead of muscles, a flat carved god-mask face, a golden sun
+    wheel carved on the chest, cracks in the stone with golden light shining through, big block fists
+  head: >
+    a big square stone block sitting low on the chest (a short neck block), its front a flat mask: a heavy
+    straight carved brow, two glowing golden eye slits under it (the face, minimal style), a carved straight
+    mouth line and a flat moustache band; a low flat crown ridge on top (the idol's cap)
+  must_keep:
+    - the sun wheel on the chest - a golden ring with spokes, glowing; reads at a glance from s and the diagonals
+    - the golden light - eyes, the sun wheel, cracks on the chest, arms and legs (emissive)
+    - the mass and stiffness - square shoulders, a pillar torso, block fists; light sandstone, darker carved lines
+    - death - the light goes out and he crumbles into a heap of sandstone blocks
+  simplify:
+    - the body is a few big blocks (pelvis block, chest block, shoulder blocks, the head block); carving and cracks
+      are paint, not gaps in the geometry
+    - no fingers: each fist is one block with a knuckle band
+  decisions:
+    - the whole body grows through the bone `big` (1.55); IK lengths are world units, set by hand
+    - the light is two paint layers on every crack and on the sun wheel - a dim one (sun_dim, width x `ember`) under
+      a bright one (width x `glow`); idle pulses `glow`, death drives `glow` and then `ember` to 0
+    - stiffness - the walk has almost no twist and a small bob, the steps are short and heavy, the arms swing little
+    - attack - both fists raised high over the head (held - the game's warning circle), a fast smear frame, the fists
+      hit the ground in front (`hit` at 750 ms, socket `impact`), a hold, a slow recovery; total 1050 ms
+    - frame 96 px, camera.center y 1.42 (the raised fists fit)
+
+ramps:
+  # jasny piaskowiec: ciepły beż i ochra
+  sandstone: ["#140c07", "#4a301e", "#77553a", "#a07e55", "#c4a572", "#e0c995"]
+  # wyryte linie (ciemniejsza ochra, bez obrysu)
+  carve:     ["#150d08", "#3e2818", "#5c4128", "#755638"]
+  # złote światło bogów: od ciemnej ochry do białego złota
+  sun:       ["#2a1606", "#7a4a10", "#c77e15", "#f0c142", "#f8e27a", "#fffbe0"]
+  # smuga ciosu: złote światło
+  fx_tail: ["#c77e15"]
+  fx_mid:  ["#f8e27a"]
+  fx_core: ["#fffbe0"]
+
+materials:
+  sandstone: {ramp: sandstone, finish: matte, crease: true, edge_highlight: true, gamma: 1.5}
+  carve:     {ramp: carve, bands: [1, 2], outline: false, line: false}
+  sun:       {ramp: sun, emissive: true, band: 3, outline: false, glow: {color: "#f0c142", mix: 0.3, radius: 1}}
+  sun_dim:   {ramp: sun, emissive: true, band: 2, outline: false}
+  sun_core:  {ramp: sun, emissive: true, band: 5, outline: false, glow: {color: "#f8e27a", mix: 0.4, radius: 1}}
+  eye:       {ramp: sun, emissive: true, band: 5, outline: false, glow: {color: "#f8e27a", mix: 0.35, radius: 1}}
+
+remove: [use.sword, use.head, use.hair, parts.belt, parts.coat, parts.neck]
+
+shadow: {rx: 22, ry: 8, alpha: 130}
+snap: [root, torso_rot]   # ruch ciała o całe piksele: powolne kołysanie nie migocze
+
+channels:
+  hand_L: [0.50, -0.20, 0.08]
+  hand_R: [0.50, -0.20, 0.08]
+  foot_L: [0.16, 0, 0.02]
+  glow: 1        # jasne światło w pęknięciach i znaku słońca (idle pulsuje, śmierć gasi)
+  ember: 1       # przygaszone światło pod jasnym (śmierć gasi je na końcu)
+  rubble: 0      # śmierć: stos bloków
+  smear_r: 0.55
+  smear_y: 0.55
+  smear_z: 0.35
+
+bones:
+  big:        {parent: root, scale: 1.55}
+  torso_rot:  {parent: big, pos: "[0, 0.70 + bob, 0]", rot: "[lean + 0.03, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  fxspace:    {parent: big}
+  headbase:   {pos: [0, 0.56, 0.04], scale: 1.7, rot: "[lean*0.6 - 0.03, twist, roll]"}
+  head:       {scale: 1.0}
+  shoulder_L: {pos: [0.36, 0.42, 0.0]}
+  hip_L:      {pos: [0.15, -0.02, 0.0]}
+
+ik:   # jednostki świata (bez skali `big`)
+  arm_L: {lengths: [0.60, 0.58], pole: [0.4, 0.0, -1.0]}
+  leg_L: {space: big, lengths: [0.53, 0.52]}
+
+parts:
+  torso:           # słup bożka: blok miednicy, wysoki blok piersi z tarczą słońca, kanciaste barki
+    material: sandstone
+    space: pelvis
+    blend: {mode: chamfer, k: 0.03}
+    prims:
+      - box: {c: [0, 0.03, 0.0], half: [0.22, 0.10, 0.16], round: 0.03}
+      - box: {c: [0, 0.27, 0.01], half: [0.27, 0.16, 0.18], round: 0.04}
+      - box: {c: [0, 0.44, -0.01], half: [0.36, 0.07, 0.18], round: 0.04}
+    paint:
+      - material: carve         # wyryte linie: pas między miednicą a piersią, obwódka tarczy
+        prims:
+          - box: {c: [0, 0.115, 0.0], half: [0.4, 0.012, 0.4]}
+          - torus: {c: [0, 0.28, 0.19], R: 0.165, r: 0.014, rot: [1.5708, 0, 0]}
+      - material: sun_dim       # pęknięcia (przygaszone) i tarcza słońca
+        prims:
+          - box: {c: [0.23, 0.12, 0.2], half: ["0.016*ember", 0.06, 0.2], rot: [0, 0, 0.45]}
+          - box: {c: [-0.17, 0.36, 0.2], half: [0.07, "0.016*ember", 0.2], rot: [0, 0, 0.3]}
+          - box: {c: [0.08, 0.03, 0.2], half: ["0.016*ember", 0.07, 0.2], rot: [0, 0, -0.5]}
+          - box: {c: [0, 0.30, -0.25], half: ["0.018*ember", 0.14, 0.1], rot: [0, 0, 0.25]}
+          - torus: {c: [0, 0.28, 0.19], R: 0.13, r: "0.026*ember", rot: [1.5708, 0, 0]}
+      - material: sun           # jasne światło: pęknięcia, koło i promienie tarczy
+        prims:
+          - box: {c: [0.23, 0.12, 0.2], half: ["0.010*glow", 0.06, 0.2], rot: [0, 0, 0.45]}
+          - box: {c: [-0.17, 0.36, 0.2], half: [0.07, "0.010*glow", 0.2], rot: [0, 0, 0.3]}
+          - box: {c: [0.08, 0.03, 0.2], half: ["0.010*glow", 0.07, 0.2], rot: [0, 0, -0.5]}
+          - box: {c: [0, 0.30, -0.25], half: ["0.012*glow", 0.14, 0.1], rot: [0, 0, 0.25]}
+          - torus: {c: [0, 0.28, 0.19], R: 0.13, r: "0.017*glow", rot: [1.5708, 0, 0]}
+          - box: {c: [0, 0.28, 0.19], half: [0.12, "0.009*glow", 0.05]}
+          - box: {c: [0, 0.28, 0.19], half: ["0.009*glow", 0.12, 0.05]}
+          - box: {c: [0, 0.28, 0.19], half: [0.12, "0.008*glow", 0.05], rot: [0, 0, 0.785]}
+          - box: {c: [0, 0.28, 0.19], half: [0.12, "0.008*glow", 0.05], rot: [0, 0, -0.785]}
+      - material: sun_core      # środek słońca
+        prims:
+          - sphere: {c: [0, 0.28, 0.19], r: "0.028*glow"}
+  pauldron_L:      # kanciasty blok barku
+    material: sandstone
+    space: pelvis
+    blend: 0.02
+    prims:
+      - box: {c: [0.38, 0.45, 0.0], half: [0.12, 0.09, 0.15], rot: [0, 0, -0.12], round: 0.03}
+    paint:
+      - material: carve
+        prims:
+          - box: {c: [0.38, 0.40, 0.0], half: [0.3, 0.012, 0.3], rot: [0, 0, -0.12]}
+  neck:            # krótki blok szyi
+    material: sandstone
+    space: pelvis
+    prims:
+      - box: {c: [0, 0.53, 0.02], half: [0.11, 0.05, 0.10], round: 0.02}
+  head:            # kwadratowy blok głowy z płaską maską i niską czapą bożka
+    material: sandstone
+    space: head
+    blend: {mode: chamfer, k: 0.02}
+    prims:
+      - box: {c: [0, 0.10, 0.0], half: [0.11, 0.11, 0.10], round: 0.02}
+      - box: {c: [0, 0.10, 0.08], half: [0.115, 0.115, 0.03], round: 0.01}
+      - box: {c: [0, 0.225, -0.01], half: [0.125, 0.025, 0.11], round: 0.01}
+    paint:
+      - material: carve        # wyryta brew, wąsy i usta maski
+        prims:
+          - box: {c: [0, 0.15, 0.12], half: [0.10, 0.012, 0.05]}
+          - box: {c: [0, 0.055, 0.12], half: [0.07, 0.010, 0.05]}
+          - box: {c: [0, 0.025, 0.12], half: [0.04, 0.008, 0.05]}
+          - box: {c: [0, 0.2, 0.0], half: [0.2, 0.008, 0.2]}
+  eye_L:           # świecąca szczelina oka pod brwią
+    material: eye
+    space: head
+    when: "glow > 0.35"
+    prims:
+      - extrude: {c: [0.048, 0.115, 0.11], depth: 0.04, profile: {rect: [0.03, 0.016], round: 0.004}}
+  arm_L:           # ciężkie ramiona z bloków
+    material: sandstone
+    space: big
+    blend: 0.02
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.09}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.095, 0.085]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.085, 0.09]}
+    paint:
+      - material: carve
+        prims:
+          - cylinder: {a: {between: ["@shoulder_L", "@elbow_L"], t: 0.98}, b: {between: ["@elbow_L", "@wrist_L"], t: 0.06}, r: 0.2}
+      - material: sun_dim
+        prims:
+          - cylinder: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.45}, b: {between: ["@elbow_L", "@wrist_L"], t: "0.45 + 0.06*ember"}, r: 0.2}
+      - material: sun
+        prims:
+          - cylinder: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.46}, b: {between: ["@elbow_L", "@wrist_L"], t: "0.46 + 0.035*glow"}, r: 0.2}
+  hand_L:          # pięść-blok (kości nadgarstka bez skali: jednostki świata)
+    material: sandstone
+    space: wrist_L
+    blend: {mode: chamfer, k: 0.03}
+    prims:
+      - box: {c: [0, 0, 0.18], half: [0.21, 0.20, 0.20], rot: [0.1, 0.2, 0.05], round: 0.04}
+      - box: {c: [0, -0.01, 0.35], half: [0.19, 0.15, 0.06], round: 0.03}
+    paint:
+      - material: carve
+        prims:
+          - box: {c: [0, 0, 0.29], half: [0.4, 0.4, 0.014]}
+  leg_L:           # grube, proste nogi-słupy
+    material: sandstone
+    space: big
+    blend: 0.02
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.13, 0.11]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.11, 0.12]}
+    paint:
+      - material: sun_dim
+        prims:
+          - cylinder: {a: {between: ["@knee_L", "@ankle_L"], t: 0.35}, b: {between: ["@knee_L", "@ankle_L"], t: "0.35 + 0.08*ember"}, r: 0.2}
+      - material: sun
+        prims:
+          - cylinder: {a: {between: ["@knee_L", "@ankle_L"], t: 0.36}, b: {between: ["@knee_L", "@ankle_L"], t: "0.36 + 0.045*glow"}, r: 0.2}
+  boot_L:          # płaska kamienna stopa-cokół
+    material: sandstone
+    space: sole_L
+    blend: 0.02
+    prims:
+      - box: {c: [0, -0.02, 0.05], half: [0.11, 0.05, 0.15], round: 0.02}
+  rubble:          # śmierć: stos bloków piaskowca (rozmiary rosną z `rubble`)
+    material: sandstone
+    space: big
+    when: "rubble > 0.02"
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.10, 0.10], half: "[0.30, 0.12, 0.26]*rubble", rot: [0.1, 0.2, 0.05], round: 0.03}
+      - box: {c: [0.36, 0.07, 0.30], half: "[0.13, 0.09, 0.11]*rubble", rot: [0.2, 0.5, 0.1], round: 0.02}
+      - box: {c: [-0.40, 0.06, 0.18], half: "[0.12, 0.08, 0.12]*rubble", rot: [0.1, -0.4, 0.2], round: 0.02}
+      - box: {c: [0.08, 0.08, 0.50], half: "[0.13, 0.09, 0.10]*rubble", rot: [0.3, 0.8, 0.0], round: 0.02}
+      - box: {c: [-0.24, 0.07, 0.44], half: "[0.10, 0.08, 0.09]*rubble", rot: [0.0, 0.3, 0.3], round: 0.02}
+      - box: {c: [0.32, 0.07, -0.18], half: "[0.12, 0.08, 0.11]*rubble", rot: [0.2, 1.1, 0.0], round: 0.02}
+      - box: {c: [-0.30, 0.07, -0.16], half: "[0.11, 0.08, 0.10]*rubble", rot: [0.1, 0.6, 0.2], round: 0.02}
+      - box: {c: [0.05, 0.26, 0.05], half: "[0.12, 0.08, 0.11]*rubble", rot: [0.3, 0.4, 0.2], round: 0.02}
+    paint:
+      - material: sun_dim
+        prims:
+          - box: {c: [0, 0.14, 0.12], half: [0.6, "0.012*ember", 0.6], rot: [0.15, 0, 0.1]}
+          - box: {c: [0.1, 0.12, 0.3], half: ["0.012*ember", 0.3, 0.3], rot: [0, 0.6, 0]}
+
+sockets:
+  impact: {bone: big, offset: [0, 0.02, 0.60]}   # ziemia przed nim, gdzie lądują pięści (pył uderzenia)
+  fist_L: {bone: wrist_L, offset: [0, 0, 0.2]}
+  sun: {bone: pelvis, offset: [0, 0.28, 0.2]}    # znak słońca na piersi (błysk)
+
+animations:
+  # ledwie widoczne kołysanie słupa i pulsowanie złotego światła
+  idle:
+    frames: 8
+    ms: 170
+    channels:
+      bob: "0.02*sin(p)"
+      roll: "0.015*sin(p)"
+      head_pitch: "0.03*sin(p - 0.8)"
+      glow: "1.05 + 0.3*sin(p)"
+      hand_L: "[0.50, -0.20 + 0.02*sin(p - 0.6), 0.08]"
+      hand_R: "[0.50, -0.20 + 0.02*sin(p - 0.6), 0.08]"
+  # ciężkie, sztywne kroki: krótki krok, prawie bez skrętu, ciało przechyla się na stronę nogi podporowej
+  walk:
+    frames: 8
+    ms: 150
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: "0.04"
+      bob: "-0.04*cos(2*p) - 0.01"
+      squash: "1 - 0.02*cos(2*p)"
+      twist: "0.04*cos(p)"
+      roll: "0.08*sin(p)"
+      glow: "1.0 + 0.2*cos(2*p)"
+      foot_L: "[0.16, 0.07*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1)), 0.03 + 0.18 - 0.36*clamp(p/tau/0.5, 0, 1) + 0.36*clamp((p/tau - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau - 0.5)/0.5, 0, 1))]"
+      foot_R: "[0.16, 0.07*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)), 0.03 + 0.18 - 0.36*clamp((p/tau + 0.5 - floor(p/tau + 0.5))/0.5, 0, 1) + 0.36*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1)**2*(3 - 2*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))]"
+      pitch_foot_L: "0.15*sin(pi*clamp((p/tau - 0.5)/0.5, 0, 1))"
+      pitch_foot_R: "0.15*sin(pi*clamp((p/tau + 0.5 - floor(p/tau + 0.5) - 0.5)/0.5, 0, 1))"
+      hand_L: "[0.50, -0.19 + 0.02*pos(cos(p)), 0.08 - 0.08*cos(p)]"
+      hand_R: "[0.50, -0.19 + 0.02*pos(-cos(p)), 0.08 + 0.08*cos(p)]"
+  # obie pięści wysoko nad głową (trzymane: czerwone koło w grze), szybka klatka ze smugą, pięści uderzają
+  # w ziemię przed nim (`hit` po 750 ms), krótkie trzymanie, powolny powrót; razem 1050 ms
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {lean: 0.12, bob: -0.05, squash: 0.95, head_pitch: 0.06,
+          hand_L: [0.28, -0.14, 0.28], hand_R: [0.28, -0.14, 0.28]}}
+      - {ms: 150, set: {lean: 0.0, bob: 0.0, squash: 1.0, head_pitch: -0.04, glow: 1.2,
+          hand_L: [0.26, 0.38, 0.22], hand_R: [0.26, 0.38, 0.22], foot_L: [0.17, 0, 0.08], foot_R: [0.17, 0, -0.04]}}
+      - {ms: 210, set: {lean: -0.16, bob: 0.03, squash: 1.04, head_pitch: -0.08, glow: 1.4,
+          hand_L: [0.18, 0.86, 0.02], hand_R: [0.18, 0.86, 0.02], foot_L: [0.17, 0, 0.10], foot_R: [0.17, 0, -0.05]}}
+      - {ms: 210, set: {lean: -0.20, bob: 0.04, squash: 1.05, head_pitch: -0.10, glow: 1.5,
+          hand_L: [0.16, 0.92, -0.04], hand_R: [0.16, 0.92, -0.04], foot_L: [0.17, 0, 0.10], foot_R: [0.17, 0, -0.05]}}
+      - {ms: 60, set: {lean: 0.12, bob: -0.02, squash: 1.0, head_pitch: 0.04, glow: 1.4,
+          hand_L: [0.14, 0.45, 0.50], hand_R: [0.14, 0.45, 0.50], foot_L: [0.17, 0, 0.14], foot_R: [0.17, 0, -0.06],
+          smear_w: 0.12, smear_a0: 2.0, smear_a1: 0.7}}
+      - {ms: 100, event: hit, set: {root: [0, 0, 0.07], lean: 0.42, bob: -0.12, squash: 0.90, head_pitch: 0.10, glow: 1.7,
+          hand_L: [0.14, 0.0, 0.72], hand_R: [0.14, 0.0, 0.72], foot_L: [0.17, 0, 0.18], foot_R: [0.17, 0, -0.07],
+          smear_w: 0.10, smear_a0: 1.0, smear_a1: -0.6, smear_fade: 0.6}}
+      - {ms: 100, set: {root: [0, 0, 0.07], lean: 0.40, bob: -0.11, squash: 0.92, head_pitch: 0.08, glow: 1.3,
+          hand_L: [0.14, 0.01, 0.72], hand_R: [0.14, 0.01, 0.72], foot_L: [0.17, 0, 0.18], foot_R: [0.17, 0, -0.07]}}
+      - {ms: 100, set: {root: [0, 0, 0.03], lean: 0.18, bob: -0.04, squash: 0.97, glow: 1.1,
+          hand_L: [0.34, -0.28, 0.30], hand_R: [0.34, -0.28, 0.30], foot_L: [0.17, 0, 0.07]}}
+  # trafienie: ledwie drgnie - ciało cofa się o piksel, światło rozbłyska
+  hit:
+    loop: false
+    keys:
+      - {ms: 80, set: {root: [0, 0, -0.025], lean: -0.05, bob: -0.02, squash: 0.97, head_pitch: -0.10, glow: 1.7,
+          hand_L: [0.46, -0.28, 0.04], hand_R: [0.46, -0.28, 0.04]}}
+      - {ms: 80, set: {root: [0, 0, -0.015], lean: -0.02, bob: -0.01, squash: 0.99, head_pitch: -0.04, glow: 1.35,
+          hand_L: [0.47, -0.27, 0.06], hand_R: [0.47, -0.27, 0.06]}}
+      - {ms: 80, set: {lean: 0.04, head_pitch: 0.02, glow: 1.1}}
+  # śmierć: odrzut, światło gaśnie, posąg pęka, zapada się i kruszy w stos bloków piaskowca
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.03], lean: -0.12, bob: -0.02, squash: 0.97, head_pitch: -0.15, glow: 1.7,
+          hand_L: [0.54, -0.12, 0.0], hand_R: [0.54, -0.12, 0.0]}}
+      - {ms: 140, set: {root: [0, 0, -0.03], lean: 0.15, bob: -0.10, squash: 0.95, head_pitch: 0.2, glow: 0.9,
+          hand_L: [0.54, -0.20, 0.14], hand_R: [0.54, -0.20, 0.14], foot_L: [0.19, 0, 0.05], foot_R: [0.19, 0, 0.0]}}
+      - {ms: 140, set: {lean: 0.30, bob: -0.26, squash: 0.85, head_pitch: 0.3, glow: 0.5, rubble: 0.35,
+          hand_L: [0.48, -0.12, 0.26], hand_R: [0.48, -0.12, 0.26], foot_L: [0.23, 0, 0.10], foot_R: [0.23, 0, 0.06]}}
+      - {ms: 130, set: {lean: 0.38, bob: -0.32, squash: 0.70, head_pitch: 0.4, glow: 0.25, rubble: 0.7,
+          hand_L: [0.47, 0.0, 0.34], hand_R: [0.47, 0.0, 0.34], foot_L: [0.25, 0, 0.12], foot_R: [0.25, 0, 0.08]}}
+      - {ms: 130, set: {lean: 0.40, bob: -0.36, squash: 0.58, head_pitch: 0.45, glow: 0.0, ember: 0.8, rubble: 0.95,
+          hand_L: [0.50, 0.08, 0.38], hand_R: [0.50, 0.08, 0.38], foot_L: [0.25, 0, 0.10], foot_R: [0.25, 0, 0.06]}}
+      - {ms: 160, set: {lean: 0.40, bob: -0.37, squash: 0.56, head_pitch: 0.45, glow: 0.0, ember: 0.45, rubble: 1.0,
+          hand_L: [0.50, 0.08, 0.38], hand_R: [0.50, 0.08, 0.38], foot_L: [0.25, 0, 0.10], foot_R: [0.25, 0, 0.06]}}
+      - {ms: 700, set: {lean: 0.40, bob: -0.37, squash: 0.56, head_pitch: 0.45, glow: 0.0, ember: 0.0, rubble: 1.02,
+          hand_L: [0.50, 0.08, 0.38], hand_R: [0.50, 0.08, 0.38], foot_L: [0.25, 0, 0.10], foot_R: [0.25, 0, 0.06]}}
+
+timing:
+  attack: {hit: 750ms, total: 1050ms}

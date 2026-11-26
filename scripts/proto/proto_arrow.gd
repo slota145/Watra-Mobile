@@ -73,6 +73,15 @@ const THORN_FLY_ANCHOR := Vector2(17, 8)
 const THORN_HIT := preload("res://assets/effects/poison_hit.png")
 const THORN_HIT_FRAMES := 8
 const THORN_HIT_ANCHOR := Vector2(14, 17)
+## Promień światła (Żar-ptak, Świątynia Słońca): złota smuga pchnięcia włóczni jako lecący promień (jedna, pełna klatka),
+## trafienie - złota gwiazdka; żywioł Prawia.
+const RAY_FLY := preload("res://assets/effects/spear_thrust.png")
+const RAY_FLY_FRAMES := 7
+const RAY_FLY_FRAME := 1
+const RAY_FLY_ANCHOR := Vector2(40, 7)
+const RAY_HIT := preload("res://assets/effects/spear_hit.png")
+const RAY_HIT_FRAMES := 8
+const RAY_HIT_ANCHOR := Vector2(20, 19)
 const SOAK_SLOW := 0.25
 const SOAK_TIME := 2.0
 
@@ -98,6 +107,8 @@ var wind := false
 var ice := false
 ## Cierń (Borowiec).
 var thorn := false
+## Promień światła (Żar-ptak).
+var ray := false
 
 var _flown := 0.0
 var _done := false
@@ -116,6 +127,8 @@ func _ready() -> void:
 		element = Elements.COLD
 	if thorn:
 		element = Elements.NATURE
+	if ray:
+		element = Elements.PRAWIA
 	_sprite = Sprite2D.new()
 	_sprite.texture = ORB_FLY if orb else (NAWIA_FLY if nawia else (WATER_FLY if bubble else FLY))
 	_sprite.hframes = ORB_FLY_FRAMES if orb else (NAWIA_FLY_FRAMES if nawia else (WATER_FLY_FRAMES if bubble else FLY_FRAMES))
@@ -134,6 +147,11 @@ func _ready() -> void:
 		_sprite.texture = THORN_FLY
 		_sprite.hframes = THORN_FLY_FRAMES
 		_sprite.offset = -THORN_FLY_ANCHOR
+	if ray:
+		_sprite.texture = RAY_FLY
+		_sprite.hframes = RAY_FLY_FRAMES
+		_sprite.offset = -RAY_FLY_ANCHOR
+		_sprite.scale = Vector2(0.8, 1.0)
 	_sprite.modulate = tint
 	_sprite.position = Vector2(0, -_height)
 	_sprite.rotation = direction.angle()
@@ -142,7 +160,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
-	_sprite.frame = int(_time * FLY_FPS) % _sprite.hframes
+	_sprite.frame = RAY_FLY_FRAME if ray else int(_time * FLY_FPS) % _sprite.hframes
 	if _done:
 		return
 	var step := speed * delta
@@ -170,7 +188,9 @@ func _finish(hit: bool) -> void:
 	_done = true
 	if hit:
 		var fx: Sprite2D
-		if thorn:
+		if ray:
+			fx = Fx.once(get_parent(), RAY_HIT, RAY_HIT_FRAMES, 18.0, global_position + Vector2(0, -_height), RAY_HIT_ANCHOR, 20, 0.8)
+		elif thorn:
 			fx = Fx.once(get_parent(), THORN_HIT, THORN_HIT_FRAMES, 16.0, global_position + Vector2(0, -_height), THORN_HIT_ANCHOR, 20, 0.8)
 		elif ice:
 			fx = Fx.once(get_parent(), ICE_HIT, ICE_HIT_FRAMES, 16.0, global_position + Vector2(0, -_height), ICE_HIT_ANCHOR, 20, 0.7)

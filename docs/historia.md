@@ -2,6 +2,33 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - Dziewiąty loch: Świątynia Słońca (Prawia), Swarożyc, Promienie słońca
+
+- **Ustalenia z autorem (ankieta 26.11.2026):** klimat Zajęta Świątynia Słońca (sanktuarium Dadźboga zajęte przez
+  Hordę), potwory z mitów (Południca, Żar-ptak, kumir), boss Swarożyc-strażnik (nawiązanie do pomysłu z aniołami),
+  mechanika Promienie słońca. Liczby - propozycje Claude.
+- **Drabinka:** `Dungeons.TEMPLE` („Świątynia Słońca”) na **41-45** po Prastarym Borze; krąg ma teraz 45 poziomów
+  (drugi od 46). Odporności: Prawia +20%, Nawia -20%.
+- **Potwory** (modele SpriteKiln): Południca `proto_poludnica.gd` (zwykła, 34 zdrowia, szybka 46 px/s; Prawia,
+  cięcie sierpem oślepia - nowe `ProtoHero.blind`: przez 1,5 s ciosy postaci o 25% słabsze, złote błyski i napis
+  „Oślepiony!”), Żar-ptak `proto_zar_ptak.gd` (strzelający jak goblin łucznik; promień światła - `ProtoArrow.ray`,
+  efekty włóczni `spear_thrust`/`spear_hit`), kumir `proto_kumir.gd` (silny jak osiłek, 230 zdrowia, 19 px/s,
+  cios 28; w kole pierścień światła `sun_ring`).
+- **Promienie słońca** `proto_sunbeams.gd` (`arena.sunbeams`, tylko w tym lochu): co 6-9 s zapowiedź - blady pas
+  (34 px szerokości, 460 długości) 110 px przed postacią przez 1,2 s, potem pas rozbłyska i sunie 250 px z prędkością
+  70 px/s; postać w pasie co 0,5 s obrywa 9 (Prawia). Cień kolumn chroni: każda ozdoba z przeszkodą >= 7 px rzuca
+  cień w stronę ruchu pasa (38 px + promień; ciemny pas na ziemi, gdy promień jest blisko) - `ProtoSunbeams.sheltered`.
+  Rysowane w grze: warstwa światła (dodawana) i warstwa cieni.
+- **Boss Swarożyc** `proto_swarozyc.gd` (po `ProtoChief`, 1350 zdrowia; model SpriteKiln): wypad włócznią (pas
+  170x26, 1 s zapowiedzi, przelot 0,16 s - 30 i oślepienie), promienie z nieba (5 kół wokół postaci, poniżej połowy
+  zdrowia 7, po kolei `sky_beam`, 22), przywołanie (co 14 s: 2 mniejszych Swarożyców, poniżej połowy - 3).
+  Mniejszy Swarożyc `proto_swarozyc_minion.gd` - ten sam model zmniejszony do 0,7, półprzezroczysty (70 zdrowia,
+  cios 14; `minion_kind` "swarozyc" w `ProtoHorde.make_monster`).
+- **Grafiki bez generacji:** `tools/temple_art.py` - podłoga `assets/watra/temple_floor.png` (płyty piaskowca
+  w rzędach jak cegły, rysy, złote intarsje słońca), ozdoby `assets/watra/decor/temple/` (kolumny, posągi, misa
+  z ogniem z Katakumb Watry i złamane kolumny z Zatopionych podziemi przebarwione na piaskowiec, mozaika słońca, gruz).
+- Test `tests/test_temple.gd`, zrzuty `tools/temple_shots.gd`; `test_sky.gd` i `test_forest.gd` - krąg 45 poziomów.
+
 ## 26.11.2026 - Słoneczna włócznia: poprawki autora po pierwszym teście
 
 - **Kołowrót Słońca** nie przesuwa już postaci - obroty w miejscu (usunięte kroki `hero.leap`).

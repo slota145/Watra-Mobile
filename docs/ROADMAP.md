@@ -109,6 +109,10 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   - **Grad Pchnięć** (trzymany): seria błyskawicznych pchnięć w stożek, każde dokłada chłodu;
   - **Lodowy Kwiat**: rapier wbija się w ziemię, dookoła wyrastają kryształy; zamrożeni pękają.
 
+- [ ] **Loch światła - Świątynia Słońca (zrobiony 26.11.2026, `docs/historia.md`; do oceny na telefonie):** siła
+  Południc (oślepienie 25% na 1,5 s), Żar-ptaków i kumirów, Promienie słońca (czy zapowiedź i cienie kolumn są
+  czytelne, czy nie za częste - co 6-9 s), Swarożyc (wypad, promienie z nieba, przywołanie sług).
+
 - [ ] **Żywioł Prawia i Słoneczna włócznia Dadźboga (zrobione 25-26.11.2026, `docs/historia.md`; do oceny na
   telefonie):** 20% chybień oślepionych, leczenie 3%/max 5, siła i tempo pchnięć, zasięg Rzutu, Kołowrót (czy dwa
   obroty i pierścień czytają się dobrze), Zenit (czy deszcz włóczni nie zasłania wrogów), kamienie unikalne, Katakumby

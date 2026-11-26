@@ -29,8 +29,8 @@ func _run() -> void:
 	DirAccess.remove_absolute(game.save_path)
 	game.load_game()
 	_check(Dungeons.first_level(Dungeons.FOREST) == 36 and Dungeons.for_level(40) == Dungeons.FOREST
-			and Dungeons.for_level(41) == Dungeons.GOBLINS and Dungeons.cycle_length() == 40,
-			"drabinka: Prastary Bór 36-40, drugi krąg od 41")
+			and Dungeons.for_level(41) == Dungeons.TEMPLE,
+			"drabinka: Prastary Bór 36-40, po nim Świątynia Słońca")
 	var r := Dungeons.resists(Dungeons.FOREST, 36)
 	var base := DungeonLevels.base_resist(36)
 	_check(is_equal_approx(r[Elements.NATURE], base + 0.2) and is_equal_approx(r[Elements.FIRE], base - 0.2),

@@ -187,6 +187,8 @@ var wind: ProtoWind
 var frost: ProtoFrost
 ## Żywa puszcza Prastarego Boru - korzenie chwytające postać (null - inny loch).
 var grove: ProtoGrove
+## Promienie słońca Świątyni Słońca - pasy palącego światła (null - inny loch).
+var sunbeams: ProtoSunbeams
 var chest: ProtoChest
 ## Etap wyprawy: horde (zbieranie żaru), boss (walka z Wodzem), loot (skrzynia), won (po zwycięstwie).
 var phase := "horde"
@@ -318,6 +320,13 @@ func _ready() -> void:
 			wind.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
 			add_child(wind)
 			wind.spawn_tornadoes()
+		if climate == Dungeons.TEMPLE and not pinnacle:
+			sunbeams = ProtoSunbeams.new()
+			sunbeams.name = "Sunbeams"
+			sunbeams.hero = hero
+			sunbeams.bounds = area.grow(-20)
+			sunbeams.power = horde_spawner.power * DungeonLevels.MONSTER_DAMAGE * horde_spawner.mod_damage
+			world.add_child(sunbeams)
 		if climate == Dungeons.FOREST and not pinnacle:
 			grove = ProtoGrove.new()
 			grove.name = "Grove"
@@ -1441,6 +1450,8 @@ func summon_chief() -> void:
 			chief = ProtoDziadMroz.new()
 		Dungeons.FOREST:
 			chief = ProtoLeszy.new()
+		Dungeons.TEMPLE:
+			chief = ProtoSwarozyc.new()
 		_:
 			chief = ProtoChief.new()
 	var spot := hero.position + CHIEF_OFFSET
