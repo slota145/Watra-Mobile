@@ -211,6 +211,8 @@ func _exit_tree() -> void:
 
 
 func _connect_parry() -> void:
+	if ghost:
+		return  # widmowa kopia nie paruje (kamień „rzuć, gdy…”)
 	if hero and not hero.parried.is_connected(_on_parried):
 		hero.parried.connect(_on_parried)
 

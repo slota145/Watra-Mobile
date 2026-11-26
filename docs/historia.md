@@ -2,6 +2,33 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - kamienie „rzuć, gdy…” (Odwet, Przebłysk, Stypa)
+
+- **Ustalenia z autorem (dwie ankiety 26.11.2026, jak „Cast when…” z PoE):** zdarzenia - otrzymane obrażenia,
+  trafienie krytyczne, zabicie wroga; łup z lochów od 10. poziomu; rzut darmowy, ale słabszy, z własną przerwą;
+  działa też na umiejętności broni zapasowej; tylko umiejętności natychmiastowe; z poziomem kamienia rośnie siła
+  i skraca się przerwa; umiejętność dalej działa pod przyciskiem (rzut kamienia nie zużywa jej odnowienia).
+  Odwet - po zebraniu obrażeń równych części zdrowia (nie przy każdym ciosie). Nazwy i liczby - propozycje Claude.
+- **Dane** (`Gems`): rodzaje `cast_hurt` (Odwet), `cast_crit` (Przebłysk), `cast_kill` (Stypa) w `SUPPORT`
+  i `SUPPORT_ORDER`, `TRIGGERS` (rodzaj -> zdarzenie), siła 50% -> 80% (`values`), przerwa 1,5 s -> 0,5 s
+  (`TRIGGER_GAP`, `trigger_gap`), Odwet co 15% zdrowia (`TRIGGER_HURT`), łup od lochu 10 (`TRIGGER_MIN_LEVEL`,
+  filtr w `roll`), `is_trigger`, opisy w `support_text` (z przerwą), krótkie „Odwet 50%” itd. Ikony
+  `assets/watra/supports/cast_*.png` z `tools/trigger_gem_icons.py` (kamień Echa przebarwiony, nowy znak: pęknięte
+  serce, gwiazda, czaszka).
+- **Które umiejętności** (`Skills.TRIGGERABLE`, `can_trigger`; `Gems.fits`, problem `"trigger"` w
+  `Game.skill_socket_problem` - „Działa tylko w umiejętnościach natychmiastowych.”): 23 umiejętności bez zwykłych
+  ciosów, ładowanych, Młynka, skoków i doskoków postaci, form, przełączników, kręgów, riposty rapiera i przywołań.
+  Katana nie ma żadnej (wszystkie jej umiejętności to skoki, ładowanie albo zwykły cios).
+- **Widmowa kopia broni** (`ProtoWeapon.ghost`, `trigger`, `trigger_mult`, `trigger_gaps`, `GHOST_TINT`): osobny węzeł
+  broni (w ręku i zapasowej - tylko gdy mają umiejętność z takim kamieniem; `arena._sync_ghosts` przy każdej zmianie
+  umiejętności, kamieni i broni), niewidoczny w spoczynku, niebieskawy w trakcie rzutu, sam nie atakuje, mana 0,
+  odnowienie = przerwa kamienia, obrażenia x siła kamienia (`_roll`), bez Echa, odbić i parowania (katana, rapier).
+  Statystyki jak broń w ręku (`arena._apply_weapon_to`).
+- **Zdarzenia** (`arena._fire_trigger`): `ProtoWeapon.crit_landed` (krytyk broni w ręku), `ProtoHorde.monster_died`,
+  `ProtoHero.hurt` zbierane w `_hurt_acc` (`_on_hurt_trigger`). Każda kopia rzuca pierwszą gotową umiejętność
+  z kamieniem tego zdarzenia.
+- Test `tests/test_trigger_gems.gd`, zrzuty `tools/trigger_shots.gd`.
+
 ## 26.11.2026 - wyższy sufit szybkości ataku i rzucania
 
 - **Decyzja autora (ankieta 26.11.2026):** sufit szybkości ataku i szybkości rzucania czarów z przedmiotów i aury

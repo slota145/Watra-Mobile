@@ -21,6 +21,11 @@ class_name Gems
 ## więc nie zajmują torby. Identyfikatory: kamień umiejętności "rodzaj:poziom" (np. "ember:3"), szlachetny
 ## "rodzaj:poziom lochu:cecha=wartość,cecha=wartość" (np. "ruby:7:damage_pct=5,hp=18"), klucz, dłuto i Pieczęć Oręża - KEY, CHISEL, WEAPON_SEAL (SPECIAL).
 ## Wkładanie i wyjmowanie (za darmo), ulepszanie i rozbijanie - Game, okna SkillsWindow, HeroStats i GemPicker.
+## Kamienie „rzuć, gdy…” (TRIGGERS, ustalone z autorem 26.11.2026, jak „Cast when…” z PoE): Odwet, Przebłysk i Stypa -
+## kamień sam rzuca swoją umiejętność przy otrzymanych obrażeniach (po zebraniu TRIGGER_HURT zdrowia), trafieniu
+## krytycznym albo zabiciu wroga - bez many i bez odnowienia umiejętności, ze słabszymi obrażeniami (`values`) i własną
+## przerwą (`trigger_gap`); działa też w umiejętnościach broni zapasowej. Pasują tylko do umiejętności natychmiastowych
+## (Skills.can_trigger), wypadają od TRIGGER_MIN_LEVEL. Rzuca je widmowa kopia broni - arena.gd `_sync_ghosts`.
 
 ## Najwyższy poziom ulepszenia kamienia umiejętności; najwięcej premii kamienia szlachetnego (wypada z 2-3).
 const MAX_LEVEL := 10
@@ -159,7 +164,23 @@ const SUPPORT := {
 	"fortify": {"name": "Twardość", "icon": "warlord", "color": Color(0.65, 0.5, 0.85), "unit": "pct",
 		"values": [8, 20],
 		"text": "Po trafieniu przez 3 s dostajesz o %d%% mniej obrażeń."},
+	# kamienie „rzuć, gdy…” (TRIGGERS): values - siła rzuconej umiejętności (% obrażeń); opis składa `support_text`
+	"cast_hurt": {"name": "Odwet", "icon": "cast_hurt", "color": Color(1.0, 0.45, 0.45), "unit": "pct",
+		"values": [50, 80],
+		"text": "Sama rzuca tę umiejętność, gdy dostaniesz obrażenia równe %d%% zdrowia (%d%% obrażeń, bez many, przerwa %s s)."},
+	"cast_crit": {"name": "Przebłysk", "icon": "cast_crit", "color": Color(1.0, 0.85, 0.4), "unit": "pct",
+		"values": [50, 80],
+		"text": "Sama rzuca tę umiejętność przy trafieniu krytycznym (%d%% obrażeń, bez many, przerwa %s s)."},
+	"cast_kill": {"name": "Stypa", "icon": "cast_kill", "color": Color(0.5, 0.9, 0.55), "unit": "pct",
+		"values": [50, 80],
+		"text": "Sama rzuca tę umiejętność przy zabiciu wroga (%d%% obrażeń, bez many, przerwa %s s)."},
 }
+## Kamienie „rzuć, gdy…”: rodzaj -> zdarzenie (arena.gd `_fire_trigger`); od którego poziomu lochu wypadają; ile
+## otrzymanych obrażeń (część zdrowia) uruchamia Odwet; przerwa między rzutami na 1. i MAX_LEVEL poziomie (s).
+const TRIGGERS := {"cast_hurt": "hurt", "cast_crit": "crit", "cast_kill": "kill"}
+const TRIGGER_MIN_LEVEL := 10
+const TRIGGER_HURT := 0.15
+const TRIGGER_GAP := [1.5, 0.5]
 ## Kamienie unikalne (klucz - umiejętność): nazwa, kolor, krótki opis pod gniazdem i pełny opis. Ikony -
 ## assets/watra/unique_gems/<umiejętność>.png (tools/unique_gem_art.py).
 const UNIQUE_PREFIX := "unique:"
@@ -290,7 +311,8 @@ const UNIQUE_COLOR := Color(1.0, 0.82, 0.35)
 ## na Błysk Peruna katany (15.11.2026).
 const LEGACY := {"unique:blink": "unique:k_flash"}
 const SUPPORT_ORDER := ["multi", "area", "ember", "rime", "discharge", "haste", "thrift", "leech", "echo", "focus",
-		"splash", "pen", "knockback", "execute", "hypothermia", "combustion", "keen", "fortify"]
+		"splash", "pen", "knockback", "execute", "hypothermia", "combustion", "keen", "fortify",
+		"cast_hurt", "cast_crit", "cast_kill"]
 ## Bystre Oko: obrażenia krytyczne = tyle razy szansa; Twardość - czas działania (s); Skupienie - obszar razy tyle;
 ## Rozprysk - promień wokół celu (px).
 const KEEN_DAMAGE := 4.0
@@ -473,6 +495,9 @@ const SHORT := {
 	"combustion": "+%d%% na płonących",
 	"keen": "+%d%% krytyka",
 	"fortify": "-%d%% obrażeń",
+	"cast_hurt": "Odwet %d%%",
+	"cast_crit": "Przebłysk %d%%",
+	"cast_kill": "Stypa %d%%",
 }
 const SHORT_STRIKE := {"haste": "+%d%% szybkości", "thrift": "+%d many za cios"}
 
@@ -501,6 +526,16 @@ static func support_value(id: String) -> float:
 	return float(_lerp_level(SUPPORT[kind_of(id)].values, level_of(id))) if is_support(id) and not is_unique(id) else 0.0
 
 
+## Przerwa (s) między rzutami kamienia „rzuć, gdy…” na jego poziomie.
+static func trigger_gap(id: String) -> float:
+	return lerpf(TRIGGER_GAP[0], TRIGGER_GAP[1], float(clampi(level_of(id), 1, MAX_LEVEL) - 1) / (MAX_LEVEL - 1))
+
+
+## Czy to kamień „rzuć, gdy…” (TRIGGERS).
+static func is_trigger(id: String) -> bool:
+	return is_support(id) and not is_unique(id) and TRIGGERS.has(kind_of(id))
+
+
 ## Oszczędność w zwykłym ciosie: many za trafienie na poziomie `level`.
 static func thrift_mana(level: int) -> int:
 	return _lerp_level(THRIFT_STRIKE, level)
@@ -516,6 +551,13 @@ static func support_text(id: String, skill := "") -> String:
 		return text if skill == "" or skill == own else Lang.t("Pasuje tylko do: %s.") % Skills.name_of(own)
 	var kind := kind_of(id)
 	var data: Dictionary = SUPPORT[kind]
+	if TRIGGERS.has(kind):
+		if skill != "" and not Skills.can_trigger(skill):
+			return Lang.t("Nie działa w tej umiejętności (tylko natychmiastowe: bez zwykłego ciosu, ładowanych, skoków, form, przełączników i przywołań).")
+		var gap := String.num(trigger_gap(id), 1).replace(".", ",")
+		if kind == "cast_hurt":
+			return Lang.t(data.text) % [roundi(TRIGGER_HURT * 100.0), roundi(support_value(id)), gap]
+		return Lang.t(data.text) % [roundi(support_value(id)), gap]
 	if kind == "thrift" and Skills.is_basic(skill):
 		return Lang.t(data.skills.strike) % thrift_mana(level_of(id))
 	var text: String = data.get("skills", {}).get(skill, data.text)
@@ -564,10 +606,12 @@ static func _jewel_value(stat: String, level: int) -> float:
 	return maxf(snappedf(v, 0.1), 0.1) if stat in Items.DECIMAL_STATS else float(maxi(roundi(v), 1))
 
 
-## Kamień z łupu na poziomie lochu: kamień umiejętności (1. poziom) albo szlachetny z premiami z tego poziomu.
+## Kamień z łupu na poziomie lochu: kamień umiejętności (1. poziom; „rzuć, gdy…” od TRIGGER_MIN_LEVEL) albo szlachetny
+## z premiami z tego poziomu.
 static func roll(level: int) -> String:
 	if randf() < SUPPORT_SHARE:
-		return make(SUPPORT_ORDER.pick_random())
+		var pool := SUPPORT_ORDER.filter(func(k: String) -> bool: return level >= TRIGGER_MIN_LEVEL or not TRIGGERS.has(k))
+		return make(pool.pick_random())
 	return roll_jewel(JEWEL_ORDER.pick_random(), level)
 
 
@@ -664,10 +708,13 @@ static func shard_value(id: String) -> int:
 	return 0
 
 
-## Czy kamień umiejętności pasuje do umiejętności `skill` (Echo nie działa w zwykłym ciosie - "not_basic").
+## Czy kamień umiejętności pasuje do umiejętności `skill` (Echo nie działa w zwykłym ciosie - "not_basic"; „rzuć, gdy…”
+## tylko w umiejętnościach natychmiastowych - Skills.can_trigger).
 static func fits(id: String, skill: String) -> bool:
 	if not is_support(id) or is_unique(id):
 		return true
+	if TRIGGERS.has(kind_of(id)):
+		return Skills.can_trigger(skill)
 	return not (SUPPORT[kind_of(id)].get("not_basic", false) and Skills.is_basic(skill))
 
 

@@ -1020,6 +1020,8 @@ func _put(id: String, i: int) -> void:
 		hint.text = tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(id))
 	elif problem == "basic":
 		hint.text = tr("Nie działa w zwykłym ciosie.")
+	elif problem == "trigger":
+		hint.text = tr("Działa tylko w umiejętnościach natychmiastowych.")
 
 
 func _on_dropped_to_socket(gem: String, from_area: String, from_index: int, i: int) -> void:
