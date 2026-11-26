@@ -32,6 +32,23 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 
 ## Pomysły autora (do zrobienia)
 
+- [ ] **Głębiny - głębokie lochy oddzielone od zwykłych (pomysł autora 26.11.2026):** zwykłe lochy 1-55 (11 lochów
+  po 5 poziomów, bez drugiego kręgu), po pokonaniu bossa na 55 wyraźna chwila „Otwierają się Głębiny”. **Osobny obiekt
+  w bazie** (decyzja autora) prowadzi do Głębin: własna numeracja (Głębia 1, 2, 3...; w środku siła jak poziomy 56+),
+  każde wejście - losowy loch; później losowy zestaw potworów i losowy boss. Do przemyślenia: sufit siły przedmiotów
+  (`Items.MAX_LEVEL` 40 -> 55?), zapis (osobny rekord Głębin, przeliczenie starych zapisów ponad 55), drabinka
+  odblokowań, drzewko lochów, modyfikatory. Kolejność (decyzja autora): najpierw lochy Ziemi i Arkanów, potem Głębiny.
+
+- [ ] **Loch Ziemi - Kopalnia karłów (zrobiony 26.11.2026, `docs/historia.md`; do oceny na telefonie - siła kretołaków spod ziemi, częstość głazów, Król Karłów):** poziomy 46-50, odporny na ziemię,
+  wrażliwy na powietrze. Kretołak (szybki, spod ziemi), karzeł-procarz (kamienie), skalny golem (silny); boss Król
+  Karłów Kowal (młot i kowadło: fala, deszcz odłamków, przywołuje golemy); mechanika Osuwiska (głazy ze stropu
+  w zapowiedzianych miejscach, zostają chwilę jako osłona przed pociskami).
+
+- [ ] **Loch Arkanów - Wieża Kościeja (zrobiony 26.11.2026, `docs/historia.md`; do oceny na telefonie - siła wybuchu pieczęci, czy kolory pieczęci są czytelne, jajo Kościeja):** poziomy 51-55 (ostatni przed
+  Głębinami), odporny na Arkana, wrażliwy na Prawię. Latająca księga (szybka, gryzie), uczeń czarnoksiężnika
+  (magiczne pociski), runiczny golem (silny); boss Kościej Nieśmiertelny (śmierć w igle w jajku - trzeba zniszczyć jajo,
+  inaczej się odradza; pieczęcie, teleport); mechanika Magiczne pieczęcie (niebieska - premia, czerwona - wybuch).
+
 - **Młot - broń ziemi i Widmowe ostrza miecza (21.11.2026):** zrobione (szczegóły w `docs/historia.md`). Do oceny na
   telefonie: siła i tempo uderzeń młota, rzut (odbicia), skok (czy nie wrzuca w tłum za daleko), trzęsienie (koszt many,
   spowolnienie postaci), czy ostrza miecza nie są za słabe/za mocne, rezerwacja 25% many, kamienie unikalne.

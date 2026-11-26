@@ -1,0 +1,291 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: flying_book
+kind: character
+size: 48
+directions: 8
+palette: "watra"
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.77, 0]}
+shadow: {rx: 8, ry: 3, alpha: 110}
+
+# Latająca księga: zwykły, szybki potwór lochu „Wieża Kościeja” (żywioł Arkana - fioletowo-biała magia).
+# Gruba, stara księga w ciemnej skórzanej oprawie z metalowymi okuciami, unosi się nad ziemią (cień pod nią).
+# Grzbiet z tyłu, brzeg kart z przodu: księga otwiera się jak paszcza (górna okładka to szczęka), a brzegi kart
+# są postrzępione w zęby. Na górnej okładce i na kartach świecą fioletowe runy (warstwa emisyjna), w gardle przy
+# grzbiecie fioletowy blask, z dołu zwisa zakładka-wstążka jak język. Większa i groźniejsza od Księgi Arkanów
+# gracza (art/specs/props/book): ok. 16 px szerokości, gruba, z kłami.
+brief:
+  summary: >
+    a monster book of the Wieża Kościeja: a thick old tome about 16 px wide floating a few px over its shadow,
+    dark aged leather covers with tarnished metal corner caps, a metal boss and spine bands, the spine at the
+    back and the page block in front; it opens like a jaw (the top cover hinges up at the spine), the page
+    edges are jagged paper teeth, violet glowing runes on the top cover and the inner pages, a violet glow in
+    the throat, a long ribbon bookmark dangling like a tongue
+  must_keep:
+    - reads as a BOOK (two covers, a cream page block, a round spine) and as a MOUTH (open jaw with teeth)
+    - the violet runes on the cover are the brightest pixels (emissive); they go out at death
+    - the gap between the book and its shadow (it floats)
+    - death - it bursts open, falls and scatters into loose pages on the ground
+  simplify:
+    - teeth are small paper cones along the page edges (1-2 px), not single pages
+    - runes are a ring and strokes painted on the cover, not carved
+  decisions:
+    - no humanoid skeleton - own bones; body tilted back a little so the open maw faces the camera in s
+    - the jaw (`jaw`) opens the top half, the bottom half follows at a third (`jaw_lo`)
+    - attack - it rears back wide open (windup), then lunges and snaps shut (`hit` at 400 ms, socket `bite`)
+
+ramps:
+  # stara skóra oprawy: ciemny brąz z chłodnym, fioletowym odcieniem
+  tome:   ["#0b0608", "#2a1719", "#432624", "#5f3830", "#7d4f3c", "#9a6a4c"]
+  # zaśniedziałe okucia: ciemny mosiądz
+  brass:  ["#120c06", "#3a2a12", "#62491e", "#8c6c2c", "#b39348", "#d8bd76"]
+  # pożółkłe karty
+  paper:  ["#1a1410", "#5c4f3e", "#9c8c70", "#cdbf9c", "#e9dfc4", "#fbf6e8"]
+  # zęby z kart: jasne, ostre
+  fang:   ["#1c1610", "#6e6250", "#b3a688", "#e0d6bc", "#f6f0de", "#ffffff"]
+  # fioletowe runy Arkanów
+  rune:   ["#24103f", "#7a3fc4", "#b07ef0", "#eadcff", "#ffffff"]
+  # wstążka-zakładka
+  ribbon: ["#12050f", "#3d0b2c", "#661447", "#8f2565", "#b04484"]
+  # gardło paszczy: ciemny fiolet
+  maw:    ["#0a0612", "#1c1030", "#34205a", "#5a3a96"]
+  fx_tail: ["#7a3fc4"]
+  fx_mid:  ["#b07ef0"]
+  fx_core: ["#f6f1ff"]
+
+materials:
+  tome:   {ramp: tome, finish: soft, crease: true, edge_highlight: true}
+  brass:  {ramp: brass, finish: metal}
+  paper:  {ramp: paper, finish: matte, bands: [1, 4]}
+  fang:   {ramp: fang, finish: matte, bands: [2, 5]}
+  ribbon: {ramp: ribbon, finish: soft}
+  maw:    {ramp: maw, emissive: true, band: 2, outline: false, line: false}
+  rune:   {ramp: rune, emissive: true, band: 2, outline: false, glow: {color: "#b07ef0", mix: 0.4, radius: 1}}
+  rune_hi: {ramp: rune, emissive: true, band: 3, outline: false, glow: {color: "#d2c2ff", mix: 0.45, radius: 1}}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+snap: [root]
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # unoszenie w górę i w dół
+  tilt: -0.18       # przechył: - brzeg kart w górę (paszcza do kamery), + nos w dół (lot)
+  roll: 0
+  yawl: 0           # skręt ciała wokół pionu
+  jaw: 0.35         # otwarcie górnej okładki (radiany)
+  jaw_lo: 0.12      # otwarcie dolnej okładki
+  ribbon: 0         # kołysanie języka-zakładki
+  lit: 1            # jasność run (śmierć gasi)
+  throat: 1         # blask w gardle
+  fall: 0           # śmierć: opadanie na ziemię (0..1)
+  scatter: 0        # śmierć: rozsypane kartki (0..1)
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_fade: 1
+
+bones:
+  # księga lewituje: środek na wysokości 0.72 (ok. 15 px nad ziemią w rzucie), przy śmierci opada na ziemię
+  body:   {parent: root, pos: "[0, (0.72 + bob)*(1 - fall) + 0.36*fall, 0]", rot: "[tilt, yawl, roll]"}
+  # zawias przy grzbiecie (z tyłu); górna połówka otwiera się w górę, dolna w dół
+  hinge:  {parent: body, pos: [0, 0, -0.26]}
+  lid:    {parent: hinge, rot: "[-jaw, 0, 0]"}
+  low:    {parent: hinge, rot: "[jaw_lo, 0, 0]"}
+  tongue: {parent: low, pos: [0, -0.10, 0.10], rot: "[0.5 + ribbon*0.4, 0, ribbon*0.3]"}
+  fxspace: {parent: root, rot: [0, 0, 0]}
+
+parts:
+  spine:           # okrągły grzbiet z tyłu z dwoma metalowymi pasami
+    material: tome
+    space: hinge
+    prims:
+      - cylinder: {a: [-0.40, 0, -0.01], b: [0.40, 0, -0.01], r: 0.12, round: 0.03}
+    paint:
+      - material: brass
+        stripes: {axis: x, at: [-0.24, 0.24], width: 0.06}
+  cover_up:        # górna okładka (szczęka)
+    material: tome
+    space: lid
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.085, 0.27], half: [0.40, 0.03, 0.29], round: 0.02}
+    paint:
+      - material: rune        # krąg run i znaki na okładce
+        prims:
+          - torus: {c: [0, 0.12, 0.26], R: 0.15, r: "0.022*lit", rot: [0, 0, 0]}
+          - box: {c: [0, 0.12, 0.26], half: ["0.10*lit", 0.04, 0.016]}
+          - box: {c: [0, 0.12, 0.26], half: [0.016, 0.04, "0.10*lit"]}
+          - box: {c: [0.29, 0.12, 0.10], half: ["0.016*lit", 0.04, 0.06]}
+          - box: {c: [-0.29, 0.12, 0.10], half: ["0.016*lit", 0.04, 0.06]}
+          - box: {c: [0.29, 0.12, 0.42], half: ["0.016*lit", 0.04, 0.06]}
+          - box: {c: [-0.29, 0.12, 0.42], half: ["0.016*lit", 0.04, 0.06]}
+      - material: rune_hi
+        prims:
+          - sphere: {c: [0, 0.12, 0.26], r: "0.04*lit"}
+  corners_up:      # metalowe okucia narożników i guz na środku okładki
+    material: brass
+    space: lid
+    blend: 0.01
+    prims:
+      - box: {c: [0.36, 0.09, 0.52], half: [0.06, 0.04, 0.06], round: 0.01}
+      - box: {c: [-0.36, 0.09, 0.52], half: [0.06, 0.04, 0.06], round: 0.01}
+      - box: {c: [0.36, 0.09, 0.03], half: [0.06, 0.04, 0.05], round: 0.01}
+      - box: {c: [-0.36, 0.09, 0.03], half: [0.06, 0.04, 0.05], round: 0.01}
+  pages_up:        # blok kart górnej połówki, z runami od wewnątrz
+    material: paper
+    space: lid
+    prims:
+      - box: {c: [0, 0.03, 0.25], half: [0.36, 0.03, 0.25], round: 0.01}
+    paint:
+      - material: rune
+        prims:
+          - box: {c: [0.14, -0.01, 0.22], half: ["0.10*lit", 0.02, 0.018]}
+          - box: {c: [-0.14, -0.01, 0.30], half: ["0.10*lit", 0.02, 0.018]}
+          - box: {c: [-0.12, -0.01, 0.14], half: ["0.07*lit", 0.02, 0.018]}
+  teeth_up:        # zęby z kart wzdłuż brzegu, w dół
+    material: fang
+    space: lid
+    min_cover: 2
+    prims:
+      - cone: {a: [-0.26, 0.01, 0.47], b: [-0.26, -0.09, 0.50], r: [0.045, 0.008]}
+      - cone: {a: [-0.09, 0.01, 0.48], b: [-0.09, -0.10, 0.51], r: [0.045, 0.008]}
+      - cone: {a: [0.09, 0.01, 0.48], b: [0.09, -0.10, 0.51], r: [0.045, 0.008]}
+      - cone: {a: [0.26, 0.01, 0.47], b: [0.26, -0.09, 0.50], r: [0.045, 0.008]}
+      - cone: {a: [0.34, 0.01, 0.30], b: [0.36, -0.08, 0.30], r: [0.04, 0.008]}
+      - cone: {a: [-0.34, 0.01, 0.30], b: [-0.36, -0.08, 0.30], r: [0.04, 0.008]}
+  cover_lo:        # dolna okładka
+    material: tome
+    space: low
+    prims:
+      - box: {c: [0, -0.085, 0.27], half: [0.40, 0.03, 0.29], round: 0.02}
+  corners_lo:
+    material: brass
+    space: low
+    blend: 0.01
+    prims:
+      - box: {c: [0.36, -0.09, 0.52], half: [0.06, 0.04, 0.06], round: 0.01}
+      - box: {c: [-0.36, -0.09, 0.52], half: [0.06, 0.04, 0.06], round: 0.01}
+  pages_lo:
+    material: paper
+    space: low
+    prims:
+      - box: {c: [0, -0.03, 0.25], half: [0.36, 0.03, 0.25], round: 0.01}
+    paint:
+      - material: rune
+        prims:
+          - box: {c: [0.10, 0.01, 0.28], half: ["0.10*lit", 0.02, 0.018]}
+          - box: {c: [-0.12, 0.01, 0.20], half: ["0.08*lit", 0.02, 0.018]}
+  teeth_lo:        # zęby dolnej połówki, w górę
+    material: fang
+    space: low
+    min_cover: 2
+    prims:
+      - cone: {a: [-0.17, -0.01, 0.47], b: [-0.17, 0.09, 0.50], r: [0.045, 0.008]}
+      - cone: {a: [0.0, -0.01, 0.48], b: [0.0, 0.10, 0.51], r: [0.045, 0.008]}
+      - cone: {a: [0.17, -0.01, 0.47], b: [0.17, 0.09, 0.50], r: [0.045, 0.008]}
+      - cone: {a: [0.34, -0.01, 0.18], b: [0.36, 0.08, 0.18], r: [0.04, 0.008]}
+      - cone: {a: [-0.34, -0.01, 0.18], b: [-0.36, 0.08, 0.18], r: [0.04, 0.008]}
+  throat:          # fioletowy blask w gardle przy grzbiecie
+    material: maw
+    space: hinge
+    when: "throat > 0.1 and jaw > 0.12"
+    prims:
+      - ellipsoid: {c: [0, 0, 0.10], r: "[0.26, 0.05 + 0.08*min(jaw, 1), 0.10]"}
+  tongue:          # zakładka-wstążka zwisająca jak język
+    material: ribbon
+    space: tongue
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0, 0, 0], [0.02, -0.12, 0.06], [0.0, -0.24, 0.04]], r: [0.035, 0.03]}
+  pages_loose:     # śmierć: kartki rozsypane wokół (lecą z księgi i opadają na ziemię)
+    material: paper
+    space: root
+    when: "scatter > 0.05"
+    min_cover: 2
+    prims:
+      - box: {c: "[0.40*scatter, 0.72*(1 - scatter) + 0.03 + 0.35*scatter*(1 - scatter), 0.22*scatter]", half: [0.08, 0.016, 0.10], rot: "[0.3*(1 - scatter), 0.6*scatter, 1.2*(1 - scatter)]"}
+      - box: {c: "[-0.43*scatter, 0.72*(1 - scatter) + 0.03 + 0.45*scatter*(1 - scatter), 0.09*scatter]", half: [0.08, 0.016, 0.10], rot: "[-0.4*(1 - scatter), -0.9*scatter, -1.0*(1 - scatter)]"}
+      - box: {c: "[0.14*scatter, 0.72*(1 - scatter) + 0.03 + 0.55*scatter*(1 - scatter), 0.45*scatter]", half: [0.08, 0.016, 0.10], rot: "[0.8*(1 - scatter), 1.4*scatter, 0.5*(1 - scatter)]"}
+      - box: {c: "[-0.25*scatter, 0.72*(1 - scatter) + 0.03 + 0.30*scatter*(1 - scatter), 0.40*scatter]", half: [0.07, 0.016, 0.09], rot: "[-0.6*(1 - scatter), 0.4*scatter, 0.9*(1 - scatter)]"}
+      - box: {c: "[0.35*scatter, 0.72*(1 - scatter) + 0.03 + 0.50*scatter*(1 - scatter), -0.25*scatter]", half: [0.07, 0.016, 0.09], rot: "[0.5*(1 - scatter), -0.5*scatter, -0.7*(1 - scatter)]"}
+      - box: {c: "[-0.30*scatter, 0.72*(1 - scatter) + 0.03 + 0.40*scatter*(1 - scatter), -0.29*scatter]", half: [0.07, 0.016, 0.09], rot: "[-0.3*(1 - scatter), 1.1*scatter, 0.6*(1 - scatter)]"}
+      - box: {c: "[0.04*scatter, 0.72*(1 - scatter) + 0.03 + 0.70*scatter*(1 - scatter), -0.45*scatter]", half: [0.08, 0.016, 0.10], rot: "[0.9*(1 - scatter), 0.2*scatter, 0.3*(1 - scatter)]"}
+    paint:
+      - material: rune
+        prims:
+          - box: {c: "[0.40*scatter, 0.72*(1 - scatter) + 0.03 + 0.35*scatter*(1 - scatter), 0.22*scatter]", half: ["0.05*lit", 0.05, 0.018], rot: "[0.3*(1 - scatter), 0.6*scatter, 1.2*(1 - scatter)]"}
+          - box: {c: "[0.14*scatter, 0.72*(1 - scatter) + 0.03 + 0.55*scatter*(1 - scatter), 0.45*scatter]", half: ["0.05*lit", 0.05, 0.018], rot: "[0.8*(1 - scatter), 1.4*scatter, 0.5*(1 - scatter)]"}
+  smear:           # smuga kłapnięcia: fioletowy łuk przed paszczą
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: [0, 0.62, 0.30], r: 0.40, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.0}
+
+sockets:
+  bite: {bone: body, offset: [0, 0, 0.36]}       # przed paszczą: tu gra zadaje obrażenia ugryzienia
+  maw: {bone: hinge, offset: [0, 0, 0.20]}       # gardło (fioletowy błysk)
+
+animations:
+  # unoszenie się w powietrzu o 1-2 px, księga lekko kłapie i kołysze się, zakładka-język zwisa i się buja
+  idle:
+    frames: 8
+    ms: 130
+    channels:
+      bob: "0.05*sin(p)"
+      tilt: "-0.18 + 0.05*sin(p - 0.8)"
+      roll: "0.05*sin(p - 0.4)"
+      jaw: "0.32 + 0.16*sin(2*p)"
+      jaw_lo: "0.10 + 0.05*sin(2*p - 0.6)"
+      ribbon: "0.5*sin(p - 1.4)"
+      lit: "1 + 0.15*sin(p)"
+  # szybki lot: nos w dół, szczęka kłapie dwa razy na cykl, mocniejsze falowanie, język powiewa z tyłu
+  walk:
+    frames: 8
+    ms: 90
+    channels:
+      bob: "0.06*sin(2*p)"
+      tilt: "0.05 + 0.06*sin(2*p - 0.6)"
+      roll: "0.08*sin(p)"
+      yawl: "0.06*sin(p)"
+      jaw: "0.40 + 0.25*sin(2*p)"
+      jaw_lo: "0.14 + 0.08*sin(2*p - 0.5)"
+      ribbon: "-1.0 + 0.4*sin(2*p - 1.2)"
+  # rzuca się i gryzie: cofa się i otwiera szeroko (windup), trzyma, rzut do przodu z kłapnięciem (`hit` 400 ms),
+  # krótkie trzymanie zamkniętej paszczy, powrót; razem 700 ms
+  attack:
+    loop: false
+    keys:
+      - {ms: 110, event: windup, set: {root: [0, 0, -0.06], bob: 0.06, tilt: -0.35, jaw: 0.8, jaw_lo: 0.25, ribbon: 0.4}}
+      - {ms: 150, set: {root: [0, 0, -0.10], bob: 0.10, tilt: -0.50, jaw: 1.15, jaw_lo: 0.40, ribbon: 0.7, lit: 1.3}}
+      - {ms: 140, set: {root: [0, 0, -0.11], bob: 0.11, tilt: -0.52, jaw: 1.25, jaw_lo: 0.42, ribbon: 0.8, lit: 1.4}}
+      - {ms: 60, event: hit, set: {root: [0, 0, 0.26], bob: -0.04, tilt: 0.25, jaw: 0.0, jaw_lo: 0.0, ribbon: -1.0, lit: 1.5,
+          smear_w: 0.10, smear_a0: 1.2, smear_a1: -1.2}}
+      - {ms: 80, set: {root: [0, 0, 0.25], bob: -0.05, tilt: 0.28, jaw: 0.02, jaw_lo: 0.0, ribbon: -1.2, lit: 1.3,
+          smear_w: 0.07, smear_a0: 1.0, smear_a1: -1.3, smear_fade: 0.6}}
+      - {ms: 70, set: {root: [0, 0, 0.18], bob: -0.01, tilt: 0.10, jaw: 0.15, jaw_lo: 0.05, ribbon: -0.5}}
+      - {ms: 90, set: {root: [0, 0, 0.05], bob: 0.02, tilt: -0.12, jaw: 0.30, jaw_lo: 0.10, ribbon: 0.2}}
+  # trafienie: odrzut w tył i w górę, okładki kłapią, runy błyskają
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.08], bob: 0.06, tilt: -0.45, roll: 0.15, jaw: 0.75, jaw_lo: 0.3, ribbon: 0.8, lit: 1.6}}
+      - {ms: 70, set: {root: [0, 0, -0.04], bob: 0.03, tilt: -0.28, roll: -0.08, jaw: 0.5, jaw_lo: 0.2, ribbon: 0.3, lit: 1.2}}
+      - {ms: 70, set: {bob: 0.0, tilt: -0.15, jaw: 0.3, ribbon: -0.2}}
+  # śmierć: odrzut, księga rozwiera się szeroko, kartki wylatują, runy gasną, okładki opadają na ziemię
+  # i leżą rozłożone wśród rozsypanych kartek
+  death:
+    loop: false
+    keys:
+      - {ms: 90, set: {root: [0, 0, -0.06], bob: 0.06, tilt: -0.45, roll: 0.2, jaw: 0.9, jaw_lo: 0.35, ribbon: 0.8, lit: 1.6}}
+      - {ms: 110, set: {root: [0, 0, -0.06], bob: 0.10, tilt: -0.30, roll: -0.25, jaw: 1.5, jaw_lo: 0.8, ribbon: 1.0, lit: 1.0, scatter: 0.15}}
+      - {ms: 110, set: {root: [0, 0, -0.05], tilt: -0.55, roll: -0.35, jaw: 1.6, jaw_lo: 1.0, ribbon: 0.6, lit: 0.6, fall: 0.35, scatter: 0.40, throat: 0}}
+      - {ms: 110, set: {root: [0, 0, -0.05], tilt: -1.2, roll: -0.25, jaw: 1.55, jaw_lo: 1.3, ribbon: 0.2, lit: 0.3, fall: 0.75, scatter: 0.65, throat: 0}}
+      - {ms: 120, set: {root: [0, 0, -0.05], tilt: -1.62, roll: -0.1, jaw: 1.50, jaw_lo: 1.45, ribbon: 0.0, lit: 0.0, fall: 1.0, scatter: 0.88, throat: 0}}
+      - {ms: 120, set: {root: [0, 0, -0.05], tilt: -1.57, roll: -0.05, jaw: 1.52, jaw_lo: 1.50, lit: 0.0, fall: 1.0, scatter: 0.98, throat: 0}}
+      - {ms: 500, set: {root: [0, 0, -0.05], tilt: -1.57, roll: -0.05, jaw: 1.52, jaw_lo: 1.50, lit: 0.0, fall: 1.0, scatter: 1.0, throat: 0}}
+
+timing:
+  attack: {hit: 400ms, total: 700ms}

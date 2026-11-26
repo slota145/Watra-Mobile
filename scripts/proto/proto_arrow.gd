@@ -11,7 +11,7 @@ extends Node2D
 ## Nekromanty), `tint` - barwa, `speed` / `fly_range` - prędkość i zasięg, `orb` - kula piorunu z podmuchu Gromoskrzydłego
 ## (`eagle_orb`, trafienie `katana_hit` w mniejszej skali), `nawia` - kula Nawii Nekromanty (`nawia_orb` z dymiącym ogonem,
 ## trafienie `nawia_hit`), `wind` - ostrze wiatru wiły i Gryfa (półksiężyc `legend_wind_crescent` z Watry, trafienie
-## - mały wir `whirl`, żywioł powietrza, lekko odpycha postać o WIND_PUSH px).
+## - mały wir `whirl`, żywioł powietrza, lekko odpycha postać o WIND_PUSH px), `arcane` - pocisk Arkanów (Wieża Kościeja).
 
 ## Prędkość (Wojciech: 70 px/s) - strzała z odległości 120 px leci ok. 1 s, w tym czasie da się zejść z linii.
 const SPEED := 115.0
@@ -82,6 +82,16 @@ const RAY_FLY_ANCHOR := Vector2(40, 7)
 const RAY_HIT := preload("res://assets/effects/spear_hit.png")
 const RAY_HIT_FRAMES := 8
 const RAY_HIT_ANCHOR := Vector2(20, 19)
+## Pocisk Arkanów (uczeń czarnoksiężnika i Kościej, Wieża Kościeja): głowa pocisku Księgi Arkanów (arcane_missile)
+## z fioletowym ogonem rysowanym w kodzie, trafienie - arcane_hit; żywioł Arkana - wysysa ARCANE_DRAIN many postaci.
+const ARCANE_FLY := preload("res://assets/effects/arcane_missile.png")
+const ARCANE_FLY_FRAMES := 6
+const ARCANE_FLY_ANCHOR := Vector2(8, 8)
+const ARCANE_HIT := preload("res://assets/effects/arcane_hit.png")
+const ARCANE_HIT_FRAMES := 6
+const ARCANE_HIT_ANCHOR := Vector2(23, 21)
+const ARCANE_TAIL := 12.0
+const ARCANE_DRAIN := 4
 const SOAK_SLOW := 0.25
 const SOAK_TIME := 2.0
 
@@ -109,6 +119,8 @@ var ice := false
 var thorn := false
 ## Promień światła (Żar-ptak).
 var ray := false
+## Pocisk Arkanów (uczeń czarnoksiężnika, Kościej).
+var arcane := false
 
 var _flown := 0.0
 var _done := false
@@ -129,6 +141,8 @@ func _ready() -> void:
 		element = Elements.NATURE
 	if ray:
 		element = Elements.PRAWIA
+	if arcane:
+		element = Elements.ARCANE
 	_sprite = Sprite2D.new()
 	_sprite.texture = ORB_FLY if orb else (NAWIA_FLY if nawia else (WATER_FLY if bubble else FLY))
 	_sprite.hframes = ORB_FLY_FRAMES if orb else (NAWIA_FLY_FRAMES if nawia else (WATER_FLY_FRAMES if bubble else FLY_FRAMES))
@@ -152,6 +166,10 @@ func _ready() -> void:
 		_sprite.hframes = RAY_FLY_FRAMES
 		_sprite.offset = -RAY_FLY_ANCHOR
 		_sprite.scale = Vector2(0.8, 1.0)
+	if arcane:
+		_sprite.texture = ARCANE_FLY
+		_sprite.hframes = ARCANE_FLY_FRAMES
+		_sprite.offset = -ARCANE_FLY_ANCHOR
 	_sprite.modulate = tint
 	_sprite.position = Vector2(0, -_height)
 	_sprite.rotation = direction.angle()
@@ -177,6 +195,9 @@ func _process(delta: float) -> void:
 		if ice:
 			hero.slow(ICE_SLOW, ICE_TIME, Elements.COLORS[Elements.COLD])
 			ProtoFrost.chill_hero(hero, ICE_COLD)
+		if arcane and hero.mana > 0:  # Arkana wysysają manę
+			hero.mana = maxi(hero.mana - ARCANE_DRAIN, 0)
+			hero.mana_changed.emit(hero.mana, hero.max_mana)
 		_finish(true)
 		return
 	if _flown >= fly_range:
@@ -188,7 +209,9 @@ func _finish(hit: bool) -> void:
 	_done = true
 	if hit:
 		var fx: Sprite2D
-		if ray:
+		if arcane:
+			fx = Fx.once(get_parent(), ARCANE_HIT, ARCANE_HIT_FRAMES, 14.0, global_position + Vector2(0, -_height), ARCANE_HIT_ANCHOR, 20, 0.6)
+		elif ray:
 			fx = Fx.once(get_parent(), RAY_HIT, RAY_HIT_FRAMES, 18.0, global_position + Vector2(0, -_height), RAY_HIT_ANCHOR, 20, 0.8)
 		elif thorn:
 			fx = Fx.once(get_parent(), THORN_HIT, THORN_HIT_FRAMES, 16.0, global_position + Vector2(0, -_height), THORN_HIT_ANCHOR, 20, 0.8)
@@ -219,7 +242,12 @@ func _set_height(h: float) -> void:
 	queue_redraw()
 
 
-## Cień na ziemi pod strzałą.
+## Cień na ziemi pod strzałą (pocisk Arkanów - też fioletowy ogon za głową).
 func _draw() -> void:
+	if arcane and not _done:
+		var head := Vector2(0, -_height)
+		var tail := head - direction * ARCANE_TAIL
+		draw_line(tail, head, Color(0.65, 0.4, 1.0, 0.55), 3.0)
+		draw_line(tail.lerp(head, 0.4), head, Color(0.95, 0.85, 1.0, 0.8), 1.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.4))
 	draw_circle(Vector2.ZERO, 4.0, Color(0, 0, 0, 0.3))

@@ -80,6 +80,39 @@ const DATA := {
 	# Świątynia Słońca (26.11.2026): kolumny, posągi i misy z ogniem z Katakumb Watry przebarwione na piaskowiec,
 	# złamane kolumny z Zatopionych podziemi, mozaika słońca i gruz (tools/temple_art.py); kolumny dają cień przed
 	# Promieniami słońca (ProtoSunbeams.sheltered)
+	# Kopalnia karłów (26.11.2026): podpory z belek, wózki, porzucone kuźnie, kopce rudy, kryształy i tory z kopalni
+	# Watry (tools/mine_art.py, bez goblińskich chorągwi i czaszek); głazy Osuwiska stawia mechanika (ProtoRockfall)
+	Dungeons.MINE: [
+		{"f": "support", "r": 12.0, "w": 2.5}, {"f": "pillar", "r": 6.0, "w": 1.5}, {"f": "broken_beams", "r": 13.0, "w": 1.0},
+		{"f": "cart", "r": 12.0, "w": 1.5}, {"f": "cart_tipped", "r": 12.0, "w": 1.0}, {"f": "boulders", "r": 14.0, "w": 1.5},
+		{"f": "forge", "r": 14.0, "w": 0.8, "light": Color(1.0, 0.55, 0.2), "glow": 50.0},
+		{"f": "anvil", "r": 9.0, "w": 1.0}, {"f": "bellows", "r": 10.0, "w": 0.6}, {"f": "ingot_shelf", "r": 12.0, "w": 0.6},
+		{"f": "tool_rack", "r": 12.0, "w": 0.8}, {"f": "windlass", "r": 12.0, "w": 0.6}, {"f": "trough", "r": 12.0, "w": 0.5},
+		{"f": "ore_heap", "w": 1.5}, {"f": "ore_sacks", "w": 1.2}, {"f": "lumber", "w": 1.0}, {"f": "bucket", "w": 0.8},
+		{"f": "lantern", "r": 4.0, "w": 1.5, "light": Color(1.0, 0.68, 0.32), "glow": 42.0},
+		{"f": "crystal", "r": 9.0, "w": 1.5, "light": Color(0.45, 0.75, 1.0), "glow": 26.0},
+		{"f": "crystal_violet", "r": 9.0, "w": 1.0, "light": Color(0.8, 0.5, 1.0), "glow": 26.0},
+		{"f": "vein", "w": 1.2, "flat": true, "light": Color(1.0, 0.8, 0.35), "glow": 18.0},
+		{"f": "rails", "w": 1.5, "flat": true}, {"f": "planks", "w": 0.8, "flat": true}, {"f": "rubble", "w": 3.0, "flat": true},
+		{"f": "crack", "w": 2.0, "flat": true}, {"f": "puddle", "w": 0.8, "flat": true}, {"f": "ore_bits", "w": 2.0, "flat": true},
+		{"f": "nuggets", "w": 1.0, "flat": true}, {"f": "picks", "w": 1.0, "flat": true}, {"f": "pick", "w": 1.0, "flat": true},
+	],
+	# Wieża Kościeja (26.11.2026): regały z księgami, pulpity, stoły alchemiczne, półka z fiolkami i świece z Ostoi
+	# i Katakumb Watry, kocioł i kryształy przebarwione na fiolet Arkanów, rysowane magiczne kręgi i unoszące się runy
+	# (tools/tower_art.py)
+	Dungeons.TOWER: [
+		{"f": "bookshelf_0", "r": 11.0, "w": 3.0}, {"f": "bookshelf_1", "r": 11.0, "w": 3.0},
+		{"f": "lectern", "frames": 2, "w": 2.0}, {"f": "alchemy_table", "r": 14.0, "w": 1.5,
+			"light": Color(1.0, 0.75, 0.4), "glow": 34.0},
+		{"f": "mortar_table", "w": 1.5}, {"f": "potion_shelf", "r": 11.0, "w": 1.5},
+		{"f": "cauldron", "frames": 2, "fps": 4.0, "w": 1.2, "light": Color(0.75, 0.45, 1.0), "glow": 38.0},
+		{"f": "crystal_0", "r": 12.0, "w": 2.0, "light": Color(0.8, 0.5, 1.0), "glow": 34.0},
+		{"f": "crystal_1", "r": 15.0, "w": 0.7, "light": Color(0.8, 0.5, 1.0), "glow": 50.0},
+		{"f": "candle_stand", "r": 4.0, "w": 2.0, "light": Color(1.0, 0.75, 0.4), "glow": 30.0},
+		{"f": "candles", "r": 8.0, "w": 1.5, "light": Color(1.0, 0.75, 0.4), "glow": 36.0},
+		{"f": "magic_circle", "frames": 2, "fps": 1.5, "w": 2.0, "flat": true, "light": Color(0.7, 0.45, 1.0), "glow": 34.0},
+		{"f": "floating_runes", "frames": 4, "fps": 4.0, "r": 4.0, "w": 2.0, "light": Color(0.75, 0.5, 1.0), "glow": 22.0},
+	],
 	Dungeons.TEMPLE: [
 		{"f": "pillar_0", "r": 8.0, "w": 3.0}, {"f": "pillar_2", "r": 9.0, "w": 3.0},
 		{"f": "statue_0", "r": 8.0, "w": 1.0}, {"f": "statue_1", "r": 9.0, "w": 1.0}, {"f": "statue_2", "r": 8.0, "w": 1.0},

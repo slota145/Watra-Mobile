@@ -1,0 +1,271 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: kretolak
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 0.92, 0.08]}
+palette: "watra"
+size: 64          # klatka 64 (ta sama gęstość): pazury wyrzucone w przód przy ataku i ciało padające przy śmierci
+extends: humanoid   # szkielet, IK i smuga szablonu; głowa, włosy, miecz, płaszcz, pas i szyja usunięte - są własne
+
+# Kretołak (zwykły, szybki wróg lochu „Kopalnia karłów”, żywioł ziemia): przygarbiony człowiek-kret ok. 27 px
+# (człowiek 36 px, ta sama camera.scale). Ciemne, szaro-brunatne futro, ogromne łopatowate łapy z kościanymi
+# pazurami (najszersze kształty sylwetki), mały różowy ryjek wysunięty w przód, maleńkie świecące oczka,
+# na głowie wgnieciony mosiężny hełm górniczy z ogarkiem świecy. Biegnie nisko, na ugiętych nogach.
+brief:
+  summary: >
+    mole-man of the dwarven mine: a hunched, fast digger about 30 px tall (the human is 36 px, same density).
+    Dark grey-brown fur, a round hunched back, short bent legs, long arms ending in huge shovel-like paws with
+    four pale bone claws each (the widest shapes of the silhouette), a small pointed pink snout pushed forward,
+    tiny glowing amber eyes, a dented brass miner's helmet with a stub of a lit candle on top
+  proportions: "hunched: the back is the highest line, the head low and forward; arms long, paws as wide as the head"
+  head: >
+    a round furry head (no head kit) stretched forward into a tapering snout with a pink nose tip; two tiny
+    glowing amber eyes either side of the snout's root (1 px each); a small dented brass helmet with a brim
+    sits on the crown, a stubby wax candle with a tiny flame on its front; face minimal (eyes only)
+  must_keep:
+    - the huge shovel paws with pale claws - they are the type's read in a crowd
+    - the hunch and the forward snout (instantly a mole)
+    - the brass miner's helmet with the candle flame (the mine's accent)
+    - dark fur against the cave floor - the paws, helmet and flame give the light accents
+  simplify:
+    - fur is a smooth dark mass, no strands; the belly is a lighter painted patch
+    - each paw is one flat rounded plate with four claw cones; no fingers
+  decisions:
+    - permanent hunch (torso lean +0.45), the head bone counter-rotated so the snout looks forward
+    - the candle flame is emissive (`flame`), so the type is visible in the dark mine
+    - attack - both paws drawn back and up, then a fast double swipe forward with a smear (`hit` 400 ms)
+    - death - knocked back, falls sideways onto its back, paws up, the candle goes out
+
+ramps:
+  # ciemne, szaro-brunatne futro kreta
+  fur:     ["#0b090a", "#221c1f", "#362e32", "#4a3f43", "#5f5256", "#776a6c"]
+  # jaśniejszy brzuch
+  furlt:   ["#0e0c0b", "#403530", "#6c5d4e", "#95866d", "#b1aa96", "#cccabd"]
+  # różowy ryjek i podeszwy łap
+  snout:   ["#10090b", "#572b35", "#98444a", "#c2756f", "#dab4aa", "#f2e8e3"]
+  # mosiężny hełm górniczy
+  brass:   ["#110908", "#582d20", "#985931", "#c68e50", "#d6bd8b", "#e7dfc3"]
+  fx_tail: ["#95866d"]
+  fx_mid:  ["#cccabd"]
+  fx_core: ["#f3ede2"]
+
+materials:
+  fur:    {ramp: fur, finish: matte}
+  furlt:  {ramp: furlt, finish: matte, bands: [1, 4]}
+  snout:  {ramp: snout, finish: soft}
+  claw:   {ramp: bone, finish: glossy}
+  brass:  {ramp: brass, finish: metal, bands: [1, 4]}
+  wax:    {ramp: straw, finish: soft, bands: [3, 5]}
+  flame:  {ramp: flame, emissive: true, band: 3, outline: false, glow: {color: "#ffc23d", mix: 0.35, radius: 1}}
+  eye:    {ramp: eye, emissive: true, band: 2, outline: false, glow: {color: "#ffb13b", mix: 0.3, radius: 1}}
+
+remove: [use.sword, use.head, use.hair, parts.belt, parts.coat, parts.neck]
+
+shadow: {rx: 13, ry: 5, alpha: 120}
+snap: [root, torso_rot]   # oddech i trucht w całych pikselach (mniej migotania)
+
+channels:
+  hand_L: [0.27, 0.22, 0.28]
+  hand_R: [0.27, 0.22, 0.28]
+  foot_L: [0.14, 0, 0.02]
+  paw: 0           # obrót łap: 0 pazury w przód, 1 mocno w dół (zamach)
+  candle: 1       # płomień świecy (śmierć go gasi)
+  smear_r: 0.42
+  smear_y: 0.45
+  smear_z: 0.25
+
+bones:
+  big:        {parent: root, scale: 1.3}   # całe ciało x1.3 (ok. 27 px przygarbiony; człowiek 36 px)
+  legyaw:     {parent: big, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: big, rot: "[0, twist*0.4, 0]"}
+  fxspace:    {parent: big, rot: "[0, twist*0.3, 0]"}
+  torso_rot:  {parent: big, pos: "[0, 0.56 + bob, -0.04]", rot: "[lean + 0.50, twist, roll]"}
+  pelvis:     {scale: "[0.95/sqrt(squash), 0.85*squash, 0.95/sqrt(squash)]"}
+  headbase:   {pos: [0, 0.47, 0.20], scale: 1.3, rot: "[lean*0.5 - 0.30, twist, roll]"}
+  head:       {scale: 1.0}
+  shoulder_L: {pos: [0.22, 0.44, 0.02]}
+  hip_L:      {pos: [0.11, -0.02, 0.0]}
+  helmbone:   {parent: head, pos: [0, 0.18, -0.03], rot: [-0.30, 0, 0]}
+  # łapa: płaska, zwrócona dłonią w dół; `paw` obraca ją pazurami w przód
+  paw_L:      {parent: wrist_L, scale: 1.3, rot: "[-0.3 - 0.9*paw, 0, 0.4]"}
+
+ik:
+  arm_L: {lengths: [0.31, 0.31], pole: [0.4, -0.2, -1.0]}
+  leg_L: {space: big, lengths: [0.31, 0.30]}
+
+parts:
+  torso:           # okrągły garb, wąska miednica, jaśniejszy brzuch z przodu
+    material: fur
+    space: pelvis
+    blend: 0.07
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.0], r: [0.17, 0.14, 0.15]}
+      - ellipsoid: {c: [0, 0.26, -0.01], r: [0.20, 0.18, 0.17]}
+      - ellipsoid: {c: [0, 0.42, -0.03], r: [0.21, 0.12, 0.15]}
+    paint:
+      - material: furlt
+        prims:
+          - ellipsoid: {c: [0, 0.16, 0.15], r: [0.11, 0.17, 0.08]}
+  head:            # okrągła futrzana głowa przechodząca w zwężający się ryjek
+    material: fur
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.10, 0.0], r: [0.13, 0.12, 0.14]}
+      - cone: {a: [0, 0.08, 0.08], b: [0, 0.05, 0.25], r: [0.085, 0.04]}
+  nose:            # różowy czubek ryjka
+    material: snout
+    space: head
+    prims:
+      - sphere: {c: [0, 0.055, 0.27], r: 0.04}
+  eye_L:           # maleńkie bursztynowe oczko u nasady ryjka
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.07, 0.125, 0.12], r: 0.028}
+  helm:            # mały wgnieciony mosiężny hełm z rondem
+    material: brass
+    space: helmbone
+    blend: 0.01
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.0], r: [0.105, 0.07, 0.11]}
+      - cylinder: {a: [0, -0.03, 0], b: [0, -0.018, 0], r: 0.135}
+  candle:          # ogarek świecy na przodzie hełmu
+    material: wax
+    space: helmbone
+    prims:
+      - cylinder: {a: [0, 0.02, 0.09], b: [0, 0.09, 0.10], r: 0.024}
+  flame:
+    material: flame
+    space: helmbone
+    when: "candle > 0.5"
+    min_cover: 2
+    prims:
+      - cone: {a: [0, 0.11, 0.10], b: [0, 0.19, 0.10], r: [0.028, 0.006]}
+  arm_L:           # długie ramiona w futrze
+    material: fur
+    space: big
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.08}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.075, 0.06]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.06, 0.07]}
+  hand_L:          # ogromna łopatowata łapa: płaska, zaokrąglona płyta
+    material: snout
+    space: paw_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0, 0.08], r: [0.15, 0.05, 0.12]}
+    paint:
+      - material: fur
+        prims:
+          - ellipsoid: {c: [0, 0.05, 0.03], r: [0.14, 0.05, 0.12]}
+  claw_L:          # cztery jasne kościane pazury
+    material: claw
+    space: paw_L
+    priority: 2
+    min_cover: 2
+    prims:
+      - cone: {a: [0.10, 0, 0.15], b: [0.14, -0.03, 0.29], r: [0.03, 0.007]}
+      - cone: {a: [0.035, 0, 0.17], b: [0.05, -0.03, 0.33], r: [0.032, 0.007]}
+      - cone: {a: [-0.035, 0, 0.17], b: [-0.05, -0.03, 0.33], r: [0.032, 0.007]}
+      - cone: {a: [-0.10, 0, 0.15], b: [-0.14, -0.03, 0.29], r: [0.03, 0.007]}
+  leg_L:           # krótkie, ugięte nogi
+    material: fur
+    space: big
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.085, 0.06]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.06, 0.05]}
+  boot_L:          # płaska różowa stopa z pazurkami
+    material: snout
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0.05], r: [0.06, 0.04, 0.10]}
+    paint:
+      - material: fur
+        prims:
+          - ellipsoid: {c: [0, 0.03, 0.0], r: [0.08, 0.04, 0.09]}
+
+sockets:
+  paw_L: {bone: paw_L, offset: [0, 0, 0.20]}   # środek łapy: tu rozbłyska trafienie
+  candle: {bone: helmbone, offset: [0, 0.17, 0.11]}
+
+animations:
+  idle:
+    frames: 6
+    ms: 140
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      head_pitch: "0.08*sin(p - 0.7)"
+      head_yaw: "0.10*sin(p)"
+      hand_L: "[0.27, 0.22 + 0.02*sin(p - 0.6), 0.28]"
+      hand_R: "[0.27, 0.22 + 0.02*sin(p - 0.9), 0.28]"
+  # szybki, przygarbiony trucht: krótkie, częste kroki, ciało kołysze się na boki, łapy wiosłują przed piersią,
+  # ryjek węszy (głowa podskakuje opóźniona)
+  walk:
+    frames: 8
+    ms: 75
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: "0.10 + 0.03*cos(2*p)"
+      bob: "-0.035*cos(2*p)"
+      squash: "1 - 0.02*cos(2*p)"
+      twist: "0.14*cos(p)"
+      roll: "0.06*sin(p)"
+      head_pitch: "0.08*cos(2*p - 0.8)"
+      head_yaw: "-0.08*cos(p)"
+      foot_L: "[0.14, 0.09*pos(-sin(p)), 0.04 + 0.20*cos(p)]"
+      foot_R: "[0.14, 0.09*pos(sin(p)), 0.04 - 0.20*cos(p)]"
+      pitch_foot_L: "0.4*pos(-sin(p))"
+      pitch_foot_R: "0.4*pos(sin(p))"
+      hand_L: "[0.27, 0.22 + 0.05*pos(cos(p)), 0.28 - 0.10*cos(p)]"
+      hand_R: "[0.27, 0.22 + 0.05*pos(-cos(p)), 0.28 + 0.10*cos(p)]"
+  # cios pazurami: przysiad, obie łapy cofnięte i uniesione nad głowę (przytrzymanie), szybki zamach w dół i w przód
+  # ze smugą, łapy orzą ziemię przed nim (`hit` 400 ms, socket `paw_L`), powrót
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {bob: -0.04, squash: 0.94, lean: -0.05, head_pitch: -0.10, twist: -0.10,
+          hand_L: [0.30, 0.42, 0.04], hand_R: [0.30, 0.42, 0.04], paw: 0.5, foot_L: [0.15, 0, 0.10], foot_R: [0.15, 0, -0.06]}}
+      - {ms: 180, set: {bob: -0.02, squash: 0.97, lean: -0.22, head_pitch: -0.18, twist: -0.14,
+          hand_L: [0.30, 0.52, -0.04], hand_R: [0.30, 0.52, -0.04], paw: 0.8, foot_L: [0.15, 0, 0.12], foot_R: [0.15, 0, -0.08]}}
+      - {ms: 100, set: {root: [0, 0, 0.06], bob: -0.03, squash: 1.0, lean: 0.10, head_pitch: 0.0, twist: 0.0,
+          hand_L: [0.24, 0.40, 0.36], hand_R: [0.24, 0.40, 0.36], paw: 0.3, foot_L: [0.15, 0, 0.18], foot_R: [0.15, 0, -0.08],
+          smear_w: 0.09, smear_a0: 2.0, smear_a1: 0.8}}
+      - {ms: 80, event: hit, set: {root: [0, 0, 0.12], bob: -0.05, squash: 0.93, lean: 0.12, head_pitch: 0.10, twist: 0.04,
+          hand_L: [0.24, 0.12, 0.50], hand_R: [0.24, 0.12, 0.50], paw: -0.2, foot_L: [0.15, 0, 0.22], foot_R: [0.15, 0, -0.10],
+          smear_w: 0.09, smear_a0: 1.0, smear_a1: -0.5, smear_fade: 0.65}}
+      - {ms: 100, set: {root: [0, 0, 0.12], bob: -0.05, squash: 0.95, lean: 0.11, head_pitch: 0.08,
+          hand_L: [0.25, 0.10, 0.48], hand_R: [0.25, 0.10, 0.48], paw: -0.2, foot_L: [0.15, 0, 0.22], foot_R: [0.15, 0, -0.10]}}
+      - {ms: 120, set: {root: [0, 0, 0.05], bob: -0.02, lean: 0.10, head_pitch: 0.03,
+          hand_L: [0.26, 0.16, 0.34], hand_R: [0.26, 0.16, 0.34], foot_L: [0.15, 0, 0.10], foot_R: [0.15, 0, -0.02]}}
+  # trafienie: szarpnięcie w tył, łapy rozrzucone, głowa odskakuje, powrót
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], bob: 0.01, lean: -0.25, squash: 0.95, head_pitch: -0.25, twist: 0.08,
+          hand_L: [0.34, 0.30, 0.16], hand_R: [0.34, 0.30, 0.16], paw: 0.4}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.12, squash: 0.98, head_pitch: -0.12, twist: 0.04,
+          hand_L: [0.30, 0.26, 0.22], hand_R: [0.30, 0.26, 0.22], paw: 0.2}}
+      - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.04, head_pitch: 0.03}}
+  # śmierć: odrzucony w tył, chwieje się, przewraca na plecy z łapami w górze; świeca gaśnie przy upadku
+  death:
+    loop: false
+    keys:
+      - {ms: 100, set: {root: [0, 0, -0.06], lean: -0.30, squash: 0.96, head_pitch: -0.30, twist: 0.10,
+          hand_L: [0.36, 0.34, 0.12], hand_R: [0.36, 0.34, 0.12], paw: 0.4}}
+      - {ms: 120, set: {root: [0, 0, -0.10], lean: -0.70, bob: -0.08, roll: 0.10, head_pitch: -0.35, twist: 0.12,
+          hand_L: [0.38, 0.40, 0.06], hand_R: [0.38, 0.36, 0.10], paw: 0.6, foot_L: [0.14, 0.04, 0.10], foot_R: [0.14, 0, 0.0]}}
+      - {ms: 120, set: {root: [0, 0, -0.16], lean: -1.20, bob: -0.24, roll: 0.12, head_pitch: -0.30, twist: 0.10,
+          hand_L: [0.36, 0.40, 0.10], hand_R: [0.36, 0.36, 0.12], paw: 0.8, candle: 0, foot_L: [0.14, 0.10, 0.16], foot_R: [0.14, 0.06, 0.08]}}
+      - {ms: 100, set: {root: [0, 0, -0.20], lean: -1.65, bob: -0.36, roll: 0.10, head_pitch: -0.20, twist: 0.08,
+          hand_L: [0.34, 0.34, 0.16], hand_R: [0.34, 0.30, 0.18], paw: 0.9, candle: 0, foot_L: [0.14, 0.16, 0.20], foot_R: [0.14, 0.12, 0.12]}}
+      - {ms: 110, set: {root: [0, 0, -0.20], lean: -1.55, bob: -0.33, roll: 0.10, head_pitch: -0.15, twist: 0.08,
+          hand_L: [0.34, 0.30, 0.20], hand_R: [0.34, 0.26, 0.22], paw: 0.9, candle: 0, foot_L: [0.14, 0.10, 0.20], foot_R: [0.14, 0.08, 0.12]}}
+      - {ms: 600, set: {root: [0, 0, -0.20], lean: -1.62, bob: -0.36, roll: 0.10, head_pitch: -0.10, twist: 0.08,
+          hand_L: [0.36, 0.20, 0.12], hand_R: [0.36, 0.18, 0.14], paw: 1.0, candle: 0, foot_L: [0.14, 0.06, 0.22], foot_R: [0.14, 0.04, 0.14]}}
+
+timing:
+  attack: {hit: 400ms, total: 700ms}

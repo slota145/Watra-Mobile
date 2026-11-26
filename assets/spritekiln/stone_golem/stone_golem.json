@@ -1,0 +1,11423 @@
+{
+ "frames": {
+  "idle_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_s_1": {
+   "frame": {
+    "x": 80,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_s_2": {
+   "frame": {
+    "x": 160,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_s_3": {
+   "frame": {
+    "x": 240,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_s_4": {
+   "frame": {
+    "x": 320,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_s_5": {
+   "frame": {
+    "x": 400,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_s_6": {
+   "frame": {
+    "x": 480,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_s_7": {
+   "frame": {
+    "x": 560,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 80,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_se_1": {
+   "frame": {
+    "x": 80,
+    "y": 80,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_se_2": {
+   "frame": {
+    "x": 160,
+    "y": 80,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_se_3": {
+   "frame": {
+    "x": 240,
+    "y": 80,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_se_4": {
+   "frame": {
+    "x": 320,
+    "y": 80,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_se_5": {
+   "frame": {
+    "x": 400,
+    "y": 80,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_se_6": {
+   "frame": {
+    "x": 480,
+    "y": 80,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_se_7": {
+   "frame": {
+    "x": 560,
+    "y": 80,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_e_1": {
+   "frame": {
+    "x": 80,
+    "y": 160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_e_2": {
+   "frame": {
+    "x": 160,
+    "y": 160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_e_3": {
+   "frame": {
+    "x": 240,
+    "y": 160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_e_4": {
+   "frame": {
+    "x": 320,
+    "y": 160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_e_5": {
+   "frame": {
+    "x": 400,
+    "y": 160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_e_6": {
+   "frame": {
+    "x": 480,
+    "y": 160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_e_7": {
+   "frame": {
+    "x": 560,
+    "y": 160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_ne_1": {
+   "frame": {
+    "x": 80,
+    "y": 240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_ne_2": {
+   "frame": {
+    "x": 160,
+    "y": 240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_ne_3": {
+   "frame": {
+    "x": 240,
+    "y": 240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_ne_4": {
+   "frame": {
+    "x": 320,
+    "y": 240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_ne_5": {
+   "frame": {
+    "x": 400,
+    "y": 240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_ne_6": {
+   "frame": {
+    "x": 480,
+    "y": 240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_ne_7": {
+   "frame": {
+    "x": 560,
+    "y": 240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_n_1": {
+   "frame": {
+    "x": 80,
+    "y": 320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_n_2": {
+   "frame": {
+    "x": 160,
+    "y": 320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_n_3": {
+   "frame": {
+    "x": 240,
+    "y": 320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_n_4": {
+   "frame": {
+    "x": 320,
+    "y": 320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_n_5": {
+   "frame": {
+    "x": 400,
+    "y": 320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_n_6": {
+   "frame": {
+    "x": 480,
+    "y": 320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_n_7": {
+   "frame": {
+    "x": 560,
+    "y": 320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_nw_0": {
+   "frame": {
+    "x": 0,
+    "y": 400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_nw_1": {
+   "frame": {
+    "x": 80,
+    "y": 400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_nw_2": {
+   "frame": {
+    "x": 160,
+    "y": 400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_nw_3": {
+   "frame": {
+    "x": 240,
+    "y": 400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_nw_4": {
+   "frame": {
+    "x": 320,
+    "y": 400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_nw_5": {
+   "frame": {
+    "x": 400,
+    "y": 400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_nw_6": {
+   "frame": {
+    "x": 480,
+    "y": 400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_nw_7": {
+   "frame": {
+    "x": 560,
+    "y": 400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_w_0": {
+   "frame": {
+    "x": 0,
+    "y": 480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_w_1": {
+   "frame": {
+    "x": 80,
+    "y": 480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_w_2": {
+   "frame": {
+    "x": 160,
+    "y": 480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_w_3": {
+   "frame": {
+    "x": 240,
+    "y": 480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_w_4": {
+   "frame": {
+    "x": 320,
+    "y": 480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_w_5": {
+   "frame": {
+    "x": 400,
+    "y": 480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_w_6": {
+   "frame": {
+    "x": 480,
+    "y": 480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_w_7": {
+   "frame": {
+    "x": 560,
+    "y": 480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_sw_0": {
+   "frame": {
+    "x": 0,
+    "y": 560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_sw_1": {
+   "frame": {
+    "x": 80,
+    "y": 560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_sw_2": {
+   "frame": {
+    "x": 160,
+    "y": 560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_sw_3": {
+   "frame": {
+    "x": 240,
+    "y": 560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_sw_4": {
+   "frame": {
+    "x": 320,
+    "y": 560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_sw_5": {
+   "frame": {
+    "x": 400,
+    "y": 560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_sw_6": {
+   "frame": {
+    "x": 480,
+    "y": 560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "idle_sw_7": {
+   "frame": {
+    "x": 560,
+    "y": 560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "walk_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_s_1": {
+   "frame": {
+    "x": 80,
+    "y": 640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_s_2": {
+   "frame": {
+    "x": 160,
+    "y": 640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_s_3": {
+   "frame": {
+    "x": 240,
+    "y": 640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_s_4": {
+   "frame": {
+    "x": 320,
+    "y": 640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_s_5": {
+   "frame": {
+    "x": 400,
+    "y": 640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_s_6": {
+   "frame": {
+    "x": 480,
+    "y": 640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_s_7": {
+   "frame": {
+    "x": 560,
+    "y": 640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_se_1": {
+   "frame": {
+    "x": 80,
+    "y": 720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_se_2": {
+   "frame": {
+    "x": 160,
+    "y": 720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_se_3": {
+   "frame": {
+    "x": 240,
+    "y": 720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_se_4": {
+   "frame": {
+    "x": 320,
+    "y": 720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_se_5": {
+   "frame": {
+    "x": 400,
+    "y": 720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_se_6": {
+   "frame": {
+    "x": 480,
+    "y": 720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_se_7": {
+   "frame": {
+    "x": 560,
+    "y": 720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_e_1": {
+   "frame": {
+    "x": 80,
+    "y": 800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_e_2": {
+   "frame": {
+    "x": 160,
+    "y": 800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_e_3": {
+   "frame": {
+    "x": 240,
+    "y": 800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_e_4": {
+   "frame": {
+    "x": 320,
+    "y": 800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_e_5": {
+   "frame": {
+    "x": 400,
+    "y": 800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_e_6": {
+   "frame": {
+    "x": 480,
+    "y": 800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_e_7": {
+   "frame": {
+    "x": 560,
+    "y": 800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_ne_1": {
+   "frame": {
+    "x": 80,
+    "y": 880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_ne_2": {
+   "frame": {
+    "x": 160,
+    "y": 880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_ne_3": {
+   "frame": {
+    "x": 240,
+    "y": 880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_ne_4": {
+   "frame": {
+    "x": 320,
+    "y": 880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_ne_5": {
+   "frame": {
+    "x": 400,
+    "y": 880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_ne_6": {
+   "frame": {
+    "x": 480,
+    "y": 880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_ne_7": {
+   "frame": {
+    "x": 560,
+    "y": 880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_n_1": {
+   "frame": {
+    "x": 80,
+    "y": 960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_n_2": {
+   "frame": {
+    "x": 160,
+    "y": 960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_n_3": {
+   "frame": {
+    "x": 240,
+    "y": 960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_n_4": {
+   "frame": {
+    "x": 320,
+    "y": 960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_n_5": {
+   "frame": {
+    "x": 400,
+    "y": 960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_n_6": {
+   "frame": {
+    "x": 480,
+    "y": 960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_n_7": {
+   "frame": {
+    "x": 560,
+    "y": 960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_nw_0": {
+   "frame": {
+    "x": 0,
+    "y": 1040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_nw_1": {
+   "frame": {
+    "x": 80,
+    "y": 1040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_nw_2": {
+   "frame": {
+    "x": 160,
+    "y": 1040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_nw_3": {
+   "frame": {
+    "x": 240,
+    "y": 1040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_nw_4": {
+   "frame": {
+    "x": 320,
+    "y": 1040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_nw_5": {
+   "frame": {
+    "x": 400,
+    "y": 1040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_nw_6": {
+   "frame": {
+    "x": 480,
+    "y": 1040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_nw_7": {
+   "frame": {
+    "x": 560,
+    "y": 1040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_w_0": {
+   "frame": {
+    "x": 0,
+    "y": 1120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_w_1": {
+   "frame": {
+    "x": 80,
+    "y": 1120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_w_2": {
+   "frame": {
+    "x": 160,
+    "y": 1120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_w_3": {
+   "frame": {
+    "x": 240,
+    "y": 1120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_w_4": {
+   "frame": {
+    "x": 320,
+    "y": 1120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_w_5": {
+   "frame": {
+    "x": 400,
+    "y": 1120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_w_6": {
+   "frame": {
+    "x": 480,
+    "y": 1120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_w_7": {
+   "frame": {
+    "x": 560,
+    "y": 1120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_sw_0": {
+   "frame": {
+    "x": 0,
+    "y": 1200,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_sw_1": {
+   "frame": {
+    "x": 80,
+    "y": 1200,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_sw_2": {
+   "frame": {
+    "x": 160,
+    "y": 1200,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_sw_3": {
+   "frame": {
+    "x": 240,
+    "y": 1200,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_sw_4": {
+   "frame": {
+    "x": 320,
+    "y": 1200,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_sw_5": {
+   "frame": {
+    "x": 400,
+    "y": 1200,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_sw_6": {
+   "frame": {
+    "x": 480,
+    "y": 1200,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "walk_sw_7": {
+   "frame": {
+    "x": 560,
+    "y": 1200,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "attack_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 1280,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "attack_s_1": {
+   "frame": {
+    "x": 80,
+    "y": 1280,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "attack_s_2": {
+   "frame": {
+    "x": 160,
+    "y": 1280,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 210
+  },
+  "attack_s_3": {
+   "frame": {
+    "x": 240,
+    "y": 1280,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 200
+  },
+  "attack_s_4": {
+   "frame": {
+    "x": 320,
+    "y": 1280,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 70
+  },
+  "attack_s_5": {
+   "frame": {
+    "x": 400,
+    "y": 1280,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 90
+  },
+  "attack_s_6": {
+   "frame": {
+    "x": 480,
+    "y": 1280,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 100
+  },
+  "attack_s_7": {
+   "frame": {
+    "x": 560,
+    "y": 1280,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 110
+  },
+  "attack_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 1360,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "attack_se_1": {
+   "frame": {
+    "x": 80,
+    "y": 1360,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "attack_se_2": {
+   "frame": {
+    "x": 160,
+    "y": 1360,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 210
+  },
+  "attack_se_3": {
+   "frame": {
+    "x": 240,
+    "y": 1360,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 200
+  },
+  "attack_se_4": {
+   "frame": {
+    "x": 320,
+    "y": 1360,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 70
+  },
+  "attack_se_5": {
+   "frame": {
+    "x": 400,
+    "y": 1360,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 90
+  },
+  "attack_se_6": {
+   "frame": {
+    "x": 480,
+    "y": 1360,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 100
+  },
+  "attack_se_7": {
+   "frame": {
+    "x": 560,
+    "y": 1360,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 110
+  },
+  "attack_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 1440,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "attack_e_1": {
+   "frame": {
+    "x": 80,
+    "y": 1440,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "attack_e_2": {
+   "frame": {
+    "x": 160,
+    "y": 1440,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 210
+  },
+  "attack_e_3": {
+   "frame": {
+    "x": 240,
+    "y": 1440,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 200
+  },
+  "attack_e_4": {
+   "frame": {
+    "x": 320,
+    "y": 1440,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 70
+  },
+  "attack_e_5": {
+   "frame": {
+    "x": 400,
+    "y": 1440,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 90
+  },
+  "attack_e_6": {
+   "frame": {
+    "x": 480,
+    "y": 1440,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 100
+  },
+  "attack_e_7": {
+   "frame": {
+    "x": 560,
+    "y": 1440,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 110
+  },
+  "attack_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 1520,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "attack_ne_1": {
+   "frame": {
+    "x": 80,
+    "y": 1520,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "attack_ne_2": {
+   "frame": {
+    "x": 160,
+    "y": 1520,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 210
+  },
+  "attack_ne_3": {
+   "frame": {
+    "x": 240,
+    "y": 1520,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 200
+  },
+  "attack_ne_4": {
+   "frame": {
+    "x": 320,
+    "y": 1520,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 70
+  },
+  "attack_ne_5": {
+   "frame": {
+    "x": 400,
+    "y": 1520,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 90
+  },
+  "attack_ne_6": {
+   "frame": {
+    "x": 480,
+    "y": 1520,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 100
+  },
+  "attack_ne_7": {
+   "frame": {
+    "x": 560,
+    "y": 1520,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 110
+  },
+  "attack_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 1600,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "attack_n_1": {
+   "frame": {
+    "x": 80,
+    "y": 1600,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "attack_n_2": {
+   "frame": {
+    "x": 160,
+    "y": 1600,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 210
+  },
+  "attack_n_3": {
+   "frame": {
+    "x": 240,
+    "y": 1600,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 200
+  },
+  "attack_n_4": {
+   "frame": {
+    "x": 320,
+    "y": 1600,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 70
+  },
+  "attack_n_5": {
+   "frame": {
+    "x": 400,
+    "y": 1600,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 90
+  },
+  "attack_n_6": {
+   "frame": {
+    "x": 480,
+    "y": 1600,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 100
+  },
+  "attack_n_7": {
+   "frame": {
+    "x": 560,
+    "y": 1600,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 110
+  },
+  "attack_nw_0": {
+   "frame": {
+    "x": 0,
+    "y": 1680,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "attack_nw_1": {
+   "frame": {
+    "x": 80,
+    "y": 1680,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "attack_nw_2": {
+   "frame": {
+    "x": 160,
+    "y": 1680,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 210
+  },
+  "attack_nw_3": {
+   "frame": {
+    "x": 240,
+    "y": 1680,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 200
+  },
+  "attack_nw_4": {
+   "frame": {
+    "x": 320,
+    "y": 1680,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 70
+  },
+  "attack_nw_5": {
+   "frame": {
+    "x": 400,
+    "y": 1680,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 90
+  },
+  "attack_nw_6": {
+   "frame": {
+    "x": 480,
+    "y": 1680,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 100
+  },
+  "attack_nw_7": {
+   "frame": {
+    "x": 560,
+    "y": 1680,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 110
+  },
+  "attack_w_0": {
+   "frame": {
+    "x": 0,
+    "y": 1760,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "attack_w_1": {
+   "frame": {
+    "x": 80,
+    "y": 1760,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "attack_w_2": {
+   "frame": {
+    "x": 160,
+    "y": 1760,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 210
+  },
+  "attack_w_3": {
+   "frame": {
+    "x": 240,
+    "y": 1760,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 200
+  },
+  "attack_w_4": {
+   "frame": {
+    "x": 320,
+    "y": 1760,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 70
+  },
+  "attack_w_5": {
+   "frame": {
+    "x": 400,
+    "y": 1760,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 90
+  },
+  "attack_w_6": {
+   "frame": {
+    "x": 480,
+    "y": 1760,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 100
+  },
+  "attack_w_7": {
+   "frame": {
+    "x": 560,
+    "y": 1760,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 110
+  },
+  "attack_sw_0": {
+   "frame": {
+    "x": 0,
+    "y": 1840,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "attack_sw_1": {
+   "frame": {
+    "x": 80,
+    "y": 1840,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "attack_sw_2": {
+   "frame": {
+    "x": 160,
+    "y": 1840,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 210
+  },
+  "attack_sw_3": {
+   "frame": {
+    "x": 240,
+    "y": 1840,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 200
+  },
+  "attack_sw_4": {
+   "frame": {
+    "x": 320,
+    "y": 1840,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 70
+  },
+  "attack_sw_5": {
+   "frame": {
+    "x": 400,
+    "y": 1840,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 90
+  },
+  "attack_sw_6": {
+   "frame": {
+    "x": 480,
+    "y": 1840,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 100
+  },
+  "attack_sw_7": {
+   "frame": {
+    "x": 560,
+    "y": 1840,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 110
+  },
+  "hit_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 1920,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_s_1": {
+   "frame": {
+    "x": 80,
+    "y": 1920,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_s_2": {
+   "frame": {
+    "x": 160,
+    "y": 1920,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 2000,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_se_1": {
+   "frame": {
+    "x": 80,
+    "y": 2000,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_se_2": {
+   "frame": {
+    "x": 160,
+    "y": 2000,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 2080,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_e_1": {
+   "frame": {
+    "x": 80,
+    "y": 2080,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_e_2": {
+   "frame": {
+    "x": 160,
+    "y": 2080,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 2160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_ne_1": {
+   "frame": {
+    "x": 80,
+    "y": 2160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_ne_2": {
+   "frame": {
+    "x": 160,
+    "y": 2160,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 2240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_n_1": {
+   "frame": {
+    "x": 80,
+    "y": 2240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_n_2": {
+   "frame": {
+    "x": 160,
+    "y": 2240,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_nw_0": {
+   "frame": {
+    "x": 0,
+    "y": 2320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_nw_1": {
+   "frame": {
+    "x": 80,
+    "y": 2320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_nw_2": {
+   "frame": {
+    "x": 160,
+    "y": 2320,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_w_0": {
+   "frame": {
+    "x": 0,
+    "y": 2400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_w_1": {
+   "frame": {
+    "x": 80,
+    "y": 2400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_w_2": {
+   "frame": {
+    "x": 160,
+    "y": 2400,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_sw_0": {
+   "frame": {
+    "x": 0,
+    "y": 2480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_sw_1": {
+   "frame": {
+    "x": 80,
+    "y": 2480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "hit_sw_2": {
+   "frame": {
+    "x": 160,
+    "y": 2480,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 80
+  },
+  "death_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 2560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "death_s_1": {
+   "frame": {
+    "x": 80,
+    "y": 2560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_s_2": {
+   "frame": {
+    "x": 160,
+    "y": 2560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_s_3": {
+   "frame": {
+    "x": 240,
+    "y": 2560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_s_4": {
+   "frame": {
+    "x": 320,
+    "y": 2560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_s_5": {
+   "frame": {
+    "x": 400,
+    "y": 2560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "death_s_6": {
+   "frame": {
+    "x": 480,
+    "y": 2560,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 700
+  },
+  "death_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 2640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "death_se_1": {
+   "frame": {
+    "x": 80,
+    "y": 2640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_se_2": {
+   "frame": {
+    "x": 160,
+    "y": 2640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_se_3": {
+   "frame": {
+    "x": 240,
+    "y": 2640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_se_4": {
+   "frame": {
+    "x": 320,
+    "y": 2640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_se_5": {
+   "frame": {
+    "x": 400,
+    "y": 2640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "death_se_6": {
+   "frame": {
+    "x": 480,
+    "y": 2640,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 700
+  },
+  "death_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 2720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "death_e_1": {
+   "frame": {
+    "x": 80,
+    "y": 2720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_e_2": {
+   "frame": {
+    "x": 160,
+    "y": 2720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_e_3": {
+   "frame": {
+    "x": 240,
+    "y": 2720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_e_4": {
+   "frame": {
+    "x": 320,
+    "y": 2720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_e_5": {
+   "frame": {
+    "x": 400,
+    "y": 2720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "death_e_6": {
+   "frame": {
+    "x": 480,
+    "y": 2720,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 700
+  },
+  "death_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 2800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "death_ne_1": {
+   "frame": {
+    "x": 80,
+    "y": 2800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_ne_2": {
+   "frame": {
+    "x": 160,
+    "y": 2800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_ne_3": {
+   "frame": {
+    "x": 240,
+    "y": 2800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_ne_4": {
+   "frame": {
+    "x": 320,
+    "y": 2800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_ne_5": {
+   "frame": {
+    "x": 400,
+    "y": 2800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "death_ne_6": {
+   "frame": {
+    "x": 480,
+    "y": 2800,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 700
+  },
+  "death_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 2880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "death_n_1": {
+   "frame": {
+    "x": 80,
+    "y": 2880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_n_2": {
+   "frame": {
+    "x": 160,
+    "y": 2880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_n_3": {
+   "frame": {
+    "x": 240,
+    "y": 2880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_n_4": {
+   "frame": {
+    "x": 320,
+    "y": 2880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_n_5": {
+   "frame": {
+    "x": 400,
+    "y": 2880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "death_n_6": {
+   "frame": {
+    "x": 480,
+    "y": 2880,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 700
+  },
+  "death_nw_0": {
+   "frame": {
+    "x": 0,
+    "y": 2960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "death_nw_1": {
+   "frame": {
+    "x": 80,
+    "y": 2960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_nw_2": {
+   "frame": {
+    "x": 160,
+    "y": 2960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_nw_3": {
+   "frame": {
+    "x": 240,
+    "y": 2960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_nw_4": {
+   "frame": {
+    "x": 320,
+    "y": 2960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_nw_5": {
+   "frame": {
+    "x": 400,
+    "y": 2960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "death_nw_6": {
+   "frame": {
+    "x": 480,
+    "y": 2960,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 700
+  },
+  "death_w_0": {
+   "frame": {
+    "x": 0,
+    "y": 3040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "death_w_1": {
+   "frame": {
+    "x": 80,
+    "y": 3040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_w_2": {
+   "frame": {
+    "x": 160,
+    "y": 3040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_w_3": {
+   "frame": {
+    "x": 240,
+    "y": 3040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_w_4": {
+   "frame": {
+    "x": 320,
+    "y": 3040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_w_5": {
+   "frame": {
+    "x": 400,
+    "y": 3040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "death_w_6": {
+   "frame": {
+    "x": 480,
+    "y": 3040,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 700
+  },
+  "death_sw_0": {
+   "frame": {
+    "x": 0,
+    "y": 3120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 120
+  },
+  "death_sw_1": {
+   "frame": {
+    "x": 80,
+    "y": 3120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_sw_2": {
+   "frame": {
+    "x": 160,
+    "y": 3120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 150
+  },
+  "death_sw_3": {
+   "frame": {
+    "x": 240,
+    "y": 3120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_sw_4": {
+   "frame": {
+    "x": 320,
+    "y": 3120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 130
+  },
+  "death_sw_5": {
+   "frame": {
+    "x": 400,
+    "y": 3120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 160
+  },
+  "death_sw_6": {
+   "frame": {
+    "x": 480,
+    "y": 3120,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   },
+   "duration": 700
+  }
+ },
+ "meta": {
+  "app": "spritekiln",
+  "version": "0.4.0",
+  "image": "stone_golem.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 640,
+   "h": 3200
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle_s",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_se",
+    "from": 8,
+    "to": 15,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_e",
+    "from": 16,
+    "to": 23,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_ne",
+    "from": 24,
+    "to": 31,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_n",
+    "from": 32,
+    "to": 39,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_nw",
+    "from": 40,
+    "to": 47,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_w",
+    "from": 48,
+    "to": 55,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_sw",
+    "from": 56,
+    "to": 63,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_s",
+    "from": 64,
+    "to": 71,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_se",
+    "from": 72,
+    "to": 79,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_e",
+    "from": 80,
+    "to": 87,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_ne",
+    "from": 88,
+    "to": 95,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_n",
+    "from": 96,
+    "to": 103,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_nw",
+    "from": 104,
+    "to": 111,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_w",
+    "from": 112,
+    "to": 119,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_sw",
+    "from": 120,
+    "to": 127,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_s",
+    "from": 128,
+    "to": 135,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_se",
+    "from": 136,
+    "to": 143,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_e",
+    "from": 144,
+    "to": 151,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_ne",
+    "from": 152,
+    "to": 159,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_n",
+    "from": 160,
+    "to": 167,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_nw",
+    "from": 168,
+    "to": 175,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_w",
+    "from": 176,
+    "to": 183,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_sw",
+    "from": 184,
+    "to": 191,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_s",
+    "from": 192,
+    "to": 194,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_se",
+    "from": 195,
+    "to": 197,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_e",
+    "from": 198,
+    "to": 200,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_ne",
+    "from": 201,
+    "to": 203,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_n",
+    "from": 204,
+    "to": 206,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_nw",
+    "from": 207,
+    "to": 209,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_w",
+    "from": 210,
+    "to": 212,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_sw",
+    "from": 213,
+    "to": 215,
+    "direction": "forward"
+   },
+   {
+    "name": "death_s",
+    "from": 216,
+    "to": 222,
+    "direction": "forward"
+   },
+   {
+    "name": "death_se",
+    "from": 223,
+    "to": 229,
+    "direction": "forward"
+   },
+   {
+    "name": "death_e",
+    "from": 230,
+    "to": 236,
+    "direction": "forward"
+   },
+   {
+    "name": "death_ne",
+    "from": 237,
+    "to": 243,
+    "direction": "forward"
+   },
+   {
+    "name": "death_n",
+    "from": 244,
+    "to": 250,
+    "direction": "forward"
+   },
+   {
+    "name": "death_nw",
+    "from": 251,
+    "to": 257,
+    "direction": "forward"
+   },
+   {
+    "name": "death_w",
+    "from": 258,
+    "to": 264,
+    "direction": "forward"
+   },
+   {
+    "name": "death_sw",
+    "from": 265,
+    "to": 271,
+    "direction": "forward"
+   }
+  ]
+ },
+ "spritekiln": {
+  "format": 1,
+  "generator": "spritekiln 0.4.0",
+  "name": "stone_golem",
+  "frame_size": 80,
+  "pivot": {
+   "x": 40.0,
+   "y": 59.52
+  },
+  "directions": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n",
+   "nw",
+   "w",
+   "sw"
+  ],
+  "direction_yaw": {
+   "s": 0,
+   "se": 45,
+   "e": 90,
+   "ne": 135,
+   "n": 180,
+   "nw": -135,
+   "w": -90,
+   "sw": -45
+  },
+  "view": "topdown",
+  "camera": {
+   "projection": "orthographic",
+   "pitch_deg": 38.0,
+   "world_units_per_px": 0.04889,
+   "px_per_unit": 20.4541,
+   "ground_k": 0.6157,
+   "height_k": 0.788,
+   "center": [
+    0.0,
+    1.25,
+    0.05
+   ]
+  },
+  "normal_map": "stone_golem_normal.png",
+  "emissive_map": "stone_golem_emissive.png",
+  "animations": {
+   "idle": {
+    "loop": true,
+    "directions": {
+     "s": {
+      "row": 0,
+      "frames": [
+       "idle_s_0",
+       "idle_s_1",
+       "idle_s_2",
+       "idle_s_3",
+       "idle_s_4",
+       "idle_s_5",
+       "idle_s_6",
+       "idle_s_7"
+      ],
+      "durations": [
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ]
+       ],
+       "fist_L": [
+        [
+         16.97,
+         -7.26,
+         3.97
+        ],
+        [
+         16.93,
+         -8.67,
+         4.17
+        ],
+        [
+         16.88,
+         -9.06,
+         4.64
+        ],
+        [
+         16.85,
+         -9.17,
+         4.51
+        ],
+        [
+         16.85,
+         -7.94,
+         4.49
+        ],
+        [
+         16.88,
+         -6.53,
+         4.29
+        ],
+        [
+         16.94,
+         -6.19,
+         3.77
+        ],
+        [
+         16.97,
+         -6.08,
+         3.89
+        ]
+       ],
+       "fist_R": [
+        [
+         -16.97,
+         -7.26,
+         3.97
+        ],
+        [
+         -16.93,
+         -8.67,
+         4.17
+        ],
+        [
+         -16.88,
+         -9.06,
+         4.64
+        ],
+        [
+         -16.85,
+         -9.17,
+         4.51
+        ],
+        [
+         -16.85,
+         -7.94,
+         4.49
+        ],
+        [
+         -16.88,
+         -6.53,
+         4.29
+        ],
+        [
+         -16.94,
+         -6.19,
+         3.77
+        ],
+        [
+         -16.97,
+         -6.08,
+         3.89
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 1,
+      "frames": [
+       "idle_se_0",
+       "idle_se_1",
+       "idle_se_2",
+       "idle_se_3",
+       "idle_se_4",
+       "idle_se_5",
+       "idle_se_6",
+       "idle_se_7"
+      ],
+      "durations": [
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         14.8,
+         -15.36,
+         -9.19
+        ],
+        [
+         15.12,
+         -16.84,
+         -9.1
+        ],
+        [
+         15.31,
+         -17.27,
+         -8.7
+        ],
+        [
+         15.3,
+         -17.37,
+         -8.81
+        ],
+        [
+         15.09,
+         -16.08,
+         -8.74
+        ],
+        [
+         14.77,
+         -14.6,
+         -8.82
+        ],
+        [
+         14.54,
+         -14.22,
+         -9.27
+        ],
+        [
+         14.55,
+         -14.12,
+         -9.17
+        ]
+       ],
+       "fist_R": [
+        [
+         -9.19,
+         -0.59,
+         14.8
+        ],
+        [
+         -8.82,
+         -2.1,
+         14.84
+        ],
+        [
+         -8.56,
+         -2.57,
+         15.17
+        ],
+        [
+         -8.53,
+         -2.7,
+         15.02
+        ],
+        [
+         -8.74,
+         -1.41,
+         15.09
+        ],
+        [
+         -9.1,
+         0.1,
+         15.05
+        ],
+        [
+         -9.41,
+         0.53,
+         14.68
+        ],
+        [
+         -9.45,
+         0.66,
+         14.83
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 2,
+      "frames": [
+       "idle_e_0",
+       "idle_e_1",
+       "idle_e_2",
+       "idle_e_3",
+       "idle_e_4",
+       "idle_e_5",
+       "idle_e_6",
+       "idle_e_7"
+      ],
+      "durations": [
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ]
+       ],
+       "fist_L": [
+        [
+         3.97,
+         -20.15,
+         -16.97
+        ],
+        [
+         4.45,
+         -21.83,
+         -17.21
+        ],
+        [
+         4.77,
+         -22.39,
+         -17.02
+        ],
+        [
+         4.79,
+         -22.49,
+         -17.13
+        ],
+        [
+         4.49,
+         -21.07,
+         -16.85
+        ],
+        [
+         4.01,
+         -19.39,
+         -16.6
+        ],
+        [
+         3.63,
+         -18.85,
+         -16.8
+        ],
+        [
+         3.61,
+         -18.75,
+         -16.69
+        ]
+       ],
+       "fist_R": [
+        [
+         3.97,
+         0.74,
+         16.97
+        ],
+        [
+         4.45,
+         -0.98,
+         16.65
+        ],
+        [
+         4.77,
+         -1.61,
+         16.74
+        ],
+        [
+         4.79,
+         -1.75,
+         16.57
+        ],
+        [
+         4.49,
+         -0.33,
+         16.85
+        ],
+        [
+         4.01,
+         1.4,
+         17.16
+        ],
+        [
+         3.63,
+         2.0,
+         17.08
+        ],
+        [
+         3.61,
+         2.15,
+         17.25
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 3,
+      "frames": [
+       "idle_ne_0",
+       "idle_ne_1",
+       "idle_ne_2",
+       "idle_ne_3",
+       "idle_ne_4",
+       "idle_ne_5",
+       "idle_ne_6",
+       "idle_ne_7"
+      ],
+      "durations": [
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         -9.19,
+         -18.82,
+         -14.8
+        ],
+        [
+         -8.82,
+         -20.71,
+         -15.4
+        ],
+        [
+         -8.56,
+         -21.42,
+         -15.45
+        ],
+        [
+         -8.53,
+         -21.54,
+         -15.58
+        ],
+        [
+         -8.74,
+         -19.99,
+         -15.09
+        ],
+        [
+         -9.1,
+         -18.09,
+         -14.49
+        ],
+        [
+         -9.41,
+         -17.38,
+         -14.4
+        ],
+        [
+         -9.45,
+         -17.26,
+         -14.28
+        ]
+       ],
+       "fist_R": [
+        [
+         14.8,
+         -4.04,
+         9.19
+        ],
+        [
+         15.12,
+         -5.97,
+         8.54
+        ],
+        [
+         15.31,
+         -6.73,
+         8.42
+        ],
+        [
+         15.3,
+         -6.87,
+         8.25
+        ],
+        [
+         15.09,
+         -5.32,
+         8.74
+        ],
+        [
+         14.77,
+         -3.39,
+         9.38
+        ],
+        [
+         14.54,
+         -2.63,
+         9.55
+        ],
+        [
+         14.55,
+         -2.48,
+         9.73
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 4,
+      "frames": [
+       "idle_n_0",
+       "idle_n_1",
+       "idle_n_2",
+       "idle_n_3",
+       "idle_n_4",
+       "idle_n_5",
+       "idle_n_6",
+       "idle_n_7"
+      ],
+      "durations": [
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ]
+       ],
+       "fist_L": [
+        [
+         -16.97,
+         -12.15,
+         -3.97
+        ],
+        [
+         -16.93,
+         -14.15,
+         -4.73
+        ],
+        [
+         -16.88,
+         -14.94,
+         -4.91
+        ],
+        [
+         -16.85,
+         -15.07,
+         -5.07
+        ],
+        [
+         -16.85,
+         -13.46,
+         -4.49
+        ],
+        [
+         -16.88,
+         -11.47,
+         -3.73
+        ],
+        [
+         -16.94,
+         -10.66,
+         -3.49
+        ],
+        [
+         -16.97,
+         -10.52,
+         -3.33
+        ]
+       ],
+       "fist_R": [
+        [
+         16.97,
+         -12.15,
+         -3.97
+        ],
+        [
+         16.93,
+         -14.15,
+         -4.73
+        ],
+        [
+         16.88,
+         -14.94,
+         -4.91
+        ],
+        [
+         16.85,
+         -15.07,
+         -5.07
+        ],
+        [
+         16.85,
+         -13.46,
+         -4.49
+        ],
+        [
+         16.88,
+         -11.47,
+         -3.73
+        ],
+        [
+         16.94,
+         -10.66,
+         -3.49
+        ],
+        [
+         16.97,
+         -10.52,
+         -3.33
+        ]
+       ]
+      }
+     },
+     "nw": {
+      "row": 5,
+      "frames": [
+       "idle_nw_0",
+       "idle_nw_1",
+       "idle_nw_2",
+       "idle_nw_3",
+       "idle_nw_4",
+       "idle_nw_5",
+       "idle_nw_6",
+       "idle_nw_7"
+      ],
+      "durations": [
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         -14.8,
+         -4.04,
+         9.19
+        ],
+        [
+         -15.12,
+         -5.97,
+         8.54
+        ],
+        [
+         -15.31,
+         -6.73,
+         8.42
+        ],
+        [
+         -15.3,
+         -6.87,
+         8.25
+        ],
+        [
+         -15.09,
+         -5.32,
+         8.74
+        ],
+        [
+         -14.77,
+         -3.39,
+         9.38
+        ],
+        [
+         -14.54,
+         -2.63,
+         9.55
+        ],
+        [
+         -14.55,
+         -2.48,
+         9.73
+        ]
+       ],
+       "fist_R": [
+        [
+         9.19,
+         -18.82,
+         -14.8
+        ],
+        [
+         8.82,
+         -20.71,
+         -15.4
+        ],
+        [
+         8.56,
+         -21.42,
+         -15.45
+        ],
+        [
+         8.53,
+         -21.54,
+         -15.58
+        ],
+        [
+         8.74,
+         -19.99,
+         -15.09
+        ],
+        [
+         9.1,
+         -18.09,
+         -14.49
+        ],
+        [
+         9.41,
+         -17.38,
+         -14.4
+        ],
+        [
+         9.45,
+         -17.26,
+         -14.28
+        ]
+       ]
+      }
+     },
+     "w": {
+      "row": 6,
+      "frames": [
+       "idle_w_0",
+       "idle_w_1",
+       "idle_w_2",
+       "idle_w_3",
+       "idle_w_4",
+       "idle_w_5",
+       "idle_w_6",
+       "idle_w_7"
+      ],
+      "durations": [
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ]
+       ],
+       "fist_L": [
+        [
+         -3.97,
+         0.74,
+         16.97
+        ],
+        [
+         -4.45,
+         -0.98,
+         16.65
+        ],
+        [
+         -4.77,
+         -1.61,
+         16.74
+        ],
+        [
+         -4.79,
+         -1.75,
+         16.57
+        ],
+        [
+         -4.49,
+         -0.33,
+         16.85
+        ],
+        [
+         -4.01,
+         1.4,
+         17.16
+        ],
+        [
+         -3.63,
+         2.0,
+         17.08
+        ],
+        [
+         -3.61,
+         2.15,
+         17.25
+        ]
+       ],
+       "fist_R": [
+        [
+         -3.97,
+         -20.15,
+         -16.97
+        ],
+        [
+         -4.45,
+         -21.83,
+         -17.21
+        ],
+        [
+         -4.77,
+         -22.39,
+         -17.02
+        ],
+        [
+         -4.79,
+         -22.49,
+         -17.13
+        ],
+        [
+         -4.49,
+         -21.07,
+         -16.85
+        ],
+        [
+         -4.01,
+         -19.39,
+         -16.6
+        ],
+        [
+         -3.63,
+         -18.85,
+         -16.8
+        ],
+        [
+         -3.61,
+         -18.75,
+         -16.69
+        ]
+       ]
+      }
+     },
+     "sw": {
+      "row": 7,
+      "frames": [
+       "idle_sw_0",
+       "idle_sw_1",
+       "idle_sw_2",
+       "idle_sw_3",
+       "idle_sw_4",
+       "idle_sw_5",
+       "idle_sw_6",
+       "idle_sw_7"
+      ],
+      "durations": [
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160,
+       160
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         9.19,
+         -0.59,
+         14.8
+        ],
+        [
+         8.82,
+         -2.1,
+         14.84
+        ],
+        [
+         8.56,
+         -2.57,
+         15.17
+        ],
+        [
+         8.53,
+         -2.7,
+         15.02
+        ],
+        [
+         8.74,
+         -1.41,
+         15.09
+        ],
+        [
+         9.1,
+         0.1,
+         15.05
+        ],
+        [
+         9.41,
+         0.53,
+         14.68
+        ],
+        [
+         9.45,
+         0.66,
+         14.83
+        ]
+       ],
+       "fist_R": [
+        [
+         -14.8,
+         -15.36,
+         -9.19
+        ],
+        [
+         -15.12,
+         -16.84,
+         -9.1
+        ],
+        [
+         -15.31,
+         -17.27,
+         -8.7
+        ],
+        [
+         -15.3,
+         -17.37,
+         -8.81
+        ],
+        [
+         -15.09,
+         -16.08,
+         -8.74
+        ],
+        [
+         -14.77,
+         -14.6,
+         -8.82
+        ],
+        [
+         -14.54,
+         -14.22,
+         -9.27
+        ],
+        [
+         -14.55,
+         -14.12,
+         -9.17
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "walk": {
+    "loop": true,
+    "directions": {
+     "s": {
+      "row": 8,
+      "frames": [
+       "walk_s_0",
+       "walk_s_1",
+       "walk_s_2",
+       "walk_s_3",
+       "walk_s_4",
+       "walk_s_5",
+       "walk_s_6",
+       "walk_s_7"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "4": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ]
+       ],
+       "fist_L": [
+        [
+         16.63,
+         -12.04,
+         -2.76
+        ],
+        [
+         17.22,
+         -12.8,
+         -1.02
+        ],
+        [
+         17.56,
+         -9.79,
+         4.18
+        ],
+        [
+         16.79,
+         -4.93,
+         8.91
+        ],
+        [
+         15.89,
+         -0.79,
+         11.13
+        ],
+        [
+         15.83,
+         -3.66,
+         8.85
+        ],
+        [
+         16.29,
+         -7.92,
+         4.18
+        ],
+        [
+         16.47,
+         -11.45,
+         -0.97
+        ]
+       ],
+       "fist_R": [
+        [
+         -15.89,
+         -0.79,
+         11.13
+        ],
+        [
+         -15.83,
+         -3.66,
+         8.85
+        ],
+        [
+         -16.29,
+         -7.92,
+         4.18
+        ],
+        [
+         -16.47,
+         -11.45,
+         -0.97
+        ],
+        [
+         -16.63,
+         -12.04,
+         -2.76
+        ],
+        [
+         -17.22,
+         -12.8,
+         -1.02
+        ],
+        [
+         -17.56,
+         -9.79,
+         4.18
+        ],
+        [
+         -16.79,
+         -4.93,
+         8.91
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 9,
+      "frames": [
+       "walk_se_0",
+       "walk_se_1",
+       "walk_se_2",
+       "walk_se_3",
+       "walk_se_4",
+       "walk_se_5",
+       "walk_se_6",
+       "walk_se_7"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "4": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         9.61,
+         -18.73,
+         -13.63
+        ],
+        [
+         11.56,
+         -20.14,
+         -12.94
+        ],
+        [
+         15.36,
+         -18.18,
+         -9.45
+        ],
+        [
+         18.29,
+         -13.88,
+         -5.62
+        ],
+        [
+         18.91,
+         -9.66,
+         -3.29
+        ],
+        [
+         17.56,
+         -12.17,
+         -4.98
+        ],
+        [
+         14.46,
+         -15.76,
+         -8.56
+        ],
+        [
+         11.07,
+         -18.48,
+         -12.38
+        ]
+       ],
+       "fist_R": [
+        [
+         -3.57,
+         4.18,
+         19.19
+        ],
+        [
+         -4.82,
+         1.61,
+         17.4
+        ],
+        [
+         -8.58,
+         -1.58,
+         14.48
+        ],
+        [
+         -12.23,
+         -4.13,
+         10.91
+        ],
+        [
+         -13.91,
+         -4.25,
+         9.89
+        ],
+        [
+         -12.78,
+         -5.15,
+         11.4
+        ],
+        [
+         -9.47,
+         -2.89,
+         15.38
+        ],
+        [
+         -5.46,
+         0.74,
+         18.13
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 10,
+      "frames": [
+       "walk_e_0",
+       "walk_e_1",
+       "walk_e_2",
+       "walk_e_3",
+       "walk_e_4",
+       "walk_e_5",
+       "walk_e_6",
+       "walk_e_7"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "4": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ]
+       ],
+       "fist_L": [
+        [
+         -3.04,
+         -20.41,
+         -16.35
+        ],
+        [
+         -0.86,
+         -22.87,
+         -17.38
+        ],
+        [
+         4.16,
+         -23.16,
+         -17.54
+        ],
+        [
+         9.07,
+         -20.85,
+         -16.95
+        ],
+        [
+         10.85,
+         -17.25,
+         -15.61
+        ],
+        [
+         9.01,
+         -18.95,
+         -15.99
+        ],
+        [
+         4.16,
+         -20.51,
+         -16.27
+        ],
+        [
+         -0.82,
+         -21.09,
+         -16.63
+        ]
+       ],
+       "fist_R": [
+        [
+         10.85,
+         2.32,
+         16.17
+        ],
+        [
+         9.01,
+         0.54,
+         15.67
+        ],
+        [
+         4.16,
+         -0.45,
+         16.31
+        ],
+        [
+         -0.82,
+         -0.81,
+         16.31
+        ],
+        [
+         -3.04,
+         0.07,
+         16.91
+        ],
+        [
+         -0.86,
+         -1.67,
+         17.06
+        ],
+        [
+         4.16,
+         -1.54,
+         17.58
+        ],
+        [
+         9.07,
+         -0.18,
+         16.63
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 11,
+      "frames": [
+       "walk_ne_0",
+       "walk_ne_1",
+       "walk_ne_2",
+       "walk_ne_3",
+       "walk_ne_4",
+       "walk_ne_5",
+       "walk_ne_6",
+       "walk_ne_7"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "4": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         -13.91,
+         -16.09,
+         -9.33
+        ],
+        [
+         -12.78,
+         -19.39,
+         -11.72
+        ],
+        [
+         -9.47,
+         -21.8,
+         -15.34
+        ],
+        [
+         -5.46,
+         -21.77,
+         -18.44
+        ],
+        [
+         -3.57,
+         -19.11,
+         -18.63
+        ],
+        [
+         -4.82,
+         -20.01,
+         -17.72
+        ],
+        [
+         -8.58,
+         -19.38,
+         -14.44
+        ],
+        [
+         -12.23,
+         -17.77,
+         -11.23
+        ]
+       ],
+       "fist_R": [
+        [
+         18.91,
+         -5.27,
+         3.84
+        ],
+        [
+         17.56,
+         -6.23,
+         4.67
+        ],
+        [
+         14.46,
+         -5.2,
+         8.6
+        ],
+        [
+         11.07,
+         -3.42,
+         12.07
+        ],
+        [
+         9.61,
+         -1.6,
+         14.19
+        ],
+        [
+         11.56,
+         -4.4,
+         12.63
+        ],
+        [
+         15.36,
+         -6.52,
+         9.49
+        ],
+        [
+         18.29,
+         -7.15,
+         5.3
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 12,
+      "frames": [
+       "walk_n_0",
+       "walk_n_1",
+       "walk_n_2",
+       "walk_n_3",
+       "walk_n_4",
+       "walk_n_5",
+       "walk_n_6",
+       "walk_n_7"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "4": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ]
+       ],
+       "fist_L": [
+        [
+         -16.63,
+         -8.3,
+         3.32
+        ],
+        [
+         -17.22,
+         -11.74,
+         0.7
+        ],
+        [
+         -17.56,
+         -14.91,
+         -4.14
+        ],
+        [
+         -16.79,
+         -16.1,
+         -9.23
+        ],
+        [
+         -15.89,
+         -14.14,
+         -10.57
+        ],
+        [
+         -15.83,
+         -14.74,
+         -9.16
+        ],
+        [
+         -16.29,
+         -13.04,
+         -4.14
+        ],
+        [
+         -16.47,
+         -10.45,
+         0.66
+        ]
+       ],
+       "fist_R": [
+        [
+         15.89,
+         -14.14,
+         -10.57
+        ],
+        [
+         15.83,
+         -14.74,
+         -9.16
+        ],
+        [
+         16.29,
+         -13.04,
+         -4.14
+        ],
+        [
+         16.47,
+         -10.45,
+         0.66
+        ],
+        [
+         16.63,
+         -8.3,
+         3.32
+        ],
+        [
+         17.22,
+         -11.74,
+         0.7
+        ],
+        [
+         17.56,
+         -14.91,
+         -4.14
+        ],
+        [
+         16.79,
+         -16.1,
+         -9.23
+        ]
+       ]
+      }
+     },
+     "nw": {
+      "row": 13,
+      "frames": [
+       "walk_nw_0",
+       "walk_nw_1",
+       "walk_nw_2",
+       "walk_nw_3",
+       "walk_nw_4",
+       "walk_nw_5",
+       "walk_nw_6",
+       "walk_nw_7"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "4": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         -9.61,
+         -1.6,
+         14.19
+        ],
+        [
+         -11.56,
+         -4.4,
+         12.63
+        ],
+        [
+         -15.36,
+         -6.52,
+         9.49
+        ],
+        [
+         -18.29,
+         -7.15,
+         5.3
+        ],
+        [
+         -18.91,
+         -5.27,
+         3.84
+        ],
+        [
+         -17.56,
+         -6.23,
+         4.67
+        ],
+        [
+         -14.46,
+         -5.2,
+         8.6
+        ],
+        [
+         -11.07,
+         -3.42,
+         12.07
+        ]
+       ],
+       "fist_R": [
+        [
+         3.57,
+         -19.11,
+         -18.63
+        ],
+        [
+         4.82,
+         -20.01,
+         -17.72
+        ],
+        [
+         8.58,
+         -19.38,
+         -14.44
+        ],
+        [
+         12.23,
+         -17.77,
+         -11.23
+        ],
+        [
+         13.91,
+         -16.09,
+         -9.33
+        ],
+        [
+         12.78,
+         -19.39,
+         -11.72
+        ],
+        [
+         9.47,
+         -21.8,
+         -15.34
+        ],
+        [
+         5.46,
+         -21.77,
+         -18.44
+        ]
+       ]
+      }
+     },
+     "w": {
+      "row": 14,
+      "frames": [
+       "walk_w_0",
+       "walk_w_1",
+       "walk_w_2",
+       "walk_w_3",
+       "walk_w_4",
+       "walk_w_5",
+       "walk_w_6",
+       "walk_w_7"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "4": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ]
+       ],
+       "fist_L": [
+        [
+         3.04,
+         0.07,
+         16.91
+        ],
+        [
+         0.86,
+         -1.67,
+         17.06
+        ],
+        [
+         -4.16,
+         -1.54,
+         17.58
+        ],
+        [
+         -9.07,
+         -0.18,
+         16.63
+        ],
+        [
+         -10.85,
+         2.32,
+         16.17
+        ],
+        [
+         -9.01,
+         0.54,
+         15.67
+        ],
+        [
+         -4.16,
+         -0.45,
+         16.31
+        ],
+        [
+         0.82,
+         -0.81,
+         16.31
+        ]
+       ],
+       "fist_R": [
+        [
+         -10.85,
+         -17.25,
+         -15.61
+        ],
+        [
+         -9.01,
+         -18.95,
+         -15.99
+        ],
+        [
+         -4.16,
+         -20.51,
+         -16.27
+        ],
+        [
+         0.82,
+         -21.09,
+         -16.63
+        ],
+        [
+         3.04,
+         -20.41,
+         -16.35
+        ],
+        [
+         0.86,
+         -22.87,
+         -17.38
+        ],
+        [
+         -4.16,
+         -23.16,
+         -17.54
+        ],
+        [
+         -9.07,
+         -20.85,
+         -16.95
+        ]
+       ]
+      }
+     },
+     "sw": {
+      "row": 15,
+      "frames": [
+       "walk_sw_0",
+       "walk_sw_1",
+       "walk_sw_2",
+       "walk_sw_3",
+       "walk_sw_4",
+       "walk_sw_5",
+       "walk_sw_6",
+       "walk_sw_7"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "4": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         13.91,
+         -4.25,
+         9.89
+        ],
+        [
+         12.78,
+         -5.15,
+         11.4
+        ],
+        [
+         9.47,
+         -2.89,
+         15.38
+        ],
+        [
+         5.46,
+         0.74,
+         18.13
+        ],
+        [
+         3.57,
+         4.18,
+         19.19
+        ],
+        [
+         4.82,
+         1.61,
+         17.4
+        ],
+        [
+         8.58,
+         -1.58,
+         14.48
+        ],
+        [
+         12.23,
+         -4.13,
+         10.91
+        ]
+       ],
+       "fist_R": [
+        [
+         -18.91,
+         -9.66,
+         -3.29
+        ],
+        [
+         -17.56,
+         -12.17,
+         -4.98
+        ],
+        [
+         -14.46,
+         -15.76,
+         -8.56
+        ],
+        [
+         -11.07,
+         -18.48,
+         -12.38
+        ],
+        [
+         -9.61,
+         -18.73,
+         -13.63
+        ],
+        [
+         -11.56,
+         -20.14,
+         -12.94
+        ],
+        [
+         -15.36,
+         -18.18,
+         -9.45
+        ],
+        [
+         -18.29,
+         -13.88,
+         -5.62
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "attack": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 16,
+      "frames": [
+       "attack_s_0",
+       "attack_s_1",
+       "attack_s_2",
+       "attack_s_3",
+       "attack_s_4",
+       "attack_s_5",
+       "attack_s_6",
+       "attack_s_7"
+      ],
+      "durations": [
+       120,
+       150,
+       210,
+       200,
+       70,
+       90,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "5": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         12.57,
+         19.64
+        ],
+        [
+         0.0,
+         12.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ]
+       ],
+       "fist_L": [
+        [
+         7.06,
+         -1.27,
+         10.62
+        ],
+        [
+         11.39,
+         -18.55,
+         12.7
+        ],
+        [
+         3.88,
+         -41.09,
+         0.96
+        ],
+        [
+         3.09,
+         -45.61,
+         -3.3
+        ],
+        [
+         4.76,
+         -7.8,
+         22.75
+        ],
+        [
+         4.51,
+         9.06,
+         17.52
+        ],
+        [
+         4.5,
+         8.88,
+         18.34
+        ],
+        [
+         10.84,
+         -0.34,
+         6.54
+        ]
+       ],
+       "fist_R": [
+        [
+         -7.06,
+         -1.27,
+         10.62
+        ],
+        [
+         -11.39,
+         -18.55,
+         12.7
+        ],
+        [
+         -3.88,
+         -41.09,
+         0.96
+        ],
+        [
+         -3.09,
+         -45.61,
+         -3.3
+        ],
+        [
+         -4.76,
+         -7.8,
+         22.75
+        ],
+        [
+         -4.51,
+         9.06,
+         17.52
+        ],
+        [
+         -4.5,
+         8.88,
+         18.34
+        ],
+        [
+         -10.84,
+         -0.34,
+         6.54
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 17,
+      "frames": [
+       "attack_se_0",
+       "attack_se_1",
+       "attack_se_2",
+       "attack_se_3",
+       "attack_se_4",
+       "attack_se_5",
+       "attack_se_6",
+       "attack_se_7"
+      ],
+      "durations": [
+       120,
+       150,
+       210,
+       200,
+       70,
+       90,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "5": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         14.88,
+         9.03,
+         13.88
+        ],
+        [
+         14.88,
+         9.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         12.31,
+         -6.21,
+         2.6
+        ],
+        [
+         17.04,
+         -25.8,
+         0.92
+        ],
+        [
+         3.52,
+         -42.98,
+         -2.11
+        ],
+        [
+         -0.16,
+         -46.36,
+         -4.51
+        ],
+        [
+         19.24,
+         -13.92,
+         12.81
+        ],
+        [
+         16.62,
+         3.93,
+         9.18
+        ],
+        [
+         17.08,
+         3.63,
+         9.82
+        ],
+        [
+         12.3,
+         -6.24,
+         -3.05
+        ]
+       ],
+       "fist_R": [
+        [
+         2.32,
+         -0.06,
+         12.59
+        ],
+        [
+         0.92,
+         -15.88,
+         17.04
+        ],
+        [
+         -1.97,
+         -39.6,
+         3.38
+        ],
+        [
+         -4.53,
+         -43.67,
+         -0.15
+        ],
+        [
+         12.51,
+         -9.78,
+         19.54
+        ],
+        [
+         10.24,
+         7.86,
+         15.56
+        ],
+        [
+         10.72,
+         7.54,
+         16.18
+        ],
+        [
+         -3.03,
+         3.19,
+         12.28
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 18,
+      "frames": [
+       "attack_e_0",
+       "attack_e_1",
+       "attack_e_2",
+       "attack_e_3",
+       "attack_e_4",
+       "attack_e_5",
+       "attack_e_6",
+       "attack_e_7"
+      ],
+      "durations": [
+       120,
+       150,
+       210,
+       200,
+       70,
+       90,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "5": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         21.64,
+         -0.52,
+         0.0
+        ],
+        [
+         21.64,
+         -0.52,
+         0.0
+        ],
+        [
+         20.64,
+         -0.52,
+         0.0
+        ]
+       ],
+       "fist_L": [
+        [
+         10.34,
+         -11.99,
+         -6.79
+        ],
+        [
+         12.7,
+         -33.39,
+         -11.39
+        ],
+        [
+         1.1,
+         -44.16,
+         -4.02
+        ],
+        [
+         -3.32,
+         -45.47,
+         -3.07
+        ],
+        [
+         22.45,
+         -24.55,
+         -4.46
+        ],
+        [
+         19.58,
+         -5.54,
+         -4.57
+        ],
+        [
+         20.24,
+         -6.12,
+         -4.4
+        ],
+        [
+         7.55,
+         -11.05,
+         -10.85
+        ]
+       ],
+       "fist_R": [
+        [
+         10.34,
+         -3.29,
+         7.34
+        ],
+        [
+         12.7,
+         -19.35,
+         11.39
+        ],
+        [
+         1.1,
+         -39.38,
+         3.74
+        ],
+        [
+         -3.32,
+         -41.67,
+         3.11
+        ],
+        [
+         22.45,
+         -18.7,
+         5.06
+        ],
+        [
+         19.58,
+         0.02,
+         4.45
+        ],
+        [
+         20.24,
+         -0.58,
+         4.6
+        ],
+        [
+         7.55,
+         2.29,
+         10.82
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 19,
+      "frames": [
+       "attack_ne_0",
+       "attack_ne_1",
+       "attack_ne_2",
+       "attack_ne_3",
+       "attack_ne_4",
+       "attack_ne_5",
+       "attack_ne_6",
+       "attack_ne_7"
+      ],
+      "durations": [
+       120,
+       150,
+       210,
+       200,
+       70,
+       90,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "5": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         14.88,
+         -10.06,
+         -13.88
+        ],
+        [
+         14.88,
+         -10.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         2.32,
+         -15.22,
+         -12.03
+        ],
+        [
+         0.92,
+         -36.86,
+         -17.04
+        ],
+        [
+         -1.97,
+         -43.94,
+         -3.66
+        ],
+        [
+         -4.53,
+         -43.47,
+         0.18
+        ],
+        [
+         12.51,
+         -33.47,
+         -18.94
+        ],
+        [
+         10.24,
+         -13.38,
+         -15.68
+        ],
+        [
+         10.72,
+         -14.25,
+         -15.98
+        ],
+        [
+         -3.03,
+         -11.95,
+         -12.32
+        ]
+       ],
+       "fist_R": [
+        [
+         12.31,
+         -9.07,
+         -2.04
+        ],
+        [
+         17.04,
+         -26.94,
+         -0.92
+        ],
+        [
+         3.52,
+         -40.56,
+         1.83
+        ],
+        [
+         -0.16,
+         -40.78,
+         4.55
+        ],
+        [
+         19.24,
+         -29.33,
+         -12.22
+        ],
+        [
+         16.62,
+         -9.45,
+         -9.3
+        ],
+        [
+         17.08,
+         -10.34,
+         -9.62
+        ],
+        [
+         12.3,
+         -2.51,
+         3.01
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 20,
+      "frames": [
+       "attack_n_0",
+       "attack_n_1",
+       "attack_n_2",
+       "attack_n_3",
+       "attack_n_4",
+       "attack_n_5",
+       "attack_n_6",
+       "attack_n_7"
+      ],
+      "durations": [
+       120,
+       150,
+       210,
+       200,
+       70,
+       90,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "5": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -13.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -13.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ]
+       ],
+       "fist_L": [
+        [
+         -7.06,
+         -14.01,
+         -10.06
+        ],
+        [
+         -11.39,
+         -34.19,
+         -12.7
+        ],
+        [
+         -3.88,
+         -42.45,
+         -1.24
+        ],
+        [
+         -3.09,
+         -41.53,
+         3.34
+        ],
+        [
+         -4.76,
+         -35.45,
+         -22.16
+        ],
+        [
+         -4.51,
+         -14.58,
+         -17.64
+        ],
+        [
+         -4.5,
+         -15.58,
+         -18.14
+        ],
+        [
+         -10.84,
+         -8.41,
+         -6.57
+        ]
+       ],
+       "fist_R": [
+        [
+         7.06,
+         -14.01,
+         -10.06
+        ],
+        [
+         11.39,
+         -34.19,
+         -12.7
+        ],
+        [
+         3.88,
+         -42.45,
+         -1.24
+        ],
+        [
+         3.09,
+         -41.53,
+         3.34
+        ],
+        [
+         4.76,
+         -35.45,
+         -22.16
+        ],
+        [
+         4.51,
+         -14.58,
+         -17.64
+        ],
+        [
+         4.5,
+         -15.58,
+         -18.14
+        ],
+        [
+         10.84,
+         -8.41,
+         -6.57
+        ]
+       ]
+      }
+     },
+     "nw": {
+      "row": 21,
+      "frames": [
+       "attack_nw_0",
+       "attack_nw_1",
+       "attack_nw_2",
+       "attack_nw_3",
+       "attack_nw_4",
+       "attack_nw_5",
+       "attack_nw_6",
+       "attack_nw_7"
+      ],
+      "durations": [
+       120,
+       150,
+       210,
+       200,
+       70,
+       90,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "5": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -14.88,
+         -10.06,
+         -13.88
+        ],
+        [
+         -14.88,
+         -10.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         -12.31,
+         -9.07,
+         -2.04
+        ],
+        [
+         -17.04,
+         -26.94,
+         -0.92
+        ],
+        [
+         -3.52,
+         -40.56,
+         1.83
+        ],
+        [
+         0.16,
+         -40.78,
+         4.55
+        ],
+        [
+         -19.24,
+         -29.33,
+         -12.22
+        ],
+        [
+         -16.62,
+         -9.45,
+         -9.3
+        ],
+        [
+         -17.08,
+         -10.34,
+         -9.62
+        ],
+        [
+         -12.3,
+         -2.51,
+         3.01
+        ]
+       ],
+       "fist_R": [
+        [
+         -2.32,
+         -15.22,
+         -12.03
+        ],
+        [
+         -0.92,
+         -36.86,
+         -17.04
+        ],
+        [
+         1.97,
+         -43.94,
+         -3.66
+        ],
+        [
+         4.53,
+         -43.47,
+         0.18
+        ],
+        [
+         -12.51,
+         -33.47,
+         -18.94
+        ],
+        [
+         -10.24,
+         -13.38,
+         -15.68
+        ],
+        [
+         -10.72,
+         -14.25,
+         -15.98
+        ],
+        [
+         3.03,
+         -11.95,
+         -12.32
+        ]
+       ]
+      }
+     },
+     "w": {
+      "row": 22,
+      "frames": [
+       "attack_w_0",
+       "attack_w_1",
+       "attack_w_2",
+       "attack_w_3",
+       "attack_w_4",
+       "attack_w_5",
+       "attack_w_6",
+       "attack_w_7"
+      ],
+      "durations": [
+       120,
+       150,
+       210,
+       200,
+       70,
+       90,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "5": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -21.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -21.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -20.64,
+         -0.52,
+         0.0
+        ]
+       ],
+       "fist_L": [
+        [
+         -10.34,
+         -3.29,
+         7.34
+        ],
+        [
+         -12.7,
+         -19.35,
+         11.39
+        ],
+        [
+         -1.1,
+         -39.38,
+         3.74
+        ],
+        [
+         3.32,
+         -41.67,
+         3.11
+        ],
+        [
+         -22.45,
+         -18.7,
+         5.06
+        ],
+        [
+         -19.58,
+         0.02,
+         4.45
+        ],
+        [
+         -20.24,
+         -0.58,
+         4.6
+        ],
+        [
+         -7.55,
+         2.29,
+         10.82
+        ]
+       ],
+       "fist_R": [
+        [
+         -10.34,
+         -11.99,
+         -6.79
+        ],
+        [
+         -12.7,
+         -33.39,
+         -11.39
+        ],
+        [
+         -1.1,
+         -44.16,
+         -4.02
+        ],
+        [
+         3.32,
+         -45.47,
+         -3.07
+        ],
+        [
+         -22.45,
+         -24.55,
+         -4.46
+        ],
+        [
+         -19.58,
+         -5.54,
+         -4.57
+        ],
+        [
+         -20.24,
+         -6.12,
+         -4.4
+        ],
+        [
+         -7.55,
+         -11.05,
+         -10.85
+        ]
+       ]
+      }
+     },
+     "sw": {
+      "row": 23,
+      "frames": [
+       "attack_sw_0",
+       "attack_sw_1",
+       "attack_sw_2",
+       "attack_sw_3",
+       "attack_sw_4",
+       "attack_sw_5",
+       "attack_sw_6",
+       "attack_sw_7"
+      ],
+      "durations": [
+       120,
+       150,
+       210,
+       200,
+       70,
+       90,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "5": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "impact": [
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -14.88,
+         9.03,
+         13.88
+        ],
+        [
+         -14.88,
+         9.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         -2.32,
+         -0.06,
+         12.59
+        ],
+        [
+         -0.92,
+         -15.88,
+         17.04
+        ],
+        [
+         1.97,
+         -39.6,
+         3.38
+        ],
+        [
+         4.53,
+         -43.67,
+         -0.15
+        ],
+        [
+         -12.51,
+         -9.78,
+         19.54
+        ],
+        [
+         -10.24,
+         7.86,
+         15.56
+        ],
+        [
+         -10.72,
+         7.54,
+         16.18
+        ],
+        [
+         3.03,
+         3.19,
+         12.28
+        ]
+       ],
+       "fist_R": [
+        [
+         -12.31,
+         -6.21,
+         2.6
+        ],
+        [
+         -17.04,
+         -25.8,
+         0.92
+        ],
+        [
+         -3.52,
+         -42.98,
+         -2.11
+        ],
+        [
+         0.16,
+         -46.36,
+         -4.51
+        ],
+        [
+         -19.24,
+         -13.92,
+         12.81
+        ],
+        [
+         -16.62,
+         3.93,
+         9.18
+        ],
+        [
+         -17.08,
+         3.63,
+         9.82
+        ],
+        [
+         -12.3,
+         -6.24,
+         -3.05
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "hit": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 24,
+      "frames": [
+       "hit_s_0",
+       "hit_s_1",
+       "hit_s_2"
+      ],
+      "durations": [
+       80,
+       80,
+       80
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ]
+       ],
+       "fist_L": [
+        [
+         14.95,
+         -4.95,
+         2.65
+        ],
+        [
+         14.83,
+         -5.49,
+         1.73
+        ],
+        [
+         16.91,
+         -7.62,
+         4.14
+        ]
+       ],
+       "fist_R": [
+        [
+         -14.95,
+         -4.95,
+         2.65
+        ],
+        [
+         -14.83,
+         -5.49,
+         1.73
+        ],
+        [
+         -16.91,
+         -7.62,
+         4.14
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 25,
+      "frames": [
+       "hit_se_0",
+       "hit_se_1",
+       "hit_se_2"
+      ],
+      "durations": [
+       80,
+       80,
+       80
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         12.23,
+         -11.88,
+         -8.61
+        ],
+        [
+         11.82,
+         -12.29,
+         -9.3
+        ],
+        [
+         14.88,
+         -15.72,
+         -9.03
+        ]
+       ],
+       "fist_R": [
+        [
+         -8.91,
+         1.14,
+         12.53
+        ],
+        [
+         -9.15,
+         0.62,
+         11.66
+        ],
+        [
+         -9.03,
+         -1.0,
+         14.88
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 26,
+      "frames": [
+       "hit_e_0",
+       "hit_e_1",
+       "hit_e_2"
+      ],
+      "durations": [
+       80,
+       80,
+       80
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         18.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ]
+       ],
+       "fist_L": [
+        [
+         1.35,
+         -15.6,
+         -14.65
+        ],
+        [
+         1.89,
+         -15.79,
+         -14.98
+        ],
+        [
+         4.14,
+         -20.58,
+         -16.91
+        ]
+       ],
+       "fist_R": [
+        [
+         1.35,
+         2.81,
+         15.25
+        ],
+        [
+         1.89,
+         2.47,
+         14.67
+        ],
+        [
+         4.14,
+         0.24,
+         16.91
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 27,
+      "frames": [
+       "hit_ne_0",
+       "hit_ne_1",
+       "hit_ne_2"
+      ],
+      "durations": [
+       80,
+       80,
+       80
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         -8.91,
+         -13.92,
+         -11.93
+        ],
+        [
+         -9.15,
+         -13.94,
+         -11.98
+        ],
+        [
+         -9.03,
+         -19.33,
+         -14.88
+        ]
+       ],
+       "fist_R": [
+        [
+         12.23,
+         -0.91,
+         9.21
+        ],
+        [
+         11.82,
+         -1.03,
+         8.99
+        ],
+        [
+         14.88,
+         -4.61,
+         9.03
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 28,
+      "frames": [
+       "hit_n_0",
+       "hit_n_1",
+       "hit_n_2"
+      ],
+      "durations": [
+       80,
+       80,
+       80
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ]
+       ],
+       "fist_L": [
+        [
+         -14.95,
+         -7.84,
+         -2.05
+        ],
+        [
+         -14.83,
+         -7.82,
+         -2.05
+        ],
+        [
+         -16.91,
+         -12.72,
+         -4.14
+        ]
+       ],
+       "fist_R": [
+        [
+         14.95,
+         -7.84,
+         -2.05
+        ],
+        [
+         14.83,
+         -7.82,
+         -2.05
+        ],
+        [
+         16.91,
+         -12.72,
+         -4.14
+        ]
+       ]
+      }
+     },
+     "nw": {
+      "row": 29,
+      "frames": [
+       "hit_nw_0",
+       "hit_nw_1",
+       "hit_nw_2"
+      ],
+      "durations": [
+       80,
+       80,
+       80
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         -12.23,
+         -0.91,
+         9.21
+        ],
+        [
+         -11.82,
+         -1.03,
+         8.99
+        ],
+        [
+         -14.88,
+         -4.61,
+         9.03
+        ]
+       ],
+       "fist_R": [
+        [
+         8.91,
+         -13.92,
+         -11.93
+        ],
+        [
+         9.15,
+         -13.94,
+         -11.98
+        ],
+        [
+         9.03,
+         -19.33,
+         -14.88
+        ]
+       ]
+      }
+     },
+     "w": {
+      "row": 30,
+      "frames": [
+       "hit_w_0",
+       "hit_w_1",
+       "hit_w_2"
+      ],
+      "durations": [
+       80,
+       80,
+       80
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         -18.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ]
+       ],
+       "fist_L": [
+        [
+         -1.35,
+         2.81,
+         15.25
+        ],
+        [
+         -1.89,
+         2.47,
+         14.67
+        ],
+        [
+         -4.14,
+         0.24,
+         16.91
+        ]
+       ],
+       "fist_R": [
+        [
+         -1.35,
+         -15.6,
+         -14.65
+        ],
+        [
+         -1.89,
+         -15.79,
+         -14.98
+        ],
+        [
+         -4.14,
+         -20.58,
+         -16.91
+        ]
+       ]
+      }
+     },
+     "sw": {
+      "row": 31,
+      "frames": [
+       "hit_sw_0",
+       "hit_sw_1",
+       "hit_sw_2"
+      ],
+      "durations": [
+       80,
+       80,
+       80
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         8.91,
+         1.14,
+         12.53
+        ],
+        [
+         9.15,
+         0.62,
+         11.66
+        ],
+        [
+         9.03,
+         -1.0,
+         14.88
+        ]
+       ],
+       "fist_R": [
+        [
+         -12.23,
+         -11.88,
+         -8.61
+        ],
+        [
+         -11.82,
+         -12.29,
+         -9.3
+        ],
+        [
+         -14.88,
+         -15.72,
+         -9.03
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "death": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 32,
+      "frames": [
+       "death_s_0",
+       "death_s_1",
+       "death_s_2",
+       "death_s_3",
+       "death_s_4",
+       "death_s_5",
+       "death_s_6"
+      ],
+      "durations": [
+       120,
+       150,
+       150,
+       130,
+       130,
+       160,
+       700
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ],
+        [
+         0.0,
+         11.57,
+         19.64
+        ]
+       ],
+       "fist_L": [
+        [
+         18.31,
+         -10.38,
+         3.21
+        ],
+        [
+         18.3,
+         -2.46,
+         4.65
+        ],
+        [
+         14.75,
+         3.17,
+         8.36
+        ],
+        [
+         13.54,
+         4.78,
+         13.2
+        ],
+        [
+         13.71,
+         5.39,
+         15.48
+        ],
+        [
+         13.65,
+         6.28,
+         15.9
+        ],
+        [
+         13.65,
+         6.28,
+         15.9
+        ]
+       ],
+       "fist_R": [
+        [
+         -18.31,
+         -10.38,
+         3.21
+        ],
+        [
+         -18.3,
+         -2.46,
+         4.65
+        ],
+        [
+         -14.75,
+         3.17,
+         8.36
+        ],
+        [
+         -13.54,
+         4.78,
+         13.2
+        ],
+        [
+         -13.71,
+         5.39,
+         15.48
+        ],
+        [
+         -13.65,
+         6.28,
+         15.9
+        ],
+        [
+         -13.65,
+         6.28,
+         15.9
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 33,
+      "frames": [
+       "death_se_0",
+       "death_se_1",
+       "death_se_2",
+       "death_se_3",
+       "death_se_4",
+       "death_se_5",
+       "death_se_6"
+      ],
+      "durations": [
+       120,
+       150,
+       150,
+       130,
+       130,
+       160,
+       700
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ],
+        [
+         13.88,
+         8.03,
+         13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         15.01,
+         -18.87,
+         -10.59
+        ],
+        [
+         16.06,
+         -11.22,
+         -9.58
+        ],
+        [
+         16.44,
+         -4.78,
+         -4.55
+        ],
+        [
+         19.02,
+         -3.52,
+         -0.29
+        ],
+        [
+         20.76,
+         -3.4,
+         1.2
+        ],
+        [
+         20.7,
+         -2.48,
+         1.68
+        ],
+        [
+         20.7,
+         -2.48,
+         1.68
+        ]
+       ],
+       "fist_R": [
+        [
+         -10.88,
+         -2.93,
+         15.31
+        ],
+        [
+         -9.82,
+         4.71,
+         16.3
+        ],
+        [
+         -4.42,
+         8.06,
+         16.3
+        ],
+        [
+         -0.13,
+         8.27,
+         18.86
+        ],
+        [
+         1.38,
+         8.53,
+         20.59
+        ],
+        [
+         1.4,
+         9.4,
+         20.98
+        ],
+        [
+         1.4,
+         9.4,
+         20.98
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 34,
+      "frames": [
+       "death_e_0",
+       "death_e_1",
+       "death_e_2",
+       "death_e_3",
+       "death_e_4",
+       "death_e_5",
+       "death_e_6"
+      ],
+      "durations": [
+       120,
+       150,
+       150,
+       130,
+       130,
+       160,
+       700
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         18.64,
+         -0.52,
+         0.0
+        ],
+        [
+         18.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         19.64,
+         -0.52,
+         0.0
+        ]
+       ],
+       "fist_L": [
+        [
+         1.92,
+         -23.44,
+         -18.01
+        ],
+        [
+         3.41,
+         -16.44,
+         -18.06
+        ],
+        [
+         8.5,
+         -11.14,
+         -14.89
+        ],
+        [
+         13.35,
+         -11.78,
+         -13.7
+        ],
+        [
+         15.66,
+         -12.69,
+         -13.89
+        ],
+        [
+         15.62,
+         -11.74,
+         -13.37
+        ],
+        [
+         15.62,
+         -11.74,
+         -13.37
+        ]
+       ],
+       "fist_R": [
+        [
+         1.92,
+         -0.9,
+         18.61
+        ],
+        [
+         3.41,
+         6.09,
+         18.54
+        ],
+        [
+         8.5,
+         7.02,
+         14.61
+        ],
+        [
+         13.35,
+         4.9,
+         13.39
+        ],
+        [
+         15.66,
+         4.19,
+         13.54
+        ],
+        [
+         15.62,
+         5.06,
+         13.93
+        ],
+        [
+         15.62,
+         5.06,
+         13.93
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 35,
+      "frames": [
+       "death_ne_0",
+       "death_ne_1",
+       "death_ne_2",
+       "death_ne_3",
+       "death_ne_4",
+       "death_ne_5",
+       "death_ne_6"
+      ],
+      "durations": [
+       120,
+       150,
+       150,
+       130,
+       130,
+       160,
+       700
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         13.88,
+         -9.06,
+         -13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         -10.88,
+         -21.41,
+         -14.71
+        ],
+        [
+         -9.82,
+         -15.06,
+         -15.82
+        ],
+        [
+         -4.42,
+         -12.18,
+         -16.58
+        ],
+        [
+         -0.13,
+         -15.15,
+         -19.17
+        ],
+        [
+         1.38,
+         -17.03,
+         -20.94
+        ],
+        [
+         1.4,
+         -16.08,
+         -20.42
+        ],
+        [
+         1.4,
+         -16.08,
+         -20.42
+        ]
+       ],
+       "fist_R": [
+        [
+         15.01,
+         -5.47,
+         11.18
+        ],
+        [
+         16.06,
+         0.88,
+         10.06
+        ],
+        [
+         16.44,
+         0.66,
+         4.28
+        ],
+        [
+         19.02,
+         -3.36,
+         -0.02
+        ],
+        [
+         20.76,
+         -5.1,
+         -1.55
+        ],
+        [
+         20.7,
+         -4.2,
+         -1.11
+        ],
+        [
+         20.7,
+         -4.2,
+         -1.11
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 36,
+      "frames": [
+       "death_n_0",
+       "death_n_1",
+       "death_n_2",
+       "death_n_3",
+       "death_n_4",
+       "death_n_5",
+       "death_n_6"
+      ],
+      "durations": [
+       120,
+       150,
+       150,
+       130,
+       130,
+       160,
+       700
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ],
+        [
+         0.0,
+         -12.6,
+         -19.64
+        ]
+       ],
+       "fist_L": [
+        [
+         -18.31,
+         -13.97,
+         -2.62
+        ],
+        [
+         -18.3,
+         -7.88,
+         -4.17
+        ],
+        [
+         -14.75,
+         -7.3,
+         -8.64
+        ],
+        [
+         -13.54,
+         -11.66,
+         -13.51
+        ],
+        [
+         -13.71,
+         -13.89,
+         -15.83
+        ],
+        [
+         -13.65,
+         -12.96,
+         -15.34
+        ],
+        [
+         -13.65,
+         -12.96,
+         -15.34
+        ]
+       ],
+       "fist_R": [
+        [
+         18.31,
+         -13.97,
+         -2.62
+        ],
+        [
+         18.3,
+         -7.88,
+         -4.17
+        ],
+        [
+         14.75,
+         -7.3,
+         -8.64
+        ],
+        [
+         13.54,
+         -11.66,
+         -13.51
+        ],
+        [
+         13.71,
+         -13.89,
+         -15.83
+        ],
+        [
+         13.65,
+         -12.96,
+         -15.34
+        ],
+        [
+         13.65,
+         -12.96,
+         -15.34
+        ]
+       ]
+      }
+     },
+     "nw": {
+      "row": 37,
+      "frames": [
+       "death_nw_0",
+       "death_nw_1",
+       "death_nw_2",
+       "death_nw_3",
+       "death_nw_4",
+       "death_nw_5",
+       "death_nw_6"
+      ],
+      "durations": [
+       120,
+       150,
+       150,
+       130,
+       130,
+       160,
+       700
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ],
+        [
+         -13.88,
+         -9.06,
+         -13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         -15.01,
+         -5.47,
+         11.18
+        ],
+        [
+         -16.06,
+         0.88,
+         10.06
+        ],
+        [
+         -16.44,
+         0.66,
+         4.28
+        ],
+        [
+         -19.02,
+         -3.36,
+         -0.02
+        ],
+        [
+         -20.76,
+         -5.1,
+         -1.55
+        ],
+        [
+         -20.7,
+         -4.2,
+         -1.11
+        ],
+        [
+         -20.7,
+         -4.2,
+         -1.11
+        ]
+       ],
+       "fist_R": [
+        [
+         10.88,
+         -21.41,
+         -14.71
+        ],
+        [
+         9.82,
+         -15.06,
+         -15.82
+        ],
+        [
+         4.42,
+         -12.18,
+         -16.58
+        ],
+        [
+         0.13,
+         -15.15,
+         -19.17
+        ],
+        [
+         -1.38,
+         -17.03,
+         -20.94
+        ],
+        [
+         -1.4,
+         -16.08,
+         -20.42
+        ],
+        [
+         -1.4,
+         -16.08,
+         -20.42
+        ]
+       ]
+      }
+     },
+     "w": {
+      "row": 38,
+      "frames": [
+       "death_w_0",
+       "death_w_1",
+       "death_w_2",
+       "death_w_3",
+       "death_w_4",
+       "death_w_5",
+       "death_w_6"
+      ],
+      "durations": [
+       120,
+       150,
+       150,
+       130,
+       130,
+       160,
+       700
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         -18.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -18.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ],
+        [
+         -19.64,
+         -0.52,
+         0.0
+        ]
+       ],
+       "fist_L": [
+        [
+         -1.92,
+         -0.9,
+         18.61
+        ],
+        [
+         -3.41,
+         6.09,
+         18.54
+        ],
+        [
+         -8.5,
+         7.02,
+         14.61
+        ],
+        [
+         -13.35,
+         4.9,
+         13.39
+        ],
+        [
+         -15.66,
+         4.19,
+         13.54
+        ],
+        [
+         -15.62,
+         5.06,
+         13.93
+        ],
+        [
+         -15.62,
+         5.06,
+         13.93
+        ]
+       ],
+       "fist_R": [
+        [
+         -1.92,
+         -23.44,
+         -18.01
+        ],
+        [
+         -3.41,
+         -16.44,
+         -18.06
+        ],
+        [
+         -8.5,
+         -11.14,
+         -14.89
+        ],
+        [
+         -13.35,
+         -11.78,
+         -13.7
+        ],
+        [
+         -15.66,
+         -12.69,
+         -13.89
+        ],
+        [
+         -15.62,
+         -11.74,
+         -13.37
+        ],
+        [
+         -15.62,
+         -11.74,
+         -13.37
+        ]
+       ]
+      }
+     },
+     "sw": {
+      "row": 39,
+      "frames": [
+       "death_sw_0",
+       "death_sw_1",
+       "death_sw_2",
+       "death_sw_3",
+       "death_sw_4",
+       "death_sw_5",
+       "death_sw_6"
+      ],
+      "durations": [
+       120,
+       150,
+       150,
+       130,
+       130,
+       160,
+       700
+      ],
+      "events": {},
+      "sockets": {
+       "impact": [
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ],
+        [
+         -13.88,
+         8.03,
+         13.88
+        ]
+       ],
+       "fist_L": [
+        [
+         10.88,
+         -2.93,
+         15.31
+        ],
+        [
+         9.82,
+         4.71,
+         16.3
+        ],
+        [
+         4.42,
+         8.06,
+         16.3
+        ],
+        [
+         0.13,
+         8.27,
+         18.86
+        ],
+        [
+         -1.38,
+         8.53,
+         20.59
+        ],
+        [
+         -1.4,
+         9.4,
+         20.98
+        ],
+        [
+         -1.4,
+         9.4,
+         20.98
+        ]
+       ],
+       "fist_R": [
+        [
+         -15.01,
+         -18.87,
+         -10.59
+        ],
+        [
+         -16.06,
+         -11.22,
+         -9.58
+        ],
+        [
+         -16.44,
+         -4.78,
+         -4.55
+        ],
+        [
+         -19.02,
+         -3.52,
+         -0.29
+        ],
+        [
+         -20.76,
+         -3.4,
+         1.2
+        ],
+        [
+         -20.7,
+         -2.48,
+         1.68
+        ],
+        [
+         -20.7,
+         -2.48,
+         1.68
+        ]
+       ]
+      }
+     }
+    }
+   }
+  },
+  "sockets": [
+   "impact",
+   "fist_L",
+   "fist_R"
+  ]
+ }
+}

@@ -1,0 +1,287 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: apprentice
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.0, 0]}
+palette: "watra"
+size: 64          # 48 przycinało kaptur z uniesioną różdżką i upadek (QA); gęstość ta sama
+extends: humanoid   # szkielet, głowa, oczy i nogi szablonu; włosy i miecz usunięte, szata, kaptur i różdżka własne
+
+# Uczeń czarnoksiężnika: strzelający potwór lochu „Wieża Kościeja” (żywioł Arkana - fioletowo-biała magia).
+# Młody czarnoksiężnik w długiej ciemnofioletowej szacie do ziemi z głębokim, szpiczastym kapturem, blada twarz
+# w cieniu kaptura ze świecącymi fioletowo-białymi oczami, w prawej dłoni krótka różdżka z kryształem Arkanów,
+# wokół dłoni krążą fioletowe iskry (warstwa emisyjna: oczy, kryształ, iskry, runy na obszyciu).
+# Wzrost człowieka (36 px), szczupły; spod szaty wystają tylko czubki butów.
+brief:
+  summary: >
+    a sorcerer's apprentice of the Wieża Kościeja, a ranged caster about 36 px tall: slim, in a long dark violet
+    robe down to the ground with a pale lilac trim and a rope belt, a deep pointed hood, a pale face in the hood's
+    shadow with two glowing violet-white eyes, a short dark wand with a violet crystal in the right hand and
+    violet sparks circling that hand; only the boot tips show under the hem
+  head: >
+    the template's head kit (pale cold skin, face minimal: two glowing eyes, no nose), no hair; a deep pointed
+    hood over it (the necromancer's hood shape, longer tip bent back), the face opening cut by a tilted plane so
+    the face sits in shadow
+  must_keep:
+    - the hood silhouette with a pointed tip (reads from every direction)
+    - the glowing eyes in the hood and the violet crystal of the wand (the brightest pixels)
+    - the wand in the right hand, on the screen's left in s
+    - the violet sparks round the casting hand
+  simplify:
+    - no fingers; the hand is a ball
+    - the trim is paint on the robe (a front panel and a hem band), runes are short emissive strokes on the hem
+  decisions:
+    - attack - the wand drawn back, then raised high over the shoulder while the crystal charges, then thrust at
+      the target (`release` at 600 ms, socket `wand_tip`), total 850 ms
+    - death - struck back, the knees buckle, he falls on his back, the crystal and the eyes go out
+
+ramps:
+  # szata: ciemny fiolet
+  robe:    ["#07050b", "#150f22", "#221936", "#32254e", "#453468", "#5b4782"]
+  # obszycie: blady liliowy srebrny
+  trim:    ["#16121e", "#4a4260", "#7a7094", "#a69cbe", "#cbc3dc", "#ebe6f4"]
+  # blada skóra w chłodnym cieniu
+  pale:    ["#0e0a10", "#3c2f3e", "#6c5a68", "#9a868c", "#c2b0ae", "#e4d8d0"]
+  # ciemne drewno różdżki
+  darkwood: ["#0e0907", "#2a1b14", "#45301f", "#634630", "#82603f", "#9c7a52"]
+  # sznurowy pas i buty
+  rope:    ["#120c08", "#3b2a1a", "#5f4529", "#83623b", "#a5824f"]
+  # fioletowo-biała magia Arkanów
+  arcane:  ["#24103f", "#7a3fc4", "#b07ef0", "#eadcff", "#ffffff"]
+  fx_tail: ["#7a3fc4"]
+  fx_mid:  ["#b07ef0"]
+  fx_core: ["#f6f1ff"]
+
+materials:
+  robe:    {ramp: robe, finish: matte}
+  trim:    {ramp: trim, finish: matte}
+  skin:    {ramp: pale, gamma: 1.1, finish: soft, bands: [1, 3]}
+  wood:    {ramp: darkwood, finish: matte, bands: [1, 4]}
+  leather: {ramp: rope, finish: soft, bands: [1, 3]}
+  eye:     {ramp: arcane, emissive: true, band: 4, outline: false, glow: {color: "#b07ef0", mix: 0.35, radius: 1}}
+  crystal: {ramp: arcane, emissive: true, band: 3, outline: false, glow: {color: "#b07ef0", mix: 0.45, radius: 1}}
+  magic:   {ramp: arcane, emissive: true, band: 2, outline: false, glow: {color: "#b07ef0", mix: 0.4, radius: 1}}
+  rune:    {ramp: arcane, emissive: true, band: 2, outline: false}
+
+remove: [use.hair, use.sword, parts.belt, parts.neck]
+
+shadow: {rx: 9, ry: 3.2, alpha: 120}
+
+channels:
+  hand_L: [0.27, 0.04, 0.06]      # wolna ręka przy boku
+  hand_R: [0.26, 0.20, 0.18]      # dłoń z różdżką przed ciałem
+  wand_pitch: 0     # pochylenie różdżki (+: czubek w przód / w dół)
+  charge: 0         # 0..1 ładowanie kryształu (większy blask, więcej iskier)
+  orb: 0            # kąt krążących iskier wokół dłoni
+  lit: 1            # oczy i kryształ (śmierć gasi)
+
+bones:
+  headbase:  {parent: pelvis, pos: [0, 0.68, 0.03], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5 + 0.06, twist, roll]"}
+  shoulder_L: {parent: pelvis, pos: [0.22, 0.53, 0.0]}
+  # różdżka: z dłoni w przód (oś y nadgarstka patrzy w przód przy opuszczonej ręce)
+  wand:      {parent: wrist_R, pos: [0, 0.0, 0.04], rot: "[0.1 + wand_pitch, 0, 0]"}
+  sparks:    {parent: wrist_R, pos: [0, 0.02, 0.05], inherit_rot: false, rot: "[0, orb, 0]"}
+
+ik:
+  arm_L: {lengths: [0.28, 0.27]}
+
+parts:
+  torso:           # szczupła pierś pod szatą
+    material: robe
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.18, 0], r: [0.16, 0.18, 0.12]}
+      - ellipsoid: {c: [0, 0.42, -0.01], r: [0.22, 0.13, 0.13]}
+  coat:            # długa szata od piersi do ziemi, szersza u dołu
+    material: robe
+    space: coatbase
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0.42, -0.01], b: [0, -0.62, -0.03], r: [0.16, 0.28]}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.70}
+    paint:
+      - material: trim        # pas obszycia z przodu i u dołu
+        prims:
+          - box: {c: [0, -0.10, 0.35], half: [0.045, 0.55, 0.2]}
+      - material: trim
+        stripes: {axis: y, at: [-0.63], width: 0.06}
+      - material: rune        # krótkie świecące runy na dolnym pasie
+        prims:
+          - box: {c: [0.18, -0.63, 0.22], half: [0.016, 0.03, 0.08], rot: [0, 0.7, 0]}
+          - box: {c: [-0.18, -0.63, 0.22], half: [0.016, 0.03, 0.08], rot: [0, -0.7, 0]}
+          - box: {c: [0.30, -0.63, -0.05], half: [0.08, 0.03, 0.016]}
+          - box: {c: [-0.30, -0.63, -0.05], half: [0.08, 0.03, 0.016]}
+  rope_belt:       # sznurowy pas
+    material: leather
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.10, -0.01], b: [0, 0.145, -0.01], r: 0.18}
+      - cone: {a: [0.06, 0.10, 0.17], b: [0.08, -0.08, 0.19], r: [0.022, 0.018]}
+  leg_L: {when: "0"}
+  hood:            # głęboki, szpiczasty kaptur, czubek odgięty w tył
+    material: robe
+    space: head
+    prims:
+      - revolve: {c: [0, 0.0, -0.04], rot: [-0.25, 0, 0], shell: 0.045,
+                  profile: {bezier: [[0.17, -0.16], [0.24, 0.02], [0.22, 0.16], [0.19, 0.28], [0.10, 0.36],
+                                     [0.04, 0.42], [0, 0.50], [-0.04, 0.42], [-0.10, 0.36], [-0.19, 0.28],
+                                     [-0.22, 0.16], [-0.24, 0.02], [-0.17, -0.16], [0, -0.16]]}}
+    cut:
+      - plane: {n: [0, 0.12, 1], c: [0, 0.04, 0.07]}
+  mantle:          # krótka pelerynka na ramionach
+    material: robe
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.60, -0.02], b: [0, 0.36, -0.03], r: [0.12, 0.27], shell: 0.05}
+    cut:
+      - plane: {n: [0, 1, 0], at: 0.61}
+  eye_L:
+    material: eye
+    when: "lit > 0.5"
+  arm_L:           # rękawy szaty, szersze przy nadgarstku
+    material: robe
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.08}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.07, 0.07]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.07, 0.11]}
+  cuff_L:
+    material: trim
+    space: wrist_L
+    prims:
+      - cylinder: {a: [0, 0, -0.05], b: [0, 0, -0.015], r: 0.112}
+  wand_shaft:      # krótka ciemna różdżka
+    material: wood
+    space: wand
+    priority: 2
+    min_cover: 2
+    prims:
+      - cone: {a: [0, -0.06, 0], b: [0, 0.26, 0], r: [0.026, 0.02]}
+  wand_crystal:    # kryształ Arkanów na czubku
+    material: crystal
+    space: wand
+    when: "lit > 0.5"
+    priority: 3
+    min_cover: 2
+    prims:
+      - ellipsoid: {c: [0, 0.31, 0], r: "[0.04 + 0.02*charge, 0.065 + 0.02*charge, 0.04 + 0.02*charge]"}
+  wand_crystal_dead:   # zgaszony kryształ (śmierć)
+    material: trim
+    space: wand
+    when: "lit <= 0.5"
+    priority: 3
+    prims:
+      - ellipsoid: {c: [0, 0.31, 0], r: [0.035, 0.06, 0.035]}
+  sparks:          # fioletowe iskry krążące wokół dłoni z różdżką
+    material: magic
+    space: sparks
+    when: "lit > 0.5"
+    min_cover: 1
+    prims:
+      - sphere: {c: "[0.13 + 0.05*charge, 0.05, 0]", r: "0.032 + 0.012*charge"}
+      - sphere: {c: "[-0.065 - 0.025*charge, -0.04, 0.113 + 0.04*charge]", r: "0.028 + 0.012*charge"}
+      - sphere: {c: "[-0.065 - 0.025*charge, 0.10, -0.113 - 0.04*charge]", r: "0.026 + 0.012*charge"}
+  smear:           # smuga wypuszczenia pocisku
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[0, smear_y, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.10}
+
+sockets:
+  wand_tip: {bone: wand, offset: [0, 0.31, 0]}     # kryształ: stąd wylatuje pocisk
+  hand_R: {bone: wrist_R, offset: [0, 0.02, 0.05]}
+
+animations:
+  # oddech, kaptur lekko się kiwa, iskry krążą wokół dłoni (jeden obrót na cykl), kryształ pulsuje
+  idle:
+    frames: 8
+    ms: 140
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.012*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.27, 0.04 + 0.02*sin(p - 0.6), 0.06]"
+      hand_R: "[0.26, 0.20 + 0.02*sin(p - 0.6), 0.18]"
+      wand_pitch: "0.05*sin(p - 1.0)"
+      coat: "0.12*sin(p - 1.0)"
+      orb: "p"
+      charge: "0.2 + 0.2*sin(p)"
+  # krok w długiej szacie: nogi pod spodem (widać czubki butów), szata faluje, iskry krążą szybciej
+  walk:
+    frames: 8
+    ms: 100
+    events: {0: step_l, 4: step_r}
+    channels:
+      lean: 0.10
+      bob: "-0.03*cos(2*p) + 0.01"
+      twist: "0.08*cos(p)"
+      foot_L: "[0.12, 0.08*pos(-sin(p)), 0.02 + 0.20*cos(p)]"
+      foot_R: "[0.12, 0.08*pos(sin(p)), 0.02 - 0.20*cos(p)]"
+      pitch_foot_L: "0.3*pos(-sin(p))"
+      pitch_foot_R: "0.3*pos(sin(p))"
+      hand_L: "[0.27, 0.06 + 0.03*pos(cos(p)), 0.06 - 0.16*cos(p)]"
+      hand_R: "[0.26, 0.20, 0.18 + 0.05*cos(p)]"
+      head_yaw: "-0.05*cos(p)"
+      coat: "0.4*sin(2*p)"
+      orb: "2*p"
+      charge: 0.2
+  # strzał: różdżka cofnięta, uniesiona wysoko nad ramię, kryształ się ładuje (trzymane), pchnięcie różdżką
+  # w cel (`release` 600 ms - pocisk z socketu `wand_tip`), krótkie trzymanie, powrót; razem 850 ms
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {twist: -0.15, lean: 0.0, head_pitch: -0.04, coat: -0.1, orb: 0.8, charge: 0.3,
+          hand_R: [0.30, 0.10, -0.06], hand_L: [0.24, 0.10, 0.14], wand_pitch: -0.3}}
+      - {ms: 160, set: {twist: -0.30, lean: -0.08, bob: 0.02, head_pitch: -0.10, coat: -0.25, orb: 2.0, charge: 0.6,
+          hand_R: [0.34, 0.74, 0.0], hand_L: [0.22, 0.16, 0.20], wand_pitch: -0.3}}
+      - {ms: 170, set: {twist: -0.36, lean: -0.12, bob: 0.03, squash: 1.03, head_pitch: -0.14, coat: -0.3, orb: 3.4, charge: 0.9,
+          hand_R: [0.30, 0.94, 0.04], hand_L: [0.22, 0.18, 0.22], wand_pitch: -0.2}}
+      - {ms: 150, set: {twist: -0.38, lean: -0.13, bob: 0.03, squash: 1.03, head_pitch: -0.15, coat: -0.32, orb: 4.8, charge: 1.0,
+          hand_R: [0.30, 0.96, 0.03], hand_L: [0.22, 0.18, 0.22], wand_pitch: -0.25}}
+      - {ms: 70, event: release, set: {root: [0, 0, 0.06], twist: 0.30, lean: 0.20, squash: 0.98, head_pitch: 0.06, coat: 0.45,
+          orb: 5.6, charge: 0.6, hand_R: [0.10, 0.34, 0.52], hand_L: [0.28, 0.06, -0.06], wand_pitch: 0.6,
+          smear_w: 0.08, smear_a0: -1.3, smear_a1: 0.1, smear_y: 1.25, smear_z: 0.15, smear_r: 0.45}}
+      - {ms: 90, set: {root: [0, 0, 0.06], twist: 0.32, lean: 0.20, head_pitch: 0.06, coat: 0.4, orb: 6.0, charge: 0.3,
+          hand_R: [0.10, 0.32, 0.53], hand_L: [0.28, 0.06, -0.06], wand_pitch: 0.65}}
+      - {ms: 90, set: {root: [0, 0, 0.02], twist: 0.10, lean: 0.08, coat: 0.1, orb: 6.28, charge: 0.2,
+          hand_R: [0.22, 0.16, 0.30], hand_L: [0.27, 0.04, 0.04], wand_pitch: 0.2}}
+  # trafienie: odrzut w tył, kaptur odskakuje, szata się podwija
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.05], lean: -0.25, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5,
+          hand_L: [0.32, 0.14, -0.04], hand_R: [0.30, 0.20, 0.04], wand_pitch: -0.4, charge: 0.6}}
+      - {ms: 70, set: {root: [0, 0, -0.03], lean: -0.10, head_pitch: -0.12, coat: -0.2,
+          hand_L: [0.29, 0.08, 0.02], hand_R: [0.27, 0.15, 0.12], wand_pitch: -0.15, charge: 0.3}}
+      - {ms: 80, set: {lean: 0.05, head_pitch: 0.02, coat: 0.05, charge: 0.2}}
+  # śmierć: odrzut, kolana się uginają, pada na plecy; oczy i kryształ gasną, iskry znikają
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.04], lean: -0.35, bob: -0.02, squash: 0.95, head_pitch: -0.3, coat: -0.5, charge: 0.8,
+          hand_L: [0.32, 0.20, -0.02], hand_R: [0.34, 0.26, 0.04], wand_pitch: -0.5}}
+      - {ms: 120, set: {root: [0, 0, -0.08], twist: 0.15, roll: 0.06, lean: -0.15, bob: -0.18, squash: 0.94, head_pitch: 0.15,
+          coat: 0.2, hand_L: [0.26, -0.02, 0.10], hand_R: [0.28, 0.02, 0.12], wand_pitch: 0.3, lit: 0.4,
+          foot_L: [0.11, 0, 0.08], foot_R: [0.12, 0, -0.10]}}
+      - {ms: 110, set: {root: [0, 0, -0.08], twist: 0.1, roll: 0.05, lean: -0.75, bob: -0.32, head_pitch: -0.2, lit: 0,
+          coat: -0.4, hand_L: [0.34, 0.15, 0.10], hand_R: [0.36, 0.18, 0.12], wand_pitch: -0.4,
+          foot_L: [0.11, 0.04, 0.22], foot_R: [0.12, 0.02, 0.14]}}
+      - {ms: 100, set: {root: [0, 0, 0.0], twist: "0.3*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.3, bob: -0.50, head_pitch: -0.45, lit: 0,
+          coat: -0.5, hand_L: [0.38, 0.12, 0.12], hand_R: [0.40, 0.14, 0.12], wand_pitch: -0.8,
+          foot_L: [0.11, 0.10, 0.42], foot_R: [0.12, 0.06, 0.36]}}
+      - {ms: 110, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.72, bob: -0.60, squash: 0.92, head_pitch: -0.75, lit: 0,
+          coat: -0.6, hand_L: [0.40, 0.06, -0.08], hand_R: [0.44, 0.06, -0.08], wand_pitch: -1.2,
+          foot_L: [0.12, 0.06, 0.52], foot_R: [0.13, 0.03, 0.48]}}
+      - {ms: 120, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.66, bob: -0.58, squash: 0.97, head_pitch: -0.65, lit: 0,
+          coat: -0.5, hand_L: [0.41, 0.06, -0.05], hand_R: [0.44, 0.06, -0.06], wand_pitch: -1.2,
+          foot_L: [0.12, 0.02, 0.53], foot_R: [0.13, 0, 0.50]}}
+      - {ms: 500, set: {root: [0, 0, 0.03], twist: "0.5*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))", lean: -1.70, bob: -0.60, head_pitch: -0.7, lit: 0,
+          coat: -0.6, hand_L: [0.41, 0.06, -0.08], hand_R: [0.44, 0.06, -0.08], wand_pitch: -1.2,
+          foot_L: [0.12, 0, 0.54], foot_R: [0.13, 0, 0.52]}}
+
+timing:
+  attack: {release: 600ms, total: 850ms}

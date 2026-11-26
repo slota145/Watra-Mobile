@@ -1,0 +1,559 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: kosciej
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.8, 0]}
+palette: "watra"
+size: 112           # 9 animacji x 8 kierunków x 112 px = 8064 px wysokości atlasu (< 8192); 128 by się nie zmieściło
+extends: humanoid   # szkielet, głowa i kanały szablonu; szata, kołnierz, broda, korona i kostur są jego własne
+
+# Kościej Nieśmiertelny: boss lochu „Wieża Kościeja” (żywioł Arkana - fioletowo-biała magia). Słynny słowiański
+# czarnoksiężnik: wysoki, wychudzony do kości starzec (prawie szkielet obleczony szarożółtą skórą), zapadnięte
+# policzki i oczodoły, długa siwa broda do pasa i siwe włosy na plecach, czarno-fioletowa szata do ziemi
+# z wysokim sterczącym kołnierzem, na głowie żelazna korona z kościanymi kolcami, w lewej dłoni wysoki żelazny
+# kostur z kryształem Arkanów w szponach. Oczy, kryształ i runy na szacie świecą fioletem (warstwa emisyjna).
+# Całe ciało x1.45 (kość `big`, jak Swarożyc). Nóg nie widać: sunie w szacie tuż nad ziemią.
+# Kość `core` zmniejsza ciało przy śmierci i odrodzeniu (`crumble` - rozsypanie w proch) oraz przy teleporcie
+# (`vanish` - rozpłynięcie w fioletowym dymie).
+brief:
+  summary: >
+    boss of the Wieża Kościeja, Koschei the Deathless: a tall gaunt old sorcerer about 54 px tall with the crown
+    (the human is 36 px, same density), skin and bone in a long black-violet robe down to the ground with a high
+    stand-up collar behind the head, violet trim and glowing violet runes down the front, a long grey-white beard
+    to the belt, an iron crown with bone spikes, a tall dark iron staff in the left hand with a violet crystal held
+    in iron claws at the top; glowing violet eyes in deep sockets
+  head: >
+    the head kit made narrow with a long pointed chin (gaunt), the sockets and the hollow cheeks painted dark, two
+    glowing violet eyes 1 px each in the sockets, no nose (face minimal); a long beard from the cheeks to the belt
+    (on its own bone, it swings less than the head), long thin white hair down the back, an iron circlet round the
+    brow with five pale bone spikes (the silhouette's mark), the high collar standing up behind the head
+  must_keep:
+    - the crown of spikes and the high collar (the silhouette from every direction)
+    - the long white beard down the dark robe
+    - the violet crystal staff (screen right in s) and the violet glowing eyes, the brightest pixels
+    - the black-violet robe with violet runes
+  simplify:
+    - no legs - he glides; the hem hangs just over the ground
+    - bony hands are a palm and three long fingers
+    - the seals of `cast` are two flat rune rings (round the crystal and round the free hand)
+  decisions:
+    - the staff in the left hand (screen right in s), like the necromancer
+    - teleport - he dissolves into violet smoke (the body shrinks into the cloud), `release` when he is gone
+      (the game moves him), then he forms again out of the smoke (the second half can play at the new place)
+    - revive - starts as a heap of dust with the staff lying on it (the same as the last frame of death), rises,
+      `release` on the last frame (fully standing)
+    - frame 112 px (9 animations in 8 directions fit an 8192 px atlas)
+
+ramps:
+  # szata: czarno-fioletowa
+  robe:    ["#060409", "#120c1a", "#1e152b", "#2b1f3e", "#3b2b54", "#4e3a6c"]
+  # obszycie szaty: głęboki fiolet
+  trim:    ["#0e0618", "#2e1250", "#4a2078", "#6a34a0", "#8a52c2", "#a678da"]
+  # skóra trupa: szarożółta, wyschnięta
+  corpse:  ["#0d0b0a", "#3a3330", "#625a52", "#8c8274", "#b2a690", "#d2c8b0"]
+  # siwa broda i włosy
+  beard:   ["#121216", "#45444c", "#73727c", "#a3a2aa", "#cfced4", "#f0eff2"]
+  # ciemne żelazo korony i kostura
+  iron:    ["#09090b", "#25242a", "#3f3d46", "#5c5a64", "#7d7a86", "#a29fa9"]
+  # kość kolców korony
+  bone:    ["#1f1410", "#4a3326", "#7a5a40", "#a8875e", "#d2b98a", "#f1e6c2"]
+  # oczodoły i zapadnięte policzki
+  socket:  ["#040306", "#0e0a12", "#1c1622"]
+  # fioletowo-biała magia Arkanów
+  arcane:  ["#24103f", "#7a3fc4", "#b07ef0", "#eadcff", "#ffffff"]
+  # fioletowy dym teleportu
+  smoke:   ["#08060e", "#1c1430", "#30244e", "#46356e", "#5e4a8e", "#7a66a8"]
+  # proch: szaro-fioletowy pył
+  ash:     ["#0b0a0e", "#2c2833", "#4a4452", "#6a6373", "#8c8596", "#b0aab8"]
+  fx_tail: ["#7a3fc4"]
+  fx_mid:  ["#b07ef0"]
+  fx_core: ["#f6f1ff"]
+
+materials:
+  robe:    {ramp: robe, finish: matte}
+  trim:    {ramp: trim, finish: matte}
+  skin:    {ramp: corpse, gamma: 0.9, finish: soft}
+  beard:   {ramp: beard, finish: soft, gamma: 0.85}
+  iron:    {ramp: iron, finish: metal}
+  bone:    {ramp: bone, finish: soft, bands: [2, 5]}
+  socket:  {ramp: socket, bands: [1, 2], line: false}
+  eye:     {ramp: arcane, emissive: true, band: 2, outline: false, glow: {color: "#b07ef0", mix: 0.25, radius: 1}}
+  crystal: {ramp: arcane, emissive: true, band: 2, outline: false, glow: {color: "#b07ef0", mix: 0.4, radius: 1}}
+  core:    {ramp: arcane, emissive: true, band: 4, outline: false}
+  rune:    {ramp: arcane, emissive: true, band: 2, outline: false}
+  magic:   {ramp: arcane, emissive: true, band: 3, outline: false, glow: {color: "#b07ef0", mix: 0.4, radius: 1}}
+  smoke:   {ramp: smoke, finish: matte}
+  smokeglow: {ramp: arcane, emissive: true, band: 1, outline: false}
+  ash:     {ramp: ash, finish: matte}
+  deadcrystal: {ramp: robe, finish: glossy, bands: [2, 5]}
+
+remove: [use.hair, use.sword, parts.belt, parts.neck, parts.leg_L, parts.boot_L, animations.attack]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 0.84, jaw: 0.15, chin: 0.95, nose: 0, ears: 0}}
+
+shadow: {rx: 17, ry: 6, alpha: 120}
+snap: [root, torso_rot]   # powolne sunięcie i kołysanie o całe piksele (mniej migotania)
+
+channels:
+  bob: 0.04         # sunie tuż nad ziemią
+  hand_L: [0.34, 0.10, 0.14]     # dłoń z kosturem (lewa, w s po prawej stronie ekranu)
+  hand_R: [0.27, 0.04, 0.12]     # wolna dłoń
+  staff_pitch: 0    # pochylenie kostura (+: czubek w przód / w dół)
+  staff_splay: 0    # kostur odchylony na zewnątrz (+) albo w poprzek ciała (-)
+  staff_yaw: 0
+  beard_sway: 0     # dodatkowe kołysanie brody (+: koniec w przód)
+  sglow: 0          # 0..1 krąg pieczęci wokół kryształu (czary)
+  glow: 0           # 0..1 fioletowy blask w wolnej dłoni (pocisk, pieczęć)
+  lit: 1            # oczy, kryształ i runy (śmierć gasi)
+  crumble: 0        # 0..1 rozsypanie w proch (ciało maleje i zapada się)
+  dust: 0           # 0..1 kupka prochu na ziemi
+  vanish: 0         # 0..1 rozpłynięcie w dymie (teleport)
+  puff: 0           # 0..1 kłęby fioletowego dymu
+
+bones:
+  # całe ciało x1.45 (ok. 54 px z koroną); `core` zmniejsza je przy rozsypaniu i teleporcie (od ziemi)
+  big:        {parent: root, scale: 1.45}
+  core:       {parent: big, scale: "[(1 - 0.8*crumble)*(1 - 0.95*vanish), (1 - 0.92*crumble)*(1 - 0.95*vanish), (1 - 0.8*crumble)*(1 - 0.95*vanish)]"}
+  torso_rot:  {parent: core, pos: "[0, 0.86 + bob, 0]", rot: "[lean + 0.05, twist, roll]"}
+  legyaw:     {parent: core}
+  footyaw:    {parent: core}
+  headbase:   {parent: pelvis, pos: [0, 0.74, 0.05], inherit_rot: false, inherit_scale: false,
+               scale: "1.45*(1 - 0.9*crumble)*(1 - 0.95*vanish)",
+               rot: "[lean*0.5 + 0.08, twist, roll]"}
+  head:       {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.2}
+  beardbase:  {parent: headbase, rot: "[head_pitch*0.5 + beard_sway, head_yaw*0.5, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.25, 0.54, -0.02]}
+  hip_L:      {parent: pelvis, pos: [0.12, -0.02, 0.0]}
+  fxspace:    {parent: big, rot: "[0, twist*0.3, 0]"}
+  # kostur trzyma własny przechył (dłoń go tylko niesie); nie maleje przy rozsypaniu - upada na proch
+  staff:      {parent: wrist_L, pos: [0, 0, 0.035], inherit_rot: false, inherit_scale: false,
+               scale: "1.45*(1 - 0.95*vanish)",
+               rot: "[-0.05 + staff_pitch + lean*0.5, twist + staff_yaw, -0.10 - staff_splay]"}
+  stafftop:   {parent: staff, pos: [0, 0.92, 0]}
+  # pieczęć w wolnej dłoni: płaski krąg zwrócony w przód dłoni
+  sealhand:   {parent: wrist_R, pos: [0, 0.02, 0.14], inherit_rot: false, rot: "[1.5708 - lean, twist, 0]"}
+
+ik:
+  arm_L: {lengths: [0.42, 0.40]}   # długie, chude ręce (jednostki świata)
+
+parts:
+  torso:           # chuda pierś pod szatą
+    material: robe
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.20, 0], r: [0.16, 0.22, 0.12]}
+      - ellipsoid: {c: [0, 0.46, -0.01], r: [0.24, 0.12, 0.14]}
+  coat:            # długa szata do ziemi, szeroka u dołu
+    material: robe
+    space: coatbase
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0.48, -0.01], b: [0, -0.74, -0.04], r: [0.16, 0.29]}
+    cut:
+      - plane: {n: [0, -1, 0], at: 0.80}
+    paint:
+      - material: trim        # pas obszycia z przodu
+        prims:
+          - box: {c: [0, -0.15, 0.4], half: [0.07, 0.68, 0.3]}
+      - material: trim        # pas u dołu
+        stripes: {axis: y, at: [-0.70], width: 0.07}
+      - material: rune        # świecące runy na pasie z przodu
+        prims:
+          - box: {c: [0, 0.18, 0.4], half: ["0.016*lit", 0.045, 0.3]}
+          - box: {c: [0, 0.18, 0.4], half: ["0.035*lit", 0.014, 0.3]}
+          - box: {c: [0, -0.10, 0.4], half: ["0.016*lit", 0.05, 0.3], rot: [0, 0, 0.6]}
+          - box: {c: [0, -0.10, 0.4], half: ["0.016*lit", 0.05, 0.3], rot: [0, 0, -0.6]}
+          - box: {c: [0, -0.38, 0.4], half: ["0.016*lit", 0.05, 0.3]}
+          - box: {c: [0, -0.35, 0.4], half: ["0.035*lit", 0.014, 0.3]}
+          - box: {c: [0.22, -0.70, 0.22], half: ["0.016*lit", 0.035, 0.08], rot: [0, 0.8, 0]}
+          - box: {c: [-0.22, -0.70, 0.22], half: ["0.016*lit", 0.035, 0.08], rot: [0, -0.8, 0]}
+  sash:            # fioletowa szarfa w pasie
+    material: trim
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.07, -0.01], b: [0, 0.13, -0.01], r: 0.19}
+  collar:          # wysoki, sterczący kołnierz za głową (otwarty z przodu)
+    material: robe
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.54, -0.05], b: [0, 0.80, -0.15], r: [0.16, 0.22], shell: 0.055}
+    cut:
+      - plane: {n: [0, 0.3, 1], c: [0, 0.6, -0.02]}
+    paint:
+      - material: trim
+        stripes: {axis: y, at: [0.77], width: 0.05}
+  mantle:          # pelerynka na ramionach pod kołnierzem
+    material: robe
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.62, -0.02], b: [0, 0.36, -0.03], r: [0.15, 0.29], shell: 0.055}
+    cut:
+      - plane: {n: [0, 1, 0], at: 0.63}
+    paint:
+      - material: trim
+        stripes: {axis: y, at: [0.38], width: 0.05}
+  head:            # twarz z zestawu głowy: ciemne oczodoły i zapadnięte policzki
+    material: skin
+    paint:
+      - material: socket
+        prims:
+          - ellipsoid: {c: [0.05, 0.115, 0.12], r: [0.048, 0.04, 0.05]}
+          - ellipsoid: {c: [-0.05, 0.115, 0.12], r: [0.048, 0.04, 0.05]}
+          - ellipsoid: {c: [0.085, 0.03, 0.09], r: [0.03, 0.04, 0.05]}
+          - ellipsoid: {c: [-0.085, 0.03, 0.09], r: [0.03, 0.04, 0.05]}
+  eye_L:           # świecące fioletowe oko w oczodole
+    material: eye
+    space: head
+    when: "lit > 0.5"
+    prims:
+      - sphere: {c: [0.048, 0.118, 0.14], r: 0.03}
+  hair:            # długie, rzadkie siwe włosy na plecy
+    material: beard
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.12, -0.06], r: [0.14, 0.14, 0.11]}
+      - ellipsoid: {c: [0, -0.10, -0.12], r: [0.13, 0.17, 0.07]}
+  brow_L:          # siwa krzaczasta brew nad okiem
+    material: beard
+    space: head
+    prims:
+      - ellipsoid: {c: [0.05, 0.165, 0.12], r: [0.05, 0.018, 0.03], rot: [0, 0, 0.25]}
+  moustache_L:     # opadające wąsy
+    material: beard
+    space: head
+    blend: 0.02
+    prims:
+      - tube: {pts: [[0.0, 0.045, 0.13], [0.06, 0.035, 0.14], [0.08, -0.05, 0.12]], r: [0.022, 0.013]}
+  beard:           # długa broda od policzków do pasa, rozdwojona na końcu
+    material: beard
+    space: beardbase
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0.07], r: [0.10, 0.06, 0.08]}
+      - cone: {a: [0, -0.04, 0.10], b: [0, -0.50, 0.16], r: [0.10, 0.04]}
+      - cone: {a: [0, -0.40, 0.15], b: [0.04, -0.62, 0.16], r: [0.04, 0.015]}
+      - cone: {a: [0, -0.40, 0.15], b: [-0.04, -0.60, 0.15], r: [0.04, 0.015]}
+  beardlock_L:     # pasmo brody z boku
+    material: beard
+    space: beardbase
+    prims:
+      - tube: {pts: [[0.09, 0.02, 0.05], [0.10, -0.20, 0.12], [0.05, -0.44, 0.13]], r: [0.035, 0.015]}
+  crown:           # żelazna obręcz korony na czubku głowy
+    material: iron
+    space: head
+    prims:
+      - torus: {c: [0, 0.28, -0.03], R: 0.115, r: 0.02, rot: [-0.15, 0, 0]}
+  crown_spikes:    # żelazne kolce korony
+    material: iron
+    space: head
+    min_cover: 2
+    prims:
+      - cone: {a: [0, 0.29, 0.08], b: [0, 0.47, 0.07], r: [0.024, 0.007]}
+      - cone: {a: [0.085, 0.28, 0.07], b: [0.12, 0.42, 0.06], r: [0.022, 0.007]}
+      - cone: {a: [-0.085, 0.28, 0.07], b: [-0.12, 0.42, 0.06], r: [0.022, 0.007]}
+      - cone: {a: [0.12, 0.27, -0.04], b: [0.18, 0.39, -0.05], r: [0.021, 0.007]}
+      - cone: {a: [-0.12, 0.27, -0.04], b: [-0.18, 0.39, -0.05], r: [0.021, 0.007]}
+      - cone: {a: [0.06, 0.26, -0.13], b: [0.08, 0.38, -0.18], r: [0.021, 0.007]}
+      - cone: {a: [-0.06, 0.26, -0.13], b: [-0.08, 0.38, -0.18], r: [0.021, 0.007]}
+  crown_bones:     # kościane czubki kolców
+    material: bone
+    space: head
+    min_cover: 2
+    prims:
+      - cone: {a: [0, 0.41, 0.072], b: [0, 0.49, 0.07], r: [0.016, 0.006]}
+      - cone: {a: [0.11, 0.38, 0.062], b: [0.125, 0.44, 0.06], r: [0.016, 0.006]}
+      - cone: {a: [-0.11, 0.38, 0.062], b: [-0.125, 0.44, 0.06], r: [0.016, 0.006]}
+  arm_L:           # chude ręce w szerokich rękawach
+    material: robe
+    blend: 0.03
+    when: "vanish < 0.8 and crumble < 0.8"
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.09}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.08, 0.08]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.08, 0.13]}
+  cuff_L:          # fioletowy mankiet
+    material: trim
+    space: wrist_L
+    when: "vanish < 0.8 and crumble < 0.8"
+    prims:
+      - cylinder: {a: [0, 0, -0.06], b: [0, 0, -0.01], r: 0.135}
+  hand_L:          # koścista dłoń: dłoń i trzy długie palce
+    material: skin
+    space: wrist_L
+    blend: 0.02
+    min_cover: 2
+    when: "vanish < 0.8 and crumble < 0.8"
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.06}
+      - cone: {a: [0, 0, 0.06], b: [0.05, -0.03, 0.17], r: [0.026, 0.018]}
+      - cone: {a: [0, 0, 0.06], b: [0.0, -0.04, 0.19], r: [0.026, 0.018]}
+      - cone: {a: [0, 0, 0.06], b: [-0.05, -0.03, 0.17], r: [0.026, 0.018]}
+  staff_shaft:     # wysoki kostur z ciemnego żelaza
+    material: iron
+    space: staff
+    priority: 2
+    min_cover: 2
+    when: "vanish < 0.8"
+    prims:
+      - cone: {a: [0, -0.62, 0], b: [0, 0.86, 0], r: [0.02, 0.026]}
+      - sphere: {c: [0, 0.86, 0], r: 0.035}
+  staff_claws:     # żelazne szpony trzymające kryształ
+    material: iron
+    space: stafftop
+    priority: 2
+    min_cover: 2
+    when: "vanish < 0.8"
+    prims:
+      - tube: {pts: [[0, -0.02, 0], [0.09, 0.05, 0], [0.04, 0.16, 0]], r: [0.022, 0.01]}
+      - tube: {pts: [[0, -0.02, 0], [-0.09, 0.05, 0], [-0.04, 0.16, 0]], r: [0.022, 0.01]}
+      - tube: {pts: [[0, -0.02, 0], [0, 0.05, 0.09], [0, 0.16, 0.04]], r: [0.022, 0.01]}
+      - tube: {pts: [[0, -0.02, 0], [0, 0.05, -0.09], [0, 0.16, -0.04]], r: [0.022, 0.01]}
+  staff_crystal:   # kryształ Arkanów w szponach
+    material: crystal
+    space: stafftop
+    when: "lit > 0.5 and vanish < 0.8"
+    priority: 3
+    prims:
+      - ellipsoid: {c: [0, 0.09, 0], r: [0.055, 0.09, 0.055]}
+    paint:
+      - material: core
+        prims:
+          - sphere: {c: [0, 0.10, 0.02], r: 0.025}
+  staff_crystal_dead:   # zgasły kryształ (śmierć)
+    material: deadcrystal
+    space: stafftop
+    when: "lit <= 0.5 and vanish < 0.8"
+    priority: 3
+    prims:
+      - ellipsoid: {c: [0, 0.09, 0], r: [0.05, 0.085, 0.05]}
+  staff_seal:      # pieczęć: krąg run wokół kryształu (czary)
+    material: magic
+    space: stafftop
+    when: "sglow > 0.05"
+    priority: 3
+    min_cover: 2
+    prims:
+      - torus: {c: [0, 0.09, 0], R: "0.14 + 0.08*sglow", r: "0.014 + 0.01*sglow", rot: "[1.5708, -radians(yaw), 0]"}
+      - torus: {c: [0, 0.09, 0], R: "0.08 + 0.05*sglow", r: 0.012, rot: "[1.5708, -radians(yaw), 0]"}
+  hand_glow:       # fioletowy blask w wolnej dłoni
+    material: magic
+    space: wrist_R
+    when: "glow > 0.05"
+    prims:
+      - sphere: {c: [0, 0.02, 0.11], r: "0.10*glow"}
+  hand_seal:       # pieczęć przed wolną dłonią
+    material: magic
+    space: sealhand
+    when: "glow > 0.5"
+    min_cover: 2
+    prims:
+      - torus: {c: [0, 0, 0], R: "0.16*glow", r: 0.014}
+      - box: {c: [0, 0, 0], half: ["0.12*glow", 0.012, 0.012], rot: [0, 0.785, 0]}
+      - box: {c: [0, 0, 0], half: ["0.12*glow", 0.012, 0.012], rot: [0, -0.785, 0]}
+  smoke:           # teleport: kłęby fioletowego dymu wokół ciała
+    material: smoke
+    space: big
+    when: "puff > 0.05"
+    blend: 0.08
+    prims:
+      - sphere: {c: "[0.0, 0.30 + 0.2*puff, 0.05]", r: "0.30*puff"}
+      - sphere: {c: "[0.20*puff, 0.72 + 0.3*puff, -0.05]", r: "0.24*puff"}
+      - sphere: {c: "[-0.22*puff, 0.88 + 0.25*puff, 0.08]", r: "0.22*puff"}
+      - sphere: {c: "[0.04, 1.25 + 0.35*puff, -0.02]", r: "0.18*puff"}
+      - sphere: {c: "[-0.10*puff, 1.55 + 0.45*puff, 0.04]", r: "0.11*puff"}
+      - sphere: {c: "[0.30*puff, 0.18, 0.25*puff]", r: "0.17*puff"}
+      - sphere: {c: "[-0.32*puff, 0.16, -0.20*puff]", r: "0.17*puff"}
+      - sphere: {c: "[0.36*puff, 1.05 + 0.4*puff, 0.10]", r: "0.10*puff"}
+    paint:
+      - material: smokeglow
+        prims:
+          - sphere: {c: "[0.0, 0.75 + 0.2*puff, 0.25]", r: "0.16*puff"}
+          - sphere: {c: "[0.0, 0.40 + 0.2*puff, 0.30]", r: "0.10*puff"}
+  dust_pile:       # śmierć i odrodzenie: kupka szaro-fioletowego prochu
+    material: ash
+    space: big
+    when: "dust > 0.03"
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.02], r: "[0.40*dust, 0.14*dust, 0.36*dust]"}
+      - ellipsoid: {c: [0.20, 0.01, 0.18], r: "[0.20*dust, 0.08*dust, 0.18*dust]"}
+      - ellipsoid: {c: [-0.22, 0.01, -0.12], r: "[0.20*dust, 0.07*dust, 0.18*dust]"}
+      - ellipsoid: {c: [0.02, 0.10, 0.0], r: "[0.18*dust, 0.10*dust, 0.16*dust]"}
+  dust_cloth:      # strzęp szaty i korona w prochu
+    material: robe
+    space: big
+    when: "dust > 0.6"
+    prims:
+      - ellipsoid: {c: [-0.12, 0.10, 0.24], r: "[0.20*dust, 0.05, 0.12*dust]", rot: [0.2, 0.4, 0]}
+  dust_crown:
+    material: iron
+    space: big
+    when: "dust > 0.6"
+    prims:
+      - torus: {c: [0.10, 0.24, 0.06], R: 0.12, r: 0.026, rot: [0.5, 0, 0.3]}
+  smear:           # smuga ciosu kosturem
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[0, smear_y, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.10}
+
+sockets:
+  staff_crystal: {bone: stafftop, offset: [0, 0.09, 0]}   # kryształ: stąd lecą czary
+  cast: {bone: wrist_R, offset: [0, 0.02, 0.13]}           # wolna dłoń: stąd leci pocisk (bolt)
+  strike: {bone: big, offset: [0, 0.4, 0.75]}               # przed nim: miejsce ciosu kosturem
+  body: {bone: big, offset: [0, 0.9, 0]}                     # środek ciała (dym teleportu)
+
+animations:
+  # stoi tuż nad ziemią, oddycha, szata i broda kołyszą się, kryształ jarzy się
+  idle:
+    frames: 8
+    ms: 150
+    channels:
+      bob: "0.04 + 0.035*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.6)"
+      beard_sway: "0.05*sin(p - 1.2)"
+      hand_L: "[0.34, 0.10 + 0.03*sin(p - 0.6), 0.14]"
+      hand_R: "[0.27, 0.04 + 0.03*sin(p - 0.8), 0.12]"
+      staff_pitch: "0.02*sin(p - 1.0)"
+      coat: "0.10*sin(p - 1.2)"
+  # sunący krok: bez widocznych nóg, ciało pochylone, szata faluje dwa razy na cykl, kostur stuka w rytm
+  walk:
+    frames: 8
+    ms: 110
+    channels:
+      lean: 0.12
+      bob: "0.04 + 0.025*sin(2*p)"
+      twist: "0.05*cos(p)"
+      roll: "0.03*sin(p)"
+      head_pitch: "-0.03*sin(p - 0.6)"
+      beard_sway: "-0.12 + 0.06*sin(2*p - 1.0)"
+      hand_L: "[0.34, 0.12 + 0.03*sin(p), 0.16 + 0.04*cos(p)]"
+      hand_R: "[0.27, 0.06 + 0.03*sin(p - 0.5), 0.04 - 0.07*cos(p)]"
+      staff_pitch: "0.10 + 0.05*sin(p - 0.8)"
+      coat: "-0.35 + 0.15*sin(2*p - 1.0)"
+  # cios kosturem: kostur uniesiony i odchylony nad ramię (windup), trzymanie, szybkie cięcie w dół i w przód ze
+  # smugą (`hit` 450 ms, socket `strike`), trzymanie, powrót; razem 750 ms
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {twist: 0.18, lean: -0.04, bob: 0.06, coat: -0.1, head_pitch: -0.04,
+          hand_L: [0.36, 0.30, -0.04], hand_R: [0.24, 0.06, 0.18], staff_pitch: -0.35, sglow: 0.2}}
+      - {ms: 170, set: {twist: 0.30, lean: -0.12, bob: 0.08, squash: 1.02, coat: -0.25, head_pitch: -0.10,
+          hand_L: [0.38, 0.52, -0.14], hand_R: [0.22, 0.08, 0.22], staff_pitch: -0.65, sglow: 0.5}}
+      - {ms: 160, set: {twist: 0.32, lean: -0.14, bob: 0.08, squash: 1.03, coat: -0.28, head_pitch: -0.12,
+          hand_L: [0.38, 0.56, -0.16], hand_R: [0.22, 0.08, 0.22], staff_pitch: -0.72, sglow: 0.6}}
+      - {ms: 60, event: hit, set: {root: [0, 0, 0.08], twist: -0.25, lean: 0.24, bob: 0.02, squash: 0.97, coat: 0.45, head_pitch: 0.10,
+          hand_L: [0.16, 0.24, 0.50], hand_R: [0.30, 0.02, -0.02], staff_pitch: 1.25, staff_splay: -0.25, sglow: 1.0,
+          smear_w: 0.10, smear_a0: 2.2, smear_a1: 0.4, smear_y: 1.35, smear_z: 0.25, smear_r: 0.80}}
+      - {ms: 120, set: {root: [0, 0, 0.08], twist: -0.30, lean: 0.26, bob: 0.02, squash: 0.97, coat: 0.5, head_pitch: 0.12,
+          hand_L: [0.15, 0.22, 0.52], hand_R: [0.30, 0.02, -0.04], staff_pitch: 1.30, staff_splay: -0.28, sglow: 0.5,
+          smear_w: 0.07, smear_a0: 1.6, smear_a1: 0.2, smear_y: 1.35, smear_z: 0.25, smear_r: 0.80, smear_fade: 0.6}}
+      - {ms: 120, set: {root: [0, 0, 0.03], twist: -0.08, lean: 0.10, coat: 0.15,
+          hand_L: [0.30, 0.14, 0.26], hand_R: [0.27, 0.03, 0.08], staff_pitch: 0.40}}
+  # czar: kostur wzniesiony wysoko, wokół kryształu i przed wolną dłonią rosną pieczęcie run (trzymane),
+  # wypuszczenie (`release` 600 ms - z socketu `staff_crystal`), drżenie, powrót; razem 1000 ms
+  cast:
+    loop: false
+    keys:
+      - {ms: 130, event: windup, set: {bob: 0.05, lean: 0.10, squash: 0.97, coat: 0.15, head_pitch: 0.10,
+          hand_L: [0.34, 0.06, 0.20], hand_R: [0.24, 0.0, 0.22], sglow: 0.2, glow: 0.2}}
+      - {ms: 200, set: {bob: 0.10, lean: -0.06, squash: 1.02, coat: -0.15, head_pitch: -0.10,
+          hand_L: [0.38, 0.48, 0.12], hand_R: [0.34, 0.30, 0.30], sglow: 0.5, glow: 0.6}}
+      - {ms: 150, set: {bob: 0.13, lean: -0.14, squash: 1.04, coat: -0.25, head_pitch: -0.22,
+          hand_L: [0.40, 0.70, 0.08], hand_R: [0.36, 0.40, 0.34], staff_splay: 0.08, sglow: 0.85, glow: 0.85}}
+      - {ms: 120, set: {root: [0.015, 0, 0], bob: 0.14, lean: -0.16, squash: 1.04, coat: -0.28, head_pitch: -0.24,
+          hand_L: [0.41, 0.72, 0.08], hand_R: [0.37, 0.41, 0.34], staff_splay: 0.10, sglow: 1.0, glow: 1.0}}
+      - {ms: 100, event: release, set: {root: [0, 0, 0.04], bob: 0.08, lean: 0.14, squash: 0.98, coat: 0.3, head_pitch: 0.06,
+          hand_L: [0.36, 0.56, 0.32], hand_R: [0.30, 0.34, 0.46], staff_pitch: 0.35, sglow: 1.0, glow: 1.0}}
+      - {ms: 150, set: {root: [0, 0, 0.03], bob: 0.07, lean: 0.12, coat: 0.25, head_pitch: 0.05,
+          hand_L: [0.36, 0.50, 0.30], hand_R: [0.30, 0.28, 0.42], staff_pitch: 0.30, sglow: 0.5, glow: 0.4}}
+      - {ms: 150, set: {root: [0, 0, 0.01], bob: 0.05, lean: 0.05, coat: 0.05,
+          hand_L: [0.35, 0.20, 0.18], hand_R: [0.28, 0.08, 0.16], staff_pitch: 0.08}}
+  # pocisk: wolna dłoń cofnięta do ramienia, blask rośnie, wypchnięcie dłoni w cel (`release` 500 ms, socket
+  # `cast`), trzymanie, powrót; razem 800 ms
+  bolt:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {twist: -0.14, lean: -0.04, coat: -0.1, head_pitch: -0.04,
+          hand_R: [0.32, 0.20, -0.06], glow: 0.3}}
+      - {ms: 200, set: {twist: -0.26, lean: -0.08, bob: 0.06, coat: -0.2, head_pitch: -0.08,
+          hand_R: [0.30, 0.34, -0.12], glow: 0.7}}
+      - {ms: 180, set: {twist: -0.28, lean: -0.09, bob: 0.06, coat: -0.22, head_pitch: -0.08,
+          hand_R: [0.30, 0.36, -0.13], glow: 0.9}}
+      - {ms: 80, event: release, set: {root: [0, 0, 0.05], twist: 0.26, lean: 0.16, coat: 0.3, head_pitch: 0.06,
+          hand_R: [0.10, 0.36, 0.54], glow: 1.0, staff_pitch: -0.05}}
+      - {ms: 110, set: {root: [0, 0, 0.05], twist: 0.28, lean: 0.17, coat: 0.28, head_pitch: 0.06,
+          hand_R: [0.10, 0.35, 0.55], glow: 0.5, staff_pitch: -0.05}}
+      - {ms: 110, set: {root: [0, 0, 0.02], twist: 0.08, lean: 0.06, coat: 0.08,
+          hand_R: [0.26, 0.10, 0.18]}}
+  # teleport: kuli się, fioletowy dym wybucha wokół, ciało maleje w kłębach (`release` 400 ms - zniknął,
+  # gra go przenosi), potem wyłania się z dymu, który rzednie; razem 700 ms
+  teleport:
+    loop: false
+    keys:
+      - {ms: 100, event: windup, set: {bob: 0.02, lean: 0.12, squash: 0.96, coat: 0.2, head_pitch: 0.12,
+          hand_R: [0.30, 0.30, 0.20], glow: 0.5, puff: 0.25}}
+      - {ms: 100, set: {bob: 0.08, lean: -0.08, squash: 1.03, coat: -0.3, head_pitch: -0.10,
+          hand_R: [0.40, 0.42, 0.10], glow: 0.8, puff: 0.55, vanish: 0.2}}
+      - {ms: 100, set: {bob: 0.08, lean: -0.08, coat: -0.3, glow: 0.8, puff: 0.85, vanish: 0.55,
+          hand_R: [0.40, 0.42, 0.10]}}
+      - {ms: 100, set: {puff: 1.0, vanish: 0.85, lit: 0.6, hand_R: [0.40, 0.42, 0.10]}}
+      - {ms: 100, event: release, set: {puff: 1.08, vanish: 1.0}}
+      - {ms: 100, set: {puff: 0.75, vanish: 0.5, bob: 0.06, coat: -0.2}}
+      - {ms: 100, set: {puff: 0.35, vanish: 0.1, bob: 0.05, coat: 0.1}}
+  # odrodzenie: z kupki prochu (jak ostatnia klatka śmierci) wyrasta ciało, proch znika, kostur podnosi się,
+  # oczy i kryształ zapalają się; `release` na ostatniej klatce (stoi); razem 1200 ms
+  revive:
+    loop: false
+    keys:
+      - {ms: 180, set: {crumble: 1.0, dust: 1.0, lit: 0, staff_splay: 1.5, staff_pitch: "-0.9*pulse(yaw, -90, 70)", bob: -0.04}}
+      - {ms: 160, set: {crumble: 0.9, dust: 1.0, lit: 0, staff_splay: 1.45, staff_pitch: "-0.85*pulse(yaw, -90, 70)", bob: -0.04, glow: 0.3}}
+      - {ms: 150, set: {crumble: 0.75, dust: 0.9, lit: 0, staff_splay: 1.2, staff_pitch: "-0.7*pulse(yaw, -90, 70)", lean: 0.3, head_pitch: 0.3, glow: 0.5}}
+      - {ms: 150, set: {crumble: 0.55, dust: 0.75, lit: 0.6, staff_splay: 0.85, staff_pitch: "-0.45*pulse(yaw, -90, 70)", lean: 0.28, head_pitch: 0.3, glow: 0.6,
+          hand_L: [0.36, 0.0, 0.18]}}
+      - {ms: 150, set: {crumble: 0.35, dust: 0.55, staff_splay: 0.45, lean: 0.22, head_pitch: 0.2, glow: 0.7, coat: 0.2,
+          hand_L: [0.36, 0.04, 0.18], hand_R: [0.30, 0.0, 0.18]}}
+      - {ms: 160, set: {crumble: 0.15, dust: 0.3, staff_splay: 0.15, lean: 0.08, head_pitch: 0.0, glow: 0.6, coat: -0.1, sglow: 0.5,
+          hand_L: [0.38, 0.30, 0.14], hand_R: [0.36, 0.20, 0.20]}}
+      - {ms: 150, set: {crumble: 0.0, dust: 0.1, lean: -0.12, bob: 0.1, head_pitch: -0.2, glow: 0.8, coat: -0.25, sglow: 1.0,
+          hand_L: [0.40, 0.56, 0.10], hand_R: [0.42, 0.36, 0.16]}}
+      - {ms: 100, event: release, set: {bob: 0.06, lean: 0.0, head_pitch: -0.05, coat: 0.0, sglow: 0.3, glow: 0.2,
+          hand_L: [0.35, 0.16, 0.14], hand_R: [0.28, 0.06, 0.12]}}
+  # trafienie: krótkie drgnięcie (boss się nie zatrzymuje), szata łopocze
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.05], bob: 0.07, lean: -0.15, squash: 0.95, head_pitch: -0.2, coat: -0.35, beard_sway: -0.15,
+          hand_L: [0.36, 0.14, 0.06], hand_R: [0.30, 0.08, 0.02], staff_pitch: -0.1}}
+      - {ms: 70, set: {root: [0, 0, -0.02], bob: 0.05, lean: -0.05, squash: 0.98, head_pitch: -0.08, coat: -0.12, beard_sway: -0.05,
+          hand_L: [0.35, 0.12, 0.10], hand_R: [0.28, 0.05, 0.08], staff_pitch: -0.05}}
+      - {ms: 70, set: {lean: 0.06, head_pitch: 0.02, coat: 0.05}}
+  # śmierć: odrzut i rozbłysk, światło gaśnie, ciało zapada się i rozsypuje w kupkę prochu (zostaje strzęp
+  # szaty i korona), kostur przewraca się na proch; ostatnia klatka trzymana
+  death:
+    loop: false
+    keys:
+      - {ms: 120, set: {root: [0, 0, -0.04], bob: 0.10, lean: -0.28, squash: 1.03, head_pitch: -0.35, coat: -0.45,
+          hand_L: [0.42, 0.24, 0.04], hand_R: [0.40, 0.20, 0.0], staff_splay: 0.1, sglow: 0.6, glow: 0.6}}
+      - {ms: 140, set: {root: [0, 0, -0.04], bob: 0.0, lean: 0.22, squash: 0.94, head_pitch: 0.35, coat: 0.3, lit: 0.4, dust: 0.25, crumble: 0.15,
+          hand_L: [0.34, -0.04, 0.18], hand_R: [0.28, -0.08, 0.16], staff_splay: 0.35}}
+      - {ms: 130, set: {root: [0, 0, -0.04], lean: 0.26, head_pitch: 0.35, coat: 0.3, lit: 0, dust: 0.5, crumble: 0.4,
+          hand_L: [0.38, -0.10, 0.18], hand_R: [0.32, -0.14, 0.18], staff_splay: 0.75, staff_pitch: "-0.45*pulse(yaw, -90, 70)"}}
+      - {ms: 120, set: {root: [0, 0, -0.04], lean: 0.24, head_pitch: 0.3, coat: 0.2, lit: 0, dust: 0.72, crumble: 0.65,
+          hand_L: [0.40, -0.12, 0.16], hand_R: [0.34, -0.16, 0.18], staff_splay: 1.20, staff_pitch: "-0.72*pulse(yaw, -90, 70)"}}
+      - {ms: 120, set: {root: [0, 0, -0.04], lean: 0.2, head_pitch: 0.3, lit: 0, dust: 0.9, crumble: 0.85, roll: 0.1,
+          staff_splay: 1.50, staff_pitch: "-0.9*pulse(yaw, -90, 70)"}}
+      - {ms: 130, set: {root: [0, 0, -0.04], lit: 0, dust: 1.0, crumble: 0.97, staff_splay: 1.48, staff_pitch: "-0.88*pulse(yaw, -90, 70)", bob: -0.04}}
+      - {ms: 600, set: {root: [0, 0, -0.04], lit: 0, dust: 1.0, crumble: 1.0, staff_splay: 1.50, staff_pitch: "-0.9*pulse(yaw, -90, 70)", bob: -0.04}}
+
+timing:
+  attack: {hit: 450ms, total: 750ms}
+  cast: {release: 600ms, total: 1000ms}
+  bolt: {release: 500ms, total: 800ms}
+  teleport: {release: 400ms, total: 700ms}
+  revive: {release: 1100ms, total: 1200ms}
