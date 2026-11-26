@@ -532,9 +532,11 @@ static func is_toggle(id: String) -> bool:
 ## Umiejętności, które może sam rzucać kamień „rzuć, gdy…” (Gems.TRIGGERS; decyzja autora 26.11.2026 - tylko
 ## natychmiastowe): bez zwykłych ciosów, ładowanych, trzymanych (Młynek), skoków i doskoków postaci (Mgnienie, Skok
 ## młota, tańce katany i kosy, wypad rapiera, riposty), form (Mara, wolny chód), przełączników, kręgów i przywołań.
+## Wyjątek: Sąd Peruna (jedyna pasująca umiejętność katany, decyzja autora 26.11.2026) - rzucony sam jest od razu
+## w pełni naładowany (ProtoKatana._process_charge).
 const TRIGGERABLE := ["throw", "slam", "m_throw", "r_swarm", "p_throw", "p_sunrise", "p_wheel", "p_zenith", "l_acorn",
 		"l_grasp", "l_spores", "g_sweep", "g_trail", "g_pillar", "g_dance", "h_wave", "h_vortex", "h_geyser", "b_seeker",
-		"b_rain", "a_circle", "a_seals", "s_square"]
+		"b_rain", "a_circle", "a_seals", "s_square", "k_perun"]
 
 
 ## Czy kamień „rzuć, gdy…” może sam rzucać tę umiejętność (TRIGGERABLE).

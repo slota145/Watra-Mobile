@@ -713,6 +713,8 @@ func _process_echoes(delta: float) -> void:
 func _process_charge(delta: float) -> void:
 	var full := PERUN_CHARGE_FAST if _perk("k_perun", 0) else PERUN_CHARGE
 	_charge += delta
+	if ghost:
+		_charge = maxf(_charge, full)  # kamień „rzuć, gdy…”: od razu w pełni naładowany (decyzja autora 26.11.2026)
 	var k := clampf(_charge / full, 0.0, 1.0)
 	var near := _farthest(PERUN_LENGTH.y * _area("k_perun"))  # cięcie w linii przez tłum (19.11.2026)
 	if near:

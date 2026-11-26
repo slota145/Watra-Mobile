@@ -40,7 +40,7 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   do poziomu osiągniętego na innej broni.
 - [ ] **Kamienie „rzuć, gdy…” (zrobione 26.11.2026, `docs/historia.md`; do oceny na telefonie: siła 50-80%, przerwa
   1,5-0,5 s, próg Odwetu 15% zdrowia, czy widmowa kopia broni jest czytelna, czy nie za dużo efektów przy Stypie
-  w tłumie; katana nie ma umiejętności natychmiastowej - do decyzji, czy dopuścić np. Sąd Peruna od razu naładowany).**
+  w tłumie; katana - Sąd Peruna rzucany od razu w pełni naładowany).**
 - [ ] **Głębiny (zrobione 26.11.2026 - krok 1-3: zestawy z mieszanymi potworami, losowym bossem i mechaniką,
   przelosowanie za Odłamki Nawii, lepszy łup, kamienie milowe; `docs/historia.md`; do oceny na telefonie - Czarna
   Watra, zestawy, ile odłamków wpada i ile kosztuje przelosowanie, czy łup w Głębinach cieszy):** zwykłe lochy 1-55 (11 lochów

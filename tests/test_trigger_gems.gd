@@ -147,3 +147,33 @@ func _test_horde(game: Node) -> void:
 	game.dev_stats = {}
 	arena.queue_free()
 	await process_frame
+	await _test_perun(game)
+
+
+## Sąd Peruna katany (wyjątek wśród ładowanych): kopia tnie od razu w pełni naładowana.
+func _test_perun(game: Node) -> void:
+	game.best_level = 25  # katana od lochu 20
+	game.set_spare("")
+	game.set_weapon("katana")
+	game.mastery["katana"] = 30
+	game.dev_skills()
+	game.add_gem(Gems.make("cast_kill"), 1, false)
+	_check(Skills.can_trigger("k_perun") and game.socket_skill("k_perun", 0, Gems.make("cast_kill")), "Stypa w Sądzie Peruna")
+	game.save_game()
+	var arena: Node = load("res://scenes/prototype.tscn").instantiate()
+	root.add_child(arena)
+	await process_frame
+	var g: ProtoKatana = arena.ghosts.get("katana")
+	_check(g != null, "widmowa kopia katany")
+	if g == null:
+		return
+	arena._fire_trigger("kill")
+	var charging := 0
+	for i in 10:
+		await process_frame
+		if g._state == "charge":
+			charging += 1
+	_check(g._charge >= ProtoKatana.PERUN_CHARGE_FAST and charging <= 2,
+			"cięcie od razu w pełni naładowane (%.2f s, klatek ładowania: %d)" % [g._charge, charging])
+	arena.queue_free()
+	await process_frame

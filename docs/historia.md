@@ -18,7 +18,7 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - **Które umiejętności** (`Skills.TRIGGERABLE`, `can_trigger`; `Gems.fits`, problem `"trigger"` w
   `Game.skill_socket_problem` - „Działa tylko w umiejętnościach natychmiastowych.”): 23 umiejętności bez zwykłych
   ciosów, ładowanych, Młynka, skoków i doskoków postaci, form, przełączników, kręgów, riposty rapiera i przywołań.
-  Katana nie ma żadnej (wszystkie jej umiejętności to skoki, ładowanie albo zwykły cios).
+  Katana: wyjątkowo Sąd Peruna (decyzja autora 26.11.2026) - widmowa kopia rzuca go od razu w pełni naładowanego.
 - **Widmowa kopia broni** (`ProtoWeapon.ghost`, `trigger`, `trigger_mult`, `trigger_gaps`, `GHOST_TINT`): osobny węzeł
   broni (w ręku i zapasowej - tylko gdy mają umiejętność z takim kamieniem; `arena._sync_ghosts` przy każdej zmianie
   umiejętności, kamieni i broni), niewidoczny w spoczynku, niebieskawy w trakcie rzutu, sam nie atakuje, mana 0,

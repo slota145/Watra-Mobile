@@ -553,7 +553,7 @@ static func support_text(id: String, skill := "") -> String:
 	var data: Dictionary = SUPPORT[kind]
 	if TRIGGERS.has(kind):
 		if skill != "" and not Skills.can_trigger(skill):
-			return Lang.t("Nie działa w tej umiejętności (tylko natychmiastowe: bez zwykłego ciosu, ładowanych, skoków, form, przełączników i przywołań).")
+			return Lang.t("Nie działa w tej umiejętności (tylko natychmiastowe: bez zwykłego ciosu, ładowanych - poza Sądem Peruna, skoków, form, przełączników i przywołań).")
 		var gap := String.num(trigger_gap(id), 1).replace(".", ",")
 		if kind == "cast_hurt":
 			return Lang.t(data.text) % [roundi(TRIGGER_HURT * 100.0), roundi(support_value(id)), gap]
