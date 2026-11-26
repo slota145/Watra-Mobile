@@ -36,6 +36,7 @@ const TEXT := Color(1, 0.92, 0.78)
 const DIM := Color(1, 0.85, 0.6, 0.75)
 const BLUE := Color(0.55, 0.7, 1.0)
 const RED := Color(1, 0.55, 0.45)
+const GREEN := Color(0.55, 0.95, 0.5)
 const ROW_ICON := 48.0
 const SLOT_SIZE := 52.0
 
@@ -56,6 +57,8 @@ var hint: Label
 var list_icons: Array[SkillSlot] = []
 var buy_buttons: Array[Button] = []
 var status_labels: Array[Label] = []
+## Pamięć oręża: przekreślona stara cena i nowa na zielono (widoczne tylko przy zniżce).
+var memory_labels: Array[RichTextLabel] = []
 ## Wiersze: nazwa z poziomem, mana i odnowienie, nowe działania (5. i 10. poziom), co da następny poziom.
 var name_labels: Array[Label] = []
 var info_labels: Array[Label] = []
@@ -259,6 +262,18 @@ func _make_row(list: VBoxContainer, i: int) -> void:
 	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_labels.append(status)
+	var memory := RichTextLabel.new()
+	memory.bbcode_enabled = true
+	memory.fit_content = true
+	memory.scroll_active = false
+	memory.autowrap_mode = TextServer.AUTOWRAP_OFF
+	memory.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	memory.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	memory.add_theme_font_size_override("normal_font_size", 11)
+	memory.add_theme_color_override("default_color", DIM)
+	memory.visible = false
+	right.add_child(memory)
+	memory_labels.append(memory)
 	var buy := Button.new()
 	buy.custom_minimum_size = Vector2(66, 44)
 	buy.add_theme_font_size_override("font_size", 12)
@@ -426,7 +441,12 @@ func refresh() -> void:
 		if owned:
 			var place := (tr("Pod „Atak”") if at == Skills.MAIN else tr("W miejscu %d") % at) if at >= 0 else tr("Odblokowana")
 			var problem: String = _game.skill_upgrade_problem(id)
-			var price := Skills.upgrade_price(id, lvl)
+			var price: int = _game.skill_upgrade_cost(id)
+			var memory: bool = can_shop and _game.memory_discount(id) and problem != "max" and problem != "mastery"
+			memory_labels[i].visible = memory
+			if memory:
+				memory_labels[i].text = "[s]%d[/s] [color=#%s]%d[/color]\n[font_size=9]%s[/font_size]" % [
+						Skills.upgrade_price(id, lvl), GREEN.to_html(false), price, tr("Pamięć oręża")]
 			buy.visible = can_shop and problem != "max"
 			buy.text = tr("Na pewno?") if _buy_armed == id else tr("Ulepsz")
 			buy.disabled = problem != ""
@@ -436,6 +456,10 @@ func refresh() -> void:
 			elif problem == "mastery":
 				status.text = place + "\n" + tr("ulepsz od mistrz. %d") % Skills.mastery_for(lvl + 1)
 				status.add_theme_color_override("font_color", RED)
+			elif can_shop and memory:
+				status.text = place
+				if problem == "embers":
+					status.add_theme_color_override("font_color", RED)
 			elif can_shop:
 				status.text = place + "\n" + tr("%d żaru") % price
 				if problem == "embers":
@@ -444,6 +468,7 @@ func refresh() -> void:
 				status.text = place
 		else:
 			buy.visible = false
+			memory_labels[i].visible = false
 			status.text = tr("od mistrz. %d") % Skills.mastery_of(id)
 			status.add_theme_color_override("font_color", RED)
 	for i in Skills.SLOTS:

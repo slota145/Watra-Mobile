@@ -571,6 +571,11 @@ static func upgrade_price(id: String, level: int) -> int:
 	return UPGRADE_PRICE.get(id, 100) * maxi(level, 1)
 
 
+## Pamięć oręża (decyzja autora 26.11.2026): ulepszenie umiejętności do poziomu, który ma już najwyżej ulepszona
+## umiejętność innej broni, kosztuje tyle ceny (Game.skill_upgrade_cost).
+const MEMORY_DISCOUNT := 0.25
+
+
 ## Mnożnik obrażeń z poziomu umiejętności (1. poziom - 1.0).
 static func level_damage(level: int) -> float:
 	return 1.0 + DAMAGE_STEP * (maxi(level, 1) - 1)

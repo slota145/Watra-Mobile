@@ -1421,6 +1421,28 @@ func skill_level(id: String) -> int:
 	return skill_levels.get(id, 1)
 
 
+## Najwyższy poziom umiejętności innej broni niż broń umiejętności `id` (Pamięć oręża; 0 - brak innych).
+func memory_level(id: String) -> int:
+	var w := Skills.weapon_of(id)
+	var best := 0
+	for other in skill_levels:
+		if Skills.has(other) and Skills.weapon_of(other) != w:
+			best = maxi(best, int(skill_levels[other]))
+	return best
+
+
+## Czy następny poziom umiejętności jest tańszy dzięki Pamięci oręża (inna broń ma umiejętność co najmniej na nim).
+func memory_discount(id: String) -> bool:
+	var lvl := skill_level(id)
+	return lvl < Skills.MAX_LEVEL and memory_level(id) >= lvl + 1
+
+
+## Cena następnego poziomu umiejętności w żarze (z Pamięcią oręża - Skills.MEMORY_DISCOUNT ceny).
+func skill_upgrade_cost(id: String) -> int:
+	var price := Skills.upgrade_price(id, skill_level(id))
+	return ceili(price * Skills.MEMORY_DISCOUNT) if memory_discount(id) else price
+
+
 ## Dlaczego nie da się ulepszyć umiejętności ("" - da się): "owned" - nieodblokowana, "max" - najwyższy poziom,
 ## "mastery" - za niskie mistrzostwo broni (Skills.level_cap), "embers" - za mało żaru.
 func skill_upgrade_problem(id: String) -> String:
@@ -1431,7 +1453,7 @@ func skill_upgrade_problem(id: String) -> String:
 		return "max"
 	if lvl >= Skills.level_cap(mastery_level(Skills.weapon_of(id))):
 		return "mastery"
-	if embers < Skills.upgrade_price(id, lvl):
+	if embers < skill_upgrade_cost(id):
 		return "embers"
 	return ""
 
@@ -1441,7 +1463,7 @@ func upgrade_skill(id: String) -> bool:
 	if skill_upgrade_problem(id) != "":
 		return false
 	var lvl := skill_level(id)
-	embers -= Skills.upgrade_price(id, lvl)
+	embers -= skill_upgrade_cost(id)
 	skill_levels[id] = lvl + 1
 	save_game()
 	embers_changed.emit()
