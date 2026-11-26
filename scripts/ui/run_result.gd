@@ -144,6 +144,14 @@ func add_filter_line(items: int, ore: int) -> void:
 				"Filtr łupu rozbił %d przedmioty (+%d rudy)", "Filtr łupu rozbił %d przedmiotów (+%d rudy)") % [items, ore]
 
 
+## Odłamki Nawii zdobyte w Głębinach (waluta Głębin) i przedmiot kamienia milowego.
+func add_deep_lines(shards: int, milestone: bool) -> void:
+	if shards > 0:
+		_summary.text += "\n" + tr("Odłamki Nawii: +%d") % shards
+	if milestone:
+		_summary.text += "\n" + tr("Kamień milowy Głębin: pewna legenda albo unikat w skrzyni!")
+
+
 ## Co odblokowało pokonanie tego bossa (drabinka - Unlocks.on_beat), złotym kolorem w podsumowaniu.
 func add_unlock_lines(entries: Array) -> void:
 	for e: Dictionary in entries:

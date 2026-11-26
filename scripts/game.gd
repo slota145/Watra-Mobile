@@ -103,6 +103,8 @@ var unlocks_seen := 0
 var deep_seen := false
 ## Wylosowane zestawy Głębin (DeepRuns; numer poziomu jako tekst -> zestaw) - widoczne przy wyborze, zużyte po wejściu.
 var deep_rolls := {}
+## Odłamki Nawii - waluta Głębin (krok 3, 26.11.2026): z bossów i elit Głębin, na przelosowanie zestawów.
+var nawia_shards := 0
 ## Włączone modyfikatory lochów (DungeonMods; działają od DungeonMods.FROM_LEVEL).
 var dungeon_mods: Array = []
 ## Poziom lochu wybrany przy Watrze (na niego wchodzi scena lochu).
@@ -361,6 +363,7 @@ func load_game() -> void:
 	unlocks_seen = 0
 	deep_seen = false
 	deep_rolls = {}
+	nawia_shards = 0
 	dungeon_mods = []
 	dungeon_level = 1
 	hero_level = 1
@@ -419,6 +422,7 @@ func load_game() -> void:
 		best_level = int(data.get("best_level", 0))
 		unlocks_seen = int(data.get("unlocks_seen", 0))
 		deep_seen = bool(data.get("deep_seen", false))
+		nawia_shards = int(data.get("nawia_shards", 0))
 		deep_rolls = {}
 		var rolls = data.get("deep_rolls", {})
 		if rolls is Dictionary:
@@ -592,7 +596,7 @@ func save_game() -> void:
 	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify({"name": char_name, "ssf": ssf, "created": created, "dev": _dev_data(),
-				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "deep_seen": deep_seen, "deep_rolls": deep_rolls, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
+				"embers": embers, "best_level": best_level, "unlocks_seen": unlocks_seen, "deep_seen": deep_seen, "deep_rolls": deep_rolls, "nawia_shards": nawia_shards, "dungeon_mods": dungeon_mods, "dungeon_level": dungeon_level,
 				"hero_level": hero_level, "hero_xp": hero_xp, "ore": ore, "bag": bag, "equipped": equipped,
 				"stash": stash, "weapon": weapon, "start_weapon": start_weapon, "mastery": mastery, "mastery_xp": mastery_xp,
 				"weapons_bought": weapons_bought, "weapon_slots": weapon_slots, "skills_owned": skills_owned, "skill_slots": skill_slots, "skill_levels": skill_levels, "gems": gems, "shards": shards, "runes": runes, "zmij_keys": zmij_keys, "market": market,
@@ -1161,13 +1165,12 @@ func deep_roll(level: int) -> Dictionary:
 	return deep_rolls[key]
 
 
-## Przelosowanie zestawu Głębi za żar (DeepRuns.reroll_cost). Zwraca false, gdy brakuje żaru.
+## Przelosowanie zestawu Głębi za Odłamki Nawii (DeepRuns.reroll_cost). Zwraca false, gdy brakuje odłamków.
 func reroll_deep(level: int) -> bool:
 	var cost := DeepRuns.reroll_cost(level)
-	if embers < cost:
+	if nawia_shards < cost:
 		return false
-	embers -= cost
-	embers_changed.emit()
+	nawia_shards -= cost
 	deep_rolls[str(level)] = DeepRuns.roll(level)
 	save_game()
 	return true

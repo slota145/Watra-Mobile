@@ -190,8 +190,10 @@ func _test_legendary() -> void:
 		sum_leg += Items.make_affix("hp", 20, 0, Items.LEGEND_TIER_BOOST).tier
 		sum_rare += Items.make_affix("hp", 20).tier
 	_check(sum_leg < sum_rare - 200.0, "legendarny: premie o stopień lepsze (średnio T%.1f zamiast T%.1f)" % [sum_leg / 300.0, sum_rare / 300.0])
-	_check(Items.legend_chance(1) >= 0.005 and Items.legend_chance(100) <= Items.LEGEND_MAX + 0.0001
-			and Items.legend_chance(40) > Items.legend_chance(1), "szansa na legendę rośnie z głębią (do %.1f%%)" % (Items.LEGEND_MAX * 100.0))
+	_check(Items.legend_chance(1) >= 0.005 and Items.legend_chance(Dungeons.DEEP_FROM - 1) <= Items.LEGEND_MAX + 0.0001
+			and Items.legend_chance(40) > Items.legend_chance(1)
+			and Items.legend_chance(100) > Items.legend_chance(Dungeons.DEEP_FROM - 1),
+			"szansa na legendę rośnie z głębią (do %.1f%%, w Głębinach więcej)" % (Items.LEGEND_MAX * 100.0))
 	var forged := 0
 	for i in 2000:
 		forged += 1 if Items.roll(60, "ring", "", Items.FORGE_WEIGHTS, "", false).rarity == "legendary" else 0
