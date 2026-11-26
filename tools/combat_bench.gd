@@ -9,6 +9,7 @@ extends SceneTree
 ## Zmienne do szukania winnego (wyłączają część): NO_AURA, ONLY_AURA=perun,szron, NO_TAL, NO_MODS, NO_CAST, NO_AUTO.
 ## Inna broń i umiejętność: WEAPON=bow SKILL=b_seeker EVERY=0.1 (co ile s), ONLY_SKILL=1 (bez reszty umiejętności),
 ## PROJ=3 (dodatkowe pociski na stałe, np. Poszukująca 10. poziomu: 2 + 3 = 5 strzał naraz).
+## SPEED=200 - szybkość ataku i rzucania z przedmiotów (%, jak sufit Items.CAPS - pomiar przy pełnej szybkości).
 ## Na końcu wypisuje najliczniejsze węzły (Label<proto_goblin.gd - liczby obrażeń nad potworami itd.).
 ## Wyniki 20.11.2026 (poziom 5, 136 potworów): przed poprawkami 20 ms średnio, najgorsza klatka 198 ms; po nich ok. 4,3 ms
 ## i 14 ms (wspólny limit dźwięków trafień i liczb obrażeń - ProtoTarget, spis celów raz na klatkę - ProtoWeapon).
@@ -79,6 +80,9 @@ func _run() -> void:
 	var others := not OS.has_environment("ONLY_SKILL")
 	var proj := int(OS.get_environment("PROJ")) if OS.has_environment("PROJ") else -1
 	game.set_weapon(weapon_id)
+	if OS.has_environment("SPEED"):
+		var sp := float(OS.get_environment("SPEED"))
+		game.dev_stats = {"attack_speed_pct": sp, "cast_speed_pct": sp}
 	game.dev_skills()
 	for id in Skills.of_weapon(weapon_id):
 		game.skill_levels[id] = 10

@@ -2,6 +2,16 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - wyższy sufit szybkości ataku i rzucania
+
+- **Decyzja autora (ankieta 26.11.2026):** sufit szybkości ataku i szybkości rzucania czarów z przedmiotów i aury
+  Strzyboga (`Items.CAPS` `attack_speed_pct`, `cast_speed_pct`) **+75% -> +200%** (3x szybciej; miecz ok. 3,2 ciosu/s
+  zamiast 1,9). Liczby na przedmiotach bez zmian (T1 16-24%) - pełny sufit to cel na późną grę. Chwilowe premie
+  (przyspieszenie po zabiciu, Poroże Jelenia, Pośpiech) nadal mnożą ponad sufit.
+- Pomiar `tools/combat_bench.gd` (nowa zmienna `SPEED=200`; loch 5, 150 potworów, pełne aury, talizmany
+  i modyfikatory): katana, miecz, księga i łuk - średni czas logiki 2,9-4,6 ms jak przy szybkości 0, bez nowych
+  zacięć.
+
 ## 26.11.2026 - broń zapasowa i doganianie mistrzostwa
 
 - **Decyzje autora (26.11.2026):** nowa broń nie może znaczyć cofania się w rozwoju. Wybrane: szybsze mistrzostwo
@@ -780,7 +790,7 @@ Pomysły i ankieta autora (21.11.2026). Wszystko w jednym PR.
 - **Żywioł Arkana** (`Elements.ARCANE`, kolor fioletowo-biały): trafienia wysysają manę (3% obrażeń, najwyżej 3 many
   na trafienie - `ProtoWeapon._deal`).
 - **Premie przedmiotów**: `magic_dmg_pct` („+% obrażeń magicznych”, `ProtoWeapon.magic_mult` - tylko broń magiczna) i
-  `cast_speed_pct` („+% szybkości rzucania czarów”, sufit 75%): broń magiczna (`Weapons.is_magic` - księga i hydrosfera)
+  `cast_speed_pct` („+% szybkości rzucania czarów”, sufit 75%, od 26.11.2026 200%): broń magiczna (`Weapons.is_magic` - księga i hydrosfera)
   przyspiesza tylko od niej, reszta tylko od szybkości ataku (`HeroStats.weapon_speed_mult`).
 - **Wybór broni na start** (`Weapons.START` - miecz, łuk, księga; `Game.start_weapon`, zapis „start_weapon”): przy
   tworzeniu postaci 3 przyciski w formularzu (`CharacterSelect.start_weapon`), dwie niewybrane od lochu 5 (miecz ma teraz
