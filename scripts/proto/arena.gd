@@ -52,8 +52,10 @@ const PINNACLE_HERO := Vector2(0, 140)
 const PINNACLE_BOSS := Vector2(0, -30)
 ## Pogorzelisko: kamera patrzy tyle pikseli nad postać - wielki smok mieści się nad nią pod paskami u góry.
 const PINNACLE_CAMERA := 110.0
-const DUMMIES := [Vector2(-100, 170), Vector2(100, 180), Vector2(0, 290)]
+const DUMMIES := [Vector2(-110, 250), Vector2(100, 180), Vector2(0, 290)]  # lewa niżej - miejsce na Czarną Watrę
 const WATRA_POS := Vector2(0, -115)
+## Czarna Watra - wejście do Głębin (Głębiny, 26.11.2026): po lewej, między Kowalem a kukłą.
+const DEEP_WATRA_POS := Vector2(-62, 112)
 const STASH_POS := Vector2(-125, -135)
 const RUNE_POS := Vector2(125, -135)
 ## Kowal (z kowadłem po prawej) i kupiec (ze straganem po lewej) po bokach, niżej niż Watra.
@@ -93,6 +95,8 @@ var menu_button: Button
 var actions: ActionCluster
 var pause_menu: PauseMenu
 var watra: ProtoWatra
+## Czarna Watra - wejście do Głębin (tylko w bazie, gdy otwarte; null - jeszcze zamknięte).
+var deep_watra: ProtoWatra
 var horde_spawner: ProtoHorde
 var health_bar: ProgressBar
 var kills_label: Label
@@ -224,7 +228,7 @@ func _ready() -> void:
 	elif horde:
 		level = Game.dungeon_level
 		climate = Dungeons.for_level(level)
-		mods = DungeonMods.active(level, Game.dungeon_mods)
+		mods = DungeonMods.roll_deep(level) if Dungeons.is_deep(level) else DungeonMods.active(level, Game.dungeon_mods)
 	else:
 		Game.pinnacle_key = 0  # baza: walka ze Żmijem skończona albo przerwana
 	_make_ground()
@@ -381,6 +385,15 @@ func _ready() -> void:
 		watra.ready.connect(func() -> void: watra.set_news(Unlocks.has_new(Game.unlocks_seen, Game.best_level)))
 		world.add_child(watra)
 		hero.obstacles.append(Vector3(WATRA_POS.x, WATRA_POS.y, ProtoWatra.RADIUS))
+		if Game.unlocked_level() >= Dungeons.DEEP_FROM:  # Głębiny otwarte - Czarna Watra
+			deep_watra = ProtoWatra.new()
+			deep_watra.name = "DeepWatra"
+			deep_watra.deep = true
+			deep_watra.position = DEEP_WATRA_POS
+			deep_watra.entered.connect(open_deep_picker)
+			deep_watra.ready.connect(func() -> void: deep_watra.set_news(not Game.deep_seen))
+			world.add_child(deep_watra)
+			hero.obstacles.append(Vector3(DEEP_WATRA_POS.x, DEEP_WATRA_POS.y, ProtoWatra.RADIUS))
 		stash = ProtoStash.new()
 		stash.name = "Stash"
 		stash.position = STASH_POS
@@ -614,6 +627,7 @@ func _make_hud() -> void:
 		base_bar = BaseBar.new()
 		base_bar.left_handed = Game.left_handed
 		base_bar.chosen.connect(_on_bar)
+		base_bar.deep_open = Game.unlocked_level() >= Dungeons.DEEP_FROM
 		safe.add_child(base_bar)
 		joystick.blocked.append(base_bar.column)
 	if horde:
@@ -774,7 +788,7 @@ func _make_horde_bar(top: HBoxContainer) -> void:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(row)
-	level_label = _hud_label(tr("Loch %d") % level)
+	level_label = _hud_label(Lang.t("Głębia %d") % Dungeons.deep_of(level) if Dungeons.is_deep(level) else tr("Loch %d") % level)
 	level_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(level_label)
 	time_label = _hud_label("0:00")
@@ -1667,6 +1681,8 @@ func _on_bar(id: String) -> void:
 	match id:
 		"watra":
 			open_picker()
+		"deep":
+			open_deep_picker()
 		"stash":
 			open_stash()
 		"skills":
@@ -1695,6 +1711,18 @@ func open_picker() -> void:
 		Game.unlocks_seen = Game.best_level
 		Game.save_game()
 	watra.set_news(false)
+
+
+## Baza: wybór Głębi po dotknięciu Czarnej Watry.
+func open_deep_picker() -> void:
+	joystick.release()
+	actions.release_all()
+	picker.open(Game.dungeon_level, Game.unlocked_level(), true)
+	if not Game.deep_seen:
+		Game.deep_seen = true
+		Game.save_game()
+	if deep_watra:
+		deep_watra.set_news(false)
 
 
 func enter_dungeon(chosen: int) -> void:

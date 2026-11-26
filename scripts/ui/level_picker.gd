@@ -10,6 +10,9 @@ extends Control
 ## Przy ponad 10 dostępnych poziomach (np. tryb deweloperski „wszystkie poziomy”) dochodzą skoki o 10 (−10 / +10).
 ## Z kluczem do Gniazda Żmija (Pinnacles, `Game.zmij_keys`) nad przyciskami pojawia się przycisk „Żmij Gorynycz”
 ## z poziomem klucza (strzałki obok wybierają inny klucz, gdy są z różnych poziomów) - sygnał `pinnacle`.
+## Głębiny (decyzja autora 26.11.2026): przy zwykłej Watrze poziomy 1 do końca drabinki (Dungeons.DEEP_FROM - 1), przy
+## Czarnej Watrze (`deep`) Głębie od Dungeons.DEEP_FROM do najwyższej odblokowanej - napis „Głębia N”, loch i modyfikatory
+## losowe przy każdym wejściu (bez przycisku modyfikatorów i Żmija).
 
 signal enter(level: int)
 signal canceled
@@ -21,7 +24,11 @@ signal mods
 signal pinnacle(key_level: int)
 
 var level := 1
+var min_level := 1
 var max_level := 1
+## Wybór Głębi (Czarna Watra) zamiast zwykłego poziomu.
+var deep := false
+var _title: Label
 var minus_button: Button
 var plus_button: Button
 var minus10_button: Button
@@ -57,8 +64,8 @@ func _ready() -> void:
 	column.alignment = BoxContainer.ALIGNMENT_END  # wszystko w dolnej części ekranu
 	column.add_theme_constant_override("separation", 10)
 	add_child(column)
-	var title := _label(tr("Loch Hordy"), 22, Color(1, 0.78, 0.35))
-	column.add_child(title)
+	_title = _label(tr("Loch Hordy"), 22, Color(1, 0.78, 0.35))
+	column.add_child(_title)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 5)
@@ -138,13 +145,21 @@ func _ready() -> void:
 	column.add_child(bottom)
 
 
-## Pokazuje wybór (zaczyna od ostatnio wybranego poziomu) i zatrzymuje grę.
-func open(current: int, unlocked: int) -> void:
-	max_level = maxi(unlocked, 1)
-	minus10_button.visible = max_level > 10
-	plus10_button.visible = max_level > 10
+## Pokazuje wybór (zaczyna od ostatnio wybranego poziomu) i zatrzymuje grę. `deep` - Głębie (Czarna Watra).
+func open(current: int, unlocked: int, deep_mode := false) -> void:
+	deep = deep_mode
+	if deep:
+		min_level = Dungeons.DEEP_FROM
+		max_level = maxi(unlocked, Dungeons.DEEP_FROM)
+	else:
+		min_level = 1
+		max_level = clampi(unlocked, 1, Dungeons.DEEP_FROM - 1)
+	_title.text = tr("Głębiny") if deep else tr("Loch Hordy")
+	_title.add_theme_color_override("font_color", Color(0.85, 0.65, 1.0) if deep else Color(1, 0.78, 0.35))
+	minus10_button.visible = max_level - min_level >= 10
+	plus10_button.visible = max_level - min_level >= 10
 	set_level(current)
-	_keys = Pinnacles.key_list(_game().zmij_keys)
+	_keys = [] if deep else Pinnacles.key_list(_game().zmij_keys)
 	_show_key(0)
 	visible = true
 	get_tree().paused = true
@@ -157,15 +172,16 @@ func close() -> void:
 
 
 func set_level(value: int) -> void:
-	level = clampi(value, 1, max_level)
-	_level_label.text = tr("Poziom %d") % level
-	minus_button.disabled = level <= 1
+	level = clampi(value, min_level, max_level)
+	_level_label.text = Dungeons.level_label(level)
+	minus_button.disabled = level <= min_level
 	plus_button.disabled = level >= max_level
-	minus10_button.disabled = level <= 1
+	minus10_button.disabled = level <= min_level
 	plus10_button.disabled = level >= max_level
 	var lines: Array[String] = []
 	if Dungeons.is_random(level):
 		lines.append(tr("Loch losowy przy każdym wejściu"))
+		lines.append(tr("Losowe modyfikatory: %d") % DungeonMods.deep_count(level))
 	else:
 		var id := Dungeons.for_level(level)
 		var cycle := Dungeons.cycle_of(level)
@@ -176,14 +192,17 @@ func set_level(value: int) -> void:
 			lines.append(res)
 	lines.append(tr("Siła potworów: %d%%") % roundi(DungeonLevels.power(level) * 100.0))
 	lines.append(tr("Skrzynia bossa: %d żaru") % DungeonLevels.chest_embers(level))
-	mods_button.visible = level >= DungeonMods.FROM_LEVEL
+	mods_button.visible = level >= DungeonMods.FROM_LEVEL and not deep
 	var active := DungeonMods.active(level, _game().dungeon_mods)
 	if not active.is_empty():
 		lines.append(tr("Modyfikatory: %s") % DungeonMods.names(active))
 	for e: Dictionary in Unlocks.new_at(level):
 		lines.append(tr("Nowość: %s") % e.text)
 	if level == max_level:
-		lines.append(tr("Pokonaj bossa, żeby odblokować poziom %d") % (level + 1))
+		if not deep and level == Dungeons.DEEP_FROM - 1:
+			lines.append(tr("Pokonaj bossa, żeby otworzyć Głębiny"))
+		else:
+			lines.append(tr("Pokonaj bossa, żeby odblokować: %s") % Dungeons.level_label(level + 1))
 		var next := Unlocks.next_after(_game().best_level)
 		if level - 1 == _game().best_level and not next.is_empty():  # nie w trybie „wszystkie poziomy”
 			lines.append(tr("Następne odblokowanie po bossie poziomu %d:") % next[0].beat)

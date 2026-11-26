@@ -22,10 +22,33 @@ const DATA := {
 }
 
 
-## Włączone modyfikatory na poziomie `level` (poniżej FROM_LEVEL - żadne).
+## Głębiny (decyzja autora 26.11.2026): modyfikatory losowe przy każdym wejściu - 1 w Głębiach 1-9, 2 w 10-19, 3 od 20.
+const DEEP_STEP := 10
+const DEEP_MAX := 3
+
+
+## Ile losowych modyfikatorów w Głębi na poziomie `level`.
+static func deep_count(level: int) -> int:
+	return clampi(1 + Dungeons.deep_of(level) / DEEP_STEP, 1, DEEP_MAX)
+
+
+## Losowe modyfikatory wyprawy w Głębiny (bez powtórek, w kolejności ORDER).
+static func roll_deep(level: int) -> Array[String]:
+	var pool := ORDER.duplicate()
+	pool.shuffle()
+	var picked := pool.slice(0, deep_count(level))
+	var out: Array[String] = []
+	for id in ORDER:
+		if picked.has(id):
+			out.append(id)
+	return out
+
+
+## Włączone modyfikatory na poziomie `level` (poniżej FROM_LEVEL i w Głębinach - żadne wybrane; Głębiny losują
+## swoje - `roll_deep`).
 static func active(level: int, chosen: Array) -> Array[String]:
 	var out: Array[String] = []
-	if level < FROM_LEVEL:
+	if level < FROM_LEVEL or Dungeons.is_deep(level):
 		return out
 	for id in ORDER:
 		if chosen.has(id):

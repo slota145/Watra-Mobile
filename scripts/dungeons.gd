@@ -21,8 +21,13 @@ const FOREST := "forest"
 const TEMPLE := "temple"
 const MINE := "mine"
 const TOWER := "tower"
-## Od tego poziomu (włącznie z nim) loch jest losowy przy każdym wejściu.
-const RANDOM_FROM := 101
+## Głębiny (decyzja autora 26.11.2026): zwykła drabinka kończy się na ostatnim lochu (bez drugiego kręgu), dalej
+## Głębie - wejście przez Czarną Watrę w bazie, własna numeracja (Głębia 1 = poziom DEEP_FROM), w środku siła jak
+## kolejne poziomy, każde wejście - losowy loch i losowe modyfikatory (DungeonMods.roll_deep). Zapis trzyma zwykły
+## numer poziomu (stare zapisy ponad 55 to od razu przebite Głębie).
+const DEEP_FROM := 56
+## Od tego poziomu (włącznie z nim) loch jest losowy przy każdym wejściu - od Głębin.
+const RANDOM_FROM := DEEP_FROM
 ## Ile poziomów trwa każdy loch na drabince.
 const LEVELS_PER := 5
 const ORDER: Array[String] = [GOBLINS, FLOODED, CATACOMBS, PLAINS, SKY, VOLCANO, FROST, FOREST, TEMPLE, MINE, TOWER]
@@ -90,7 +95,7 @@ const DATA := {
 }
 
 
-## Loch na danym poziomie (od RANDOM_FROM - losowy, za każdym razem inny; wcześniej kolejne kręgi drabinki).
+## Loch na danym poziomie (od RANDOM_FROM - Głębiny - losowy, za każdym razem inny; wcześniej po kolei drabinka).
 static func for_level(level: int) -> String:
 	if level >= RANDOM_FROM:
 		return ORDER.pick_random()
@@ -115,6 +120,26 @@ static func cycle_of(level: int) -> int:
 ## Czy na tym poziomie loch jest losowy.
 static func is_random(level: int) -> bool:
 	return level >= RANDOM_FROM
+
+
+## Czy poziom należy do Głębin.
+static func is_deep(level: int) -> bool:
+	return level >= DEEP_FROM
+
+
+## Numer Głębi (Głębia 1 = DEEP_FROM; poniżej - 0).
+static func deep_of(level: int) -> int:
+	return maxi(level - DEEP_FROM + 1, 0)
+
+
+## Poziom wewnętrzny Głębi nr `deep`.
+static func level_of_deep(deep: int) -> int:
+	return DEEP_FROM + maxi(deep, 1) - 1
+
+
+## Napis poziomu dla gracza: „Głębia N” w Głębinach, inaczej „Poziom N”.
+static func level_label(level: int) -> String:
+	return Lang.t("Głębia %d") % deep_of(level) if is_deep(level) else Lang.t("Poziom %d") % level
 
 
 static func name_of(id: String) -> String:

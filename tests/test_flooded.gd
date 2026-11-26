@@ -46,15 +46,13 @@ func _test_levels() -> void:
 			and Dungeons.for_level(21) == Dungeons.SKY and Dungeons.for_level(25) == Dungeons.SKY
 			and Dungeons.for_level(26) == Dungeons.VOLCANO and Dungeons.for_level(30) == Dungeons.VOLCANO,
 			"drabinka po 5 poziomów: gobliny, podziemia, Katakumby, Górskie równiny, Podniebne wyspy, Wulkaniczne równiny")
-	var cycle := Dungeons.cycle_length()
-	_check(Dungeons.for_level(cycle + 1) == Dungeons.GOBLINS and Dungeons.for_level(cycle + 6) == Dungeons.FLOODED
-			and Dungeons.cycle_of(cycle) == 1 and Dungeons.cycle_of(cycle + 1) == 2 and Dungeons.for_level(100) == Dungeons.ORDER[(99 / 5) % Dungeons.ORDER.size()]
-			and Dungeons.first_level(Dungeons.FLOODED) == 6, "drugi krąg od %d. poziomu, krąg za kręgiem do 100." % (cycle + 1))
+	_check(Dungeons.first_level(Dungeons.FLOODED) == 6 and Dungeons.DEEP_FROM == Dungeons.cycle_length() + 1,
+			"drabinka kończy się na ostatnim lochu, dalej Głębiny (bez drugiego kręgu)")
 	var seen := {}
 	for i in 200:
-		seen[Dungeons.for_level(101 + i % 50)] = true
-	_check(seen.size() == Dungeons.ORDER.size() and Dungeons.is_random(101) and not Dungeons.is_random(100),
-			"od 101 loch losowy przy każdym wejściu")
+		seen[Dungeons.for_level(Dungeons.DEEP_FROM + i % 50)] = true
+	_check(seen.size() == Dungeons.ORDER.size() and Dungeons.is_random(Dungeons.DEEP_FROM)
+			and not Dungeons.is_random(Dungeons.DEEP_FROM - 1), "w Głębinach loch losowy przy każdym wejściu")
 	_check(ProtoHorde.make_monster(Dungeons.FLOODED, "goblin") is ProtoDrowner
 			and ProtoHorde.make_monster(Dungeons.FLOODED, "archer") is ProtoFrogman
 			and ProtoHorde.make_monster(Dungeons.FLOODED, "brute") is ProtoRusalka

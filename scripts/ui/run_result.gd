@@ -87,15 +87,19 @@ func show_victory(level: int, banked: int, unlocked: int, kills: int, seconds: f
 	var s := int(seconds)
 	_title.text = tr("Boss pokonany!")
 	_title.add_theme_color_override("font_color", Color(1, 0.82, 0.35))
-	var lines: Array[String] = [tr("Poziom lochu: %d") % level, tr("Żar do Watry: %d") % banked]
-	if unlocked > 0:
-		lines.append(tr("Odblokowano poziom %d") % unlocked)
+	var lines: Array[String] = [Dungeons.level_label(level), tr("Żar do Watry: %d") % banked]
+	if unlocked == Dungeons.DEEP_FROM:  # Głębiny otwarte (decyzja autora 26.11.2026: plansza po bossie ostatniego lochu)
+		_title.text = tr("Otwierają się Głębiny!")
+		_title.add_theme_color_override("font_color", Color(0.85, 0.65, 1.0))
+		lines.append(tr("Cała drabinka lochów przebita! W bazie zapłonęła Czarna Watra - prowadzi w Głębiny: każde zejście to losowy loch z losowymi modyfikatorami."))
+	elif unlocked > 0:
+		lines.append(tr("Odblokowano: %s") % Dungeons.level_label(unlocked))
 	lines.append(tr("Pokonane potwory: %d") % kills)
 	lines.append(tr("Czas wyprawy: %d:%02d") % [s / 60, s % 60])
 	if deaths > 0:
 		lines.append(tr("Zgony (nieśmiertelność): %d") % deaths)
 	_summary.text = "\n".join(lines)
-	retry_button.text = tr("Następny poziom: %d") % (level + 1)
+	retry_button.text = tr("Dalej: %s") % Dungeons.level_label(level + 1)
 	visible = true
 
 

@@ -3,7 +3,8 @@ extends Control
 ## Pasek skrótów w bazie (ustalone z autorem 12.11.2026): ikony w dwóch kolumnach przy dolnej krawędzi, po drugiej
 ## stronie niż przyciski walki (`left_handed` - po prawej). Każda ikona z podpisem otwiera okno budynku od razu,
 ## bez podchodzenia postacią (sygnał `chosen` z identyfikatorem): Watra (wybór poziomu i drzewko lochów),
-## Skrzynia, Umiejętności (kamień run), Kowal, Kupiec, Targ (rynek).
+## Skrzynia, Umiejętności (kamień run), Kowal, Kupiec, Targ (rynek), Głębiny (Czarna Watra - widoczne dopiero po ich
+## otwarciu: arena ustawia `deep_open`).
 
 signal chosen(id: String)
 
@@ -16,9 +17,17 @@ const ENTRIES := [
 	["smith", "Kowal", "res://assets/watra/base/reforge.png"],
 	["shop", "Kupiec", "res://assets/watra/base/tax_pouch.png"],
 	["market", "Targ", "res://assets/watra/base/market_stall.png"],
+	["deep", "Głębiny", "res://assets/watra/base/status_watra.png"],
 ]
 
 var buttons := {}
+## Czy Głębiny są otwarte (przycisk „Głębiny” widoczny).
+var deep_open := false:
+	set(value):
+		deep_open = value
+		if buttons.has("deep"):
+			buttons.deep.visible = value
+			_layout()
 var column: GridContainer
 var left_handed := false:
 	set(value):
@@ -60,6 +69,9 @@ func _ready() -> void:
 		b.add_theme_stylebox_override("pressed", pressed_st)
 		b.add_theme_stylebox_override("hover", st)
 		b.pressed.connect(func() -> void: chosen.emit(e[0]))
+		if e[0] == "deep":  # Czarna Watra: fioletowa ikona ognia
+			b.self_modulate = Color(0.85, 0.65, 1.0)
+			b.visible = deep_open
 		column.add_child(b)
 		buttons[e[0]] = b
 	_layout()
