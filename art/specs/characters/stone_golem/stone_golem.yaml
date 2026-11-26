@@ -30,8 +30,8 @@ brief:
   decisions:
     - built on the slag golem's skeleton and proportions (smaller `big`, 1.6 instead of 1.75) so the two golems
       read as relatives, but a lighter, cooler grey with metal veins instead of magma
-    - the eyes are the only glow (`glow` channel: idle pulses it a little, death puts it out)
-    - attack - both fists high over the head (held: the game's warning circle), one fast smear frame, the fists hit
+    - the eyes are the only glow (`glow` channel; idle pulses it a little, death puts it out)
+    - attack - both fists high over the head (held - the game's warning circle), one fast smear frame, the fists hit
       the ground in front (`hit` 750 ms, socket `impact` between the fists on the ground), a hold, a slow recovery
     - frame 80 px, camera.center y 1.25
 
