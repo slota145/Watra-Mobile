@@ -416,78 +416,74 @@ func _test_windows(game: Node) -> void:
 	arena.open_skills()
 	win.set_gems_mode(true)
 	await process_frame
-	_check(win.gems_box.visible and not win.slots_row.visible, "zakładka „Kamienie” pokazuje gniazda zamiast miejsc")
-	_check(win.socket_slots.size() == 5 and win.socket_slots[2].locked and not win.socket_slots[1].locked,
-			"5 gniazd, od trzeciego zamknięte")
-	var small := false
-	for s in win.socket_slots:
-		small = small or s.custom_minimum_size.x < 44
-	_check(not small, "gniazda co najmniej 44 px")
+	_check(not win.slots_row.visible, "zakładka „Kamienie”: bez miejsc na przyciski (sama lista umiejętności)")
+	# karta umiejętności (decyzje autora 26.11.2026): gniazda u góry, pod nimi kamienie do włożenia
 	win.list_icons[Skills.ORDER.find("throw")].pressed.emit()
-	_check(win.gem_skill == "throw", "stuknięcie umiejętności wybiera jej gniazda")
-	var pouch: Array = win.pouch_row.get_children()
-	_check(pouch.size() == 3 and pouch[0].gem == Gems.KEY, "sakwa: klucz i 2 kamienie umiejętności")
-	_check(win.socket_labels[0].text == "puste" and win.socket_labels[2].text == "zamknięte", "pod gniazdami: puste / zamknięte")
-	# sakwa: tylko kamienie pasujące do umiejętności, jej kamień unikalny za złotą kreską (15.11.2026)
-	game.add_gem(Gems.unique_of("throw"), 1, false)
-	game.add_gem(Gems.unique_of("whirl"), 1, false)
-	win.refresh()
-	pouch = win.pouch_row.get_children()
-	var gems_shown: Array = pouch.filter(func(c: Node) -> bool: return c is GemSlot).map(func(c: GemSlot) -> String: return c.gem)
-	_check(gems_shown.has(Gems.unique_of("throw")) and not gems_shown.has(Gems.unique_of("whirl")) and pouch.size() == 5
-			and not (pouch[3] is GemSlot) and pouch[4].gem == Gems.unique_of("throw"),
-			"sakwa: tylko unikalny tej umiejętności, za kreską „Unikalny”")
-	game.gems.erase(Gems.unique_of("throw"))
-	win.refresh()
-	# najpierw gniazdo: lista pasujących kamieni z działaniem w tej umiejętności
-	win.socket_slots[0].pressed.emit()
+	await process_frame
 	var picker: GemPicker = win.picker
-	_check(not picker.actions.has(Gems.unique_of("whirl")), "kamień unikalny innej umiejętności ukryty w liście gniazda")
+	_check(picker.visible and picker.mode == "skill" and picker.skill == "throw" and picker.index == 0,
+			"stuknięcie umiejętności otwiera jej kartę, zaznaczone pierwsze puste gniazdo")
+	_check(picker.card_slots.size() == 5 and picker.card_slots[2].locked and not picker.card_slots[1].locked
+			and picker.card_slots.all(func(c: GemSlot) -> bool: return c.custom_minimum_size.x >= 44), "5 gniazd po 44+ px, od trzeciego zamknięte")
+	_check(picker.actions.has("ember:1") and picker.actions.has("rime:1") and not picker.actions.has(Gems.KEY),
+			"pod gniazdami tylko pasujące kamienie")
+	var effect_shown := false
+	for l in picker.list.find_children("*", "Label", true, false):
+		effect_shown = effect_shown or l.text == Gems.support_text("ember:1", "throw")
+	_check(effect_shown, "przy kamieniu widać, co zrobi w tej umiejętności")
+	_check(picker.prev_button.visible and picker.next_button.visible, "strzałki do sąsiednich umiejętności")
+	# kamień unikalny: tylko w swojej umiejętności
+	game.add_gem(Gems.unique_of("whirl"), 1, false)
+	picker._build()
+	_check(not picker.actions.has(Gems.unique_of("whirl")), "kamień unikalny innej umiejętności ukryty")
 	picker.close()
 	picker.open_gem(Gems.unique_of("whirl"))
 	_check(picker.actions.has("whirl") and not picker.actions.has("throw"), "kamień unikalny z sakwy: tylko jego umiejętność")
 	picker.close()
 	game.gems.erase(Gems.unique_of("whirl"))
-	win.refresh()
-	win.socket_slots[0].pressed.emit()
-	await process_frame
-	await process_frame
-	_check(picker.visible and picker.actions.has("ember:1") and picker.actions.has("rime:1") and not picker.actions.has(Gems.KEY),
-			"gniazdo: tylko pasujące kamienie")
-	var effect_shown := false
-	for l in picker.list.find_children("*", "Label", true, false):
-		effect_shown = effect_shown or l.text == Gems.support_text("ember:1", "throw")
-	_check(effect_shown, "przy kamieniu widać, co zrobi w tej umiejętności")
-	_check(picker.actions["ember:1"].get_global_rect().size.y >= 44.0 and picker.close_button.get_global_rect().get_center().y \
-			> root.get_visible_rect().size.y * 0.5, "przyciski wyboru 44 px, „Zamknij” na dole")
+	win.list_icons[Skills.ORDER.find("throw")].pressed.emit()
 	picker.actions["ember:1"].pressed.emit()
-	_check(game.skill_sockets("throw")[0] == "ember:1" and game.gem_count("ember:1") == 0 and not picker.visible,
-			"„Włóż” wkłada kamień i zamyka wybór")
-	_check(win.socket_labels[0].text == Gems.short_text("ember:1", "throw"), "pod gniazdem krótki opis („%s”)" % win.socket_labels[0].text)
-	win.socket_slots[1].dropped.emit("rime:1", "pouch", 0)
-	_check(game.skill_sockets("throw")[1] == "rime:1", "przeciągnięcie kamienia na gniazdo")
+	_check(game.skill_sockets("throw")[0] == "ember:1" and game.gem_count("ember:1") == 0 and picker.visible
+			and picker.index == 1, "„Włóż”: kamień w gnieździe, karta zostaje, zaznaczenie na następnym wolnym")
+	_check(picker.actions.has("rime:1") and not picker.actions.has("ember:2"), "lista odświeżona dla nowego gniazda")
 	game.add_gem("ember:2")
-	win.socket_slots[1].pressed.emit()
-	_check(picker.actions["ember:2"].disabled, "ten sam rodzaj w innym gnieździe - przygaszony z powodem")
+	picker._build()
+	_check(not picker.actions.has("ember:2"), "ten sam rodzaj co w innym gnieździe - ukryty")
+	picker.actions["rime:1"].pressed.emit()
+	_check(game.skill_sockets("throw")[1] == "rime:1", "drugi kamień jednym stuknięciem")
+	picker.card_slots[1].pressed.emit()
+	_check(picker.index == 1 and picker.actions.has("out") and picker.actions.has("upgrade"),
+			"zajęte gniazdo: jego kamień z „Wyjmij” i „Ulepsz”")
 	picker.actions["out"].pressed.emit()
-	_check(game.skill_sockets("throw")[1] == "" and game.gem_count("rime:1") == 1, "„Wyjmij” odkłada kamień do sakwy")
-	# najpierw kamień: gdzie pasuje
-	var rime_slot: GemSlot = null
-	for p in win.pouch_row.get_children():
-		if p is GemSlot and p.gem == "rime:1" and not p.is_queued_for_deletion():
-			rime_slot = p
-	rime_slot.pressed.emit()
+	_check(game.skill_sockets("throw")[1] == "" and game.gem_count("rime:1") == 1 and picker.visible,
+			"„Wyjmij” odkłada kamień do sakwy, karta zostaje")
+	# zamknięte gniazdo: klucz z potwierdzeniem
+	picker.card_slots[2].pressed.emit()
+	_check(picker.actions.has("key"), "zamknięte gniazdo: „Otwórz” kluczem")
+	picker.actions["key"].pressed.emit()
+	_check(game.skill_open_count("throw") == 2 and picker.armed == "key", "pierwsze stuknięcie pyta")
+	picker.actions["key"].pressed.emit()
+	_check(game.skill_open_count("throw") == 3 and game.gem_count(Gems.KEY) == 0 and not picker.card_slots[2].locked,
+			"drugie otwiera gniazdo kluczem")
+	# strzałki
+	var before: String = picker.skill
+	picker.next_button.pressed.emit()
+	_check(picker.skill != before and Skills.weapon_of(picker.skill) == game.weapon and game.skills_owned.has(picker.skill),
+			"› - następna umiejętność broni (%s)" % picker.skill)
+	picker.prev_button.pressed.emit()
+	_check(picker.skill == before, "‹ - z powrotem")
+	_check(picker.close_button.get_global_rect().get_center().y > root.get_visible_rect().size.y * 0.5, "„Zamknij” na dole")
+	picker.close()
+	game.gems.erase("ember:2")
+	# najpierw kamień (sakwa w „Postać”): gdzie pasuje
+	picker.open_gem("rime:1")
 	_check(picker.visible and picker.mode == "gem" and picker.actions.has("throw") and picker.actions.has("strike"),
 			"kamień z sakwy: lista umiejętności, gdzie pasuje")
 	picker.actions["strike"].pressed.emit()
 	_check(game.skill_sockets("strike")[0] == "rime:1", "„Włóż” w pierwsze wolne gniazdo umiejętności")
 	game.add_gem("rime:1")
 	game.skill_gems["whirl"] = ["leech:1", "area:1", "", "", ""]  # oba otwarte gniazda zajęte
-	win.refresh()
-	for p in win.pouch_row.get_children():
-		if p is GemSlot and p.gem == "rime:1" and not p.is_queued_for_deletion():
-			rime_slot = p
-	rime_slot.pressed.emit()
+	picker.open_gem("rime:1")
 	_check(not picker.actions.has("whirl") and picker.actions.has("throw"), "pełna umiejętność ukryta - tylko te, gdzie da się włożyć")
 	# kolejność: najpierw umiejętności z przycisków (broni w ręku i zapasowej), potem reszta
 	var order: Array = []
@@ -499,14 +495,9 @@ func _test_windows(game: Node) -> void:
 	_check(order.slice(0, on_bar.size()) == on_bar, "najpierw umiejętności z przycisków (%s)" % str(order))
 	picker.close()
 	game.skill_gems.erase("whirl")
-	game.gems.erase("ember:2")
 	game.gems.erase("rime:1")
-	win.socket_slots[2].pressed.emit()
-	_check(game.skill_open_count("throw") == 2 and win._key_armed, "pierwsze stuknięcie zamkniętego gniazda pyta")
-	win.socket_slots[2].pressed.emit()
-	_check(game.skill_open_count("throw") == 3 and game.gem_count(Gems.KEY) == 0, "drugie otwiera gniazdo kluczem")
 	win.set_gems_mode(false)
-	_check(win.slots_row.visible and not win.gems_box.visible, "powrót do zakładki „Miejsca”")
+	_check(win.slots_row.visible, "powrót do zakładki „Miejsca”")
 	win.close()
 	# okno „Postać”: kamień szlachetny w broni
 	await process_frame

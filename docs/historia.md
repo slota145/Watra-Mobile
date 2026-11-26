@@ -2,6 +2,20 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - karta umiejętności w zakładce „Kamienie”
+
+- **Prośba i decyzje autora (ankieta 26.11.2026):** wkładanie kamieni bez otwierania okienka dla każdego gniazda
+  osobno. Stuknięcie umiejętności w zakładce „Kamienie” otwiera jej kartę (`GemPicker.open_skill`, tryb "skill"):
+  u góry 5 gniazd (`card_slots`, 48 px, zaznaczone - pierwsze puste), pod nimi tylko kamienie, które da się włożyć
+  w zaznaczone gniazdo („Włóż”/„Wymień”); okno zostaje otwarte, a zaznaczenie przechodzi na następne wolne gniazdo
+  (`_first_free`, `_card_done`). Zajęte gniazdo - jego kamień z „Wyjmij” i „Ulepsz”; zamknięte - „Otwórz” Kluczem
+  Runicznym (drugie stuknięcie potwierdza, `_key_row`); strzałki ‹ › w nagłówku - poprzednia / następna odblokowana
+  umiejętność broni w ręku (`skill_order`, `_arrow`).
+- Usunięte z `SkillsWindow`: rząd gniazd i sakwa na dole zakładki (z przeciąganiem), `gem_skill`, `selected_gem`,
+  `selected_socket`, `_key_armed`; tryb `GemPicker` "skill_socket" (`open_skill_socket`). Sakwa zostaje w oknie
+  „Postać” (stuknięcie kamienia - „Gdzie włożyć”). Test w `tests/test_gems.gd`, zrzuty `tools/gem_shots.gd`
+  (`_1b_gniazdo`, `_1d_zajete`).
+
 ## 26.11.2026 - „Gdzie włożyć” tylko z pasującymi umiejętnościami
 
 - Prośba autora: po stuknięciu kamienia umiejętności w sakwie (`GemPicker._build_gem`, tryb „najpierw kamień”)
