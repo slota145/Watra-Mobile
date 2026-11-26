@@ -4,7 +4,8 @@ extends SceneTree
 ## siły przedmiotów 55, drabinka odblokowań, wybór poziomu (Watra do 55, Czarna Watra - Głębie), plansza otwarcia
 ## Głębin po bossie na 55, Czarna Watra i przycisk „Głębiny” w bazie dopiero po ich otwarciu, napis „Głębia N” w lochu.
 ## Krok 2: zestawy Głębin (DeepRuns - tło, każda rola z innego lochu, losowy boss, jedna mechanika, para odporności),
-## zapis zestawu, przelosowanie za żar, wyprawa z zestawem.
+## zapis zestawu, przelosowanie za Odłamki Nawii, wyprawa z zestawem. Krok 3: nagrody Głębin (lepszy łup i premie
+## ponad widełki z Głębią, trudny zestaw - więcej łupu i żaru, Odłamki Nawii z bossa, kamień milowy co 5 Głębi).
 
 var _failed := 0
 
@@ -29,6 +30,7 @@ func _run() -> void:
 	await _test_base(game)
 	await _test_deep_run(game)
 	_test_rolls(game)
+	_test_rewards()
 	await _test_roll_run(game)
 	game.reset_hero()
 	game.best_level = 0
@@ -135,23 +137,24 @@ func _test_rolls(game: Node) -> void:
 		ok = ok and DeepRuns.valid(r) and r.goblin != r.archer and r.archer != r.brute and r.goblin != r.brute \
 				and r.up != r.down and DeepRuns.MECHANICS.has(r.mechanic)
 	_check(ok, "zestaw: każda rola z innego lochu, mechanika z lochów z mechaniką, dwa różne żywioły odporności")
-	_check(DeepRuns.reroll_cost(Dungeons.level_of_deep(10)) == 150, "przelosowanie Głębi 10: 150 żaru")
+	_check(DeepRuns.reroll_cost(Dungeons.level_of_deep(3)) == 1 and DeepRuns.reroll_cost(Dungeons.level_of_deep(10)) == 2,
+			"przelosowanie: 1 odłamek, od Głębi 10 - 2")
 	game.reset_hero()
 	var a: Dictionary = game.deep_roll(60)
 	_check(game.deep_roll(60) == a, "zestaw Głębi stały aż do wejścia")
-	game.embers = 10
-	_check(not game.reroll_deep(60) and game.deep_roll(60) == a, "bez żaru nie da się przelosować")
-	game.embers = 1000
+	game.nawia_shards = 0
+	_check(not game.reroll_deep(60) and game.deep_roll(60) == a, "bez odłamków nie da się przelosować")
 	var seen_new := false
 	for i in 5:
-		game.embers = 1000
+		game.nawia_shards = 10
 		game.reroll_deep(60)
 		seen_new = seen_new or game.deep_roll(60) != a
-	_check(seen_new and game.embers == 1000 - DeepRuns.reroll_cost(60), "przelosowanie: nowy zestaw za żar")
+	_check(seen_new and game.nawia_shards == 10 - DeepRuns.reroll_cost(60), "przelosowanie: nowy zestaw za Odłamki Nawii")
 	game.save_game()
 	var kept: Dictionary = game.deep_roll(60)
 	game.load_game()
-	_check(game.deep_roll(60) == kept, "zestaw przechodzi zapis gry")
+	_check(game.deep_roll(60) == kept and game.nawia_shards == 10 - DeepRuns.reroll_cost(60),
+			"zestaw i odłamki przechodzą zapis gry")
 	var taken: Dictionary = game.take_deep_roll(60)
 	_check(taken == kept and not game.deep_rolls.has("60"), "wejście zużywa zestaw")
 
@@ -180,9 +183,38 @@ func _test_roll_run(game: Node) -> void:
 	_check(is_equal_approx(g.resists[Elements.FIRE], base + DeepRuns.RESIST)
 			and is_equal_approx(g.resists[Elements.COLD], base - DeepRuns.RESIST), "odporności z zestawu: ogień +20%, lód -20%")
 	_check(arena.summon_button.text == "Przyzwij Leszego", "boss z zestawu: Leszy")
+	arena.mods.assign(["crowd", "elites"])
+	arena._apply_upgrades()
+	_check(is_equal_approx(horde.loot_mult, DungeonMods.mult(arena.mods, "loot") * DeepRuns.hard_mult(2)
+			* (1.0 + game.tree_value("loot") / 100.0)), "trudny zestaw: łup x%.2f" % DeepRuns.hard_mult(2))
 	horde.add_embers(DungeonLevels.summon_cost(horde.level))
 	arena.summon_chief()
 	_check(arena.chief is ProtoLeszy and is_equal_approx(arena.chief.resists[Elements.FIRE], base + DeepRuns.RESIST),
 			"przyzwany Leszy z odpornościami zestawu")
+	game.nawia_shards = 0
+	arena.victory()
+	_check(game.nawia_shards == DeepRuns.boss_shards(lvl, 2) and arena.result._summary.text.contains("Odłamki Nawii"),
+			"zwycięstwo w Głębi: odłamki Nawii (%d)" % game.nawia_shards)
+	paused = false
 	arena.queue_free()
 	await process_frame
+
+
+func _test_rewards() -> void:
+	var l55 := Dungeons.DEEP_FROM - 1
+	var d20 := Dungeons.level_of_deep(20)
+	_check(Items.legend_chance(d20) > Items.legend_chance(l55) and Items.unique_chance(d20) > Items.unique_chance(l55)
+			and Items.deep_loot(l55) == 1.0, "Głębia 20: większa szansa na legendy i unikaty")
+	_check(Items.above_chance(d20) > Items.above_chance(l55) and Items.above_chance(Dungeons.level_of_deep(500)) == Items.ABOVE_DEEP_MAX,
+			"premie ponad widełki częściej z Głębią (z sufitem)")
+	_check(DeepRuns.boss_shards(Dungeons.level_of_deep(12), 2) == DeepRuns.SHARDS_BASE + 2 + 2
+			and is_equal_approx(DeepRuns.hard_mult(3), 1.0 + 3 * DeepRuns.HARD_BONUS),
+			"odłamki za bossa (Głębia, modyfikatory), trudny zestaw - więcej łupu")
+	_check(DeepRuns.is_milestone(Dungeons.level_of_deep(5)) and DeepRuns.is_milestone(Dungeons.level_of_deep(10))
+			and not DeepRuns.is_milestone(Dungeons.level_of_deep(7)) and not DeepRuns.is_milestone(50),
+			"kamienie milowe: Głębia 5, 10...")
+	var ok := true
+	for i in 20:
+		var it := DeepRuns.milestone_item(Dungeons.level_of_deep(5))
+		ok = ok and (it.rarity == "legendary" or it.rarity == "unique")
+	_check(ok, "kamień milowy: zawsze legenda albo unikat")

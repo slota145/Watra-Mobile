@@ -32,9 +32,9 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 
 ## Pomysły autora (do zrobienia)
 
-- [ ] **Głębiny (zrobione 26.11.2026 - krok 1 i 2: zestawy z mieszanymi potworami, losowym bossem i mechaniką,
-  przelosowanie; `docs/historia.md`; do oceny na telefonie - Czarna Watra, zestawy, cena przelosowania; później:
-  nagrody Głębin):** zwykłe lochy 1-55 (11 lochów
+- [ ] **Głębiny (zrobione 26.11.2026 - krok 1-3: zestawy z mieszanymi potworami, losowym bossem i mechaniką,
+  przelosowanie za Odłamki Nawii, lepszy łup, kamienie milowe; `docs/historia.md`; do oceny na telefonie - Czarna
+  Watra, zestawy, ile odłamków wpada i ile kosztuje przelosowanie, czy łup w Głębinach cieszy):** zwykłe lochy 1-55 (11 lochów
   po 5 poziomów, bez drugiego kręgu), po pokonaniu bossa na 55 wyraźna chwila „Otwierają się Głębiny”. **Osobny obiekt
   w bazie** (decyzja autora) prowadzi do Głębin: własna numeracja (Głębia 1, 2, 3...; w środku siła jak poziomy 56+),
   każde wejście - losowy loch; później losowy zestaw potworów i losowy boss. Do przemyślenia: sufit siły przedmiotów

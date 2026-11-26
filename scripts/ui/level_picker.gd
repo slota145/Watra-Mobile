@@ -191,8 +191,9 @@ func set_level(value: int) -> void:
 	if deep:
 		lines.append_array(DeepRuns.describe(_game().deep_roll(level)))
 		var cost := DeepRuns.reroll_cost(level)
-		reroll_button.text = tr("Przelosuj\n%d żaru") % cost
-		reroll_button.disabled = _game().embers < cost
+		lines.append(tr("Odłamki Nawii: %d") % _game().nawia_shards)
+		reroll_button.text = tr("Przelosuj\nodłamki: %d") % cost
+		reroll_button.disabled = _game().nawia_shards < cost
 	elif Dungeons.is_random(level):
 		lines.append(tr("Loch losowy przy każdym wejściu"))
 	else:

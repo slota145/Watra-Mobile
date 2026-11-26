@@ -20,9 +20,21 @@ const MECHANIC_NAMES := {Dungeons.SKY: "Wiatr i trąby powietrzne", Dungeons.FRO
 const ROLES: Array[String] = ["goblin", "archer", "brute"]
 ## Charakter odporności Głębi: jeden żywioł bardziej, inny mniej.
 const RESIST := 0.2
-## Przelosowanie: koszt w żarze = REROLL_BASE + REROLL_STEP za każdą Głębię.
-const REROLL_BASE := 50
+## Krok 3 (decyzja autora 26.11.2026): przelosowanie kosztuje Odłamki Nawii (waluta Głębin, Game.nawia_shards) -
+## REROLL_BASE + 1 za każde pełne REROLL_STEP Głębi.
+const REROLL_BASE := 1
 const REROLL_STEP := 10
+## Odłamki Nawii za pokonanie bossa Głębi: SHARDS_BASE + 1 za każde pełne SHARDS_STEP Głębi + 1 za każdy modyfikator
+## zestawu; elita w Głębinach daje odłamek z szansą SHARD_ELITE.
+const SHARDS_BASE := 2
+const SHARDS_STEP := 5
+const SHARD_ELITE := 0.2
+## Nagroda za trudny zestaw: każdy modyfikator zestawu to +HARD_BONUS szansy łupu i żaru z iskier.
+const HARD_BONUS := 0.15
+## Kamień milowy: pierwsze przebicie co MILESTONE-tej Głębi - w skrzyni bossa dodatkowo pewny przedmiot legendarny
+## albo unikat (unikat z szansą MILESTONE_UNIQUE).
+const MILESTONE := 5
+const MILESTONE_UNIQUE := 0.35
 
 
 ## Nowy losowy zestaw dla poziomu `level` (Głębia).
@@ -57,9 +69,29 @@ static func normalize(r: Dictionary) -> Dictionary:
 	return out
 
 
-## Koszt przelosowania zestawu Głębi na poziomie `level`.
+## Koszt przelosowania zestawu Głębi na poziomie `level` (Odłamki Nawii).
 static func reroll_cost(level: int) -> int:
-	return REROLL_BASE + REROLL_STEP * Dungeons.deep_of(level)
+	return REROLL_BASE + Dungeons.deep_of(level) / REROLL_STEP
+
+
+## Odłamki Nawii za pokonanie bossa Głębi na poziomie `level` z `mods` modyfikatorami zestawu.
+static func boss_shards(level: int, mods: int) -> int:
+	return SHARDS_BASE + Dungeons.deep_of(level) / SHARDS_STEP + mods
+
+
+## Mnożnik łupu i żaru za trudny zestaw (`mods` modyfikatorów).
+static func hard_mult(mods: int) -> float:
+	return 1.0 + HARD_BONUS * mods
+
+
+## Czy pierwsze przebicie tego poziomu to kamień milowy Głębin (co MILESTONE Głębi).
+static func is_milestone(level: int) -> bool:
+	return Dungeons.is_deep(level) and Dungeons.deep_of(level) % MILESTONE == 0
+
+
+## Przedmiot kamienia milowego: pewna legenda albo unikat z poziomu `level`.
+static func milestone_item(level: int) -> Dictionary:
+	return Items.roll(level, "", "unique" if randf() < MILESTONE_UNIQUE else "legendary", Items.CHEST_WEIGHTS)
 
 
 ## Odporności potworów Głębi: wspólna z głębi i para zestawu (+RESIST / -RESIST).

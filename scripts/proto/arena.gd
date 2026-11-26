@@ -182,6 +182,9 @@ var climate := Dungeons.GOBLINS
 ## Zestaw Głębi tej wyprawy (DeepRuns; puste - zwykły loch): `climate` to wtedy tło (podłoga i ozdoby), a potwory, boss,
 ## mechanika, modyfikatory i odporności - z zestawu.
 var deep_roll := {}
+## Głębiny: odłamki Nawii z elit tej wyprawy i czy skrzynia bossa to kamień milowy.
+var run_shards := 0
+var milestone := false
 ## Walka z bossem szczytowym (Żmij - Pinnacles) zamiast zwykłego lochu; `area` - prostokąt polany (ARENA albo PINNACLE_ARENA).
 var pinnacle := false
 var area := ARENA
@@ -324,7 +327,10 @@ func _ready() -> void:
 			_gain_xp(HeroLevels.goblin_xp(level)))
 		horde_spawner.embers_changed.connect(_on_embers)
 		horde_spawner.elite_killed.connect(func(_g: ProtoGoblin) -> void:
-			_gain_xp(roundi(HeroLevels.goblin_xp(level) * (Elites.XP * DungeonMods.mult(mods, "elite_xp") - 1))))
+			_gain_xp(roundi(HeroLevels.goblin_xp(level) * (Elites.XP * DungeonMods.mult(mods, "elite_xp") - 1)))
+			if not deep_roll.is_empty() and randf() < DeepRuns.SHARD_ELITE:  # Głębiny: odłamek z elity
+				_add_shards(1)
+				hero.float_text(tr("Odłamek Nawii!"), -50.0, Color(0.85, 0.65, 1.0), 12, 1.2))
 		add_child(horde_spawner)
 		if pinnacle:
 			_start_pinnacle.call_deferred()
@@ -485,6 +491,9 @@ func _apply_upgrades() -> void:
 	horde_spawner.gem_mult = 1.0 + Game.tree_value("gems") / 100.0
 	horde_spawner.reach = Game.tree_value("reach")
 	horde_spawner.elite_rate = DungeonMods.mult(mods, "elite_rate") * (1.0 + Game.tree_value("elites") / 100.0)
+	if not deep_roll.is_empty():  # Głębiny: trudny zestaw - więcej łupu i żaru za każdy modyfikator
+		horde_spawner.loot_mult *= DeepRuns.hard_mult(mods.size())
+		horde_spawner.mod_embers *= DeepRuns.hard_mult(mods.size())
 
 
 ## Żar potrzebny na przyzwanie Wodza (drzewko: Szybkie przyzwanie).
@@ -1505,6 +1514,14 @@ func summon_chief() -> void:
 	_add_boss(spot)
 
 
+## Odłamki Nawii (waluta Głębin) prosto do zapisu; `run_shards` - z elit tej wyprawy (do podsumowania).
+func _add_shards(n: int) -> void:
+	Game.nawia_shards += n
+	if phase == "horde" or phase == "boss":
+		run_shards += n
+	Game.save_game()
+
+
 ## Loch, którego mechanika działa w tej wyprawie (Głębia - z zestawu, inaczej loch wyprawy).
 func mechanic() -> String:
 	return str(deep_roll.mechanic) if not deep_roll.is_empty() else climate
@@ -1580,6 +1597,9 @@ func _on_chief_died(_c: ProtoChief) -> void:
 	var aura := Auras.roll_chest(level, false, horde_spawner.loot_mult * horde_spawner.gem_mult)  # kamień aury (od lochu Auras.MIN_LEVEL)
 	if aura != "":
 		chest.items.append({"aura": aura})
+	if DeepRuns.is_milestone(level) and level > Game.best_level:  # kamień milowy Głębin - pierwsze przebicie
+		milestone = true
+		chest.items.append(DeepRuns.milestone_item(level))
 	chest.loot_spawned.connect(_track_loot)
 	chest.position = at
 	chest.ember_spawned.connect(func(e: ProtoEmber) -> void: e.collected.connect(horde_spawner.on_chest_ember))
@@ -1625,9 +1645,13 @@ func victory() -> void:
 		result.add_filter_line(run_filtered, run_filtered_ore)
 		get_tree().paused = true
 		return
+	var shards := DeepRuns.boss_shards(level, mods.size()) if not deep_roll.is_empty() else 0
+	if shards > 0:
+		_add_shards(shards)
 	var unlocked := level + 1 if Game.beat_level(level) else 0
 	Game.save_if_dirty()
 	result.show_victory(level, banked, unlocked, horde_spawner.kills, horde_spawner.time, hero.deaths)
+	result.add_deep_lines(shards + run_shards, milestone)
 	if unlocked > 0:
 		result.add_unlock_lines(Unlocks.on_beat(level))
 	result.add_xp_lines(run_xp, Game.hero_level if Game.hero_level > _start_hero_level else 0)

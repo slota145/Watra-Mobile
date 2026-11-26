@@ -203,6 +203,16 @@ const LEGEND_TIER_BOOST := 1
 ## (`make_above`). Wszystkie premie ponad widełki - przedrostek „Anielski” (`is_angelic`).
 const ABOVE_CHANCE := 0.03
 const ABOVE_CHANCE_DEEP := 0.05
+## Głębiny, krok 3 (decyzja autora 26.11.2026): w Głębinach szansa na premię ponad widełki rośnie o ABOVE_DEEP_STEP
+## za Głębię, najwyżej do ABOVE_DEEP_MAX (jedyna droga do mocniejszego sprzętu ponad sufit siły 55).
+const ABOVE_DEEP_STEP := 0.003
+const ABOVE_DEEP_MAX := 0.15
+## Lepszy łup z Głębią: szanse na legendy i unikaty x `deep_loot` (+DEEP_LOOT_STEP za Głębię, najwyżej DEEP_LOOT_MAX),
+## a wagi rzadkości jak z premią „rzadkości łupu” +DEEP_RARITY_STEP% za Głębię (najwyżej DEEP_RARITY_MAX%).
+const DEEP_LOOT_STEP := 0.03
+const DEEP_LOOT_MAX := 2.0
+const DEEP_RARITY_STEP := 2.0
+const DEEP_RARITY_MAX := 60.0
 const ABOVE_MIN := 0.05
 const ABOVE_MAX := 0.3
 ## Te premie nie wychodzą ponad widełki (poziomy umiejętności to liczby całkowite).
@@ -415,6 +425,8 @@ static func roll_base(slot: String, type: String, level: int) -> Dictionary:
 ## z szansą `legend_chance` legendarny), baza (pusta - losowa z miejsca). `loot` - z łupu (legendy i premie ponad
 ## widełki); kuźnia podaje false.
 static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS, type := "", loot := true) -> Dictionary:
+	if loot and Dungeons.is_deep(level):  # Głębiny: lepsze rzadkości
+		weights = boosted_weights(weights, minf(DEEP_RARITY_STEP * Dungeons.deep_of(level), DEEP_RARITY_MAX))
 	if rarity == "unique" or (rarity == "" and loot and randf() < unique_chance(level)):
 		var ids: Array = UNIQUES.keys().filter(func(id: String) -> bool:
 			return (slot == "" or UNIQUES[id].slot == slot) and not UNIQUES[id].has("source"))
@@ -431,7 +443,7 @@ static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS
 	for i in randi_range(AFFIX_COUNT[rarity].x, AFFIX_COUNT[rarity].y):
 		add_affix(item)
 	if loot:
-		var chance := ABOVE_CHANCE_DEEP if level >= MAX_LEVEL else ABOVE_CHANCE
+		var chance := above_chance(level)
 		for i in item.affixes.size():
 			if randf() < chance:
 				make_above(item, i)
@@ -440,11 +452,25 @@ static func roll(level: int, slot := "", rarity := "", weights := GOBLIN_WEIGHTS
 	return item
 
 
-## Szansa, że przedmiot z łupu będzie unikatem (od UNIQUE_FROM, rośnie z głębią do UNIQUE_MAX na MAX_LEVEL).
+## Szansa, że przedmiot z łupu będzie unikatem (od UNIQUE_FROM, rośnie z głębią do UNIQUE_MAX na MAX_LEVEL; w Głębinach
+## jeszcze x `deep_loot`).
 static func unique_chance(level: int) -> float:
 	if level < UNIQUE_FROM:
 		return 0.0
-	return lerpf(UNIQUE_CHANCE, UNIQUE_MAX, float(mini(level, MAX_LEVEL) - UNIQUE_FROM) / float(MAX_LEVEL - UNIQUE_FROM))
+	return lerpf(UNIQUE_CHANCE, UNIQUE_MAX, float(mini(level, MAX_LEVEL) - UNIQUE_FROM) / float(MAX_LEVEL - UNIQUE_FROM)) \
+			* deep_loot(level)
+
+
+## Mnożnik szans na legendy i unikaty w Głębinach (poza nimi 1).
+static func deep_loot(level: int) -> float:
+	return minf(1.0 + DEEP_LOOT_STEP * Dungeons.deep_of(level), DEEP_LOOT_MAX)
+
+
+## Szansa, że premia przedmiotu z łupu wyjdzie ponad widełki (od MAX_LEVEL wyższa, w Głębinach rośnie z Głębią).
+static func above_chance(level: int) -> float:
+	if level < MAX_LEVEL:
+		return ABOVE_CHANCE
+	return minf(ABOVE_CHANCE_DEEP + ABOVE_DEEP_STEP * Dungeons.deep_of(level), ABOVE_DEEP_MAX)
 
 
 ## Nowy unikat `id` z poziomu lochu `level`: stała baza, premie i siła działania losowane w wąskich widełkach,
@@ -549,7 +575,7 @@ static func unique_lines(item: Dictionary) -> Array[String]:
 
 ## Szansa, że przedmiot z łupu będzie legendarny (rośnie z głębią lochu).
 static func legend_chance(level: int) -> float:
-	return minf(LEGEND_CHANCE * (1.0 + float(maxi(level, 1)) / MAX_LEVEL), LEGEND_MAX)
+	return minf(LEGEND_CHANCE * (1.0 + float(maxi(level, 1)) / MAX_LEVEL), LEGEND_MAX) * deep_loot(level)
 
 
 ## Premia `index` przedmiotu ponad widełki: najlepszy stopień z poziomu przedmiotu i wartość ponad jego górną granicę.

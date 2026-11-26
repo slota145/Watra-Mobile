@@ -2,6 +2,24 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - Głębiny, krok 3: nagrody Głębin (lepszy łup, Odłamki Nawii, kamienie milowe)
+
+- **Ustalenia z autorem (ankieta 26.11.2026):** lepszy łup z Głębią, nagroda za trudny zestaw, waluta Głębin (na
+  przelosowanie zestawów), premie ponad widełki częściej, co 5 Głębi skrzynia z pewną legendą albo unikatem.
+  Liczby - propozycje Claude.
+- **Łup** (`Items`, tylko w Głębinach - liczone od poziomu): szanse na legendy i unikaty x `deep_loot` (+3% za
+  Głębię, najwyżej x2 - Głębia 34), wagi rzadkości jak premia „rzadkość łupu” +2% za Głębię (najwyżej 60%), premie
+  ponad widełki `above_chance` - 5% + 0,3% za Głębię, najwyżej 15%.
+- **Trudny zestaw:** każdy modyfikator zestawu Głębi +15% szansy łupu i żaru z iskier (`DeepRuns.hard_mult`,
+  `arena._apply_upgrades`).
+- **Odłamki Nawii** (`Game.nawia_shards`, w zapisie): za bossa Głębi 2 + 1 za każde pełne 5 Głębi + 1 za każdy
+  modyfikator (`DeepRuns.boss_shards`), elita w Głębinach - 20% na 1 (napis „Odłamek Nawii!”); w wyniku wyprawy
+  „Odłamki Nawii: +N”. Przelosowanie zestawu kosztuje teraz odłamki zamiast żaru: 1 + 1 za każde pełne 10 Głębi
+  (`DeepRuns.reroll_cost`); wybór Głębi pokazuje zapas odłamków.
+- **Kamienie milowe:** pierwsze przebicie Głębi 5, 10, 15… - w skrzyni bossa dodatkowo pewna legenda albo unikat
+  (35%) (`DeepRuns.milestone_item`), w wyniku wiersz o kamieniu milowym.
+- Test `tests/test_deeps.gd` (nagrody, odłamki ze zwycięstwa); `test_item_tiers`, `test_uniques` - szanse w Głębinach.
+
 ## 26.11.2026 - Głębiny, krok 2: zestawy Głębin (mieszane potwory, losowy boss i mechanika, przelosowanie)
 
 - **Ustalenia z autorem (ankieta 26.11.2026):** każda rola potworów z innego lochu, boss losowy spośród wszystkich,
