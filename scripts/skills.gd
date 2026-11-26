@@ -112,6 +112,33 @@ const DATA := {
 		"mana": 30, "cooldown": 8.0, "weapon": "rapier", "mastery": 15, "main": false, "range": 180.0, "power": 0.7,
 		"description": "Za twoimi plecami pojawia się 12 sopli, które tworzą chmurę i lecą za tobą, a po chwili wylatują jeden po drugim w losowych wrogów w pobliżu - przebijają i schładzają. Gdy nie ma wrogów, czekają do 4 s. Kolejne użycie dokłada sople do chmury (najwyżej 48). Walczysz przy tym normalnie. Nie może stać pod dużym przyciskiem.",
 	},
+	# Słoneczna włócznia Dadźboga - broń Prawii (ustalona z autorem 26.11.2026, ProtoSpear): oślepia i piętnuje,
+	# trafienia w napiętnowanych leczą. Kołowrót i Zenit - pomysły autora.
+	"p_thrust": {
+		"name": "Promienne Pchnięcie", "icon": preload("res://assets/skills/spear/p_thrust.png"),
+		"mana": 0, "cooldown": 0.0, "weapon": "spear", "mastery": 1, "main": true, "range": 72.0, "power": 1.0,
+		"description": "Długie pchnięcie włócznią rani wszystkich wrogów na linii. Prawia oślepia i piętnuje - oślepieni czasem chybiają, a trafienia w napiętnowanych leczą cię.",
+	},
+	"p_throw": {
+		"name": "Rzut Dadźboga", "icon": preload("res://assets/skills/spear/p_throw.png"),
+		"mana": 20, "cooldown": 4.0, "weapon": "spear", "mastery": 3, "main": true, "range": 150.0, "power": 1.4,
+		"description": "Ciskasz włócznię (w stronę gałki, bez niej - w najbliższego wroga): przelatuje przez wszystkich na drodze, a potem sama wraca do ręki i rani ich drugi raz.",
+	},
+	"p_sunrise": {
+		"name": "Wschód Słońca", "icon": preload("res://assets/skills/spear/p_sunrise.png"),
+		"mana": 28, "cooldown": 7.0, "weapon": "spear", "mastery": 6, "main": false, "range": 62.0, "power": 1.3,
+		"description": "Włócznia unosi się nad tobą i wbija w ziemię: rozchodzi się pierścień światła, który rani i piętnuje wszystkich wokół. Nie może stać pod dużym przyciskiem.",
+	},
+	"p_wheel": {
+		"name": "Kołowrót Słońca", "icon": preload("res://assets/skills/spear/p_wheel.png"),
+		"mana": 30, "cooldown": 6.0, "weapon": "spear", "mastery": 10, "main": true, "range": 60.0, "power": 1.0,
+		"description": "Robisz dwa obroty z włócznią wirującą nad głową, idąc naprzód (w stronę gałki) i raniąc wszystkich wokół. Po nich od cięć rozchodzi się pierścień światła, który rani mocno i odpycha.",
+	},
+	"p_zenith": {
+		"name": "Zenit", "icon": preload("res://assets/skills/spear/p_zenith.png"),
+		"mana": 40, "cooldown": 10.0, "weapon": "spear", "mastery": 15, "main": false, "range": 130.0, "power": 1.2,
+		"description": "Z nieba po kolei spada 6 włóczni w promieniach światła - na wrogów w pobliżu, a gdy ich brak, w losowe miejsca wokół ciebie. Złoty krąg na ziemi pokazuje, gdzie uderzy każda. Nie może stać pod dużym przyciskiem.",
+	},
 	# Kostur Leszego - broń natury (pomysły autora 25.11.2026, ProtoStaff): sadzonki zostawiają Żołądź i Uścisk Boru,
 	# a Pylenie Mchu i Strażnicy Boru z nich korzystają (bez zużywania).
 	"l_roots": {
@@ -330,7 +357,8 @@ const UPGRADE_PRICE := {"strike": 40, "whirl": 60, "throw": 90, "spectral_blades
 		"k_slash": 40, "k_dance": 60, "k_riposte": 90, "k_perun": 140, "k_flash": 200,
 		"b_shot": 40, "b_seeker": 60, "b_rain": 90, "b_power": 140, "b_ballista": 200,
 		"a_missiles": 40, "a_circle": 60, "a_orbs": 90, "a_beam": 140, "a_seals": 200,
-		"s_reap": 40, "s_square": 60, "s_dance": 90, "s_mow": 140, "s_mara": 200}
+		"s_reap": 40, "s_square": 60, "s_dance": 90, "s_mow": 140, "s_mara": 200,
+		"p_thrust": 40, "p_throw": 60, "p_sunrise": 90, "p_wheel": 140, "p_zenith": 200}
 ## Nowe działanie na poziomach PERK_LEVELS (opisy dla okna umiejętności).
 const PERKS := {
 	"strike": ["Co trzeci cios tnie dwa razy.", "Cios rani też najbliższego wroga obok."],
@@ -383,6 +411,11 @@ const PERKS := {
 	"s_dance": ["Wir nad głową o 30% większy.", "Końcowe cięcie zostawia smugę Nawii, która przez chwilę rani."],
 	"s_mow": ["Ładuje się o 1/3 szybciej.", "Pełne naładowanie ogłusza wrogów na 1 s."],
 	"s_mara": ["Forma trwa 3,5 s zamiast 2,5.", "Wybuch klątwy rani też wrogów obok przeklętego."],
+	"p_thrust": ["Co trzecie pchnięcie to promień światła dwa razy dalej.", "Przy pierwszym trafionym rozbłyska światło, które rani wrogów obok (40% siły)."],
+	"p_throw": ["Włócznia leci o 30% dalej.", "Gdzie zawraca, wybucha pierścień światła (60% siły)."],
+	"p_sunrise": ["Krąg o 30% większy.", "Po pół sekundy krąg rozbłyska drugi raz (60% siły)."],
+	"p_wheel": ["Pierścień światła sięga o 30% dalej.", "Trzy obroty zamiast dwóch."],
+	"p_zenith": ["8 włóczni zamiast 6.", "Wbite włócznie świecą 2 s i ranią wrogów obok (20% siły co pół sekundy)."],
 }
 ## Dawne ceny umiejętności w złocie - tylko do zwrotu złota przy wczytaniu starego zapisu (Game.load_game).
 const LEGACY_PRICE := {"whirl": 100, "throw": 300, "slam": 800, "blink": 1500}
@@ -401,6 +434,8 @@ const TAGS := {
 	"a_orbs": ["projectile"], "a_beam": ["area"], "a_seals": ["area"],
 	"s_reap": ["melee", "area"], "s_square": ["melee", "area"], "s_dance": ["melee", "area"], "s_mow": ["melee", "area"],
 	"s_mara": ["area"],
+	"p_thrust": ["melee"], "p_throw": ["projectile"], "p_sunrise": ["melee", "area"], "p_wheel": ["melee", "area"],
+	"p_zenith": ["area"],
 }
 const TAG_NAMES := {"melee": "wręcz", "projectile": "pocisk", "area": "obszar", "minion": "przywołaniec"}
 const TAG_STATS := {"melee": "melee_dmg_pct", "projectile": "proj_dmg_pct", "area": "area_dmg_pct", "minion": "minion_dmg_pct"}
@@ -412,7 +447,7 @@ const ORDER := ["strike", "whirl", "throw", "spectral_blades", "steel_ring", "m_
 		"l_treants", "g_thrust", "g_sweep", "g_trail", "g_pillar", "g_dance",
 		"h_bolt", "h_wave", "h_vortex", "h_geyser", "h_guardian", "k_slash", "k_dance", "k_riposte", "k_perun", "k_flash",
 		"b_shot", "b_seeker", "b_rain", "b_power", "b_ballista", "a_missiles", "a_circle", "a_orbs", "a_beam", "a_seals",
-		"s_reap", "s_square", "s_dance", "s_mow", "s_mara"]
+		"s_reap", "s_square", "s_dance", "s_mow", "s_mara", "p_thrust", "p_throw", "p_sunrise", "p_wheel", "p_zenith"]
 
 
 ## Znaczniki umiejętności (TAGS; brak - pusta lista).

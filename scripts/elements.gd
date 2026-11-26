@@ -1,7 +1,7 @@
 class_name Elements
 ## Żywioły (ustalone z autorem 13.11.2026; pomysł i system z Watry - `scripts/elements.gd` Watry). Rodzaj obrażeń:
 ## fizyczne (miecz, zwykła stal) albo jeden z ośmiu żywiołów: ogień, woda, lód, Grom (pioruny), ziemia, powietrze,
-## Nawia (ciemność) i natura (trucizna, później pnącza i ciernie). Na razie fundament: nazwy, kolory, odporności
+## Nawia (ciemność), natura (trucizna, później pnącza i ciernie), Arkana i Prawia (światło bogów, przeciwieństwo Nawii). Na razie fundament: nazwy, kolory, odporności
 ## potworów i liczenie obrażeń z odpornością (`reduce`). Działanie każdego żywiołu (EFFECTS - opis ustalony z autorem)
 ## dochodzi razem z bronią, która go używa; potwory na razie biją fizycznie, a bohater nie ma odporności (decyzja
 ## autora 13.11.2026 - odporności bohatera z przedmiotów, jak w Watrze, później).
@@ -27,15 +27,24 @@ const NAWIA_LEECH := 0.02
 const NAWIA_LEECH_MAX := 4
 const NAWIA_WEAK := 0.15
 const NAWIA_WEAK_TIME := 2.0
+## Prawia (światło bogów, przeciwieństwo Nawii - decyzja autora 25.11.2026): trafienie oślepia i piętnuje wroga na
+## PRAWIA_BRAND_TIME s (ProtoTarget.brand - złote słoneczko nad głową). Oślepiony wróg chybia PRAWIA_MISS ciosów w postać
+## (ProtoTarget.hit_hero), a każde kolejne trafienie Prawią w napiętnowanego leczy postać o PRAWIA_HEAL obrażeń, najwyżej
+## PRAWIA_HEAL_MAX zdrowia na trafienie (ProtoWeapon._deal). Nawia leczy każdym ciosem, Prawia dopiero na piętnie.
+const PRAWIA := "prawia"
+const PRAWIA_BRAND_TIME := 3.0
+const PRAWIA_MISS := 0.2
+const PRAWIA_HEAL := 0.03
+const PRAWIA_HEAL_MAX := 5
 ## Żywioły (bez fizycznych) w kolejności do pokazywania.
-const ALL: Array[String] = [FIRE, WATER, COLD, LIGHTNING, EARTH, AIR, NAWIA, NATURE, ARCANE]
+const ALL: Array[String] = [FIRE, WATER, COLD, LIGHTNING, EARTH, AIR, NAWIA, NATURE, ARCANE, PRAWIA]
 const NAMES := {PHYSICAL: "Fizyczne", FIRE: "Ogień", WATER: "Woda", COLD: "Lód", LIGHTNING: "Grom", EARTH: "Ziemia",
-		AIR: "Powietrze", NAWIA: "Nawia", NATURE: "Natura", ARCANE: "Arkana"}
+		AIR: "Powietrze", NAWIA: "Nawia", NATURE: "Natura", ARCANE: "Arkana", PRAWIA: "Prawia"}
 ## Kolory liczb obrażeń, ikon i efektów (ogień, lód i Nawia jak w Watrze; Grom niebieski jak pioruny w grze - 17.11.2026).
 const COLORS := {PHYSICAL: Color(1.0, 0.95, 0.85), FIRE: Color(1.0, 0.55, 0.2), WATER: Color(0.3, 0.6, 1.0),
 		COLD: Color(0.7, 0.95, 1.0), LIGHTNING: Color(0.45, 0.7, 1.0), EARTH: Color(0.75, 0.55, 0.3),
 		AIR: Color(0.8, 1.0, 0.9), NAWIA: Color(0.7, 0.45, 1.0), NATURE: Color(0.55, 0.95, 0.35),
-		ARCANE: Color(0.9, 0.7, 1.0)}
+		ARCANE: Color(0.9, 0.7, 1.0), PRAWIA: Color(1.0, 0.9, 0.5)}
 ## Co robi żywioł (ustalone z autorem 13.11.2026; działanie w grze - razem z bronią danego żywiołu).
 const EFFECTS := {
 	FIRE: "Podpala: obrażenia przez kilka sekund.",
@@ -47,6 +56,7 @@ const EFFECTS := {
 	NAWIA: "Wysysa życie i osłabia ciosy wroga.",
 	NATURE: "Truje - trucizna kumuluje się z każdym trafieniem.",
 	ARCANE: "Wysysa manę: trafienia oddają trochę many.",
+	PRAWIA: "Oślepia i piętnuje: wróg czasem chybia, a trafienia w napiętnowanego leczą.",
 }
 ## Odporność: ułamek zmniejszający obrażenia danego żywiołu (ujemny - wrażliwość). Granice jak w Watrze.
 const MAX_RESISTANCE := 0.75

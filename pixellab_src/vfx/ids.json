@@ -1695,5 +1695,80 @@
       20,
       20
     ]
+  },
+  "spear_thrust": {
+    "effect": "6a08e233-87ad-4d94-a2b9-c3bcc21782b1",
+    "name": "Słoneczna włócznia - pchnięcie",
+    "frame": [
+      65,
+      16
+    ],
+    "frames": 7,
+    "columns": 3,
+    "fps": 16,
+    "anchor": [
+      5,
+      7
+    ]
+  },
+  "spear_hit": {
+    "effect": "799b2386-a255-4e9d-81f4-3ba871d1609d",
+    "name": "Słoneczna włócznia - trafienie",
+    "frame": [
+      41,
+      37
+    ],
+    "frames": 8,
+    "columns": 3,
+    "fps": 16,
+    "anchor": [
+      20,
+      19
+    ]
+  },
+  "sky_beam": {
+    "effect": "b1013ff6-dbde-4d12-8d99-3c59f5f12eb1",
+    "name": "Słoneczna włócznia - promień z nieba",
+    "frame": [
+      72,
+      122
+    ],
+    "frames": 14,
+    "columns": 4,
+    "fps": 14,
+    "anchor": [
+      36,
+      106
+    ]
+  },
+  "sun_ring": {
+    "effect": "9398a76e-7dbd-4518-a2f7-1670cdf4f0a1",
+    "name": "Słoneczna włócznia - pierścień światła",
+    "frame": [
+      116,
+      50
+    ],
+    "frames": 8,
+    "columns": 3,
+    "fps": 14,
+    "anchor": [
+      58,
+      25
+    ]
+  },
+  "sun_spin": {
+    "effect": "196e51c2-4850-49c2-a86e-f75b9a37ba00",
+    "name": "Słoneczna włócznia - obrót",
+    "frame": [
+      100,
+      48
+    ],
+    "frames": 11,
+    "columns": 4,
+    "fps": 16,
+    "anchor": [
+      48,
+      23
+    ]
   }
 }

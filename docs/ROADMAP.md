@@ -39,7 +39,8 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
 - **Zasada (decyzja autora 25.11.2026): każdy żywioł ma co najmniej 2 bronie - magiczną i fizyczną.** Stan na dziś:
   ogień - glewia (fizyczna), brak magicznej; woda - hydrosfera (magiczna), brak fizycznej; lód - brak obu; Grom - katana
   (fizyczna), brak magicznej; ziemia - młot (fizyczny), brak magicznej; powietrze - łuk (fizyczny), brak magicznej;
-  natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej.
+  natura - brak obu; Nawia - kosa (fizyczna), brak magicznej; Arkana - księga (magiczna), brak fizycznej; Prawia -
+  włócznia (fizyczna), brak magicznej.
   Fizyczne - miecz (bez żywiołu).
 
 - [ ] **Loch natury - Prastary Bór (zrobiony 25.11.2026, `docs/historia.md`; do oceny na telefonie: Żywa puszcza, siła duchów lasu i Leszego):** poziomy **36-40** (drugi krąg od 41),
@@ -108,11 +109,11 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   - **Grad Pchnięć** (trzymany): seria błyskawicznych pchnięć w stożek, każde dokłada chłodu;
   - **Lodowy Kwiat**: rapier wbija się w ziemię, dookoła wyrastają kryształy; zamrożeni pękają.
 
-- [ ] **Żywioł światła - przeciwieństwo Nawii (pomysł autora 21.11.2026, do ustalenia):** dziś bronie nie mają lodu,
-  ziemi i natury, a lochy - lodu, ziemi, natury i Arkanów. Propozycje Claude (czekają na decyzję): nazwa (Światło /
-  Prawia - świat bogów w opozycji do Nawii), działanie inne niż ogień (np. oślepia - wróg chybia, piętno - trafienia
-  w napiętnowanego leczą postać), wrażliwość Katakumb na światło zamiast ognia, broń (np. słoneczna włócznia
-  Dadźboga), najpierw bronie dla brakujących żywiołów czy od razu światło.
+- [ ] **Żywioł Prawia i Słoneczna włócznia Dadźboga (zrobione 25-26.11.2026, `docs/historia.md`; do oceny na
+  telefonie):** 20% chybień oślepionych, leczenie 3%/max 5, siła i tempo pchnięć, zasięg Rzutu, Kołowrót (czy dwa
+  obroty i pierścień czytają się dobrze), Zenit (czy deszcz włóczni nie zasłania wrogów), kamienie unikalne, Katakumby
+  wrażliwe na Prawię. Później: **Swarożyce** - pomysł autora z 3 aniołami jako kamień unikalny Zenitu (3 świetliści
+  wojownicy tną włóczniami dookoła; nowe postacie w SpriteKiln); broń magiczna Prawii.
 
 - **Duże pomysły autora (19.11.2026) - kolejność proponowana przez Claude, do potwierdzenia:**
   1. ~~**Aury rezerwujące manę**~~ - zrobione 19.11.2026 (krok 1: 8 aur, krok 2: pozostałe 13 i premia przedmiotów

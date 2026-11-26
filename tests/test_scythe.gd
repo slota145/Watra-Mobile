@@ -31,6 +31,7 @@ func _run() -> void:
 	game.load_game()
 	_test_data()
 	await _test_nawia(game)
+	await _test_prawia(game)
 	await _test_combat(game)
 	await _test_unique(game)
 	await _test_dance_mara(game)
@@ -120,6 +121,39 @@ func _test_nawia(game: Node) -> void:
 	g.hit_hero(hero, 100)
 	var weak: int = hp - hero.hp
 	_check(weak > 0 and weak < 100, "osłabiony wróg zadaje mniej (%d z 100 przed ochroną)" % weak)
+	arena.queue_free()
+	await process_frame
+
+
+## Prawia (przeciwieństwo Nawii) na kosie podmienionej na ten żywioł: piętno oślepia, leczy dopiero drugie trafienie.
+func _test_prawia(game: Node) -> void:
+	var setup: Array = await _scythe_arena(game)
+	var arena: Node = setup[0]
+	var scythe: ProtoScythe = setup[1]
+	var hero: ProtoHero = arena.hero
+	scythe.element = Elements.PRAWIA
+	var gs: Array = await _stunned(arena, [Vector2(40, 0)])
+	var g: ProtoGoblin = gs[0]
+	g.max_hp = 100000
+	g.hp = 100000
+	hero.hp = hero.max_hp / 2
+	var before: int = hero.hp
+	scythe._deal(g, 100, hero.global_position, "s_reap")
+	_check(g.is_branded() and hero.hp == before, "pierwsze trafienie Prawią piętnuje, ale nie leczy")
+	for i in 20:
+		scythe._deal(g, 200, hero.global_position, "s_reap")
+	_check(hero.hp > before, "trafienia w napiętnowanego leczą (%d -> %d)" % [before, hero.hp])
+	_check(not g.is_withered(), "Prawia nie osłabia jak Nawia")
+	hero.hp = hero.max_hp
+	var missed := 0
+	for i in 200:
+		var hp: int = hero.hp
+		hero._invulnerable = 0.0
+		g.hit_hero(hero, 1)
+		if hero.hp == hp:
+			missed += 1
+		hero.hp = hero.max_hp
+	_check(missed > 15 and missed < 80, "oślepiony wróg czasem chybia (%d z 200)" % missed)
 	arena.queue_free()
 	await process_frame
 

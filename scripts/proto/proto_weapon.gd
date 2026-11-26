@@ -374,7 +374,7 @@ var _swing_power := 1.0
 var _second := false
 var _chained := false
 var _leech_acc := 0.0
-## Nawia: wyssane życie w ułamkach (do pełnego punktu zdrowia).
+## Nawia i Prawia: wyleczone życie w ułamkach (do pełnego punktu zdrowia).
 var _nawia_acc := 0.0
 var _ghosts: Array[Sprite2D] = []
 var _ghost_hits: Array = [[], []]
@@ -983,9 +983,18 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	if crit:
 		amount = roundi(amount * (crit_mult + keen * Gems.KEEN_DAMAGE))
 		t.crit_next = true
+	var branded := elem == Elements.PRAWIA and t.is_branded()  # piętno sprzed tego ciosu - leczy
 	t.take_damage(amount, from)
 	t.crit_next = false
-	if elem == Elements.ARCANE and hero != null:  # Arkana wysysają manę
+	if elem == Elements.PRAWIA:  # Prawia oślepia i piętnuje, trafienia w napiętnowanego leczą (ułamki się zbierają)
+		if branded and hero != null:
+			_nawia_acc += minf(amount * Elements.PRAWIA_HEAL, Elements.PRAWIA_HEAL_MAX)
+			if _nawia_acc >= 1.0:
+				var gain := int(_nawia_acc)
+				_nawia_acc -= gain
+				hero.heal(gain)
+		t.brand(Elements.PRAWIA_BRAND_TIME * duration_mult)
+	elif elem == Elements.ARCANE and hero != null:  # Arkana wysysają manę
 		hero.add_mana(mini(Elements.ARCANE_LEECH_MAX, maxi(1, roundi(amount * Elements.ARCANE_LEECH))))
 	elif elem == Elements.NAWIA and hero != null:  # Nawia wysysa życie (ułamki się zbierają) i osłabia wroga
 		_nawia_acc += minf(amount * Elements.NAWIA_LEECH, Elements.NAWIA_LEECH_MAX)

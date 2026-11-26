@@ -359,10 +359,10 @@ func take_damage(amount: int, element := Elements.PHYSICAL) -> void:
 	_check_death()
 
 
-## Cios wroga chybił przez aurę Mgła Nawii (ProtoTarget.hit_hero).
-func enemy_missed() -> void:
+## Cios wroga chybił przez aurę Mgła Nawii albo oślepienie Prawią (`prawia`; ProtoTarget.hit_hero) - napis w kolorze przyczyny.
+func enemy_missed(prawia := false) -> void:
 	if not dead:
-		_spawn_text(tr("Chybił!"), Auras.color_of("mgla").lightened(0.3))
+		_spawn_text(tr("Chybił!"), Elements.color_of(Elements.PRAWIA) if prawia else Auras.color_of("mgla").lightened(0.3))
 
 
 ## Zdrowie spadło do zera: śmierć (albo w trybie nieśmiertelności - złoty błysk i pełne zdrowie).
