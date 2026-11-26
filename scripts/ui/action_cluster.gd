@@ -5,6 +5,8 @@ extends Control
 ## do lewego (lustrzane odbicie). `show_skills` wstawia ikony umiejętności z miejsc (Game.skill_slots: 0 - duży
 ## przycisk, pusty duży przycisk to zwykły cios), puste miejsce ma plus. Miejsca odblokowują się
 ## z poziomem postaci (`set_hero_level`, HeroLevels.SKILL_SLOT_LEVELS; zablokowane - kłódka i poziom).
+## W rogu za łukiem umiejętności - przycisk zamiany na broń zapasową (`swap`, widoczny tylko z bronią zapasową -
+## `show_spare`; po zamianie krótkie odnowienie `start_swap_cooldown`).
 
 ## Bok kwadratu, w którym leżą przyciski (piksele gry).
 const SIZE := 156.0
@@ -14,9 +16,16 @@ const SKILL_RADIUS := 22.0
 const ORBIT := 96.0
 const SKILL_ANGLES := [180.0, 210.0, 240.0, 270.0]
 const SKILL_SLOTS := 4
+## Przycisk broni zapasowej: kąt (po prawej stronie) i odległość środka od środka ataku - zewnętrzny róg kwadratu,
+## między 2. a 3. umiejętnością; odnowienie zamiany (s).
+const SWAP_ANGLE := 225.0
+const SWAP_DIST := 136.0
+const SWAP_COOLDOWN := 1.0
 
 var attack: ActionButton
 var skills: Array[ActionButton] = []
+var swap: ActionButton
+var _swap_cd := 0.0
 ## Przyciski w lewym dolnym rogu.
 var left_handed := false:
 	set(value):
@@ -34,6 +43,9 @@ func _ready() -> void:
 		var b := _add_button(SKILL_RADIUS)
 		b.empty = true
 		skills.append(b)
+	swap = _add_button(SKILL_RADIUS)
+	swap.swap_mark = true
+	swap.visible = false
 	_layout()
 
 
@@ -64,9 +76,33 @@ func show_skills(slots: Array, basic := Skills.STRIKE) -> void:
 		skills[i].queue_redraw()
 
 
+## Przycisk zamiany: ikona broni zapasowej (Weapons) albo ukryty, gdy jej nie ma ("").
+func show_spare(id: String) -> void:
+	swap.visible = id != ""
+	swap.icon = Weapons.icon_of(id) if id != "" else null
+	swap.queue_redraw()
+
+
+## Odnowienie przycisku zamiany po zamianie broni.
+func start_swap_cooldown() -> void:
+	_swap_cd = SWAP_COOLDOWN
+
+
+## Czy zamiana broni jest gotowa (bez odnowienia).
+func swap_ready() -> bool:
+	return _swap_cd <= 0.0
+
+
+func _process(delta: float) -> void:
+	if _swap_cd > 0.0:
+		_swap_cd = maxf(0.0, _swap_cd - delta)
+		swap.set_state(_swap_cd, SWAP_COOLDOWN, false)
+
+
 ## Puszcza wszystkie przyciski (pauza, okna, śmierć) - np. trzymane Mgnienie przestaje skakać.
 func release_all() -> void:
 	attack.release()
+	swap.release()
 	for b in skills:
 		b.release()
 
@@ -87,6 +123,8 @@ func _layout() -> void:
 		if left_handed:
 			angle = 180.0 - angle  # odbicie: 180 -> 0 (w prawo), 270 -> -90 (w górę)
 		_place(skills[i], center + Vector2.from_angle(deg_to_rad(angle)) * ORBIT)
+	var swap_angle := SWAP_ANGLE if not left_handed else 180.0 - SWAP_ANGLE
+	_place(swap, center + Vector2.from_angle(deg_to_rad(swap_angle)) * SWAP_DIST)
 
 
 func _add_button(radius: float) -> ActionButton:

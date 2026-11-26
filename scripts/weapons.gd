@@ -4,6 +4,8 @@ class_name Weapons
 ## tą bronią i od bossów (tyle samo co doświadczenie postaci - arena.gd `_gain_xp`) i odblokowuje kolejne umiejętności
 ## (próg w Skills, pole "mastery") oraz pozwala ulepszać je wyżej (Skills.level_cap). Stan: `Game.weapon`,
 ## `Game.mastery` (broń -> poziom), `Game.mastery_xp` (broń -> doświadczenie na tym poziomie).
+## Broń zapasowa (Game.spare_weapon, decyzja autora 26.11.2026) zbiera to samo mistrzostwo i zamienia się z bronią
+## w ręku przyciskiem w lochu (Game.swap_weapons, ActionCluster.swap).
 ## Nowe rodzaje broni (łuk, hydrosfera, mroczna kosa…) odblokowuje postęp: pokonanie Wodza na poziomie `unlock`
 ## (za darmo), a wcześniej odblokowuje je Pieczęć Oręża (Gems.WEAPON_SEAL, decyzja autora 20.11.2026; do tego dnia
 ## kupno za złoto). Zmiana broni w oknie umiejętności przy kamieniu run (Game.set_weapon, Game.unseal_weapon). Węzeł broni w lochu: miecz - ProtoWeapon,
@@ -60,6 +62,9 @@ const ORDER := ["sword", "bow", "book", "glaive", "hydrosphere", "katana", "scyt
 const START: Array[String] = ["sword", "bow", "book"]
 ## Najwyższy poziom mistrzostwa (jak poziom postaci).
 const MAX_MASTERY := 50
+## Doganianie (decyzja autora 26.11.2026): broń z mistrzostwem niższym niż najlepsza broń postaci dostaje tyle razy
+## więcej mistrzostwa (Game.mastery_mult) - nowa broń szybko dochodzi do poziomu reszty.
+const CATCH_UP := 3.0
 
 
 static func has(id: String) -> bool:

@@ -89,6 +89,8 @@ const EMBER_FULL := Color(1.0, 0.8, 0.3)
 @export var horde := false
 
 var hero: ProtoHero
+## Dźwięk zamiany broni na zapasową.
+const SWAP_SOUND := preload("res://assets/watra/handleSmallLeather.ogg")
 var weapon: ProtoWeapon
 var joystick: Joystick
 var menu_button: Button
@@ -455,6 +457,8 @@ func _ready() -> void:
 	for i in actions.skills.size():
 		actions.skills[i].pressed.connect(_on_skill_pressed.bind(i + 1))
 		actions.skills[i].released.connect(_on_skill_released)
+	actions.swap.pressed.connect(_on_swap_pressed)
+	actions.show_spare(Game.spare_weapon)
 	_apply_skills()
 	Game.skills_changed.connect(_apply_skills)
 	Game.weapon_changed.connect(_swap_weapon)
@@ -1014,9 +1018,10 @@ func _apply_weapon() -> void:
 		horde_spawner.ember_mult = 1.0 + (gear.get("ember_pct", 0.0) + Game.tree_value("embers")) / 100.0
 
 
-## Zmiana broni w bazie (okno umiejętności): nowy węzeł broni w miejscu starego (te same cele - kukły), statystyki
+## Zmiana broni w bazie (okno umiejętności) albo zamiana na zapasową w lochu: nowy węzeł broni w miejscu starego (te same cele - kukły), statystyki
 ## i umiejętności nowej broni.
 func _swap_weapon() -> void:
+	actions.show_spare(Game.spare_weapon)
 	if weapon.get_script() == Weapons.script_of(Game.weapon):
 		return
 	var old := weapon
@@ -1030,9 +1035,35 @@ func _swap_weapon() -> void:
 	old.get_parent().remove_child(old)
 	old.queue_free()
 	auras_node.weapon = weapon
+	if frost:
+		frost.weapon = weapon  # Rozgrzanie przy koksowniku (Lodowe jaskinie) - nowa broń w ręku
 	_link_talismans()
 	_apply_weapon()
 	_apply_skills()
+
+
+## Przycisk broni zapasowej: zamiana z bronią w ręku (Game.swap_weapons -> `_swap_weapon`). Tylko gdy broń w ręku
+## nic nie robi (żadna umiejętność w toku, postać nie jest w formie Mary) i po odnowieniu zamiany - inaczej drgnięcie.
+func _on_swap_pressed() -> void:
+	if hero.dead or Game.spare_weapon == "" or not actions.swap_ready() or weapon._state != "follow" \
+			or hero.form_speed != 1.0:
+		actions.swap.deny()
+		return
+	actions.release_all()
+	weapon.attack_held = false
+	if Game.swap_weapons():
+		actions.start_swap_cooldown()
+		_play_swap()
+
+
+## Dźwięk zamiany broni (krótki brzęk).
+func _play_swap() -> void:
+	var p := AudioStreamPlayer.new()
+	p.stream = SWAP_SOUND
+	p.volume_db = -6.0
+	add_child(p)
+	p.finished.connect(p.queue_free)
+	p.play()
 
 
 ## Umiejętności z miejsc na przyciski walki i do miecza (duży przycisk - umiejętność z auto atakiem).

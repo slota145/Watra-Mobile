@@ -2,6 +2,30 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - broń zapasowa i doganianie mistrzostwa
+
+- **Decyzje autora (26.11.2026):** nowa broń nie może znaczyć cofania się w rozwoju. Wybrane: szybsze mistrzostwo
+  dla broni słabszej od najlepszej i broń zapasowa (2 bronie do lochu, jedna w ręku, zamiana przyciskiem); obie
+  bronie dostają 100% mistrzostwa. Liczby (x3, odnowienie 1 s, miejsce przycisku) - propozycje Claude.
+- **Doganianie:** `Weapons.CATCH_UP` = 3; `Game.best_mastery()` - najwyższe mistrzostwo postaci, `Game.mastery_mult(w)`
+  - x3, dopóki broń ma niższe. Liczone przy każdym zysku (`Game.add_mastery` -> `_gain_mastery` dla broni w ręku
+  i zapasowej, mnożniki sprzed dodania).
+- **Broń zapasowa:** `Game.spare_weapon` (zapis `spare_weapon`, przy wczytaniu tylko dostępna i inna niż w ręku),
+  `Game.set_spare(id)` ("" zdejmuje), `Game.swap_weapons()`; `set_weapon` na zapasowej zamienia je miejscami.
+  Nowe umiejętności zapasowej wpadają w jej własne miejsca (`_unlock_skills(w)` -> `weapon_slots[w]`, napis
+  „Nowa umiejętność” też dla niej).
+- **Przycisk zamiany** (`ActionCluster.swap`, `show_spare`, `start_swap_cooldown`; 44 px, w zewnętrznym rogu
+  kwadratu przycisków między 2. a 3. umiejętnością - `SWAP_ANGLE` 225°, `SWAP_DIST` 136; lustrzanie dla leworęcznych):
+  ikona broni zapasowej ze znaczkiem dwóch strzałek (`ActionButton.swap_mark`), widoczny tylko z bronią zapasową
+  (ukryty przycisk nie łapie dotyku). `arena._on_swap_pressed`: zamiana tylko, gdy broń nic nie robi
+  (`_state == "follow"`, postać nie w formie Mary) i po odnowieniu 1 s (`SWAP_COOLDOWN`), inaczej drgnięcie; dźwięk
+  `handleSmallLeather.ogg`. `_swap_weapon` - ten sam co przy zmianie w bazie (nowy węzeł broni, przywołania i efekty
+  starej znikają), dodatkowo przepina Rozgrzanie Lodowych jaskiń (`frost.weapon`).
+- **Okno broni** (`SkillsWindow`): w wierszu dostępnej broni drugi przycisk „Zapas” / „Odłóż” (`_on_spare`, tylko przy
+  kamieniu run), stan z mistrzostwem i „szybsze x3”, ramka zapasowej; przycisk broni pokazuje obie („Miecz + Łuk ▾ Bronie”).
+- Test `tests/test_spare_weapon.gd` (doganianie, mistrzostwo obu, zamiana i zapis, przycisk w bazie, okno, zamiana
+  na każdą broń w lochu z Hordą); zrzuty `tools/spare_shots.gd`.
+
 ## 26.11.2026 - Głębiny, krok 3: nagrody Głębin (lepszy łup, Odłamki Nawii, kamienie milowe)
 
 - **Ustalenia z autorem (ankieta 26.11.2026):** lepszy łup z Głębią, nagroda za trudny zestaw, waluta Głębin (na
