@@ -170,6 +170,7 @@ func _build_skill_socket() -> void:
 			continue  # kamień unikalny innej umiejętności - nie pokazujemy (prośba autora 15.11.2026)
 		var reason := tr("%s ma już kamień tego rodzaju.") % Skills.name_of(skill) if problem == "same" \
 				else tr("Nie działa w zwykłym ciosie.") if problem == "basic" \
+				else tr("Działa tylko w umiejętnościach natychmiastowych.") if problem == "trigger" \
 				else tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(id)) if problem == "skill" else ""
 		var b := _row(id, Gems.icon_of(id), Gems.name_of(id), Gems.color_of(id), Gems.support_text(id, skill),
 				reason, tr("Wymień") if current != "" else tr("Włóż"))
@@ -245,6 +246,7 @@ func _build_gem() -> void:
 			var reason := tr("Brak wolnego gniazda (otwiera je Klucz Runiczny).") if problem == "full" \
 					else tr("Ma już kamień tego rodzaju.") if problem == "same" \
 					else tr("Nie działa w zwykłym ciosie.") if problem == "basic" \
+				else tr("Działa tylko w umiejętnościach natychmiastowych.") if problem == "trigger" \
 					else tr("Pasuje tylko do: %s.") % Skills.name_of(Gems.unique_skill(gem)) if problem == "skill" else ""
 			var b := _row(id, Skills.icon_of(id), Skills.name_of(id), GOLD, Gems.support_text(gem, id), reason, tr("Włóż"))
 			b.disabled = problem != ""

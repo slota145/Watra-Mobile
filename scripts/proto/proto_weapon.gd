@@ -134,6 +134,8 @@ const FLICKER_FX_FPS := 16.0
 signal cast_failed(id: String, reason: String)
 ## Użyto umiejętności (zapłacono manę, ruszyło odnowienie).
 signal skill_used(id: String)
+## Trafienie krytyczne (nie z widmowej kopii) - kamień „rzuć, gdy…” Przebłysk (arena.gd `_fire_trigger`).
+signal crit_landed
 
 ## Kamienie umiejętności: czas podpalenia i spowolnienia, zasięg pioruna i jego wyładowania, rozrzut widmowych
 ## mieczy Rzutu, opóźnienie drugiej fali Rozłupania, zasięg dodatkowego cięcia Mgnienia.
@@ -317,6 +319,13 @@ var projectile_mult := 1.0
 ## Unikaty (Items.UNIQUES, ProtoUniques ustawia): założone (id -> siła działania), węzeł z odłamkami Strzyboga
 ## i liczba wrogów blisko postaci (Ostatnia Warownia).
 var uniques := {}
+## Widmowa kopia broni (kamienie „rzuć, gdy…”, Gems.TRIGGERS; arena.gd `_sync_ghosts`): niewidoczna, dopóki nic nie
+## robi, sama nie atakuje, rzuca tylko umiejętności z kamieni (`trigger`) - bez many, z mocą `trigger_mult` i przerwą
+## kamienia zamiast odnowienia (`trigger_gaps`).
+var ghost := false
+var trigger_mult := 1.0
+var trigger_gaps := {}
+const GHOST_TINT := Color(0.75, 0.9, 1.0, 0.7)
 var uniques_node: ProtoUniques
 var bastion_count := 0
 var _licho_hits := 0
@@ -476,6 +485,9 @@ func _process(delta: float) -> void:
 	_process_ring(delta)
 	_process_spectral(delta)
 	_process_flicker(delta)
+	if ghost:  # widmowa kopia: widać ją tylko w trakcie umiejętności
+		var want := 0.0 if _state == "follow" else GHOST_TINT.a
+		modulate = Color(GHOST_TINT, move_toward(modulate.a, want, delta * 4.0))
 	match _state:
 		"follow":
 			_follow(delta)
@@ -485,7 +497,7 @@ func _process(delta: float) -> void:
 				var q := _queued
 				_queued = ""
 				_start(q)
-			elif _cooldown <= 0.0:
+			elif _cooldown <= 0.0 and not ghost:
 				var main_ok := main_skill != basic and can_use(main_skill)
 				var main_range: float = Skills.DATA[main_skill].range if Skills.has(main_skill) else REACH
 				if main_ok and (attack_held or (auto_attack and _nearest(main_range) != null)):
@@ -743,7 +755,7 @@ func _set_state(state: String) -> void:
 
 ## Obrażenia jednego trafienia: zwykłe cięcie razy `power` (mnożnik umiejętności).
 func _roll(power := 1.0) -> int:
-	return maxi(1, roundi(randi_range(damage.x, damage.y) * damage_mult * bonus_mult * warm_mult * power))
+	return maxi(1, roundi(randi_range(damage.x, damage.y) * damage_mult * bonus_mult * warm_mult * trigger_mult * power))
 
 
 ## Siła kamienia rodzaju `kind` w umiejętności `skill` (Gems.SUPPORT `values`; 0 - brak kamienia).
@@ -799,6 +811,8 @@ func _strike_speed() -> float:
 
 ## Koszt many umiejętności z kamieniem Oszczędność i poziomem (Mgnienie z kamieniem unikalnym - o połowę mniej).
 func mana_cost(id: String) -> int:
+	if ghost:
+		return 0  # widmowa kopia rzuca za darmo (kamień „rzuć, gdy…”)
 	if id == _echo_pending:
 		return 0  # powtórka kamienia Echo jest za darmo
 	var cost := Skills.mana_of(id) * (1.0 - gem_power(id, "thrift") / 100.0) * Skills.level_mana(level_of(id)) * (1.0 + mana_tax)
@@ -817,6 +831,8 @@ func _blink_cost() -> int:
 ## Pełne odnowienie umiejętności z kamieniem Pośpiech i poziomem.
 ## Młynek z kamieniem unikalnym - bez odnowienia (Mgnienie nie ma go wcale).
 func cooldown_full(id: String) -> float:
+	if ghost:
+		return trigger_gaps.get(id, Gems.TRIGGER_GAP[0])  # przerwa kamienia zamiast odnowienia
 	if id in ["whirl", "steel_ring"] and _unique(id):
 		return 0.0
 	return _cooldown_base(id)
@@ -985,6 +1001,8 @@ func _deal(t: ProtoTarget, amount: int, from: Vector2, skill: String) -> void:
 	if crit:
 		amount = roundi(amount * (crit_mult + keen * Gems.KEEN_DAMAGE))
 		t.crit_next = true
+		if not ghost:
+			crit_landed.emit()
 	var branded := elem == Elements.PRAWIA and t.is_branded()  # piętno sprzed tego ciosu - leczy
 	t.take_damage(amount, from)
 	t.crit_next = false
@@ -2051,6 +2069,8 @@ func mirror_echoes(id: String) -> bool:
 
 
 func _on_skill_used(id: String) -> void:
+	if ghost:
+		return  # rzut z kamienia „rzuć, gdy…” bez Echa i odbić
 	if id != "spectral_blades":
 		_spectral_mirror(id)
 	if id == _echo_pending:
@@ -2075,6 +2095,16 @@ func _on_skill_used(id: String) -> void:
 	await get_tree().create_timer(2.0, false).timeout  # bezpiecznik: powtórka nie ruszyła - koniec darmowej many
 	if _echo_pending == id:
 		_echo_pending = ""
+
+
+## Rzut umiejętności przez widmową kopię (kamień „rzuć, gdy…”): `power` - mnożnik obrażeń, `gap` - przerwa do
+## następnego rzutu tej umiejętności. Zwraca false, gdy przerwa trwa albo postać nie żyje.
+func trigger(id: String, power: float, gap: float) -> bool:
+	if not ghost or hero.dead or cooldown_left(id) > 0.0 or not Skills.can_trigger(id):
+		return false
+	trigger_gaps[id] = gap
+	trigger_mult = power
+	return cast(id)
 
 
 ## Tryb deweloperski i testy: zeruje odnowienia.

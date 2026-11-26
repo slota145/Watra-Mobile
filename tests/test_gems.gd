@@ -45,7 +45,7 @@ func _run() -> void:
 
 
 func _test_data() -> void:
-	_check(Gems.SUPPORT_ORDER.size() == 18 and Gems.JEWEL_ORDER.size() == 4, "18 kamieni umiejętności i 4 szlachetne")
+	_check(Gems.SUPPORT_ORDER.size() == 21 and Gems.JEWEL_ORDER.size() == 4, "21 kamieni umiejętności (z trzema „rzuć, gdy…”) i 4 szlachetne")
 	var icons := true
 	for kind in Gems.SUPPORT_ORDER:
 		icons = icons and Gems.icon_of(Gems.make(kind)) != null and Gems.support_text(Gems.make(kind)) != "" \

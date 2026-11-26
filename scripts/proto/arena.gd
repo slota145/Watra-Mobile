@@ -89,6 +89,10 @@ const EMBER_FULL := Color(1.0, 0.8, 0.3)
 @export var horde := false
 
 var hero: ProtoHero
+## Widmowe kopie broni w ręku i zapasowej, które same rzucają umiejętności z kamieni „rzuć, gdy…” (broń -> węzeł;
+## `_sync_ghosts`), i ile obrażeń postać zebrała do Odwetu (Gems.TRIGGER_HURT).
+var ghosts := {}
+var _hurt_acc := 0.0
 ## Dźwięk zamiany broni na zapasową.
 const SWAP_SOUND := preload("res://assets/watra/handleSmallLeather.ogg")
 var weapon: ProtoWeapon
@@ -291,6 +295,8 @@ func _ready() -> void:
 	uniques_node.name = "Uniques"
 	hero.add_child(uniques_node)
 	hero.hurt.connect(func(_amount: int) -> void: talismans_node.on_hurt())
+	hero.hurt.connect(_on_hurt_trigger)
+	weapon.crit_landed.connect(_fire_trigger.bind("crit"))
 	_link_talismans()
 	gear = _gear()
 	# paski zdrowia i many (w lochu i w bazie - prośba autora 25.11.2026)
@@ -380,6 +386,7 @@ func _ready() -> void:
 			frost.weapon = weapon
 			world.add_child(frost)
 			frost.place_braziers(world, area.grow(-50), hero.position)
+		horde_spawner.monster_died.connect(func(_g: ProtoGoblin) -> void: _fire_trigger("kill"))
 		horde_spawner.monster_died.connect(func(g: ProtoGoblin) -> void:
 			auras_node.on_monster_died(g)
 			talismans_node.on_kill(g))
@@ -985,29 +992,9 @@ func _on_inventory() -> void:
 ## Miecz: obrażenia z założonej broni, mnożnik z poziomu i premii, szybkość ataku, krytyki, premia przeciw elitom
 ## i bossom, krótsze odnowienie umiejętności, obszar; w lochu też zasięg zbierania i żar.
 func _apply_weapon() -> void:
-	weapon.damage = HeroStats.weapon_damage(gear)
-	weapon.damage_mult = HeroStats.damage_mult(Game.hero_level, gear)
-	weapon.speed_mult = HeroStats.weapon_speed_mult(Game.weapon, gear)  # broń magiczna - szybkość rzucania
-	weapon.crit_chance = HeroStats.crit_chance(gear) / 100.0
-	weapon.crit_mult = HeroStats.crit_damage(gear) / 100.0
-	weapon.elite_mult = 1.0 + gear.get("elite_dmg_pct", 0.0) / 100.0
-	weapon.cooldown_cut = gear.get("cdr_pct", 0.0) / 100.0
-	weapon.area_bonus = gear.get("area_pct", 0.0)
-	weapon.penetration = gear.get("pen_pct", 0.0) / 100.0
-	weapon.aura_fire = gear.get("aura_fire", 0.0)
-	weapon.elem_mult = 1.0 + gear.get("elem_dmg_pct", 0.0) / 100.0
-	weapon.magic_mult = 1.0 + gear.get("magic_dmg_pct", 0.0) / 100.0 if Weapons.is_magic(Game.weapon) else 1.0
-	weapon.item_skill_levels = gear.get("skill_bonus", {})
-	weapon.item_all_levels = int(gear.get("skill_level_all", 0.0))
-	weapon.tag_bonus = {}
-	for tag in Skills.TAG_STATS:
-		weapon.tag_bonus[tag] = gear.get(Skills.TAG_STATS[tag], 0.0) / 100.0
-	weapon.afflicted_bonus = gear.get("afflicted_dmg_pct", 0.0) / 100.0
-	weapon.full_hp_bonus = gear.get("full_hp_dmg_pct", 0.0) / 100.0
-	weapon.proj_speed_mult = 1.0 + gear.get("proj_speed_pct", 0.0) / 100.0
-	weapon.duration_mult = 1.0 + gear.get("duration_pct", 0.0) / 100.0
-	weapon.extra_projectiles = int(gear.get("aura_projectiles", 0))  # Rój Strzyboga
-	weapon.projectile_mult = 1.0 - gear.get("aura_proj_penalty", 0.0)
+	_apply_weapon_to(weapon, Game.weapon)
+	for w: String in ghosts:
+		_apply_weapon_to(ghosts[w], w)
 	if uniques_node:
 		uniques_node.weapon = weapon
 		uniques_node.worn = gear.get("uniques", {})
@@ -1018,11 +1005,39 @@ func _apply_weapon() -> void:
 		horde_spawner.ember_mult = 1.0 + (gear.get("ember_pct", 0.0) + Game.tree_value("embers")) / 100.0
 
 
+## Statystyki z ekwipunku dla węzła broni `w` rodzaju `wid` (broń w ręku i jej widmowe kopie).
+func _apply_weapon_to(w: ProtoWeapon, wid: String) -> void:
+	w.damage = HeroStats.weapon_damage(gear)
+	w.damage_mult = HeroStats.damage_mult(Game.hero_level, gear)
+	w.speed_mult = HeroStats.weapon_speed_mult(wid, gear)  # broń magiczna - szybkość rzucania
+	w.crit_chance = HeroStats.crit_chance(gear) / 100.0
+	w.crit_mult = HeroStats.crit_damage(gear) / 100.0
+	w.elite_mult = 1.0 + gear.get("elite_dmg_pct", 0.0) / 100.0
+	w.cooldown_cut = gear.get("cdr_pct", 0.0) / 100.0
+	w.area_bonus = gear.get("area_pct", 0.0)
+	w.penetration = gear.get("pen_pct", 0.0) / 100.0
+	w.aura_fire = gear.get("aura_fire", 0.0)
+	w.elem_mult = 1.0 + gear.get("elem_dmg_pct", 0.0) / 100.0
+	w.magic_mult = 1.0 + gear.get("magic_dmg_pct", 0.0) / 100.0 if Weapons.is_magic(wid) else 1.0
+	w.item_skill_levels = gear.get("skill_bonus", {})
+	w.item_all_levels = int(gear.get("skill_level_all", 0.0))
+	w.tag_bonus = {}
+	for tag in Skills.TAG_STATS:
+		w.tag_bonus[tag] = gear.get(Skills.TAG_STATS[tag], 0.0) / 100.0
+	w.afflicted_bonus = gear.get("afflicted_dmg_pct", 0.0) / 100.0
+	w.full_hp_bonus = gear.get("full_hp_dmg_pct", 0.0) / 100.0
+	w.proj_speed_mult = 1.0 + gear.get("proj_speed_pct", 0.0) / 100.0
+	w.duration_mult = 1.0 + gear.get("duration_pct", 0.0) / 100.0
+	w.extra_projectiles = int(gear.get("aura_projectiles", 0))  # Rój Strzyboga
+	w.projectile_mult = 1.0 - gear.get("aura_proj_penalty", 0.0)
+
+
 ## Zmiana broni w bazie (okno umiejętności) albo zamiana na zapasową w lochu: nowy węzeł broni w miejscu starego (te same cele - kukły), statystyki
 ## i umiejętności nowej broni.
 func _swap_weapon() -> void:
 	actions.show_spare(Game.spare_weapon)
 	if weapon.get_script() == Weapons.script_of(Game.weapon):
+		_sync_ghosts()  # nowa broń zapasowa - jej kamienie „rzuć, gdy…”
 		return
 	var old := weapon
 	weapon = Weapons.make(Game.weapon)
@@ -1035,6 +1050,7 @@ func _swap_weapon() -> void:
 	old.get_parent().remove_child(old)
 	old.queue_free()
 	auras_node.weapon = weapon
+	weapon.crit_landed.connect(_fire_trigger.bind("crit"))
 	if frost:
 		frost.weapon = weapon  # Rozgrzanie przy koksowniku (Lodowe jaskinie) - nowa broń w ręku
 	_link_talismans()
@@ -1072,6 +1088,76 @@ func _apply_skills() -> void:
 	weapon.main_skill = Game.main_skill()
 	weapon.skill_gems = Game.skill_gems
 	weapon.skill_levels = Game.skill_levels
+	_sync_ghosts()
+
+
+## Czy broń `w` ma odblokowaną umiejętność z kamieniem „rzuć, gdy…”.
+func _has_triggers(w: String) -> bool:
+	for id in Skills.of_weapon(w):
+		if Game.skills_owned.has(id) and Skills.can_trigger(id) \
+				and (Game.skill_gems.get(id, []) as Array).any(func(g) -> bool: return g is String and Gems.is_trigger(g)):
+			return true
+	return false
+
+
+## Widmowe kopie broni w ręku i zapasowej - tylko tych, które mają kamienie „rzuć, gdy…” (zbędne znikają, brakujące
+## powstają obok broni w ręku, z tymi samymi celami i statystykami).
+func _sync_ghosts() -> void:
+	var want: Array[String] = []
+	for w in [Game.weapon, Game.spare_weapon]:
+		if w != "" and _has_triggers(w):
+			want.append(w)
+	for w: String in ghosts.keys():
+		if not want.has(w):
+			ghosts[w].queue_free()
+			ghosts.erase(w)
+	for w in want:
+		if ghosts.has(w):
+			continue
+		var g := Weapons.make(w)
+		g.ghost = true
+		g.name = "Ghost_" + w
+		g.hero = hero
+		g.targets = weapon.targets
+		g.modulate.a = 0.0
+		weapon.get_parent().add_child(g)
+		g.position = weapon.position
+		ghosts[w] = g
+		_apply_weapon_to(g, w)
+	for w: String in ghosts:
+		var g: ProtoWeapon = ghosts[w]
+		g.main_skill = Skills.basic_of(w)
+		g.skill_gems = Game.skill_gems
+		g.skill_levels = Game.skill_levels
+
+
+## Odwet: otrzymane obrażenia zbierają się, a co Gems.TRIGGER_HURT zdrowia - rzut.
+func _on_hurt_trigger(amount: int) -> void:
+	if ghosts.is_empty():
+		return
+	_hurt_acc += amount
+	var need := hero.max_hp * Gems.TRIGGER_HURT
+	if _hurt_acc >= need:
+		_hurt_acc = fmod(_hurt_acc, need)
+		_fire_trigger("hurt")
+
+
+## Zdarzenie dla kamieni „rzuć, gdy…” ("hurt", "crit", "kill"): każda widmowa kopia rzuca pierwszą gotową umiejętność
+## z kamieniem tego zdarzenia (moc i przerwa z poziomu kamienia).
+func _fire_trigger(event: String) -> void:
+	if hero == null or hero.dead:
+		return
+	for w: String in ghosts:
+		var g: ProtoWeapon = ghosts[w]
+		var fired := false
+		for id in Skills.of_weapon(w):
+			if fired or not Game.skills_owned.has(id) or not Skills.can_trigger(id):
+				continue
+			for gem in Game.skill_gems.get(id, []):
+				if gem is String and Gems.is_trigger(gem) and Gems.TRIGGERS[Gems.kind_of(gem)] == event:
+					if g.trigger(id, Gems.support_value(gem) / 100.0, Gems.trigger_gap(gem)):
+						fired = true
+					break
 
 
 ## Stuknięcie małego przycisku: umiejętność z tego miejsca; gdy się odnawia albo brakuje many - drgnięcie przycisku.

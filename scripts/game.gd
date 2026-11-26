@@ -1662,7 +1662,7 @@ func skill_sockets(skill: String) -> Array:
 
 
 ## Czemu kamienia nie da się włożyć w gniazdo umiejętności ("" - da się): "owned", "locked", "kind" (nie kamień
-## umiejętności), "skill" (kamień unikalny innej umiejętności), "none" (brak w sakwie), "same" (ten rodzaj już jest w innym gnieździe tej umiejętności).
+## umiejętności), "skill" (kamień unikalny innej umiejętności), "trigger" („rzuć, gdy…” w umiejętności nienatychmiastowej), "none" (brak w sakwie), "same" (ten rodzaj już jest w innym gnieździe tej umiejętności).
 func skill_socket_problem(skill: String, index: int, id: String) -> String:
 	if not skills_owned.has(skill):
 		return "owned"
@@ -1672,6 +1672,8 @@ func skill_socket_problem(skill: String, index: int, id: String) -> String:
 		return "kind"
 	if Gems.is_unique(id) and Gems.unique_skill(id) != skill:
 		return "skill"
+	if Gems.is_trigger(id) and not Skills.can_trigger(skill):
+		return "trigger"  # „rzuć, gdy…” - tylko umiejętności natychmiastowe
 	if not Gems.fits(id, skill):
 		return "basic"
 	if gem_count(id) <= 0:
