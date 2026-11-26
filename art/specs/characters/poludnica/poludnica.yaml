@@ -173,8 +173,9 @@ parts:
     space: head
     prims:
       - extrude: {c: [0.075, 0.115, 0.095], rot: [0, 0.7, 0], depth: 0.04, profile: {rect: [0.02, 0.026], round: 0.007}}
-  arm_L:           # smukłe, nagie ramiona
+  arm_L:           # smukłe, nagie ramiona (IK nie maleje z `big`, więc przy śmierci znikają w mgle)
     material: skin
+    when: "fade < 0.6"
     blend: 0.03
     prims:
       - sphere: {c: "@shoulder_L", r: 0.05}
@@ -183,6 +184,7 @@ parts:
   hand_L:
     material: skin
     space: wrist_L
+    when: "fade < 0.6"
     prims:
       - ellipsoid: {c: [0, 0, 0.035], r: [0.032, 0.042, 0.05]}
   leg_L: {when: "0"}
@@ -220,12 +222,14 @@ parts:
   sickle_grip:
     material: wood
     space: sickle
+    when: "fade < 0.3"     # przy śmierci sierp rozpływa się pierwszy
     min_cover: 2
     prims:
       - cylinder: {a: [0, 0, -0.04], b: [0, 0, 0.12], r: 0.03}
   sickle_blade:
     material: blade
     space: sickle_face
+    when: "fade < 0.3"
     priority: 3
     min_cover: 2
     prims:
@@ -309,7 +313,7 @@ animations:
           hand_L: [0.31, 0.12, 0.0], hand_R: [0.32, 0.16, 0.04], sickle_pitch: -0.2, hair_flow: 0.0, hair_sway: 0.03}}
       - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.02, head_pitch: 0.02, coat: -0.05, flut: 3,
           hand_L: [0.28, 0.07, 0.05], hand_R: [0.31, 0.13, 0.12], hair_flow: 0.08}}
-  # śmierć: odrzucona do tyłu z rozłożonymi rękami, potem rozpływa się (razem z sierpem) w złotej
+  # śmierć: odrzucona do tyłu z rozłożonymi rękami, sierp i ręce rozpływają się pierwsze, potem całość w złotej
   # mgle południa: ciało maleje i unosi się, kłęby mgły puchną i odpływają, na końcu cienka smużka
   death:
     loop: false
