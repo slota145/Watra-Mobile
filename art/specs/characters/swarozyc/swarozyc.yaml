@@ -1,7 +1,7 @@
 spritekiln: 1
 # yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
 name: swarozyc
-camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.75, 0]}
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 2.0, 0]}
 palette: "watra"
 size: 128
 extends: humanoid   # szkielet, głowa i kanały szablonu; zbroja, hełm, peleryna, aureola i włócznia są jego własne
@@ -337,13 +337,13 @@ parts:
     space: spearaxis
     min_cover: 2
     prims:
-      - cone: {a: [0, 1.65, 0], b: "[0, 1.65 + 0.42*sky, 0]", r: "[0.05*sky, 0.09*sky]"}
+      - cone: {a: [0, 1.65, 0], b: "[0, 1.65 + 0.30*sky, 0]", r: "[0.05*sky, 0.09*sky]"}
   palm_light:      # kula światła w lewej dłoni (summon)
     when: "palm > 0.05 and gone < 0.5"
     material: glow
     space: wrist_L
     prims:
-      - sphere: {c: [0, 0, 0.10], r: "0.06 + 0.10*palm"}
+      - sphere: {c: [0, 0, 0.10], r: "0.07 + 0.12*palm"}
   # śmierć: słup światła pochłania klęczącą postać; potem zostają iskry i włócznia leżąca w pyle
   death_pillar:    # słup światła: najpierw wąski przez środek ciała (widać ramiona), potem pochłania całą postać;
     # jaśniejszy pas środkiem zawsze od strony kamery (kość deathfx)
@@ -497,11 +497,11 @@ animations:
     loop: false
     keys:
       - {ms: 150, event: windup, set: {bob: -0.04, squash: 0.97, lean: 0.08, head_pitch: 0.12, hand_L: [0.18, 0.12, 0.26], palm: 0.3, halo: 0.2}}
-      - {ms: 220, set: {bob: 0.0, lean: -0.04, head_pitch: -0.05, hand_L: [0.34, 0.36, 0.24], palm: 0.6, coat: -0.05, halo: 0.5}}
-      - {ms: 230, set: {bob: 0.03, lean: -0.10, squash: 1.02, head_pitch: -0.15, hand_L: [0.40, 0.64, 0.18], palm: 0.8, coat: -0.15, cape_sway: 0.1, halo: 0.75}}
-      - {ms: 130, event: release, set: {bob: 0.05, lean: -0.14, squash: 1.04, head_pitch: -0.22, hand_L: [0.46, 0.76, 0.12], palm: 1.0,
+      - {ms: 220, set: {bob: 0.0, lean: -0.04, head_pitch: -0.05, hand_L: [0.34, 0.42, 0.24], palm: 0.6, coat: -0.05, halo: 0.5}}
+      - {ms: 230, set: {bob: 0.03, lean: -0.10, squash: 1.02, head_pitch: -0.15, hand_L: [0.36, 0.84, 0.16], palm: 0.8, coat: -0.15, cape_sway: 0.1, halo: 0.75}}
+      - {ms: 130, event: release, set: {bob: 0.05, lean: -0.14, squash: 1.04, head_pitch: -0.22, hand_L: [0.38, 1.00, 0.10], palm: 1.0,
           coat: -0.25, cape_sway: 0.2, halo: 1.0}}
-      - {ms: 130, set: {root: [0.02, 0, 0], roll: 0.02, bob: 0.05, lean: -0.14, squash: 1.04, head_pitch: -0.20, hand_L: [0.47, 0.75, 0.12], palm: 0.7,
+      - {ms: 130, set: {root: [0.02, 0, 0], roll: 0.02, bob: 0.05, lean: -0.14, squash: 1.04, head_pitch: -0.20, hand_L: [0.39, 0.99, 0.10], palm: 0.7,
           coat: -0.22, cape_sway: 0.2, halo: 0.9}}
       - {ms: 140, set: {bob: 0.01, lean: 0.0, head_pitch: -0.04, hand_L: [0.32, 0.20, 0.16], coat: -0.05, halo: 0.35}}
   # trafienie: krótkie szarpnięcie w tył (boss się nie zatrzymuje), peleryna i włócznia odskakują, powrót
