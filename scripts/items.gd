@@ -359,8 +359,9 @@ static func life_on_kill(gear: Dictionary) -> float:
 ## Sufity sumy z całego ekwipunku (żeby postać nie stała się nieśmiertelna ani nie fruwała po lochu).
 ## Szansa na krytyk: 95% z przedmiotów + bazowe 5% = pewny krytyk; odnowienie aż do zera (decyzja autora 13.11.2026:
 ## osiągalne, ale bardzo trudne - premie na jednym przedmiocie są małe; przy zerowym odnowieniu hamulcem zostaje mana).
+## Szybkość ataku i rzucania do +200% (decyzja autora 26.11.2026, wcześniej 75% - jak w grach h&s wysoko, cel na późną grę).
 ## Unik do 50% (połowa ciosów nadal trafia), obszar do +100%, zasięg zbierania do +200%, żar do +100%.
-const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 75.0, "cast_speed_pct": 75.0, "crit_pct": 95.0, "cdr_pct": 100.0,
+const CAPS := {"protection_pct": 50.0, "move_pct": 50.0, "attack_speed_pct": 200.0, "cast_speed_pct": 200.0, "crit_pct": 95.0, "cdr_pct": 100.0,
 	"dodge_pct": 50.0, "area_pct": 100.0, "pickup_pct": 200.0, "ember_pct": 100.0,
 	"element_res_pct": Elements.MAX_RESISTANCE * 100.0, "pen_pct": 55.0, "mana_on_kill": 2.0,
 	"reserve_pct": 20.0, "proj_speed_pct": 100.0, "duration_pct": 100.0, "kill_haste_pct": 50.0, "rarity_pct": 200.0,
