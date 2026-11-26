@@ -1,0 +1,389 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: swarozyc
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.75, 0]}
+palette: "watra"
+size: 128
+extends: humanoid   # szkielet, głowa i kanały szablonu; zbroja, hełm, peleryna, aureola i włócznia są jego własne
+
+# Swarożyc-strażnik (boss lochu "Zajęta Świątynia Słońca", żywioł Prawia): ogromny świetlisty wojownik, strażnik
+# świątyni Dadźboga, syn Swaroga, który oszalał od światła. Całe ciało x1.45 (ok. 52 px bez aureoli; człowiek 36 px,
+# ta sama camera.scale). Złota zbroja łuskowa, ciemniejsza brązowa kolczuga na ramionach i nogach, złoty szpiczasty
+# hełm słowiański (szyszak) z nosalem i kolczym czepcem, biało-złota peleryna, za głową świetlista tarcza-aureola
+# słońca z promieniami, oczy świecą białym światłem. W prawej dłoni (na ekranie po lewej w s) długa złota włócznia
+# ze świecącym grotem. Ten sam model gra też "mniejszego Swarożyca" (sługę; gra go zmniejsza), stąd zwykły `attack`.
+# Klatka 128 px: włócznia uniesiona grotem do nieba (beams) i wypad (lunge) muszą się zmieścić.
+brief:
+  summary: >
+    boss of the occupied Temple of the Sun, Swarożyc the guardian (Slavic god of the sun's fire, son of Swaróg,
+    maddened by light): a monumental radiant warrior, about 52 px tall (the human is 36 px, same density), in golden
+    scale armour over darker bronze mail, a tall pointed golden Slavic helmet (szyszak) with a nasal and a mail
+    aventail, a long white-gold cloak, a radiant sun disc with rays behind his head, eyes glowing white, a long golden
+    spear with a glowing head in his right hand
+  proportions: "heroic: the head small (about 1/7 of the height without the helmet spike), broad shoulders with round pauldrons, a long scale skirt to the knees"
+  head: >
+    the head kit (no nose) in warm bronze skin, mostly hidden under a tall pointed golden helmet with a gold-white
+    trim band and a nasal bar down the face; two white glowing eyes 1-2 px in dark sockets either side of the nasal;
+    a bronze mail aventail hangs from the helmet's rim round the neck and shoulders; face minimal (eyes only)
+  must_keep:
+    - the sun halo with rays behind the head (always facing the camera, always behind the head)
+    - the pointed Slavic helmet silhouette with the nasal
+    - the long golden spear with the glowing head, taller than he is
+    - the white glowing eyes
+    - the white-gold cloak (the lightest mass, against the golden armour)
+  simplify:
+    - the scales are horizontal darker bands (lamellar rows), no single scales
+    - the mail is a flat darker bronze; the halo's rays are thin cones
+  decisions:
+    - the halo bone turns against the direction (`-radians(yaw)`) so the disc faces the camera and stays behind
+      the head from every side, as a painter would draw it (a real disc would be a line in e/w and hide the head in n)
+    - the spear is in the right hand (screen left in s); the left hand is free for the summon gesture
+    - value split to keep gold on gold readable - helmet, pauldrons and torso bright gold; skirt, mail and boots
+      darker bronze; cloak near white; halo, eyes, spear head and chest sun emissive
+    - at death he sinks to one knee, a pillar of light swallows him, the spear is left lying in the dust with a few motes
+
+ramps:
+  # ciemniejszy brąz: kolczuga, spodnie, buty, pas (żeby złoto zbroi się odcinało)
+  bronze:   ["#140a06", "#3a2210", "#5e3c1a", "#845a28", "#a87e3c", "#c8a25e"]
+  # biało-złota peleryna: najjaśniejsza masa postaci
+  mantle:   ["#1c160e", "#5e4e38", "#9a8a6c", "#cfc2a0", "#eee6cc", "#fffbea"]
+  # ciepła, opalona skóra twarzy i dłoni
+  sunskin:  ["#120806", "#4a2816", "#80502a", "#b07a44", "#d4a466", "#ecc890"]
+  # światło słońca (Prawia): aureola, oczy, grot, słońce na piersi
+  sunglow:  ["#6a3a06", "#e89a18", "#ffd254", "#fff2b0", "#ffffff"]
+  fx_core: ["#ffffff"]
+  fx_mid:  ["#fff2b0"]
+  fx_tail: ["#ffc040"]
+
+materials:
+  skin:     {ramp: sunskin, gamma: 0.8, finish: soft}
+  armor:    {ramp: gold, finish: metal, edge_highlight: true}     # złote płyty: hełm, naramienniki, karwasze
+  scale:    {ramp: gold, finish: metal}                           # zbroja łuskowa na piersi
+  scaledk:  {ramp: gold, finish: metal, bands: [1, 3]}            # rzędy łusek (ciemniejsze pasy)
+  skirt:    {ramp: gold, finish: metal, bands: [1, 4]}            # łuskowa spódnica, o ton ciemniejsza od piersi
+  mail:     {ramp: bronze, finish: matte}                         # kolczuga, spodnie
+  leather:  {ramp: bronze, finish: soft, bands: [1, 3]}           # pas i buty
+  cape:     {ramp: mantle, finish: matte}                         # peleryna (materiał kitu cape)
+  trim:     {ramp: sunglow, finish: metal, bands: [1, 4]}         # jasna obwódka hełmu i zapinka
+  shaft:    {ramp: gold, finish: matte, bands: [2, 5]}            # drzewce włóczni
+  socket:   {ramp: bronze, bands: [0, 1], line: false}            # ciemne oczodoły pod hełmem
+  eye:      {ramp: sunglow, emissive: true, band: 4, outline: false, glow: {color: "#fff2b0", mix: 0.35, radius: 1}}
+  glow:     {ramp: sunglow, emissive: true, band: 3, outline: false, glow: {color: "#ffd254", mix: 0.35, radius: 1}}
+  glowdk:   {ramp: sunglow, emissive: true, band: 0, outline: false}   # ciemne, bursztynowe wnętrze tarczy
+  glowcore: {ramp: sunglow, emissive: true, band: 4, outline: false}
+
+remove: [use.hair, use.sword, animations.attack]
+
+use:
+  - {kit: head, at: head, with: {width: 0.95, jaw: 0.8, chin: 0.5, nose: 0, ears: 0}}
+  # biało-złota peleryna od ramion do kostek; jej `cape` to nasz materiał; bez kołnierza (wyglądał jak biała broda
+  # pod twarzą) - szyję zakrywa kolczy czepiec
+  - {kit: cape, as: cape, at: pelvis, with: {length: 1.12, width: 0.5, flare: 0.36, drape: 0.14, top: 0.58, thick: 0.05,
+           collar: false, clasp: false},
+     materials: {gold: trim}}
+
+shadow: {rx: 19, ry: 6.5, alpha: 115}
+snap: [root, torso_rot]   # powolny oddech w całych pikselach (mniej migotania)
+
+channels:
+  hand_L: [0.30, 0.02, 0.12]     # wolna ręka (lewa, na ekranie po prawej w s)
+  hand_R: [0.30, 0.10, 0.20]     # ręka z włócznią
+  foot_L: [0.15, 0, 0.02]
+  spear_pitch: 0    # pochylenie włóczni (0: pionowo, 1.57: poziomo do przodu)
+  spear_yaw: 0      # obrót włóczni wokół pionu
+  spear_splay: 0    # odchylenie włóczni na zewnątrz (+)
+  grip: 0           # przesunięcie włóczni w dłoni do tyłu (dłoń bliżej grotu): pchnięcia mieszczą się w klatce
+  halo: 0           # 0..1 rozbłysk aureoli (większa tarcza, dłuższe promienie)
+  trail: 0          # 0..1 smuga światła wzdłuż włóczni przy pchnięciu
+  sky: 0            # 0..1 słup światła z grotu ku niebu (beams)
+  palm: 0           # 0..1 światło w lewej dłoni (summon)
+  pillar: 0         # 0..1 śmierć: słup światła, który go pochłania
+  gone: 0           # 1: ciało rozpłynęło się w świetle (śmierć)
+  motes: 0          # 0..1 śmierć: iskry światła nad miejscem, gdzie stał
+
+bones:
+  # całe ciało x1.45; wysokość bioder jak w szablonie
+  big:        {parent: root, scale: 1.45}
+  torso_rot:  {parent: big, pos: "[0, 0.84 + bob, 0]", rot: "[lean, twist, roll]"}
+  legyaw:     {parent: big, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: big, rot: "[0, twist*0.4, 0]"}
+  headbase:   {parent: pelvis, pos: [0, 0.68, 0.03], inherit_rot: false, inherit_scale: false, scale: 1.45,
+               rot: "[lean*0.5, twist, roll]"}
+  head:       {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.05}
+  helm:       {parent: head, pos: [0, 0, -0.035], scale: 1.04}
+  # aureola: obrócona przeciw kierunkowi, więc tarcza zawsze patrzy w kamerę i stoi za głową; lekko odchylona w górę
+  halo:       {parent: headbase, pos: [0, 0.17, 0], rot: "[-0.35, -radians(yaw) - twist, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.29, 0.54, -0.01]}
+  hip_L:      {parent: pelvis, pos: [0.12, -0.02, 0.0]}
+  fxspace:    {parent: big, rot: "[0, twist*0.3, 0]"}
+  # włócznia trzyma własne pochylenie w świecie (dłoń tylko ją niesie): pionowo, lekko na zewnątrz (prawa ręka)
+  spear:      {parent: wrist_R, pos: [0, 0, 0.04], inherit_rot: false,
+               rot: "[spear_pitch + lean*0.5, twist + spear_yaw, 0.08 + spear_splay]"}
+  spearaxis:  {parent: spear, pos: "[0, -grip, 0]"}   # drzewce przesuwa się w dłoni o `grip`
+
+ik:
+  arm_L: {lengths: [0.42, 0.40]}
+  leg_L: {space: big, lengths: [0.56, 0.53]}
+
+parts:
+  torso:           # szeroka pierś w zbroi łuskowej
+    when: "gone < 0.5"
+    material: scale
+    space: pelvis
+    blend: 0.07
+    prims:
+      - ellipsoid: {c: [0, 0.08, 0], r: [0.20, 0.14, 0.15]}
+      - ellipsoid: {c: [0, 0.28, 0.0], r: [0.21, 0.17, 0.15]}
+      - ellipsoid: {c: [0, 0.46, -0.01], r: [0.29, 0.15, 0.17]}
+    paint:
+      - material: scaledk      # rzędy łusek
+        stripes: {axis: y, period: 0.10, width: 0.034, offset: 0.02}
+  sun_chest:       # świecące słońce na piersi
+    when: "gone < 0.5"
+    material: glow
+    space: pelvis
+    prims:
+      - extrude: {c: [0, 0.34, 0.15], rot: [-0.15, 0, 0], depth: 0.05, profile: {circle: 0.07}}
+  skirt:           # łuskowa spódnica od pasa do kolan, rozcięta z przodu dla nóg
+    when: "gone < 0.5"
+    material: skirt
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.06, -0.01], b: [0, -0.40, -0.03], r: [0.22, 0.31]}
+    cut:
+      - cone: {a: [0, -0.14, 0.24], b: [0, -0.50, 0.36], r: [0.04, 0.15]}
+    paint:
+      - material: scaledk
+        stripes: {axis: y, period: 0.10, width: 0.034, offset: 0.0}
+  belt:            # brązowy pas ze złotą sprzączką
+    when: "gone < 0.5"
+    material: leather
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.04, -0.01], b: [0, 0.12, -0.01], r: 0.225}
+  buckle:
+    when: "gone < 0.5"
+    material: trim
+    space: pelvis
+    prims:
+      - box: {c: [0, 0.08, 0.215], half: [0.05, 0.04, 0.02], round: 0.01}
+  neck: {when: "0"}
+  pauldron_L:      # okrągły złoty naramiennik z dwiema płytami
+    when: "gone < 0.5"
+    material: armor
+    space: pelvis
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.31, 0.57, -0.01], r: [0.14, 0.10, 0.15], rot: [0, 0, -0.35]}
+      - ellipsoid: {c: [0.36, 0.47, -0.01], r: [0.11, 0.06, 0.13], rot: [0, 0, -0.55]}
+  arm_L:           # ramiona w kolczudze
+    when: "gone < 0.5"
+    material: mail
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.10}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.095, 0.08]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.08, 0.075]}
+  bracer_L:        # złoty karwasz na przedramieniu
+    when: "gone < 0.5"
+    material: armor
+    blend: 0.02
+    prims:
+      - cone: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.25}, b: "@wrist_L", r: [0.085, 0.095]}
+  hand_L:          # dłoń w rękawicy
+    when: "gone < 0.5"
+    material: leather
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.05], r: 0.07}
+  leg_L:           # nogi w brązowych spodniach
+    when: "gone < 0.5"
+    material: mail
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.10, 0.085]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.085, 0.07]}
+  greave_L:        # złote nagolenniki
+    when: "gone < 0.5"
+    material: armor
+    blend: 0.02
+    prims:
+      - cone: {a: {between: ["@knee_L", "@ankle_L"], t: 0.05}, b: {between: ["@knee_L", "@ankle_L"], t: 0.85}, r: [0.095, 0.08]}
+  boot_L:
+    when: "gone < 0.5"
+    material: leather
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.10, 0], b: [0, -0.02, 0.0], r: [0.075, 0.075]}
+      - ellipsoid: {c: [0, -0.04, 0.05], r: [0.075, 0.05, 0.12]}
+  head:            # twarz z kitu, z ciemnymi oczodołami, z których świecą oczy
+    when: "gone < 0.5"
+    paint:
+      - material: socket
+        prims:
+          - ellipsoid: {c: [0.055, 0.12, 0.12], r: [0.05, 0.035, 0.05]}
+          - ellipsoid: {c: [-0.055, 0.12, 0.12], r: [0.05, 0.035, 0.05]}
+  eye_L:           # białe, świecące oko
+    material: eye
+    space: head
+    when: "gone < 0.5"
+    prims:
+      - sphere: {c: [0.058, 0.118, 0.13], r: 0.034}
+  helm:            # szpiczasty szyszak: kopuła przechodząca w szpic, otwarta na twarz
+    when: "gone < 0.5"
+    material: armor
+    space: helm
+    prims:
+      - revolve: {c: [0, 0, 0],
+                  profile: {bezier: [[0.235, 0.03], [0.24, 0.12], [0.22, 0.22], [0.195, 0.33], [0.11, 0.42],
+                                     [0.035, 0.48], [0, 0.62], [-0.035, 0.48], [-0.11, 0.42], [-0.195, 0.33],
+                                     [-0.22, 0.22], [-0.24, 0.12], [-0.235, 0.03], [0, 0.03]]}}
+    cut:
+      - extrude: {c: [0, 0.075, 0.27], depth: 0.4, profile: {rect: [0.125, 0.16], round: 0.035}}
+    paint:
+      - material: trim
+        stripes: {axis: y, at: [0.065], width: 0.05}
+      - material: trim
+        stripes: {axis: y, at: [0.40], width: 0.034}
+  helm_nasal:      # nosal od brwi w dół przez twarz
+    when: "gone < 0.5"
+    material: armor
+    space: helm
+    priority: 2
+    prims:
+      - extrude: {c: [0, 0.165, 0.245], depth: 0.04,
+                  profile: {polygon: [[-0.026, 0.07], [0.026, 0.07], [0.02, -0.075], [-0.02, -0.075]]}}
+  aventail:        # kolczy czepiec spod hełmu na kark i ramiona, otwarty z przodu
+    when: "gone < 0.5"
+    material: mail
+    space: helm
+    prims:
+      - cone: {a: [0, 0.06, -0.01], b: [0, -0.15, -0.03], r: [0.225, 0.27], shell: 0.04}
+    cut:
+      - plane: {n: [0, 0, 1], at: 0.07}
+      - plane: {n: [0, 1, 0], at: 0.07}
+  halo_disc:       # tarcza słońca za głową: ciemniejsze złote wnętrze, żeby głowa się na niej odcinała
+    when: "gone < 0.5"
+    material: glowdk
+    space: halo
+    prims:
+      - cylinder: {a: [0, 0, -0.30], b: [0, 0, -0.27], r: "0.37 + 0.04*halo"}
+  halo_ring:       # jasny pierścień tarczy
+    when: "gone < 0.5"
+    material: glow
+    space: halo
+    min_cover: 2
+    prims:
+      - torus: {c: [0, 0, -0.27], R: "0.40 + 0.05*halo", r: "0.026 + 0.010*halo", rot: [1.5708, 0, 0]}
+  halo_rays:       # 12 promieni słońca na zewnątrz pierścienia (dłuższe przy rozbłysku)
+    when: "gone < 0.5"
+    material: glow
+    space: halo
+    min_cover: 2
+    prims:
+      - cone: {a: "[0, 0.44 + 0.05*halo, -0.28]", b: "[0, 0.60 + 0.18*halo, -0.28]", r: [0.03, 0.005]}
+      - cone: {a: "[0, -(0.44 + 0.05*halo), -0.28]", b: "[0, -(0.60 + 0.18*halo), -0.28]", r: [0.03, 0.005]}
+      - cone: {a: "[0.44 + 0.05*halo, 0, -0.28]", b: "[0.60 + 0.18*halo, 0, -0.28]", r: [0.03, 0.005]}
+      - cone: {a: "[-(0.44 + 0.05*halo), 0, -0.28]", b: "[-(0.60 + 0.18*halo), 0, -0.28]", r: [0.03, 0.005]}
+      - cone: {a: "[0.22 + 0.025*halo, 0.381 + 0.043*halo, -0.28]", b: "[0.29 + 0.07*halo, 0.502 + 0.12*halo, -0.28]", r: [0.025, 0.005]}
+      - cone: {a: "[-(0.22 + 0.025*halo), 0.381 + 0.043*halo, -0.28]", b: "[-(0.29 + 0.07*halo), 0.502 + 0.12*halo, -0.28]", r: [0.025, 0.005]}
+      - cone: {a: "[0.22 + 0.025*halo, -(0.381 + 0.043*halo), -0.28]", b: "[0.29 + 0.07*halo, -(0.502 + 0.12*halo), -0.28]", r: [0.025, 0.005]}
+      - cone: {a: "[-(0.22 + 0.025*halo), -(0.381 + 0.043*halo), -0.28]", b: "[-(0.29 + 0.07*halo), -(0.502 + 0.12*halo), -0.28]", r: [0.025, 0.005]}
+      - cone: {a: "[0.381 + 0.043*halo, 0.22 + 0.025*halo, -0.28]", b: "[0.502 + 0.12*halo, 0.29 + 0.07*halo, -0.28]", r: [0.025, 0.005]}
+      - cone: {a: "[-(0.381 + 0.043*halo), 0.22 + 0.025*halo, -0.28]", b: "[-(0.502 + 0.12*halo), 0.29 + 0.07*halo, -0.28]", r: [0.025, 0.005]}
+      - cone: {a: "[0.381 + 0.043*halo, -(0.22 + 0.025*halo), -0.28]", b: "[0.502 + 0.12*halo, -(0.29 + 0.07*halo), -0.28]", r: [0.025, 0.005]}
+      - cone: {a: "[-(0.381 + 0.043*halo), -(0.22 + 0.025*halo), -0.28]", b: "[-(0.502 + 0.12*halo), -(0.29 + 0.07*halo), -0.28]", r: [0.025, 0.005]}
+  spear_shaft:     # długie złote drzewce
+    when: "gone < 0.5"
+    material: shaft
+    space: spearaxis
+    priority: 2
+    min_cover: 2
+    prims:
+      - cylinder: {a: [0, -0.80, 0], b: [0, 1.33, 0], r: 0.026}
+  spear_fittings:  # okucia: tuleja pod grotem, poprzeczka (skrzydełka) i okucie na końcu drzewca
+    when: "gone < 0.5"
+    material: armor
+    space: spearaxis
+    priority: 2
+    prims:
+      - cylinder: {a: [0, 1.27, 0], b: [0, 1.35, 0], r: 0.036}
+      - box: {c: [0, 1.31, 0], half: [0.09, 0.022, 0.022], round: 0.01}
+      - cylinder: {a: [0, -0.84, 0], b: [0, -0.76, 0], r: 0.032}
+  spear_head:      # świecący grot w kształcie liścia
+    when: "gone < 0.5"
+    material: glow
+    space: spearaxis
+    priority: 3
+    prims:
+      - revolve: {c: [0, 1.35, 0],
+                  profile: {bezier: [[0.03, 0], [0.075, 0.04], [0.07, 0.11], [0.045, 0.22], [0, 0.32],
+                                     [-0.045, 0.22], [-0.07, 0.11], [-0.075, 0.04], [-0.03, 0], [0, 0]]}}
+  spear_trail:     # smuga światła przy pchnięciu (jedna-dwie klatki)
+    when: "trail > 0.05 and gone < 0.5"
+    material: fx_mid
+    space: spearaxis
+    prims:
+      - cone: {a: "[0, 1.40, 0]", b: "[0, 1.40 - 1.5*trail, 0]", r: "[0.075*trail, 0.01]"}
+  sky_beam:        # słup światła z grotu ku niebu (beams)
+    when: "sky > 0.05 and gone < 0.5"
+    material: glowcore
+    space: spearaxis
+    min_cover: 2
+    prims:
+      - cone: {a: [0, 1.65, 0], b: "[0, 1.65 + 0.9*sky, 0]", r: "[0.05*sky, 0.09*sky]"}
+  palm_light:      # kula światła w lewej dłoni (summon)
+    when: "palm > 0.05 and gone < 0.5"
+    material: glow
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.10], r: "0.05 + 0.08*palm"}
+  # śmierć: słup światła pochłania klęczącą postać; potem zostają iskry i włócznia leżąca w pyle
+  death_pillar:
+    when: "pillar > 0.05"
+    material: glow
+    space: big
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: "[0, 0.6 + 1.6*min(pillar*1.6, 1), 0]", r: "0.08 + 0.32*pillar", round: 0.05}
+  death_core:
+    when: "pillar > 0.3"
+    material: glowcore
+    space: big
+    prims:
+      - cylinder: {a: [0, 0.05, 0], b: "[0, 0.5 + 1.4*pillar, 0]", r: "0.16*pillar", round: 0.04}
+  death_motes:     # iskry unoszące się nad miejscem śmierci
+    when: "motes > 0.05"
+    material: glow
+    space: big
+    min_cover: 2
+    prims:
+      - sphere: {c: "[0.05, 0.6 + 0.9*motes, 0.05]", r: "0.05*(1.3 - motes)"}
+      - sphere: {c: "[0.24, 0.4 + 0.7*motes, 0.10]", r: "0.045*(1.3 - motes)"}
+      - sphere: {c: "[-0.22, 0.5 + 0.8*motes, -0.06]", r: "0.045*(1.3 - motes)"}
+      - sphere: {c: "[0.12, 1.0 + 1.0*motes, -0.12]", r: "0.04*(1.3 - motes)"}
+      - sphere: {c: "[-0.10, 0.9 + 1.1*motes, 0.16]", r: "0.04*(1.3 - motes)"}
+      - sphere: {c: "[0.30, 0.2 + 0.5*motes, -0.10]", r: "0.04*(1.3 - motes)"}
+      - sphere: {c: "[-0.30, 0.25 + 0.6*motes, 0.14]", r: "0.04*(1.3 - motes)"}
+  spear_fallen:    # włócznia leżąca w pyle po śmierci (już bez światła)
+    when: "gone >= 0.5"
+    material: shaft
+    space: big
+    priority: 2
+    min_cover: 2
+    prims:
+      - cylinder: {a: [-0.55, 0.03, 0.30], b: [0.60, 0.03, -0.20], r: 0.026}
+  spear_fallen_head:
+    when: "gone >= 0.5"
+    material: armor
+    space: big
+    priority: 3
+    prims:
+      - ellipsoid: {align: [[0.60, 0.03, -0.20], [0.86, 0.03, -0.31]], c: [0.73, 0.035, -0.255], r: [0.06, 0.03, 0.15]}
+
+sockets:
+  spear_tip: {bone: spearaxis, offset: [0, 1.57, 0]}       # grot: tu trafia pchnięcie i stąd startują promienie
+  spear_butt: {bone: spearaxis, offset: [0, -0.80, 0]}     # koniec drzewca
+  halo: {bone: halo, offset: [0, 0, -0.28]}            # środek aureoli
+  hand: {bone: wrist_L, offset: [0, 0, 0.10]}          # wolna dłoń: przyzywanie sług

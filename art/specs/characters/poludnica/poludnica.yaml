@@ -1,0 +1,333 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: poludnica
+camera: {"pitch": 38, "scale": 0.04889, center: [0, 1.05, 0]}
+palette: "watra"
+size: 64          # 48 przycinało wzniesiony sierp i ręce przy śmierci (QA) - jak u wiły; gęstość ta sama
+extends: humanoid   # szkielet, IK, smuga i zestawy głowy i włosów z szablonu; nogi schowane pod suknią
+
+# Południca: zwykły, szybki potwór lochu „Zajęta Świątynia Słońca” (żywioł Prawia - światło bogów, złoto-białe).
+# Słowiański duch południa: wysoka, blada kobieta-zjawa w długiej białej sukni do ziemi, której dół rozwiewa się
+# w jaśniejsze, mgliste strzępy (udawana przezroczystość: jaśniejsza, miękka tkanina bez konturu). Długie
+# rozpuszczone włosy koloru słomy, wianek z kłosów zboża, w prawej dłoni złoty sierp. Złoty blask (warstwa
+# emisyjna): sierp, kłosy wianka i oczy. Nie chodzi - sunie tuż nad ziemią, dół sukni faluje.
+# Atak: zamach sierpem z góry i z boku (zdarzenie `hit` w chwili cięcia, socket `cut`).
+brief:
+  summary: >
+    poludnica, the fast common enemy of the dungeon "Occupied Temple of the Sun" (element: Prawia, the light of
+    the gods, gold and white): the Slavic noon spirit. A tall, pale woman-ghost (about 38 px, same density as the
+    36 px human), a long white gown down to the ground whose lower part frays into lighter misty tatters streaming
+    back, long loose straw-gold hair, a wreath of wheat ears, a golden sickle in her right hand. She glides just
+    above the ground (no feet). A gentle golden glow: the sickle blade, the wheat ears and the eyes are emissive.
+  head: >
+    the head kit with a soft narrow jaw and a pointed chin; the hair kit with a light fringe parted in the middle,
+    temple locks to the collarbone; over it own long locks hanging down the back to the waist (bone `hairfall`,
+    channel `hair_sway`, phase `flut` ripples the tips); a wreath (torus of straw) on the crown with small
+    glowing wheat ears sticking up and out; face minimal (style): two glowing gold-white eyes, no nose, no mouth
+  must_keep:
+    - the SICKLE: a big golden crescent in the right hand, readable in every direction and in a crowd
+    - the long WHITE gown flaring to the ground with misty tatters streaming back (her silhouette)
+    - straw-gold hair and the wheat wreath (NOT the wila's blue ribbons, NOT the rusalka's green hair)
+    - the warm golden glow (sickle, wheat ears, eyes) - she belongs to the sun, not to Nawia
+  simplify:
+    - no legs or feet (parts switched off), bare slim arms, no jewellery besides the wreath
+    - the wheat ears are small ellipsoids, the wreath a torus; the hem tatters are two soft lobes
+  decisions:
+    - transparency is faked - the lower gown (`veil`) is a lighter, warmer cream without an outline or inner
+      lines, so it reads as glowing mist fading out, not as cloth
+    - the glide - the waist a little lower than the wila's (torso 0.90), the hem ends about 2 px above the ground;
+      `coat` drags the gown back, `flut` ripples the tatters (walk faster than idle)
+    - the sickle - its own bone on the right wrist (`sickle_pitch`, `sickle_splay` for the animator), a wooden
+      grip and a curved tube blade, emissive gold with a soft glow, `priority` so it stays on top of the body
+    - frame 64 px (like the wila) - 48 clipped the raised arms of the death and left 1 px around the swing; same density, so she is the same size on screen
+    - death - she melts into golden noon haze - the body shrinks and rises (`fade`), haze puffs (`puff`) swell
+      around her, the last long frame is a thin wisp
+    - game contract - `attack` events `windup` at 0 ms, `hit` at 400 ms, total about 720 ms; sockets `cut`
+      (the blade, where the hit spark goes), `hand_L`, `ground`
+
+ramps:
+  # blada, chłodna skóra zjawy (złote oczy mocno na niej odcinają się)
+  pol_skin:  ["#12101a", "#5a5a6e", "#9294a6", "#c4c6d2", "#e6e8ee", "#fafbfc"]
+  # długie włosy koloru słomy
+  pol_hair:  ["#1a1006", "#5e4218", "#946a24", "#c09a3c", "#dcbc62", "#f2dc96"]
+  # biała suknia, lekko ciepła (słońce)
+  pol_gown:  ["#16130e", "#6a6252", "#a69e88", "#d6d0bc", "#f0ecde", "#fffdf6"]
+  # dół sukni rozwiewający się w mgłę: jaśniejszy, mało kontrastu
+  pol_veil:  ["#4a4232", "#a49c84", "#cec6ae", "#e8e2cc", "#f8f4e6", "#fffef8"]
+  # słoma wianka
+  pol_straw: ["#140c06", "#5e3c1a", "#9c7230", "#ceaa56", "#e8d08a", "#f8eec4"]
+  # złoty blask: sierp, kłosy, oczy (emisyjne)
+  pol_glow:  ["#4a2c06", "#d49a1c", "#f8cc48", "#fff2a8", "#fffde8"]
+  # złota mgła południa (śmierć)
+  pol_haze:  ["#3a301a", "#8c7c4e", "#c8b47a", "#e8d8a4", "#fbf3d6"]
+  # smuga cięcia: złota zamiast ognistej z szablonu
+  fx_tail:   ["#e0a228"]
+  fx_mid:    ["#fff0a8"]
+  fx_core:   ["#fffef0"]
+
+materials:
+  skin:   {ramp: pol_skin, gamma: 0.75, finish: soft}
+  hair:   {ramp: pol_hair, finish: matte}
+  gown:   {ramp: pol_gown, finish: matte}
+  veil:   {ramp: pol_veil, finish: matte, outline: false, line: false}
+  straw:  {ramp: pol_straw, finish: matte}
+  wood:   {ramp: wood, finish: soft}
+  blade:  {ramp: pol_glow, emissive: true, band: 2, outline: false, line: false, glow: {color: "#ffd860", mix: 0.3, radius: 1}}
+  ear:    {ramp: pol_glow, emissive: true, band: 2, outline: false, line: false, glow: {color: "#ffd860", mix: 0.2, radius: 1}}
+  eye:    {ramp: pol_glow, emissive: true, band: 2, outline: false, glow: {color: "#ffe680", mix: 0.25, radius: 1}}
+  haze:   {ramp: pol_haze, finish: matte, outline: false, line: false}
+
+remove: [use.sword, parts.belt, parts.coat, animations.idle, animations.walk, animations.attack]
+
+use:
+  - {kit: head, as: head, at: head, with: {width: 0.86, jaw: 0.1, chin: 0.7, nose: 0, ears: 0}}
+  - {kit: hair, as: hair, at: head, with: {fringe: 0.1, part: 0.0, locks: 0.9, length: 1.6, volume: 0.9}}
+
+shadow: {rx: 8, ry: 3, alpha: 90}
+
+channels:
+  hand_L: [0.27, 0.06, 0.06]
+  hand_R: [0.31, 0.13, 0.12]
+  hair_sway: 0      # długie włosy kołyszą się w lewo (+x) albo w prawo (-x)
+  hair_flow: 0.05   # długie włosy odchylają się do tyłu (+)
+  flut: 0           # faza falowania (końce włosów i strzępy sukni falują z sin(flut))
+  sickle_pitch: 0   # sierp pochylony w nadgarstku (+: ostrze do przodu i w dół)
+  sickle_splay: 0   # sierp odwrócony na zewnątrz (+) albo w poprzek ciała (-)
+  sickle_roll: 0    # ostrze obrócone wokół uchwytu
+  fade: 0           # 0..1: ciało rozwiewa się (śmierć)
+  puff: 0           # 0..1: kłęby złotej mgły wokół (śmierć)
+  # smuga zamachu: łuk w pionowej płaszczyźnie przód-tył przy prawym barku (jak u goblina)
+  smear_y: 0
+  smear_z: 0.05
+  smear_r: 0.62
+
+bones:
+  big:        {parent: root, scale: "1.06*(1 - 0.95*fade)"}
+  # sunie nisko nad ziemią: talia niżej niż u wiły, rąbek sukni ok. 2 px nad podłogą
+  torso_rot:  {parent: big, pos: "[0, 0.90 + bob + 0.25*fade, 0]", rot: "[lean, twist, roll]"}
+  legyaw:     {parent: big}
+  footyaw:    {parent: big}
+  headbase:   {pos: [0, 0.66, 0.02], scale: "1.08*(1 - 0.95*fade)"}
+  head:       {scale: 1.25}
+  shoulder_L: {pos: [0.17, 0.53, 0.0]}
+  # spódnica od talii, pionowo, ciągnięta do tyłu przez `coat`
+  skirtbase:  {parent: big, at: torso_rot, rot: "[lean*0.4 - coat*0.12, twist, roll + hair_sway*0.1]"}
+  # długie włosy z tyłu głowy, w dół pleców
+  hairfall:   {parent: headbase, pos: [0, 0.12, -0.06], rot: "[hair_flow - lean*0.5, 0, hair_sway]"}
+  # sierp: z pięści do przodu, odchylony na zewnątrz (rot z), żeby był widać od przodu i od tyłu
+  sickle:     {parent: wrist_R, pos: [0, 0, 0.03], rot: "[-0.35 + sickle_pitch, 0, 0.5 + sickle_splay]"}
+  # ostrze obrócone wokół uchwytu płaską stroną do kamery od przodu (inaczej widać je z boku jako kreskę)
+  sickle_face: {parent: sickle, rot: "[0, 0, sickle_roll + 1.2*pulse(yaw, 0, 80)]"}
+  # rama smugi: na wysokości prawego barku, obrócona o 90 stopni (łuk w płaszczyźnie przód-tył)
+  fxspace:    {parent: root, pos: [-0.16, 1.40, 0.05], rot: "[0, twist*0.3, 1.5708]"}
+
+ik:
+  arm_L: {lengths: [0.26, 0.25]}
+
+parts:
+  torso:           # smukły gorset sukni; naga skóra nad dekoltem
+    material: gown
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.13, 0.11, 0.11]}
+      - ellipsoid: {c: [0, 0.25, 0.0], r: [0.11, 0.13, 0.09]}
+      - ellipsoid: {c: [0, 0.42, 0.0], r: [0.165, 0.12, 0.10]}
+    paint:
+      - material: skin
+        prims:
+          - ellipsoid: {c: [0, 0.57, 0.02], r: [0.21, 0.15, 0.2]}
+  sash:            # przepaska z plecionej słomy w talii
+    material: straw
+    space: pelvis
+    prims:
+      - torus: {c: [0, 0.20, 0], R: 0.11, r: 0.028, rot: [0, 0, 0]}
+  skirt:           # długa biała suknia rozszerzająca się ku dołowi
+    material: gown
+    space: skirtbase
+    blend: 0.03
+    prims:
+      - revolve: {c: [0, 0, -0.01], profile: {polygon: [[-0.13, 0.12], [0.13, 0.12], [0.16, -0.12], [0.22, -0.38], [0.27, -0.56], [-0.27, -0.56], [-0.22, -0.38], [-0.16, -0.12]], round: 0.02}}
+  veil:            # dół sukni rozwiewający się w jasną mgłę (bez konturu), ciągnięty do tyłu i falujący
+    material: veil
+    space: skirtbase
+    blend: 0.06
+    prims:
+      - revolve: {c: [0, 0, -0.03], profile: {polygon: [[-0.27, -0.50], [0.27, -0.50], [0.31, -0.66], [0.33, -0.78], [-0.33, -0.78], [-0.31, -0.66]], round: 0.02}}
+      # dwa strzępy z tyłu, rozwiane do tyłu i na boki
+      - ellipsoid: {c: "[0.14 + 0.03*sin(flut), -0.72, -0.30 - 0.04*sin(flut + 0.7)]", r: [0.10, 0.06, 0.14], rot: [0.3, 0.4, 0]}
+      - ellipsoid: {c: "[-0.14 - 0.03*sin(flut + 1.6), -0.70, -0.32 - 0.04*sin(flut + 2.2)]", r: [0.10, 0.06, 0.14], rot: [0.3, -0.4, 0]}
+    cut:
+      # postrzępiony rąbek: wcięcia falują razem z suknią
+      - sphere: {c: "[0.0, -0.86, 0.30]", r: 0.09}
+      - sphere: {c: "[0.30, -0.86, 0.06 + 0.03*sin(flut)]", r: 0.08}
+      - sphere: {c: "[-0.24, -0.86, -0.20]", r: 0.08}
+      - sphere: {c: "[-0.30, -0.86, 0.12 - 0.03*sin(flut + 1)]", r: 0.08}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.53, 0], b: [0, 0.66, 0.02], r: [0.05, 0.045]}
+  eye_L:           # świecące złoto-białe oko na skosie twarzy
+    material: eye
+    space: head
+    prims:
+      - extrude: {c: [0.075, 0.115, 0.095], rot: [0, 0.7, 0], depth: 0.04, profile: {rect: [0.02, 0.026], round: 0.007}}
+  arm_L:           # smukłe, nagie ramiona
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.05}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.044, 0.035]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.035, 0.03]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - ellipsoid: {c: [0, 0, 0.035], r: [0.032, 0.042, 0.05]}
+  leg_L: {when: "0"}
+  boot_L: {when: "0"}
+  # wianek: słomiany pierścień na czubku głowy i świecące kłosy sterczące w górę i na boki
+  wreath:
+    material: straw
+    space: head
+    prims:
+      - torus: {c: [0, 0.27, -0.03], R: 0.12, r: 0.03, rot: [0.3, 0, 0]}
+  wheat:
+    material: ear
+    space: head
+    min_cover: 2
+    prims:
+      - ellipsoid: {c: [0.0, 0.34, 0.07], r: [0.028, 0.06, 0.028], rot: [0.5, 0, 0]}
+      - ellipsoid: {c: [0.10, 0.33, 0.03], r: [0.028, 0.06, 0.028], rot: [0.3, 0, -0.6]}
+      - ellipsoid: {c: [-0.10, 0.33, 0.03], r: [0.028, 0.06, 0.028], rot: [0.3, 0, 0.6]}
+      - ellipsoid: {c: [0.13, 0.30, -0.09], r: [0.028, 0.06, 0.028], rot: [-0.3, 0, -0.9]}
+      - ellipsoid: {c: [-0.13, 0.30, -0.09], r: [0.028, 0.06, 0.028], rot: [-0.3, 0, 0.9]}
+  # długie, rozpuszczone włosy na plecach, w pasmach (linie między częściami)
+  mane:
+    material: hair
+    space: hairfall
+    blend: 0.03
+    prims:
+      - tube: {pts: [[0, -0.06, -0.08], [0, -0.30, -0.16], "[0.03*sin(flut), -0.56, -0.18]", "[-0.04*sin(flut + 0.8), -0.78, -0.20]"], r: [0.11, 0.04]}
+  mane_L:
+    material: hair
+    space: hairfall
+    blend: 0.03
+    prims:
+      - tube: {pts: [[0.10, -0.08, -0.05], [0.14, -0.30, -0.11], "[0.13 - 0.03*sin(flut + 0.6), -0.52, -0.14]", "[0.11 + 0.04*sin(flut + 1.5), -0.68, -0.16]"], r: [0.07, 0.025]}
+  # sierp: drewniany uchwyt i złote, świecące, zakrzywione ostrze
+  sickle_grip:
+    material: wood
+    space: sickle
+    min_cover: 2
+    prims:
+      - cylinder: {a: [0, 0, -0.04], b: [0, 0, 0.12], r: 0.03}
+  sickle_blade:
+    material: blade
+    space: sickle_face
+    priority: 3
+    min_cover: 2
+    prims:
+      - tube: {pts: [[0, 0.0, 0.11], [0, 0.12, 0.40], [0, 0.42, 0.34], [0, 0.38, 0.06]], r: [0.05, 0.015]}
+  # śmierć: kłęby złotej mgły puchną i odpływają na boki
+  puff_L:
+    material: haze
+    space: root
+    when: "puff > 0.05"
+    prims:
+      - ellipsoid: {c: "[0.12 + 0.30*puff, 0.95 + 0.25*puff, 0.05]", r: "[0.25*puff*(1.6 - puff), 0.20*puff*(1.6 - puff), 0.25*puff*(1.6 - puff)]"}
+      - ellipsoid: {c: "[0.10 + 0.20*puff, 0.50 + 0.10*puff, -0.10 - 0.15*puff]", r: "[0.22*puff*(1.6 - puff), 0.18*puff*(1.6 - puff), 0.22*puff*(1.6 - puff)]"}
+  puff_mid:
+    material: haze
+    space: root
+    when: "puff > 0.05"
+    prims:
+      - ellipsoid: {c: "[0, 0.75 + 0.45*puff, 0.10 + 0.10*puff]", r: "[0.33*puff*(1.6 - puff), 0.25*puff*(1.6 - puff), 0.30*puff*(1.6 - puff)]"}
+      - ellipsoid: {c: "[0, 0.35 + 0.20*puff, -0.05]", r: "[0.30*puff*(1.5 - puff), 0.15*puff*(1.5 - puff), 0.30*puff*(1.5 - puff)]"}
+
+sockets:
+  hand_L: {bone: wrist_L, offset: [0, 0, 0.06]}
+  cut: {bone: sickle_face, offset: [0, 0.25, 0.32]}
+  ground: {bone: root}
+
+animations:
+  idle:
+    frames: 8
+    ms: 140
+    channels:
+      bob: "0.04*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.27, 0.06 + 0.03*sin(p - 0.6), 0.06]"
+      hand_R: "[0.31, 0.13 + 0.03*sin(p - 0.9), 0.12]"
+      coat: "0.25*sin(p - 1.0)"
+      flut: "p"
+      hair_sway: "0.04*sin(p - 1.2)"
+      hair_flow: "0.05 + 0.04*sin(p - 1.5)"
+  walk:
+    frames: 8
+    ms: 100
+    channels:
+      lean: 0.12
+      bob: "0.03*sin(p)"
+      roll: "0.02*sin(p)"
+      head_pitch: "-0.06 + 0.03*sin(p - 0.5)"
+      hand_L: "[0.29, 0.08 + 0.03*sin(p - 0.6), -0.08 + 0.02*sin(p - 1.0)]"
+      hand_R: "[0.30, 0.12 + 0.03*sin(p - 0.9), 0.06 + 0.02*sin(p - 1.3)]"
+      coat: "-0.7 + 0.2*sin(2*p - 1.0)"
+      flut: "2*p"
+      hair_sway: "0.04*sin(p - 1.2)"
+      hair_flow: "0.22 + 0.05*sin(2*p - 1.4)"
+  # zamach sierpem: ręka wznosi się nad prawy bark, ostrze odchylone do tyłu, tułów skręca się (windup),
+  # potem szybkie cięcie z góry w przód i w poprzek ze złotą smugą (hit), dobicie i powrót
+  attack:
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {flut: 0.8, bob: 0.01, twist: -0.15, lean: -0.05, coat: 0.15, hair_flow: 0.05,
+          hand_L: [0.30, 0.10, 0.12], hand_R: [0.36, 0.42, 0.02], sickle_pitch: -0.2, sickle_splay: 0.1}}
+      - {ms: 150, set: {flut: 1.6, bob: 0.03, twist: -0.32, lean: -0.12, roll: 0.05, coat: 0.0, hair_flow: 0.0, head_pitch: -0.05,
+          hand_L: [0.34, 0.18, 0.20], hand_R: "[0.44, 0.68, -0.02 - 0.06*pulse(yaw, 90, 70)]", sickle_pitch: -0.4, sickle_splay: 0.2}}
+      - {ms: 130, set: {flut: 2.4, bob: 0.04, twist: -0.38, lean: -0.16, roll: 0.06, coat: -0.1, hair_flow: -0.02, head_pitch: -0.08,
+          hand_L: [0.36, 0.22, 0.22], hand_R: "[0.46, 0.80, -0.06 - 0.06*pulse(yaw, 90, 70)]", sickle_pitch: -0.5, sickle_splay: 0.25}}
+      - {ms: 60, event: hit, set: {root: [0, 0, 0.10], flut: 3.4, bob: -0.02, twist: 0.30, lean: 0.30, roll: -0.04, squash: 0.97, coat: 0.5,
+          hair_flow: 0.15, hair_sway: 0.06, head_pitch: 0.08,
+          hand_L: [0.30, 0.04, -0.14], hand_R: [0.06, 0.22, 0.42], sickle_pitch: 1.0, sickle_splay: -0.3,
+          smear_w: 0.10, smear_a0: 1.9, smear_a1: -0.5}}
+      - {ms: 80, set: {root: [0, 0, 0.12], flut: 4.2, bob: -0.03, twist: 0.42, lean: 0.34, roll: -0.05, squash: 0.96, coat: 0.55,
+          hair_flow: 0.2, hair_sway: 0.06, head_pitch: 0.08,
+          hand_L: [0.30, 0.02, -0.16], hand_R: [-0.04, 0.04, 0.34], sickle_pitch: 1.4, sickle_splay: -0.4,
+          smear_w: 0.07, smear_a0: 0.8, smear_a1: -0.7, smear_fade: 0.6}, tween: 1, ease: out}
+      - {ms: 120, set: {root: [0, 0, 0.03], flut: 5.2, bob: 0.0, twist: 0.05, lean: 0.06, coat: 0.1, hair_flow: 0.08,
+          hand_L: [0.28, 0.06, 0.06], hand_R: [0.30, 0.12, 0.14], sickle_pitch: 0.1}}
+  # trafienie: odrzut do tyłu, włosy i suknia smagnięte do przodu
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.25, bob: 0.03, squash: 0.96, head_pitch: -0.3, coat: 0.5, flut: 1,
+          hand_L: [0.34, 0.18, -0.06], hand_R: [0.34, 0.20, -0.04], sickle_pitch: -0.4, hair_flow: -0.05, hair_sway: 0.06}}
+      - {ms: 70, set: {root: [0, 0, -0.04], lean: -0.12, bob: 0.02, squash: 0.98, head_pitch: -0.12, coat: 0.25, flut: 2,
+          hand_L: [0.31, 0.12, 0.0], hand_R: [0.32, 0.16, 0.04], sickle_pitch: -0.2, hair_flow: 0.0, hair_sway: 0.03}}
+      - {ms: 80, set: {root: [0, 0, -0.01], lean: 0.02, head_pitch: 0.02, coat: -0.05, flut: 3,
+          hand_L: [0.28, 0.07, 0.05], hand_R: [0.31, 0.13, 0.12], hair_flow: 0.08}}
+  # śmierć: odrzucona do tyłu z rozłożonymi rękami, potem rozpływa się (razem z sierpem) w złotej
+  # mgle południa: ciało maleje i unosi się, kłęby mgły puchną i odpływają, na końcu cienka smużka
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {root: [0, 0, -0.05], lean: -0.35, bob: 0.04, head_pitch: -0.4, coat: 0.5, flut: 1,
+          hand_L: [0.40, 0.36, -0.04], hand_R: [0.40, 0.36, -0.04], sickle_pitch: -0.8, hair_flow: -0.05}}
+      - {ms: 120, set: {root: [0, 0, -0.06], lean: -0.30, bob: 0.06, head_pitch: -0.35, coat: 0.3, flut: 2, puff: 0.2,
+          hand_L: [0.42, 0.42, 0.0], hand_R: [0.42, 0.42, 0.0], sickle_pitch: -1.0, hair_flow: 0.0}}
+      - {ms: 120, set: {root: [0, 0, -0.06], lean: -0.2, bob: 0.06, head_pitch: -0.25, coat: 0.2, flut: 3, puff: 0.4, fade: 0.25,
+          hand_L: [0.40, 0.40, 0.02], hand_R: [0.40, 0.40, 0.02], hair_flow: 0.1}}
+      - {ms: 120, set: {root: [0, 0, -0.06], lean: -0.1, bob: 0.06, head_pitch: -0.15, coat: 0.1, flut: 4, puff: 0.6, fade: 0.5,
+          hand_L: [0.38, 0.36, 0.0], hand_R: [0.38, 0.36, 0.0], hair_flow: 0.15}}
+      - {ms: 130, set: {root: [0, 0, -0.06], lean: 0.0, bob: 0.06, coat: 0.0, flut: 5, puff: 0.8, fade: 0.75,
+          hand_L: [0.34, 0.30, 0.0], hand_R: [0.34, 0.30, 0.0], hair_flow: 0.15}}
+      - {ms: 140, set: {root: [0, 0, -0.06], bob: 0.06, flut: 6, puff: 0.95, fade: 0.95,
+          hand_L: [0.30, 0.25, 0.0], hand_R: [0.30, 0.25, 0.0], hair_flow: 0.15}}
+      - {ms: 500, set: {root: [0, 0, -0.06], bob: 0.06, flut: 6.5, puff: 1.2, fade: 1.0,
+          hand_L: [0.30, 0.25, 0.0], hand_R: [0.30, 0.25, 0.0], hair_flow: 0.15}}
+
+timing:
+  attack: {hit: 400ms}
