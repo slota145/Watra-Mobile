@@ -38,10 +38,13 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   Odrzucone: dwie bronie naraz z 2-4 dodatkowymi miejscami (ciasno pod kciukiem, nie rozwiązuje kolejnych broni) i gacha
   (rozwiązuje odblokowanie, a nie poziomy; losowość frustruje). Dalej do rozważenia: tańsze ulepszanie umiejętności żarem
   do poziomu osiągniętego na innej broni.
-- [ ] **Kamienie „rzuć, gdy…” (pomysł autora 26.11.2026, jak „Cast when…” z PoE - do dopytania przed zrobieniem):**
-  kamień w umiejętności rzuca ją sam przy zdarzeniu (otrzymane obrażenia, trafienie krytyczne, zabicie…), także
-  umiejętność **broni zapasowej**, gdy walczy się tą w ręku - buildy z dwóch broni. Do ustalenia: lista zdarzeń, skąd
-  kamień (łup, kamień unikalny?), wewnętrzne odnowienie i koszt many, czy wolno na umiejętność ładowaną / skok / formę.
+- [ ] **Kamienie „rzuć, gdy…” (pomysł autora 26.11.2026, jak „Cast when…” z PoE):**
+  kamień w umiejętności rzuca ją sam przy zdarzeniu, także umiejętność **broni zapasowej**, gdy walczy się tą w ręku -
+  buildy z dwóch broni. **Ustalenia z autorem (ankieta 26.11.2026):** zdarzenia - **otrzymane obrażenia, trafienie
+  krytyczne, zabicie wroga** (bez zrywu/skoku); źródło - **łup z lochów** jak zwykłe kamienie umiejętności; rzut
+  **darmowy (bez many), ale słabszy** (propozycja: -30% obrażeń) z własną przerwą między rzutami (np. 0,25-1 s);
+  działa na umiejętności **obu broni**. Do ustalenia przy robocie: od którego poziomu lochu, czy wolno na umiejętność
+  ładowaną / skok / formę Mary.
   Technicznie: broń zapasowa musi wtedy żyć w lochu jako niewidoczny drugi węzeł broni (rzuca tylko wyzwolone umiejętności).
 - [ ] **Głębiny (zrobione 26.11.2026 - krok 1-3: zestawy z mieszanymi potworami, losowym bossem i mechaniką,
   przelosowanie za Odłamki Nawii, lepszy łup, kamienie milowe; `docs/historia.md`; do oceny na telefonie - Czarna
