@@ -2,6 +2,35 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - Głębiny: głębokie lochy oddzielone od zwykłej drabinki, Czarna Watra
+
+- **Ustalenia z autorem (ankieta 26.11.2026):** zwykła drabinka 1-55 (11 lochów) bez drugiego kręgu, dalej Głębiny;
+  wejście - **Czarna Watra** w bazie; sufit siły przedmiotów **55**; na razie bez dodatkowych nagród Głębin;
+  postęp jak dotąd (kolejne Głębie, wejście w każdą przebitą); punkt drzewka lochów także za Głębie; **losowe
+  modyfikatory** w Głębinach; stare zapisy ponad 55 przeliczone na Głębie; po bossie na 55 plansza „Otwierają się
+  Głębiny!” i Czarna Watra z „Nowość!”.
+- **Liczenie:** zapis dalej trzyma zwykły numer poziomu - Głębia N = poziom 55+N (`Dungeons.DEEP_FROM` = 56,
+  `is_deep`, `deep_of`, `level_of_deep`, napis `level_label` - „Głębia N” / „Poziom N”), więc stare zapisy ponad 55
+  od razu są przebitymi Głębiami, a drzewko lochów dalej daje punkt za każdy przebity poziom. `RANDOM_FROM` = DEEP_FROM
+  (wcześniej 101) - w Głębinach losowy loch przy każdym wejściu.
+- **Modyfikatory:** w Głębinach wybrane przy Watrze nie działają (`DungeonMods.active`), a wyprawa losuje własne
+  (`DungeonMods.roll_deep`): 1 w Głębiach 1-9, 2 w 10-19, 3 od 20 (`deep_count`), bez powtórek.
+- **Sufit siły przedmiotów** `Items.MAX_LEVEL` 40 -> 55.
+- **Drabinka odblokowań:** bez wpisu o drugim kręgu; na 56 „Głębiny: Czarna Watra w bazie - losowy loch i losowe
+  modyfikatory przy każdym wejściu”.
+- **Baza:** Czarna Watra `ProtoWatra.deep` (fioletowo-czarny ogień Nawii - `assets/watra/black_watra.png`
+  z `tools/deep_watra_art.py`, fioletowa poświata i iskry, podpis „Czarna Watra - zejście w Głębiny”, bez licznika
+  żaru) w `arena.DEEP_WATRA_POS` (-62, 112), widoczna od `Game.unlocked_level()` >= 56 (też w trybie „wszystkie
+  poziomy”); „Nowość!”, dopóki gracz nie otworzy wyboru (`Game.deep_seen` w zapisie). Lewa kukła przeniesiona niżej.
+  Przycisk „Głębiny” na pasku skrótów (`BaseBar.deep_open`).
+- **Wybór poziomu** `LevelPicker.open(current, unlocked, deep)`: przy Watrze poziomy 1-55, przy Czarnej Watrze Głębie
+  od 56 (tytuł „Głębiny”, „Głębia N”, „Loch losowy…”, liczba losowych modyfikatorów, bez wyboru modyfikatorów
+  i Żmija). Na 55: „Pokonaj bossa, żeby otworzyć Głębiny”.
+- **Wynik wyprawy:** „Głębia N” zamiast numeru poziomu, przycisk „Dalej: Głębia N”; po bossie na 55 (pierwszy raz)
+  tytuł „Otwierają się Głębiny!” z opisem. Na pasku w lochu „Głębia N”.
+- Test `tests/test_deeps.gd`, zrzuty `tools/deep_shots.gd`; `test_flooded`, `test_sky`, `test_tower` - bez drugiego
+  kręgu.
+
 ## 26.11.2026 - Jedenasty loch: Wieża Kościeja (Arkana), Kościej Nieśmiertelny, Magiczne pieczęcie
 
 - **Ustalenia z autorem (ankieta 26.11.2026):** klimat wieży czarnoksiężnika Kościeja (regały ksiąg, alchemiczne stoły,

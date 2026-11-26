@@ -605,8 +605,8 @@ func _test_chief() -> void:
 	_check(game.best_level == 2 and game.unlocked_level() == 3, "zwycięstwo odblokowuje poziom 3")
 	_check(arena.run_items + int(arena.run_ore > 0) >= Items.CHEST_ITEMS and game.bag.size() >= mini(Items.CHEST_ITEMS, game.BAG_SIZE), "przedmioty ze skrzyni w torbie (%d)" % game.bag.size())
 	var result: RunResult = arena.result
-	_check(result.visible and paused and result._summary.text.contains(tr("Odblokowano poziom %d") % 3), "okno zwycięstwa: " + result._summary.text.replace("\n", ", "))
-	_check(result.retry_button.text == tr("Następny poziom: %d") % 3, "przycisk następnego poziomu")
+	_check(result.visible and paused and result._summary.text.contains(tr("Odblokowano: %s") % Dungeons.level_label(3)), "okno zwycięstwa: " + result._summary.text.replace("\n", ", "))
+	_check(result.retry_button.text == tr("Dalej: %s") % Dungeons.level_label(3), "przycisk następnego poziomu")
 	game.load_game()
 	_check(game.best_level == 2, "przebity poziom zapisany")
 	paused = false

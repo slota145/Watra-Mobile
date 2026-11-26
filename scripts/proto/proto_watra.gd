@@ -4,10 +4,13 @@ extends Node2D
 ## z poświatą i iskrami. Dotknięcie ognia palcem otwiera wejście do lochu z Hordą (sygnał `entered`).
 ## Węzeł stoi u podstawy kręgu (sortowanie po Y z postacią). Pod ogniem licznik żaru (`embers`) - im więcej żaru,
 ## tym większa i jaśniejsza poświata; `brought` (żar doniesiony właśnie z lochu) wyskakuje nad ogniem jako „+N”.
+## `deep` - Czarna Watra, wejście do Głębin (Głębiny, 26.11.2026): fioletowo-czarny ogień Nawii (assets/watra/black_watra.png
+## z tools/deep_watra_art.py), fioletowa poświata i iskry, inny podpis, bez licznika żaru.
 
 signal entered
 
 const TEXTURE := preload("res://assets/watra/watra.png")
+const DEEP_TEXTURE := preload("res://assets/watra/black_watra.png")
 const FRAMES := 6
 const FPS := 7.0
 ## Kamienie wokół ognia - postać ich nie przechodzi (promień dla ProtoHero.obstacles).
@@ -15,6 +18,8 @@ const RADIUS := 38.0
 ## Obszar do stukania (wokół ognia, w pikselach gry względem węzła) - większy niż sam płomień, żeby łatwo trafić kciukiem.
 const TAP_RECT := Rect2(-46, -96, 92, 104)
 
+## Czarna Watra (Głębiny) zamiast zwykłej - ustawia arena przed dodaniem do sceny.
+var deep := false
 ## Żar zgromadzony w Watrze (ustawia arena przed dodaniem do sceny).
 var embers := 0
 ## Żar doniesiony z ostatniego lochu (pokazywany raz po powrocie).
@@ -34,14 +39,14 @@ func _ready() -> void:
 	_glow.texture = _glow_texture()
 	_glow.scale = Vector2(3.2, 2.2)
 	_glow.position = Vector2(0, -20)
-	_glow.modulate = Color(1.0, 0.55, 0.2, 0.45)
+	_glow.modulate = Color(0.6, 0.3, 1.0, 0.45) if deep else Color(1.0, 0.55, 0.2, 0.45)
 	var add := CanvasItemMaterial.new()
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	_glow.material = add
 	_glow.z_index = -1
 	add_child(_glow)
 	_sprite = Sprite2D.new()
-	_sprite.texture = TEXTURE
+	_sprite.texture = DEEP_TEXTURE if deep else TEXTURE
 	_sprite.hframes = FRAMES
 	_sprite.offset = Vector2(0, -44)
 	add_child(_sprite)
@@ -58,16 +63,17 @@ func _ready() -> void:
 	sparks.initial_velocity_max = 40.0
 	sparks.scale_amount_max = 1.5
 	var ramp := Gradient.new()
-	ramp.colors = PackedColorArray([Color(1.0, 0.9, 0.5, 1.0), Color(1.0, 0.45, 0.15, 0.8), Color(0.6, 0.2, 0.1, 0.0)])
+	ramp.colors = PackedColorArray([Color(0.95, 0.85, 1.0, 1.0), Color(0.6, 0.3, 1.0, 0.8), Color(0.2, 0.05, 0.35, 0.0)]) \
+			if deep else PackedColorArray([Color(1.0, 0.9, 0.5, 1.0), Color(1.0, 0.45, 0.15, 0.8), Color(0.6, 0.2, 0.1, 0.0)])
 	sparks.color_ramp = ramp
 	sparks.material = add
 	sparks.z_index = 30
 	add_child(sparks)
 	var label := Label.new()
-	label.text = tr("Dotknij Watry, by wejść w płomienie")
+	label.text = tr("Czarna Watra - zejście w Głębiny") if deep else tr("Dotknij Watry, by wejść w płomienie")
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 10)
-	label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.55))
+	label.add_theme_color_override("font_color", Color(0.85, 0.7, 1.0) if deep else Color(1.0, 0.85, 0.55))
 	label.add_theme_color_override("font_outline_color", Color(0.12, 0.06, 0.03))
 	label.add_theme_constant_override("outline_size", 4)
 	label.size = Vector2(200, 14)
@@ -84,6 +90,7 @@ func _ready() -> void:
 	embers_label.size = Vector2(200, 14)
 	embers_label.position = Vector2(-100, 17)
 	embers_label.z_index = 31
+	embers_label.visible = not deep
 	add_child(embers_label)
 	news_label = Label.new()
 	news_label.text = tr("Nowość!")

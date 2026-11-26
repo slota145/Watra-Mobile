@@ -2,7 +2,7 @@ class_name Items
 ## Przedmioty (ustalone z autorem 12.11.2026, przebudowa itemizacji 21.11.2026): 6 miejsc ekwipunku (kolczyk, hełm,
 ## zbroja, buty, pierścień, amulet), 3 rzadkości - zwykły (bez premii), magiczny (1-2 losowe premie), rzadki (3-5).
 ## Każde miejsce ma 3 bazy (BASES) z własną stałą cechą (np. hełm - zdrowie, kaptur - mana, rogaty hełm - odporność
-## na żywioły); stała cecha rośnie z poziomem lochu do MAX_LEVEL (sufit siły przedmiotów - loch 40), a co kilka
+## na żywioły); stała cecha rośnie z poziomem lochu do MAX_LEVEL (sufit siły przedmiotów - loch 55, koniec zwykłej drabinki; decyzja autora 26.11.2026 - wcześniej 40), a co kilka
 ## poziomów (VISUAL_FROM) zmienia się wygląd i nazwa bazy (5 stopni).
 ## Premie mają stopnie T7 (najsłabszy) - T1 (najlepszy, decyzja autora 21.11.2026 - jak tiery w Path of Exile):
 ## wyższe odblokowują się w głębszych lochach (TIER_FROM; T1 od lochu 40) i wypadają rzadziej (TIER_WEIGHTS),
@@ -31,7 +31,7 @@ const SLOT_ICONS := {"earring": "slot_earring", "helmet": "slot_helmet", "armor"
 		"ring": "slot_ring", "amulet": "slot_necklace"}
 ## Sufit siły przedmiotów (decyzja autora 21.11.2026): stała cecha i stopnie premii przestają rosnąć na tym poziomie
 ## lochu - dalej gra się po lepsze stopnie, rzadkość i kamienie, a nie po większe liczby.
-const MAX_LEVEL := 40
+const MAX_LEVEL := 55
 ## Bazy przedmiotów (decyzja autora 21.11.2026): miejsce -> baza -> stała cecha {cecha: [na 1. poziomie lochu,
 ## na MAX_LEVEL]}, ikony (5 stopni wyglądu, ścieżka w assets/ bez rozszerzenia) i nazwy (5 stopni). Pierwsza baza
 ## miejsca to dawna (stare zapisy - `normalize`). Kolczyk każdej bazy daje też obrażenia ciosu (EARRING_DAMAGE).

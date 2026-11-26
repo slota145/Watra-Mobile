@@ -61,8 +61,8 @@ func _test_data() -> void:
 	var boots := Items.make_unique("swarog", 30)
 	_check(Items.affix_lines(boots)[1].begins_with("-15%"), "kara pokazana z minusem (%s)" % Items.affix_lines(boots)[1])
 	_check(Items.unique_chance(9) == 0.0 and is_equal_approx(Items.unique_chance(10), 0.002)
-			and is_equal_approx(Items.unique_chance(40), 0.005) and is_equal_approx(Items.unique_chance(90), 0.005),
-			"szansa: od lochu 10 0,2%, na 40 i dalej 0,5%")
+			and is_equal_approx(Items.unique_chance(Items.MAX_LEVEL), 0.005) and is_equal_approx(Items.unique_chance(90), 0.005),
+			"szansa: od lochu 10 0,2%%, na %d i dalej 0,5%%" % Items.MAX_LEVEL)
 	var found := 0
 	var wrong := 0
 	for i in 6000:

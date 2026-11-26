@@ -87,7 +87,7 @@ func _test_mastery(game: Node) -> void:
 func _test_resists(game: Node) -> void:
 	_check(DungeonLevels.base_resist(1) == 0.0 and is_equal_approx(DungeonLevels.base_resist(101), DungeonLevels.RESIST_MAX)
 			and DungeonLevels.base_resist(500) == DungeonLevels.RESIST_MAX, "wspólna odporność: 0% na 1., %d%% na 101." % roundi(DungeonLevels.base_resist(101) * 100))
-	var lvl := Dungeons.cycle_length() + Dungeons.first_level(Dungeons.VOLCANO)  # Wulkaniczne w drugim kręgu
+	var lvl := Dungeons.first_level(Dungeons.VOLCANO) + 2  # Wulkaniczne (drugiego kręgu już nie ma - Głębiny)
 	var r: Dictionary = Dungeons.resists(Dungeons.VOLCANO, lvl)
 	var base := DungeonLevels.base_resist(lvl)
 	_check(is_equal_approx(r[Elements.PHYSICAL], base) and is_equal_approx(r[Elements.FIRE], base + 0.2)
@@ -121,7 +121,7 @@ func _test_resists(game: Node) -> void:
 	weapon.penetration = 0.15
 	g.hp = 1000000
 	weapon._deal(g, 1000, g.global_position, Skills.STRIKE)
-	_check(1000000 - g.hp == roundi(1000 * (1.0 - (base - 0.15))), "przebicie 15%% zmniejsza odporność (%d)" % (1000000 - g.hp))
+	_check(1000000 - g.hp == roundi(1000 * (1.0 - maxf(base - 0.15, 0.0))), "przebicie 15%% zmniejsza odporność (najwyżej do zera; %d)" % (1000000 - g.hp))
 	weapon.penetration = 1.0
 	_check(g.resist(Elements.PHYSICAL, 1.0) == 0.0 and g.resist(Elements.WATER, 1.0) == minf(base - 0.2, 0.0), "przebicie najwyżej do zera")
 	weapon.penetration = 0.0

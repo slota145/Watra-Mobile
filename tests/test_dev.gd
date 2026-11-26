@@ -108,10 +108,13 @@ func _test_levels(game: Node) -> void:
 	await process_frame
 	arena.open_picker()
 	var picker: LevelPicker = arena.picker
-	_check(picker.max_level == game.DEV_MAX_LEVEL and picker.plus10_button.visible, "wybór poziomu: wszystkie, skoki o 10")
+	_check(picker.max_level == Dungeons.DEEP_FROM - 1 and picker.plus10_button.visible, "wybór poziomu: wszystkie (do końca drabinki), skoki o 10")
 	picker.plus10_button.pressed.emit()
 	picker.plus10_button.pressed.emit()
 	_check(picker.level == game.dungeon_level + 20, "+10 dwa razy (poziom %d)" % picker.level)
+	picker.close()
+	arena.open_deep_picker()
+	_check(picker.deep and picker.max_level == game.DEV_MAX_LEVEL, "Czarna Watra: wszystkie Głębie do %d" % game.DEV_MAX_LEVEL)
 	_check(picker.get_global_rect().size.x >= picker.plus10_button.get_global_rect().end.x, "rząd strzałek mieści się na ekranie")
 	picker.close()
 	game.dev_all_levels = false

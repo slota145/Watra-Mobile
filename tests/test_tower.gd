@@ -31,8 +31,8 @@ func _run() -> void:
 	game.load_game()
 	_check(Dungeons.first_level(Dungeons.TOWER) == 51 and Dungeons.for_level(55) == Dungeons.TOWER
 			and Dungeons.for_level(50) == Dungeons.MINE and Dungeons.cycle_length() == 55
-			and Dungeons.for_level(56) == Dungeons.GOBLINS and Dungeons.cycle_of(56) == 2,
-			"drabinka: Wieża Kościeja 51-55, ostatnia w kręgu, drugi krąg od 56")
+			and Dungeons.is_deep(56) and not Dungeons.is_deep(55),
+			"drabinka: Wieża Kościeja 51-55, ostatnia, od 56 Głębiny")
 	var r := Dungeons.resists(Dungeons.TOWER, 51)
 	var base := DungeonLevels.base_resist(51)
 	_check(is_equal_approx(r[Elements.ARCANE], base + 0.2) and is_equal_approx(r[Elements.PRAWIA], base - 0.2),
