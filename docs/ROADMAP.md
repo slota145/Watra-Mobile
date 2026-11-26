@@ -39,12 +39,12 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
   (`Items.MAX_LEVEL` 40 -> 55?), zapis (osobny rekord Głębin, przeliczenie starych zapisów ponad 55), drabinka
   odblokowań, drzewko lochów, modyfikatory. Kolejność (decyzja autora): najpierw lochy Ziemi i Arkanów, potem Głębiny.
 
-- [ ] **Loch Ziemi - Kopalnia karłów (ustalone z autorem 26.11.2026, w trakcie):** poziomy 46-50, odporny na ziemię,
+- [ ] **Loch Ziemi - Kopalnia karłów (zrobiony 26.11.2026, `docs/historia.md`; do oceny na telefonie - siła kretołaków spod ziemi, częstość głazów, Król Karłów):** poziomy 46-50, odporny na ziemię,
   wrażliwy na powietrze. Kretołak (szybki, spod ziemi), karzeł-procarz (kamienie), skalny golem (silny); boss Król
   Karłów Kowal (młot i kowadło: fala, deszcz odłamków, przywołuje golemy); mechanika Osuwiska (głazy ze stropu
   w zapowiedzianych miejscach, zostają chwilę jako osłona przed pociskami).
 
-- [ ] **Loch Arkanów - Wieża Kościeja (ustalone z autorem 26.11.2026, w trakcie):** poziomy 51-55 (ostatni przed
+- [ ] **Loch Arkanów - Wieża Kościeja (zrobiony 26.11.2026, `docs/historia.md`; do oceny na telefonie - siła wybuchu pieczęci, czy kolory pieczęci są czytelne, jajo Kościeja):** poziomy 51-55 (ostatni przed
   Głębinami), odporny na Arkana, wrażliwy na Prawię. Latająca księga (szybka, gryzie), uczeń czarnoksiężnika
   (magiczne pociski), runiczny golem (silny); boss Kościej Nieśmiertelny (śmierć w igle w jajku - trzeba zniszczyć jajo,
   inaczej się odradza; pieczęcie, teleport); mechanika Magiczne pieczęcie (niebieska - premia, czerwona - wybuch).

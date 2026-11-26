@@ -414,14 +414,13 @@ animations:
     frames: 8
     ms: 150
     channels:
-      bob: "0.04 + 0.03*sin(p)"
-      squash: "1 + 0.01*sin(p)"
+      bob: "0.04 + 0.035*sin(p)"
       head_pitch: "-0.04*sin(p - 0.6)"
       beard_sway: "0.05*sin(p - 1.2)"
       hand_L: "[0.34, 0.10 + 0.03*sin(p - 0.6), 0.14]"
       hand_R: "[0.27, 0.04 + 0.03*sin(p - 0.8), 0.12]"
       staff_pitch: "0.02*sin(p - 1.0)"
-      coat: "0.15*sin(p - 1.2)"
+      coat: "0.10*sin(p - 1.2)"
   # sunący krok: bez widocznych nóg, ciało pochylone, szata faluje dwa razy na cykl, kostur stuka w rytm
   walk:
     frames: 8
@@ -504,7 +503,7 @@ animations:
       - {ms: 100, set: {bob: 0.08, lean: -0.08, coat: -0.3, glow: 0.8, puff: 0.85, vanish: 0.55,
           hand_R: [0.40, 0.42, 0.10]}}
       - {ms: 100, set: {puff: 1.0, vanish: 0.85, lit: 0.6, hand_R: [0.40, 0.42, 0.10]}}
-      - {ms: 100, event: release, set: {puff: 1.0, vanish: 1.0}}
+      - {ms: 100, event: release, set: {puff: 1.08, vanish: 1.0}}
       - {ms: 100, set: {puff: 0.75, vanish: 0.5, bob: 0.06, coat: -0.2}}
       - {ms: 100, set: {puff: 0.35, vanish: 0.1, bob: 0.05, coat: 0.1}}
   # odrodzenie: z kupki prochu (jak ostatnia klatka śmierci) wyrasta ciało, proch znika, kostur podnosi się,

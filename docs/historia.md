@@ -2,6 +2,64 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 26.11.2026 - Jedenasty loch: Wieża Kościeja (Arkana), Kościej Nieśmiertelny, Magiczne pieczęcie
+
+- **Ustalenia z autorem (ankieta 26.11.2026):** klimat wieży czarnoksiężnika Kościeja (regały ksiąg, alchemiczne stoły,
+  fioletowe kryształy, unoszące się runy, magiczne kręgi na posadzce), słudzy Kościeja (latająca księga, uczeń
+  czarnoksiężnika, runiczny golem), boss Kościej Nieśmiertelny ze śmiercią ukrytą w igle w jajku, mechanika Magiczne
+  pieczęcie. Liczby - propozycje Claude.
+- **Drabinka:** `Dungeons.TOWER` („Wieża Kościeja”) na **51-55** po Kopalni karłów - ostatni loch zwykłej drabinki;
+  krąg ma teraz 55 poziomów (drugi od 56). Odporności: Arkana +20%, Prawia -20%.
+- **Potwory** (modele SpriteKiln): latająca księga `proto_flying_book.gd` (zwykła, 28 zdrowia, 50 px/s, ugryzienie 9
+  Arkanami wysysa 5 many), uczeń czarnoksiężnika `proto_apprentice.gd` (strzelający; pocisk Arkanów - nowe
+  `ProtoArrow.arcane`: `arcane_missile` z ogonem rysowanym w kodzie, trafienie `arcane_hit`, wysysa 4 many; 10,
+  150 px/s), runiczny golem `proto_rune_golem.gd` (silny jak osiłek, 220 zdrowia, 20 px/s, cios 27, w kole
+  `arcane_blast`).
+- **Magiczne pieczęcie** `proto_seals.gd` (`arena.seals`, tylko w tym lochu): co 5-7,5 s wokół postaci (40-110 px,
+  poza ozdobami) 3 czerwone i 1 niebieska pieczęć (promień 20 px). Czerwona (trójkąt z „!”, kolce, miga coraz
+  szybciej) wypełnia się 1,8 s i wybucha - 20 Arkanami w kole; pierwsza w połowie przypadków pod postacią. Niebieska
+  (romb ze strzałką w górę) trwa 6 s; wejście daje „Moc pieczęci!” - 30% many i +30% szybkości ruchu na 4 s
+  (`ProtoHero.move_mult`); nigdy nie leży na czerwonej. Rysowane w kodzie (warstwa dodawana).
+- **Boss Kościej Nieśmiertelny** `proto_kosciej.gd` (po `ProtoChief`, 1450 zdrowia; model SpriteKiln): **jajo**
+  `proto_kosciej_egg.gd` (`ProtoTarget`, 22% zdrowia bossa) na postumencie w fioletowej kapsule ok. 100 px od postaci
+  po drugiej stronie niż boss, z paskiem zdrowia i pęknięciami, pulsująca nić magii do stóp Kościeja. Dopóki jajo całe,
+  przy zerze zdrowia Kościej nie wysyła `died`, tylko odradza się (`revive`, 1,2 s nietykalny, „Kościej się odradza!
+  Zniszcz jajo!”) z 40% zdrowia; Egzekucja go nie dobija. Po rozbiciu jaja („Igła złamana! Kościej jest śmiertelny!”)
+  chwieje się 1,2 s i można go pokonać. Ataki: pieczęcie (`cast` - 4 czerwone koła z `arcane_seal`, w gniewie poniżej
+  połowy zdrowia 6, pierwsze pod postacią, wybuchają po kolei za 24), pocisk (`bolt` - wachlarz 3 pocisków Arkanów,
+  w gniewie 5, po 18), teleport (znika, przy postaci koło 40 px na 0,9 s, wyłania się z wybuchem za 26).
+- **Grafiki bez generacji:** `tools/tower_art.py` - podłoga `tower_floor.png` (ciemne płyty 48 px, fioletowe żyłki,
+  wyryte runy), ozdoby `assets/watra/decor/tower/` (regały, pulpit, stoły alchemiczne, półka z fiolkami i świece
+  z Ostoi i Katakumb Watry; kocioł i kryształy przebarwione na fiolet; rysowane magiczne kręgi i unoszące się runy).
+- Test `tests/test_tower.gd`, zrzuty `tools/tower_shots.gd`.
+
+## 26.11.2026 - Dziesiąty loch: Kopalnia karłów (ziemia), Król Karłów, Osuwiska
+
+- **Ustalenia z autorem (ankieta 26.11.2026):** klimat kopalnia karłów (chodniki z belkami, wózki, żyły rud i kryształów,
+  porzucone kuźnie), potwory kretołak, karzeł-procarz i skalny golem, boss Król Karłów Kowal opętany przez Hordę,
+  mechanika Osuwiska. Liczby - propozycje Claude.
+- **Drabinka:** `Dungeons.MINE` („Kopalnia karłów”) na **46-50** po Świątyni Słońca, potem Wieża Kościeja (51).
+  Odporności: ziemia +20%, powietrze -20%.
+- **Potwory** (modele SpriteKiln): kretołak `proto_kretolak.gd` (zwykły, 32 zdrowia, 50 px/s, pazury 12; zaczyna
+  zakopany - kopczyk ziemi sunie 78 px/s i nie da się go trafić; pod postacią czerwone koło 0,5 s i wyskok za 14; gdy
+  postać odbiegnie dalej niż 130 px, znów się zakopuje), karzeł-procarz `proto_procarz.gd` (strzelający jak goblin
+  łucznik; kamień z procy - `ProtoArrow` z grafiką kamienia, 10, 140 px/s, ziemia), skalny golem
+  `proto_stone_golem.gd` (silny jak osiłek, 240 zdrowia, 17 px/s, cios 30 w koło, skalne kolce `slam_spikes`).
+- **Osuwiska** `proto_rockfall.gd` (`arena.rockfall`, tylko w tym lochu): co 5-7 s 3 głazy - pierwszy pod postacią,
+  reszta 45-110 px obok; zapowiedź 1,4 s (czerwone koło, rosnący cień, pył ze stropu), głaz widać w locie, rani 18
+  (ziemia). Głaz leży 6 s jako przeszkoda (`ProtoDecor.obstacles` i `ProtoHero.obstacles`) i osłona: pociski
+  (`ProtoArrow`) rozbijają się na nim - za głazem można się schować przed procarzami. Potem kruszy się; naraz najwyżej
+  8 głazów.
+- **Boss Król Karłów** `proto_dwarf_king.gd` (po `ProtoChief`, 1400 zdrowia; model SpriteKiln): uderzenie młotem
+  (koło 48 wokół Króla za 32 i 3 pasy fali 200x26 w stronę postaci za 26, poniżej połowy zdrowia 5 pasów; wstrząs
+  `earth_tremor`, kolce wzdłuż fal), deszcz odłamków (uderzenie w kowadło - 6 kół wokół postaci, poniżej połowy 9,
+  spadające odłamki skały, 20), przywołanie skalnych golemów (co 16 s 2, poniżej połowy 3; `minion_kind` brute).
+- **Grafiki bez generacji:** `tools/mine_art.py` - podłoga `assets/watra/mine_floor.png` (ubita ziemia chodnika
+  w barwach kopalni Watry, kamyki, rysy, błyski kruszcu i kryształów, bez szwów), ozdoby `assets/watra/decor/mine/`
+  (podpory, wózki, kuźnia ze światłem, kowadło, miechy, kopce rudy, kryształy, latarnie, tory, kilofy - z kopalni Watry,
+  bez goblińskich chorągwi i czaszek), głazy Osuwiska i kamień z procy rysowane.
+- Test `tests/test_mine.gd`, zrzuty `tools/mine_shots.gd`.
+
 ## 26.11.2026 - Dziewiąty loch: Świątynia Słońca (Prawia), Swarożyc, Promienie słońca
 
 - **Ustalenia z autorem (ankieta 26.11.2026):** klimat Zajęta Świątynia Słońca (sanktuarium Dadźboga zajęte przez
