@@ -99,8 +99,8 @@ func _test_combat(game: Node) -> void:
 	bow._fire_shot()
 	_check(bow._arrows.size() == 1, "strzał: strzała w locie")
 	await _wait(0.5)
-	_check(a.hp < hp and (bow._arrows.is_empty() or bow._arrows[0].pierce == 0),
-			"strzała trafia i przebija pierwszego wroga (27.11.2026)")
+	_check(a.hp < hp and (bow._arrows.is_empty() or (bow._arrows[0].pierce == -1 and bow._arrows[0].hits.has(a))),
+			"strzała trafia i leci dalej - przebija wszystkich w linii (27.11.2026)")
 	await _wait(1.5)
 	_check(bow._arrows.is_empty(), "po przebiciu leci dalej i znika")
 	# Poszukująca: przyspiesza na wroga, po przebiciu hamuje

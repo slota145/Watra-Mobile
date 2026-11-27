@@ -3,7 +3,7 @@ extends ProtoWeapon
 ## Łuk (ustalone z autorem 20.11.2026) - broń na dystans, żywioł powietrze (Elements.AIR): każde trafienie strzałą lekko
 ## odpycha wroga (AIR_PUSH). Łuk lewituje obok postaci (dziedziczy po ProtoWeapon: mana, odnowienia, kamienie, krytyki,
 ## kolejka umiejętności), przy strzale obraca się ku celowi.
-## - „Strzał” (`b_shot`, zwykły cios): strzała w najdalszego wroga w zasięgu (przebija pierwszego wroga, 5. poziom - dwóch,
+## - „Strzał” (`b_shot`, zwykły cios): strzała w najdalszego wroga w zasięgu (najbliższego; przebija wszystkich w linii, każdy kolejny -15%, 5. poziom - -5%,
 ##   10. - co trzeci strzał dwie strzały); kamień unikalny - Wielostrzał: SHOT_FAN_COUNT strzał w stożku;
 ## - „Poszukująca strzała” (`b_seeker`, jak Strzała tropiąca Watry - `_Seeker`): leci ze stałą prędkością i skręca łukiem
 ##   ku celowi, przebija na wylot i szuka kolejnego (innego niż ostatnio trafiony), znika po SEEK_HITS trafieniach
@@ -33,7 +33,12 @@ const ARROW_SPEED := 300.0
 const ARROW_RADIUS := 8.0
 const BOW_WINDUP := 0.14
 const BOW_SHOT := 0.1
-const BOW_COOLDOWN := 0.55
+const BOW_COOLDOWN := 0.3  # było 0,55 - szybszy zwykły atak (decyzja autora 27.11.2026)
+## Zwykła strzała przebija wszystkich w linii (decyzja autora 27.11.2026); każdy kolejny trafiony dostaje o tyle mniej
+## (5. poziom - SHOT_FALLOFF_PERK), najmniej SHOT_FALLOFF_MIN siły.
+const SHOT_FALLOFF := 0.15
+const SHOT_FALLOFF_PERK := 0.05
+const SHOT_FALLOFF_MIN := 0.25
 const SHOT_FAN_COUNT := 5
 const SHOT_FAN := deg_to_rad(12.0)
 const SHOT_FAN_POWER := 0.7
@@ -213,7 +218,7 @@ func _attack(second := false, full := false) -> void:
 	if not second:
 		_strike_count += 1
 	_swing_power = (1.0 if full else gem_power(basic, "multi") / 100.0) if second else 1.0
-	_shot_target = _farthest(Skills.DATA.b_shot.range * _area(basic))  # strzała przez tłum do najdalszego
+	_shot_target = _nearest(Skills.DATA.b_shot.range * _area(basic))  # najbliższy (27.11.2026) - strzała i tak przebija linię
 	_aim = (_shot_target.center() - _orbit_center()).angle() if _shot_target else hero.facing.angle()
 	_from_pos = position
 	_from_sprite = _sprite.position
@@ -248,13 +253,14 @@ func _process_bow() -> void:
 ## Wystrzał: jedna strzała (10. poziom - co trzeci strzał dwie); z kamieniem unikalnym Wielostrzał - stożek strzał.
 func _fire_shot() -> void:
 	var from := _sprite.global_position
-	var pierce := 2 if _perk(basic, 0) else 1  # zwykła strzała przebija 1 wroga (decyzja autora 27.11.2026), 5. poziom - 2
+	var falloff := SHOT_FALLOFF_PERK if _perk(basic, 0) else SHOT_FALLOFF
 	var bonus := SHOT_PERK_EXTRA if _perk(basic, 1) and _strike_count % 3 == 0 else 0  # 10. poziom (też z Wielostrzałem)
 	var unique := _unique(basic)
 	var count := (SHOT_FAN_COUNT if unique else 1) + bonus
 	var power := _swing_power * (SHOT_FAN_POWER if unique else 1.0) * projectile_mult
 	for a in fan(_aim, count, SHOT_FAN if unique else SHOT_PAIR):
-		_spawn_arrow(from, a, _shot_target if absf(a - _aim) < 0.001 else null, basic, power, pierce)
+		_spawn_arrow(from, a, _shot_target if absf(a - _aim) < 0.001 else null, basic, power, -1)
+		_arrows.back()["falloff"] = falloff  # przebija wszystkich, każdy kolejny słabiej
 
 
 ## Strzała z punktu `from` pod kątem `a` (lekko naprowadzana na `target`); `pierce` - ilu wrogów przebije (-1 - wszystkich).
@@ -400,7 +406,8 @@ func _process_arrows(delta: float) -> void:
 			if s.hits.has(t):
 				continue
 			s.hits.append(t)
-			_hit(t, _power(s.skill) * s.power, fx.global_position - s.dir * 10.0, s.skill)
+			var drop := maxf(1.0 - float(s.get("falloff", 0.0)) * (s.hits.size() - 1), SHOT_FALLOFF_MIN)
+			_hit(t, _power(s.skill) * s.power * drop, fx.global_position - s.dir * 10.0, s.skill)
 			_hit_fx(t.center(), s.dir, 0.8)
 			if s.pierce == 0:
 				done = true
