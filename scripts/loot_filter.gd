@@ -11,6 +11,8 @@ class_name LootFilter
 ## 5. co najmniej `count` premii z listy w progu stopnia (`tier`: T1 najlepszy, T7 - każdy stopień) - zostaje;
 ##    pusta lista (i wyłączony Automat) - liczy się każda premia;
 ## 6. reszta się rozbija.
+## Kamienie szlachetne (decyzja autora 27.11.2026): `jewel_stars` - przy włączonym filtrze kamień szlachetny z oceną
+## najwyżej tylu gwiazdek (Gems.jewel_stars) rozbija się przy podniesieniu na odpryski (`jewel_burns`; 0 - wyłączone).
 ## Ustawienia miejsc: "all" - wspólne, a każde miejsce (Items.SLOTS) może mieć własne (`own`), inaczej bierze wspólne.
 ## Automat (`auto`): dorzuca do listy premie pasujące do broni w ręku i założonych umiejętności (`auto_stats`, znaczniki
 ## Skills.TAGS) i premie ogólne; próg „Auto” (tier 0) bierze z głębokości lochu (`auto_tier`). Ręcznie zaznaczone premie
@@ -62,7 +64,8 @@ static func defaults() -> Dictionary:
 		var r := default_rules()
 		r["own"] = false
 		slots[slot] = r
-	return {"on": false, "auto": false, "upgrade": true, "safe_above": true, "safe_sockets": true, "slots": slots}
+	return {"on": false, "auto": false, "upgrade": true, "safe_above": true, "safe_sockets": true, "slots": slots,
+			"jewel_stars": 0}
 
 
 ## Domyślne zasady jednego miejsca.
@@ -78,6 +81,7 @@ static func normalize(raw) -> Dictionary:
 	for key in ["on", "auto", "upgrade", "safe_above", "safe_sockets"]:
 		if raw.has(key):
 			f[key] = bool(raw[key])
+	f.jewel_stars = clampi(int(raw.get("jewel_stars", 0)), 0, Gems.MAX_STARS - 1)
 	var raw_slots = raw.get("slots", {})
 	if raw_slots is Dictionary:
 		for key in f.slots:
@@ -197,5 +201,11 @@ static func burns(game: Node, item: Dictionary) -> bool:
 
 
 ## Nazwa premii w oknie filtra.
+## Czy filtr rozbija ten kamień szlachetny przy podniesieniu (ocena najwyżej `jewel_stars` gwiazdek).
+static func jewel_burns(filter: Dictionary, id: String) -> bool:
+	return filter.get("on", false) and int(filter.get("jewel_stars", 0)) > 0 and Gems.is_jewel(id) \
+			and Gems.jewel_stars(id) <= int(filter.jewel_stars)
+
+
 static func stat_name(stat: String) -> String:
 	return Lang.t(STAT_NAMES.get(stat, stat))

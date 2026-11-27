@@ -564,6 +564,54 @@ static func support_text(id: String, skill := "") -> String:
 	return Lang.t(text) % roundi(support_value(id))
 
 
+## Ocena kamienia szlachetnego (decyzja autora 27.11.2026): średnio jaka część najwyższej możliwej wartości premii
+## na jego poziomie lochu (Items.affix_max x JEWEL_MULT), 0-1. Gwiazdki 1-5 - progi STAR_STEPS.
+const STAR_STEPS := [0.35, 0.48, 0.6, 0.72]
+const MAX_STARS := 5
+
+
+static func jewel_quality(id: String) -> float:
+	var stats := jewel_stats(id)
+	if stats.is_empty():
+		return 0.0
+	var lvl := jewel_level(id)
+	var total := 0.0
+	for st in stats:
+		var top := Items.affix_max(st[0], lvl) * JEWEL_MULT
+		total += clampf(float(st[1]) / top, 0.0, 1.0) if top > 0.0 else 1.0
+	return total / stats.size()
+
+
+## Gwiazdki kamienia szlachetnego (1-5; inne kamienie - 0).
+static func jewel_stars(id: String) -> int:
+	if not is_jewel(id):
+		return 0
+	var q := jewel_quality(id)
+	var stars := 1
+	for step in STAR_STEPS:
+		if q >= step:
+			stars += 1
+	return stars
+
+
+## Wartość premii `stat` w kamieniu szlachetnym (0 - nie ma jej).
+static func jewel_value(id: String, stat: String) -> float:
+	for st in jewel_stats(id):
+		if st[0] == stat:
+			return float(st[1])
+	return 0.0
+
+
+## Wszystkie premie, które mogą wypaść na kamieniach szlachetnych (kolejność pul JEWELS).
+static func jewel_stat_pool() -> Array:
+	var out: Array = []
+	for kind in JEWEL_ORDER:
+		for stat in JEWELS[kind].pool:
+			if not out.has(stat):
+				out.append(stat)
+	return out
+
+
 ## Premie kamienia szlachetnego słowami („+6% obrażeń”), każda osobno.
 static func jewel_lines(id: String) -> Array[String]:
 	var lines: Array[String] = []

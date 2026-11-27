@@ -261,6 +261,10 @@ func _take() -> void:
 	elif item.has(Pinnacles.KEY):
 		_game.add_zmij_key(int(item[Pinnacles.KEY]))
 		_float_text(tr("Klucz do Gniazda Żmija!"), Pinnacles.KEY_COLOR)
+	elif item.has("gem") and LootFilter.jewel_burns(_game.loot_filter, item.gem):
+		var dust := Gems.shard_value(item.gem)  # filtr łupu: słaby kamień szlachetny od razu na odpryski
+		_game.add_shards(dust)
+		_float_text(tr("+%d odprysków") % dust, Color(0.75, 0.8, 0.95))
 	elif item.has("gem"):
 		_game.add_gem(item.gem)
 	elif item.has("rune"):
