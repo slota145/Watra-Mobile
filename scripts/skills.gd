@@ -255,7 +255,7 @@ const DATA := {
 	"b_shot": {
 		"name": "Strzał", "icon": preload("res://assets/skills/bow/b_shot.png"),
 		"mana": 0, "cooldown": 0.0, "weapon": "bow", "mastery": 1, "main": true, "range": 170.0, "power": 1.06,
-		"description": "Łuk strzela w najdalszego wroga w zasięgu. Strzała przebija pierwszego trafionego i lekko odpycha.",
+		"description": "Łuk strzela w najbliższego wroga. Strzała przebija wszystkich w linii (każdy kolejny dostaje 15% mniej) i lekko odpycha.",
 	},
 	"b_seeker": {
 		"name": "Poszukująca strzała", "icon": preload("res://assets/skills/bow/b_seeker.png"),
@@ -281,8 +281,8 @@ const DATA := {
 	# Księga Arkanów (ankieta z autorem 21.11.2026): broń magiczna, żywioł Arkana - trafienia wysysają manę (ProtoBook).
 	"a_missiles": {
 		"name": "Pociski Arkanów", "icon": preload("res://assets/skills/book/a_missiles.png"),
-		"mana": 0, "cooldown": 0.0, "weapon": "book", "mastery": 1, "main": true, "range": 180.0, "power": 0.56,
-		"description": "Księga wypuszcza 4 pociski, które lecą łukiem albo zakosami: jeden w najbliższego wroga, pozostałe w losowych wrogów w pobliżu.",
+		"mana": 0, "cooldown": 0.0, "weapon": "book", "mastery": 1, "main": true, "range": 180.0, "power": 0.45,
+		"description": "Księga wypuszcza 4 pociski, które wybuchają małym kręgiem, które lecą łukiem albo zakosami: jeden w najbliższego wroga, pozostałe w losowych wrogów w pobliżu.",
 	},
 	"a_circle": {
 		"name": "Krąg Mocy", "icon": preload("res://assets/skills/book/a_circle.png"),
@@ -396,7 +396,7 @@ const PERKS := {
 	"k_riposte": ["Garda czeka 5 s zamiast 3.", "Z precyzyjnego cięcia po okręgu piorun przeskakuje na wrogów obok."],
 	"k_perun": ["Ładuje się o 1/3 szybciej.", "Na końcu cięcia uderza piorun, który rani wszystkich wokół."],
 	"k_flash": ["Zabicie skokiem zwraca dwa razy więcej many.", "Co 5. skok wiązka piorunów przeskakuje po 5 wrogach."],
-	"b_shot": ["Strzała przebija dwóch wrogów zamiast jednego.", "Co trzeci strzał - dwie strzały więcej (też z Wielostrzałem)."],
+	"b_shot": ["Kolejni trafieni tracą tylko 5% obrażeń zamiast 15%.", "Co trzeci strzał - dwie strzały więcej (też z Wielostrzałem)."],
 	"b_seeker": ["6 trafień zamiast 4.", "Lecą dwie strzały naraz."],
 	"b_rain": ["Krąg deszczu o 30% większy.", "Deszcz pada 2 s zamiast 1."],
 	"b_power": ["Naciąga się o 1/3 szybciej.", "Podmuch ogłusza wrogów na 0,8 s."],

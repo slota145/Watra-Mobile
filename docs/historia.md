@@ -15,6 +15,13 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
 - Dalej (prośba autora tego samego dnia): zwykła strzała przebija 1 wroga (5. poziom - 2; `ProtoBow` `pierce`,
   opis i działanie z 5. poziomu w `Skills`), Pociski Arkanów 4 zamiast 3 (5. poziom - 5; `ProtoBook.MISSILES`,
   `MISSILES_PERK`). Pomiar: miecz 84, łuk 26, księga 17.
+- **Druga runda (ankieta 27.11.2026 - dalej za słabe):** łuk - zwykła strzała przebija wszystkich w linii, każdy
+  kolejny trafiony -15% (5. poziom - -5%; `SHOT_FALLOFF`, `SHOT_FALLOFF_PERK`, najmniej `SHOT_FALLOFF_MIN` 25%),
+  celuje w najbliższego (było: najdalszy), `BOW_COOLDOWN` 0,55 -> 0,3; księga - pocisk wybucha przy trafieniu
+  (`BURST_RADIUS` 20 x obszar, `BURST_POWER` 30%), mądrzejsze celowanie (od najbliższych, każdy pocisk w wroga,
+  którego reszta rzutu jeszcze nie dobija - `remaining_hp`), `CAST_COOLDOWN` 0,6 -> 0,5, a siła pocisku wróciła
+  do 0,45 (przy wybuchach i 4 pociskach +25% robiło z księgi najsilniejszą broń). Pomiar 40 s w hordzie (loch 1
+  postać 1 / loch 10 postać 10, bez przedmiotów): miecz 77 / 2, łuk 73 / 1, księga 94 / 3.
 
 ## 27.11.2026 - porządek w kamieniach szlachetnych (ocena, lista, premia, filtr łupu)
 

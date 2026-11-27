@@ -3,7 +3,7 @@ extends ProtoWeapon
 ## Księga Arkanów (ankieta z autorem 21.11.2026) - broń magiczna, żywioł Arkana (Elements.ARCANE: trafienia wysysają
 ## manę). Księga lewituje obok postaci (dziedziczy po ProtoWeapon: mana, odnowienia, kamienie, krytyki, kolejka
 ## umiejętności); szybkość czarów - szybkość rzucania (HeroStats.weapon_speed_mult), premia obrażeń magicznych.
-## - „Pociski Arkanów” (`a_missiles`, zwykły atak): MISSILES pocisków leci łukiem albo zakosami - pierwszy w najbliższego
+## - „Pociski Arkanów” (`a_missiles`, zwykły atak): MISSILES pocisków leci łukiem albo zakosami - od najbliższych, każdy w wroga, którego reszta jeszcze nie dobija; wybuchają małym kręgiem (BURST_*)
 ##   wroga, reszta w losowych wrogów w zasięgu; ogon rysowany w grze wygina się po torze lotu (Line2D z ostatnich pozycji).
 ##   Pociski wylatują po kolei co MISSILE_STAGGER s (prośba autora 21.11.2026; kolejne rzuty mogą się zazębiać).
 ##   5. poziom - 4 pociski, 10. - co trzeci rzut 2 więcej; kamień unikalny - z trafionego SHARDS odłamków (z ogonem)
@@ -69,7 +69,11 @@ const TAIL_POINTS := 12
 const TAIL_WIDTH := 6.0
 const MISSILE_STAGGER := 0.08
 const CAST_TIME := 0.16
-const CAST_COOLDOWN := 0.6
+const CAST_COOLDOWN := 0.5  # było 0,6 - szybszy zwykły atak (decyzja autora 27.11.2026)
+## Pocisk wybucha przy trafieniu (decyzja autora 27.11.2026): wrogowie w promieniu BURST_RADIUS (x obszar) wokół celu
+## dostają BURST_POWER jego siły.
+const BURST_RADIUS := 20.0
+const BURST_POWER := 0.3
 ## Odłamki (kamień unikalny pocisków): ile, zasięg szukania, prędkość, siła względem pocisku.
 const SHARDS := 3
 const SHARD_MIN := 35.0
@@ -297,13 +301,26 @@ func missile_count() -> int:
 func _fire_missiles() -> void:
 	var reach: float = Skills.DATA.a_missiles.range * _area(basic)
 	var pool := _near(hero.global_position, reach).filter(func(t: ProtoTarget) -> bool:
-		return t.global_position.distance_to(hero.global_position) <= reach)
-	pool.shuffle()
-	var first := _nearest(reach)
+		return t.alive() and t.global_position.distance_to(hero.global_position) <= reach)
+	# mądrzejsze celowanie (decyzja autora 27.11.2026): od najbliższych, każdy pocisk w wroga, którego reszta pocisków
+	# (z tego rzutu) jeszcze nie dobija; gdy wszyscy „dobici” - znów od najbliższego
+	var hero_at := hero.global_position
+	pool.sort_custom(func(a: ProtoTarget, b: ProtoTarget) -> bool:
+		return a.global_position.distance_squared_to(hero_at) < b.global_position.distance_squared_to(hero_at))
 	var n := missile_count()
 	var power := _power(basic) * _swing_power * projectile_mult
+	var est := float(_roll(power * _circle_buff()))
+	var planned := {}
 	for i in n:
-		var target: ProtoTarget = first if i == 0 else (pool[i % pool.size()] if not pool.is_empty() else first)
+		var target: ProtoTarget = null
+		for t in pool:
+			if float(planned.get(t, 0.0)) < float(t.remaining_hp()):
+				target = t
+				break
+		if target == null and not pool.is_empty():
+			target = pool[i % pool.size()]
+		if target != null:
+			planned[target] = float(planned.get(target, 0.0)) + est
 		var side := 1.0 if i % 2 == 0 else -1.0
 		var a := _aim + side * MISSILE_SPREAD * (0.4 + 0.6 * randf()) * (0.0 if i == 0 and n == 1 else 1.0)
 		_volley.append({"wait": MISSILE_STAGGER * i, "target": target, "angle": a, "power": power, "chaotic": randf() < 0.5})
@@ -383,6 +400,10 @@ func _process_missiles(delta: float) -> void:
 		if hit:
 			_hit(t, m.power, m.pos, basic)
 			_fx_once("arcane_hit", m.pos, 0.8)
+			var r := BURST_RADIUS * _area(basic)
+			for o in _near_c(m.pos, r + 8.0):  # wybuch: grupka wokół celu
+				if o != t and o.alive() and o.center().distance_to(m.pos) <= r + o.center_height * 0.3:
+					_hit(o, m.power * BURST_POWER, m.pos, basic)
 			if _unique(basic):
 				_spawn_shards(t, m.power)
 		if hit or m.life <= 0.0:
