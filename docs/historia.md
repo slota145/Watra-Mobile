@@ -2,6 +2,17 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 27.11.2026 - Rozruch: łatwiejszy początek, mocniejszy łuk i księga
+
+- **Zgłoszenie autora:** początek za trudny - łukiem i księgą prawie nic nie da się zabić, mieczem niewiele;
+  później trudność ma zostać, obrażenia wrogów są w porządku. Pomiar (40 s stania w hordzie na 1. poziomie lochu,
+  auto atak, postać 1. poziomu): miecz 44 zabitych, łuk 3, księga 1 (goblin 120 zdrowia = 40 x `enemy_hp` 3).
+- **Decyzje (ankieta 27.11.2026):** Rozruch - `DungeonLevels.ramp` (`ramp_start` 0,4 na 1. poziomie, równo do 1,0
+  na `RAMP_FULL` 10.), tylko zdrowie wrogów i bossów (`hp_mult`), obrażenia bez zmian; od 10. poziomu jak dawniej.
+  Zwykłe ataki łuku i księgi +25% na całą grę: `b_shot` power 0,85 -> 1,06, `a_missiles` 0,45 -> 0,56.
+- Po zmianie ten sam pomiar: miecz 78, łuk 12, księga 11 (stanie w miejscu sprzyja broni wręcz - łuk strzela
+  w najdalszego wroga i odpycha, a w grze ucieka się przed tłumem).
+
 ## 27.11.2026 - porządek w kamieniach szlachetnych (ocena, lista, premia, filtr łupu)
 
 - **Problem autora:** kamieni szlachetnych jest bardzo dużo (każdy ma inne losowe premie, więc nie układają się

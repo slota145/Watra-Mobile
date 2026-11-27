@@ -8,6 +8,7 @@ var _failed := 0
 
 func _initialize() -> void:
 	DungeonLevels.enemy_hp = 1.0  # liczby w testach bez próby x3 zdrowia / x2 obrażeń wrogów
+	DungeonLevels.ramp_start = 1.0  # bez Rozruchu (27.11.2026)
 	DungeonLevels.enemy_damage = 1.0
 	root.get_node("Game").save_path = "user://test_savegame.json"
 	_run.call_deferred()

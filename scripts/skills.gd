@@ -254,7 +254,7 @@ const DATA := {
 	# Łuk (ustalone z autorem 20.11.2026): żywioł powietrze - trafienia lekko odpychają (ProtoBow).
 	"b_shot": {
 		"name": "Strzał", "icon": preload("res://assets/skills/bow/b_shot.png"),
-		"mana": 0, "cooldown": 0.0, "weapon": "bow", "mastery": 1, "main": true, "range": 170.0, "power": 0.85,
+		"mana": 0, "cooldown": 0.0, "weapon": "bow", "mastery": 1, "main": true, "range": 170.0, "power": 1.06,
 		"description": "Łuk strzela w najdalszego wroga w zasięgu. Strzała lekko odpycha trafionego.",
 	},
 	"b_seeker": {
@@ -281,7 +281,7 @@ const DATA := {
 	# Księga Arkanów (ankieta z autorem 21.11.2026): broń magiczna, żywioł Arkana - trafienia wysysają manę (ProtoBook).
 	"a_missiles": {
 		"name": "Pociski Arkanów", "icon": preload("res://assets/skills/book/a_missiles.png"),
-		"mana": 0, "cooldown": 0.0, "weapon": "book", "mastery": 1, "main": true, "range": 180.0, "power": 0.45,
+		"mana": 0, "cooldown": 0.0, "weapon": "book", "mastery": 1, "main": true, "range": 180.0, "power": 0.56,
 		"description": "Księga wypuszcza 3 pociski, które lecą łukiem albo zakosami: jeden w najbliższego wroga, pozostałe w losowych wrogów w pobliżu.",
 	},
 	"a_circle": {

@@ -17,7 +17,12 @@ var _failed := 0
 
 
 func _initialize() -> void:
+	# Rozruch (27.11.2026): zdrowie wrogów 40% na 1. poziomie, pełne od 10.; sprawdzane przed wyłączeniem do liczb testów
+	_check(is_equal_approx(DungeonLevels.ramp(1), 0.4) and is_equal_approx(DungeonLevels.ramp(10), 1.0)
+			and is_equal_approx(DungeonLevels.ramp(40), 1.0) and DungeonLevels.ramp(5) > 0.4 and DungeonLevels.ramp(5) < 1.0,
+			"Rozruch: 40% zdrowia na 1. poziomie, pełne od 10.")
 	DungeonLevels.enemy_hp = 1.0  # liczby w testach bez próby x3 zdrowia / x2 obrażeń wrogów (20.11.2026)
+	DungeonLevels.ramp_start = 1.0  # i bez Rozruchu (27.11.2026)
 	DungeonLevels.enemy_damage = 1.0
 	root.get_node("Game").save_path = "user://test_savegame.json"
 	_run.call_deferred()

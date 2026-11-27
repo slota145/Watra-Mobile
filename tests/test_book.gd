@@ -12,6 +12,7 @@ var _failed := 0
 func _initialize() -> void:
 	root.get_node("Game").save_path = "user://test_savegame.json"
 	DungeonLevels.enemy_hp = 1.0
+	DungeonLevels.ramp_start = 1.0  # bez Rozruchu (27.11.2026)
 	DungeonLevels.enemy_damage = 1.0
 	_run.call_deferred()
 
