@@ -70,9 +70,21 @@ static func base_resist(level: int) -> float:
 	return minf(RESIST_STEP * (maxi(level, 1) - 1), RESIST_MAX)
 
 
-## Dodatkowy mnożnik zdrowia potworów i bossów na danym poziomie (ponad `power`).
+## Rozruch (decyzja autora 27.11.2026 - początek za trudny, zwłaszcza łukiem i księgą): na 1. poziomie lochu wrogowie
+## mają RAMP_START zdrowia, do RAMP_FULL. poziomu część rośnie równo do pełnej; dalej bez zmian. Obrażenia wrogów
+## Rozruch pomija. Zmienna, nie stała - testy liczące na konkretnych liczbach ustawiają ją na 1 (jak `enemy_hp`).
+static var ramp_start := 0.4
+const RAMP_FULL := 10
+
+
+## Część zdrowia wrogów z Rozruchu na danym poziomie lochu (1.0 od RAMP_FULL).
+static func ramp(level: int) -> float:
+	return lerpf(ramp_start, 1.0, clampf(float(maxi(level, 1) - 1) / (RAMP_FULL - 1), 0.0, 1.0))
+
+
+## Dodatkowy mnożnik zdrowia potworów i bossów na danym poziomie (ponad `power`; z Rozruchem).
 static func hp_mult(level: int) -> float:
-	return pow(HP_GROWTH, maxi(level, 1) - 1) * enemy_hp
+	return pow(HP_GROWTH, maxi(level, 1) - 1) * enemy_hp * ramp(level)
 
 
 ## Liniowy przyrost (stara krzywa siły) - doświadczenie za potwory, żeby postać nie awansowała lawinowo w głębi.

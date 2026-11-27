@@ -10,6 +10,7 @@ var _failed := 0
 func _initialize() -> void:
 	root.get_node("Game").save_path = "user://test_savegame.json"
 	DungeonLevels.enemy_hp = 1.0
+	DungeonLevels.ramp_start = 1.0  # bez Rozruchu (27.11.2026)
 	DungeonLevels.enemy_damage = 1.0
 	_run.call_deferred()
 
@@ -98,7 +99,10 @@ func _test_combat(game: Node) -> void:
 	bow._fire_shot()
 	_check(bow._arrows.size() == 1, "strzał: strzała w locie")
 	await _wait(0.5)
-	_check(a.hp < hp and bow._arrows.is_empty(), "strzała trafia i znika")
+	_check(a.hp < hp and (bow._arrows.is_empty() or bow._arrows[0].pierce == 0),
+			"strzała trafia i przebija pierwszego wroga (27.11.2026)")
+	await _wait(1.5)
+	_check(bow._arrows.is_empty(), "po przebiciu leci dalej i znika")
 	# Poszukująca: przyspiesza na wroga, po przebiciu hamuje
 	hp = a.hp
 	var hpb := b.hp
