@@ -22,6 +22,7 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   którego reszta rzutu jeszcze nie dobija - `remaining_hp`), `CAST_COOLDOWN` 0,6 -> 0,5, a siła pocisku wróciła
   do 0,45 (przy wybuchach i 4 pociskach +25% robiło z księgi najsilniejszą broń). Pomiar 40 s w hordzie (loch 1
   postać 1 / loch 10 postać 10, bez przedmiotów): miecz 77 / 2, łuk 73 / 1, księga 94 / 3.
+- Krąg Mocy księgi: promień `CIRCLE_RADIUS` 55 -> 80 px (prośba autora - raził w za małym obszarze; efekt skaluje się sam).
 
 ## 27.11.2026 - porządek w kamieniach szlachetnych (ocena, lista, premia, filtr łupu)
 
