@@ -55,8 +55,8 @@ const CIRCLE_FLASH := 0.5
 const CIRCLE_TRAIL_ALPHA := 0.45
 
 ## Pociski: liczba, prędkość, skręt (rad/s), zakosy (siła i częstotliwość), promień trafienia, czas życia, ogon.
-const MISSILES := 3
-const MISSILES_PERK := 4
+const MISSILES := 4  # było 3 (decyzja autora 27.11.2026 - księga za słaba na początku)
+const MISSILES_PERK := 5
 const MISSILES_EXTRA := 2
 const MISSILE_SPEED := 190.0
 const MISSILE_TURN := 7.0

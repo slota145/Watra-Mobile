@@ -3,7 +3,7 @@ extends ProtoWeapon
 ## Łuk (ustalone z autorem 20.11.2026) - broń na dystans, żywioł powietrze (Elements.AIR): każde trafienie strzałą lekko
 ## odpycha wroga (AIR_PUSH). Łuk lewituje obok postaci (dziedziczy po ProtoWeapon: mana, odnowienia, kamienie, krytyki,
 ## kolejka umiejętności), przy strzale obraca się ku celowi.
-## - „Strzał” (`b_shot`, zwykły cios): strzała w najdalszego wroga w zasięgu (5. poziom - przebija pierwszego wroga,
+## - „Strzał” (`b_shot`, zwykły cios): strzała w najdalszego wroga w zasięgu (przebija pierwszego wroga, 5. poziom - dwóch,
 ##   10. - co trzeci strzał dwie strzały); kamień unikalny - Wielostrzał: SHOT_FAN_COUNT strzał w stożku;
 ## - „Poszukująca strzała” (`b_seeker`, jak Strzała tropiąca Watry - `_Seeker`): leci ze stałą prędkością i skręca łukiem
 ##   ku celowi, przebija na wylot i szuka kolejnego (innego niż ostatnio trafiony), znika po SEEK_HITS trafieniach
@@ -248,7 +248,7 @@ func _process_bow() -> void:
 ## Wystrzał: jedna strzała (10. poziom - co trzeci strzał dwie); z kamieniem unikalnym Wielostrzał - stożek strzał.
 func _fire_shot() -> void:
 	var from := _sprite.global_position
-	var pierce := 1 if _perk(basic, 0) else 0
+	var pierce := 2 if _perk(basic, 0) else 1  # zwykła strzała przebija 1 wroga (decyzja autora 27.11.2026), 5. poziom - 2
 	var bonus := SHOT_PERK_EXTRA if _perk(basic, 1) and _strike_count % 3 == 0 else 0  # 10. poziom (też z Wielostrzałem)
 	var unique := _unique(basic)
 	var count := (SHOT_FAN_COUNT if unique else 1) + bonus

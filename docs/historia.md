@@ -12,6 +12,9 @@ Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie 
   Zwykłe ataki łuku i księgi +25% na całą grę: `b_shot` power 0,85 -> 1,06, `a_missiles` 0,45 -> 0,56.
 - Po zmianie ten sam pomiar: miecz 78, łuk 12, księga 11 (stanie w miejscu sprzyja broni wręcz - łuk strzela
   w najdalszego wroga i odpycha, a w grze ucieka się przed tłumem).
+- Dalej (prośba autora tego samego dnia): zwykła strzała przebija 1 wroga (5. poziom - 2; `ProtoBow` `pierce`,
+  opis i działanie z 5. poziomu w `Skills`), Pociski Arkanów 4 zamiast 3 (5. poziom - 5; `ProtoBook.MISSILES`,
+  `MISSILES_PERK`). Pomiar: miecz 84, łuk 26, księga 17.
 
 ## 27.11.2026 - porządek w kamieniach szlachetnych (ocena, lista, premia, filtr łupu)
 
