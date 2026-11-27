@@ -87,7 +87,7 @@ const HAND_HEIGHT := 13.0
 const HAND_REACH := 7.0
 ## Krąg Mocy: promień, 5. poziom, drugi błysk z 10., trwały krąg z kamieniem unikalnym (czas, tyknięcia, siła tyknięcia,
 ## premia czarów w kręgu).
-const CIRCLE_RADIUS := 55.0
+const CIRCLE_RADIUS := 80.0  # było 55 - za mały krąg (prośba autora 27.11.2026)
 const CIRCLE_PERK := 1.3
 const CIRCLE_SECOND := 0.5
 const TRAIL_CIRCLE_TIME := 8.0
