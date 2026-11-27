@@ -245,8 +245,8 @@ tempo poziomów, trudność (siła +20%/poziom, obrażenia x1,5, gęściej, boss
       Marzanny, Postać Mary~~ (zrobione 21.11.2026; do oceny: okno przedłużania tańca, czas i szybkość Mary).
   - **Rzadki przedmiot odblokowujący dowolną broń za darmo** - mały, można dorzucić przy okazji.
   - ~~**Filtr łupu**~~ - zrobiony 21.11.2026 (szczegóły w `docs/historia.md`; do oceny na telefonie: próg Automatu,
-    lista premii Automatu, czytelność okna). Zostaje: filtr dla kamieni szlachetnych wkładanych w ekwipunek - najpierw
-    muszą dostać stopnie premii.
+    lista premii Automatu, czytelność okna). Filtr dla kamieni szlachetnych - zrobiony 27.11.2026 (ocena 1-5 gwiazdek
+    zamiast stopni; do oceny na telefonie: progi gwiazdek, czy wysokie lochy nie dają za słabych ocen).
 
 - **Boss w lochu (12.11.2026):** zrobione (szczegóły w `docs/historia.md`); do oceny na telefonie: czas zapełniania
   paska (100 żaru), trudność Wodza, czytelność ostrzeżeń. Model, animacje i efekty

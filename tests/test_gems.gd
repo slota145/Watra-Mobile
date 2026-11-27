@@ -557,8 +557,8 @@ func _test_windows(game: Node) -> void:
 	stats.picker.actions["shatter"].pressed.emit()
 	_check(game.gem_count("ember:2") == 0 and not stats.picker.visible, "drugie stuknięcie rozbija ostatnią sztukę i zamyka okno")
 	stats.pouch_kind_buttons["jewel"].pressed.emit()
-	_check(stats.pouch_grid.get_children().filter(func(c: Node) -> bool: return not c.is_queued_for_deletion()).size()
-			== game.gem_list("jewel").size(), "filtr: tylko szlachetne")
+	_check(stats.jewel_rows.get_children().filter(func(c: Node) -> bool: return not c.is_queued_for_deletion()).size()
+			== game.gem_list("jewel").size(), "filtr: tylko szlachetne (wiersze)")
 	stats.pouch_kind_buttons[""].pressed.emit()
 	stats.pouch_range_button.pressed.emit()  # poziom 1-3
 	_check(stats.pouch_range == 0 and stats.pouch_range_button.text.contains("1-3"), "filtr poziomu 1-3")

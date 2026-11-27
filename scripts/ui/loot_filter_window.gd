@@ -166,6 +166,14 @@ func _rules_page(f: Dictionary) -> void:
 				% [int(r.count), listed, t_text], 11, DIM, true)
 		if tiers == LootFilter.AUTO_TIER and f.auto:
 			label(content, tr("Próg „Auto” rośnie z poziomem lochu: najlepszy dostępny stopień i dwa słabsze."), 11, DIM, true)
+	label(content, tr("Kamienie szlachetne"), 13, GOLD)
+	var js: int = int(f.get("jewel_stars", 0))
+	_stepper(tr("Rozbijaj z oceną do"), tr("wyłączone") if js == 0 else Lang.n(js, "%d gwiazdki", "%d gwiazdek", "%d gwiazdek") % js,
+			func(d: int) -> void:
+				f.jewel_stars = clampi(js + d, 0, Gems.MAX_STARS - 1)
+				refresh())
+	label(content, tr("Słabsze kamienie szlachetne od razu zamieniają się na odpryski. Ocena (1-5 gwiazdek) - jak blisko najlepszych wartości są ich premie.") \
+			if js > 0 else tr("Kamienie szlachetne trafiają do sakwy wszystkie."), 11, DIM, true)
 	label(content, tr("Zawsze zachowuj (wszystkie miejsca)"), 13, GOLD)
 	label(content, tr("Legendy i unikaty zostają zawsze."), 11, DIM, true)
 	for key in ["safe_above", "safe_sockets", "upgrade"]:

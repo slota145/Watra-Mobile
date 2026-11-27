@@ -12,7 +12,9 @@ extends Control
 ## „Dłuto” dorabia drugie gniazdo (drugie stuknięcie potwierdza). Zakładka „Sakwa” (15.11.2026): kamienie, klucze
 ## i dłuta (liczba w rogu - poziom kamienia umiejętności, kropki - premie szlachetnego), u góry odpryski, rodzaj
 ## (wszystkie / umiejętności / szlachetne), sortowanie (rodzaj / poziom) i filtr poziomu (Game.GEM_LEVEL_RANGES);
-## stuknięcie otwiera GemPicker (opis, ulepszanie, sprzedaż, rozbicie, gdzie pasuje). Nad zakładkami pasek
+## stuknięcie otwiera GemPicker (opis, ulepszanie, sprzedaż, rozbicie, gdzie pasuje). „Szlachetne” (decyzje autora
+## 27.11.2026): lista wierszy z oceną (Gems.jewel_stars) i premiami, sortowanie ocena / liczba premii / wybrana premia,
+## „Premia: …” (okno wyboru - tylko kamienie z tą premią, od najsilniejszej), „Ocena: do ★★” i przy niej „Rozbij widoczne”. Nad zakładkami pasek
 ## „Zaznacz kilka”: stukane kamienie się zaznaczają (cały stos), potem „Sprzedaj” albo „Rozbij” z ceną (drugie
 ## stuknięcie potwierdza); „Zaznacz widoczne” bierze wszystko, co pokazuje filtr.
 ## Liczby bierze z HeroLevels, Items, ProtoHero i ProtoWeapon, stan z Game. Zakładka przewija się na niskich ekranach.
@@ -105,6 +107,15 @@ var pouch_select := false
 var pouch_marked := {}
 var _pouch_armed := ""
 var pouch_kind_buttons := {}
+## Szlachetne: sortowanie ("stars", "level", "stat"), wybrana premia ("" - wszystkie), ocena najwyżej (0 - każda),
+## lista wierszy, przycisk premii, rozbijanie widocznych i okno wyboru premii.
+var jewel_sort := "stars"
+var jewel_stat := ""
+var jewel_max_stars := 0
+var jewel_rows: VBoxContainer
+var jewel_stat_button: Button
+var jewel_shatter_button: Button
+var jewel_stat_window: Control
 var pouch_sort_button: Button
 var pouch_range_button: Button
 ## Pasek nad zakładkami (tylko w „Sakwie”): „Zaznacz kilka” albo zaznaczanie, sprzedaż i rozbijanie.
@@ -237,12 +248,30 @@ func _ready() -> void:
 	page_pouch.add_child(order)
 	pouch_sort_button = _pouch_button(order, "")
 	pouch_sort_button.pressed.connect(func() -> void:
-		pouch_sort = "level" if pouch_sort == "kind" else "kind"
+		if pouch_filter == "jewel":  # szlachetne: ocena -> liczba premii -> wybrana premia
+			var order_list := ["stars", "level"] + (["stat"] if jewel_stat != "" else [])
+			jewel_sort = order_list[(order_list.find(jewel_sort) + 1) % order_list.size()]
+		else:
+			pouch_sort = "level" if pouch_sort == "kind" else "kind"
 		refresh())
 	pouch_range_button = _pouch_button(order, "")
 	pouch_range_button.pressed.connect(func() -> void:
-		pouch_range = pouch_range + 1 if pouch_range + 1 < Game.GEM_LEVEL_RANGES.size() else -1
+		if pouch_filter == "jewel":  # szlachetne: ocena najwyżej (wszystkie, do ★ ... do ★★★★)
+			jewel_max_stars = (jewel_max_stars + 1) % Gems.MAX_STARS
+			_pouch_armed = ""
+		else:
+			pouch_range = pouch_range + 1 if pouch_range + 1 < Game.GEM_LEVEL_RANGES.size() else -1
 		refresh())
+	var jrow := HBoxContainer.new()
+	jrow.add_theme_constant_override("separation", 4)
+	page_pouch.add_child(jrow)
+	jewel_stat_button = _pouch_button(jrow, "")
+	jewel_stat_button.pressed.connect(_open_jewel_stats)
+	jewel_shatter_button = _pouch_button(page_pouch, "")  # osobny rząd - długi napis z liczbą odprysków
+	jewel_shatter_button.pressed.connect(_on_jewel_shatter)
+	jewel_rows = VBoxContainer.new()
+	jewel_rows.add_theme_constant_override("separation", 4)
+	page_pouch.add_child(jewel_rows)
 	pouch_grid = GridContainer.new()
 	pouch_grid.columns = BAG_COLUMNS
 	pouch_grid.add_theme_constant_override("h_separation", 6)
@@ -401,6 +430,8 @@ func back() -> void:
 		filter_window.back()
 	elif picker.visible:
 		picker.close()
+	elif jewel_stat_window != null and jewel_stat_window.visible:
+		jewel_stat_window.visible = false
 	elif detail.visible:
 		_hide_detail()
 	else:
@@ -999,6 +1030,8 @@ func _redetail() -> void:
 
 ## Kamienie w sakwie według rodzaju, sortowania i filtra poziomu.
 func _pouch_list() -> Array:
+	if pouch_filter == "jewel":
+		return _game.jewel_list(jewel_sort, jewel_stat, jewel_max_stars)
 	var levels: Array = Game.GEM_LEVEL_RANGES[pouch_range] if pouch_range >= 0 else []
 	return _game.gem_list(pouch_filter, pouch_sort, levels)
 
@@ -1020,14 +1053,25 @@ func _refresh_pouch() -> void:
 	tab_buttons["pouch"].text = tr("Sakwa %d") % total if total > 0 else tr("Sakwa")  # bez nawiasów - mieści się
 	for k in pouch_kind_buttons:
 		_tab_look(pouch_kind_buttons[k], k == pouch_filter)
+	var jewels := pouch_filter == "jewel"
+	pouch_grid.visible = not jewels
+	jewel_rows.visible = jewels
+	jewel_stat_button.get_parent().visible = jewels
+	jewel_shatter_button.visible = false  # _refresh_jewels pokaże przy ocenie „do …”
+	for c in jewel_rows.get_children():
+		jewel_rows.remove_child(c)
+		c.queue_free()
 	pouch_sort_button.text = tr("Sortuj: rodzaj") if pouch_sort == "kind" else tr("Sortuj: poziom")
-	if pouch_range < 0:
+	if jewels:
+		_refresh_jewels()
+	elif pouch_range < 0:
 		pouch_range_button.text = tr("Poziom: wszystkie")
 	else:
 		var r: Array = Game.GEM_LEVEL_RANGES[pouch_range]
 		pouch_range_button.text = tr("Poziom: %d-%d") % [r[0], r[1]]
-	_tab_look(pouch_range_button, pouch_range >= 0)
-	for id in _pouch_list():
+	if not jewels:
+		_tab_look(pouch_range_button, pouch_range >= 0)
+	for id in ([] if jewels else _pouch_list()):
 		var slot := GemSlot.new(SLOT_SIZE)
 		slot.area = "pouch"
 		slot.show_gem(id, _game.gem_count(id), false, false, pouch_marked.has(id))
@@ -1036,6 +1080,166 @@ func _refresh_pouch() -> void:
 		slot.pressed.connect(_on_pouch_gem.bind(id))
 		pouch_grid.add_child(slot)
 	_refresh_pouch_bar()
+
+
+## Szlachetne: przyciski (sortowanie, ocena, premia, rozbijanie widocznych) i wiersze kamieni z oceną i premiami.
+func _refresh_jewels() -> void:
+	if jewel_stat == "" and jewel_sort == "stat":
+		jewel_sort = "stars"
+	pouch_sort_button.text = {"stars": tr("Sortuj: ocena"), "level": tr("Sortuj: premie"),
+			"stat": tr("Sortuj: wybrana premia")}[jewel_sort]
+	pouch_range_button.text = tr("Ocena: wszystkie") if jewel_max_stars == 0 \
+			else Lang.n(jewel_max_stars, "Ocena: do %d gwiazdki", "Ocena: do %d gwiazdek", "Ocena: do %d gwiazdek") % jewel_max_stars
+	_tab_look(pouch_range_button, jewel_max_stars > 0)
+	jewel_stat_button.text = tr("Premia: wszystkie") if jewel_stat == "" \
+			else tr("Premia: %s") % LootFilter.stat_name(jewel_stat)
+	_tab_look(jewel_stat_button, jewel_stat != "")
+	var ids := _pouch_list()
+	jewel_shatter_button.visible = jewel_max_stars > 0 and not ids.is_empty() and not pouch_select
+	var dust: int = _game.gems_value(ids)
+	jewel_shatter_button.text = tr("Na pewno? +%d odpr.") % dust if _pouch_armed == "jewels" \
+			else tr("Rozbij widoczne (%d): +%d odpr.") % [ids.size(), dust]
+	if ids.is_empty():
+		var none := _label(jewel_rows, tr("Brak kamieni szlachetnych z tymi ustawieniami."), 12, DIM)
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	for id in ids:
+		jewel_rows.add_child(_jewel_row(id))
+
+
+## Wiersz kamienia szlachetnego: ikona, nazwa z oceną, premie (wybrana premia na złoto); stuknięcie jak pole sakwy
+## (przezroczysty przycisk na całym wierszu).
+func _jewel_row(id: String) -> Control:
+	var row := PanelContainer.new()
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.16, 0.11, 0.08)
+	st.border_color = GOLD if pouch_marked.has(id) else Gems.color_of(id).darkened(0.4)
+	st.set_border_width_all(2 if pouch_marked.has(id) else 1)
+	st.set_corner_radius_all(4)
+	st.set_content_margin_all(4)
+	row.add_theme_stylebox_override("panel", st)
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(box)
+	var slot := GemSlot.new(44.0)
+	slot.area = "pouch"
+	slot.show_gem(id, _game.gem_count(id), false, false, pouch_marked.has(id))
+	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	box.add_child(slot)
+	var col := VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 0)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(col)
+	var head := HBoxContainer.new()
+	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(head)
+	_label(head, Gems.name_of(id), 13, Gems.color_of(id)).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head.add_child(_stars(Gems.jewel_stars(id)))
+	var lines: PackedStringArray = []
+	for stp in Gems.jewel_stats(id):
+		lines.append(Items.stat_text(stp[0], stp[1]))
+	var text := _label(col, ", ".join(lines), 11, TEXT)
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if jewel_stat != "":
+		var chosen := _label(col, Items.stat_text(jewel_stat, Gems.jewel_value(id, jewel_stat)), 11, GOLD)
+		chosen.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tap := Button.new()
+	tap.flat = true
+	tap.custom_minimum_size = Vector2(0, 48)
+	var clear := StyleBoxEmpty.new()
+	for state in ["normal", "hover", "pressed", "focus"]:
+		tap.add_theme_stylebox_override(state, clear)
+	tap.pressed.connect(_on_pouch_gem.bind(id))
+	row.add_child(tap)
+	return row
+
+
+## Ocena kamienia: rysowane gwiazdki (pełne złote, puste ciemne) - bez zależności od czcionki.
+func _stars(n: int) -> Control:
+	var c := Control.new()
+	c.custom_minimum_size = Vector2(Gems.MAX_STARS * 10 + 4, 12)
+	c.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	c.draw.connect(func() -> void:
+		for k in Gems.MAX_STARS:
+			var center := Vector2(8 + k * 10, 6)
+			var pts := PackedVector2Array()
+			for p in 10:
+				var r := 4.5 if p % 2 == 0 else 2.0
+				pts.append(center + Vector2.from_angle(-PI / 2.0 + p * PI / 5.0) * r)
+			c.draw_colored_polygon(pts, GOLD if k < n else Color(0.4, 0.32, 0.22)))
+	return c
+
+
+## Rozbija wszystkie widoczne kamienie szlachetne (ocena „do ★…”): pierwsze stuknięcie pyta, drugie rozbija.
+func _on_jewel_shatter() -> void:
+	var ids := _pouch_list()
+	if ids.is_empty():
+		return
+	if _pouch_armed != "jewels":
+		_pouch_armed = "jewels"
+		refresh()
+		return
+	_pouch_armed = ""
+	_game.shatter_gems(ids)
+	_play_gem()
+	refresh()
+
+
+## Okno wyboru premii szlachetnych (siatka przycisków, „Wszystkie”, „Wróć”).
+func _open_jewel_stats() -> void:
+	if jewel_stat_window == null:
+		jewel_stat_window = Control.new()
+		jewel_stat_window.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		jewel_stat_window.mouse_filter = Control.MOUSE_FILTER_STOP
+		add_child(jewel_stat_window)
+		var dim := ColorRect.new()
+		dim.color = Color(0, 0, 0, 0.55)
+		dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		jewel_stat_window.add_child(dim)
+		var panel := PanelContainer.new()
+		var st := StyleBoxFlat.new()
+		st.bg_color = Color(0.1, 0.07, 0.06, 0.98)
+		st.border_color = GOLD
+		st.set_border_width_all(2)
+		st.set_corner_radius_all(6)
+		st.set_content_margin_all(10)
+		panel.add_theme_stylebox_override("panel", st)
+		panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+		panel.offset_left = 8
+		panel.offset_right = -8
+		panel.offset_bottom = -8
+		panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+		jewel_stat_window.add_child(panel)
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 6)
+		panel.add_child(col)
+		_label(col, tr("Pokaż kamienie z premią:"), 15, GOLD)
+		var grid := GridContainer.new()
+		grid.columns = 2
+		grid.add_theme_constant_override("h_separation", 4)
+		grid.add_theme_constant_override("v_separation", 4)
+		col.add_child(grid)
+		for stat in [""] + Gems.jewel_stat_pool():
+			var b := _pouch_button(grid, tr("Wszystkie") if stat == "" else LootFilter.stat_name(stat))
+			b.clip_text = true
+			b.add_theme_font_size_override("font_size", 11)
+			b.custom_minimum_size.x = 150
+			b.set_meta("stat", stat)
+			b.pressed.connect(func() -> void:
+				jewel_stat = stat
+				jewel_sort = "stat" if stat != "" else "stars"
+				_pouch_armed = ""
+				jewel_stat_window.visible = false
+				refresh())
+		var back_b := _pouch_button(col, tr("Wróć"))
+		back_b.custom_minimum_size.y = 48
+		back_b.pressed.connect(func() -> void: jewel_stat_window.visible = false)
+	jewel_stat_window.visible = true
 
 
 ## Stuknięcie kamienia w sakwie: w trybie zaznaczania - zaznacza / odznacza (klucze i dłuta nie), inaczej GemPicker.

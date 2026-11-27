@@ -2,6 +2,24 @@
 
 Szczegóły zrobionych punktów: pliki, funkcje, liczby. Przeszukuj grepem, nie czytaj w całości.
 
+## 27.11.2026 - porządek w kamieniach szlachetnych (ocena, lista, premia, filtr łupu)
+
+- **Problem autora:** kamieni szlachetnych jest bardzo dużo (każdy ma inne losowe premie, więc nie układają się
+  w stosy). **Decyzje (ankieta 27.11.2026):** lista z premiami, szukanie po premii, ocena jakości, rozbijanie słabych
+  jednym przyciskiem i filtr łupu dla szlachetnych. Progi i liczby - propozycje Claude.
+- **Ocena** (`Gems.jewel_quality` - średnio jaka część najwyższej wartości premii na poziomie lochu kamienia,
+  `Items.affix_max` x `JEWEL_MULT`; `jewel_stars` 1-5, progi `STAR_STEPS` 0,35 / 0,48 / 0,6 / 0,72 - z rozkładu
+  losowania: na lochu 20 ok. 10% kamieni ma 1 gwiazdkę, ok. 10% - 5; na wysokich lochach lepsze stopnie są rzadsze,
+  więc ocena średnio niższa). `jewel_value`, `jewel_stat_pool`.
+- **Sakwa, zakładka „Szlachetne”** (`HeroStats._refresh_jewels`, `_jewel_row`, `_stars` - rysowane gwiazdki):
+  wiersze z ikoną, nazwą, oceną i premiami (wybrana premia jeszcze raz na złoto); „Sortuj: ocena / premie / wybrana
+  premia”, „Ocena: do N gwiazdek” (zamiast filtra poziomu), „Premia: …” - okno wyboru (`_open_jewel_stats`, siatka
+  premii z `Gems.jewel_stat_pool`), przy progu oceny „Rozbij widoczne (N): +M odpr.” z potwierdzeniem
+  (`_on_jewel_shatter`). Dane listy - `Game.jewel_list(sort, stat, max_stars)`.
+- **Filtr łupu:** `LootFilter` `jewel_stars` (0 - wyłączone, najwyżej 4), `jewel_burns`; `ProtoLoot` - słaby kamień
+  szlachetny przy podniesieniu od razu na odpryski (napis „+N odprysków”); w oknie filtra (zakładka „Zasady”) rząd
+  „Rozbijaj z oceną do”. Test `tests/test_jewels.gd`.
+
 ## 26.11.2026 - karta umiejętności w zakładce „Kamienie”
 
 - **Prośba i decyzje autora (ankieta 26.11.2026):** wkładanie kamieni bez otwierania okienka dla każdego gniazda

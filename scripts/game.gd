@@ -1589,6 +1589,36 @@ static func _gem_order(id: String) -> String:
 
 
 ## Poziom przy sortowaniu po poziomie (szlachetne z premiami jak poziomy; unikalne wysoko, klucze i dłuta na końcu).
+## Kamienie szlachetne w sakwie (zakładka „Szlachetne”, decyzje autora 27.11.2026): tylko z premią `stat` ("" -
+## wszystkie) i z oceną najwyżej `max_stars` gwiazdek (0 - każda). `sort`: "stars" - od najlepszej oceny, "level" -
+## od najwięcej premii, "stat" - od najwyższej wartości premii `stat` (bez niej - jak "stars").
+func jewel_list(sort := "stars", stat := "", max_stars := 0) -> Array:
+	var out: Array = []
+	for id in gems:
+		if not Gems.is_jewel(id):
+			continue
+		if stat != "" and Gems.jewel_value(id, stat) <= 0.0:
+			continue
+		if max_stars > 0 and Gems.jewel_stars(id) > max_stars:
+			continue
+		out.append(id)
+	var key := func(id: String) -> Array:
+		if sort == "stat" and stat != "":
+			return [Gems.jewel_value(id, stat), Gems.jewel_quality(id)]
+		if sort == "level":
+			return [Gems.level_of(id), Gems.jewel_quality(id)]
+		return [Gems.jewel_quality(id), Gems.level_of(id)]
+	out.sort_custom(func(a: String, b: String) -> bool:
+		var ka: Array = key.call(a)
+		var kb: Array = key.call(b)
+		if ka[0] != kb[0]:
+			return ka[0] > kb[0]
+		if ka[1] != kb[1]:
+			return ka[1] > kb[1]
+		return a < b)
+	return out
+
+
 static func _gem_rank(id: String) -> int:
 	if Gems.is_special(id):
 		return -1
